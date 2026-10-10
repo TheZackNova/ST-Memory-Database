@@ -9,6 +9,7 @@ docs/
 plans/
 specs/
 /*.md
+!/README.md
 /*.txt
 /素材/
 
