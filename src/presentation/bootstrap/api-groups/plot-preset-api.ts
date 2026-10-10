@@ -23,13 +23,13 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
         try {
             const fillModeSwitch = await setCurrentChatFillMode_ACU('llm');
             const warning = 'reason' in fillModeSwitch
-                ? `预设已导入，但当前会话未切换到 LLM 召回模式（${fillModeSwitch.reason}）。请在填表模式页处理确认或重试。`
+                ? `Preset đã được nhập, nhưng phiên hiện tại chưa chuyển sang chế độ truy hồi LLM (${fillModeSwitch.reason}). Hãy xác nhận hoặc thử lại ở trang chế độ điền bảng.`
                 : '';
             return { fillModeSwitch, warning };
         } catch (error: any) {
             return {
                 fillModeSwitch: { ok: false, reason: 'switch_exception', error: String(error?.message || error) },
-                warning: '预设已保存，但当前会话模式切换异常，请在填表模式页核对并重试。',
+                warning: 'Preset đã được lưu, nhưng việc chuyển chế độ của phiên hiện tại gặp lỗi, hãy đối chiếu và thử lại ở trang chế độ điền bảng.',
             };
         }
     }
@@ -41,7 +41,7 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
             return '';
         } catch (error) {
             logWarn_ACU('[API] 已保存预设的界面刷新失败:', error);
-            return '预设已保存，但界面刷新失败，请重新打开配置页。';
+            return 'Preset đã được lưu, nhưng làm mới giao diện thất bại, hãy mở lại trang cấu hình.';
         }
     }
 
@@ -51,7 +51,7 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
             const preset = typeof presetData === 'string' ? JSON.parse(presetData)
                 : typeof presetData === 'object' && presetData !== null ? JSON.parse(JSON.stringify(presetData)) : null;
             if (!preset || typeof preset.name !== 'string' || !preset.name.trim()) {
-                return { success: false, message: '预设数据无效：必须是包含非空 name 的 JSON 对象。' };
+                return { success: false, message: 'Dữ liệu preset không hợp lệ: phải là đối tượng JSON có name không rỗng.' };
             }
             const previousPresets = settings_ACU.plotSettings.promptPresets || [];
             const presets = [...previousPresets];
@@ -70,7 +70,7 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
                 const saved = saveSettingsAndNotify_ACU();
                 if (!saved?.saved || saved.storageType === 'memory') {
                     settings_ACU.plotSettings.promptPresets = previousPresets;
-                    return { success: false, message: saved?.error || saved?.warning || '预设未能持久化保存，请稍后重试。' };
+                    return { success: false, message: saved?.error || saved?.warning || 'Preset chưa được lưu bền vững, vui lòng thử lại sau.' };
                 }
             } catch (error) {
                 settings_ACU.plotSettings.promptPresets = previousPresets;
@@ -83,25 +83,25 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
             if (!deferPostImport && switchTo) {
                 try {
                     switchedCurrentChat = ctx.getApi().injectPlotPresetToCurrentChat(finalName) === true;
-                    if (!switchedCurrentChat) warnings.push('预设已保存，但未能绑定到当前会话，请手动选择该预设。');
+                    if (!switchedCurrentChat) warnings.push('Preset đã được lưu, nhưng chưa gắn được vào phiên hiện tại, hãy chọn preset này thủ công.');
                 } catch (error) {
                     logWarn_ACU('[API] 已导入预设的会话绑定异常:', error);
-                    warnings.push('预设已保存，但当前会话预设绑定异常，请手动选择该预设。');
+                    warnings.push('Preset đã được lưu, nhưng việc gắn preset cho phiên hiện tại gặp lỗi, hãy chọn preset này thủ công.');
                 }
             }
             if (!deferPostImport) warnings.push(refreshImportedPresets());
             return {
                 success: true,
                 message: switchedCurrentChat
-                    ? `预设 "${finalName}" 已成功导入到全局预设库，并已切换当前聊天使用该预设。`
-                    : `预设 "${finalName}" 已成功导入到全局预设库！`,
+                    ? `Đã nhập preset "${finalName}" vào thư viện preset toàn cục và đã chuyển cuộc trò chuyện hiện tại sang dùng preset này.`
+                    : `Đã nhập preset "${finalName}" vào thư viện preset toàn cục!`,
                 presetName: finalName, switchedCurrentChat,
                 fillModeSwitch: postImport.fillModeSwitch,
-                warning: warnings.filter(Boolean).join('；'),
+                warning: warnings.filter(Boolean).join('; '),
             };
         } catch (error: any) {
             logError_ACU('importPlotPresetFromData failed:', error);
-            return { success: false, message: `导入失败: ${error?.message || error}` };
+            return { success: false, message: `Nhập thất bại: ${error?.message || error}` };
         }
     }
 
@@ -206,7 +206,7 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
         importPlotPresetsFromData: async function(presetsArray: any[], options: any = {}) {
             try {
                 if (!Array.isArray(presetsArray)) {
-                    return { success: false, message: '输入必须是数组', imported: 0, failed: 0, details: [] as Record<string, any>[] };
+                    return { success: false, message: 'Đầu vào phải là một mảng', imported: 0, failed: 0, details: [] as Record<string, any>[] };
                 }
 
                 const details = [];
@@ -229,17 +229,17 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
 
                 return {
                     success: failed === 0,
-                    message: `批量导入完成：成功 ${imported} 个，失败 ${failed} 个`,
+                    message: `Nhập hàng loạt hoàn tất: thành công ${imported}, thất bại ${failed}`,
                     imported,
                     failed,
                     details,
                     fillModeSwitch: postImport.fillModeSwitch,
-                    warning: [postImport.warning, refreshWarning].filter(Boolean).join('；'),
+                    warning: [postImport.warning, refreshWarning].filter(Boolean).join('; '),
                 };
 
             } catch (e) {
                 logError_ACU('importPlotPresetsFromData failed:', e);
-                return { success: false, message: `批量导入失败: ${e.message}`, imported: 0, failed: 0, details: [] as Record<string, any>[] };
+                return { success: false, message: `Nhập hàng loạt thất bại: ${e.message}`, imported: 0, failed: 0, details: [] as Record<string, any>[] };
             }
         },
 
@@ -305,7 +305,7 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
                                 presetName: templatePresetName,
                                 destructiveChangeConfirmed: false,
                             });
-                        if (!templateResult?.saved) throw new Error(templateResult?.error || '模板原子提交失败');
+                        if (!templateResult?.saved) throw new Error(templateResult?.error || 'Commit nguyên tử mẫu thất bại');
                         result.templateInjected = true;
                         const committedTemplateData = (
                             'normalizedTemplateData' in templateResult && templateResult.normalizedTemplateData
@@ -315,28 +315,28 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
                             try {
                                 const snapshot = sanitizeTemplateSnapshotForChat_ACU(committedTemplateData);
                                 if (!snapshot?.templateStr || !upsertTemplatePreset_ACU(templatePresetName, snapshot.templateStr)) {
-                                    throw new Error('模板预设存储拒绝写入。');
+                                    throw new Error('Kho preset mẫu từ chối ghi.');
                                 }
                             } catch (error: any) {
-                                result.warning = `模板已保存，但模板预设注册失败：${error?.message || String(error)}`;
+                                result.warning = `Mẫu đã được lưu, nhưng đăng ký preset mẫu thất bại: ${error?.message || String(error)}`;
                                 logWarn_ACU('[游戏初始化] 模板预设注册失败:', error);
                             }
                         }
                         const runtimeStatus = templateResult as { runtimeReady?: boolean; postCommitWarning?: string };
                         if (runtimeStatus.runtimeReady === false) {
                             result.runtimeReady = false;
-                            result.warning = runtimeStatus.postCommitWarning || '模板已保存，但运行时尚未就绪。';
+                            result.warning = runtimeStatus.postCommitWarning || 'Mẫu đã được lưu, nhưng runtime chưa sẵn sàng.';
                         }
                         const messageIndex = (templateResult as { messageIndex?: number }).messageIndex;
                         if (isSqliteMode() && resetExistingTableData) {
                             try {
                                 await reloadStorageProvider();
                                 if (didSqliteFallbackAfterReload_ACU('sqlite')) {
-                                    throw new Error('SQLite 运行时重载后已回退到原生模式。');
+                                    throw new Error('Sau khi tải lại runtime SQLite đã quay về chế độ gốc.');
                                 }
                             } catch (error: any) {
                                 result.runtimeReady = false;
-                                result.warning = `模板已保存，但 SQLite 运行时重建失败：${error?.message || String(error)}`;
+                                result.warning = `Mẫu đã được lưu, nhưng dựng lại runtime SQLite thất bại: ${error?.message || String(error)}`;
                                 logWarn_ACU('[游戏初始化] SQLite 运行时重建失败:', error);
                             }
                         }
@@ -347,7 +347,7 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
                         logDebug_ACU('[游戏初始化] 数据库模板已原子提交');
                     } catch (templateError) {
                         logError_ACU('[游戏初始化] 模板注入失败:', templateError);
-                        throw new Error(`数据库模板注入失败: ${templateError.message}`);
+                        throw new Error(`Chèn mẫu cơ sở dữ liệu thất bại: ${templateError.message}`);
                     }
                 }
 
@@ -375,11 +375,11 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
                             switchTo: true
                         });
                         if (!importResult.success) {
-                            throw new Error(importResult.message || '预设导入失败');
+                            throw new Error(importResult.message || 'Nhập preset thất bại');
                         }
                         result.presetLoaded = true;
                         result.fillModeSwitch = importResult.fillModeSwitch;
-                        result.warning = [result.warning, importResult.warning].filter(Boolean).join('；');
+                        result.warning = [result.warning, importResult.warning].filter(Boolean).join('; ');
                         logDebug_ACU('[游戏初始化] 剧情引导预设加载成功');
                     } catch (presetError) {
                         logError_ACU('[游戏初始化] 预设加载失败:', presetError);
@@ -395,11 +395,11 @@ export function createPlotPresetApi(ctx: ApiGroupContext): Record<string, Functi
                 }
 
                 result.success = true;
-                result.message = '游戏初始化成功';
+                result.message = 'Khởi tạo trò chơi thành công';
                 logDebug_ACU('[游戏初始化] 游戏初始化流程完成');
 
             } catch (error) {
-                result.message = `初始化失败: ${error.message}`;
+                result.message = `Khởi tạo thất bại: ${error.message}`;
                 logError_ACU('initGameSession failed:', error);
             }
 

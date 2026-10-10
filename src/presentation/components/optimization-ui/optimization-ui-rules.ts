@@ -34,7 +34,7 @@ import { getActivePlotEditorSettings_ACU } from '../../../service/plot/plot-logi
     setTimeout(runRefresh, 0);
   }
 
-  export function renderExcludeRuleRows_ACU(containerSelector: string, rules: any, { startPlaceholder = '开始词', endPlaceholder = '结束词', fallbackRules = [] as any[] } = {}) {
+  export function renderExcludeRuleRows_ACU(containerSelector: string, rules: any, { startPlaceholder = 'Từ bắt đầu', endPlaceholder = 'Từ kết thúc', fallbackRules = [] as any[] } = {}) {
     if (!$popupInstance_ACU) return;
     const $container = $popupInstance_ACU.find(containerSelector);
     if (!$container.length) return;
@@ -50,7 +50,7 @@ import { getActivePlotEditorSettings_ACU } from '../../../service/plot/plot-logi
         <div class="acu-exclude-rule-row" style="display:flex; gap:8px; margin-bottom:6px; align-items:center;">
           <input type="text" class="text_pole acu-exclude-rule-start" placeholder="${escapeHtml_ACU(startPlaceholder)}" style="flex:1;" value="${escapeHtml_ACU(rule.start || '')}">
           <input type="text" class="text_pole acu-exclude-rule-end" placeholder="${escapeHtml_ACU(endPlaceholder)}" style="flex:1;" value="${escapeHtml_ACU(rule.end || '')}">
-          <button type="button" class="button acu-exclude-rule-delete" title="删除规则" style="padding:4px 8px;">删除</button>
+          <button type="button" class="button acu-exclude-rule-delete" title="Xóa quy tắc" style="padding:4px 8px;">Xóa</button>
         </div>
       `;
       $container.append(rowHtml);
@@ -60,7 +60,7 @@ import { getActivePlotEditorSettings_ACU } from '../../../service/plot/plot-logi
     rows.forEach(rule => appendRow(rule));
   }
 
-  export function appendExcludeRuleRow_ACU(containerSelector: string, { startPlaceholder = '开始词', endPlaceholder = '结束词' } = {}) {
+  export function appendExcludeRuleRow_ACU(containerSelector: string, { startPlaceholder = 'Từ bắt đầu', endPlaceholder = 'Từ kết thúc' } = {}) {
     if (!$popupInstance_ACU) return;
     const $container = $popupInstance_ACU.find(containerSelector);
     if (!$container.length) return;
@@ -68,7 +68,7 @@ import { getActivePlotEditorSettings_ACU } from '../../../service/plot/plot-logi
       <div class="acu-exclude-rule-row" style="display:flex; gap:8px; margin-bottom:6px; align-items:center;">
         <input type="text" class="text_pole acu-exclude-rule-start" placeholder="${escapeHtml_ACU(startPlaceholder)}" style="flex:1;" value="">
         <input type="text" class="text_pole acu-exclude-rule-end" placeholder="${escapeHtml_ACU(endPlaceholder)}" style="flex:1;" value="">
-        <button type="button" class="button acu-exclude-rule-delete" title="删除规则" style="padding:4px 8px;">删除</button>
+        <button type="button" class="button acu-exclude-rule-delete" title="Xóa quy tắc" style="padding:4px 8px;">Xóa</button>
       </div>
     `;
     $container.append(rowHtml);

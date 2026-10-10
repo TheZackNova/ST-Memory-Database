@@ -19,7 +19,7 @@ function isRowIdAlias(value: unknown): boolean {
 }
 
 function label(sheet: any, key: string): string {
-  return `表「${String(sheet?.name ?? '') || key}」(${key})`;
+  return `Bảng "${String(sheet?.name ?? '') || key}" (${key})`;
 }
 
 function normalizeSeedRowWidth_ACU(row: any[], width: number): boolean {
@@ -35,7 +35,7 @@ function normalizeSeedRowWidth_ACU(row: any[], width: number): boolean {
 
 export function normalizeSheetGuideRowIds_ACU<T>(guideData: T): SheetGuideRowIdNormalizationResult_ACU<T> {
   if (!guideData || typeof guideData !== 'object' || Array.isArray(guideData)) {
-    return { guideData, changed: false, blockers: ['Sheet Guide 必须是对象。'] };
+    return { guideData, changed: false, blockers: ['Sheet Guide phải là một đối tượng.'] };
   }
   const candidate: any = clone(guideData);
   const blockers: string[] = [];
@@ -43,20 +43,20 @@ export function normalizeSheetGuideRowIds_ACU<T>(guideData: T): SheetGuideRowIdN
   for (const [key, sheet] of Object.entries(candidate)) {
     if (!key.startsWith('sheet_')) continue;
     if (!sheet || typeof sheet !== 'object' || Array.isArray(sheet)) {
-      blockers.push(`Sheet Guide ${key} 不是对象。`);
+      blockers.push(`Sheet Guide ${key} không phải đối tượng.`);
       continue;
     }
     const content = (sheet as any).content;
     const header = Array.isArray(content) ? content[0] : null;
     const name = label(sheet, key);
     if (!Array.isArray(header) || header.length === 0) {
-      blockers.push(`${name} 缺少有效表头，无法规范化 row_id。`);
+      blockers.push(`${name} thiếu tiêu đề hợp lệ, không thể chuẩn hóa row_id.`);
       continue;
     }
     const aliases = header.map(isRowIdAlias);
     const identityIndexes = aliases.map((matched, index) => matched ? index : -1).filter(index => index >= 0);
     if (identityIndexes.some(index => index > 0)) {
-      blockers.push(`${name} 的身份列位于第 ${identityIndexes[0] + 1} 列，无法安全移动。`);
+      blockers.push(`${name} có cột danh tính nằm ở cột ${identityIndexes[0] + 1}, không thể di chuyển an toàn.`);
       continue;
     }
     // `_seedRows` existed in early guide payloads and remains in older chat
@@ -65,11 +65,11 @@ export function normalizeSheetGuideRowIds_ACU<T>(guideData: T): SheetGuideRowIdN
       ? CHAT_SHEET_GUIDE_SEED_ROWS_FIELD_ACU : '_seedRows';
     const seedRows = (sheet as any)[seedRowsField];
     if (seedRows !== undefined && !Array.isArray(seedRows)) {
-      blockers.push(`${name} 的种子行不是数组。`);
+      blockers.push(`${name} có hàng seed không phải mảng.`);
       continue;
     }
     if (Array.isArray(seedRows) && seedRows.some(row => !Array.isArray(row))) {
-      blockers.push(`${name} 存在非数组种子行，无法安全规范化。`);
+      blockers.push(`${name} có hàng seed không phải mảng, không thể chuẩn hóa an toàn.`);
       continue;
     }
     const businessWidth = header.length;
@@ -111,7 +111,7 @@ export function normalizeSheetGuideRowIds_ACU<T>(guideData: T): SheetGuideRowIdN
     for (const row of rows) {
       const id = String(row[0] ?? '').trim();
       if (!id) { row[0] = allocateStableRowId_ACU(reserved); changed = true; }
-      else if (seen.has(id)) blockers.push(`${name} 存在重复 row_id「${id}」，不能自动重写。`);
+      else if (seen.has(id)) blockers.push(`${name} có row_id "${id}" bị trùng, không thể tự động ghi lại.`);
       else { if (row[0] !== id) changed = true; row[0] = id; seen.add(id); }
     }
   }

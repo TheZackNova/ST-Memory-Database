@@ -80,12 +80,12 @@ export class HostChatSaveNotStartedError_ACU extends Error {
 
 function captureHostChatReadContext_ACU() {
     const api = SillyTavern_API_ACU;
-    if (!api) throw new HostChatSaveNotStartedError_ACU('宿主聊天 API 不可用。');
+    if (!api) throw new HostChatSaveNotStartedError_ACU('API trò chuyện của host không khả dụng.');
     const { chat, chatId, characterId, groupId } = api;
     const group = groupId != null && groupId !== '';
     const character = api.characters?.[Number(characterId)];
     if (!Array.isArray(chat) || !chatId || (!group && !character?.avatar)) {
-        throw new HostChatSaveNotStartedError_ACU('聊天保存确认缺少宿主聊天身份。');
+        throw new HostChatSaveNotStartedError_ACU('Xác nhận lưu cuộc trò chuyện thiếu danh tính cuộc trò chuyện của host.');
     }
     return { api, chat, chatId, characterId, groupId, group, character };
 }
@@ -94,7 +94,7 @@ function assertHostChatReadContext_ACU(context: ReturnType<typeof captureHostCha
     const { api, chat, chatId, characterId, groupId } = context;
     if (SillyTavern_API_ACU !== api || api.chat !== chat || api.chatId !== chatId
         || api.characterId !== characterId || api.groupId !== groupId) {
-        throw new Error('保存或回读期间聊天已切换。');
+        throw new Error('Cuộc trò chuyện đã chuyển trong lúc lưu hoặc đọc lại.');
     }
 }
 
@@ -108,13 +108,13 @@ async function readHostChatWithinContext_ACU(context: ReturnType<typeof captureH
             ch_name: character.name, file_name: chatId, avatar_url: character.avatar,
         }),
     });
-    if (!response.ok) throw new Error(`聊天保存回读失败（HTTP ${response.status}）。`);
+    if (!response.ok) throw new Error(`Đọc lại sau khi lưu cuộc trò chuyện thất bại (HTTP ${response.status}).`);
     const persisted = await response.json();
     assertHostChatReadContext_ACU(context);
-    if (!Array.isArray(persisted)) throw new Error('聊天保存回读返回了无效消息列表。');
+    if (!Array.isArray(persisted)) throw new Error('Đọc lại sau khi lưu cuộc trò chuyện trả về danh sách tin nhắn không hợp lệ.');
     const messages = group ? persisted : persisted.slice(1);
     if (messages.some(message => !message || typeof message !== 'object' || Array.isArray(message))) {
-        throw new Error('聊天保存回读包含无效消息。');
+        throw new Error('Đọc lại sau khi lưu cuộc trò chuyện chứa tin nhắn không hợp lệ.');
     }
     return messages;
 }
@@ -131,7 +131,7 @@ export async function readChatFromHostStrict_ACU(): Promise<any[]> {
  */
 export async function saveChatToHostStrict_ACU({ verify = false } = {}): Promise<void> {
     if (typeof SillyTavern_API_ACU?.saveChat !== 'function') {
-        throw new HostChatSaveNotStartedError_ACU('宿主 saveChat 不可用，无法提交破坏性聊天数据变更。');
+        throw new HostChatSaveNotStartedError_ACU('saveChat của host không khả dụng, không thể commit thay đổi dữ liệu trò chuyện mang tính phá hủy.');
     }
     const api = SillyTavern_API_ACU;
     const context = verify ? captureHostChatReadContext_ACU() : null;
@@ -139,7 +139,7 @@ export async function saveChatToHostStrict_ACU({ verify = false } = {}): Promise
     if (context) {
         const messages = await readHostChatWithinContext_ACU(context);
         if (JSON.stringify(messages) !== JSON.stringify(context.chat)) {
-            throw new Error('聊天保存未获确认：服务器消息与本轮楼层不一致。');
+            throw new Error('Lưu cuộc trò chuyện chưa được xác nhận: tin nhắn trên máy chủ không khớp tầng lượt này.');
         }
     }
     notifyPostChatSaveListeners_ACU();

@@ -221,7 +221,7 @@ function outcomeFromSpecialistResult_ACU(
     for (const module of writableModules) {
       const changed = Object.keys(result.patch).some(key => patchModule_ACU(key) === module);
       moduleCompletion[module] = truncated ? (changed ? 'partial' : 'failed') : (changed ? 'complete_changed' : 'complete_no_change');
-      if (truncated) unresolvedIssues.push({ module, source: 'truncated', path: `$.patch.${module}`, message: 'specialist JSON 在输出中途截断，尾部写集尚未确认完整' });
+      if (truncated) unresolvedIssues.push({ module, source: 'truncated', path: `$.patch.${module}`, message: 'JSON của specialist bị cắt giữa chừng khi xuất, tập ghi ở phần đuôi chưa được xác nhận đầy đủ' });
     }
     return {
       agentName: result.agentName,
@@ -239,12 +239,12 @@ function outcomeFromSpecialistResult_ACU(
   if (result.status === 'no_change') {
     for (const module of writableModules) {
       moduleCompletion[module] = truncated ? 'failed' : 'complete_no_change';
-      if (truncated) unresolvedIssues.push({ module, source: 'truncated', path: module, message: 'no_change 输出被截断，不能据此确认模块完整' });
+      if (truncated) unresolvedIssues.push({ module, source: 'truncated', path: module, message: 'Đầu ra no_change bị cắt, không thể dựa vào đó để xác nhận module đã đầy đủ' });
     }
     return { agentName: result.agentName, status: result.status, summary: result.summary, evidenceRefs: result.evidenceRefs, uncertainties: result.uncertainties, completion: truncated ? 'failed' : 'complete_no_change', moduleCompletion, unresolvedIssues, acceptedKeys: [] };
   }
   for (const module of writableModules) moduleCompletion[module] = 'failed';
-  const message = result.status === 'blocked' ? result.unresolved.join('；') : result.message;
+  const message = result.status === 'blocked' ? result.unresolved.join('; ') : result.message;
   const source: WorldSimulationPendingFixSource_ACU = 'protocol_failed';
   for (const module of writableModules) unresolvedIssues.push({ module, source, path: module, message });
   return result.status === 'blocked'
@@ -267,7 +267,7 @@ export function salvageCandidateOutcome_ACU(
   for (const [rawModule, rawPatch] of Object.entries(patch as Record<string, unknown>)) {
     const module = patchModule_ACU(rawModule);
     if (!module || !writableModules.includes(module)) {
-      for (const target of writableModules) issues.push({ module: target, source: 'contract_rejected', path: `$.patch.${rawModule}`, message: `Agent 无权写入模块 ${rawModule}` });
+      for (const target of writableModules) issues.push({ module: target, source: 'contract_rejected', path: `$.patch.${rawModule}`, message: `Agent không có quyền ghi vào module ${rawModule}` });
       continue;
     }
     const base = { ...payload, patch: { [rawModule]: rawPatch } };
@@ -289,7 +289,7 @@ export function salvageCandidateOutcome_ACU(
         if (accepted.length) acceptedItems[kind] = accepted;
       }
       const extra = Object.keys(record).filter(key => key !== 'upsert' && key !== 'remove');
-      if (extra.length) issues.push({ module, source: 'contract_rejected', path: `$.patch.${rawModule}.${extra[0]}`, message: `模块 patch 含未授权字段：${extra.join(',')}` });
+      if (extra.length) issues.push({ module, source: 'contract_rejected', path: `$.patch.${rawModule}.${extra[0]}`, message: `Patch của module chứa trường chưa được ủy quyền: ${extra.join(',')}` });
       if (Object.keys(acceptedItems).length) acceptedPatch[rawModule] = acceptedItems;
       continue;
     }
@@ -301,7 +301,7 @@ export function salvageCandidateOutcome_ACU(
     }
   }
   if (truncated) {
-    for (const module of writableModules) issues.push({ module, source: 'truncated', path: `$.patch.${module}`, message: 'specialist JSON 在输出中途截断，尾部写集尚未确认完整' });
+    for (const module of writableModules) issues.push({ module, source: 'truncated', path: `$.patch.${module}`, message: 'JSON của specialist bị cắt giữa chừng khi xuất, tập ghi ở phần đuôi chưa được xác nhận đầy đủ' });
   }
   if (!Object.keys(acceptedPatch).length && !issues.length) throw new Error('WORLD_SIMULATION_SPECIALIST_PATCH_EMPTY');
   const result = parseWorldSimulationSpecialistResult_ACU({ ...payload, patch: acceptedPatch }, snapshot) as Extract<WorldSimulationSpecialistResult_ACU, { status: 'candidate' }>;
@@ -363,8 +363,8 @@ function oneShotTables_ACU(modules: readonly WorldSimulationLedgerModule_ACU[]):
  */
 export function oneShotBootstrapNotice_ACU(baseRevision: number, modules: readonly WorldSimulationLedgerModule_ACU[], ledger: WorldSimulationLedger_ACU): string[] {
   const empty = modules.filter(module => Array.isArray(ledger[module]) && !(ledger[module] as unknown[]).length);
-  if (baseRevision === 0) return [`【首轮建账】账本尚未建立（基线修订号 0）。按提示词【首轮建账】依据世界书与锚点为你负责的模块建立初始条目；空表不是无变化的理由。${empty.length ? `当前为空的负责模块：${empty.join('、')}。` : ''}`];
-  if (empty.length) return [`【空模块】你负责的 ${empty.join('、')} 当前为空。按提示词【首轮建账】检查世界书与锚点能否建档，空表不是无变化的理由。`];
+  if (baseRevision === 0) return [`【Dựng sổ cái đợt đầu】Sổ cái chưa được lập (số sửa đổi cơ sở 0). Theo phần 【Dựng sổ cái đợt đầu】 của prompt, hãy dựa vào Sổ thế giới và neo để lập các mục ban đầu cho module bạn phụ trách; bảng rỗng không phải lý do để coi là không đổi.${empty.length ? ` Các module phụ trách hiện đang rỗng: ${empty.join(', ')}.` : ''}`];
+  if (empty.length) return [`【Module rỗng】${empty.join(', ')} mà bạn phụ trách hiện đang rỗng. Theo phần 【Dựng sổ cái đợt đầu】 của prompt, hãy kiểm tra xem Sổ thế giới và neo có thể dùng để lập hồ sơ không; bảng rỗng không phải lý do để coi là không đổi.`];
   return [];
 }
 
@@ -393,35 +393,35 @@ export function oneShotUncoveredModules_ACU(
 
 /** 与解析器同源的可写列清单，提示词与纠错回执不再各自手写列名。 */
 function oneShotColumnWhitelist_ACU(tables: readonly string[]): string {
-  return tables.map(table => `${table}(${worldSimulationSqlWritableColumns_ACU(table).join(', ')})`).join('；');
+  return tables.map(table => `${table}(${worldSimulationSqlWritableColumns_ACU(table).join(', ')})`).join('; ');
 }
 
 /** Explain domain rejections without silently inventing entity IDs or changing the patch. */
 function oneShotRepairHint_ACU(issues: readonly WorldSimulationSubagentIssue_ACU[], tables: readonly string[]): string {
   const hints: string[] = [];
   if (issues.some(issue => /(?:^|\.)actorIds$/.test(issue.path) && issue.module === 'seeds')) {
-    hints.push('seeds.actor_ids 只能写 SQL 单引号包裹的 JSON 字符串 ID 数组，例如 actor_ids = \'["actor-1"]\'；仅能引用当前账本已有的 actor.id。没有可确认的人物 ID 就从每条出错的 INSERT/UPDATE 中省略 actor_ids，不能写人物对象数组、单个对象、数字或 null。');
+    hints.push('seeds.actor_ids chỉ được ghi mảng ID chuỗi JSON bọc trong dấu nháy đơn của SQL, ví dụ actor_ids = \'["actor-1"]\'; chỉ được trích dẫn actor.id đã có trong sổ cái hiện tại. Nếu không có ID nhân vật xác nhận được thì bỏ actor_ids khỏi mỗi INSERT/UPDATE bị lỗi, không được ghi mảng đối tượng nhân vật, một đối tượng đơn, số hay null.');
   }
   if (issues.some(issue => /(?:^|\.)(?:interests|resources|goals|constraints|informationSources|knownFacts|channels|relatedActorIds)$/.test(issue.path))) {
-    hints.push('字符串数组列必须写 SQL 单引号包裹的 JSON 字符串数组，例如 channels = \'["市井"]\'；不能写对象数组、数字或 null。涉及人物关联的 ID 必须来自已确认的账本。');
+    hints.push('Cột mảng chuỗi phải ghi mảng chuỗi JSON bọc trong dấu nháy đơn của SQL, ví dụ channels = \'["chợ búa"]\'; không được ghi mảng đối tượng, số hay null. ID liên quan đến nhân vật phải lấy từ sổ cái đã xác nhận.');
   }
-  if (issues.some(issue => /(?:^|\.)(?:location|locationRef)$/.test(issue.path) && /必须是对象或 null/.test(issue.message))) {
-    hints.push('seeds.location、actors.location_ref 和 player.location 需要 SQL 单引号包裹的 JSON 对象，如 location = \'{"region":"江南府"}\'；不能填裸地名。actors.location 则是地名文本。');
+  if (issues.some(issue => /(?:^|\.)(?:location|locationRef)$/.test(issue.path) && /必须是对象或 null|phải là đối tượng hoặc null/.test(issue.message))) {
+    hints.push('seeds.location, actors.location_ref và player.location cần đối tượng JSON bọc trong dấu nháy đơn của SQL, như location = \'{"region":"Giang Nam phủ"}\'; không được điền tên địa danh trần. Còn actors.location là văn bản tên địa danh.');
   }
-  if (issues.some(issue => /actors\.upsert\[\d+\]\.location$/.test(issue.path) && /必须是字符串/.test(issue.message))) {
-    hints.push('actors.location 是地名纯文本，只能写 location = \'江南府·客栈\' 这样的字符串，不能写 JSON；结构化地点改写到 location_ref = \'{"region":"江南府","place":"客栈"}\'。');
+  if (issues.some(issue => /actors\.upsert\[\d+\]\.location$/.test(issue.path) && /必须是字符串|phải là chuỗi/.test(issue.message))) {
+    hints.push('actors.location là văn bản thuần tên địa danh, chỉ được ghi chuỗi như location = \'Giang Nam phủ · Quán trọ\', không được ghi JSON; địa điểm có cấu trúc thì ghi vào location_ref = \'{"region":"Giang Nam phủ","place":"Quán trọ"}\'.');
   }
   if (issues.some(issue => /(?:sourceId|UNKNOWN_GUIDANCE_SOURCE)/.test(`${issue.path} ${issue.message}`))) {
-    hints.push('guidance.signals.sourceId 只能使用运行时账本中已经存在的条目 ID、clock 或 player；不能引用本次候选刚 INSERT 的 rumors/chronicle，也不能编造 rumors:1 等未出现在目录中的 ID。无法绑定已有来源时删除该 signal，不要把新建条目的猜测 ID 填进去。');
+    hints.push('guidance.signals.sourceId chỉ được dùng ID mục đã có trong sổ cái runtime, clock hoặc player; không được trích dẫn rumors/chronicle vừa INSERT trong ứng viên lần này, cũng không được bịa ID như rumors:1 chưa xuất hiện trong danh mục. Khi không thể gắn với nguồn đã có thì xóa signal đó, đừng điền ID đoán của mục mới tạo.');
   }
-  if (issues.some(issue => /SQL 值只允许字符串、数字或 NULL/.test(issue.message))) {
-    hints.push('字符串值必须用英文半角单引号 \' 包裹，例如 visibility = \'public\'、evidence_refs 可直接省略；不能用中文弯引号 ‘’、全角 ＇、反斜杠 \\\' 或夹带零宽字符，正文里的单引号写成两个 \'\'。');
+  if (issues.some(issue => /SQL 值只允许字符串、数字或 NULL|Giá trị SQL chỉ cho phép chuỗi, số hoặc NULL/.test(issue.message))) {
+    hints.push('Giá trị chuỗi phải được bọc bằng dấu nháy đơn ASCII \', ví dụ visibility = \'public\', evidence_refs có thể bỏ thẳng; không được dùng dấu nháy cong kiểu Trung ‘’, dấu ＇ toàn chiều rộng, dấu gạch chéo ngược \\\' hay chèn ký tự độ rộng bằng không, dấu nháy đơn trong nội dung viết thành hai dấu \'\'.');
   }
   if (issues.some(issue => /SQL_COLUMN_FORBIDDEN/.test(issue.message))) {
-    hints.push(`被拒的列不在该表白名单内，删掉该列或换成白名单列，不要改名重试：${oneShotColumnWhitelist_ACU(tables)}。修订号只写在 WHERE expected_revision，不写进 SET 或 INSERT 列。`);
+    hints.push(`Cột bị từ chối không nằm trong danh sách trắng của bảng này, hãy xóa cột đó hoặc đổi sang cột trong danh sách trắng, đừng đổi tên rồi thử lại: ${oneShotColumnWhitelist_ACU(tables)}. Số sửa đổi chỉ ghi trong WHERE expected_revision, không ghi vào SET hay cột INSERT.`);
   }
   if (issues.some(issue => /chronicle_overview|chronicle_archive/.test(issue.message))) {
-    hints.push('归档 SQL 列必须严格使用 chronicle_archive=(archive_ref, day, summary, fingerprints, related_ids, source_chronicle_ids) 与 chronicle_overview=(fingerprint, day, one_line, archive_ref)；chronicle_overview 不允许 summary 或 related_ids。');
+    hints.push('Cột SQL lưu trữ phải dùng đúng chronicle_archive=(archive_ref, day, summary, fingerprints, related_ids, source_chronicle_ids) và chronicle_overview=(fingerprint, day, one_line, archive_ref); chronicle_overview không cho phép summary hay related_ids.');
   }
   return hints.join(' ');
 }
@@ -500,21 +500,21 @@ export class WorldSimulationSubagentRuntime_ACU {
     const elapsedDays = Number.isInteger(input.elapsedDays) && input.elapsedDays! >= 0
       ? input.elapsedDays!
       : inferWorldSimulationElapsedDays_ACU(anchor);
-    const runtime = ['【本回合运行时数据】', `本轮焦点：${input.focus}`, `本轮锚点证据引用：${input.anchorEvidenceRef}（evidence_refs 只能用已授权引用）`,
-      `时序：day=${input.givenLedger.clock.day} slot=${input.givenLedger.clock.slot} storyTime=${input.givenLedger.clock.storyTime}`,
+    const runtime = ['【本回合运行时数据】', `Tiêu điểm lượt này: ${input.focus}`, `Tham chiếu bằng chứng neo của lượt này: ${input.anchorEvidenceRef} (evidence_refs chỉ được dùng tham chiếu đã ủy quyền)`,
+      `Trình tự thời gian: day=${input.givenLedger.clock.day} slot=${input.givenLedger.clock.slot} storyTime=${input.givenLedger.clock.storyTime}`,
       ...oneShotBootstrapNotice_ACU(input.baseLedgerRevision, modules, input.givenLedger),
       // 批次二串行接在批次一之后，输入 clock 已包含本轮推进；这里不能再让它叠加经过天数。
       input.agentName === 'guidance-composer'
-        ? `【共同时间基准】本轮共享的明确经过天数为 ${elapsedDays}（由工作流对同一锚点一次计算）。批次一已按这段跨度维护 clock，当前日 ${input.givenLedger.clock.day} 已包含本轮推进（本轮内存预览，尚未持久化）；直接采用该日，不再叠加经过天数。幕后纪要 day、风声 origin_day 与 earliest_reveal_day 以当前日为准，并按本轮经过的时间跨度判断哪些幕后事件已完结、哪些消息已传开；不把回忆或既已计入的旅程重复累加。`
-        : `【共同时间基准】本轮共享的明确经过天数为 ${elapsedDays}（由工作流对同一锚点一次计算；无明确时间流逝即为 0）。当前已提交日为 ${input.givenLedger.clock.day}；不把回忆或既已计入的旅程重复累加。undercurrent-analyst 独占 clock 写入，clock.days 只能表达这一本轮推进量；dramatis-keeper 不写 clock，但人物状态、死亡时间及伴生传闻的演算必须使用本轮共享经过天数。另一并发角色的推断尚未落账，不得当作已提交事实。`,
-      `单例修订号：${input.baseLedgerRevision}（clock/player/guidance 的 UPDATE 写 WHERE expected_revision = ${input.baseLedgerRevision}；数组行用各自 revision 字段）`,
-      `【待修复】${JSON.stringify(input.givenLedger.pendingFixes.filter(fix => modules.includes(fix.module)))}`,
-      ...(input.roundChanges ? [`【本轮变更清单】${input.roundChanges}`] : [])].join('\n');
+        ? `【Mốc thời gian chung】Số ngày trôi qua rõ ràng được chia sẻ trong lượt này là ${elapsedDays} (do quy trình tính một lần cho cùng một neo). Lô một đã bảo trì clock theo khoảng này, ngày hiện tại ${input.givenLedger.clock.day} đã bao gồm phần đẩy tiến của lượt này (xem trước trong bộ nhớ của lượt này, chưa lưu bền); dùng thẳng ngày đó, không cộng thêm số ngày trôi qua. day của kỷ yếu hậu trường, origin_day và earliest_reveal_day của phong thanh lấy ngày hiện tại làm chuẩn, và dựa vào khoảng thời gian trôi qua trong lượt này để xét sự kiện hậu trường nào đã kết thúc, tin nào đã lan ra; không cộng dồn lặp hồi ức hoặc hành trình đã được tính.`
+        : `【Mốc thời gian chung】Số ngày trôi qua rõ ràng được chia sẻ trong lượt này là ${elapsedDays} (do quy trình tính một lần cho cùng một neo; không có thời gian trôi qua rõ ràng thì là 0). Ngày đã nộp hiện tại là ${input.givenLedger.clock.day}; không cộng dồn lặp hồi ức hoặc hành trình đã được tính. undercurrent-analyst độc quyền ghi clock, clock.days chỉ được biểu thị lượng đẩy tiến của lượt này; dramatis-keeper không ghi clock, nhưng việc tính toán trạng thái nhân vật, thời điểm chết và tin đồn đi kèm phải dùng số ngày trôi qua chia sẻ của lượt này. Suy luận của vai trò đồng thời khác chưa được ghi sổ, không được coi là sự thật đã nộp.`,
+      `Số sửa đổi singleton: ${input.baseLedgerRevision} (UPDATE của clock/player/guidance ghi WHERE expected_revision = ${input.baseLedgerRevision}; hàng mảng dùng trường revision riêng)`,
+      `【Cần sửa】${JSON.stringify(input.givenLedger.pendingFixes.filter(fix => modules.includes(fix.module)))}`,
+      ...(input.roundChanges ? [`【Danh sách thay đổi của lượt này】${input.roundChanges}`] : [])].join('\n');
     const resolvers = createWorldSimulationPlaceholderResolvers_ACU({ ...input.promptContext,
       runtimeContext: runtime, writableModules: modules, worldState: input.givenLedger,
       anchorMessage: stripWritingAnnotations_ACU(anchor) });
     // 一次性路径沿用已筛选的完整自有资料与关联目录，不能因模板编辑扩大到整份账本。
-    resolvers.$WORLD_STATE = () => `【你负责的资料（完整行）】${JSON.stringify(own)}\n【关联只读资料】局势刻度与风声为完整行；伏线与人物谱为浓缩目录，需细节时按 readAddress 调用 read。${JSON.stringify(related)}`;
+    resolvers.$WORLD_STATE = () => `【Tài liệu bạn phụ trách (hàng đầy đủ)】${JSON.stringify(own)}\n【Tài liệu liên quan chỉ đọc】Thang đo cục diện và phong thanh là hàng đầy đủ; phục bút và danh bạ nhân vật là danh mục cô đọng, cần chi tiết thì gọi read theo readAddress. ${JSON.stringify(related)}`;
     const split = splitWorldSimulationSubagentPrompt_ACU(adaptWorldSimulationPromptSegmentsToToolMode_ACU(input.agentName, input.settings.agentPrompts[input.agentName], toolMode), input.agentName);
     const rendered = await renderWorldSimulationPrompt_ACU(split.segments, input.agentName, resolvers);
     const snapshot = await renderWorldSimulationSnapshotSections_ACU(split.snapshotTemplate, resolvers,
@@ -546,7 +546,7 @@ export class WorldSimulationSubagentRuntime_ACU {
       const receipt = JSON.stringify({ status: 'candidate', agentName: input.agentName,
         summary: outcome.summary, evidenceRefs: outcome.evidenceRefs, uncertainties: outcome.uncertainties,
         unresolvedIssues: outcome.unresolvedIssues,
-        instruction: toolMode === 'tools' ? '候选已校验，下一回复单独调用 submit 确认交付。' : '候选已校验，下一回复单独输出 status、agentName、summary、evidenceRefs、uncertainties 的交付 JSON。' });
+        instruction: toolMode === 'tools' ? 'Ứng viên đã được kiểm tra, ở lần trả lời kế tiếp hãy gọi riêng submit để xác nhận nộp.' : 'Ứng viên đã được kiểm tra, ở lần trả lời kế tiếp hãy xuất riêng JSON nộp gồm status, agentName, summary, evidenceRefs, uncertainties.' });
       if (toolMode === 'tools') transcript.push(...nativeToolExchange_ACU(turn.content, turn.toolCalls, turn.toolCalls.map(() => receipt)));
       else transcript.push({ role: 'assistant', content: raw }, { role: 'user', content: receipt });
     };
@@ -562,10 +562,10 @@ export class WorldSimulationSubagentRuntime_ACU {
       // 共享目录里宣传 evidenceRefs 会让模型照着填，再被“多余参数”拒掉。json 模式请求不带 tools。
       const request = worldSimulationInvokeTools_ACU(toolMode, [...agentNativeTools_ACU(requestTools).map(tool => tool.function.name === 'read'
         ? { ...tool, function: { ...tool.function,
-          description: '仅精读本轮运行时资料中明确列出的具体 readAddress；没有可精读条目就不要调用。完整行、锚点和世界书已经注入，不要重复读取；ledger:current 对普通角色未授权。reads 必须是实际可读地址数组。' } }
+          description: 'Chỉ đọc kỹ các readAddress cụ thể được liệt kê rõ trong tài liệu runtime của lượt này; không có mục nào để đọc kỹ thì đừng gọi. Hàng đầy đủ, neo và Sổ thế giới đã được chèn sẵn, không đọc lặp; ledger:current không được ủy quyền cho vai trò thông thường. reads phải là mảng địa chỉ thực sự đọc được.' } }
         : tool.function.name === 'write_sql'
           ? { ...tool, function: { ...tool.function,
-            description: '把本角色本轮全部变更一次写入你负责的表。参数只有 sql：一条或多条用分号隔开的 INSERT/UPDATE/DELETE，字符串用英文半角单引号，正文里的单引号写成两个。证据引用由程序按锚点绑定，不要自己传 evidenceRefs。没有可证实变化就不要调用本工具。',
+            description: 'Ghi một lần toàn bộ thay đổi của vai trò này trong lượt này vào các bảng bạn phụ trách. Tham số chỉ có sql: một hoặc nhiều INSERT/UPDATE/DELETE ngăn cách bằng dấu chấm phẩy, chuỗi dùng dấu nháy đơn ASCII, dấu nháy đơn trong nội dung viết thành hai dấu. Tham chiếu bằng chứng do chương trình gắn theo neo, đừng tự truyền evidenceRefs. Không có thay đổi có thể chứng thực thì đừng gọi công cụ này.',
             parameters: { type: 'object', properties: { sql: { type: 'string' } }, required: ['sql'], additionalProperties: false } } }
           : tool), worldSimulationOneShotSubmitTool_ACU()]);
       let sent: Awaited<ReturnType<typeof executeWorldSimulationFinalRequest_ACU>>;
@@ -594,12 +594,12 @@ export class WorldSimulationSubagentRuntime_ACU {
         let delivery: Record<string, unknown> | null = null;
         let actions: OneShotAction_ACU[] | null = null;
         if (toolMode === 'tools') {
-          if (!turn.toolCalls.length) throw new Error('WORLD_SIMULATION_ONE_SHOT_TOOL_REQUIRED: 必须调用 read、write_sql 或 submit');
+          if (!turn.toolCalls.length) throw new Error('WORLD_SIMULATION_ONE_SHOT_TOOL_REQUIRED: phải gọi read, write_sql hoặc submit');
           const split = splitNativeDecisionCalls_ACU(nativeToolArguments_ACU(turn.toolCalls), [AGENT_SUBMIT_TOOL_NAME_ACU]);
           delivery = split.decision ? submitPayloadObject_ACU(split.decision.payload) : null;
           actions = split.tools.length ? split.tools.map(({ call, payload: args }) => ({ name: call.name, args })) : null;
         } else {
-          if (turn.toolCalls.length) throw new Error('WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: 当前为 JSON 模式，不要调用函数；把 read 或 write_sql 写成 JSON 对象');
+          if (turn.toolCalls.length) throw new Error('WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: hiện ở chế độ JSON, không gọi hàm; hãy viết read hoặc write_sql thành đối tượng JSON');
           actions = oneShotJsonActions_ACU(raw, snapshotWorldSimulationEvidenceRegistry_ACU(input.registry));
           if (!actions) delivery = parseWorldSimulationJsonPayload_ACU(raw, WORLD_SIMULATION_AGENT_PREFILLS_ACU[input.agentName], ['status']);
         }
@@ -612,7 +612,7 @@ export class WorldSimulationSubagentRuntime_ACU {
             ...(delivery.status === 'candidate' ? { patch: pendingDelivery!.candidate!.patch } : {}) }, snapshotWorldSimulationEvidenceRegistry_ACU(input.registry));
           const outcome = outcomeFromSpecialistResult_ACU(result, modules, input.runId, input.candidateSeq, false);
           return result.status === 'candidate' ? { ...pendingDelivery!, ...outcome,
-            summary: pendingDelivery!.unresolvedIssues?.length ? `${outcome.summary}（另有 ${pendingDelivery!.unresolvedIssues.length} 项未完成，留待下一轮补录）` : outcome.summary,
+            summary: pendingDelivery!.unresolvedIssues?.length ? `${outcome.summary} (còn ${pendingDelivery!.unresolvedIssues.length} mục chưa hoàn tất, để lượt sau bổ sung)` : outcome.summary,
             unresolvedIssues: pendingDelivery!.unresolvedIssues } : outcome;
         }
         if (actions) {
@@ -622,10 +622,10 @@ export class WorldSimulationSubagentRuntime_ACU {
           const [{ name, args, read }] = actions;
           if (name === 'read') {
             // 分开说明拒绝原因，纠错轮与会话流都能看出是哪条规则。
-            if (writeAttempted) throw new Error('WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: 已提交过 write_sql，之后不能再 read');
-            if (reads >= maxReads) throw new Error(`WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: 本轮 read 额度（${maxReads} 次）已用完，只能提交 write_sql 或交付结果`);
+            if (writeAttempted) throw new Error('WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: đã nộp write_sql, sau đó không được read nữa');
+            if (reads >= maxReads) throw new Error(`WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: hạn mức read của lượt này (${maxReads} lần) đã dùng hết, chỉ có thể nộp write_sql hoặc giao kết quả`);
             const parsed = read ?? parseWorldSimulationMainAction_ACU(args, false, snapshotWorldSimulationEvidenceRegistry_ACU(input.registry));
-            if (parsed.kind !== 'read') throw new Error('WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: read 参数只能是 {"reads":["具体地址"]}');
+            if (parsed.kind !== 'read') throw new Error('WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: tham số read chỉ có thể là {"reads":["địa chỉ cụ thể"]}');
             reads++;
             const results = await runWorldSimulationToolBatch_ACU({ calls: [parsed], registry: input.registry, dependencies: input.tools,
               gate: { state: readGateState, config: { historyTokenBudget: input.settings.agentHistoryTokenBudget,
@@ -634,22 +634,22 @@ export class WorldSimulationSubagentRuntime_ACU {
                 canReadAddress: address => worldSimulationCanReadAddress_ACU(input.agentName, address),
                 count: this.dependencies.countTokens ?? countWorldSimulationTokens_ACU } });
             if (toolMode === 'tools') transcript.push(...nativeToolExchange_ACU(turn.content, turn.toolCalls, [toolText_ACU(results)]));
-            else transcript.push({ role: 'assistant', content: raw || '(empty)' }, { role: 'user', content: `【工具结果】\n${toolText_ACU(results)}` });
-            logSession({ kind: 'tool_read', title: `读取资料（${results.length} 项）`,
-              detail: results.map(item => `${item.address} ${item.status}${item.summary ? `：${item.summary}` : ''}`).join('；'),
+            else transcript.push({ role: 'assistant', content: raw || '(empty)' }, { role: 'user', content: `【Kết quả công cụ】\n${toolText_ACU(results)}` });
+            logSession({ kind: 'tool_read', title: `Đọc tài liệu (${results.length} mục)`,
+              detail: results.map(item => `${item.address} ${item.status}${item.summary ? `：${item.summary}` : ''}`).join('; '),
               ok: results.every(item => item.status === 'ok' || item.status === 'empty') });
             continue;
           }
-          if (name !== 'write_sql') throw new Error(`WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: 只允许 read 或 write_sql，收到 ${name}`);
+          if (name !== 'write_sql') throw new Error(`WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: chỉ cho phép read hoặc write_sql, nhận được ${name}`);
           // evidenceRefs 是共享工具目录的历史参数：这里按锚点自行绑定证据，收到就忽略，不判失败。
           const extra = Object.keys(args).filter(key => !['action', 'sql', 'evidenceRefs'].includes(key));
-          if (extra.length) throw new Error(`WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: write_sql 只接受 sql 参数，多余参数 ${extra.join(', ')}`);
-          if (typeof args.sql !== 'string' || !args.sql.trim()) throw new Error('WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: write_sql 的 sql 参数必须是非空字符串');
+          if (extra.length) throw new Error(`WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: write_sql chỉ nhận tham số sql, tham số thừa ${extra.join(', ')}`);
+          if (typeof args.sql !== 'string' || !args.sql.trim()) throw new Error('WORLD_SIMULATION_ONE_SHOT_TOOL_FORBIDDEN: tham số sql của write_sql phải là chuỗi không rỗng');
           payload = { status: 'candidate', sql: args.sql };
           sqlSubmitted = true;
           // 提交的 SQL 原文进会话历史：用户要能看到这一轮究竟写了什么，而不只是成功或失败。
           writeEntryId = logSession({ kind: 'write_sql', ok: true, status: 'running',
-            title: `提交 SQL（${args.sql.split(';').filter(part => part.trim()).length} 条语句）`, detail: args.sql });
+            title: `Nộp SQL (${args.sql.split(';').filter(part => part.trim()).length} câu lệnh)`, detail: args.sql });
         } else throw new Error('WORLD_SIMULATION_ONE_SHOT_TOOL_REQUIRED');
         if (payload.status === 'failed') return failed(payload.message);
         const normalized = normalizeOneShotSpecialistPayload_ACU(payload, { agentName: input.agentName, writableModules: modules,
@@ -659,7 +659,7 @@ export class WorldSimulationSubagentRuntime_ACU {
         // 完全没有可用语句才直接要纠错；有可用语句时先把部分候选算出来，再决定是回执还是落账。
         const usablePatch = normalized.payload.status === 'candidate';
         if (!usablePatch && (normalized.issues.length || payload.status === 'candidate')) {
-          throw new Error(normalized.issues.slice(0, 8).map(issue => `${issue.path}: ${issue.message}`).join('；') || 'WORLD_SIMULATION_ONE_SHOT_SQL_REJECTED');
+          throw new Error(normalized.issues.slice(0, 8).map(issue => `${issue.path}: ${issue.message}`).join('; ') || 'WORLD_SIMULATION_ONE_SHOT_SQL_REJECTED');
         }
         const snapshot = snapshotWorldSimulationEvidenceRegistry_ACU(input.registry);
         let outcome: WorldSimulationSubagentOutcome_ACU;
@@ -683,7 +683,7 @@ export class WorldSimulationSubagentRuntime_ACU {
           if (report.blocking.length) {
             locatedIssues = report.blocking.filter(item => modules.includes(item.module as WorldSimulationLedgerModule_ACU))
               .map(item => ({ module: item.module as WorldSimulationLedgerModule_ACU, source: 'transaction_rejected', path: item.path, message: item.message }));
-            throw new Error(report.blocking.slice(0, 8).map(item => `${item.path}: ${item.message}${item.details?.expected ? `；允许 ${item.details.expected}` : ''}`).join('；'));
+            throw new Error(report.blocking.slice(0, 8).map(item => `${item.path}: ${item.message}${item.details?.expected ? `; cho phép ${item.details.expected}` : ''}`).join('; '));
           }
         }
         // 首轮建账只覆盖了部分模块时，记为待修复而不是再烧一轮模型调用。
@@ -693,38 +693,38 @@ export class WorldSimulationSubagentRuntime_ACU {
           : [];
         const residual: WorldSimulationSubagentIssue_ACU[] = [...locatedIssues,
           ...uncovered.map(module => ({ module, source: 'contract_rejected' as const, path: module,
-            message: `首轮建账未覆盖 ${module}，该模块仍为空；下一轮须依据世界书与锚点补上初始条目` }))];
+            message: `Dựng sổ cái đợt đầu chưa bao phủ ${module}, module này vẫn rỗng; lượt sau phải dựa vào Sổ thế giới và neo để bổ sung mục ban đầu` }))];
         // 先算出这一轮可交付的候选：有残余就带上 unresolvedIssues，供跨轮兜底与下一轮补录。
         const deliverable: WorldSimulationSubagentOutcome_ACU = residual.length
           ? { ...outcome, unresolvedIssues: residual,
-            summary: `${outcome.summary}（另有 ${residual.length} 项未完成，留待下一轮补录）` }
+            summary: `${outcome.summary} (còn ${residual.length} mục chưa hoàn tất, để lượt sau bổ sung)` }
           : outcome;
         // 跨轮保留残余更少的一份：纠错轮整批失效时，不把上一轮已合法的语句丢掉。
         if (!salvaged || (deliverable.unresolvedIssues?.length ?? 0) <= (salvaged.unresolvedIssues?.length ?? 0)) salvaged = deliverable;
         // 校验与交付分开；缺口留给下一轮，但本轮候选仍须独立确认。
         if (!locatedIssues.length) {
           updateSession(writeEntryId, { ok: true, status: 'done',
-            title: residual.length ? `已通过校验，另有 ${residual.length} 项留待下一轮` : '已通过校验' });
+            title: residual.length ? `Đã qua kiểm tra, còn ${residual.length} mục để lượt sau` : 'Đã qua kiểm tra' });
           requestDelivery(deliverable, turn, raw);
           continue;
         }
         // 首轮仍回执一次，给模型改对整批的机会；salvaged 已记下这份候选。
         if (repairs < 1) {
-          throw new Error(locatedIssues.slice(0, 8).map(issue => `${issue.path}: ${issue.message}`).join('；') || 'WORLD_SIMULATION_ONE_SHOT_SQL_REJECTED');
+          throw new Error(locatedIssues.slice(0, 8).map(issue => `${issue.path}: ${issue.message}`).join('; ') || 'WORLD_SIMULATION_ONE_SHOT_SQL_REJECTED');
         }
-        updateSession(writeEntryId, { ok: true, status: 'done', title: `部分采纳，另有 ${residual.length} 项留待下一轮` });
+        updateSession(writeEntryId, { ok: true, status: 'done', title: `Chấp nhận một phần, còn ${residual.length} mục để lượt sau` });
         requestDelivery(salvaged ?? deliverable, turn, raw);
         continue;
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
         const lastAttempt = repairs++ >= 1;
         // SQL 原文已由 write_sql 条目完整保留；只有没有工具调用（纯文本回复）时才在这里附原文片段。
-        const submitted = !sqlSubmitted ? (turn.toolCalls.map(call => `${call.name} ${call.arguments}`).join('；') || raw) : '';
+        const submitted = !sqlSubmitted ? (turn.toolCalls.map(call => `${call.name} ${call.arguments}`).join('; ') || raw) : '';
         updateSession(writeEntryId, { ok: false, status: 'failed',
-          title: lastAttempt ? '提交被拒，纠错次数已用完' : '提交被拒，已回执纠错' });
+          title: lastAttempt ? 'Nộp bị từ chối, đã hết số lần sửa lỗi' : 'Nộp bị từ chối, đã gửi phiếu sửa lỗi' });
         logSession({ kind: 'protocol_retry', ok: false,
-          title: lastAttempt ? (salvaged ? '纠错未成功，落账首轮已合法的部分' : '提交被拒，纠错次数已用完') : '提交被拒，已回执纠错',
-          detail: `${reason}${submitted ? `｜模型提交：${submitted.slice(0, 900)}` : ''}` });
+          title: lastAttempt ? (salvaged ? 'Sửa lỗi không thành công, ghi sổ phần đã hợp lệ ở đợt đầu' : 'Nộp bị từ chối, đã hết số lần sửa lỗi') : 'Nộp bị từ chối, đã gửi phiếu sửa lỗi',
+          detail: `${reason}${submitted ? ` | Mô hình đã nộp: ${submitted.slice(0, 900)}` : ''}` });
         // 纠错写入失效时可保留首轮合法候选；交付错误不能触发自动成功。
         if (lastAttempt) {
           if (sqlSubmitted && salvaged?.candidate && !pendingDelivery) {
@@ -735,9 +735,9 @@ export class WorldSimulationSubagentRuntime_ACU {
         }
         const hint = oneShotRepairHint_ACU(locatedIssues, oneShotTables_ACU(modules));
         const retry = toolMode === 'tools'
-          ? '若确有变化，只重新调用一次 write_sql 并修正拒绝的 SQL；已校验候选或无变化时单独调用 submit，无法完成用 submit 交付 failed。不要输出 JSON 或裸 SQL，不得将空回复视为无变化。'
-          : '若确有变化，只重新输出一次 {"action":"write_sql","sql":"..."} 并修正拒绝的 SQL；已校验候选或无变化时单独输出交付 JSON，无法完成用 failed 契约。不要输出裸 SQL，不得将空回复视为无变化。';
-        const feedback = `上一次提交未被采纳：${reason}。${hint} ${retry}`;
+          ? 'Nếu thực sự có thay đổi, chỉ gọi lại write_sql một lần và sửa các SQL bị từ chối; khi ứng viên đã được kiểm tra hoặc không có thay đổi thì gọi riêng submit, không thể hoàn thành thì dùng submit để giao failed. Không xuất JSON hay SQL trần, không được coi phản hồi rỗng là không đổi.'
+          : 'Nếu thực sự có thay đổi, chỉ xuất lại một lần {"action":"write_sql","sql":"..."} và sửa các SQL bị từ chối; khi ứng viên đã được kiểm tra hoặc không có thay đổi thì xuất riêng JSON nộp, không thể hoàn thành thì dùng hợp đồng failed. Không xuất SQL trần, không được coi phản hồi rỗng là không đổi.';
+        const feedback = `Lần nộp trước không được chấp nhận: ${reason}. ${hint} ${retry}`;
         if (toolMode === 'tools' && turn.toolCalls.length && turn.toolCalls.every(call => call.id && call.name)) transcript.push(...nativeToolExchange_ACU(turn.content, turn.toolCalls, turn.toolCalls.map(() => feedback)));
         else transcript.push({ role: 'assistant', content: raw || '(empty)' }, { role: 'user', content: feedback });
       }
@@ -789,23 +789,23 @@ export class WorldSimulationSubagentRuntime_ACU {
       if (!writeAttempted) return [];
       const issues = new Map(writeProblems);
       if (writeStateUnknown) issues.set('write_state', { module: writableModules[0], source: 'invoke_failed',
-        path: 'write_state', message: '逐栏保存或补偿状态未确认，必须重新读取权威账本' });
+        path: 'write_state', message: 'Trạng thái lưu hoặc bù theo từng cột chưa được xác nhận, phải đọc lại sổ cái có thẩm quyền' });
       let fields: WorldSimulationLedgerFieldSnapshot_ACU | undefined;
       try { fields = input.readFieldSnapshot?.(); }
       catch (error) { issues.set('field_view', { module: writableModules[0], source: 'invoke_failed', path: 'field_view',
         message: error instanceof Error ? error.message : String(error) }); }
       if (!fields && !issues.has('field_view')) issues.set('field_view', { module: writableModules[0], source: 'invoke_failed', path: 'field_view',
-        message: '当前权威分栏视图不可用' });
+        message: 'Chế độ xem phân cột có thẩm quyền hiện không khả dụng' });
       if (fields) {
         for (const module of writableModules) for (const record of Object.values(fields.records[module] ?? {})) {
           if (record.status !== 'partial') continue;
           for (const field of record.missingFields) issues.set(`${module}#${record.id}.${field}`, { module,
-            source: 'transaction_rejected', id: record.id, path: `${module}#${record.id}.${field}`, message: `必填栏目 ${field} 尚未提交` });
+            source: 'transaction_rejected', id: record.id, path: `${module}#${record.id}.${field}`, message: `Cột bắt buộc ${field} chưa được nộp` });
         }
         for (const key of confirmedFields) {
           const [module, id, field] = key.split(':') as [WorldSimulationLedgerModule_ACU, string, string];
           if (!fields.records[module]?.[id]?.fields[field]) issues.set(`${module}#${id}.${field}`, { module, id,
-            source: 'invoke_failed', path: `${module}#${id}.${field}`, message: '写入回执未在当前权威账本中得到确认' });
+            source: 'invoke_failed', path: `${module}#${id}.${field}`, message: 'Phiếu ghi chưa được xác nhận trong sổ cái có thẩm quyền hiện tại' });
         }
       }
       return [...issues.values()];
@@ -816,7 +816,7 @@ export class WorldSimulationSubagentRuntime_ACU {
         ? { ...outcome, acceptedKeys: [...confirmedFields], completion: 'complete_changed',
           moduleCompletion: Object.fromEntries(writableModules.map(module => [module, 'complete_changed'])) }
         : outcome;
-      return { agentName, status: 'failed', summary: '逐栏维护尚未合格', reasonCode: 'WORLD_SIMULATION_FIELD_INCOMPLETE',
+      return { agentName, status: 'failed', summary: 'Bảo trì theo từng cột chưa đạt', reasonCode: 'WORLD_SIMULATION_FIELD_INCOMPLETE',
         evidenceRefs: [], uncertainties: [], completion: 'failed',
         moduleCompletion: Object.fromEntries(writableModules.map(module => [module, 'failed'])),
         unresolvedIssues: [...issues, ...(outcome.unresolvedIssues ?? [])], acceptedKeys: [...confirmedFields] };
@@ -835,7 +835,7 @@ export class WorldSimulationSubagentRuntime_ACU {
       const remainingTokens = Math.max(0, readBudget.effectiveMaxReadTokens - readGateState.grantedTokens);
       const remainingRounds = Math.max(0, input.settings.agentRunBudget.maxExtraReads - toolRounds);
       const readAction = definition.kind === 'researcher' ? 'read/search' : 'read';
-      const readBudgetText = `本轮剩余阅读预算：约 ${remainingTokens} tokens（上限 ${readBudget.effectiveMaxReadTokens}，已授予 ${readGateState.grantedTokens}）；剩余 ${readAction} 轮次 ${remainingRounds}/${input.settings.agentRunBudget.maxExtraReads}。`;
+      const readBudgetText = `Ngân sách đọc còn lại của lượt này: khoảng ${remainingTokens} tokens (giới hạn ${readBudget.effectiveMaxReadTokens}, đã cấp ${readGateState.grantedTokens}); còn lại lượt ${readAction} ${remainingRounds}/${input.settings.agentRunBudget.maxExtraReads}.`;
       const requestContext = { ...context, ...(input.readCurrent ? { worldState: input.readCurrent() } : {}), evidenceRegistry: requestSnapshot, readBudgetText };
       const resolvers = createWorldSimulationPlaceholderResolvers_ACU(requestContext);
       // 旧会话的逐栏恢复必须继续使用 write_sql 协议；v21 的三个默认提示词只供 runOneShot。
@@ -881,31 +881,31 @@ export class WorldSimulationSubagentRuntime_ACU {
       let submitted: Record<string, unknown> | null = null;
       try {
         if (toolMode === 'tools') {
-          if (!nativeCalls.length) throw new Error('工具模式下必须调用函数：读取与写入用对应函数，交付结果调用 submit，不要输出 JSON 文本');
+          if (!nativeCalls.length) throw new Error('Ở chế độ công cụ bắt buộc phải gọi hàm: đọc và ghi dùng hàm tương ứng, nộp kết quả thì gọi submit, không xuất văn bản JSON');
           const split = splitNativeDecisionCalls_ACU(nativeToolArguments_ACU(nativeCalls), [AGENT_SUBMIT_TOOL_NAME_ACU]);
           if (split.decision) submitted = submitPayloadObject_ACU(split.decision.payload);
           calls = split.tools.length ? split.tools.map(({ call, payload }) => {
             if (call.name === 'write_sql') {
-              if (!legacyTools.includes('write_sql') || !input.writeSql || !writableModules.length || Object.keys(payload).some(key => !['action', 'sql', 'evidenceRefs'].includes(key))) throw new Error('write_sql 未授权或参数非法');
+              if (!legacyTools.includes('write_sql') || !input.writeSql || !writableModules.length || Object.keys(payload).some(key => !['action', 'sql', 'evidenceRefs'].includes(key))) throw new Error('write_sql chưa được ủy quyền hoặc tham số không hợp lệ');
               return parseWorldSimulationSubagentToolCalls_ACU(JSON.stringify(payload), '', requestSnapshot, true)![0];
             }
-            if (!worldSimulationAgentNativeTools_ACU(agentName).includes(call.name as 'read' | 'search')) throw new Error(`工具 ${call.name} 未获 ${agentName} profile 授权`);
+            if (!worldSimulationAgentNativeTools_ACU(agentName).includes(call.name as 'read' | 'search')) throw new Error(`Công cụ ${call.name} chưa được profile ${agentName} ủy quyền`);
             const parsed = parseWorldSimulationMainAction_ACU(payload, false, requestSnapshot);
-            if (parsed.kind !== call.name) throw new Error('工具名称与动作不一致');
+            if (parsed.kind !== call.name) throw new Error('Tên công cụ không khớp với hành động');
             return parsed as Extract<ReturnType<typeof parseWorldSimulationMainAction_ACU>, { kind: 'read' | 'search' }>;
           }) : null;
         } else {
-          if (nativeCalls.length) throw new Error('当前为 JSON 模式，不要调用函数；把动作写成 JSON 对象输出');
+          if (nativeCalls.length) throw new Error('Hiện ở chế độ JSON, không gọi hàm; hãy viết hành động thành đối tượng JSON để xuất');
           // 文本 JSON 的 read/search/write_sql 按批次执行；授权与 tools 模式同一口径。
           calls = parseWorldSimulationSubagentToolCalls_ACU(raw, WORLD_SIMULATION_AGENT_PREFILLS_ACU[agentName], requestSnapshot,
             legacyTools.includes('write_sql') && !!input.writeSql && writableModules.length > 0);
           for (const call of calls ?? []) {
-            if (call.kind !== 'write_sql' && !worldSimulationAgentNativeTools_ACU(agentName).includes(call.kind)) throw new Error(`工具 ${call.kind} 未获 ${agentName} profile 授权`);
+            if (call.kind !== 'write_sql' && !worldSimulationAgentNativeTools_ACU(agentName).includes(call.kind)) throw new Error(`Công cụ ${call.kind} chưa được profile ${agentName} ủy quyền`);
           }
         }
       } catch (error) {
         const failure = recordWorldSimulationProtocolFailure_ACU(repair, error);
-        if (!failure.retry && writeAttempted) return checkedOutcome({ agentName, status: 'failed', summary: '逐栏工具协议重试耗尽',
+        if (!failure.retry && writeAttempted) return checkedOutcome({ agentName, status: 'failed', summary: 'Đã hết lượt thử lại giao thức công cụ theo từng cột',
           reasonCode: 'WORLD_SIMULATION_PROTOCOL_FAILED', evidenceRefs: [], uncertainties: [], completion: 'failed',
           unresolvedIssues: [{ module: writableModules[0], source: 'protocol_failed', path: 'write_sql', message: `${failure.issue.reasonCode}: ${failure.issue.path}` }],
           acceptedKeys: [...confirmedFields] });
@@ -923,7 +923,7 @@ export class WorldSimulationSubagentRuntime_ACU {
           perCall.push(bucket);
           if (call.kind === 'write_sql') {
             if (writeRounds >= maxWriteRounds) {
-              bucket.push({ action: 'write_sql', originalSql: call.sql, status: 'rejected', accepted: [], reason: 'write_sql 轮次已用尽', remainingWriteRounds: 0 });
+              bucket.push({ action: 'write_sql', originalSql: call.sql, status: 'rejected', accepted: [], reason: 'Đã hết lượt write_sql', remainingWriteRounds: 0 });
               continue;
             }
             writeRounds += 1;
@@ -937,7 +937,7 @@ export class WorldSimulationSubagentRuntime_ACU {
               recordWriteReceipt(receipt);
               const repair = renderWorldSimulationWriteRepair_ACU(writableModules, receipt);
               bucket.push({ action: 'write_sql', originalSql: call.sql, ...receipt,
-                fieldOutcome: receipt.partials === null || receipt.ledgerRevision === null ? '保存状态不明；先读取权威字段' : {
+                fieldOutcome: receipt.partials === null || receipt.ledgerRevision === null ? 'Trạng thái lưu không rõ; hãy đọc trường có thẩm quyền trước' : {
                   saved: receipt.accepted.map(item => ({ module: item.module, id: item.id, field: item.field, revision: item.revision, ...('value' in item ? { value: item.value } : {}) })),
                   notSaved: [...receipt.partials.flatMap(item => item.missingFields.map(field => `${item.module}#${item.id}.${field}`)), ...receipt.rejected.map(item => item.path)],
                   generatedIds: [...new Set(receipt.accepted.map(item => `${item.module}#${item.id}`))],
@@ -959,7 +959,7 @@ export class WorldSimulationSubagentRuntime_ACU {
               bucket.push({ ...unknown, repair: renderWorldSimulationWriteRepair_ACU(writableModules, unknown) });
             }
           } else if (toolRounds >= input.settings.agentRunBudget.maxExtraReads) {
-            bucket.push({ action: call.kind, status: 'rejected', reason: `${definition.kind === 'researcher' ? 'read/search' : 'read'} 轮次已用尽` });
+            bucket.push({ action: call.kind, status: 'rejected', reason: `Đã hết lượt ${definition.kind === 'researcher' ? 'read/search' : 'read'}` });
           } else {
             if (call.kind === 'read') {
               const batch = [call];
@@ -993,7 +993,7 @@ export class WorldSimulationSubagentRuntime_ACU {
         }
         const summary = { remainingReadRounds: Math.max(0, input.settings.agentRunBudget.maxExtraReads - toolRounds), remainingWriteRounds: maxWriteRounds - writeRounds };
         if (toolMode === 'tools') transcript.push(...nativeToolExchange_ACU(turn.content, nativeCalls, perCall.map(items => JSON.stringify({ results: items, ...summary }))));
-        else transcript.push({ role: 'assistant', content: raw || '(empty)' }, { role: 'user', content: `【工具结果】\n${JSON.stringify({ results: perCall.flat(), ...summary })}` });
+        else transcript.push({ role: 'assistant', content: raw || '(empty)' }, { role: 'user', content: `【Kết quả công cụ】\n${JSON.stringify({ results: perCall.flat(), ...summary })}` });
         continue;
       }
       try {
@@ -1027,7 +1027,7 @@ export class WorldSimulationSubagentRuntime_ACU {
         }
       } catch (error) {
         const failure = recordWorldSimulationProtocolFailure_ACU(repair, error);
-        if (!failure.retry && writeAttempted) return checkedOutcome({ agentName, status: 'failed', summary: '逐栏契约协议重试耗尽',
+        if (!failure.retry && writeAttempted) return checkedOutcome({ agentName, status: 'failed', summary: 'Đã hết lượt thử lại giao thức hợp đồng theo từng cột',
           reasonCode: 'WORLD_SIMULATION_PROTOCOL_FAILED', evidenceRefs: [], uncertainties: [], completion: 'failed',
           unresolvedIssues: [{ module: writableModules[0], source: 'protocol_failed', path: 'contract', message: `${failure.issue.reasonCode}: ${failure.issue.path}` }],
           acceptedKeys: [...confirmedFields] });
@@ -1037,7 +1037,7 @@ export class WorldSimulationSubagentRuntime_ACU {
         else transcript.push({ role: 'assistant', content: raw || '(empty)' }, { role: 'user', content: rejection });
       }
     }
-    if (writeAttempted) return checkedOutcome({ agentName, status: 'failed', summary: '逐栏工具/模型预算耗尽',
+    if (writeAttempted) return checkedOutcome({ agentName, status: 'failed', summary: 'Ngân sách công cụ/mô hình theo từng cột đã hết',
       reasonCode: 'WORLD_SIMULATION_SUBAGENT_CALL_LIMIT', evidenceRefs: [], uncertainties: [],
       completion: 'failed', moduleCompletion: Object.fromEntries(writableModules.map(module => [module, 'failed'])),
       unresolvedIssues: [], acceptedKeys: [...confirmedFields] });
@@ -1048,7 +1048,7 @@ export class WorldSimulationSubagentRuntime_ACU {
     if (!input.candidates.length) throw new Error('WORLD_SIMULATION_REVIEW_CANDIDATES_REQUIRED');
     const agentName = 'causality-reviewer' as const;
     const preset = resolveWorldSimulationAgentApiPreset_ACU(input.settings, agentName, 'agent_delegate', this.dependencies.apiPreset);
-    const context = withTask_ACU(input.promptContext, { objective: '审核候选的时间、因果、权限、revision 与证据完整性' }, input.candidates, []);
+    const context = withTask_ACU(input.promptContext, { objective: 'Rà soát tính toàn vẹn về thời gian, nhân quả, quyền hạn, revision và bằng chứng của ứng viên' }, input.candidates, []);
     const toolMode = input.toolMode ?? resolveWorldSimulationToolMode_ACU(preset);
     const request = worldSimulationInvokeTools_ACU(toolMode, [...agentNativeTools_ACU(worldSimulationAgentNativeTools_ACU(agentName)), worldSimulationReviewerSubmitTool_ACU()]);
     const transcript: Array<{ role: string; content: string }> = [];
@@ -1065,7 +1065,7 @@ export class WorldSimulationSubagentRuntime_ACU {
         readTokenBudget: input.settings.agentReadTokenBudget,
         fallbackTokens: input.settings.agentReadFallbackTokens,
       });
-      const readBudgetText = `本轮剩余阅读预算：约 ${Math.max(0, readBudget.effectiveMaxReadTokens - readGateState.grantedTokens)} tokens；剩余 read 轮次 ${Math.max(0, input.settings.agentRunBudget.maxExtraReads - toolRounds)}/${input.settings.agentRunBudget.maxExtraReads}。`;
+      const readBudgetText = `Ngân sách đọc còn lại của lượt này: khoảng ${Math.max(0, readBudget.effectiveMaxReadTokens - readGateState.grantedTokens)} tokens; còn lại lượt read ${Math.max(0, input.settings.agentRunBudget.maxExtraReads - toolRounds)}/${input.settings.agentRunBudget.maxExtraReads}.`;
       const requestContext = { ...context, evidenceRegistry: requestSnapshot, readBudgetText };
       const resolvers = createWorldSimulationPlaceholderResolvers_ACU(requestContext);
       const split = splitWorldSimulationSubagentPrompt_ACU(adaptWorldSimulationPromptSegmentsToToolMode_ACU(agentName, input.settings.agentPrompts[agentName], toolMode), agentName);
@@ -1102,19 +1102,19 @@ export class WorldSimulationSubagentRuntime_ACU {
       let submitted: Record<string, unknown> | null = null;
       try {
         if (toolMode === 'tools') {
-          if (!reviewerNative.length) throw new Error('工具模式下必须调用函数：补读用 read，交付审核结论调用 submit，不要输出 JSON 文本');
+          if (!reviewerNative.length) throw new Error('Ở chế độ công cụ bắt buộc phải gọi hàm: đọc bổ sung dùng read, nộp kết luận rà soát thì gọi submit, không xuất văn bản JSON');
           const split = splitNativeDecisionCalls_ACU(nativeToolArguments_ACU(reviewerNative), [AGENT_SUBMIT_TOOL_NAME_ACU]);
           if (split.decision) submitted = submitPayloadObject_ACU(split.decision.payload);
           calls = split.tools.length ? split.tools.map(({ call, payload }) => {
-            if (!worldSimulationAgentNativeTools_ACU(agentName).includes(call.name as 'read' | 'search')) throw new Error(`工具 ${call.name} 未获 ${agentName} profile 授权`);
+            if (!worldSimulationAgentNativeTools_ACU(agentName).includes(call.name as 'read' | 'search')) throw new Error(`Công cụ ${call.name} chưa được profile ${agentName} ủy quyền`);
             const parsed = parseWorldSimulationMainAction_ACU(payload, false, requestSnapshot);
-            if (parsed.kind !== 'read') throw new Error('reviewer 只允许 read');
+            if (parsed.kind !== 'read') throw new Error('reviewer chỉ được phép read');
             return parsed as Extract<ReturnType<typeof parseWorldSimulationMainAction_ACU>, { kind: 'read' | 'search' }>;
           }) : null;
         } else {
-          if (reviewerNative.length) throw new Error('当前为 JSON 模式，不要调用函数；把动作写成 JSON 对象输出');
+          if (reviewerNative.length) throw new Error('Hiện ở chế độ JSON, không gọi hàm; hãy viết hành động thành đối tượng JSON để xuất');
           calls = toolCalls_ACU(raw, WORLD_SIMULATION_AGENT_PREFILLS_ACU[agentName], requestSnapshot);
-          if (calls?.some(call => call.kind !== 'read')) throw new Error('reviewer 只允许 read');
+          if (calls?.some(call => call.kind !== 'read')) throw new Error('reviewer chỉ được phép read');
         }
       } catch (error) {
         if (toolMode === 'tools' && reviewerNative.length) {
@@ -1130,8 +1130,8 @@ export class WorldSimulationSubagentRuntime_ACU {
       if (calls) {
         if (toolRounds >= input.settings.agentRunBudget.maxExtraReads) {
           const exhausted = toolMode === 'tools'
-            ? 'reviewer 的 read 轮次已用尽，请依据现有候选与证据调用 submit 交付审核结论。'
-            : 'reviewer 的 read 轮次已用尽，请依据现有候选与证据输出终审 JSON。';
+            ? 'Đã hết lượt read của reviewer, hãy dựa trên ứng viên và bằng chứng hiện có để gọi submit nộp kết luận rà soát.'
+            : 'Đã hết lượt read của reviewer, hãy dựa trên ứng viên và bằng chứng hiện có để xuất JSON chung thẩm.';
           if (toolMode === 'tools') transcript.push(...nativeToolExchange_ACU(reviewerTurn.content, reviewerNative, reviewerNative.map(() => exhausted)));
           else transcript.push({ role: 'assistant', content: raw || '(empty)' }, { role: 'user', content: exhausted });
           continue;
@@ -1154,8 +1154,8 @@ export class WorldSimulationSubagentRuntime_ACU {
         });
         if (input.isCurrent?.() === false) throw new Error('WORLD_SIMULATION_RUN_STALE');
         if (toolMode === 'tools') transcript.push(...nativeToolExchange_ACU(reviewerTurn.content, reviewerNative,
-          calls.map((_, index) => index === 0 ? toolText_ACU(batchResults) : '本逻辑读取批次已统一结算，结果见首个工具回执。')));
-        else transcript.push({ role: 'assistant', content: raw || '(empty)' }, { role: 'user', content: `【工具结果】\n${toolText_ACU(batchResults)}` });
+          calls.map((_, index) => index === 0 ? toolText_ACU(batchResults) : 'Lô đọc logic này đã được quyết toán thống nhất, xem kết quả ở phiếu công cụ đầu tiên.')));
+        else transcript.push({ role: 'assistant', content: raw || '(empty)' }, { role: 'user', content: `【Kết quả công cụ】\n${toolText_ACU(batchResults)}` });
         continue;
       }
       try {

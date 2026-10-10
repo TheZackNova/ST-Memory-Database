@@ -59,7 +59,7 @@ describe('lifecycle sweeper', () => {
   it('resolved/retired 且过期的种子在事实已登记时删除', () => {
     const dropped = sweepWorldLifecycle_ACU(ledger({
       seeds: [seed()],
-      chronicle: [{ id: 'ch-1', at: 'd10', summary: '[错过] 矿洞塌了', relatedIds: ['seed-1'], evidenceRefs: [] }],
+      chronicle: [{ id: 'ch-1', at: 'd10', summary: '[Bỏ lỡ] 矿洞塌了', relatedIds: ['seed-1'], evidenceRefs: [] }],
     }), settings());
     expect(dropped.droppedSeedIds).toEqual(['seed-1']);
     const active = sweepWorldLifecycle_ACU(ledger({ seeds: [seed({ status: 'active', retiredReason: null })] }), settings());

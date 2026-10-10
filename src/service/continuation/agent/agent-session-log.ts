@@ -80,7 +80,7 @@ function notify_ACU(): void {
 function truncateDetail_ACU(text: string, kind: AgentSessionEventKind_ACU): string {
   const limit = detailLimit_ACU(kind);
   if (text.length <= limit) return text;
-  return `${text.slice(0, limit)}\n（内容过长，已截断）`;
+  return `${text.slice(0, limit)}\n(Nội dung quá dài, đã cắt bớt)`;
 }
 
 /**

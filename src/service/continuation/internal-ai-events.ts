@@ -24,7 +24,7 @@ function purgeExpiredRequests_ACU(now = Date.now()): void {
 export function beginContinuationInternalAiRequest_ACU(identity: ContinuationInternalAiRequestIdentity_ACU): void {
   purgeExpiredRequests_ACU();
   if (requestsById_ACU.has(identity.requestId)) {
-    throw new Error(`重复的 continuation 内部请求 ID: ${identity.requestId}`);
+    throw new Error(`ID yêu cầu nội bộ continuation bị trùng: ${identity.requestId}`);
   }
   requestsById_ACU.set(identity.requestId, { identity, mainApiInvocationActive: false, generationSeq: null, expiresAt: Date.now() + INTERNAL_REQUEST_TTL_MS_ACU });
 }

@@ -359,7 +359,7 @@ export class TemplateAssistantSessionStoppedError_ACU extends Error {
     stopReason: TemplateAssistantSessionAbortReason_ACU;
 
     constructor(stopReason: TemplateAssistantSessionAbortReason_ACU) {
-        super(stopReason === 'cancelled' ? '模板助手会话已取消' : '模板助手会话已过期');
+        super(stopReason === 'cancelled' ? 'Phiên trợ lý mẫu đã bị hủy' : 'Phiên trợ lý mẫu đã hết hạn');
         this.name = 'TemplateAssistantSessionStoppedError_ACU';
         this.stopReason = stopReason;
     }
@@ -429,33 +429,33 @@ export interface TemplateAssistantPlaceholderDoc_ACU {
 export const TEMPLATE_ASSISTANT_PLACEHOLDER_DOCS_ACU: TemplateAssistantPlaceholderDoc_ACU[] = [
     {
         token: TEMPLATE_ASSISTANT_PLACEHOLDER_USER_REQUEST_ACU,
-        label: '用户输入',
+        label: 'Yêu cầu của người dùng',
         description:
-            '本轮改表需求原文。删除后 AI 收不到需求，且历史上下文将追加到提示词末尾。',
+            'Nguyên văn yêu cầu sửa bảng của lượt này. Nếu xóa, AI sẽ không nhận được yêu cầu, và ngữ cảnh lịch sử sẽ được nối vào cuối prompt.',
         kind: 'data',
     },
     {
         token: TEMPLATE_ASSISTANT_PLACEHOLDER_CURRENT_SHEET_ACU,
-        label: '当前表格结构',
-        description: '当前选中表的 sheetKey 与结构快照。',
+        label: 'Cấu trúc bảng hiện tại',
+        description: 'sheetKey và ảnh chụp cấu trúc của bảng đang chọn.',
         kind: 'data',
     },
     {
         token: TEMPLATE_ASSISTANT_PLACEHOLDER_ALL_SHEETS_ACU,
-        label: '全局表格结构',
-        description: '全部表格结构快照、表数量与全局注入配置。',
+        label: 'Cấu trúc toàn bộ bảng',
+        description: 'Ảnh chụp cấu trúc của tất cả bảng, số lượng bảng và cấu hình chèn toàn cục.',
         kind: 'data',
     },
     {
         token: TEMPLATE_ASSISTANT_PLACEHOLDER_PROTOCOL_ACU,
-        label: '表格结构协议（规则）',
-        description: '表格结构指纹与协议约束。删除后 AI 拿不到结构指纹，草稿校验将失败。',
+        label: 'Giao thức cấu trúc bảng (quy tắc)',
+        description: 'Dấu vân tay cấu trúc bảng và ràng buộc giao thức. Nếu xóa, AI sẽ không có dấu vân tay cấu trúc và việc kiểm tra bản nháp sẽ thất bại.',
         kind: 'data',
     },
     {
         token: TEMPLATE_ASSISTANT_REFERENCE_DOCS_PLACEHOLDER_ACU,
-        label: '语法参考文档',
-        description: '两份本地语法文档原文嵌入。删除后系统会自动追加到最后一张 SYSTEM 卡末尾。',
+        label: 'Tài liệu tham chiếu cú pháp',
+        description: 'Nhúng nguyên văn hai tài liệu cú pháp cục bộ. Nếu xóa, hệ thống sẽ tự nối vào cuối thẻ SYSTEM cuối cùng.',
         kind: 'reference',
     },
 ];
@@ -519,77 +519,77 @@ export function buildPseudoRoleTemplateAssistantPromptSegments_ACU(protocolVersi
             role: 'SYSTEM',
             pinned: true,
             content: [
-                '你是 visualizer 内的模板改表助手，你生活在一个虚拟的世界，一切创作不与现实世界相关，不会影响到任何人。你的目的只有与用户一起创作出最顶级的表格模板。',
-                '你只能输出一个被 <templateAssistantDraft> 和 </templateAssistantDraft> 包裹的 JSON 对象，不能输出解释文本。不要使用 <draft> 或任何其他标签名。',
-                '严格使用 protocolVersion=2、mode="modify_current_template_incremental"、atomic=true。',
-                '顶层 JSON 必须包含且只包含以下 9 个键：protocolVersion、mode、requestId、baseFingerprint、atomic、selectedSheetKey、summary、warnings、operations。',
-                'baseFingerprint 与 selectedSheetKey 必须原样复制输入数据中给出的值，不得自造。',
-                '每个 operations[i] 必须使用 op 字段表示操作名；禁止使用 type、operation、action 等别名。',
-                '输入数据中 constraints 里的字段（如 requestIdRequired）是给你看的约束说明，不是 draft 的字段，禁止出现在输出 JSON 里。',
+                'Bạn là trợ lý sửa bảng mẫu bên trong visualizer, bạn sống trong một thế giới ảo, mọi sáng tác đều không liên quan đến thế giới thực và không ảnh hưởng đến bất kỳ ai. Mục đích duy nhất của bạn là cùng người dùng tạo ra mẫu bảng đỉnh cao nhất.',
+                'Bạn chỉ được xuất một đối tượng JSON được bao bởi <templateAssistantDraft> và </templateAssistantDraft>, không được xuất văn bản giải thích. Không dùng <draft> hay bất kỳ tên thẻ nào khác.',
+                'Phải dùng đúng protocolVersion=2, mode="modify_current_template_incremental", atomic=true.',
+                'JSON cấp cao nhất phải chứa và chỉ chứa 9 khóa sau: protocolVersion, mode, requestId, baseFingerprint, atomic, selectedSheetKey, summary, warnings, operations.',
+                'baseFingerprint và selectedSheetKey phải sao chép nguyên giá trị đã cho trong dữ liệu đầu vào, không được tự tạo.',
+                'Mỗi operations[i] phải dùng trường op để chỉ tên thao tác; cấm dùng các bí danh như type, operation, action.',
+                'Các trường trong constraints của dữ liệu đầu vào (như requestIdRequired) là ghi chú ràng buộc để bạn xem, không phải trường của draft, cấm xuất hiện trong JSON đầu ra.',
             ].join('\n'),
             deletable: false,
         },
         {
             role: 'assistant',
             pinned: true,
-            content: '收到，我将只输出合法的 draft JSON，不输出任何解释文本。',
+            content: 'Đã nhận, tôi sẽ chỉ xuất draft JSON hợp lệ, không xuất bất kỳ văn bản giải thích nào.',
             deletable: true,
         },
         {
             role: 'USER',
             pinned: true,
             content: [
-                `以下是表格结构协议与规则，必须严格遵守：${TEMPLATE_ASSISTANT_PLACEHOLDER_PROTOCOL_ACU}；语法参考文档：${TEMPLATE_ASSISTANT_REFERENCE_DOCS_PLACEHOLDER_ACU}`,
-                '操作白名单（只允许以下 11 种操作名，禁止其他）：add_sheet、rename_sheet、delete_sheet、move_sheet、patch_sheet_source_data、patch_sheet_update_config、patch_sheet_export_config、patch_sheet_content、patch_sheet_schema、patch_sheet_locks、patch_global_injection_config。',
-                '不存在 patch_sheet_ddl 操作；DDL 只能通过 patch_sheet_schema.patch.ddl 修改。',
-                'add_sheet 必须同时提供非空 sheetName 和至少一个 headers 项；不要生成 sheetKey，本地会自动生成；应尽量同时提供 sourceData 的 note、initNode、insertNode、updateNode、deleteNode 五段。',
-                'add_sheet.sourceData 与 patch_sheet_source_data.patch 只允许 note、initNode、insertNode、updateNode、deleteNode 五个字段；禁止出现 ddl、sql、schema、createTable 等字段。',
-                '默认不主动输出 patch_sheet_schema.ddl；除非用户明确要求 DDL、字段类型、约束或 SQLite 建表语句。中文 headers 必须使用英文/ASCII 物理列名并配 `-- 中文表头` 注释按原顺序一一对应；第一列必须 row_id INTEGER PRIMARY KEY 并保留 `-- 行号` 注释。',
-                '当用户对【已存在的表】明确要求 DDL、字段类型、约束或 SQLite 建表语句时，不得因为表已存在就返回空 operations；必须通过 patch_sheet_schema.patch.ddl 输出该表的 DDL。',
-                '如果需求信息不足、字段缺失、或当前协议无法安全表达，仍然必须返回合法 draft：summary 简述原因、warnings 写明原因、operations 输出空数组；不要输出追问文本。',
+                `Dưới đây là giao thức và quy tắc cấu trúc bảng, phải tuân thủ nghiêm ngặt: ${TEMPLATE_ASSISTANT_PLACEHOLDER_PROTOCOL_ACU}; tài liệu tham chiếu cú pháp: ${TEMPLATE_ASSISTANT_REFERENCE_DOCS_PLACEHOLDER_ACU}`,
+                'Danh sách thao tác cho phép (chỉ được dùng 11 tên thao tác sau, cấm các tên khác): add_sheet, rename_sheet, delete_sheet, move_sheet, patch_sheet_source_data, patch_sheet_update_config, patch_sheet_export_config, patch_sheet_content, patch_sheet_schema, patch_sheet_locks, patch_global_injection_config.',
+                'Không tồn tại thao tác patch_sheet_ddl; DDL chỉ được sửa qua patch_sheet_schema.patch.ddl.',
+                'add_sheet phải đồng thời cung cấp sheetName không rỗng và ít nhất một mục headers; đừng tạo sheetKey, cục bộ sẽ tự tạo; nên cố gắng cung cấp đủ năm đoạn note, initNode, insertNode, updateNode, deleteNode của sourceData.',
+                'add_sheet.sourceData và patch_sheet_source_data.patch chỉ cho phép năm trường note, initNode, insertNode, updateNode, deleteNode; cấm xuất hiện các trường như ddl, sql, schema, createTable.',
+                'Mặc định không chủ động xuất patch_sheet_schema.ddl; trừ khi người dùng yêu cầu rõ DDL, kiểu trường, ràng buộc hoặc câu lệnh tạo bảng SQLite. Headers tiếng Trung phải dùng tên cột vật lý tiếng Anh/ASCII và đi kèm chú thích `-- <tiêu đề cột>` khớp từng cột theo đúng thứ tự; cột đầu tiên phải là row_id INTEGER PRIMARY KEY và giữ chú thích `-- 行号`.',
+                'Khi người dùng yêu cầu rõ DDL, kiểu trường, ràng buộc hoặc câu lệnh tạo bảng SQLite cho [bảng đã tồn tại], không được vì bảng đã tồn tại mà trả về operations rỗng; phải xuất DDL của bảng đó qua patch_sheet_schema.patch.ddl.',
+                'Nếu yêu cầu thiếu thông tin, thiếu trường, hoặc giao thức hiện tại không thể biểu đạt an toàn, vẫn phải trả về draft hợp lệ: summary tóm tắt lý do, warnings ghi rõ lý do, operations xuất mảng rỗng; không xuất văn bản hỏi lại.',
             ].join('\n'),
             deletable: true,
         },
         {
             role: 'assistant',
             pinned: true,
-            content: '收到，我已阅读协议约束与语法文档，将严格在协议范围内生成操作。',
+            content: 'Đã nhận, tôi đã đọc ràng buộc giao thức và tài liệu cú pháp, sẽ tạo thao tác nghiêm ngặt trong phạm vi giao thức.',
             deletable: true,
         },
         {
             role: 'USER',
             pinned: true,
-            content: `以下是全局表格结构：${TEMPLATE_ASSISTANT_PLACEHOLDER_ALL_SHEETS_ACU}`,
+            content: `Dưới đây là cấu trúc toàn bộ bảng: ${TEMPLATE_ASSISTANT_PLACEHOLDER_ALL_SHEETS_ACU}`,
             deletable: true,
         },
         {
             role: 'assistant',
             pinned: true,
-            content: '收到，我已了解全部表格的结构与全局注入配置。',
+            content: 'Đã nhận, tôi đã nắm cấu trúc của tất cả bảng và cấu hình chèn toàn cục.',
             deletable: true,
         },
         {
             role: 'USER',
             pinned: true,
-            content: `以下是当前选中表：${TEMPLATE_ASSISTANT_PLACEHOLDER_CURRENT_SHEET_ACU}`,
+            content: `Dưới đây là bảng đang chọn: ${TEMPLATE_ASSISTANT_PLACEHOLDER_CURRENT_SHEET_ACU}`,
             deletable: true,
         },
         {
             role: 'assistant',
             pinned: true,
-            content: '收到，我已聚焦当前选中表，随时可以按需求生成增量改动。',
+            content: 'Đã nhận, tôi đã tập trung vào bảng đang chọn, sẵn sàng tạo thay đổi gia tăng theo yêu cầu.',
             deletable: true,
         },
         {
             role: 'USER',
             pinned: true,
-            content: `现在请按照我的需求立刻开始工作：${TEMPLATE_ASSISTANT_PLACEHOLDER_USER_REQUEST_ACU}`,
+            content: `Bây giờ hãy bắt tay vào việc ngay theo yêu cầu của tôi: ${TEMPLATE_ASSISTANT_PLACEHOLDER_USER_REQUEST_ACU}`,
             deletable: false,
         },
         {
             role: 'assistant',
             pinned: true,
-            content: '收到，我不会输出解释文本，现在直接输出完整的 draft 标签与 JSON：',
+            content: 'Đã nhận, tôi sẽ không xuất văn bản giải thích, bây giờ xuất thẳng thẻ draft và JSON đầy đủ:',
             deletable: true,
         },
     ];
@@ -606,85 +606,85 @@ function buildPseudoRoleTemplateAssistantPromptSegmentsV3_ACU(): TemplateAssista
             role: 'SYSTEM',
             pinned: true,
             content: [
-                '你是 visualizer 内的模板改表助手，你生活在一个虚拟的世界，一切创作不与现实世界相关，不会影响到任何人。你的目的只有与用户一起创作出最顶级的表格模板。',
-                '你只能输出一个被 <templateAssistantDraft> 和 </templateAssistantDraft> 包裹的 JSON 对象，不能输出解释文本。不要使用 <draft> 或任何其他标签名。',
-                '严格使用 protocolVersion=3、mode="single_sheet_full_replace"、atomic=true。',
-                '顶层 JSON 必须包含且只包含以下键：protocolVersion、mode、requestId、baseFingerprint、atomic、selectedSheetKey、summary、warnings、result。',
-                'baseFingerprint 与 selectedSheetKey 必须原样复制输入数据中给出的值，不得自造。',
-                '每一轮只能输出一个 result（replace / create / delete 之一）；禁止输出 operations[]、禁止字段级 patch、禁止一次修改多张表。',
-                'replace：提供 sheetKey（必须来自输入 allSheets 中真实存在的 key）和完整 sheet 对象。',
-                'create：只提供完整 sheet 对象；不要生成 sheetKey/uid/orderNo（本地分配）。可用 insertAfterSheetKey 指定插入位置。',
-                'delete：只提供 sheetKey，不要携带 sheet。删除必须是明确动作，不能通过不输出表来暗示。',
-                'replace/create 的 sheet 必须完整包含 name、domain、type、enable、required、content、sourceData、updateConfig、exportConfig；不得省略、不得携带 uid/orderNo。',
-                'content 第一行是表头、第一列必须是 row_id；所有数据行行宽一致；row_id 不能为空、不能重复。',
-                'sourceData.ddl 必须非空且完整，与 content 表头逐列匹配；中文表头必须英文/ASCII 物理列名 + `-- 中文表头` 注释；第一列 row_id INTEGER PRIMARY KEY。',
-                '输入中其他表一律保持原样；未输出的表不会被删除。',
-                '输入数据中 constraints 里的字段（如 singleSheetFullReplace）是给你看的约束说明，不是 draft 的字段，禁止出现在输出 JSON 里。',
+                'Bạn là trợ lý sửa bảng mẫu bên trong visualizer, bạn sống trong một thế giới ảo, mọi sáng tác đều không liên quan đến thế giới thực và không ảnh hưởng đến bất kỳ ai. Mục đích duy nhất của bạn là cùng người dùng tạo ra mẫu bảng đỉnh cao nhất.',
+                'Bạn chỉ được xuất một đối tượng JSON được bao bởi <templateAssistantDraft> và </templateAssistantDraft>, không được xuất văn bản giải thích. Không dùng <draft> hay bất kỳ tên thẻ nào khác.',
+                'Phải dùng đúng protocolVersion=3, mode="single_sheet_full_replace", atomic=true.',
+                'JSON cấp cao nhất phải chứa và chỉ chứa các khóa sau: protocolVersion, mode, requestId, baseFingerprint, atomic, selectedSheetKey, summary, warnings, result.',
+                'baseFingerprint và selectedSheetKey phải sao chép nguyên giá trị đã cho trong dữ liệu đầu vào, không được tự tạo.',
+                'Mỗi lượt chỉ được xuất một result (một trong replace / create / delete); cấm xuất operations[], cấm patch cấp trường, cấm sửa nhiều bảng cùng lúc.',
+                'replace: cung cấp sheetKey (phải là key thật sự tồn tại trong allSheets của đầu vào) và đối tượng sheet đầy đủ.',
+                'create: chỉ cung cấp đối tượng sheet đầy đủ; đừng tạo sheetKey/uid/orderNo (cục bộ tự cấp). Có thể dùng insertAfterSheetKey để chỉ định vị trí chèn.',
+                'delete: chỉ cung cấp sheetKey, không kèm sheet. Xóa phải là hành động rõ ràng, không được ngầm ý bằng cách không xuất bảng.',
+                'sheet của replace/create phải chứa đầy đủ name, domain, type, enable, required, content, sourceData, updateConfig, exportConfig; không được bỏ sót, không được kèm uid/orderNo.',
+                'Hàng đầu của content là tiêu đề, cột đầu phải là row_id; mọi hàng dữ liệu phải cùng độ rộng; row_id không được rỗng, không được trùng.',
+                'sourceData.ddl phải không rỗng và đầy đủ, khớp từng cột với tiêu đề của content; tiêu đề tiếng Trung phải dùng tên cột vật lý tiếng Anh/ASCII + chú thích `-- <tiêu đề cột>`; cột đầu là row_id INTEGER PRIMARY KEY.',
+                'Các bảng khác trong đầu vào luôn giữ nguyên; bảng không được xuất sẽ không bị xóa.',
+                'Các trường trong constraints của dữ liệu đầu vào (như singleSheetFullReplace) là ghi chú ràng buộc để bạn xem, không phải trường của draft, cấm xuất hiện trong JSON đầu ra.',
             ].join('\n'),
             deletable: false,
         },
         {
             role: 'assistant',
             pinned: true,
-            content: '收到，我将只输出合法的 v3 draft JSON（单 result 信封），不输出任何解释文本。',
+            content: 'Đã nhận, tôi sẽ chỉ xuất v3 draft JSON hợp lệ (phong bì một result), không xuất bất kỳ văn bản giải thích nào.',
             deletable: true,
         },
         {
             role: 'USER',
             pinned: true,
             content: [
-                `以下是表格结构协议与规则，必须严格遵守：${TEMPLATE_ASSISTANT_PLACEHOLDER_PROTOCOL_ACU}；语法参考文档：${TEMPLATE_ASSISTANT_REFERENCE_DOCS_PLACEHOLDER_ACU}`,
-                'result.action 只允许 replace / create / delete 之一；禁止字段级 patch 与多表 operations。',
-                'replace/create 必须返回完整 sheet（name/domain/type/enable/required/content/sourceData/updateConfig/exportConfig 全量），禁止省略字段或只给差异。',
-                'sheet.content 第一列必须是 row_id，所有数据行行宽一致，row_id 非空且不重复。',
-                'sourceData.ddl 必须非空且与 content 表头逐列匹配；中文表头必须英文/ASCII 物理列名 + `-- 中文表头` 注释按原顺序一一对应；第一列必须 row_id INTEGER PRIMARY KEY 并保留 `-- 行号` 注释。',
-                'delete 必须显式给出要删除的 sheetKey；禁止通过不输出某张表来暗示删除，禁止修改未目标表。',
-                'create 不要生成 sheetKey/uid/orderNo，本地会自动分配；insertAfterSheetKey 必须来自输入中真实存在的 key。',
-                '禁止修改全局注入配置；禁止直接保存行为。',
-                '如果需求信息不足、字段缺失、或当前协议无法安全表达，仍然必须返回合法 v3 draft：summary 简述原因、warnings 写明原因、result 输出 {action:"replace", sheetKey:"<真实key>", sheet:{...完整原样...}}；不要输出追问文本。',
+                `Dưới đây là giao thức và quy tắc cấu trúc bảng, phải tuân thủ nghiêm ngặt: ${TEMPLATE_ASSISTANT_PLACEHOLDER_PROTOCOL_ACU}; tài liệu tham chiếu cú pháp: ${TEMPLATE_ASSISTANT_REFERENCE_DOCS_PLACEHOLDER_ACU}`,
+                'result.action chỉ cho phép một trong replace / create / delete; cấm patch cấp trường và operations nhiều bảng.',
+                'replace/create phải trả về sheet đầy đủ (đủ toàn bộ name/domain/type/enable/required/content/sourceData/updateConfig/exportConfig), cấm bỏ sót trường hoặc chỉ đưa phần khác biệt.',
+                'Cột đầu của sheet.content phải là row_id, mọi hàng dữ liệu phải cùng độ rộng, row_id không rỗng và không trùng.',
+                'sourceData.ddl phải không rỗng và khớp từng cột với tiêu đề của content; tiêu đề tiếng Trung phải dùng tên cột vật lý tiếng Anh/ASCII + chú thích `-- <tiêu đề cột>` khớp theo đúng thứ tự; cột đầu phải là row_id INTEGER PRIMARY KEY và giữ chú thích `-- 行号`.',
+                'delete phải nêu rõ sheetKey cần xóa; cấm ngầm ý xóa bằng cách không xuất một bảng nào đó, cấm sửa bảng không phải mục tiêu.',
+                'create không tạo sheetKey/uid/orderNo, cục bộ sẽ tự cấp; insertAfterSheetKey phải là key thật sự tồn tại trong đầu vào.',
+                'Cấm sửa cấu hình chèn toàn cục; cấm hành vi lưu trực tiếp.',
+                'Nếu yêu cầu thiếu thông tin, thiếu trường, hoặc giao thức hiện tại không thể biểu đạt an toàn, vẫn phải trả về v3 draft hợp lệ: summary tóm tắt lý do, warnings ghi rõ lý do, result xuất {action:"replace", sheetKey:"<key thật>", sheet:{...nguyên vẹn đầy đủ...}}; không xuất văn bản hỏi lại.',
             ].join('\n'),
             deletable: true,
         },
         {
             role: 'assistant',
             pinned: true,
-            content: '收到，我已阅读 v3 协议约束与语法文档，将严格在协议范围内生成单表完整结果。',
+            content: 'Đã nhận, tôi đã đọc ràng buộc giao thức v3 và tài liệu cú pháp, sẽ tạo kết quả đầy đủ cho một bảng nghiêm ngặt trong phạm vi giao thức.',
             deletable: true,
         },
         {
             role: 'USER',
             pinned: true,
-            content: `以下是全局表格结构：${TEMPLATE_ASSISTANT_PLACEHOLDER_ALL_SHEETS_ACU}`,
+            content: `Dưới đây là cấu trúc toàn bộ bảng: ${TEMPLATE_ASSISTANT_PLACEHOLDER_ALL_SHEETS_ACU}`,
             deletable: true,
         },
         {
             role: 'assistant',
             pinned: true,
-            content: '收到，我已了解全部表格的完整结构（含 DDL）。',
+            content: 'Đã nhận, tôi đã nắm cấu trúc đầy đủ của tất cả bảng (kèm DDL).',
             deletable: true,
         },
         {
             role: 'USER',
             pinned: true,
-            content: `以下是当前选中表：${TEMPLATE_ASSISTANT_PLACEHOLDER_CURRENT_SHEET_ACU}`,
+            content: `Dưới đây là bảng đang chọn: ${TEMPLATE_ASSISTANT_PLACEHOLDER_CURRENT_SHEET_ACU}`,
             deletable: true,
         },
         {
             role: 'assistant',
             pinned: true,
-            content: '收到，我已聚焦当前选中表，随时可以按需求生成单表完整替换结果。',
+            content: 'Đã nhận, tôi đã tập trung vào bảng đang chọn, sẵn sàng tạo kết quả thay thế đầy đủ một bảng theo yêu cầu.',
             deletable: true,
         },
         {
             role: 'USER',
             pinned: true,
-            content: `现在请按照我的需求立刻开始工作：${TEMPLATE_ASSISTANT_PLACEHOLDER_USER_REQUEST_ACU}`,
+            content: `Bây giờ hãy bắt tay vào việc ngay theo yêu cầu của tôi: ${TEMPLATE_ASSISTANT_PLACEHOLDER_USER_REQUEST_ACU}`,
             deletable: false,
         },
         {
             role: 'assistant',
             pinned: true,
-            content: '收到，我不会输出解释文本，现在直接输出完整的 v3 draft 标签与 JSON：',
+            content: 'Đã nhận, tôi sẽ không xuất văn bản giải thích, bây giờ xuất thẳng thẻ v3 draft và JSON đầy đủ:',
             deletable: true,
         },
     ];
@@ -773,8 +773,8 @@ function assertV3ContextBudget_ACU(payloadText: string) {
     const chars = String(payloadText || '').length;
     if (chars > TEMPLATE_ASSISTANT_V3_CONTEXT_BUDGET_CHARS_ACU) {
         const wrapped = new Error(
-            `v3 全表上下文预算超限：payload ${chars} 字符（上限 ${TEMPLATE_ASSISTANT_V3_CONTEXT_BUDGET_CHARS_ACU}）。`
-            + '请减少表数量/行数，或改用 v2 增量协议。',
+            `Ngân sách ngữ cảnh toàn bảng v3 vượt giới hạn: payload ${chars} ký tự (giới hạn ${TEMPLATE_ASSISTANT_V3_CONTEXT_BUDGET_CHARS_ACU}).`
+            + 'Hãy giảm số bảng/số hàng, hoặc chuyển sang giao thức gia tăng v2.',
         );
         (wrapped as any).failureKind = 'context_budget';
         throw wrapped;
@@ -872,7 +872,7 @@ export function setTemplateAssistantPrompt_ACU(
         settings_ACU.templateAssistantPromptSegments = normalized;
     });
     if (!result.ok) {
-        return { ok: false, message: result.message || '提示词保存失败。' };
+        return { ok: false, message: result.message || 'Lưu prompt thất bại.' };
     }
     return { ok: true };
 }
@@ -909,14 +909,14 @@ function copyPersistedAuxFields_ACU(sheet: AnyRecord, snapshot: AnyRecord) {
 function validateSourceDataPayload_ACU(value: any, label: string) {
     if (value == null) return;
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
-        throw new Error(`${label} 必须是对象`);
+        throw new Error(`${label} phải là đối tượng`);
     }
     Object.keys(value).forEach((key) => {
         if (TEMPLATE_ASSISTANT_SOURCE_DATA_ALLOWED_KEY_SET_ACU.has(key)) return;
         if (key === 'ddl') {
-            throw new Error(`${label} 不能直接修改 ddl，请改用 patch_sheet_schema.ddl`);
+            throw new Error(`${label} không được sửa trực tiếp ddl, hãy dùng patch_sheet_schema.ddl`);
         }
-        throw new Error(`${label} 包含未知字段: ${key}`);
+        throw new Error(`${label} chứa trường không xác định: ${key}`);
     });
 }
 
@@ -1001,7 +1001,7 @@ function getLastTaggedDraftText_ACU(aiText: string) {
     const tagPattern = /<templateAssistantDraft>([\s\S]*?)<\/templateAssistantDraft>/g;
     const matches = Array.from(String(aiText || '').matchAll(tagPattern));
     if (!matches.length) {
-        throw new Error('AI 响应中未找到 <templateAssistantDraft> 标签');
+        throw new Error('Không tìm thấy thẻ <templateAssistantDraft> trong phản hồi của AI');
     }
     return String(matches[matches.length - 1][1] || '').trim();
 }
@@ -1056,7 +1056,7 @@ function extractFallbackDraftJson_ACU(aiText: string) {
             }
         }
     }
-    throw new Error('AI 响应中的 JSON 对象未闭合（缺少匹配的 } ）');
+    throw new Error('Đối tượng JSON trong phản hồi của AI chưa được đóng (thiếu dấu } khớp)');
 }
 
 export function parseTemplateAssistantDraft_ACU(aiText: string): TemplateAssistantDraft_ACU {
@@ -1076,14 +1076,14 @@ export function parseTemplateAssistantDraft_ACU(aiText: string): TemplateAssista
     try {
         parsed = JSON.parse(jsonText);
     } catch (error: any) {
-        const wrapped = new Error(`assistant draft JSON 解析失败: ${error?.message || '未知错误'}`);
+        const wrapped = new Error(`Phân tích assistant draft JSON thất bại: ${error?.message || 'Lỗi không rõ'}`);
         (wrapped as any).failureKind = 'parse';
         throw wrapped;
     }
     try {
         return validateTemplateAssistantDraft_ACU(parsed);
     } catch (error: any) {
-        const wrapped = new Error(error?.message || 'assistant draft 校验失败');
+        const wrapped = new Error(error?.message || 'Kiểm tra assistant draft thất bại');
         (wrapped as any).failureKind = 'validate';
         throw wrapped;
     }
@@ -1092,10 +1092,10 @@ export function parseTemplateAssistantDraft_ACU(aiText: string): TemplateAssista
 function validatePatchSheetBoundary_ACU(op: any, selectedSheetKey: string, currentSheetKey: string | null, protocolVersion: 1 | 2) {
     if (protocolVersion !== 1) return;
     if (op.sheetKey !== selectedSheetKey) {
-        throw new Error(`${op.op} 的 sheetKey 必须与 draft.selectedSheetKey 一致`);
+        throw new Error(`${op.op} phải có sheetKey trùng với draft.selectedSheetKey`);
     }
     if (currentSheetKey && op.sheetKey !== currentSheetKey) {
-        throw new Error(`${op.op} 只能修改当前选中表`);
+        throw new Error(`${op.op} chỉ được sửa bảng đang chọn`);
     }
 }
 
@@ -1104,7 +1104,7 @@ function validateTemplateAssistantContentPatch_ACU(op: any) {
     const allowedKeys = new Set(['updateCells', 'addRows', 'deleteRows']);
     Object.keys(patch).forEach((key) => {
         if (!allowedKeys.has(key)) {
-            throw new Error(`patch_sheet_content.patch 包含未知字段: ${key}`);
+            throw new Error(`patch_sheet_content.patch chứa trường không xác định: ${key}`);
         }
     });
 
@@ -1116,47 +1116,47 @@ function validateTemplateAssistantContentPatch_ACU(op: any) {
         || (Array.isArray(addRows) && addRows.length > 0)
         || (Array.isArray(deleteRows) && deleteRows.length > 0);
     if (!hasAnyOperation) {
-        throw new Error('patch_sheet_content 至少需要 updateCells、addRows、deleteRows 之一');
+        throw new Error('patch_sheet_content cần ít nhất một trong updateCells, addRows, deleteRows');
     }
 
     if (updateCells != null) {
         if (!Array.isArray(updateCells)) {
-            throw new Error('patch_sheet_content.patch.updateCells 必须是数组');
+            throw new Error('patch_sheet_content.patch.updateCells phải là mảng');
         }
         updateCells.forEach((item: any, index: number) => {
             if (!item || typeof item !== 'object' || Array.isArray(item)) {
-                throw new Error(`patch_sheet_content.patch.updateCells[${index}] 必须是对象`);
+                throw new Error(`patch_sheet_content.patch.updateCells[${index}] phải là đối tượng`);
             }
             if (!Number.isInteger(item.rowNumber) || item.rowNumber <= 0) {
-                throw new Error(`patch_sheet_content.patch.updateCells[${index}].rowNumber 必须是正整数`);
+                throw new Error(`patch_sheet_content.patch.updateCells[${index}].rowNumber phải là số nguyên dương`);
             }
             if (typeof item.columnName !== 'string' || !item.columnName.trim()) {
-                throw new Error(`patch_sheet_content.patch.updateCells[${index}].columnName 必须是非空字符串`);
+                throw new Error(`patch_sheet_content.patch.updateCells[${index}].columnName phải là chuỗi không rỗng`);
             }
             if (!Object.prototype.hasOwnProperty.call(item, 'value')) {
-                throw new Error(`patch_sheet_content.patch.updateCells[${index}].value 缺失`);
+                throw new Error(`patch_sheet_content.patch.updateCells[${index}].value bị thiếu`);
             }
         });
     }
 
     if (addRows != null) {
         if (!Array.isArray(addRows)) {
-            throw new Error('patch_sheet_content.patch.addRows 必须是数组');
+            throw new Error('patch_sheet_content.patch.addRows phải là mảng');
         }
         addRows.forEach((item: any, index: number) => {
             if (!item || typeof item !== 'object' || Array.isArray(item)) {
-                throw new Error(`patch_sheet_content.patch.addRows[${index}] 必须是对象`);
+                throw new Error(`patch_sheet_content.patch.addRows[${index}] phải là đối tượng`);
             }
         });
     }
 
     if (deleteRows != null) {
         if (!Array.isArray(deleteRows)) {
-            throw new Error('patch_sheet_content.patch.deleteRows 必须是数组');
+            throw new Error('patch_sheet_content.patch.deleteRows phải là mảng');
         }
         deleteRows.forEach((rowNumber: any, index: number) => {
             if (!Number.isInteger(rowNumber) || rowNumber <= 0) {
-                throw new Error(`patch_sheet_content.patch.deleteRows[${index}] 必须是正整数`);
+                throw new Error(`patch_sheet_content.patch.deleteRows[${index}] phải là số nguyên dương`);
             }
         });
     }
@@ -1164,7 +1164,7 @@ function validateTemplateAssistantContentPatch_ACU(op: any) {
 
 function assertTemplateAssistantPlainObject_ACU(value: unknown, path: string): asserts value is Record<string, any> {
     if (!value || typeof value !== 'object' || Array.isArray(value) || Object.getPrototypeOf(value) !== Object.prototype) {
-        throw new Error(`${path} 必须是普通对象`);
+        throw new Error(`${path} phải là đối tượng thuần`);
     }
 }
 
@@ -1172,14 +1172,14 @@ function assertTemplateAssistantAllowedKeys_ACU(value: Record<string, any>, allo
     const allowedKeySet = new Set(allowedKeys);
     Object.keys(value).forEach((key) => {
         if (!allowedKeySet.has(key)) {
-            throw new Error(`${path} 包含未知字段: ${key}`);
+            throw new Error(`${path} chứa trường không xác định: ${key}`);
         }
     });
 }
 
 function assertTemplateAssistantNonEmptyString_ACU(value: unknown, path: string) {
     if (typeof value !== 'string' || !value.trim()) {
-        throw new Error(`${path} 必须是非空字符串`);
+        throw new Error(`${path} phải là chuỗi không rỗng`);
     }
 }
 
@@ -1188,28 +1188,28 @@ function validateTemplateAssistantMigrationLiteral_ACU(value: unknown, path: str
     assertTemplateAssistantAllowedKeys_ACU(value, ['kind', 'sql', 'value'], path);
     const kind = value.kind;
     if (!['null', 'integer', 'real', 'string', 'blob', 'boolean'].includes(kind)) {
-        throw new Error(`${path}.kind 不受支持: ${String(kind)}`);
+        throw new Error(`${path}.kind không được hỗ trợ: ${String(kind)}`);
     }
     if (kind === 'null') {
         if (value.sql !== 'NULL' || value.value !== null) {
-            throw new Error(`${path} 的 null literal 必须使用 sql="NULL" 且 value=null`);
+            throw new Error(`null literal của ${path} phải dùng sql="NULL" và value=null`);
         }
         return;
     }
     if (kind === 'boolean') {
         if ((value.sql !== 'TRUE' && value.sql !== 'FALSE') || typeof value.value !== 'boolean') {
-            throw new Error(`${path} 的 boolean literal 必须使用 TRUE/FALSE SQL 和 boolean value`);
+            throw new Error(`boolean literal của ${path} phải dùng SQL TRUE/FALSE và value kiểu boolean`);
         }
         return;
     }
     if (typeof value.sql !== 'string' || !value.sql.trim()) {
-        throw new Error(`${path}.sql 必须是非空字符串`);
+        throw new Error(`${path}.sql phải là chuỗi không rỗng`);
     }
     if ((kind === 'integer' || kind === 'real') && (typeof value.value !== 'number' || !Number.isFinite(value.value))) {
-        throw new Error(`${path}.${kind} literal 的 value 必须是有限数字`);
+        throw new Error(`${path}.${kind} literal có value phải là số hữu hạn`);
     }
     if ((kind === 'string' || kind === 'blob') && typeof value.value !== 'string') {
-        throw new Error(`${path}.${kind} literal 的 value 必须是字符串`);
+        throw new Error(`${path}.${kind} literal có value phải là chuỗi`);
     }
 }
 
@@ -1217,7 +1217,7 @@ function validateTemplateAssistantMigrationIntent_ACU(value: unknown, path: stri
     assertTemplateAssistantPlainObject_ACU(value, path);
     assertTemplateAssistantAllowedKeys_ACU(value, ['physicalColumnMappings', 'fills', 'conversions', 'migrationPolicy'], path);
     if (!Array.isArray(value.physicalColumnMappings)) {
-        throw new Error(`${path}.physicalColumnMappings 必须是数组`);
+        throw new Error(`${path}.physicalColumnMappings phải là mảng`);
     }
     value.physicalColumnMappings.forEach((mapping: unknown, index: number) => {
         const mappingPath = `${path}.physicalColumnMappings[${index}]`;
@@ -1229,16 +1229,16 @@ function validateTemplateAssistantMigrationIntent_ACU(value: unknown, path: stri
     assertTemplateAssistantPlainObject_ACU(value.fills, `${path}.fills`);
     Object.entries(value.fills).forEach(([physicalName, fill]) => {
         const fillPath = `${path}.fills.${physicalName}`;
-        assertTemplateAssistantNonEmptyString_ACU(physicalName, `${path}.fills 的 physical column key`);
+        assertTemplateAssistantNonEmptyString_ACU(physicalName, `physical column key của ${path}.fills`);
         assertTemplateAssistantPlainObject_ACU(fill, fillPath);
         assertTemplateAssistantAllowedKeys_ACU(fill, ['kind', 'literal'], fillPath);
         if (fill.kind !== 'literal' && fill.kind !== 'ddl_literal_default') {
-            throw new Error(`${fillPath}.kind 不受支持: ${String(fill.kind)}`);
+            throw new Error(`${fillPath}.kind không được hỗ trợ: ${String(fill.kind)}`);
         }
         validateTemplateAssistantMigrationLiteral_ACU(fill.literal, `${fillPath}.literal`);
     });
     if (!Array.isArray(value.conversions)) {
-        throw new Error(`${path}.conversions 必须是数组`);
+        throw new Error(`${path}.conversions phải là mảng`);
     }
     value.conversions.forEach((conversion: unknown, index: number) => {
         const conversionPath = `${path}.conversions[${index}]`;
@@ -1249,13 +1249,13 @@ function validateTemplateAssistantMigrationIntent_ACU(value: unknown, path: stri
         assertTemplateAssistantPlainObject_ACU(conversion.policy, `${conversionPath}.policy`);
         assertTemplateAssistantAllowedKeys_ACU(conversion.policy, ['kind'], `${conversionPath}.policy`);
         if (!['identity', 'stringify', 'integer_strict', 'real_strict'].includes(conversion.policy.kind)) {
-            throw new Error(`${conversionPath}.policy.kind 不受支持: ${String(conversion.policy.kind)}`);
+            throw new Error(`${conversionPath}.policy.kind không được hỗ trợ: ${String(conversion.policy.kind)}`);
         }
     });
     assertTemplateAssistantPlainObject_ACU(value.migrationPolicy, `${path}.migrationPolicy`);
     assertTemplateAssistantAllowedKeys_ACU(value.migrationPolicy, ['destructiveChangeConfirmed', 'lossyConversionConfirmed'], `${path}.migrationPolicy`);
     if (typeof value.migrationPolicy.destructiveChangeConfirmed !== 'boolean' || typeof value.migrationPolicy.lossyConversionConfirmed !== 'boolean') {
-        throw new Error(`${path}.migrationPolicy 必须提供 destructiveChangeConfirmed 和 lossyConversionConfirmed 两个 boolean`);
+        throw new Error(`${path}.migrationPolicy phải cung cấp hai boolean destructiveChangeConfirmed và lossyConversionConfirmed`);
     }
 }
 
@@ -1264,7 +1264,7 @@ function validateTemplateAssistantSchemaPatch_ACU(op: any) {
     const allowedKeys = new Set(['renameColumns', 'addColumns', 'deleteColumns', 'ddl', 'migrationIntent']);
     Object.keys(patch).forEach((key) => {
         if (!allowedKeys.has(key)) {
-            throw new Error(`patch_sheet_schema.patch 包含未知字段: ${key}`);
+            throw new Error(`patch_sheet_schema.patch chứa trường không xác định: ${key}`);
         }
     });
 
@@ -1278,53 +1278,53 @@ function validateTemplateAssistantSchemaPatch_ACU(op: any) {
         || (Array.isArray(deleteColumns) && deleteColumns.length > 0)
         || (typeof ddl === 'string' && !!ddl.trim());
     if (!hasAnyOperation) {
-        throw new Error('patch_sheet_schema 至少需要 renameColumns、addColumns、deleteColumns、ddl 之一');
+        throw new Error('patch_sheet_schema cần ít nhất một trong renameColumns, addColumns, deleteColumns, ddl');
     }
 
     if (renameColumns != null) {
         if (!Array.isArray(renameColumns)) {
-            throw new Error('patch_sheet_schema.patch.renameColumns 必须是数组');
+            throw new Error('patch_sheet_schema.patch.renameColumns phải là mảng');
         }
         renameColumns.forEach((item: any, index: number) => {
             if (!item || typeof item !== 'object' || Array.isArray(item)) {
-                throw new Error(`patch_sheet_schema.patch.renameColumns[${index}] 必须是对象`);
+                throw new Error(`patch_sheet_schema.patch.renameColumns[${index}] phải là đối tượng`);
             }
             if (typeof item.from !== 'string' || !item.from.trim()) {
-                throw new Error(`patch_sheet_schema.patch.renameColumns[${index}].from 必须是非空字符串`);
+                throw new Error(`patch_sheet_schema.patch.renameColumns[${index}].from phải là chuỗi không rỗng`);
             }
             if (typeof item.to !== 'string' || !item.to.trim()) {
-                throw new Error(`patch_sheet_schema.patch.renameColumns[${index}].to 必须是非空字符串`);
+                throw new Error(`patch_sheet_schema.patch.renameColumns[${index}].to phải là chuỗi không rỗng`);
             }
         });
     }
 
     if (addColumns != null) {
         if (!Array.isArray(addColumns)) {
-            throw new Error('patch_sheet_schema.patch.addColumns 必须是数组');
+            throw new Error('patch_sheet_schema.patch.addColumns phải là mảng');
         }
         addColumns.forEach((item: any, index: number) => {
             if (!item || typeof item !== 'object' || Array.isArray(item)) {
-                throw new Error(`patch_sheet_schema.patch.addColumns[${index}] 必须是对象`);
+                throw new Error(`patch_sheet_schema.patch.addColumns[${index}] phải là đối tượng`);
             }
             if (typeof item.name !== 'string' || !item.name.trim()) {
-                throw new Error(`patch_sheet_schema.patch.addColumns[${index}].name 必须是非空字符串`);
+                throw new Error(`patch_sheet_schema.patch.addColumns[${index}].name phải là chuỗi không rỗng`);
             }
         });
     }
 
     if (deleteColumns != null) {
         if (!Array.isArray(deleteColumns)) {
-            throw new Error('patch_sheet_schema.patch.deleteColumns 必须是数组');
+            throw new Error('patch_sheet_schema.patch.deleteColumns phải là mảng');
         }
         deleteColumns.forEach((item: any, index: number) => {
             if (typeof item !== 'string' || !item.trim()) {
-                throw new Error(`patch_sheet_schema.patch.deleteColumns[${index}] 必须是非空字符串`);
+                throw new Error(`patch_sheet_schema.patch.deleteColumns[${index}] phải là chuỗi không rỗng`);
             }
         });
     }
 
     if (ddl != null && (typeof ddl !== 'string' || !ddl.trim())) {
-        throw new Error('patch_sheet_schema.patch.ddl 必须是非空字符串');
+        throw new Error('patch_sheet_schema.patch.ddl phải là chuỗi không rỗng');
     }
     if (patch?.migrationIntent != null) {
         validateTemplateAssistantMigrationIntent_ACU(patch.migrationIntent, 'patch_sheet_schema.patch.migrationIntent');
@@ -1336,7 +1336,7 @@ function validateTemplateAssistantLockPatch_ACU(op: any) {
     const allowedKeys = new Set(['rows', 'columns', 'cells', 'specialIndexLocked']);
     Object.keys(patch).forEach((key) => {
         if (!allowedKeys.has(key)) {
-            throw new Error(`patch_sheet_locks.patch 包含未知字段: ${key}`);
+            throw new Error(`patch_sheet_locks.patch chứa trường không xác định: ${key}`);
         }
     });
 
@@ -1349,92 +1349,92 @@ function validateTemplateAssistantLockPatch_ACU(op: any) {
         || (Array.isArray(cells) && cells.length > 0)
         || typeof patch?.specialIndexLocked === 'boolean';
     if (!hasAnyOperation) {
-        throw new Error('patch_sheet_locks 至少需要 rows、columns、cells、specialIndexLocked 之一');
+        throw new Error('patch_sheet_locks cần ít nhất một trong rows, columns, cells, specialIndexLocked');
     }
 
     if (rows != null) {
         if (!Array.isArray(rows)) {
-            throw new Error('patch_sheet_locks.patch.rows 必须是数组');
+            throw new Error('patch_sheet_locks.patch.rows phải là mảng');
         }
         rows.forEach((item: any, index: number) => {
             if (!item || typeof item !== 'object' || Array.isArray(item)) {
-                throw new Error(`patch_sheet_locks.patch.rows[${index}] 必须是对象`);
+                throw new Error(`patch_sheet_locks.patch.rows[${index}] phải là đối tượng`);
             }
             if (!Number.isInteger(item.rowNumber) || item.rowNumber <= 0) {
-                throw new Error(`patch_sheet_locks.patch.rows[${index}].rowNumber 必须是正整数`);
+                throw new Error(`patch_sheet_locks.patch.rows[${index}].rowNumber phải là số nguyên dương`);
             }
             if (typeof item.locked !== 'boolean') {
-                throw new Error(`patch_sheet_locks.patch.rows[${index}].locked 必须是布尔值`);
+                throw new Error(`patch_sheet_locks.patch.rows[${index}].locked phải là giá trị boolean`);
             }
         });
     }
 
     if (columns != null) {
         if (!Array.isArray(columns)) {
-            throw new Error('patch_sheet_locks.patch.columns 必须是数组');
+            throw new Error('patch_sheet_locks.patch.columns phải là mảng');
         }
         columns.forEach((item: any, index: number) => {
             if (!item || typeof item !== 'object' || Array.isArray(item)) {
-                throw new Error(`patch_sheet_locks.patch.columns[${index}] 必须是对象`);
+                throw new Error(`patch_sheet_locks.patch.columns[${index}] phải là đối tượng`);
             }
             if (typeof item.columnName !== 'string' || !item.columnName.trim()) {
-                throw new Error(`patch_sheet_locks.patch.columns[${index}].columnName 必须是非空字符串`);
+                throw new Error(`patch_sheet_locks.patch.columns[${index}].columnName phải là chuỗi không rỗng`);
             }
             if (typeof item.locked !== 'boolean') {
-                throw new Error(`patch_sheet_locks.patch.columns[${index}].locked 必须是布尔值`);
+                throw new Error(`patch_sheet_locks.patch.columns[${index}].locked phải là giá trị boolean`);
             }
         });
     }
 
     if (cells != null) {
         if (!Array.isArray(cells)) {
-            throw new Error('patch_sheet_locks.patch.cells 必须是数组');
+            throw new Error('patch_sheet_locks.patch.cells phải là mảng');
         }
         cells.forEach((item: any, index: number) => {
             if (!item || typeof item !== 'object' || Array.isArray(item)) {
-                throw new Error(`patch_sheet_locks.patch.cells[${index}] 必须是对象`);
+                throw new Error(`patch_sheet_locks.patch.cells[${index}] phải là đối tượng`);
             }
             if (!Number.isInteger(item.rowNumber) || item.rowNumber <= 0) {
-                throw new Error(`patch_sheet_locks.patch.cells[${index}].rowNumber 必须是正整数`);
+                throw new Error(`patch_sheet_locks.patch.cells[${index}].rowNumber phải là số nguyên dương`);
             }
             if (typeof item.columnName !== 'string' || !item.columnName.trim()) {
-                throw new Error(`patch_sheet_locks.patch.cells[${index}].columnName 必须是非空字符串`);
+                throw new Error(`patch_sheet_locks.patch.cells[${index}].columnName phải là chuỗi không rỗng`);
             }
             if (typeof item.locked !== 'boolean') {
-                throw new Error(`patch_sheet_locks.patch.cells[${index}].locked 必须是布尔值`);
+                throw new Error(`patch_sheet_locks.patch.cells[${index}].locked phải là giá trị boolean`);
             }
         });
     }
 
     if (patch?.specialIndexLocked != null && typeof patch.specialIndexLocked !== 'boolean') {
-        throw new Error('patch_sheet_locks.patch.specialIndexLocked 必须是布尔值');
+        throw new Error('patch_sheet_locks.patch.specialIndexLocked phải là giá trị boolean');
     }
 }
 
 export function validateTemplateAssistantDraft_ACU(draft: any): TemplateAssistantDraft_ACU {
     if (!draft || typeof draft !== 'object') {
-        throw new Error('assistant draft 必须是对象');
+        throw new Error('assistant draft phải là đối tượng');
     }
     if (draft.protocolVersion !== 1 && draft.protocolVersion !== 2 && draft.protocolVersion !== 3) {
-        throw new Error('assistant draft.protocolVersion 必须为 1、2 或 3');
+        throw new Error('assistant draft.protocolVersion phải là 1, 2 hoặc 3');
     }
     if (draft.protocolVersion === 3 && draft.mode !== 'single_sheet_full_replace') {
-        throw new Error('assistant draft.mode 非法（v3 必须为 single_sheet_full_replace）');
+        throw new Error('assistant draft.mode không hợp lệ (v3 phải là single_sheet_full_replace)');
     }
     if (draft.protocolVersion !== 3 && draft.mode !== 'modify_current_template_incremental') {
-        throw new Error('assistant draft.mode 非法');
+        throw new Error('assistant draft.mode không hợp lệ');
     }
     if (typeof draft.baseFingerprint !== 'string' || !draft.baseFingerprint.trim()) {
-        throw new Error('assistant draft.baseFingerprint 缺失');
+        throw new Error('assistant draft.baseFingerprint bị thiếu');
     }
     if (typeof draft.selectedSheetKey !== 'string' || !draft.selectedSheetKey.trim()) {
-        throw new Error('assistant draft.selectedSheetKey 必须是非空字符串');
+        throw new Error('assistant draft.selectedSheetKey phải là chuỗi không rỗng');
     }
     if (typeof draft.summary !== 'string') {
-        throw new Error('assistant draft.summary 必须是字符串');
+        throw new Error('assistant draft.summary phải là chuỗi');
     }
     if (!Array.isArray(draft.warnings)) {
-        throw new Error('assistant draft.warnings 必须是数组');
+        throw new Error('assistant draft.warnings phải là mảng');
     }
 
     if (draft.protocolVersion === 3) {
@@ -1443,20 +1443,20 @@ export function validateTemplateAssistantDraft_ACU(draft: any): TemplateAssistan
 
     const protocolVersion = draft.protocolVersion as 1 | 2;
     if (!Array.isArray(draft.operations)) {
-        throw new Error('assistant draft.operations 必须是数组');
+        throw new Error('assistant draft.operations phải là mảng');
     }
     if (protocolVersion === 2) {
         if (typeof draft.requestId !== 'string' || !draft.requestId.trim()) {
-            throw new Error('assistant draft.requestId 必须是非空字符串');
+            throw new Error('assistant draft.requestId phải là chuỗi không rỗng');
         }
         if (draft.atomic !== true) {
-            throw new Error('assistant draft.atomic 目前必须为 true');
+            throw new Error('assistant draft.atomic hiện phải là true');
         }
     }
 
     draft.operations.forEach((op: any, index: number) => {
         if (!op || typeof op !== 'object') {
-            throw new Error(`operations[${index}] 必须是对象`);
+            throw new Error(`operations[${index}] phải là đối tượng`);
         }
         const opName = String(op.op || '');
         const allowedOps = new Set([
@@ -1471,17 +1471,17 @@ export function validateTemplateAssistantDraft_ACU(draft: any): TemplateAssistan
             ...(protocolVersion === 2 ? ['patch_sheet_content', 'patch_sheet_schema', 'patch_sheet_locks'] : []),
         ]);
         if (!allowedOps.has(opName)) {
-            throw new Error(`operations[${index}] 包含当前协议不支持的操作: ${opName}`);
+            throw new Error(`operations[${index}] chứa thao tác không được giao thức hiện tại hỗ trợ: ${opName}`);
         }
         if (opName === 'replace_sheet_schema') {
-            throw new Error('当前协议禁止 replace_sheet_schema');
+            throw new Error('Giao thức hiện tại cấm replace_sheet_schema');
         }
         if (opName.startsWith('patch_sheet_')) {
             if (typeof op.sheetKey !== 'string' || !op.sheetKey) {
-                throw new Error(`${opName} 缺少 sheetKey`);
+                throw new Error(`${opName} thiếu sheetKey`);
             }
             if (!op.patch || typeof op.patch !== 'object' || Array.isArray(op.patch)) {
-                throw new Error(`${opName} 缺少合法 patch 对象`);
+                throw new Error(`${opName} thiếu đối tượng patch hợp lệ`);
             }
         }
         if (opName === 'add_sheet') {
@@ -1533,55 +1533,55 @@ export function validateTemplateAssistantDraft_ACU(draft: any): TemplateAssistan
  */
 function validateTemplateAssistantDraftV3_ACU(draft: any): TemplateAssistantDraftV3_ACU {
     if (draft.atomic !== true) {
-        throw new Error('assistant draft.atomic 目前必须为 true');
+        throw new Error('assistant draft.atomic hiện phải là true');
     }
     if (typeof draft.requestId !== 'string' || !draft.requestId.trim()) {
-        throw new Error('assistant draft.requestId 必须是非空字符串');
+        throw new Error('assistant draft.requestId phải là chuỗi không rỗng');
     }
     if (draft.operations !== undefined && !Array.isArray(draft.operations)) {
-        throw new Error('v3 禁止 operations[]，必须使用单个 result');
+        throw new Error('v3 cấm operations[], phải dùng một result duy nhất');
     }
     if (draft.operations !== undefined && Array.isArray(draft.operations) && draft.operations.length > 0) {
-        throw new Error('v3 禁止字段级 patch / operations[]，必须返回单个 result（replace/create/delete）');
+        throw new Error('v3 cấm patch cấp trường / operations[], phải trả về một result duy nhất (replace/create/delete)');
     }
     if (draft.result === undefined || draft.result === null || typeof draft.result !== 'object' || Array.isArray(draft.result)) {
-        throw new Error('assistant draft.result 必须存在且为对象');
+        throw new Error('assistant draft.result phải tồn tại và là đối tượng');
     }
     const action = String(draft.result.action || '');
     if (action !== 'replace' && action !== 'create' && action !== 'delete') {
-        throw new Error('v3 result.action 必须为 replace / create / delete 之一');
+        throw new Error('v3 result.action phải là một trong replace / create / delete');
     }
     if (action === 'replace') {
         if (typeof draft.result.sheetKey !== 'string' || !draft.result.sheetKey.trim()) {
-            throw new Error('v3 replace 必须提供非空 sheetKey');
+            throw new Error('v3 replace phải cung cấp sheetKey không rỗng');
         }
         if (draft.result.sheet === undefined || draft.result.sheet === null || typeof draft.result.sheet !== 'object' || Array.isArray(draft.result.sheet)) {
-            throw new Error('v3 replace 必须返回完整 sheet 对象');
+            throw new Error('v3 replace phải trả về đối tượng sheet đầy đủ');
         }
         if (Object.prototype.hasOwnProperty.call(draft.result.sheet, 'uid') || Object.prototype.hasOwnProperty.call(draft.result.sheet, 'orderNo')) {
-            throw new Error('v3 replace.sheet 禁止携带 uid/orderNo（本地继承既有身份与顺序）');
+            throw new Error('v3 replace.sheet cấm kèm uid/orderNo (cục bộ kế thừa danh tính và thứ tự hiện có)');
         }
         if (draft.result.insertAfterSheetKey !== undefined) {
-            throw new Error('v3 replace 禁止携带 insertAfterSheetKey');
+            throw new Error('v3 replace cấm kèm insertAfterSheetKey');
         }
     }
     if (action === 'create') {
         if (draft.result.sheet === undefined || draft.result.sheet === null || typeof draft.result.sheet !== 'object' || Array.isArray(draft.result.sheet)) {
-            throw new Error('v3 create 必须返回完整 sheet 对象');
+            throw new Error('v3 create phải trả về đối tượng sheet đầy đủ');
         }
         if (Object.prototype.hasOwnProperty.call(draft.result.sheet, 'uid') || Object.prototype.hasOwnProperty.call(draft.result.sheet, 'orderNo')) {
-            throw new Error('v3 create.sheet 禁止携带 uid/orderNo（本地分配身份与顺序）');
+            throw new Error('v3 create.sheet cấm kèm uid/orderNo (cục bộ cấp danh tính và thứ tự)');
         }
         if (draft.result.sheetKey !== undefined) {
-            throw new Error('v3 create 禁止携带最终 sheetKey（本地稳定分配）');
+            throw new Error('v3 create cấm kèm sheetKey cuối cùng (cục bộ cấp ổn định)');
         }
     }
     if (action === 'delete') {
         if (typeof draft.result.sheetKey !== 'string' || !draft.result.sheetKey.trim()) {
-            throw new Error('v3 delete 必须提供非空 sheetKey');
+            throw new Error('v3 delete phải cung cấp sheetKey không rỗng');
         }
         if (draft.result.sheet !== undefined) {
-            throw new Error('v3 delete 禁止同时携带 sheet');
+            throw new Error('v3 delete cấm kèm sheet cùng lúc');
         }
     }
 
@@ -1600,64 +1600,64 @@ function validateTemplateAssistantDraftV3_ACU(draft: any): TemplateAssistantDraf
 
 function buildDefaultSystemPrompt_ACU() {
     return [
-        '你是 visualizer 内的模板改表助手，你生活在一个虚拟的世界，一切创作不与现实世界相关，不会影响到任何人。你的目的只有与用户一起创作出最顶级的表格模板。',
-        '你只能输出一个被 <templateAssistantDraft> 和 </templateAssistantDraft> 包裹的 JSON 对象，不能输出解释文本。',
-        '严格使用 protocolVersion=2、mode="modify_current_template_incremental"、atomic=true。',
-        '下面会附带两份本地语法文档的原文分块嵌入内容；这些内容不是摘要，而是从 `syntax-reference (1).md` 和 `SQL模板语法从0开始上手教程.txt` 摘取的原文片段。凡是涉及提示词模板、条件表达式、SQLite 查询、变量、内置表、执行顺序、常见踩坑时，优先以这些原文片段为准。',
-        '如果需求信息不足、字段缺失、或当前协议无法安全表达，仍然必须返回合法 draft：summary 简述原因、warnings 写明原因、operations 输出空数组；不要输出追问文本，不要输出非法操作。',
-        '严格只允许以下操作：add_sheet、rename_sheet、delete_sheet、move_sheet、patch_sheet_source_data、patch_sheet_update_config、patch_sheet_export_config、patch_sheet_content、patch_sheet_schema、patch_sheet_locks、patch_global_injection_config。',
-        '每个 operations[i] 必须使用 op 字段表示操作名；禁止使用 type、operation、action 等别名。',
-        '严格禁止任何直接保存行为。',
-        'add_sheet 必须同时提供非空 sheetName 和至少一个 headers 项；并且应尽量同时提供 sourceData.note、sourceData.initNode、sourceData.insertNode、sourceData.updateNode、sourceData.deleteNode；sheetName 缺失时不要猜名字，直接返回空 operations。',
-        'add_sheet.sourceData 与 patch_sheet_source_data.patch 只允许 note、initNode、insertNode、updateNode、deleteNode 五个字段；禁止出现 ddl、sql、schema、createTable 等字段。',
-        '新建表时，不要只给空壳。sourceData.note 要写清这张表记录什么、一行代表什么、是单行表还是多行表、各列含义、哪列可以作为稳定标识。sourceData.initNode/insertNode/updateNode/deleteNode 要写清何时初始化、何时新增、何时更新、何时删除。',
-        '当用户只表达“新增某某表”但没有给出表头时，可以根据表名语义生成一组最小、合理、通用、可直接用于后续剧情更新的 headers；自定义表头尽量避免使用带 / 的列名；不要伪造数据行。',
-        '物品/战利品/库存类表，优先考虑“物品名称、数量、描述/效果、类别、备注、来源/掉落来源”等能直接支撑后续更新的列；其中应至少包含一个稳定标识列。',
-        '默认优先 add_sheet + 完整 sourceData，让新表立刻具备初始化/新增/更新/删除指引；除非用户明确要求 DDL、字段类型、约束或 SQLite 建表语句，否则不要主动输出 patch_sheet_schema.ddl。',
-        '当用户对【已存在的表】明确要求 DDL、字段类型、约束或 SQLite 建表语句时，不得因为表已存在就返回空 operations；必须通过 patch_sheet_schema.patch.ddl 输出该表的 DDL。',
-        '即使用户要求“顺便写 SQL/DDL”，也不要把 ddl 或 sql 塞进 add_sheet.sourceData；新建表时优先输出 headers + 合法的五段 sourceData。',
-        '如果当前 headers 主要是中文，自定义 ddl 只有在你能提供英文/ASCII 物理列名，并用 `-- 中文表头` 注释按原顺序一一对应时才安全；除非用户明确要求并且已经给出可直接落地的列名方案，否则不要生成 ddl。',
-        '示例 add_sheet：{"op":"add_sheet","sheetName":"角色关系表","headers":["角色A","角色B","关系","备注"]}。',
-        '示例（库存/战利品类）add_sheet：{"op":"add_sheet","sheetName":"战利品表","headers":["物品名称","数量","描述/效果","类别"],"sourceData":{"note":"记录战利品条目，一行代表一种物品。","initNode":"当剧情或设定已经明确存在初始战利品时初始化。","insertNode":"出现新的战利品时新增。","updateNode":"已有战利品数量或状态变化时更新。","deleteNode":"战利品被清空、移除或失效时删除。"}}。',
-        'patch_sheet_source_data 不能修改 ddl；DDL 只能通过 patch_sheet_schema.patch.ddl 修改。',
-        '当前协议校验会逐列对比 patch_sheet_schema.patch.ddl 与当前 headers：ASCII/英文 headers 必须由同名物理列匹配；中文 headers 必须使用英文/ASCII 物理列名，并用 `-- 中文表头` 注释匹配。第一列必须是 row_id INTEGER PRIMARY KEY。',
-        '正确示例（中文 headers）：CREATE TABLE loot_table ( -- 战利品表\n  row_id INTEGER PRIMARY KEY, -- 行号\n  item_name TEXT, -- 物品名称\n  quantity INTEGER, -- 数量\n  time_span TEXT NOT NULL, -- 时间跨度\n  remarks TEXT -- 备注\n);',
-        '即使是 row_id INTEGER PRIMARY KEY 这一行，也必须保留 `-- 行号` 注释，不能省略。',
-        '错误示例：CREATE TABLE loot_table (\n  row_id INTEGER PRIMARY KEY,\n  物品名称 TEXT,\n  数量 INTEGER\n); 这种把中文表头直接写成物理列名的 ddl 会被拒绝；即使再写 `-- 物品名称` 这类同名注释也不合法。',
-        '不要为刚 add_sheet 的新表生成依赖真实 sheetKey 的 follow-up patch 来补 DDL 或 starter rows；当前同一份 draft 无法可靠引用尚未落地的新表。',
-        'patch_sheet_content.patch 只允许使用 updateCells、addRows、deleteRows；其中 rowNumber 必须使用 1-based 行号，列使用 columnName。',
-        'patch_sheet_schema.patch 只允许使用 renameColumns、addColumns、deleteColumns、ddl、migrationIntent；migrationIntent 仅用于明确声明无法由 V1 安全子集表达的 schema migration 契约，不能替代实际 schema 修改。',
-        'migrationIntent 必须完整提供 physicalColumnMappings（每项 {fromPhysicalName,toPhysicalName}）、fills、conversions、migrationPolicy（{destructiveChangeConfirmed,lossyConversionConfirmed}）。physical rename 示例：{"physicalColumnMappings":[{"fromPhysicalName":"name","toPhysicalName":"item_name"}],"fills":{},"conversions":[],"migrationPolicy":{"destructiveChangeConfirmed":false,"lossyConversionConfirmed":false}}。新增 physical 列时 fills 必须覆盖每个新增列，格式为 {"列名":{"kind":"literal","literal":{"kind":"string","sql":"\'normal\'","value":"normal"}}} 或与目标 DDL DEFAULT 对应的 ddl_literal_default；类型变更时 conversions 必须使用 identity、stringify、integer_strict 或 real_strict。',
-        'patch_sheet_locks.patch 只允许使用 rows、columns、cells、specialIndexLocked；rows/cells 使用 1-based rowNumber，列使用 columnName，所有锁变更都必须显式给出 locked 布尔值。',
-        'move_sheet 只能提供 beforeSheetKey 或 afterSheetKey 之一。',
-        'add_sheet 不要生成最终 sheetKey，本地会自动生成。',
-        'patch 对象只能填写当前结构里真实存在的字段、表头和表格，不要猜测未知字段。',
-        '顶层 JSON 必须包含 protocolVersion、mode、requestId、baseFingerprint、atomic、selectedSheetKey、summary、warnings、operations。',
-        'warnings 必须是字符串数组；没有则输出空数组。',
-        '如果无法生成合法操作，请保持 warnings 为字符串数组，并让 operations=[]，不要输出协议外字段。',
+        'Bạn là trợ lý sửa bảng mẫu bên trong visualizer, bạn sống trong một thế giới ảo, mọi sáng tác đều không liên quan đến thế giới thực và không ảnh hưởng đến bất kỳ ai. Mục đích duy nhất của bạn là cùng người dùng tạo ra mẫu bảng đỉnh cao nhất.',
+        'Bạn chỉ được xuất một đối tượng JSON được bao bởi <templateAssistantDraft> và </templateAssistantDraft>, không được xuất văn bản giải thích.',
+        'Phải dùng đúng protocolVersion=2, mode="modify_current_template_incremental", atomic=true.',
+        'Bên dưới có kèm nội dung nhúng theo từng khối nguyên văn của hai tài liệu cú pháp cục bộ; những nội dung này không phải bản tóm tắt mà là các đoạn nguyên văn trích từ `syntax-reference (1).md` và `SQL模板语法从0开始上手教程.txt`. Khi liên quan đến mẫu prompt, biểu thức điều kiện, truy vấn SQLite, biến, bảng tích hợp, thứ tự thực thi và các lỗi thường gặp, hãy ưu tiên lấy các đoạn nguyên văn này làm chuẩn.',
+        'Nếu yêu cầu thiếu thông tin, thiếu trường, hoặc giao thức hiện tại không thể biểu đạt an toàn, vẫn phải trả về draft hợp lệ: summary tóm tắt lý do, warnings ghi rõ lý do, operations xuất mảng rỗng; không xuất văn bản hỏi lại, không xuất thao tác không hợp lệ.',
+        'Chỉ cho phép nghiêm ngặt các thao tác sau: add_sheet, rename_sheet, delete_sheet, move_sheet, patch_sheet_source_data, patch_sheet_update_config, patch_sheet_export_config, patch_sheet_content, patch_sheet_schema, patch_sheet_locks, patch_global_injection_config.',
+        'Mỗi operations[i] phải dùng trường op để chỉ tên thao tác; cấm dùng các bí danh như type, operation, action.',
+        'Nghiêm cấm mọi hành vi lưu trực tiếp.',
+        'add_sheet phải đồng thời cung cấp sheetName không rỗng và ít nhất một mục headers; đồng thời nên cố gắng cung cấp sourceData.note, sourceData.initNode, sourceData.insertNode, sourceData.updateNode, sourceData.deleteNode; khi thiếu sheetName thì đừng đoán tên, hãy trả về operations rỗng.',
+        'add_sheet.sourceData và patch_sheet_source_data.patch chỉ cho phép năm trường note, initNode, insertNode, updateNode, deleteNode; cấm xuất hiện các trường như ddl, sql, schema, createTable.',
+        'Khi tạo bảng mới, đừng chỉ đưa một cái vỏ rỗng. sourceData.note phải nêu rõ bảng này ghi lại gì, một hàng đại diện cho gì, là bảng một hàng hay nhiều hàng, ý nghĩa từng cột, cột nào có thể làm định danh ổn định. sourceData.initNode/insertNode/updateNode/deleteNode phải nêu rõ khi nào khởi tạo, khi nào thêm, khi nào cập nhật, khi nào xóa.',
+        'Khi người dùng chỉ nói "thêm bảng nào đó" mà không đưa tiêu đề cột, có thể dựa vào ngữ nghĩa của tên bảng để tạo một bộ headers tối thiểu, hợp lý, phổ quát, dùng trực tiếp được cho việc cập nhật cốt truyện về sau; tiêu đề cột tự đặt nên tránh dùng tên cột có dấu /; không được bịa hàng dữ liệu.',
+        'Với bảng loại vật phẩm/chiến lợi phẩm/kho đồ, ưu tiên cân nhắc các cột như "物品名称, 数量, 描述/效果, 类别, 备注, 来源/掉落来源" có thể trực tiếp hỗ trợ cập nhật về sau; trong đó phải có ít nhất một cột định danh ổn định.',
+        'Mặc định ưu tiên add_sheet + sourceData đầy đủ, để bảng mới có ngay hướng dẫn khởi tạo/thêm/cập nhật/xóa; trừ khi người dùng yêu cầu rõ DDL, kiểu trường, ràng buộc hoặc câu lệnh tạo bảng SQLite, nếu không đừng chủ động xuất patch_sheet_schema.ddl.',
+        'Khi người dùng yêu cầu rõ DDL, kiểu trường, ràng buộc hoặc câu lệnh tạo bảng SQLite cho [bảng đã tồn tại], không được vì bảng đã tồn tại mà trả về operations rỗng; phải xuất DDL của bảng đó qua patch_sheet_schema.patch.ddl.',
+        'Dù người dùng yêu cầu "tiện thể viết SQL/DDL", cũng đừng nhét ddl hoặc sql vào add_sheet.sourceData; khi tạo bảng mới, ưu tiên xuất headers + năm đoạn sourceData hợp lệ.',
+        'Nếu headers hiện tại chủ yếu là tiếng Trung, ddl tự viết chỉ an toàn khi bạn có thể cung cấp tên cột vật lý tiếng Anh/ASCII và dùng chú thích `-- <tiêu đề cột>` khớp từng cột theo đúng thứ tự; trừ khi người dùng yêu cầu rõ và đã đưa ra phương án tên cột dùng được ngay, nếu không đừng tạo ddl.',
+        'Ví dụ add_sheet: {"op":"add_sheet","sheetName":"角色关系表","headers":["角色A","角色B","关系","备注"]}.',
+        'Ví dụ add_sheet (loại kho đồ/chiến lợi phẩm): {"op":"add_sheet","sheetName":"战利品表","headers":["物品名称","数量","描述/效果","类别"],"sourceData":{"note":"Ghi lại các mục chiến lợi phẩm, mỗi hàng đại diện cho một loại vật phẩm.","initNode":"Khởi tạo khi cốt truyện hoặc thiết lập đã nêu rõ có chiến lợi phẩm ban đầu.","insertNode":"Thêm khi xuất hiện chiến lợi phẩm mới.","updateNode":"Cập nhật khi số lượng hoặc trạng thái của chiến lợi phẩm hiện có thay đổi.","deleteNode":"Xóa khi chiến lợi phẩm bị dùng hết, bị loại bỏ hoặc mất hiệu lực."}}.',
+        'patch_sheet_source_data không được sửa ddl; DDL chỉ được sửa qua patch_sheet_schema.patch.ddl.',
+        'Việc kiểm tra giao thức hiện tại sẽ so sánh từng cột giữa patch_sheet_schema.patch.ddl và headers hiện tại: headers ASCII/tiếng Anh phải khớp với cột vật lý cùng tên; headers tiếng Trung phải dùng tên cột vật lý tiếng Anh/ASCII và khớp bằng chú thích `-- <tiêu đề cột>`. Cột đầu tiên phải là row_id INTEGER PRIMARY KEY.',
+        'Ví dụ đúng (headers tiếng Trung): CREATE TABLE loot_table ( -- 战利品表\n  row_id INTEGER PRIMARY KEY, -- 行号\n  item_name TEXT, -- 物品名称\n  quantity INTEGER, -- 数量\n  time_span TEXT NOT NULL, -- 时间跨度\n  remarks TEXT -- 备注\n);',
+        'Ngay cả dòng row_id INTEGER PRIMARY KEY này cũng phải giữ chú thích `-- 行号`, không được bỏ.',
+        'Ví dụ sai: CREATE TABLE loot_table (\n  row_id INTEGER PRIMARY KEY,\n  物品名称 TEXT,\n  数量 INTEGER\n); ddl viết thẳng tiêu đề cột tiếng Trung làm tên cột vật lý như vậy sẽ bị từ chối; dù có thêm chú thích cùng tên như `-- 物品名称` cũng không hợp lệ.',
+        'Đừng tạo patch tiếp theo phụ thuộc vào sheetKey thật để bổ sung DDL hoặc hàng khởi đầu cho bảng vừa add_sheet; cùng một draft hiện tại không thể tham chiếu đáng tin cậy tới bảng mới chưa được ghi nhận.',
+        'patch_sheet_content.patch chỉ được dùng updateCells, addRows, deleteRows; trong đó rowNumber phải dùng số hàng tính từ 1, cột dùng columnName.',
+        'patch_sheet_schema.patch chỉ được dùng renameColumns, addColumns, deleteColumns, ddl, migrationIntent; migrationIntent chỉ dùng để khai báo rõ hợp đồng schema migration mà tập con an toàn của V1 không biểu đạt được, không thể thay thế việc sửa schema thực tế.',
+        'migrationIntent phải cung cấp đầy đủ physicalColumnMappings (mỗi mục {fromPhysicalName,toPhysicalName}), fills, conversions, migrationPolicy ({destructiveChangeConfirmed,lossyConversionConfirmed}). Ví dụ physical rename: {"physicalColumnMappings":[{"fromPhysicalName":"name","toPhysicalName":"item_name"}],"fills":{},"conversions":[],"migrationPolicy":{"destructiveChangeConfirmed":false,"lossyConversionConfirmed":false}}. Khi thêm cột physical, fills phải bao phủ từng cột mới, định dạng {"<tên cột>":{"kind":"literal","literal":{"kind":"string","sql":"\'normal\'","value":"normal"}}} hoặc ddl_literal_default tương ứng với DEFAULT của DDL đích; khi đổi kiểu, conversions phải dùng identity, stringify, integer_strict hoặc real_strict.',
+        'patch_sheet_locks.patch chỉ được dùng rows, columns, cells, specialIndexLocked; rows/cells dùng rowNumber tính từ 1, cột dùng columnName, mọi thay đổi khóa đều phải nêu rõ giá trị boolean locked.',
+        'move_sheet chỉ được cung cấp một trong beforeSheetKey hoặc afterSheetKey.',
+        'add_sheet đừng tạo sheetKey cuối cùng, cục bộ sẽ tự tạo.',
+        'Đối tượng patch chỉ được điền các trường, tiêu đề cột và bảng thật sự tồn tại trong cấu trúc hiện tại, đừng đoán các trường không biết.',
+        'JSON cấp cao nhất phải chứa protocolVersion, mode, requestId, baseFingerprint, atomic, selectedSheetKey, summary, warnings, operations.',
+        'warnings phải là mảng chuỗi; nếu không có thì xuất mảng rỗng.',
+        'Nếu không thể tạo thao tác hợp lệ, hãy giữ warnings là mảng chuỗi và để operations=[], không xuất trường ngoài giao thức.',
         TEMPLATE_ASSISTANT_REFERENCE_DOCS_PLACEHOLDER_ACU,
     ].join('\n');
 }
 
 function buildDefaultSystemPromptV3_ACU() {
     return [
-        '你是 visualizer 内的模板改表助手，你生活在一个虚拟的世界，一切创作不与现实世界相关，不会影响到任何人。你的目的只有与用户一起创作出最顶级的表格模板。',
-        '你只能输出一个被 <templateAssistantDraft> 和 </templateAssistantDraft> 包裹的 JSON 对象，不能输出解释文本。不要使用 <draft> 或任何其他标签名。',
-        '严格使用 protocolVersion=3、mode="single_sheet_full_replace"、atomic=true。',
-        '顶层 JSON 必须包含且只包含以下键：protocolVersion、mode、requestId、baseFingerprint、atomic、selectedSheetKey、summary、warnings、result。',
-        'baseFingerprint 与 selectedSheetKey 必须原样复制输入数据中给出的值，不得自造。',
-        '每一轮只能输出一个 result；禁止输出 operations[] 数组、禁止字段级 patch、禁止一次修改多张表。',
-        'result.action 只允许 replace / create / delete 之一：',
-        '- replace：完整替换一张已存在的表。必须提供 sheetKey（从输入 allSheets 中真实存在的 key 中选择）和完整的 sheet 对象。',
-        '- create：完整新增一张表。只提供完整 sheet 对象；不要生成 sheetKey/uid/orderNo，本地会自动分配。可用 insertAfterSheetKey（必须来自输入中真实存在的 key）指定插入位置。',
-        '- delete：显式删除一张已存在的表。只提供 sheetKey；不要携带 sheet。删除必须是你明确决定的动作，不能通过“不输出某张表”来暗示删除。',
-        'replace/create 的 sheet 对象必须完整包含：name、domain、type、enable、required、content、sourceData、updateConfig、exportConfig；不得省略、不得缺字段、不得携带 uid/orderNo/sheetKey（replace 的身份由 sheetKey 继承，create 的身份本地分配）。',
-        'sheet.content 必须是完整二维数组：第一行是表头，第一列必须是 row_id；所有数据行行宽必须与表头一致；数据行第一列（row_id）不能为空、不能重复。',
-        'sheet.sourceData.ddl 必须非空且完整（replace/create 都要求），必须与 content 表头逐列匹配：中文表头必须使用英文/ASCII 物理列名，并用 `-- 中文表头` 注释按原顺序一一对应；第一列必须 row_id INTEGER PRIMARY KEY 并保留 `-- 行号` 注释。',
-        '只有你要修改的那张表会发生变化；输入中其他表一律保持原样。不要假设未输出的表会被删除，也不要修改未目标表的任何字段。',
-        '严格禁止直接保存行为；禁止修改全局注入配置（globalInjectionConfig）；禁止删除/重建 row_id 列。',
-        '如果需求信息不足、字段缺失、或当前协议无法安全表达，仍然必须返回合法 draft：summary 简述原因、warnings 写明原因、result 输出 {action:"replace", sheetKey:"<真实存在的key>", sheet:{...完整原样...}}；不要输出追问文本，不要输出非法操作。',
-        'warnings 必须是字符串数组；没有则输出空数组。',
+        'Bạn là trợ lý sửa bảng mẫu bên trong visualizer, bạn sống trong một thế giới ảo, mọi sáng tác đều không liên quan đến thế giới thực và không ảnh hưởng đến bất kỳ ai. Mục đích duy nhất của bạn là cùng người dùng tạo ra mẫu bảng đỉnh cao nhất.',
+        'Bạn chỉ được xuất một đối tượng JSON được bao bởi <templateAssistantDraft> và </templateAssistantDraft>, không được xuất văn bản giải thích. Không dùng <draft> hay bất kỳ tên thẻ nào khác.',
+        'Phải dùng đúng protocolVersion=3, mode="single_sheet_full_replace", atomic=true.',
+        'JSON cấp cao nhất phải chứa và chỉ chứa các khóa sau: protocolVersion, mode, requestId, baseFingerprint, atomic, selectedSheetKey, summary, warnings, result.',
+        'baseFingerprint và selectedSheetKey phải sao chép nguyên giá trị đã cho trong dữ liệu đầu vào, không được tự tạo.',
+        'Mỗi lượt chỉ được xuất một result; cấm xuất mảng operations[], cấm patch cấp trường, cấm sửa nhiều bảng cùng lúc.',
+        'result.action chỉ cho phép một trong replace / create / delete:',
+        '- replace: thay thế đầy đủ một bảng đã tồn tại. Phải cung cấp sheetKey (chọn từ các key thật sự tồn tại trong allSheets của đầu vào) và đối tượng sheet đầy đủ.',
+        '- create: thêm đầy đủ một bảng mới. Chỉ cung cấp đối tượng sheet đầy đủ; đừng tạo sheetKey/uid/orderNo, cục bộ sẽ tự cấp. Có thể dùng insertAfterSheetKey (phải là key thật sự tồn tại trong đầu vào) để chỉ định vị trí chèn.',
+        '- delete: xóa rõ ràng một bảng đã tồn tại. Chỉ cung cấp sheetKey; không kèm sheet. Xóa phải là hành động bạn quyết định rõ ràng, không được ngầm ý xóa bằng cách "không xuất một bảng nào đó".',
+        'Đối tượng sheet của replace/create phải chứa đầy đủ: name, domain, type, enable, required, content, sourceData, updateConfig, exportConfig; không được bỏ sót, không được thiếu trường, không được kèm uid/orderNo/sheetKey (danh tính của replace kế thừa từ sheetKey, danh tính của create do cục bộ cấp).',
+        'sheet.content phải là mảng hai chiều đầy đủ: hàng đầu là tiêu đề, cột đầu phải là row_id; độ rộng mọi hàng dữ liệu phải bằng tiêu đề; cột đầu (row_id) của hàng dữ liệu không được rỗng, không được trùng.',
+        'sheet.sourceData.ddl phải không rỗng và đầy đủ (replace/create đều yêu cầu), phải khớp từng cột với tiêu đề của content: tiêu đề tiếng Trung phải dùng tên cột vật lý tiếng Anh/ASCII và dùng chú thích `-- <tiêu đề cột>` khớp theo đúng thứ tự; cột đầu phải là row_id INTEGER PRIMARY KEY và giữ chú thích `-- 行号`.',
+        'Chỉ bảng bạn muốn sửa mới thay đổi; các bảng khác trong đầu vào luôn giữ nguyên. Đừng giả định bảng không được xuất sẽ bị xóa, cũng đừng sửa bất kỳ trường nào của bảng không phải mục tiêu.',
+        'Nghiêm cấm hành vi lưu trực tiếp; cấm sửa cấu hình chèn toàn cục (globalInjectionConfig); cấm xóa/dựng lại cột row_id.',
+        'Nếu yêu cầu thiếu thông tin, thiếu trường, hoặc giao thức hiện tại không thể biểu đạt an toàn, vẫn phải trả về draft hợp lệ: summary tóm tắt lý do, warnings ghi rõ lý do, result xuất {action:"replace", sheetKey:"<key thật sự tồn tại>", sheet:{...nguyên vẹn đầy đủ...}}; không xuất văn bản hỏi lại, không xuất thao tác không hợp lệ.',
+        'warnings phải là mảng chuỗi; nếu không có thì xuất mảng rỗng.',
         TEMPLATE_ASSISTANT_REFERENCE_DOCS_PLACEHOLDER_ACU,
     ].join('\n');
 }
@@ -1679,36 +1679,36 @@ export const TEMPLATE_ASSISTANT_CORE_PROTOCOL_MARKER_ACU = '[ACU 改表助手核
 export function buildCoreProtocolCard_ACU(): string {
     return [
         TEMPLATE_ASSISTANT_CORE_PROTOCOL_MARKER_ACU,
-        '【操作路由】按用户意图选择唯一操作，不要跨层混写：',
-        '- 只改更新频率/上下文深度/批处理/分组/跳层 → patch_sheet_update_config（只填变更字段，不生成 content/schema/sourceData）',
-        '- 改 Note/Init/Insert/Update/Delete 说明 → patch_sheet_source_data（只允许 note/initNode/insertNode/updateNode/deleteNode 五字段，禁止 ddl/sql/schema/createTable）',
-        '- 改单元格/行数据 → patch_sheet_content（updateCells/addRows/deleteRows，rowNumber 1-based，列用 columnName）',
-        '- 改显示表头/列结构 → patch_sheet_schema（renameColumns/addColumns/deleteColumns；只改中文显示表头用 renameColumns，不输出 headers 字段）',
-        '- DDL → 仅在用户明确要求字段类型/约束/SQLite 建表语句时用 patch_sheet_schema.patch.ddl；中文表头必须英文/ASCII 物理列名 + `-- 中文表头` 注释一一对应，第一列 row_id INTEGER PRIMARY KEY',
-        '- 锁/全局注入 → patch_sheet_locks / patch_global_injection_config',
+        '【Định tuyến thao tác】Chọn duy nhất một thao tác theo ý định người dùng, không trộn lẫn giữa các tầng:',
+        '- Chỉ đổi tần suất cập nhật/độ sâu ngữ cảnh/xử lý theo lô/nhóm/bỏ qua tầng → patch_sheet_update_config (chỉ điền trường thay đổi, không tạo content/schema/sourceData)',
+        '- Sửa mô tả Note/Init/Insert/Update/Delete → patch_sheet_source_data (chỉ cho phép năm trường note/initNode/insertNode/updateNode/deleteNode, cấm ddl/sql/schema/createTable)',
+        '- Sửa ô/dữ liệu hàng → patch_sheet_content (updateCells/addRows/deleteRows, rowNumber tính từ 1, cột dùng columnName)',
+        '- Sửa tiêu đề hiển thị/cấu trúc cột → patch_sheet_schema (renameColumns/addColumns/deleteColumns; chỉ đổi tiêu đề hiển thị tiếng Trung thì dùng renameColumns, không xuất trường headers)',
+        '- DDL → chỉ dùng patch_sheet_schema.patch.ddl khi người dùng yêu cầu rõ kiểu trường/ràng buộc/câu lệnh tạo bảng SQLite; tiêu đề tiếng Trung phải dùng tên cột vật lý tiếng Anh/ASCII + chú thích `-- <tiêu đề cột>` khớp từng cột, cột đầu row_id INTEGER PRIMARY KEY',
+        '- Khóa/chèn toàn cục → patch_sheet_locks / patch_global_injection_config',
         '',
-        '【防误操作边界】',
-        '- 只改更新频率时，禁止顺带输出 updateNode、headers、DDL 或 content patch（示例：仅 {"op":"patch_sheet_update_config","sheetKey":"<目标表 sheetKey>","patch":{"updateFrequency":60}}）',
-        '- 只改显示表头时，用 renameColumns，禁止输出 headers 字段；本地会自动同步既有 DDL 注释',
-        '- 同时改表头与 Note 时，输出两个独立 operation（一个 patch_sheet_schema.renameColumns + 一个 patch_sheet_source_data.note）',
-        '- 物理列名迁移与显示名改名是两件事：只有明确要求物理迁移才输出 migrationIntent，且必须完整提供 physicalColumnMappings/fills/conversions/migrationPolicy',
-        '- 涉及未知表/未知列/删除/类型转换/物理迁移/row_id/DDL 不一致时，不猜测；返回 warnings 说明 + operations=[]',
-        '- 需求信息不足时仍必须返回合法 draft：summary 简述、warnings 写明、operations=[]，禁止输出追问文本',
+        '【Ranh giới chống thao tác nhầm】',
+        '- Khi chỉ đổi tần suất cập nhật, cấm kèm theo updateNode, headers, DDL hay content patch (ví dụ: chỉ {"op":"patch_sheet_update_config","sheetKey":"<sheetKey bảng đích>","patch":{"updateFrequency":60}})',
+        '- Khi chỉ đổi tiêu đề hiển thị, dùng renameColumns, cấm xuất trường headers; cục bộ sẽ tự đồng bộ chú thích DDL hiện có',
+        '- Khi đồng thời đổi tiêu đề cột và Note, xuất hai operation độc lập (một patch_sheet_schema.renameColumns + một patch_sheet_source_data.note)',
+        '- Di chuyển tên cột vật lý và đổi tên hiển thị là hai việc khác nhau: chỉ khi yêu cầu rõ di chuyển vật lý mới xuất migrationIntent, và phải cung cấp đầy đủ physicalColumnMappings/fills/conversions/migrationPolicy',
+        '- Khi liên quan đến bảng không biết/cột không biết/xóa/chuyển đổi kiểu/di chuyển vật lý/row_id/DDL không nhất quán, đừng đoán; trả về giải thích trong warnings + operations=[]',
+        '- Khi yêu cầu thiếu thông tin vẫn phải trả về draft hợp lệ: summary tóm tắt, warnings ghi rõ, operations=[], cấm xuất văn bản hỏi lại',
     ].join('\n');
 }
 
 export function buildCoreProtocolCardV3_ACU(): string {
     return [
         TEMPLATE_ASSISTANT_CORE_PROTOCOL_MARKER_ACU,
-        '【v3 单表完整替换协议】默认协议，每轮只输出一个 result：',
-        '- 顶层 JSON 只含 protocolVersion=3、mode="single_sheet_full_replace"、requestId、baseFingerprint、atomic、selectedSheetKey、summary、warnings、result。',
-        '- result.action 只允许 replace / create / delete 之一；禁止 operations[]、禁止字段级 patch、禁止一次改多张表。',
-        '- replace：完整替换一张已存在表。必须提供 sheetKey（输入中真实存在的 key）和完整 sheet（name/domain/type/enable/required/content/sourceData/updateConfig/exportConfig 全量）。',
-        '- create：完整新增一张表。只提供完整 sheet；不要生成 sheetKey/uid/orderNo（本地分配）。可用 insertAfterSheetKey（真实存在的 key）指定插入位置。',
-        '- delete：显式删除一张已存在表。只提供 sheetKey；禁止通过「不输出某张表」暗示删除。',
-        '- content 首列必须 row_id 且非空不重复；sourceData.ddl 必须非空并与表头逐列匹配（中文表头用英文/ASCII 物理列名 + `-- 中文表头` 注释）。',
-        '- 未目标表保持原样；禁止修改全局注入配置；禁止删除/重建 row_id 列。',
-        '- 信息不足时仍返回合法 draft：summary 简述、warnings 写明、result 输出完整原样 replace；禁止输出追问文本或非法操作。',
+        '【Giao thức v3 thay thế đầy đủ một bảng】Giao thức mặc định, mỗi lượt chỉ xuất một result:',
+        '- JSON cấp cao nhất chỉ gồm protocolVersion=3, mode="single_sheet_full_replace", requestId, baseFingerprint, atomic, selectedSheetKey, summary, warnings, result.',
+        '- result.action chỉ cho phép một trong replace / create / delete; cấm operations[], cấm patch cấp trường, cấm sửa nhiều bảng cùng lúc.',
+        '- replace: thay thế đầy đủ một bảng đã tồn tại. Phải cung cấp sheetKey (key thật sự tồn tại trong đầu vào) và sheet đầy đủ (đủ toàn bộ name/domain/type/enable/required/content/sourceData/updateConfig/exportConfig).',
+        '- create: thêm đầy đủ một bảng mới. Chỉ cung cấp sheet đầy đủ; đừng tạo sheetKey/uid/orderNo (cục bộ cấp). Có thể dùng insertAfterSheetKey (key thật sự tồn tại) để chỉ định vị trí chèn.',
+        '- delete: xóa rõ ràng một bảng đã tồn tại. Chỉ cung cấp sheetKey; cấm ngầm ý xóa bằng cách "không xuất một bảng nào đó".',
+        '- Cột đầu của content phải là row_id, không rỗng và không trùng; sourceData.ddl phải không rỗng và khớp từng cột với tiêu đề (tiêu đề tiếng Trung dùng tên cột vật lý tiếng Anh/ASCII + chú thích `-- <tiêu đề cột>`).',
+        '- Bảng không phải mục tiêu giữ nguyên; cấm sửa cấu hình chèn toàn cục; cấm xóa/dựng lại cột row_id.',
+        '- Khi thiếu thông tin vẫn trả về draft hợp lệ: summary tóm tắt, warnings ghi rõ, result xuất replace nguyên vẹn đầy đủ; cấm xuất văn bản hỏi lại hoặc thao tác không hợp lệ.',
     ].join('\n');
 }
 
@@ -1898,15 +1898,15 @@ function buildSessionRoundUserRequest_ACU(options: {
     if (options.repairReason) {
         const isV3 = options.protocolVersion === 3;
         chunks.push(
-            '修复要求：上一轮 assistant 草稿未通过本地校验，原因是：'
+            'Yêu cầu sửa lỗi: bản nháp assistant của lượt trước không qua kiểm tra cục bộ, lý do là: '
             + `${options.repairReason}。`
-            + '请只修复校验失败的那个 operation，不要重新生成整份复杂草稿；'
-            + '不得改变需求中未提及的表与字段。'
+            + 'Chỉ sửa đúng operation không qua kiểm tra, đừng tạo lại toàn bộ bản nháp phức tạp; '
+            + 'không được thay đổi các bảng và trường không được nhắc đến trong yêu cầu.'
             + (isV3
-                ? '仍然只能输出合法 v3 draft JSON（protocolVersion=3、mode="single_sheet_full_replace"、atomic=true、含 requestId/baseFingerprint/selectedSheetKey，且只能有单个 result：replace/create/delete）。'
-                : '只改更新频率时输出 patch_sheet_update_config；'
-                + '只改显示表头时输出 patch_sheet_schema.renameColumns，不输出 headers 字段。'
-                + '仍然只能输出合法 draft JSON（protocolVersion=2、atomic=true、含 requestId/baseFingerprint/selectedSheetKey）。'),
+                ? 'Vẫn chỉ được xuất v3 draft JSON hợp lệ (protocolVersion=3, mode="single_sheet_full_replace", atomic=true, kèm requestId/baseFingerprint/selectedSheetKey, và chỉ được có một result duy nhất: replace/create/delete).'
+                : 'Khi chỉ đổi tần suất cập nhật thì xuất patch_sheet_update_config; '
+                + 'Khi chỉ đổi tiêu đề hiển thị thì xuất patch_sheet_schema.renameColumns, không xuất trường headers.'
+                + 'Vẫn chỉ được xuất draft JSON hợp lệ (protocolVersion=2, atomic=true, kèm requestId/baseFingerprint/selectedSheetKey).'),
         );
     }
     return chunks.filter(Boolean).join('\n\n');
@@ -2014,7 +2014,7 @@ export function hasTemplateAssistantApplicableDraft_ACU(draft: any): boolean {
 
 function assertTemplateAssistantDraftApplicable_ACU(draft: any) {
     if (!hasTemplateAssistantApplicableDraft_ACU(draft)) {
-        throw new Error('assistant draft 不包含可应用的变更');
+        throw new Error('assistant draft không chứa thay đổi nào có thể áp dụng');
     }
 }
 
@@ -2045,7 +2045,7 @@ function emitTemplateAssistantRoundComplete_ACU(
         });
     } catch (error: any) {
         logError_ACU('[TemplateAssistant] onRoundComplete 执行失败', {
-            errorMessage: error?.message || '未知错误',
+            errorMessage: error?.message || 'Lỗi không rõ',
             round: round.round,
         });
     }
@@ -2055,10 +2055,10 @@ export async function generateTemplateAssistantDraft_ACU(input: TemplateAssistan
     const tempData = asObject_ACU(input?.tempData);
     const userRequest = String(input?.userRequest || '').trim();
     if (!userRequest) {
-        throw new Error('请输入改表需求');
+        throw new Error('Vui lòng nhập yêu cầu sửa bảng');
     }
     if (!String(input?.currentSheetKey || '').trim()) {
-        throw new Error('请先选中一个表后再使用 AI 改表助手');
+        throw new Error('Hãy chọn một bảng trước rồi mới dùng trợ lý sửa bảng AI');
     }
     const baseFingerprint = buildTemplateAssistantFingerprint_ACU(tempData);
     const messages = buildTemplateAssistantMessages_ACU({ ...input, tempData }, baseFingerprint);
@@ -2081,7 +2081,7 @@ export async function generateTemplateAssistantDraft_ACU(input: TemplateAssistan
         ? await callAIWithPreset_ACU(messages, effectivePreset, undefined, input.guard.signal)
         : await callAIWithPreset_ACU(messages, effectivePreset);
     if (!aiRawText) {
-        throw new Error('AI 未返回有效内容');
+        throw new Error('AI không trả về nội dung hợp lệ');
     }
 
     let draft: TemplateAssistantDraft_ACU;
@@ -2092,10 +2092,10 @@ export async function generateTemplateAssistantDraft_ACU(input: TemplateAssistan
             currentSheetKey: input.currentSheetKey,
             baseFingerprint,
             userRequest,
-            errorMessage: error?.message || '未知错误',
+            errorMessage: error?.message || 'Lỗi không rõ',
             aiRawText,
         });
-        const wrapped = new Error(error?.message || 'assistant draft 解析失败');
+        const wrapped = new Error(error?.message || 'Phân tích assistant draft thất bại');
         // 转发内部已有的分类（validate 在 parseTemplateAssistantDraft_ACU 内部抛出），未标记则按 parse
         (wrapped as any).failureKind = error?.failureKind === 'validate' ? 'validate' : 'parse';
         (wrapped as any).failureRawText = aiRawText;
@@ -2112,7 +2112,7 @@ export async function generateTemplateAssistantDraft_ACU(input: TemplateAssistan
         : draft.protocolVersion === 1 || draft.protocolVersion === 2;
     if (!protocolAccepted) {
         const wrapped = new Error(
-            `AI 返回的协议版本 (${draft.protocolVersion}) 与请求的协议版本 (${requestedProtocolVersion}) 不一致`,
+            `Phiên bản giao thức AI trả về (${draft.protocolVersion}) không khớp với phiên bản giao thức đã yêu cầu (${requestedProtocolVersion})`,
         );
         (wrapped as any).failureKind = 'validate';
         (wrapped as any).failureRawText = aiRawText;
@@ -2120,7 +2120,7 @@ export async function generateTemplateAssistantDraft_ACU(input: TemplateAssistan
     }
 
     if (draft.baseFingerprint !== baseFingerprint) {
-        const wrapped = new Error('AI 返回的 baseFingerprint 与当前结构不一致');
+        const wrapped = new Error('baseFingerprint AI trả về không khớp với cấu trúc hiện tại');
         (wrapped as any).failureKind = 'fingerprint';
         (wrapped as any).failureRawText = aiRawText;
         throw wrapped;
@@ -2149,7 +2149,7 @@ export async function generateTemplateAssistantDraft_ACU(input: TemplateAssistan
         intents: compileResult.schemaMigrationIntents,
     });
     if (preflight.blockers.length > 0) {
-        const wrapped = new Error(`schema migration preflight 失败：${preflight.blockers.join('；')}`);
+        const wrapped = new Error(`schema migration preflight thất bại: ${preflight.blockers.join('; ')}`);
         (wrapped as any).failureKind = 'preflight';
         (wrapped as any).failureRawText = aiRawText;
         throw wrapped;
@@ -2168,10 +2168,10 @@ export async function runTemplateAssistantSession_ACU(input: TemplateAssistantSe
     const currentSheetKey = String(input?.currentSheetKey || '').trim();
     const userRequest = String(input?.userRequest || '').trim();
     if (!userRequest) {
-        throw new Error('请输入改表需求');
+        throw new Error('Vui lòng nhập yêu cầu sửa bảng');
     }
     if (!currentSheetKey) {
-        throw new Error('请先选中一个表后再使用 AI 改表助手');
+        throw new Error('Hãy chọn một bảng trước rồi mới dùng trợ lý sửa bảng AI');
     }
 
     const basePriorTurns = normalizePriorTurns_ACU(input?.priorTurns);
@@ -2245,7 +2245,7 @@ export async function runTemplateAssistantSession_ACU(input: TemplateAssistantSe
             break;
         } catch (error: any) {
             assertTemplateAssistantSessionActive_ACU(input.guard);
-            lastErrorMessage = error?.message || '未知错误';
+            lastErrorMessage = error?.message || 'Lỗi không rõ';
             // 环境失败（sql.js/wasm 引擎不可用，SqliteRuntimeUnavailableError_ACU）由
             // preflight/hydrate 直接上抛（见 schema-migration-preflight.ts T5）。
             // 它不是 AI 输出问题：重试不会改善、回喂 AI 无意义，必须单独分类并终止。
@@ -2304,7 +2304,7 @@ export async function runTemplateAssistantSession_ACU(input: TemplateAssistantSe
     });
     // 最终 preflight 为异步操作，返回后同样需要再次确认会话未被取消，才能提交成功结果。
     assertTemplateAssistantSessionActive_ACU(input.guard);
-    if (finalPreflight.blockers.length > 0) throw new Error(`schema migration 最终 preflight 失败：${finalPreflight.blockers.join('；')}`);
+    if (finalPreflight.blockers.length > 0) throw new Error(`schema migration preflight cuối cùng thất bại: ${finalPreflight.blockers.join('; ')}`);
     const v3RowIdGuardFindings = lastResult?.draft && isTemplateAssistantV3Draft_ACU(lastResult.draft)
         ? collectV3RowIdGuardFindings_ACU(originalTempData, compileResult.candidateData, currentSheetKey, String(input.userRequest || ''))
         : [];

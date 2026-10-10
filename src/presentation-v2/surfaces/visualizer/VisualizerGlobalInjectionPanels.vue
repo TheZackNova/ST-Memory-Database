@@ -1,18 +1,18 @@
 <template>
   <div class="acu-viz-global" data-acu-visualizer-global>
     <AcuPanel
-      title="全局注入配置"
-      description="全局配置属于整套模板，不依附单张表。它会控制可读数据条目和外层包裹条目的注入位置；如果所有表的世界书内容整体位置不对，先检查本面板。"
+      title="Cấu hình chèn toàn cục"
+      description="Cấu hình toàn cục thuộc về cả bộ mẫu, không gắn với một bảng riêng. Nó điều khiển vị trí chèn của mục dữ liệu có thể đọc và mục bọc bên ngoài; nếu nội dung Sổ thế giới của tất cả các bảng bị sai vị trí tổng thể, hãy kiểm tra bảng này trước."
     >
       <PlacementEditor
-        title="可读数据条目位置"
+        title="Vị trí mục dữ liệu có thể đọc"
         :placement="config.getGlobalPlacement('readableEntryPlacement')"
         :options="config.placementOptions"
         :update-field="(field, value) => config.updateGlobalPlacement('readableEntryPlacement', field, value)"
       />
 
       <PlacementEditor
-        title="包裹条目位置"
+        title="Vị trí mục bọc"
         :placement="config.getGlobalPlacement('wrapperPlacement')"
         :options="config.placementOptions"
         :update-field="(field, value) => config.updateGlobalPlacement('wrapperPlacement', field, value)"

@@ -222,7 +222,7 @@ describe('agent worldbook skillify candidate filtering', () => {
     expect(messages).toHaveLength(1);
     expect(messages[0].content).toContain('B=剧情书');
     expect(messages[0].content).toContain('U=7');
-    expect(messages[0].content).toContain('K=酒馆、夜晚');
+    expect(messages[0].content).toContain('K=酒馆, 夜晚');
     expect(messages[0].content).toContain('TK=42');
     expect(messages[0].content).toContain('C=灯火昏暗，吧台后藏着通往地下室的暗门。');
     expect(messages[0].content).toContain('旧描述');
@@ -243,12 +243,12 @@ describe('agent worldbook skillify candidate filtering', () => {
 
     const rendered = messages.map(message => message.content).join('\n');
     expect(rendered).not.toContain('contentPreview');
-    expect(rendered).toContain('条目正文');
+    expect(rendered).toContain('Nội dung mục:');
     expect(rendered).toContain('灯火昏暗，吧台后藏着通往地下室的暗门。');
-    expect(rendered).toContain('描述与触发时机');
-    expect(rendered).toContain('禁止输出或改写 tk 字段');
+    expect(rendered).toContain('mô tả và thời điểm kích hoạt');
+    expect(rendered).toContain('cấm xuất hoặc viết lại trường tk');
     expect(rendered).toContain('酒馆地点');
-    expect(rendered).toContain('条目 TK: 7');
+    expect(rendered).toContain('TK mục: 7');
   });
 
 

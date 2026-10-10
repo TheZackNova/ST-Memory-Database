@@ -54,8 +54,8 @@ import { $popupInstance_ACU, $plotPromptSegmentsContainer_ACU, $plotTaskListCont
         `#${SCRIPT_ID_PREFIX_ACU}-plot-context-extract-rules`,
         normalizeExtractRules_ACU(plotSettings.contextExtractRules, plotSettings.contextExtractTags || ''),
         {
-          startPlaceholder: '开始词（例如：<think）',
-          endPlaceholder: '结束词（例如：</think>）',
+          startPlaceholder: 'Từ bắt đầu (ví dụ: <think)',
+          endPlaceholder: 'Từ kết thúc (ví dụ: </think>)',
           fallbackRules: getDefaultPlotContextExtractRules_ACU(),
         },
       );
@@ -63,8 +63,8 @@ import { $popupInstance_ACU, $plotPromptSegmentsContainer_ACU, $plotTaskListCont
         `#${SCRIPT_ID_PREFIX_ACU}-plot-context-exclude-rules`,
         normalizeExcludeRules_ACU(plotSettings.contextExcludeRules, plotSettings.contextExcludeTags || ''),
         {
-          startPlaceholder: '开始词（例如：<thinking）',
-          endPlaceholder: '结束词（例如：</thinking>）',
+          startPlaceholder: 'Từ bắt đầu (ví dụ: <thinking)',
+          endPlaceholder: 'Từ kết thúc (ví dụ: </thinking>)',
           fallbackRules: getDefaultPlotContextExcludeRules_ACU(),
         },
       );
@@ -108,9 +108,9 @@ $select.append(renderOption_ACU(preset.name, preset.name));
      * 另存为新的正文替换预设
      */
     export function saveOptimizationPresetAsNew_ACU() {
-      const presetName = prompt('请输入新预设的名称：');
+      const presetName = prompt('Nhập tên của preset mới:');
       if (!presetName || !presetName.trim()) {
-        showToastr_ACU('warning', '预设名称不能为空。');
+        showToastr_ACU('warning', 'Tên preset không được để trống.');
         return;
       }
 
@@ -119,20 +119,20 @@ $select.append(renderOption_ACU(preset.name, preset.name));
       const existingIndex = presets.findIndex((p: any) => p.name === name);
 
       if (existingIndex !== -1) {
-        if (!confirm(`预设 "${name}" 已存在。是否覆盖？`)) {
+        if (!confirm(`Preset "${name}" đã tồn tại. Ghi đè?`)) {
           return;
         }
         presets[existingIndex] = {
           name: name,
           promptGroup: getOptimizationPromptGroupFromUI_ACU()
         };
-        showToastr_ACU('success', `预设 "${name}" 已被覆盖。`);
+        showToastr_ACU('success', `Preset "${name}" đã bị ghi đè.`);
       } else {
         presets.push({
           name: name,
           promptGroup: getOptimizationPromptGroupFromUI_ACU()
         });
-        showToastr_ACU('success', `预设 "${name}" 已成功创建。`);
+        showToastr_ACU('success', `Đã tạo preset "${name}" thành công.`);
       }
 
       settings_ACU.contentOptimizationSettings.promptPresets = presets;
@@ -188,8 +188,8 @@ $select.append(renderOption_ACU(preset.name, preset.name));
         `#${SCRIPT_ID_PREFIX_ACU}-optimization-extract-rules`,
         config.extractRules || [],
         {
-          startPlaceholder: '开始词（例如：<think）',
-          endPlaceholder: '结束词（例如：</think）',
+          startPlaceholder: 'Từ bắt đầu (ví dụ: <think)',
+          endPlaceholder: 'Từ kết thúc (ví dụ: </think)',
         },
       );
       
@@ -198,8 +198,8 @@ $select.append(renderOption_ACU(preset.name, preset.name));
         `#${SCRIPT_ID_PREFIX_ACU}-optimization-exclude-rules`,
         config.excludeRules || [],
         {
-          startPlaceholder: '开始词（例如：<think）',
-          endPlaceholder: '结束词（例如：</think）',
+          startPlaceholder: 'Từ bắt đầu (ví dụ: <think)',
+          endPlaceholder: 'Từ kết thúc (ví dụ: </think)',
         },
       );
 
@@ -252,7 +252,7 @@ $select.append(renderOption_ACU(preset.name, preset.name));
                 </button>
               ` : ''}
             </div>
-            <textarea class="optimization-prompt-segment-content text_pole" data-index="${index}" rows="6" placeholder="输入提示词内容..." style="resize: vertical; width: 100%;">${escapeHtml_ACU(segment.content || '')}</textarea>
+            <textarea class="optimization-prompt-segment-content text_pole" data-index="${index}" rows="6" placeholder="Nhập nội dung prompt..." style="resize: vertical; width: 100%;">${escapeHtml_ACU(segment.content || '')}</textarea>
           </div>
         `;
         $container.append(segmentHtml);
@@ -310,7 +310,7 @@ $select.append(renderOption_ACU(preset.name, preset.name));
      */
     function getPlotPresetDisplayName_ACU(presetName: string) {
       const normalizedPresetName = normalizePlotPresetSelectionValue_ACU(presetName);
-      return normalizedPresetName || '默认预设';
+      return normalizedPresetName || 'Preset mặc định';
     }
 
 
@@ -319,7 +319,7 @@ $select.append(renderOption_ACU(preset.name, preset.name));
 
       const normalizedExtraPresetName = normalizePlotPresetSelectionValue_ACU(extraPresetName);
       const normalizedPresetNames = new Set();
-      $select.empty().append(`<option value="${DEFAULT_PRESET_OPTION_VALUE_ACU}">默认预设</option>`);
+      $select.empty().append(`<option value="${DEFAULT_PRESET_OPTION_VALUE_ACU}">Preset mặc định</option>`);
 
       presets.forEach((preset: any) => {
         const presetName = normalizePlotPresetSelectionValue_ACU(preset?.name);
@@ -330,7 +330,7 @@ $select.append(renderOption_ACU(presetName, presetName));
 
       if (normalizedExtraPresetName && !normalizedPresetNames.has(normalizedExtraPresetName)) {
 $select.append(
-          renderOption_ACU(normalizedExtraPresetName, `${normalizedExtraPresetName}（仅当前聊天快照）`)
+          renderOption_ACU(normalizedExtraPresetName, `${normalizedExtraPresetName} (chỉ snapshot cuộc trò chuyện hiện tại)`)
         );
       }
     }
@@ -357,7 +357,7 @@ $select.append(
       populatePlotPresetSelectOptions_ACU($chatSelect, presets, { extraPresetName: chatSelectedPresetName });
 
       if ($chatSelect.length) {
-        $chatSelect.find(`option[value="${DEFAULT_PRESET_OPTION_VALUE_ACU}"]`).text('跟随全局');
+        $chatSelect.find(`option[value="${DEFAULT_PRESET_OPTION_VALUE_ACU}"]`).text('Theo toàn cục');
       }
 
       const hasGlobalPreset = !!globalPresetName && presets.some((p: any) => normalizePlotPresetSelectionValue_ACU(p?.name) === globalPresetName);
@@ -375,30 +375,30 @@ $select.append(
       }
 
       if ($globalStatus.length) {
-        $globalStatus.text(`当前全局预设：${getPlotPresetDisplayName_ACU(globalPresetName)}；新聊天会默认继承这里的剧情推进配置。`);
+        $globalStatus.text(`Preset toàn cục hiện tại: ${getPlotPresetDisplayName_ACU(globalPresetName)}; cuộc trò chuyện mới sẽ mặc định kế thừa cấu hình đẩy cốt truyện ở đây.`);
       }
 
       if ($chatStatus.length) {
         if (chatScopeState?.snapshot) {
-          $chatStatus.text(`当前聊天：历史聊天快照；当前实际预设为 ${getPlotPresetDisplayName_ACU(effectiveChatPresetName)}。`);
+          $chatStatus.text(`Cuộc trò chuyện hiện tại: snapshot lịch sử; preset thực tế hiện tại là ${getPlotPresetDisplayName_ACU(effectiveChatPresetName)}.`);
         } else if (hasValidExplicitChatPreset) {
-          $chatStatus.text(`当前聊天：独立预设；当前实际预设为 ${getPlotPresetDisplayName_ACU(explicitChatPresetName)}。`);
+          $chatStatus.text(`Cuộc trò chuyện hiện tại: preset riêng; preset thực tế hiện tại là ${getPlotPresetDisplayName_ACU(explicitChatPresetName)}.`);
         } else if (chatSelectedPresetName) {
-          $chatStatus.text(`当前聊天：原绑定预设不存在；当前已回退为 ${getPlotPresetDisplayName_ACU(effectiveChatPresetName)}。`);
+          $chatStatus.text(`Cuộc trò chuyện hiện tại: preset đã gắn không còn tồn tại; hiện đã quay về ${getPlotPresetDisplayName_ACU(effectiveChatPresetName)}.`);
         } else {
-          $chatStatus.text(`当前聊天：跟随全局；当前实际预设为 ${getPlotPresetDisplayName_ACU(effectiveChatPresetName)}。`);
+          $chatStatus.text(`Cuộc trò chuyện hiện tại: theo toàn cục; preset thực tế hiện tại là ${getPlotPresetDisplayName_ACU(effectiveChatPresetName)}.`);
         }
       }
 
       if ($chatOriginStatus.length) {
         if (chatScopeState?.snapshot) {
-          $chatOriginStatus.text('当前聊天仍在使用旧版聊天快照；重新切换一次当前聊天预设后，将迁移为新的按预设切换模式。');
+          $chatOriginStatus.text('Cuộc trò chuyện hiện tại vẫn đang dùng snapshot cũ; sau khi chuyển lại preset của cuộc trò chuyện hiện tại một lần, sẽ được di chuyển sang chế độ chuyển theo preset mới.');
         } else if (hasValidExplicitChatPreset) {
-          $chatOriginStatus.text('当前聊天已单独指定剧情推进预设；如需修改预设内容，请在左侧全局预设区操作。');
+          $chatOriginStatus.text('Cuộc trò chuyện hiện tại đã chỉ định riêng preset đẩy cốt truyện; muốn sửa nội dung preset, hãy thao tác ở khu preset toàn cục bên trái.');
         } else if (chatSelectedPresetName) {
-          $chatOriginStatus.text('当前聊天原绑定的剧情推进预设已不存在；当前运行已回退到全局预设，请重新选择一次当前聊天预设。');
+          $chatOriginStatus.text('Preset đẩy cốt truyện từng gắn với cuộc trò chuyện hiện tại không còn tồn tại; đang chạy đã quay về preset toàn cục, hãy chọn lại preset của cuộc trò chuyện hiện tại một lần.');
         } else {
-          $chatOriginStatus.text('当前聊天当前未单独指定剧情推进预设，实际会直接跟随全局。');
+          $chatOriginStatus.text('Cuộc trò chuyện hiện tại chưa chỉ định riêng preset đẩy cốt truyện, thực tế sẽ theo toàn cục.');
         }
       }
     }
@@ -409,14 +409,14 @@ $select.append(
     function loadPlotPresetToUI_ACU(preset: any) {
       if (!$popupInstance_ACU || !preset) return;
 
-      const presetName = preset.name || '默认预设';
+      const presetName = preset.name || 'Preset mặc định';
       const result = applyGlobalPlotPresetSelectionForEditor_ACU(preset.name || '', {
         source: 'ui_global_load',
         save: true,
       });
 
       if (!result) return;
-      showToastr_ACU('success', `已加载全局预设 "${presetName}"。`);
+      showToastr_ACU('success', `Đã tải preset toàn cục "${presetName}".`);
     }
 
     /**
@@ -467,7 +467,7 @@ $select.append(
      * 另存为新的全局预设
      */
     export function savePlotPresetAsNew_ACU() {
-      const presetName = prompt('请输入新的全局预设名称：');
+      const presetName = prompt('Nhập tên preset toàn cục mới:');
       const name = String(presetName || '').trim();
       if (!name) return;
 
@@ -476,13 +476,13 @@ $select.append(
 
       const currentSettings = getCurrentPlotSettingsFromUI_ACU();
       if (!currentSettings || typeof currentSettings !== 'object') {
-        showToastr_ACU('error', '读取当前剧情推进设置失败。');
+        showToastr_ACU('error', 'Đọc cài đặt đẩy cốt truyện hiện tại thất bại.');
         return;
       }
 
       const savedPreset = normalizePlotPresetExcludeRules_ACU({ name, ...currentSettings });
       if (existingIndex !== -1) {
-        if (!confirm(`名为 "${name}" 的全局预设已存在。是否要覆盖它？`)) {
+        if (!confirm(`Preset toàn cục tên "${name}" đã tồn tại. Có muốn ghi đè?`)) {
           return;
         }
         presets[existingIndex] = savedPreset;
@@ -513,5 +513,5 @@ $select.append(
       $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-global-preset-select`).val(name);
       $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-global-delete-preset`).show();
 
-      showToastr_ACU('success', `新全局预设 "${name}" 已保存。`);
+      showToastr_ACU('success', `Đã lưu preset toàn cục mới "${name}".`);
     }

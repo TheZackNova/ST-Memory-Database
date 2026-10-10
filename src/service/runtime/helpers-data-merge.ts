@@ -135,9 +135,9 @@ export function migrateContentNullToRowId(data: Record<string, any> | null): Rec
                       }
                       const headerMatches = !!guideHeader && !!histHeader && isSameSheetHeader_ACU(guideHeader, histHeader);
                       if (guideHeader && histHeader && !headerMatches) {
-                          const msg = `[Merge] 表「${String(next.name || guideSheet?.name || k)}」(${k}) 的 Sheet Guide 表头与历史权威数据不一致，`
-                              + `已保留历史结构：guide=${guideHeader.length} 列, data=${histHeader.length} 列。`
-                              + `如需变更列结构，请通过模板提交触发 schema migration。`;
+                          const msg = `[Merge] Bảng「${String(next.name || guideSheet?.name || k)}」(${k}): tiêu đề Sheet Guide không nhất quán với dữ liệu lịch sử có thẩm quyền, `
+                              + `đã giữ cấu trúc lịch sử: guide=${guideHeader.length} cột, data=${histHeader.length} cột. `
+                              + `Nếu cần đổi cấu trúc cột, hãy kích hoạt schema migration thông qua commit mẫu.`;
                           logWarn_ACU(msg);
                           warnings.push(msg);
                       }
@@ -159,10 +159,10 @@ export function migrateContentNullToRowId(data: Record<string, any> | null): Rec
                           applyGuideMetadataToSheet_ACU(next, guideSheet, { inheritDdl: false });
                           if (Array.isArray(guideSheet?.seedRows)) next.seedRows = JSON.parse(JSON.stringify(guideSheet.seedRows));
                           const reason = !guideHeaderValid
-                              ? `Sheet Guide 表头缺少 row_id 首列`
-                              : `历史行宽度（最大 ${Math.max(...next.content.slice(1).map((row: unknown) => Array.isArray(row) ? row.length : 0))} 列）超过 Sheet Guide 表头（${guideHeader!.length} 列）`;
-                          const msg = `[Merge] 表「${String(next.name || guideSheet?.name || k)}」(${k}) ${reason}，`
-                              + `已降级保留历史结构（数据行不截断、不丢弃）。如需变更列结构，请通过模板提交完成迁移。`;
+                              ? `Tiêu đề Sheet Guide thiếu cột đầu row_id`
+                              : `Độ rộng hàng lịch sử (tối đa ${Math.max(...next.content.slice(1).map((row: unknown) => Array.isArray(row) ? row.length : 0))} cột) vượt quá tiêu đề Sheet Guide (${guideHeader!.length} cột)`;
+                          const msg = `[Merge] Bảng「${String(next.name || guideSheet?.name || k)}」(${k}): ${reason}, `
+                              + `đã hạ cấp và giữ cấu trúc lịch sử (hàng dữ liệu không bị cắt, không bị bỏ). Nếu cần đổi cấu trúc cột, hãy hoàn tất di chuyển thông qua commit mẫu.`;
                           logWarn_ACU(msg);
                           warnings.push(msg);
                           guided[k] = next;
@@ -194,7 +194,7 @@ export function migrateContentNullToRowId(data: Record<string, any> | null): Rec
                           ? guideSheet.content[0]
                           : null;
                       if (guideHeader && String(guideHeader[0] ?? '') !== 'row_id') {
-                          throw new Error(`Sheet Guide 表头缺少 row_id 首列：${String(guideSheet.uid || guideSheet.name || k)}`);
+                          throw new Error(`Tiêu đề Sheet Guide thiếu cột đầu row_id: ${String(guideSheet.uid || guideSheet.name || k)}`);
                       }
                   }
                   if (Number.isFinite(guideSheet?.[TABLE_ORDER_FIELD_ACU])) {
@@ -224,7 +224,7 @@ export function migrateContentNullToRowId(data: Record<string, any> | null): Rec
           const shouldCarry = options.structuralAuthority === 'data' || sheetHasRealRows_ACU(sheet);
           if (!shouldCarry) return;
           guided[historicalKey] = JSON.parse(JSON.stringify(sheet));
-          const msg = `[Merge] 表「${String(sheet.name || historicalKey)}」(${historicalKey}) 不在当前模板/指导表中，已按全版本兼容模式保留（数据行不丢弃）。`;
+          const msg = `[Merge] Bảng「${String(sheet.name || historicalKey)}」(${historicalKey}) không có trong mẫu/bảng hướng dẫn hiện tại, đã được giữ theo chế độ tương thích mọi phiên bản (hàng dữ liệu không bị bỏ).`;
           logWarn_ACU(msg);
           warnings.push(msg);
       });
@@ -455,7 +455,7 @@ export function migrateContentNullToRowId(data: Record<string, any> | null): Rec
                   // [全版本兼容] 按 base 表存在性判定（兼容携带的非模板表也要正常叠加 delta），
                   // 不再按 templateSheetKeySet 过滤——base 收集阶段已完成宽容过滤。
                   if (!mergedData[sheetKey]) {
-                      if (snapshot) throw new Error('旧表格增量缺少基底，禁止建立桥接空状态。');
+                      if (snapshot) throw new Error('Phần tăng lượng bảng cũ thiếu nền, cấm thiết lập trạng thái rỗng bắc cầu.');
                       logWarn_ACU(`[表格重建] delta 楼层 #${deltaIndex} 引用了 sheetKey=${sheetKey}，但 base 中不存在该表，跳过`);
                       continue;
                   }
@@ -534,7 +534,7 @@ export function migrateContentNullToRowId(data: Record<string, any> | null): Rec
           mergedData = guideMergeResult.data;
           // 与 V2 分支一致：隔离表键与结构 warning 透出给加载路径报告，不再静默丢弃。
           if (snapshot && guideMergeResult.quarantinedSheetKeys.length) {
-              throw new Error('旧表格存在结构隔离，不能证明桥接无损。');
+              throw new Error('Bảng cũ có cô lập cấu trúc, không thể chứng minh bắc cầu không mất dữ liệu.');
           }
           if (!snapshot) {
               lastMergeQuarantinedSheetKeys = guideMergeResult.quarantinedSheetKeys;
@@ -676,17 +676,17 @@ export function migrateContentNullToRowId(data: Record<string, any> | null): Rec
                   sourceInventory,
               });
               if (!migrationResult.migrated) {
-                  throw new Error(`旧存储迁移到 V2 失败: ${migrationResult.error || '未执行迁移'}`);
+                  throw new Error(`Di chuyển kho cũ sang V2 thất bại: ${migrationResult.error || 'chưa thực hiện di chuyển'}`);
               }
               if (!migrationResult.data) {
-                  throw new Error('旧存储迁移到 V2 失败: 迁移成功结果缺少修复后的表格数据。');
+                  throw new Error('Di chuyển kho cũ sang V2 thất bại: kết quả di chuyển thành công thiếu dữ liệu bảng đã sửa.');
               }
               const postStrategy = resolveTableStorageStrategy_ACU(chat, currentIsolationKey, {
                   enabled: settings_ACU.dataIsolationEnabled,
                   code: settings_ACU.dataIsolationCode,
               });
               if (postStrategy.mode !== 'v2') {
-                  throw new Error(`旧存储迁移后二次校验失败：当前模式=${postStrategy.mode}${postStrategy.mode === 'legacy-v1' ? `，reason=${postStrategy.reason}` : ''}`);
+                  throw new Error(`Kiểm tra lần hai sau khi di chuyển kho cũ thất bại: chế độ hiện tại=${postStrategy.mode}${postStrategy.mode === 'legacy-v1' ? `, reason=${postStrategy.reason}` : ''}`);
               }
               return migrateContentNullToRowId(migrationResult.data);
           } catch (migrationError) {
@@ -851,10 +851,10 @@ export function migrateContentNullToRowId(data: Record<string, any> | null): Rec
           const sheet = JSON.parse(JSON.stringify(templateObj[k]));
           if (Array.isArray(sheet?.content)) {
               if (sheet.content.length > 0 && (!Array.isArray(sheet.content[0]) || sheet.content[0][0] !== 'row_id')) {
-                  throw new Error(`初始模板 Sheet「${k}」缺少 row_id 表头，拒绝写入 checkpoint。`);
+                  throw new Error(`Sheet「${k}」của mẫu khởi tạo thiếu tiêu đề row_id, từ chối ghi checkpoint.`);
               }
               if (sheet.content.slice(1).some((row: unknown) => !Array.isArray(row))) {
-                  throw new Error(`初始模板 Sheet「${k}」包含非数组数据行，拒绝伪造 row_id。`);
+                  throw new Error(`Sheet「${k}」của mẫu khởi tạo chứa hàng dữ liệu không phải mảng, từ chối giả mạo row_id.`);
               }
               sheet.content = ensureStableRowIdsForSheetContent_ACU(sheet.content);
           }

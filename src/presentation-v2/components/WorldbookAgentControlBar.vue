@@ -15,7 +15,7 @@
         :model-value="agentControl.mode.value"
         :options="modeOptions"
         size="sm"
-        aria-label="Agent 世界书模式"
+        aria-label="Chế độ Sổ thế giới của Agent"
         @update:model-value="onModeChange"
       />
       <div class="acu-v2-agent-wb-control__api-selects">

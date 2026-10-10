@@ -166,7 +166,7 @@ describe('useImportFlow', () => {
 
     expect(clearImportedEntriesCore).toHaveBeenCalledWith('CharBook');
     expect(toast.items.at(-1)).toMatchObject({ kind: 'success' });
-    expect(toast.items.at(-1)?.text).toMatch(/7 个/);
+    expect(toast.items.at(-1)?.text).toMatch(/7 mục/);
   });
 
   it('deleteImportedEntries 在没有目标时报错', async () => {
@@ -254,7 +254,7 @@ describe('useImportFlow', () => {
       const abortController = args[7] as AbortController;
       const onProgress = args[9] as (event: any) => void;
       onProgress({ phase: 'calling_ai', attempt: 1, maxRetries: 3 });
-      expect(toast.items[0]?.action?.label).toBe('终止');
+      expect(toast.items[0]?.action?.label).toBe('Dừng');
       await toast.items[0]?.action?.onClick();
       expect(abortController.signal.aborted).toBe(true);
       return { success: false, modifiedKeys: [], aborted: true };
@@ -274,6 +274,6 @@ describe('useImportFlow', () => {
     );
     expect(store.busy).toBe(false);
     expect(toast.items[0]).toMatchObject({ kind: 'warning' });
-    expect(toast.items[0]?.text).toMatch(/已保存断点/);
+    expect(toast.items[0]?.text).toMatch(/đã lưu điểm dừng/);
   });
 });

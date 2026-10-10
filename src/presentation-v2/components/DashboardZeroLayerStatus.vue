@@ -1,55 +1,55 @@
 <template>
   <div class="acu-dashboard-zero-layer" data-acu-zero-layer-status aria-live="polite">
     <div class="acu-dashboard-zero-layer__head">
-      <strong>零层卡模式 · 当前聊天</strong>
+      <strong>Chế độ thẻ Tầng 0 · cuộc trò chuyện hiện tại</strong>
       <AcuBadge :variant="badgeVariant">{{ status.view.value.label }}</AcuBadge>
     </div>
     <p>{{ intentLabel }}</p>
     <p>{{ status.view.value.detail }}</p>
     <p v-if="status.view.value.revision !== null">
-      存档版本 {{ status.view.value.revision }} · 当前逻辑 head：{{ status.view.value.headTurnId ?? '尚无已发布回合' }}
+      Phiên bản lưu {{ status.view.value.revision }} · head logic hiện tại: {{ status.view.value.headTurnId ?? 'Chưa có lượt nào được phát hành' }}
     </p>
-    <AcuSelect v-model="preset" :options="presetOptions" size="sm" placeholder="选择正文独立 API 预设"
+    <AcuSelect v-model="preset" :options="presetOptions" size="sm" placeholder="Chọn preset API độc lập cho nội dung"
       :disabled="locked || status.view.value.intent === true" />
-    <AcuToggle :model-value="status.view.value.intent === true" label="当前聊天启用零层"
+    <AcuToggle :model-value="status.view.value.intent === true" label="Bật Tầng 0 cho cuộc trò chuyện này"
       :disabled="!!enableBlockedReason" :title="enableBlockedReason || undefined"
       @update:model-value="value => status.setEnabled(value, preset)" />
     <p v-if="status.view.value.intent === false">{{ activationHint }}</p>
-    <label for="acu-zero-layer-wi-rounds">最近几轮零层对话参与世界书扫描（全局，0 为关闭）</label>
+    <label for="acu-zero-layer-wi-rounds">Số lượt hội thoại Tầng 0 gần nhất tham gia quét Sổ thế giới (toàn cục, 0 là tắt)</label>
     <AcuInput id="acu-zero-layer-wi-rounds" v-model="worldInfoRounds" type="number" size="sm"
       :min="0" :max="100" :step="1" @change="commitWorldInfoRounds" />
-    <p>一轮是一个 AI 回复，其间的用户输入一并参与扫描；本轮输入始终参与。只用于激活世界书条目，不进入提示词，下一回合生效。</p>
+    <p>Một lượt là một phản hồi AI, các đầu vào người dùng xen giữa cũng được quét; đầu vào của lượt này luôn được quét. Chỉ dùng để kích hoạt mục Sổ thế giới, không vào prompt, có hiệu lực từ lượt sau.</p>
     <div class="acu-dashboard-zero-layer__actions">
-      <AcuButton size="sm" :disabled="locked" @click="refresh">只读刷新状态</AcuButton>
-      <AcuButton size="sm" :disabled="locked" @click="status.recover()">回读并恢复已存阶段</AcuButton>
-      <AcuButton size="sm" @click="status.stop()">停止零层任务</AcuButton>
-      <AcuButton size="sm" :disabled="locked || !status.controls.value.canExit" @click="status.exit()">确认退出到普通模式</AcuButton>
+      <AcuButton size="sm" :disabled="locked" @click="refresh">Làm mới trạng thái (chỉ đọc)</AcuButton>
+      <AcuButton size="sm" :disabled="locked" @click="status.recover()">Đọc lại và khôi phục giai đoạn đã lưu</AcuButton>
+      <AcuButton size="sm" @click="status.stop()">Dừng tác vụ Tầng 0</AcuButton>
+      <AcuButton size="sm" :disabled="locked || !status.controls.value.canExit" @click="status.exit()">Xác nhận thoát về chế độ thường</AcuButton>
     </div>
     <template v-if="status.controls.value.pendingTurn">
-      <p>未闭合回合 {{ status.controls.value.pendingTurn.turnId }} · {{ pendingPhaseLabel }}：正文未保存。放弃只记为取消并保留记录，不会重新请求模型；续写回合优先从续写面板恢复。</p>
-      <AcuButton size="sm" :disabled="locked" @click="status.abandon()">确认放弃未保存回合（不重发）</AcuButton>
+      <p>Lượt chưa đóng {{ status.controls.value.pendingTurn.turnId }} · {{ pendingPhaseLabel }}: nội dung chưa được lưu. Bỏ qua chỉ ghi là hủy và giữ lại bản ghi, không yêu cầu lại mô hình; lượt viết tiếp nên khôi phục từ bảng Viết tiếp.</p>
+      <AcuButton size="sm" :disabled="locked" @click="status.abandon()">Xác nhận bỏ lượt chưa lưu (không gửi lại)</AcuButton>
     </template>
     <p v-if="status.actionError.value" class="acu-dashboard-zero-layer__error" role="alert">{{ status.actionError.value }}</p>
-    <label for="acu-zero-layer-input">本轮输入</label>
-    <AcuInput id="acu-zero-layer-input" v-model="input" placeholder="输入游戏行动；失败或停止后保留草稿" :disabled="status.working.value" />
+    <label for="acu-zero-layer-input">Đầu vào lượt này</label>
+    <AcuInput id="acu-zero-layer-input" v-model="input" placeholder="Nhập hành động trong game; giữ bản nháp khi thất bại hoặc dừng" :disabled="status.working.value" />
     <AcuButton size="sm" :disabled="!!sendBlockedReason" :title="sendBlockedReason || undefined"
-      :aria-describedby="sendBlockedReason ? 'acu-zero-layer-send-hint' : undefined" @click="send">发送逻辑回合</AcuButton>
+      :aria-describedby="sendBlockedReason ? 'acu-zero-layer-send-hint' : undefined" @click="send">Gửi lượt logic</AcuButton>
     <p v-if="sendBlockedReason" id="acu-zero-layer-send-hint">{{ sendBlockedReason }}</p>
     <details v-if="status.controls.value.branches.length">
-      <summary>分支与只读历史</summary>
+      <summary>Nhánh và lịch sử chỉ đọc</summary>
       <div class="acu-dashboard-zero-layer__tools">
         <AcuSelect v-model="branch" :options="status.controls.value.branches" size="sm" :disabled="locked" />
-        <AcuButton size="sm" :disabled="locked || !status.controls.value.canSend" @click="status.selectBranch(branch)">切换所选分支</AcuButton>
-        <AcuSelect v-model="head" :options="status.controls.value.heads" size="sm" placeholder="分叉切点" :disabled="locked" />
-        <AcuInput v-model="newBranch" placeholder="新分支名称（不覆盖已有分支）" :disabled="locked" />
+        <AcuButton size="sm" :disabled="locked || !status.controls.value.canSend" @click="status.selectBranch(branch)">Chuyển sang nhánh đã chọn</AcuButton>
+        <AcuSelect v-model="head" :options="status.controls.value.heads" size="sm" placeholder="Điểm tách nhánh" :disabled="locked" />
+        <AcuInput v-model="newBranch" placeholder="Tên nhánh mới (không ghi đè nhánh có sẵn)" :disabled="locked" />
         <AcuButton size="sm" :disabled="locked || !status.controls.value.canSend || !newBranch.trim()"
-          @click="status.forkBranch(newBranch.trim(), head)">从所选切点分叉</AcuButton>
-        <AcuToggle v-model="diagnostic" label="宿主诊断：包含未发布回合" :disabled="locked || status.historyLoading.value" />
+          @click="status.forkBranch(newBranch.trim(), head)">Tách nhánh từ điểm đã chọn</AcuButton>
+        <AcuToggle v-model="diagnostic" label="Chẩn đoán host: gồm cả lượt chưa phát hành" :disabled="locked || status.historyLoading.value" />
         <AcuButton size="sm" :disabled="locked || status.historyLoading.value || !branch"
-          @click="status.loadHistory(branch, diagnostic)">读取所选分支历史</AcuButton>
+          @click="status.loadHistory(branch, diagnostic)">Đọc lịch sử nhánh đã chọn</AcuButton>
         <p v-if="status.historyError.value" role="alert">{{ status.historyError.value }}</p>
         <AcuButton v-if="status.historyHasMore.value" size="sm" :disabled="locked || status.historyLoading.value"
-          @click="status.loadHistory(branch, diagnostic, true)">读取更早回合</AcuButton>
+          @click="status.loadHistory(branch, diagnostic, true)">Đọc các lượt cũ hơn</AcuButton>
         <details v-for="turn in status.history.value" :key="turn.turnId">
           <summary>{{ turn.turnId }}{{ turn.diagnostic ? ` · ${turn.diagnostic.phase}` : '' }}</summary>
           <p>{{ turn.input }}</p>
@@ -89,25 +89,25 @@ const presetOptions = computed(() => presets.presets.filter(item => item.apiMode
   && !item.apiConfig.useMainApi && !item.apiConfig.sendViaTavern && item.apiConfig.url && item.apiConfig.model)
   .map(item => ({ value: item.name, label: item.name })));
 const enableBlockedReason = computed(() => {
-  if (status.working.value) return '零层操作进行中，请等待完成或停止任务。';
-  if (status.view.value.status === 'loading') return '正在读取当前聊天状态。';
+  if (status.working.value) return 'Thao tác Tầng 0 đang chạy, hãy chờ hoàn tất hoặc dừng tác vụ.';
+  if (status.view.value.status === 'loading') return 'Đang đọc trạng thái cuộc trò chuyện hiện tại.';
   if (status.view.value.intent === null) return status.view.value.detail;
   if (!status.view.value.intent && !presetOptions.value.some(item => item.value === preset.value)) {
-    return '请先选择可用的正文独立 API 预设。';
+    return 'Hãy chọn preset API độc lập cho nội dung khả dụng trước.';
   }
   return '';
 });
 const activationHint = computed(() => !presetOptions.value.length
-  ? '请先在 API 页配置直连预设（端点与模型），再选择预设并打开“当前聊天启用零层”。'
-  : '先选择正文独立 API 预设，打开“当前聊天启用零层”，再输入行动并发送逻辑回合。');
+  ? 'Hãy cấu hình preset kết nối trực tiếp (endpoint và mô hình) ở trang API, rồi chọn preset và bật “Bật Tầng 0 cho cuộc trò chuyện này”.'
+  : 'Chọn preset API độc lập cho nội dung, bật “Bật Tầng 0 cho cuộc trò chuyện này”, rồi nhập hành động và gửi lượt logic.');
 const sendBlockedReason = computed(() => {
-  if (status.working.value) return '零层操作进行中，请等待完成或停止任务。';
-  if (status.view.value.status === 'loading') return '正在读取当前聊天状态。';
+  if (status.working.value) return 'Thao tác Tầng 0 đang chạy, hãy chờ hoàn tất hoặc dừng tác vụ.';
+  if (status.view.value.status === 'loading') return 'Đang đọc trạng thái cuộc trò chuyện hiện tại.';
   if (status.view.value.intent === null) return status.view.value.detail;
   if (!status.controls.value.canSend) return status.view.value.status === 'disabled'
-    ? '当前聊天尚未启用零层，请先打开上方启用开关；输入草稿会保留。'
+    ? 'Cuộc trò chuyện này chưa bật Tầng 0, hãy bật công tắc phía trên trước; bản nháp được giữ lại.'
     : status.view.value.detail;
-  if (!input.value.trim()) return '请输入本轮行动。';
+  if (!input.value.trim()) return 'Vui lòng nhập hành động của lượt này.';
   return '';
 });
 watch(() => status.controls.value, value => {
@@ -122,10 +122,10 @@ async function send() {
   const draft = input.value;
   if (await status.submit(draft) && input.value === draft) input.value = '';
 }
-const pendingPhaseLabel = computed(() => ({ prepared: '准备未完成', dispatching: '发送中断',
-  'delivery-unknown': '发送结果未知' })[status.controls.value.pendingTurn?.phase ?? 'prepared']);
-const intentLabel = computed(() => status.view.value.intent === null ? '聊天级开启意图：未确认'
-  : status.view.value.intent ? '聊天级开启意图：已开启' : '聊天级开启意图：关闭');
+const pendingPhaseLabel = computed(() => ({ prepared: 'Chuẩn bị chưa xong', dispatching: 'Gửi bị gián đoạn',
+  'delivery-unknown': 'Kết quả gửi không rõ' })[status.controls.value.pendingTurn?.phase ?? 'prepared']);
+const intentLabel = computed(() => status.view.value.intent === null ? 'Ý định bật cấp cuộc trò chuyện: chưa xác nhận'
+  : status.view.value.intent ? 'Ý định bật cấp cuộc trò chuyện: đã bật' : 'Ý định bật cấp cuộc trò chuyện: tắt');
 const badgeVariant = computed(() => status.view.value.status === 'storage-read-failed' ? 'danger'
   : status.view.value.status === 'recovery-required' ? 'warning' : 'neutral');
 </script>

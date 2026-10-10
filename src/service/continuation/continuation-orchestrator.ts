@@ -131,20 +131,20 @@ function applyOutlineEditOps_ACU(outline: StageOutline_ACU, edits: readonly Agen
   for (const edit of edits) {
     if (edit.op === 'set_turn_goal') {
       const turn = draft.nodes.flatMap(node => node.turns).find(item => item.id === edit.turnId);
-      if (!turn) rejectOutlineEdit_ACU(`set_turn_goal 找不到轮次：${edit.turnId}`, { turnId: edit.turnId });
+      if (!turn) rejectOutlineEdit_ACU(`set_turn_goal không tìm thấy lượt: ${edit.turnId}`, { turnId: edit.turnId });
       turn.goal = edit.goal;
       applyTurnMetadata(turn, edit);
       continue;
     }
     if (edit.op === 'set_node_goal') {
       const node = draft.nodes.find(item => item.id === edit.nodeId);
-      if (!node) rejectOutlineEdit_ACU(`set_node_goal 找不到节点：${edit.nodeId}`, { nodeId: edit.nodeId });
+      if (!node) rejectOutlineEdit_ACU(`set_node_goal không tìm thấy nút: ${edit.nodeId}`, { nodeId: edit.nodeId });
       node.goal = edit.goal;
       continue;
     }
     if (edit.op === 'insert_turn') {
       const node = draft.nodes.find(item => item.id === edit.nodeId);
-      if (!node) rejectOutlineEdit_ACU(`insert_turn 找不到节点：${edit.nodeId}`, { nodeId: edit.nodeId });
+      if (!node) rejectOutlineEdit_ACU(`insert_turn không tìm thấy nút: ${edit.nodeId}`, { nodeId: edit.nodeId });
       // 旧编辑协议只提供 goal/pacing；新增语义字段使用保守默认，避免构造缺字段的新 revision。
       // UI 会展示这些默认值并提醒用户确认；严格校验仍负责拒绝与 pacing 不相容的组合。
       const newTurn: StageOutline_ACU['nodes'][number]['turns'][number] = {
@@ -161,12 +161,12 @@ function applyOutlineEditOps_ACU(outline: StageOutline_ACU, edits: readonly Agen
         continue;
       }
       const anchor = node.turns.findIndex(item => item.id === edit.afterTurnId);
-      if (anchor < 0) rejectOutlineEdit_ACU(`insert_turn 的 afterTurnId 不在节点 ${edit.nodeId} 内：${edit.afterTurnId}`, { nodeId: edit.nodeId, afterTurnId: edit.afterTurnId });
+      if (anchor < 0) rejectOutlineEdit_ACU(`afterTurnId của insert_turn không nằm trong nút ${edit.nodeId}: ${edit.afterTurnId}`, { nodeId: edit.nodeId, afterTurnId: edit.afterTurnId });
       node.turns.splice(anchor + 1, 0, newTurn);
       continue;
     }
     const node = draft.nodes.find(item => item.turns.some(turn => turn.id === edit.turnId));
-    if (!node) rejectOutlineEdit_ACU(`remove_turn 找不到轮次：${edit.turnId}`, { turnId: edit.turnId });
+    if (!node) rejectOutlineEdit_ACU(`remove_turn không tìm thấy lượt: ${edit.turnId}`, { turnId: edit.turnId });
     node.turns = node.turns.filter(turn => turn.id !== edit.turnId);
   }
   const nodes = draft.nodes.map(node => ({ ...node, suggestedTurns: node.turns.length }));
@@ -182,23 +182,23 @@ function guardForTask_ACU(chatIdentity: string, task: ContinuationTask_ACU | nul
 
 function getActiveStage_ACU(task: ContinuationTask_ACU): ContinuationStage_ACU {
   const stage = task.activeStageId ? task.stages.find(item => item.stageId === task.activeStageId) : null;
-  if (!stage) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '任务缺少活动阶段');
+  if (!stage) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Tác vụ thiếu giai đoạn đang hoạt động');
   return stage;
 }
 
 function getActiveRevision_ACU(stage: ContinuationStage_ACU): StageRevision_ACU {
   const revision = stage.revisions.find(item => item.revision === stage.activeRevision);
-  if (!revision) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '阶段缺少活动 revision');
+  if (!revision) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Giai đoạn thiếu revision đang hoạt động');
   return revision;
 }
 
 function taskResult_ACU(envelope: ContinuationEnvelope_ACU, planning?: ContinuationOrchestratorResult_ACU['planning']): ContinuationOrchestratorResult_ACU {
-  if (!envelope.activeTask) fail_ACU('CONTINUATION_TASK_NOT_FOUND', '当前聊天没有智能续写任务');
+  if (!envelope.activeTask) fail_ACU('CONTINUATION_TASK_NOT_FOUND', 'Cuộc trò chuyện hiện tại không có tác vụ viết tiếp thông minh');
   return { envelope, task: envelope.activeTask, ...(planning ? { planning } : {}) };
 }
 
 function normalizeOriginInstruction_ACU(value: unknown): string {
-  if (typeof value !== 'string' || !value.trim()) fail_ACU('CONTINUATION_ORIGIN_INSTRUCTION_EMPTY', '初始续写要求不能为空');
+  if (typeof value !== 'string' || !value.trim()) fail_ACU('CONTINUATION_ORIGIN_INSTRUCTION_EMPTY', 'Yêu cầu viết tiếp ban đầu không được để trống');
   return value.trim();
 }
 
@@ -211,13 +211,13 @@ function deadlineForNewRunWindow_ACU(settings: ContinuationSettings_ACU, now: nu
 }
 
 function userMessageResumeBlockDetail_ACU(task: ContinuationTask_ACU): string | null {
-  if (task.status === 'awaiting_outline_review') return '当前大纲正在等待确认，确认后才能继续执行。';
-  if (task.status === 'stopping_after_inflight') return '当前任务正在等待在途操作结束。';
-  if (!['paused', 'running'].includes(task.status)) return `当前任务状态 ${task.status} 暂不能恢复。`;
+  if (task.status === 'awaiting_outline_review') return 'Dàn ý hiện tại đang chờ xác nhận, xác nhận xong mới có thể tiếp tục thực thi.';
+  if (task.status === 'stopping_after_inflight') return 'Tác vụ hiện tại đang chờ các thao tác đang chạy kết thúc.';
+  if (!['paused', 'running'].includes(task.status)) return `Trạng thái tác vụ hiện tại ${task.status} tạm thời không thể khôi phục.`;
   const stage = task.activeStageId ? task.stages.find(item => item.stageId === task.activeStageId) ?? null : null;
   if (!stage || stage.status === 'completed') return null;
-  if (stage.status !== 'running') return '当前阶段尚未具备可执行的大纲。';
-  return getActiveRevision_ACU(stage).frozen ? null : '当前阶段的大纲尚未冻结。';
+  if (stage.status !== 'running') return 'Giai đoạn hiện tại chưa có dàn ý khả thi.';
+  return getActiveRevision_ACU(stage).frozen ? null : 'Dàn ý của giai đoạn hiện tại chưa được đóng băng.';
 }
 
 function stageForOutline_ACU(stageId: string, stageNumber: number, revision: StageRevision_ACU, status: ContinuationStage_ACU['status']): ContinuationStage_ACU {
@@ -229,7 +229,7 @@ function advanceConfirmedTurn_ACU(task: ContinuationTask_ACU, now: number, timel
   const revision = getActiveRevision_ACU(stage);
   const node = revision.outline.nodes[stage.activeNodeIndex];
   const turn = node?.turns[stage.activeTurnIndex];
-  if (!node || !turn) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '已确认轮次的阶段游标无效');
+  if (!node || !turn) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Con trỏ giai đoạn của lượt đã xác nhận không hợp lệ');
   const completedTurns = stage.completedTurns + 1;
   const isFinalTurn = completedTurns === revision.outline.totalTurns;
   const nextStage = isFinalTurn
@@ -255,7 +255,7 @@ export class ContinuationOrchestrator_ACU {
     return this.withLease_ACU(async chatIdentity => {
       const existing = this.dependencies.store.readPersisted()?.activeTask ?? null;
       if (existing && !['completed', 'abandoned', 'failed'].includes(existing.status)) {
-        fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前聊天已有未完成的智能续写任务');
+        fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Cuộc trò chuyện hiện tại đã có tác vụ viết tiếp thông minh chưa hoàn thành');
       }
       const now = this.dependencies.now();
       const taskId = this.dependencies.allocateId('task');
@@ -283,7 +283,7 @@ export class ContinuationOrchestrator_ACU {
         const stage = getActiveStage_ACU(task);
         const revision = getActiveRevision_ACU(stage);
         if (task.status !== 'awaiting_outline_review' || stage.status !== 'awaiting_review' || revision.frozen) {
-          fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前任务没有可确认的大纲预览');
+          fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Tác vụ hiện tại không có bản xem trước dàn ý nào để xác nhận');
         }
         const previous = revision.reason === 'manual_replan'
           ? stage.revisions.find(item => item.revision === revision.revision - 1)
@@ -336,15 +336,15 @@ export class ContinuationOrchestrator_ACU {
         // 重载或事件丢失后的滞留等待轮无法再被归属，丢弃后从当前进度重新继续。
         const staleAwaitingTurn = task.pendingHostTurn?.status === 'awaiting_generation';
         if (staleAwaitingTurn && this.dependencies.hasLiveHostClaim?.(chatIdentity)) {
-          fail_ACU('CONTINUATION_OPERATION_BUSY', '当前轮次正在等待宿主生成结果');
+          fail_ACU('CONTINUATION_OPERATION_BUSY', 'Lượt hiện tại đang chờ kết quả tạo từ máy chủ');
         }
         if (task.status === 'awaiting_outline_review' || task.status === 'stopping_after_inflight' || task.status === 'abandoned' || task.status === 'completed' || task.status === 'failed') {
-          fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前任务不可继续');
+          fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Tác vụ hiện tại không thể tiếp tục');
         }
         // 可恢复的停止（手停、正文归属失败、输入不可用、重试耗尽）允许从当前进度恢复；
         // 终局停止（时长/阶段上限、completed）仍不可继续——放行只会立刻再次触发停止。
         if (task.stopReason !== null && !CONTINUATION_RECOVERABLE_STOP_REASONS_ACU.includes(task.stopReason)) {
-          fail_ACU('CONTINUATION_TASK_STATE_INVALID', '已停止的任务不可继续');
+          fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Tác vụ đã dừng không thể tiếp tục');
         }
         const pending = task.pendingHostTurn;
         // 重试轮只在楼层仍是发送时的形状时才提升为宿主重发：用户删掉了指令楼或上一轮正文后，
@@ -357,7 +357,7 @@ export class ContinuationOrchestrator_ACU {
         // 无阶段（大纲待创建）与已完成阶段（下一阶段待继续）都可以进循环，由主 Agent 派工大纲子代理处理。
         const stage = task.activeStageId ? task.stages.find(item => item.stageId === task.activeStageId) ?? null : null;
         if (stage && stage.status !== 'completed' && (stage.status !== 'running' || !getActiveRevision_ACU(stage).frozen)) {
-          fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前阶段不可继续');
+          fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Giai đoạn hiện tại không thể tiếp tục');
         }
         const now = this.dependencies.now();
         if (task.deadlineAt !== null && now >= task.deadlineAt) {
@@ -410,12 +410,12 @@ export class ContinuationOrchestrator_ACU {
           if (waitingTask?.taskId === task.taskId && waitingTask.status === 'awaiting_outline_review'
             && waitingTask.stopReason === null && stage?.status === 'awaiting_review' && revision && !revision.frozen) {
             if (isAgentSessionRunning_ACU()) {
-              logAgentSession_ACU({ kind: 'block', title: '等待大纲确认', detail: error.error.message });
+              logAgentSession_ACU({ kind: 'block', title: 'Chờ xác nhận dàn ý', detail: error.error.message });
             }
             return taskResult_ACU(waiting!);
           }
         }
-        await this.pauseWithError_ACU(chatIdentity, task.taskId, error, 'turn_call', '每轮指令生成失败');
+        await this.pauseWithError_ACU(chatIdentity, task.taskId, error, 'turn_call', 'Tạo chỉ thị mỗi lượt thất bại');
         throw error;
       } finally {
         if (abortControllersByChat_ACU.get(chatIdentity) === controller) abortControllersByChat_ACU.delete(chatIdentity);
@@ -426,28 +426,28 @@ export class ContinuationOrchestrator_ACU {
   /** 在本轮租约内保存阶段选择、轮次定位及阶段完结状态。 */
   private async adjustAgentProgressWithinLease_ACU(chatIdentity: string, lease: Lease_ACU, taskId: string, action: AgentAdjustProgressAction_ACU): Promise<AgentAdjustProgressReceipt_ACU> {
     this.assertLeaseCurrent_ACU(chatIdentity, lease);
-    let receipt: AgentAdjustProgressReceipt_ACU = { status: 'rejected', message: '当前进度不可调整' };
+    let receipt: AgentAdjustProgressReceipt_ACU = { status: 'rejected', message: 'Tiến độ hiện tại không thể điều chỉnh' };
     await this.dependencies.store.updatePersistedAtomically(current => {
       this.assertLeaseCurrent_ACU(chatIdentity, lease);
       const envelope = this.requireEnvelope_ACU(current);
       const task = this.requireTask_ACU(envelope);
       if (task.taskId !== taskId || task.status !== 'running' || task.stopReason !== null || task.pendingHostTurn) {
-        receipt = { status: 'rejected', message: '任务已变化或正文轮次仍在等待，不能调整进度' };
+        receipt = { status: 'rejected', message: 'Tác vụ đã thay đổi hoặc lượt chính văn vẫn đang chờ, không thể điều chỉnh tiến độ' };
         return envelope;
       }
       const stage = task.stages.find(item => item.stageId === action.stageId);
       const revision = stage?.revisions.find(item => item.revision === stage.activeRevision);
       const reject = (message: string) => { receipt = { status: 'rejected', message }; return envelope; };
-      if (!stage || !revision?.frozen || action.revision !== stage.activeRevision) return reject('阶段不存在、版本已变化或大纲尚未冻结，请重新读取大纲状态');
-      if (!['running', 'completed', 'abandoned', 'failed'].includes(stage.status)) return reject('待确认的阶段须先确认大纲');
-      if (!action.reason.trim() || (!!action.nextTurnId === (action.completeStage !== undefined))) return reject('必须提供依据，并且只选择下一轮或阶段完结状态之一');
+      if (!stage || !revision?.frozen || action.revision !== stage.activeRevision) return reject('Giai đoạn không tồn tại, phiên bản đã thay đổi hoặc dàn ý chưa đóng băng, hãy đọc lại trạng thái dàn ý');
+      if (!['running', 'completed', 'abandoned', 'failed'].includes(stage.status)) return reject('Giai đoạn chờ xác nhận phải xác nhận dàn ý trước');
+      if (!action.reason.trim() || (!!action.nextTurnId === (action.completeStage !== undefined))) return reject('Phải cung cấp căn cứ, và chỉ chọn một trong lượt kế tiếp hoặc trạng thái hoàn tất giai đoạn');
       const turns = revision.outline.nodes.flatMap(node => node.turns);
       const completedTurns = action.completeStage === true ? turns.length
         : action.completeStage === false ? Math.min(stage.completedTurns, turns.length - 1)
           : turns.findIndex(turn => turn.id === action.nextTurnId);
-      if (completedTurns < 0) return reject('nextTurnId 不属于该阶段当前大纲');
+      if (completedTurns < 0) return reject('nextTurnId không thuộc dàn ý hiện tại của giai đoạn này');
       const chat = this.dependencies.logicalHistory ? null : getChatArray_ACU();
-      if (!this.dependencies.logicalHistory && (!Array.isArray(chat) || chat.length === 0)) return reject('当前聊天没有可保存校准依据的楼层');
+      if (!this.dependencies.logicalHistory && (!Array.isArray(chat) || chat.length === 0)) return reject('Cuộc trò chuyện hiện tại không có tầng nào để lưu căn cứ hiệu chỉnh');
       const anchor: ContinuationHistoryAnchor_ACU = this.dependencies.logicalHistory?.anchor()
         ?? { messageIndex: chat!.length - 1 };
       const cursor = cursorFromCompletedTurns_ACU(revision, completedTurns);
@@ -472,8 +472,8 @@ export class ContinuationOrchestrator_ACU {
       const nextTask = this.dependencies.logicalHistory
         ? this.dependencies.logicalHistory.reconcile(adjusted)
         : reconcileHostContinuationTask_ACU(adjusted);
-      receipt = { status: 'committed', message: action.completeStage === true ? '阶段已标记完结'
-        : action.completeStage === false ? '阶段已重新开启并设为当前阶段' : '当前阶段与续写轮次已校准', stageId: stage.stageId, completedTurns };
+      receipt = { status: 'committed', message: action.completeStage === true ? 'Giai đoạn đã được đánh dấu hoàn tất'
+        : action.completeStage === false ? 'Giai đoạn đã được mở lại và đặt làm giai đoạn hiện tại' : 'Giai đoạn hiện tại và lượt viết tiếp đã được hiệu chỉnh', stageId: stage.stageId, completedTurns };
       return { ...envelope, activeTask: nextTask };
     }, { chatIdentity, taskId });
     // 保存失败直接抛出，不能返回候选的 committed 回执。
@@ -507,7 +507,7 @@ export class ContinuationOrchestrator_ACU {
         const envelope = this.requireEnvelope_ACU(current);
         const task = this.requireTask_ACU(envelope);
         if (task.pendingHostTurn?.status !== 'retry_ready') {
-          fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前没有可重试的宿主正文轮次');
+          fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Hiện không có lượt chính văn máy chủ nào có thể thử lại');
         }
         const now = this.dependencies.now();
         started = { ...envelope, activeTask: { ...task, status: 'running', stopReason: null, lastError: null, updatedAt: now } };
@@ -519,7 +519,7 @@ export class ContinuationOrchestrator_ACU {
 
   /** Persists the host attribution boundary before the adapter writes the host textarea. */
   async recordHostTurn(input: RecordHostTurnInput_ACU): Promise<ContinuationOrchestratorResult_ACU> {
-    if (this.dependencies.logicalHistory) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '逻辑正文不能登记物理宿主捕获');
+    if (this.dependencies.logicalHistory) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Chính văn logic không thể đăng ký bản bắt vật lý của máy chủ');
     const chatIdentity = this.requireChatIdentity_ACU();
     return this.withLease_ACU(async () => {
       let result: ContinuationEnvelope_ACU | null = null;
@@ -530,7 +530,7 @@ export class ContinuationOrchestrator_ACU {
         const retrying = existing?.status === 'retry_ready';
         const statusOk = task.status === 'running' || (task.status === 'paused' && retrying);
         if (!statusOk) {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', '待发送正文已不属于当前轮次', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', 'Chính văn chờ gửi không còn thuộc lượt hiện tại', false));
         }
         // 身份由当前硬游标自动填写；重试沿用同一 attemptId，保证宿主事件仍能归属到这一轮。
         const stage = getActiveStage_ACU(task);
@@ -538,10 +538,10 @@ export class ContinuationOrchestrator_ACU {
         const node = revision.outline.nodes[stage.activeNodeIndex];
         const turn = node?.turns[stage.activeTurnIndex];
         if (!node || !turn) {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_TASK_STATE_INVALID', 'host_send', '当前阶段游标无效', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_TASK_STATE_INVALID', 'host_send', 'Con trỏ giai đoạn hiện tại không hợp lệ', false));
         }
         if (existing != null && !retrying) {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', '待发送正文已不属于当前轮次', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', 'Chính văn chờ gửi không còn thuộc lượt hiện tại', false));
         }
         const identity: TurnAttemptIdentity_ACU = {
           chatIdentity,
@@ -572,7 +572,7 @@ export class ContinuationOrchestrator_ACU {
 
   /** 保存规划器铸造的完整身份与实际逻辑正文引用，不重新分配续写 attempt。 */
   async recordLogicalTurn(identity: TurnAttemptIdentity_ACU, ref: ContinuationLogicalRef_ACU, resume = false): Promise<void> {
-    if (!this.dependencies.logicalHistory) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前续写没有逻辑历史端口');
+    if (!this.dependencies.logicalHistory) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Viết tiếp hiện tại không có cổng lịch sử logic');
     identity = structuredClone(identity);
     ref = structuredClone(ref);
     await this.withLease_ACU(async (chatIdentity, lease) => {
@@ -590,7 +590,7 @@ export class ContinuationOrchestrator_ACU {
           || identity.chatIdentity !== chatIdentity
           || identity.taskId !== task.taskId || identity.stageId !== stage.stageId
           || identity.revision !== stage.activeRevision || identity.nodeId !== node?.id || identity.turnId !== turn?.id) {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', '待发送逻辑正文已不属于当前规划游标', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', 'Chính văn logic chờ gửi không còn thuộc con trỏ hoạch định hiện tại', false));
         }
         const pending = task.pendingHostTurn;
         if (pending) {
@@ -602,7 +602,7 @@ export class ContinuationOrchestrator_ACU {
             return resumable ? { ...envelope, activeTask: { ...task, status: 'running',
               stopReason: null, lastError: null, updatedAt: this.dependencies.now() } } : envelope;
           }
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', '已有逻辑等待轮不能被另一正文替换', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', 'Lượt chờ logic đã có không thể bị chính văn khác thay thế', false));
         }
         const now = this.dependencies.now();
         return { ...envelope, activeTask: { ...task, status: 'running', stopReason: null, lastError: null, updatedAt: now,
@@ -616,7 +616,7 @@ export class ContinuationOrchestrator_ACU {
   }
 
   async pauseForHostInputFailure(): Promise<ContinuationOrchestratorResult_ACU> {
-    return this.pauseHostTurn_ACU('CONTINUATION_HOST_INPUT_UNAVAILABLE', '酒馆输入框或发送按钮不可用', 'host_input_unavailable');
+    return this.pauseHostTurn_ACU('CONTINUATION_HOST_INPUT_UNAVAILABLE', 'Ô nhập hoặc nút gửi của SillyTavern không khả dụng', 'host_input_unavailable');
   }
 
   /** 仅供发送前接管交接：清除被替代请求的序号，不改变轮次身份、捕获边界或重试额度。 */
@@ -629,7 +629,7 @@ export class ContinuationOrchestrator_ACU {
         const pending = task.pendingHostTurn;
         if (task.status !== 'running' || !pending || pending.status !== 'awaiting_generation'
           || pending.identity.attemptId !== input.attemptId || pending.capture.generationSeq !== input.generationSeq) {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', '宿主生成交接已不属于当前轮次', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', 'Việc bàn giao tạo của máy chủ không còn thuộc lượt hiện tại', false));
         }
         return { ...envelope, activeTask: { ...task, pendingHostTurn: { ...pending, capture: { ...pending.capture, generationSeq: null } } } };
       }, { chatIdentity });
@@ -645,7 +645,7 @@ export class ContinuationOrchestrator_ACU {
         const task = this.requireTask_ACU(envelope);
         const pending = task.pendingHostTurn;
         if (!pending || pending.status !== 'awaiting_generation' || pending.capture.generationSeq !== null) {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', '宿主生成开始事件不属于当前轮次', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', 'Sự kiện bắt đầu tạo của máy chủ không thuộc lượt hiện tại', false));
         }
         return { ...envelope, activeTask: { ...task, pendingHostTurn: { ...pending, capture: { ...pending.capture, generationSeq } } } };
       }, { chatIdentity });
@@ -681,11 +681,11 @@ export class ContinuationOrchestrator_ACU {
   }
 
   async pauseForHostResultFailure(): Promise<ContinuationOrchestratorResult_ACU> {
-    return this.pauseHostTurn_ACU('CONTINUATION_TASK_STATE_INVALID', '宿主正文无法唯一归属当前轮次', 'state_invalid');
+    return this.pauseHostTurn_ACU('CONTINUATION_TASK_STATE_INVALID', 'Chính văn của máy chủ không thể quy duy nhất về lượt hiện tại', 'state_invalid');
   }
 
   async rejectHostTurnForMissingTags(input: RejectHostTurnInput_ACU): Promise<ContinuationOrchestratorResult_ACU> {
-    const error = createContinuationError_ACU('CONTINUATION_GENERATION_TAGS_MISSING', 'generation_evaluate', '宿主正文缺少必需标签', true, { messageIndex: input.messageIndex });
+    const error = createContinuationError_ACU('CONTINUATION_GENERATION_TAGS_MISSING', 'generation_evaluate', 'Chính văn của máy chủ thiếu thẻ bắt buộc', true, { messageIndex: input.messageIndex });
     return this.rejectHostTurnAttempt_ACU(error, input.messageIndex);
   }
 
@@ -693,7 +693,7 @@ export class ContinuationOrchestrator_ACU {
     const error = createContinuationError_ACU(
       'CONTINUATION_GENERATION_TOO_SHORT',
       'generation_evaluate',
-      `宿主正文约 ${input.tokenCount} tokens，低于阈值 ${input.threshold}，视为截断或出错`,
+      `Chính văn của máy chủ khoảng ${input.tokenCount} tokens, thấp hơn ngưỡng ${input.threshold}, coi là bị cắt hoặc lỗi`,
       true,
       { messageIndex: input.messageIndex, tokenCount: input.tokenCount, threshold: input.threshold },
     );
@@ -707,7 +707,7 @@ export class ContinuationOrchestrator_ACU {
    * 没有楼层被写入宿主，重发不会产生重复正文。
    */
   async rejectHostTurnForFailedGeneration(): Promise<ContinuationOrchestratorResult_ACU> {
-    const error = createContinuationError_ACU('CONTINUATION_GENERATION_FAILED', 'generation_evaluate', '宿主生成失败或未产出正文，将自动重试当前轮次', true);
+    const error = createContinuationError_ACU('CONTINUATION_GENERATION_FAILED', 'generation_evaluate', 'Máy chủ tạo thất bại hoặc không tạo ra chính văn, sẽ tự động thử lại lượt hiện tại', true);
     return this.rejectHostTurnAttempt_ACU(error);
   }
 
@@ -727,7 +727,7 @@ export class ContinuationOrchestrator_ACU {
         const task = this.requireTask_ACU(envelope);
         const pending = task.pendingHostTurn;
         if (task.status !== 'running' || !pending || pending.status !== 'awaiting_generation') {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'generation_evaluate', '正文失败登记已不属于当前轮次', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'generation_evaluate', 'Đăng ký thất bại của chính văn không còn thuộc lượt hiện tại', false));
         }
         const identity = pending.identity;
         const now = this.dependencies.now();
@@ -757,11 +757,11 @@ export class ContinuationOrchestrator_ACU {
         const task = this.requireTask_ACU(envelope);
         const pending = task.pendingHostTurn;
         if (task.status !== 'running' || !pending || pending.status !== 'awaiting_generation') {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'generation_evaluate', '生成中止事件已不属于当前轮次', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'generation_evaluate', 'Sự kiện dừng tạo không còn thuộc lượt hiện tại', false));
         }
         const identity = pending.identity;
         const now = this.dependencies.now();
-        const error = createContinuationError_ACU('CONTINUATION_TASK_STATE_INVALID', 'generation_evaluate', '宿主生成被中止，可重试当前轮次', true);
+        const error = createContinuationError_ACU('CONTINUATION_TASK_STATE_INVALID', 'generation_evaluate', 'Máy chủ tạo đã bị dừng, có thể thử lại lượt hiện tại', true);
         result = { ...envelope, activeTask: { ...task, status: 'paused', updatedAt: now, lastError: error, pendingHostTurn: { ...pending, status: 'retry_ready' }, timeline: [...task.timeline, this.timeline_ACU('turn_retry', now, { stageId: identity.stageId, revision: identity.revision, nodeId: identity.nodeId, turnId: identity.turnId, attemptId: identity.attemptId, errorCode: error.code })] } };
         return result;
       }, { chatIdentity });
@@ -771,12 +771,12 @@ export class ContinuationOrchestrator_ACU {
 
   /** T9 calls this only after uniquely attributing a successful host generation to identity. */
   async confirmCurrentTurn(messageIndex?: number): Promise<ContinuationOrchestratorResult_ACU> {
-    if (this.dependencies.logicalHistory) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '逻辑正文必须通过显式回合引用确认');
+    if (this.dependencies.logicalHistory) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Chính văn logic phải được xác nhận thông qua tham chiếu lượt tường minh');
     return this.confirmTurn_ACU(messageIndex);
   }
 
   async confirmLogicalTurn(ref: ContinuationLogicalRef_ACU): Promise<ContinuationOrchestratorResult_ACU> {
-    if (!this.dependencies.logicalHistory) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前续写没有逻辑确认端口');
+    if (!this.dependencies.logicalHistory) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Viết tiếp hiện tại không có cổng xác nhận logic');
     return this.confirmTurn_ACU(undefined, ref);
   }
 
@@ -786,7 +786,7 @@ export class ContinuationOrchestrator_ACU {
       const preEnvelope = this.requireEnvelope_ACU(this.dependencies.store.readPersisted());
       const preTask = this.requireTask_ACU(preEnvelope);
       if (!logicalRef && (preTask.status !== 'running' || preTask.pendingHostTurn?.status !== 'awaiting_generation')) {
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'generation_evaluate', '正文结果已不属于当前轮次', false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'generation_evaluate', 'Kết quả chính văn không còn thuộc lượt hiện tại', false));
       }
       this.assertLeaseCurrent_ACU(chatIdentity, lease);
       let advanced: ContinuationEnvelope_ACU | null = null;
@@ -794,12 +794,12 @@ export class ContinuationOrchestrator_ACU {
         const envelope = this.requireEnvelope_ACU(current);
         const task = this.requireTask_ACU(envelope);
         if (task.status !== 'running' || task.pendingHostTurn?.status !== 'awaiting_generation') {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'generation_evaluate', '正文结果已不属于当前轮次', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'generation_evaluate', 'Kết quả chính văn không còn thuộc lượt hiện tại', false));
         }
         const capturedRef = task.pendingHostTurn.capture.logicalRef;
         if (logicalRef && (!capturedRef || !(['sessionId', 'branchId', 'turnId', 'attemptId', 'floorId'] as const)
           .every(key => capturedRef[key] === logicalRef[key]))) {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'generation_evaluate', '逻辑正文引用不属于当前等待轮', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'generation_evaluate', 'Tham chiếu chính văn logic không thuộc lượt chờ hiện tại', false));
         }
         this.assertLeaseCurrent_ACU(chatIdentity, lease);
         const now = this.dependencies.now();
@@ -840,13 +840,13 @@ export class ContinuationOrchestrator_ACU {
         const revision = getActiveRevision_ACU(stage);
         const nextTurn = stage.status === 'running' ? revision.outline.nodes[stage.activeNodeIndex]?.turns[stage.activeTurnIndex] : null;
         const nextKey = `${stage.stageId}#${stage.activeRevision}#${nextTurn?.id ?? ''}`;
-        const nextGoal = nextTurn?.goal ?? '当前阶段已完成；继续时由主 Agent 准备下一阶段大纲';
+        const nextGoal = nextTurn?.goal ?? 'Giai đoạn hiện tại đã hoàn thành; khi tiếp tục Agent chính sẽ chuẩn bị dàn ý giai đoạn kế tiếp';
         try {
           this.assertLeaseCurrent_ACU(chatIdentity, lease);
           await appendConfirmedAgentTurn_ACU(getChatArray_ACU(), messageIndex, nextKey,
-            `第 ${messageIndex + 1} 楼正文已确认，上一轮已结束。开始新的一轮规划：第 ${stage.stageNumber} 阶段。下一轮目标：${nextGoal}。上文已读资料与工作流回执仍然有效；可按用户新指令调整。`);
+            `Chính văn tầng ${messageIndex + 1} đã được xác nhận, lượt trước đã kết thúc. Bắt đầu một vòng hoạch định mới: giai đoạn ${stage.stageNumber}. Mục tiêu lượt kế: ${nextGoal}. Tư liệu đã đọc ở trên và biên nhận quy trình vẫn còn hiệu lực; có thể điều chỉnh theo chỉ thị mới của người dùng.`);
         } catch (error) {
-          logAgentSession_ACU({ kind: 'thought', title: '确认后会话通告未保存', detail: error instanceof Error ? error.message : String(error), ok: false });
+          logAgentSession_ACU({ kind: 'thought', title: 'Thông báo hội thoại sau khi xác nhận chưa được lưu', detail: error instanceof Error ? error.message : String(error), ok: false });
         }
       }
       return taskResult_ACU(advanced!);
@@ -861,7 +861,7 @@ export class ContinuationOrchestrator_ACU {
     await Promise.all(settling);
     if (this.dependencies.getChatIdentity() !== chatIdentity) {
       throw new ContinuationValidationError_ACU(createContinuationError_ACU(
-        'CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', '停止期间续写作用域已变化', false));
+        'CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', 'Phạm vi viết tiếp đã thay đổi trong lúc dừng', false));
     }
   }
 
@@ -904,7 +904,7 @@ export class ContinuationOrchestrator_ACU {
           const currentEnvelope = this.requireEnvelope_ACU(current);
           const task = this.requireTask_ACU(currentEnvelope);
           if (task.taskId !== created.task.taskId) {
-            throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_persist', '创建后的续写任务已被其他操作替换', false));
+            throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_persist', 'Tác vụ viết tiếp vừa tạo đã bị thao tác khác thay thế', false));
           }
           const now = this.dependencies.now();
           envelope = {
@@ -932,7 +932,7 @@ export class ContinuationOrchestrator_ACU {
     await this.recordUserMessage_ACU(text, initialMessageDigest, true);
     const beforeResume = this.requireTask_ACU(this.requireEnvelope_ACU(this.dependencies.store.readPersisted()));
     if (beforeResume.taskId !== existing!.taskId) {
-      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_persist', '用户消息写入期间续写任务已变化', false));
+      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_persist', 'Tác vụ viết tiếp đã thay đổi trong lúc ghi tin nhắn người dùng', false));
     }
     const hasLiveHostClaim = beforeResume.pendingHostTurn?.status === 'awaiting_generation'
       && this.dependencies.hasLiveHostClaim?.(chatIdentity) === true;
@@ -955,7 +955,7 @@ export class ContinuationOrchestrator_ACU {
         const currentEnvelope = this.requireEnvelope_ACU(current);
         const task = this.requireTask_ACU(currentEnvelope);
         if (task.taskId !== beforeResume.taskId) {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_persist', '用户消息恢复前提已失效', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_persist', 'Tiền đề khôi phục tin nhắn người dùng đã hết hiệu lực', false));
         }
         const liveHostClaim = task.pendingHostTurn?.status === 'awaiting_generation'
           && this.dependencies.hasLiveHostClaim?.(chatIdentity) === true;
@@ -1014,14 +1014,14 @@ export class ContinuationOrchestrator_ACU {
       const envelope = this.requireEnvelope_ACU(this.dependencies.store.readPersisted());
       const task = this.requireTask_ACU(envelope);
       if (task.status === 'running' || task.status === 'stopping_after_inflight') {
-        fail_ACU('CONTINUATION_OPERATION_BUSY', '循环正在运行，请先停止再手动编辑大纲');
+        fail_ACU('CONTINUATION_OPERATION_BUSY', 'Vòng lặp đang chạy, hãy dừng trước rồi mới sửa dàn ý thủ công');
       }
       const stage = getActiveStage_ACU(task);
       const current = getActiveRevision_ACU(stage);
       if (stage.status !== 'running' || !current.frozen) {
-        fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前没有可手动编辑的已冻结大纲');
+        fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Hiện không có dàn ý đã đóng băng nào có thể sửa thủ công');
       }
-      await this.commitEditedOutline_ACU(chatIdentity, envelope, task, stage, current, cloneOutline_ACU(input.outline), '用户手动编辑', '已保存手动编辑的大纲（', 'paused');
+      await this.commitEditedOutline_ACU(chatIdentity, envelope, task, stage, current, cloneOutline_ACU(input.outline), 'Người dùng sửa thủ công', 'Đã lưu dàn ý sửa thủ công (', 'paused');
       return taskResult_ACU(this.requireEnvelope_ACU(this.dependencies.store.readPersisted()));
     });
   }
@@ -1062,7 +1062,7 @@ export class ContinuationOrchestrator_ACU {
         const outcome = await this.applyOutlineOpWithinLease_ACU(chatIdentity, lease, replanInstruction, 'paused');
         return taskResult_ACU(outcome.envelope, outcome.planning);
       } catch (error) {
-        await this.pauseWithError_ACU(chatIdentity, taskId, error, 'outline_call', '阶段规划失败');
+        await this.pauseWithError_ACU(chatIdentity, taskId, error, 'outline_call', 'Hoạch định giai đoạn thất bại');
         throw error;
       }
     });
@@ -1082,12 +1082,12 @@ export class ContinuationOrchestrator_ACU {
   async applyOutlineOpWithinLease_ACU(chatIdentity: string, lease: Lease_ACU, instruction: string, endStatus: 'running' | 'paused'): Promise<{ opResult: AgentOutlineOpResult_ACU; envelope: ContinuationEnvelope_ACU; planning?: ContinuationOrchestratorResult_ACU['planning'] }> {
     const envelope = this.requireEnvelope_ACU(this.dependencies.store.readPersisted());
     const task = this.requireTask_ACU(envelope);
-    if (task.stopReason !== null) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '已停止的任务不可规划大纲');
+    if (task.stopReason !== null) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Tác vụ đã dừng không thể hoạch định dàn ý');
     const stage = task.activeStageId ? task.stages.find(item => item.stageId === task.activeStageId) ?? null : null;
     if (!stage) return this.createOutlineOp_ACU(chatIdentity, lease, envelope, task, instruction, endStatus);
     if (stage.status === 'completed') return this.continueOutlineOp_ACU(chatIdentity, lease, envelope, task, stage, instruction, endStatus);
     if (stage.status === 'running' || stage.status === 'failed') return this.reviseOutlineOp_ACU(chatIdentity, lease, envelope, task, stage, instruction, endStatus);
-    fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前阶段状态不允许大纲操作');
+    fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Trạng thái giai đoạn hiện tại không cho phép thao tác dàn ý');
   }
 
   /**
@@ -1099,17 +1099,17 @@ export class ContinuationOrchestrator_ACU {
   async applyOutlineEditsWithinLease_ACU(chatIdentity: string, _lease: Lease_ACU, edits: readonly AgentOutlineEditOp_ACU[], endStatus: 'running' | 'paused'): Promise<{ summary: string }> {
     const envelope = this.requireEnvelope_ACU(this.dependencies.store.readPersisted());
     const task = this.requireTask_ACU(envelope);
-    if (task.stopReason !== null) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '已停止的任务不可编辑大纲');
+    if (task.stopReason !== null) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Tác vụ đã dừng không thể sửa dàn ý');
     const stage = task.activeStageId ? task.stages.find(item => item.stageId === task.activeStageId) ?? null : null;
     if (!stage || stage.status !== 'running') {
-      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_WRITE_REJECTED', 'agent_loop', '当前没有可编辑的执行中大纲；请先派工 outline-architect 创建或继续大纲', false));
+      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_WRITE_REJECTED', 'agent_loop', 'Hiện không có dàn ý đang thực thi nào có thể sửa; hãy giao outline-architect tạo hoặc tiếp tục dàn ý trước', false));
     }
     const current = getActiveRevision_ACU(stage);
     if (!current.frozen) {
-      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_WRITE_REJECTED', 'agent_loop', '当前大纲尚未冻结（可能等待确认），不可编辑', false));
+      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_WRITE_REJECTED', 'agent_loop', 'Dàn ý hiện tại chưa đóng băng (có thể đang chờ xác nhận), không thể sửa', false));
     }
     const edited = applyOutlineEditOps_ACU(current.outline, edits, this.dependencies.allocateId);
-    return this.commitEditedOutline_ACU(chatIdentity, envelope, task, stage, current, edited, `Agent 工具编辑：${edits.length} 处`, `已按工具编辑改写大纲（${edits.length} 处`, endStatus, true);
+    return this.commitEditedOutline_ACU(chatIdentity, envelope, task, stage, current, edited, `Agent sửa bằng công cụ: ${edits.length} chỗ`, `Đã viết lại dàn ý theo chỉnh sửa bằng công cụ (${edits.length} chỗ`, endStatus, true);
   }
 
   /**
@@ -1146,7 +1146,7 @@ export class ContinuationOrchestrator_ACU {
     const newFlattened = candidate.nodes.flatMap(node => node.turns);
     const newCursorTurn = newFlattened[stage.completedTurns] ?? null;
     if (!oldCursorTurn || !newCursorTurn || newCursorTurn.id !== oldCursorTurn.id) {
-      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_WRITE_REJECTED', 'agent_loop', '编辑不能移除或替换当前正在执行的轮次（可以改它的目标句）', false, { cursorTurnId: oldCursorTurn?.id ?? null }));
+      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_WRITE_REJECTED', 'agent_loop', 'Chỉnh sửa không được xóa hoặc thay thế lượt đang thực thi (có thể sửa câu mục tiêu của nó)', false, { cursorTurnId: oldCursorTurn?.id ?? null }));
     }
     const range = resolveContinuationTurnRange_ACU(envelope.settings.stageSize, envelope.settings.customTurnMin ?? undefined, envelope.settings.customTurnMax ?? undefined);
     const validated = validateReplannedStageOutline_ACU(candidate, range, {
@@ -1172,13 +1172,13 @@ export class ContinuationOrchestrator_ACU {
       }
     }
     const nextRevisionNumber = current.revision + 1;
-    const summary = `${summaryHead}，revision ${nextRevisionNumber}，共 ${validated.totalTurns} 轮）`;
+    const summary = `${summaryHead}, revision ${nextRevisionNumber}, tổng ${validated.totalTurns} lượt)`;
     await this.dependencies.store.updatePersistedAtomically(currentEnvelope => {
       const env = this.requireEnvelope_ACU(currentEnvelope);
       const t = this.requireTask_ACU(env);
       const activeStage = getActiveStage_ACU(t);
       if (t.taskId !== task.taskId || activeStage.stageId !== stage.stageId || activeStage.activeRevision !== current.revision || t.stopReason !== null) {
-        fail_ACU('CONTINUATION_TASK_STATE_INVALID', '大纲编辑结果已失效');
+        fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Kết quả chỉnh sửa dàn ý đã hết hiệu lực');
       }
       const at = this.dependencies.now();
       const revision = freezePlannedStageRevision_ACU(createPlannedStageRevision_ACU(validated, nextRevisionNumber, 'manual_replan', reasonNote, at));
@@ -1200,7 +1200,7 @@ export class ContinuationOrchestrator_ACU {
       const env = this.requireEnvelope_ACU(current);
       const t = this.requireTask_ACU(env);
       if (t.taskId !== task.taskId || t.activeStageId !== null || t.stopReason !== null) {
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'outline_call', '大纲创建前提已失效', false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'outline_call', 'Tiền đề tạo dàn ý đã hết hiệu lực', false));
       }
       const now = this.dependencies.now();
       const revision = createPlannedStageRevision_ACU(planned.outline, 1, 'initial', instruction, now);
@@ -1209,7 +1209,7 @@ export class ContinuationOrchestrator_ACU {
       return result;
     }, guardForTask_ACU(chatIdentity, task));
     return {
-      opResult: { op: 'create', requiresReview: planned.requiresReview, stopped: null, summary: `已创建第 ${stageNumber} 阶段大纲「${planned.outline.title}」（共 ${planned.outline.totalTurns} 轮）` },
+      opResult: { op: 'create', requiresReview: planned.requiresReview, stopped: null, summary: `Đã tạo dàn ý giai đoạn ${stageNumber} "${planned.outline.title}" (tổng ${planned.outline.totalTurns} lượt)` },
       envelope: result!,
       planning: this.planningSummary_ACU(planned),
     };
@@ -1221,12 +1221,12 @@ export class ContinuationOrchestrator_ACU {
     if (task.deadlineAt !== null && now >= task.deadlineAt) {
       const stopped = this.stopEnvelope_ACU(envelope, 'duration_reached', now);
       await this.dependencies.store.replaceAtomically(stopped, guardForTask_ACU(chatIdentity, task));
-      return { opResult: { op: 'continue', requiresReview: false, stopped: 'duration_reached', summary: '总时长已到，任务已停止，不再创建下一阶段' }, envelope: stopped };
+      return { opResult: { op: 'continue', requiresReview: false, stopped: 'duration_reached', summary: 'Đã hết tổng thời lượng, tác vụ đã dừng, không tạo giai đoạn kế tiếp nữa' }, envelope: stopped };
     }
     if (automaticStagesInWindow_ACU(task) >= envelope.settings.maxAutomaticStages) {
       const stopped = this.stopEnvelope_ACU(envelope, 'stage_limit_reached', now);
       await this.dependencies.store.replaceAtomically(stopped, guardForTask_ACU(chatIdentity, task));
-      return { opResult: { op: 'continue', requiresReview: false, stopped: 'stage_limit_reached', summary: '阶段数已达上限，任务已停止，不再创建下一阶段' }, envelope: stopped };
+      return { opResult: { op: 'continue', requiresReview: false, stopped: 'stage_limit_reached', summary: 'Số giai đoạn đã đạt giới hạn, tác vụ đã dừng, không tạo giai đoạn kế tiếp nữa' }, envelope: stopped };
     }
     const nextStageId = this.dependencies.allocateId('stage');
     const context: ContinuationPlanningContext_ACU = { envelope, task, stage: null, reason: 'auto_next_stage', replanInstruction: instruction };
@@ -1239,7 +1239,7 @@ export class ContinuationOrchestrator_ACU {
       const t = this.requireTask_ACU(env);
       const completedStage = t.activeStageId ? t.stages.find(item => item.stageId === t.activeStageId) : null;
       if (t.taskId !== task.taskId || completedStage?.stageId !== stage.stageId || completedStage.status !== 'completed' || t.stopReason !== null) {
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'outline_call', '下一阶段规划前提已失效', false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'outline_call', 'Tiền đề hoạch định giai đoạn kế tiếp đã hết hiệu lực', false));
       }
       const at = this.dependencies.now();
       const revision = createPlannedStageRevision_ACU(planned.outline, 1, 'auto_next_stage', instruction, at);
@@ -1254,7 +1254,7 @@ export class ContinuationOrchestrator_ACU {
       return result;
     }, guardForTask_ACU(chatIdentity, task));
     return {
-      opResult: { op: 'continue', requiresReview: planned.requiresReview, stopped: null, summary: `已继续大纲：第 ${stageNumber} 阶段「${planned.outline.title}」（共 ${planned.outline.totalTurns} 轮）` },
+      opResult: { op: 'continue', requiresReview: planned.requiresReview, stopped: null, summary: `Đã tiếp tục dàn ý: giai đoạn ${stageNumber} "${planned.outline.title}" (tổng ${planned.outline.totalTurns} lượt)` },
       envelope: result!,
       planning: this.planningSummary_ACU(planned),
     };
@@ -1263,7 +1263,7 @@ export class ContinuationOrchestrator_ACU {
   /** 改写当前阶段剩余部分。完成前缀保护由 schema 校验强制：已完成轮次不可被改掉。 */
   private async reviseOutlineOp_ACU(chatIdentity: string, lease: Lease_ACU, envelope: ContinuationEnvelope_ACU, task: ContinuationTask_ACU, stage: ContinuationStage_ACU, instruction: string, endStatus: 'running' | 'paused'): Promise<{ opResult: AgentOutlineOpResult_ACU; envelope: ContinuationEnvelope_ACU; planning?: ContinuationOrchestratorResult_ACU['planning'] }> {
     if (!['running', 'paused', 'failed'].includes(task.status)) {
-      fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前任务状态不可改写大纲');
+      fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Trạng thái tác vụ hiện tại không thể viết lại dàn ý');
     }
     const current = getActiveRevision_ACU(stage);
     const constraints: ContinuationReplanConstraints_ACU = { previousOutline: current.outline, completedTurns: stage.completedTurns, expectedRemainingTurns: current.outline.totalTurns - stage.completedTurns };
@@ -1277,7 +1277,7 @@ export class ContinuationOrchestrator_ACU {
       const t = this.requireTask_ACU(env);
       const activeStage = getActiveStage_ACU(t);
       if (t.taskId !== task.taskId || activeStage.stageId !== stage.stageId || activeStage.activeRevision !== current.revision || t.stopReason !== null) {
-        fail_ACU('CONTINUATION_TASK_STATE_INVALID', '重新规划结果已失效');
+        fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Kết quả hoạch định lại đã hết hiệu lực');
       }
       const at = this.dependencies.now();
       const pending = createPlannedStageRevision_ACU(cloneOutline_ACU(planned.outline), nextRevisionNumber, 'manual_replan', instruction, at);
@@ -1289,7 +1289,7 @@ export class ContinuationOrchestrator_ACU {
       return result;
     }, guardForTask_ACU(chatIdentity, task));
     return {
-      opResult: { op: 'revise', requiresReview: planned.requiresReview, stopped: null, summary: `已改写第 ${stage.stageNumber} 阶段大纲（revision ${nextRevisionNumber}，已完成的 ${stage.completedTurns} 轮保持不变）` },
+      opResult: { op: 'revise', requiresReview: planned.requiresReview, stopped: null, summary: `Đã viết lại dàn ý giai đoạn ${stage.stageNumber} (revision ${nextRevisionNumber}, ${stage.completedTurns} lượt đã hoàn thành giữ nguyên)` },
       envelope: result!,
       planning: this.planningSummary_ACU(planned),
     };
@@ -1297,7 +1297,7 @@ export class ContinuationOrchestrator_ACU {
 
   async abandonAndCreate(input: CreateContinuationTaskInput_ACU & { confirmAbandon?: boolean }): Promise<ContinuationOrchestratorResult_ACU> {
     if (input.confirmAbandon !== true) {
-      fail_ACU('CONTINUATION_TASK_STATE_INVALID', '放弃当前任务并新建必须经过明确确认');
+      fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Bỏ tác vụ hiện tại và tạo mới phải được xác nhận rõ ràng');
     }
     const chatIdentity = this.requireChatIdentity_ACU();
     const sourceTask = this.requireTask_ACU(this.requireEnvelope_ACU(this.dependencies.store.readPersisted()));
@@ -1361,20 +1361,20 @@ export class ContinuationOrchestrator_ACU {
     try {
       const persisted = await append([{ kind: 'user', text, digest }]);
       if (!persisted) {
-        throw new Error('用户消息未写入持久会话记录（当前聊天没有可承载会话记录的楼层）');
+        throw new Error('Tin nhắn người dùng chưa được ghi vào bản ghi hội thoại bền vững (cuộc trò chuyện hiện tại không có tầng nào để chứa bản ghi hội thoại)');
       }
       logAgentSession_ACU({ kind: 'user_message', title: digest, detail: text });
     } catch (error) {
       const reason = error instanceof ContinuationValidationError_ACU ? error.error.message : error instanceof Error ? error.message : String(error);
       logAgentSession_ACU({
         kind: 'run_failed',
-        title: '这条消息未能写入持久会话记录',
-        detail: `${reason}\n本条消息只存在于当前界面，页面重载后会消失。`,
+        title: 'Tin nhắn này chưa thể ghi vào bản ghi hội thoại bền vững',
+        detail: `${reason}\nTin nhắn này chỉ tồn tại trên giao diện hiện tại, sẽ mất sau khi tải lại trang.`,
         ok: false,
       });
       if (requirePersistence) {
         // 把底层原因带进提示：只说「保存失败」用户无从判断是楼层、宿主还是数据问题。
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_PERSIST_FAILED', 'agent_persist', `用户消息保存失败：${reason}`, false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_PERSIST_FAILED', 'agent_persist', `Lưu tin nhắn người dùng thất bại: ${reason}`, false));
       }
     }
   }
@@ -1398,7 +1398,7 @@ export class ContinuationOrchestrator_ACU {
   }
 
   private requireTask_ACU(envelope: ContinuationEnvelope_ACU): ContinuationTask_ACU {
-    if (!envelope.activeTask) fail_ACU('CONTINUATION_TASK_NOT_FOUND', '当前聊天没有智能续写任务');
+    if (!envelope.activeTask) fail_ACU('CONTINUATION_TASK_NOT_FOUND', 'Cuộc trò chuyện hiện tại không có tác vụ viết tiếp thông minh');
     return envelope.activeTask;
   }
 
@@ -1418,7 +1418,7 @@ export class ContinuationOrchestrator_ACU {
         const envelope = this.requireEnvelope_ACU(current);
         const task = this.requireTask_ACU(envelope);
         if (!task.pendingHostTurn || task.pendingHostTurn.status !== 'awaiting_generation') {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', '宿主发送失败已不属于当前轮次', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'host_send', 'Việc gửi thất bại của máy chủ không còn thuộc lượt hiện tại', false));
         }
         const identity = task.pendingHostTurn.identity;
         const now = this.dependencies.now();
@@ -1436,14 +1436,14 @@ export class ContinuationOrchestrator_ACU {
 
   private requireChatIdentity_ACU(): string {
     const identity = this.dependencies.getChatIdentity();
-    if (!identity) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前聊天身份不可用');
+    if (!identity) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Danh tính cuộc trò chuyện hiện tại không khả dụng');
     return identity;
   }
 
   private async withLease_ACU<T>(work: (chatIdentity: string, lease: Lease_ACU) => Promise<T>): Promise<T> {
     const chatIdentity = this.requireChatIdentity_ACU();
     this.dependencies.assertCanOperate?.();
-    if (leasesByChat_ACU.has(chatIdentity)) fail_ACU('CONTINUATION_OPERATION_BUSY', '当前聊天已有智能续写操作正在执行');
+    if (leasesByChat_ACU.has(chatIdentity)) fail_ACU('CONTINUATION_OPERATION_BUSY', 'Cuộc trò chuyện hiện tại đang có thao tác viết tiếp thông minh đang chạy');
     const lease: Lease_ACU = { id: this.dependencies.allocateId('lease'), epoch: epochsByChat_ACU.get(chatIdentity) ?? 0 };
     leasesByChat_ACU.set(chatIdentity, lease);
     let release!: () => void;
@@ -1479,7 +1479,7 @@ export class ContinuationOrchestrator_ACU {
 
   private assertLeaseCurrent_ACU(chatIdentity: string, lease: Lease_ACU): void {
     if (!this.isLeaseCurrent_ACU(chatIdentity, lease)) {
-      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'outline_call', '智能续写操作已失效', false));
+      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'outline_call', 'Thao tác viết tiếp thông minh đã hết hiệu lực', false));
     }
   }
 }

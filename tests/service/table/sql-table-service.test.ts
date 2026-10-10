@@ -234,7 +234,7 @@ describe('rebindSqlMutationTableIdentifiers_ACU · 模板别名补充', () => {
       templateData,
       null,
       { requireKnownTables: true },
-    )).toThrow('无法识别的目标表「missing_contract」');
+    )).toThrow('bảng đích không nhận ra “missing_contract”');
 
     const conflictingTemplate = {
       ...templateData,
@@ -246,7 +246,7 @@ describe('rebindSqlMutationTableIdentifiers_ACU · 模板别名补充', () => {
       conflictingTemplate,
       null,
       { requireKnownTables: true },
-    )).toThrow('SQL 写入引用了歧义表名「protagonist_info」：该名称同时指向多张物理表，无法安全路由');
+    )).toThrow('SQL ghi dữ liệu tham chiếu tên bảng mơ hồ “protagonist_info”: tên này cùng lúc trỏ tới nhiều bảng vật lý, không thể định tuyến an toàn');
   });
 });
 
@@ -483,7 +483,7 @@ describe('applySqlEditsToTableDataSnapshot_ACU', () => {
     );
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('无法识别的目标表「missing_contract」');
+    expect(result.error).toContain('bảng đích không nhận ra “missing_contract”');
     expect(inputSnapshot.sheet_0.content).toEqual([['row_id', 'item_name', 'quantity'], ['1', '铁剑', '3']]);
   });
 
@@ -575,7 +575,7 @@ describe('applySqlEditsToTableDataSnapshot_ACU', () => {
     );
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('必须显式列出业务列');
+    expect(result.error).toContain('phải liệt kê tường minh các cột nghiệp vụ');
     expect(inputSnapshot.sheet_0.content).toEqual([['row_id', 'item_name', 'quantity'], ['1', '铁剑', '3']]);
   });
 
@@ -910,14 +910,14 @@ describe('applySqlEditsToTableDataSnapshot_ACU', () => {
     expect(() => materializeSystemRowIdsForSqlInserts_ACU(
       ['INSERT INTO beibaowupinbiao (row_id) VALUES (999)'],
       snapshotTableData,
-    )).toThrow('剔除 row_id 后没有业务列');
+    )).toThrow('sau khi loại row_id không còn cột nghiệp vụ');
   });
 
   it('无列清单 INSERT 仍然 fail closed', () => {
     expect(() => materializeSystemRowIdsForSqlInserts_ACU(
       ["INSERT INTO beibaowupinbiao VALUES (2, '药水', 5)"],
       snapshotTableData,
-    )).toThrow('必须显式列出业务列');
+    )).toThrow('phải liệt kê tường minh các cột nghiệp vụ');
   });
 
   // ── 阶段 D：INSERT 列清单 token 级解析（test31 根因 3.3 注释残留）──
@@ -952,19 +952,19 @@ describe('applySqlEditsToTableDataSnapshot_ACU', () => {
     expect(() => materializeSystemRowIdsForSqlInserts_ACU(
       ['INSERT INTO beibaowupinbiao (item_name, quantity,) VALUES (\'药水\', 5)'],
       inputSnapshot,
-    )).toThrow(/列清单|括号未闭合|空项|无法安全解析/);
+    )).toThrow(/danh sách cột|chưa đóng|mục rỗng|không thể phân tích an toàn/);
     expect(() => materializeSystemRowIdsForSqlInserts_ACU(
       ['INSERT INTO beibaowupinbiao (item_name,, quantity) VALUES (\'药水\', 5)'],
       inputSnapshot,
-    )).toThrow(/列清单|空项|无法安全解析/);
+    )).toThrow(/danh sách cột|mục rỗng|không thể phân tích an toàn/);
     expect(() => materializeSystemRowIdsForSqlInserts_ACU(
       ['INSERT INTO beibaowupinbiao (item_name, item_name) VALUES (\'药水\', 5)'],
       inputSnapshot,
-    )).toThrow('列名重复');
+    )).toThrow('có tên cột trùng');
     expect(() => materializeSystemRowIdsForSqlInserts_ACU(
       ['INSERT INTO beibaowupinbiao (SELECT, quantity) VALUES (\'药水\', 5)'],
       inputSnapshot,
-    )).toThrow('非法标识符');
+    )).toThrow('định danh không hợp lệ');
   });
 
   it('INSERT SELECT / 无显式列清单保持 fail-closed', () => {
@@ -972,16 +972,16 @@ describe('applySqlEditsToTableDataSnapshot_ACU', () => {
     expect(() => materializeSystemRowIdsForSqlInserts_ACU(
       ['INSERT INTO beibaowupinbiao SELECT * FROM other'],
       inputSnapshot,
-    )).toThrow('必须显式列出业务列');
+    )).toThrow('phải liệt kê tường minh các cột nghiệp vụ');
     expect(() => materializeSystemRowIdsForSqlInserts_ACU(
       ['INSERT INTO beibaowupinbiao VALUES (1, \'药水\', 5)'],
       inputSnapshot,
-    )).toThrow('必须显式列出业务列');
+    )).toThrow('phải liệt kê tường minh các cột nghiệp vụ');
     // 带显式列清单但当前路径没有 SELECT 预执行器 → 仍拒绝。
     expect(() => materializeSystemRowIdsForSqlInserts_ACU(
       ['INSERT INTO beibaowupinbiao (item_name, quantity) SELECT item_name, quantity FROM other'],
       inputSnapshot,
-    )).toThrow('不支持 INSERT SELECT');
+    )).toThrow('không hỗ trợ INSERT SELECT');
   });
 
   it('显式 row_id 重分配 + 多 VALUES tuple + 注释同时存在时逐 tuple 物化', () => {
@@ -1039,14 +1039,14 @@ describe('applySqlEditsToTableDataSnapshot_ACU', () => {
     const inputSnapshot = JSON.parse(JSON.stringify(snapshotTableData));
     expect(() => materializeSystemRowIdsForSqlInserts_ACU([
       "INSERT INTO beibaowupinbiao (row_id, item_name, quantity) VALUES (9, '药水', 5, 'extra')",
-    ], inputSnapshot)).toThrow('值数量与列数量不一致');
+    ], inputSnapshot)).toThrow('có số giá trị không khớp số cột');
   });
 
   it('值比列多 2 及以上 → 维持拒绝', () => {
     const inputSnapshot = JSON.parse(JSON.stringify(snapshotTableData));
     expect(() => materializeSystemRowIdsForSqlInserts_ACU([
       "INSERT INTO beibaowupinbiao (item_name, quantity) VALUES (1, '药水', 5, 'extra')",
-    ], inputSnapshot)).toThrow('值数量与列数量不一致');
+    ], inputSnapshot)).toThrow('có số giá trị không khớp số cột');
   });
 
   it('WITH ... INSERT ... SELECT 有预执行器时先执行后物化（WITH 前缀不进物化结果）', () => {
@@ -1082,7 +1082,7 @@ describe('applySqlEditsToTableDataSnapshot_ACU', () => {
       'INSERT INTO beibaowupinbiao (item_name, quantity) SELECT n, q FROM src',
     ], inputSnapshot, undefined, {
       selectQueryRunner: () => ({ columns: ['n', 'q'], values: new Array(501).fill(['x', 1]) }),
-    })).toThrow('超过物化上限');
+    })).toThrow('vượt giới hạn vật chất hóa');
   });
 
   it('INSERT SELECT 结果列数与插入列清单不一致 → 拒绝', () => {
@@ -1091,7 +1091,7 @@ describe('applySqlEditsToTableDataSnapshot_ACU', () => {
       'INSERT INTO beibaowupinbiao (item_name, quantity) SELECT n FROM src',
     ], inputSnapshot, undefined, {
       selectQueryRunner: () => ({ columns: ['n'], values: [['药水']] }),
-    })).toThrow('结果列数');
+    })).toThrow('số cột kết quả');
   });
 
   it('INSERT SELECT 结果字符串含单引号时按 SQL 转义物化', () => {
@@ -1112,7 +1112,7 @@ describe('applySqlEditsToTableDataSnapshot_ACU', () => {
       "WITH src AS (SELECT 1) INSERT INTO beibaowupinbiao (item_name, quantity) VALUES ('药水', 5)",
     ], inputSnapshot, undefined, {
       selectQueryRunner: () => ({ columns: [], values: [] }),
-    })).toThrow('不支持 WITH 前缀的 VALUES 插入');
+    })).toThrow('không hỗ trợ chèn VALUES có tiền tố WITH');
   });
 
 });
@@ -1136,19 +1136,19 @@ describe('assertNoHiddenPhysicalColumnMutations_ACU', () => {
   it('拒绝 UPDATE、INSERT 和 WHERE 引用隐藏物理列', () => {
     expect(() => assertNoHiddenPhysicalColumnMutations_ACU([
       "UPDATE inventory SET legacy_note = '改写' WHERE row_id = 1",
-    ], tableData)).toThrow('不允许引用隐藏物理列');
+    ], tableData)).toThrow('không được tham chiếu cột vật lý ẩn');
     expect(() => assertNoHiddenPhysicalColumnMutations_ACU([
       "INSERT INTO inventory (row_id, item_name, legacy_note, quantity) VALUES (2, '药水', '秘密', 1)",
-    ], tableData)).toThrow('不允许引用隐藏物理列');
+    ], tableData)).toThrow('không được tham chiếu cột vật lý ẩn');
     expect(() => assertNoHiddenPhysicalColumnMutations_ACU([
       "UPDATE inventory SET quantity = 4 WHERE legacy_note = '历史秘密'",
-    ], tableData)).toThrow('不允许引用隐藏物理列');
+    ], tableData)).toThrow('không được tham chiếu cột vật lý ẩn');
   });
 
   it('存在隐藏列时拒绝省略 INSERT 列清单，避免按完整物理顺序写穿', () => {
     expect(() => assertNoHiddenPhysicalColumnMutations_ACU([
       "INSERT INTO inventory VALUES (2, '药水', '秘密', 1)",
-    ], tableData)).toThrow('必须显式列出可见目标列');
+    ], tableData)).toThrow('phải liệt kê tường minh các cột đích hiển thị');
   });
 
   it('允许只引用可见列，并忽略字符串与注释中的隐藏列文本', () => {
@@ -1167,7 +1167,7 @@ describe('assertNoHiddenPhysicalColumnMutations_ACU', () => {
     "DELETE FROM main.inventory WHERE legacy_note = '历史秘密'",
   ])('拒绝 schema-qualified 或 quoted target 对隐藏列的引用：%s', statement => {
     expect(() => assertNoHiddenPhysicalColumnMutations_ACU([statement], tableData))
-      .toThrow('不允许引用隐藏物理列');
+      .toThrow('không được tham chiếu cột vật lý ẩn');
   });
 
   it.each([
@@ -1186,14 +1186,14 @@ describe('assertNoHiddenPhysicalColumnMutations_ACU', () => {
     'COMMIT',
   ])('对 AI SQL 的非 mutation 语句 fail closed：%s', statement => {
     expect(() => assertNoHiddenPhysicalColumnMutations_ACU([statement], tableData))
-      .toThrow('SQLite 填表仅允许 INSERT、REPLACE、UPDATE、DELETE 数据变更语句');
+      .toThrow('Điền bảng SQLite chỉ cho phép các câu lệnh thay đổi dữ liệu INSERT, REPLACE, UPDATE, DELETE');
   });
 
   it('拒绝多语句中位于后续语句的隐藏列引用', () => {
     expect(() => assertNoHiddenPhysicalColumnMutations_ACU([
       "UPDATE inventory SET quantity = 4 WHERE row_id = 1",
       "UPDATE inventory SET legacy_note = '历史秘密' WHERE row_id = 1",
-    ], tableData)).toThrow('不允许引用隐藏物理列');
+    ], tableData)).toThrow('không được tham chiếu cột vật lý ẩn');
   });
 });
 
@@ -1354,15 +1354,15 @@ describe('SqlTableService', () => {
   // ═══════════════════════════════════════════════════════════════
   describe('未初始化时的行为', () => {
     it('applyEdits 未初始化时抛出错误', () => {
-      expect(() => service.applyEdits('INSERT INTO t VALUES (1)')).toThrow('SQLite 引擎未初始化');
+      expect(() => service.applyEdits('INSERT INTO t VALUES (1)')).toThrow('Engine SQLite chưa được khởi tạo');
     });
 
     it('executeQuery 未初始化时抛出错误', () => {
-      expect(() => service.executeQuery('SELECT 1')).toThrow('SQLite 引擎未初始化');
+      expect(() => service.executeQuery('SELECT 1')).toThrow('Engine SQLite chưa được khởi tạo');
     });
 
     it('executeMutation 未初始化时抛出错误', () => {
-      expect(() => service.executeMutation('INSERT INTO t VALUES (1)')).toThrow('SQLite 引擎未初始化');
+      expect(() => service.executeMutation('INSERT INTO t VALUES (1)')).toThrow('Engine SQLite chưa được khởi tạo');
     });
   });
 
@@ -2755,7 +2755,7 @@ describe('SqlTableService', () => {
       expect(service.isReady()).toBe(false);
       expect(mockReleaseGlobalNameMapper).toHaveBeenCalled();
       expect(service.getCurrentData()).toBeNull();
-      expect(() => service.executeQuery('SELECT 1')).toThrow('SQLite 引擎未初始化');
+      expect(() => service.executeQuery('SELECT 1')).toThrow('Engine SQLite chưa được khởi tạo');
       const replaced = await service.replaceAllData(JSON.parse(JSON.stringify(testTableData)));
       expect(replaced.success).toBe(true);
       expect(service.isReady()).toBe(true);

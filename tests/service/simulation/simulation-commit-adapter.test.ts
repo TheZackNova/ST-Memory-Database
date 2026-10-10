@@ -358,7 +358,7 @@ describe('world simulation commit adapter', () => {
     expect(saveChat).toHaveBeenCalledTimes(1);
     const ledger = readWorldSimulationLedgerAtAnchor_ACU(resolveWorldSimulationAnchor_ACU(1, chat), chat);
     expect(ledger.seeds).toEqual([]);
-    expect(ledger.chronicle.map((item: { summary: string }) => item.summary)).toContain('[错过] 矿洞塌了');
+    expect(ledger.chronicle.map((item: { summary: string }) => item.summary)).toContain('[Bỏ lỡ] 矿洞塌了');
     expect(chat[0]._qrf_world_simulation.timeline).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: 'swept', message: 'seed-1' }),
       expect.objectContaining({ kind: 'swept', message: expect.stringContaining('seed-1') }),
@@ -459,7 +459,7 @@ describe('world simulation commit adapter', () => {
 
     expect(saveChat).toHaveBeenCalledTimes(1);
     expect(chat[0]._qrf_world_simulation.timeline).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: 'failed', message: '碰撞种子 seed-1 缺少 encounter 信号' }),
+      expect.objectContaining({ kind: 'failed', message: 'Hạt giống va chạm seed-1 thiếu tín hiệu encounter' }),
       expect.objectContaining({ kind: 'committed', id: 'timeline-1' }),
     ]));
   });
@@ -706,7 +706,7 @@ describe('world simulation durable run write proof', () => {
     const nextAnchor = resolveWorldSimulationAnchor_ACU(f.anchor.messageIndex, f.chat);
     expect(f.chat[f.anchor.messageIndex]._qrf_world_simulation_run_writes.entries[
       buildWorldSimulationBucketKey_ACU(nextAnchor)].value.fingerprint).toBe('host mutation');
-    expect(() => readWorldSimulationRunWriteProof_ACU(nextAnchor, f.chat)).toThrow('运行写入证明损坏');
+    expect(() => readWorldSimulationRunWriteProof_ACU(nextAnchor, f.chat)).toThrow('bằng chứng ghi của lần chạy bị hỏng');
     expect(foldWorldSimulationLedger_ACU(f.chat)?.fields.records.dimensions?.['dim-left'].status).toBe('partial');
     expect(f.chat[f.anchor.messageIndex]._qrf_world_simulation_run_writes.entries[
       buildWorldSimulationBucketKey_ACU(f.anchor)].value.confirmedWrites).toBe(1);
@@ -749,7 +749,7 @@ describe('world simulation durable run write proof', () => {
     expect(() => restoreWorldSimulationRunWrites_ACU(f.read, f.identity, f.anchor, f.chat)).toThrow('WORLD_SIMULATION_LEDGER_STALE');
     f.chat.splice(0, f.chat.length, ...structuredClone(snapshot));
     f.chat[f.anchor.messageIndex]._qrf_world_simulation_run_writes.entries[buildWorldSimulationBucketKey_ACU(f.anchor)].value.confirmedWrites = -1;
-    expect(() => restoreWorldSimulationRunWrites_ACU(f.read, f.identity, f.anchor, f.chat)).toThrow('运行写入证明损坏');
+    expect(() => restoreWorldSimulationRunWrites_ACU(f.read, f.identity, f.anchor, f.chat)).toThrow('bằng chứng ghi của lần chạy bị hỏng');
     f.chat.splice(0, f.chat.length, ...structuredClone(snapshot));
     expect(() => restoreWorldSimulationRunWrites_ACU(f.read, { ...f.identity, runId: 'other', baseLedgerRevision: 1 }, f.anchor, f.chat)).toThrow('WORLD_SIMULATION_LEDGER_STALE');
   });

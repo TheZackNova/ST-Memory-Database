@@ -7,6 +7,7 @@
  */
 
     import { USER_PREFILL_CONTENT_ACU } from "./user-prefill.js";
+    import { localizeDefaultText_ACU, localizeDefaultSegments_ACU, localizeDefaultPromptEntries_ACU } from "./defaults-json-vi.js";
 
     export const DEFAULT_CHAR_CARD_PROMPT_ACU = [
   {
@@ -210,12 +211,15 @@ DELETE FROM table_name WHERE row_id = 2;
   const legacySqlMain_ACU = findTableFillMainSegment_ACU(DEFAULT_CHAR_CARD_PROMPT_SQL_ACU).content;
 
   /** 历史主段默认正文：[0] 为工具化前的旧默认，其后为中间默认。仅用于一次性迁移识别「用户未改动的默认」。 */
-  export const TABLE_FILL_MAIN_PROMPT_HISTORY_ACU = Object.freeze({
+  const ZH_TABLE_FILL_MAIN_PROMPT_HISTORY_ACU = Object.freeze({
     native: Object.freeze([legacyNativeMain_ACU, injectIntermediateGuidance_ACU(legacyNativeMain_ACU, INTERMEDIATE_TABLE_EDIT_GUIDANCE_ACU)]),
     sql: Object.freeze([legacySqlMain_ACU, injectIntermediateGuidance_ACU(legacySqlMain_ACU, INTERMEDIATE_TABLE_SQL_GUIDANCE_ACU)]),
   });
-  findTableFillMainSegment_ACU(DEFAULT_CHAR_CARD_PROMPT_ACU).content = buildTableEditToolPrompt_ACU(legacyNativeMain_ACU);
-  findTableFillMainSegment_ACU(DEFAULT_CHAR_CARD_PROMPT_SQL_ACU).content = buildTableSqlToolPrompt_ACU(legacySqlMain_ACU);
+  // Bản tiếng Trung của main prompt phiên bản công cụ (trước khi Việt hóa), để nhận diện người dùng còn lưu prompt mặc định công cụ bản cũ.
+  const ZH_TOOL_MAIN_NATIVE_ACU = buildTableEditToolPrompt_ACU(legacyNativeMain_ACU);
+  const ZH_TOOL_MAIN_SQL_ACU = buildTableSqlToolPrompt_ACU(legacySqlMain_ACU);
+  findTableFillMainSegment_ACU(DEFAULT_CHAR_CARD_PROMPT_ACU).content = ZH_TOOL_MAIN_NATIVE_ACU;
+  findTableFillMainSegment_ACU(DEFAULT_CHAR_CARD_PROMPT_SQL_ACU).content = ZH_TOOL_MAIN_SQL_ACU;
 
 
 
@@ -309,7 +313,7 @@ sql 必须是字符串，内容是按下文 DDL、Note 和 SQL 编写原则生�
       return {
         ...segment,
         // 严格 JSON 默认从工具化前的旧主段派生，保持其内容与历史版本逐字一致。
-        content: buildStrictJsonNativePrompt_ACU(TABLE_FILL_MAIN_PROMPT_HISTORY_ACU.native[0])
+        content: buildStrictJsonNativePrompt_ACU(ZH_TABLE_FILL_MAIN_PROMPT_HISTORY_ACU.native[0])
       };
     }
     if (segment.isMain2) return { ...segment };
@@ -323,7 +327,7 @@ sql 必须是字符串，内容是按下文 DDL、Note 和 SQL 编写原则生�
     if (segment.mainSlot === 'A' || segment.isMain) {
       return {
         ...segment,
-        content: buildStrictJsonSqlPrompt_ACU(TABLE_FILL_MAIN_PROMPT_HISTORY_ACU.sql[0])
+        content: buildStrictJsonSqlPrompt_ACU(ZH_TABLE_FILL_MAIN_PROMPT_HISTORY_ACU.sql[0])
       };
     }
     if (segment.isMain2) return { ...segment };
@@ -841,8 +845,38 @@ $CONTENT
   applyFirstCreativeIdentity_ACU(DEFAULT_TIME_RECALL_PLOT_PRESET_ACU.promptGroup, '记忆召回');
   applyFirstCreativeIdentity_ACU(DEFAULT_CONTENT_OPTIMIZATION_PROMPT_GROUP_ACU, '正文');
 
-  export const DEFAULT_MERGE_SUMMARY_PROMPT_ACU = withCreativeIdentity_ACU(LEGACY_MERGE_SUMMARY_PROMPT_ACU, '剧情纪要');
-  export const DEFAULT_MERGE_SUMMARY_PROMPT_SQL_ACU = withCreativeIdentity_ACU(LEGACY_MERGE_SUMMARY_PROMPT_SQL_ACU, '剧情纪要');
+  export const DEFAULT_MERGE_SUMMARY_PROMPT_ACU = localizeDefaultText_ACU(withCreativeIdentity_ACU(LEGACY_MERGE_SUMMARY_PROMPT_ACU, '剧情纪要'));
+  export const DEFAULT_MERGE_SUMMARY_PROMPT_SQL_ACU = localizeDefaultText_ACU(withCreativeIdentity_ACU(LEGACY_MERGE_SUMMARY_PROMPT_SQL_ACU, '剧情纪要'));
+
+  // --- [Việt hóa] Sau khi đã chụp snapshot legacy (tiếng Trung) và dựng xong mọi bản suy ra, thay văn bản mặc định hiện tại bằng tiếng Việt ---
+  // Bản tiếng Trung hiện tại vẫn được giữ trong lịch sử để nhận diện prompt mặc định cũ chưa bị người dùng sửa.
+  const ZH_HISTORY_NATIVE_ACU = [...ZH_TABLE_FILL_MAIN_PROMPT_HISTORY_ACU.native];
+  const ZH_HISTORY_SQL_ACU = [...ZH_TABLE_FILL_MAIN_PROMPT_HISTORY_ACU.sql];
+  [
+    DEFAULT_CHAR_CARD_PROMPT_ACU,
+    DEFAULT_CHAR_CARD_PROMPT_SQL_ACU,
+    DEFAULT_CHAR_CARD_PROMPT_STRICT_JSON_ACU,
+    DEFAULT_CHAR_CARD_PROMPT_SQL_STRICT_JSON_ACU,
+    DEFAULT_PLOT_PROMPT_GROUP_ACU,
+    DEFAULT_CONTENT_OPTIMIZATION_PROMPT_GROUP_ACU,
+    DEFAULT_TIME_RECALL_PLOT_PRESET_ACU.promptGroup,
+    ...DEFAULT_TIME_RECALL_PLOT_PRESET_ACU.plotTasks.map(task => task.promptGroup),
+  ].forEach(localizeDefaultSegments_ACU);
+  [DEFAULT_TIME_RECALL_PLOT_PRESET_ACU, DEFAULT_PLOT_SETTINGS_ACU].forEach(holder => {
+    localizeDefaultPromptEntries_ACU(holder.prompts);
+    ['mainPrompt', 'systemPrompt', 'finalSystemDirective'].forEach(key => {
+      if (typeof holder[key] === 'string') holder[key] = localizeDefaultText_ACU(holder[key]);
+    });
+  });
+
+  /** 历史主段默认正文：先是当前（tiếng Việt）默认，再是工具化前后的旧默认（tiếng Trung）。仅用于一次性迁移识别「用户未改动的默认」，且 [0] 为正文格式默认。 */
+  export const TABLE_FILL_MAIN_PROMPT_HISTORY_ACU = Object.freeze({
+    native: Object.freeze([...ZH_HISTORY_NATIVE_ACU.map(localizeDefaultText_ACU), ...ZH_HISTORY_NATIVE_ACU]),
+    sql: Object.freeze([...ZH_HISTORY_SQL_ACU.map(localizeDefaultText_ACU), ...ZH_HISTORY_SQL_ACU]),
+    // Main prompt phiên bản công cụ (table_edit / table_sql) bằng tiếng Trung trước khi Việt hóa; chỉ dùng để nhận diện mặc định cũ chưa chỉnh sửa.
+    toolNative: Object.freeze([ZH_TOOL_MAIN_NATIVE_ACU]),
+    toolSql: Object.freeze([ZH_TOOL_MAIN_SQL_ACU]),
+  });
 
 
 

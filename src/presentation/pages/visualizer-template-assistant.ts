@@ -347,7 +347,7 @@ function buildAssistantTableApiPresetOptionsHtml_ACU() {
         })
         .filter(Boolean)
         .join('');
-    return `<option value="" ${!currentValue ? 'selected' : ''}>当前配置</option>${presetOptions}`;
+    return `<option value="" ${!currentValue ? 'selected' : ''}>Cấu hình hiện tại</option>${presetOptions}`;
 }
 
 function createNewGuardController_ACU() {
@@ -363,7 +363,7 @@ function invalidateActiveSession_ACU() {
     }
     if (assistantUiState_ACU.isGenerating) {
         assistantUiState_ACU.isGenerating = false;
-        showToastr_ACU('warning', '会话已失效（结构变化或切表）');
+        showToastr_ACU('warning', 'Phiên đã hết hiệu lực (cấu trúc thay đổi hoặc đã chuyển bảng)');
     }
 }
 
@@ -373,7 +373,7 @@ function cancelActiveSession_ACU() {
     }
     if (assistantUiState_ACU.isGenerating) {
         assistantUiState_ACU.isGenerating = false;
-        showToastr_ACU('warning', '模板助手会话已取消');
+        showToastr_ACU('warning', 'Phiên trợ lý mẫu đã bị hủy');
         renderVisualizerTemplateAssistantPanel_ACU();
     }
 }
@@ -399,7 +399,7 @@ function buildAssistantRoundProgressLabel_ACU(turn: ChatTurnAssistant) {
         return buildSessionMetaSummary_ACU(turn.result);
     }
     // 改表助手一问一答：单轮结果即最终结果，round turn 不再显示轮次进度。
-    return 'AI 助手';
+    return 'Trợ lý AI';
 }
 
 function buildPriorTurnsFromTranscript_ACU(transcript: ChatTurn[]): Array<{ user: string; assistant?: string }> {
@@ -472,7 +472,7 @@ function getApplyButtonElement_ACU() {
 function getSelectedSheetLabel_ACU() {
     const sheetKey = _acuVisState.currentSheetKey;
     const sheet = sheetKey ? _acuVisState.tempData?.[sheetKey] : null;
-    if (!sheetKey || !sheet) return '当前未选中表';
+    if (!sheetKey || !sheet) return 'Hiện chưa chọn bảng';
     return `${sheet.name || sheetKey} (${sheetKey})`;
 }
 
@@ -482,11 +482,11 @@ function buildSessionStopReasonLabel_ACU(result: TemplateAssistantSessionResult_
     const stopReason = String(result.session?.stopReason || '');
     switch (stopReason) {
         case 'empty_operations':
-            return '空操作停止';
+            return 'Dừng do thao tác rỗng';
         case 'repair_retry_capped':
-            return '修复重试已达上限';
+            return 'Số lần thử sửa đã đạt giới hạn';
         case 'environment_failure':
-            return 'SQLite 引擎不可用';
+            return 'Engine SQLite không khả dụng';
         default:
             return '';
     }
@@ -495,7 +495,7 @@ function buildSessionStopReasonLabel_ACU(result: TemplateAssistantSessionResult_
 function buildSessionMetaSummary_ACU(result: TemplateAssistantSessionResult_ACU) {
     if (!result.session) return '';
     const stopReasonLabel = buildSessionStopReasonLabel_ACU(result);
-    const repairPart = result.session.repairRetriesUsed > 0 ? ` · 修复 ${result.session.repairRetriesUsed} 次` : '';
+    const repairPart = result.session.repairRetriesUsed > 0 ? ` · Sửa ${result.session.repairRetriesUsed} lần` : '';
     return `${stopReasonLabel}${repairPart}`;
 }
 
@@ -517,31 +517,31 @@ function countDiffChanges_ACU(diff: TemplateAssistantDiff_ACU): number {
 
 function buildDiffSummary_ACU(diff: TemplateAssistantDiff_ACU): string {
     const parts: string[] = [];
-    if (diff.addedSheets.length) parts.push(`新增${diff.addedSheets.length}表`);
-    if (diff.deletedSheets.length) parts.push(`删除${diff.deletedSheets.length}表`);
-    if (diff.renamedSheets.length) parts.push(`重命名${diff.renamedSheets.length}表`);
-    if (diff.movedSheets.length) parts.push(`移动${diff.movedSheets.length}表`);
+    if (diff.addedSheets.length) parts.push(`Thêm ${diff.addedSheets.length} bảng`);
+    if (diff.deletedSheets.length) parts.push(`Xóa ${diff.deletedSheets.length} bảng`);
+    if (diff.renamedSheets.length) parts.push(`Đổi tên ${diff.renamedSheets.length} bảng`);
+    if (diff.movedSheets.length) parts.push(`Di chuyển ${diff.movedSheets.length} bảng`);
     const patchCount = diff.patchedSourceDataSheets.length + diff.patchedUpdateConfigSheets.length + diff.patchedExportConfigSheets.length + (diff.patchedContentSheets || []).length + (diff.patchedSchemaSheets || []).length + (diff.patchedLockSheets || []).length;
-    if (patchCount) parts.push(`修改${patchCount}处`);
-    if (diff.globalInjectionChanged) parts.push('全局配置变更');
-    return parts.length ? parts.join('、') : '无变更';
+    if (patchCount) parts.push(`Sửa ${patchCount} chỗ`);
+    if (diff.globalInjectionChanged) parts.push('Thay đổi cấu hình toàn cục');
+    return parts.length ? parts.join(', ') : 'Không thay đổi';
 }
 
 function buildDiffHtml_ACU(diff: TemplateAssistantDiff_ACU) {
     const sections: string[] = [];
-    const renderList = (items: string[]) => items.length ? `<ul>${items.map((item) => `<li>${escapeHtml_ACU(item)}</li>`).join('')}</ul>` : '<div class="acu-hint">无</div>';
+    const renderList = (items: string[]) => items.length ? `<ul>${items.map((item) => `<li>${escapeHtml_ACU(item)}</li>`).join('')}</ul>` : '<div class="acu-hint">Không có</div>';
 
-    sections.push(`<div class="acu-assistant-diff-block"><strong>新增表</strong>${renderList(diff.addedSheets.map((item) => `${item.name} [${item.sheetKey}]`))}</div>`);
-    sections.push(`<div class="acu-assistant-diff-block"><strong>删除表</strong>${renderList(diff.deletedSheets.map((item) => `${item.name} [${item.sheetKey}]`))}</div>`);
-    sections.push(`<div class="acu-assistant-diff-block"><strong>重命名</strong>${renderList(diff.renamedSheets.map((item) => `${item.beforeName} -> ${item.afterName}`))}</div>`);
-    sections.push(`<div class="acu-assistant-diff-block"><strong>顺序变化</strong>${renderList(diff.movedSheets.map((item) => `${item.name}: ${item.fromIndex} -> ${item.toIndex}`))}</div>`);
-    sections.push(`<div class="acu-assistant-diff-block"><strong>sourceData patch</strong>${renderList(diff.patchedSourceDataSheets.map((item) => `${item.name}: ${item.keys.join(', ') || '字段已修改'}`))}</div>`);
-    sections.push(`<div class="acu-assistant-diff-block"><strong>updateConfig patch</strong>${renderList(diff.patchedUpdateConfigSheets.map((item) => `${item.name}: ${item.keys.join(', ') || '字段已修改'}`))}</div>`);
-    sections.push(`<div class="acu-assistant-diff-block"><strong>exportConfig patch</strong>${renderList(diff.patchedExportConfigSheets.map((item) => `${item.name}: ${item.keys.join(', ') || '字段已修改'}`))}</div>`);
-    sections.push(`<div class="acu-assistant-diff-block"><strong>content patch</strong>${renderList((diff.patchedContentSheets || []).map((item) => `${item.name}: ${item.changes.join('；') || '内容已修改'}`))}</div>`);
-    sections.push(`<div class="acu-assistant-diff-block"><strong>schema patch</strong>${renderList((diff.patchedSchemaSheets || []).map((item) => `${item.name}: ${item.changes.join('；') || '结构已修改'}`))}</div>`);
-    sections.push(`<div class="acu-assistant-diff-block"><strong>locks patch</strong>${renderList((diff.patchedLockSheets || []).map((item) => `${item.name}: ${item.changes.join('；') || '锁状态已修改'}`))}</div>`);
-    sections.push(`<div class="acu-assistant-diff-block"><strong>全局注入配置</strong>${diff.globalInjectionChanged ? '<div>已修改</div>' : '<div class="acu-hint">未修改</div>'}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>Bảng thêm mới</strong>${renderList(diff.addedSheets.map((item) => `${item.name} [${item.sheetKey}]`))}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>Bảng đã xóa</strong>${renderList(diff.deletedSheets.map((item) => `${item.name} [${item.sheetKey}]`))}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>Đổi tên</strong>${renderList(diff.renamedSheets.map((item) => `${item.beforeName} -> ${item.afterName}`))}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>Thay đổi thứ tự</strong>${renderList(diff.movedSheets.map((item) => `${item.name}: ${item.fromIndex} -> ${item.toIndex}`))}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>sourceData patch</strong>${renderList(diff.patchedSourceDataSheets.map((item) => `${item.name}: ${item.keys.join(', ') || 'Trường đã sửa'}`))}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>updateConfig patch</strong>${renderList(diff.patchedUpdateConfigSheets.map((item) => `${item.name}: ${item.keys.join(', ') || 'Trường đã sửa'}`))}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>exportConfig patch</strong>${renderList(diff.patchedExportConfigSheets.map((item) => `${item.name}: ${item.keys.join(', ') || 'Trường đã sửa'}`))}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>content patch</strong>${renderList((diff.patchedContentSheets || []).map((item) => `${item.name}: ${item.changes.join('; ') || 'Nội dung đã sửa'}`))}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>schema patch</strong>${renderList((diff.patchedSchemaSheets || []).map((item) => `${item.name}: ${item.changes.join('; ') || 'Cấu trúc đã sửa'}`))}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>locks patch</strong>${renderList((diff.patchedLockSheets || []).map((item) => `${item.name}: ${item.changes.join('; ') || 'Trạng thái khóa đã sửa'}`))}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>Cấu hình chèn toàn cục</strong>${diff.globalInjectionChanged ? '<div>Đã sửa</div>' : '<div class="acu-hint">Chưa sửa</div>'}</div>`);
     return sections.join('');
 }
 
@@ -587,12 +587,12 @@ function buildAssistantDetailSummary_ACU(turn: ChatTurnAssistant): string {
     const riskCount = compileResult.highRiskItems.length;
     const progressSummary = buildAssistantRoundProgressLabel_ACU(turn);
     
-    if (warningCount > 0) parts.push(`警告${warningCount}条`);
-    if (changeCount > 0) parts.push(`变更${changeCount}处`);
-    if (riskCount > 0) parts.push(`高风险${riskCount}项`);
+    if (warningCount > 0) parts.push(`${warningCount} cảnh báo`);
+    if (changeCount > 0) parts.push(`${changeCount} thay đổi`);
+    if (riskCount > 0) parts.push(`${riskCount} mục rủi ro cao`);
     if (progressSummary) parts.push(progressSummary);
     
-    return parts.length > 0 ? parts.join(' · ') : '无变更';
+    return parts.length > 0 ? parts.join(' · ') : 'Không thay đổi';
 }
 
 function buildAssistantDetailContent_ACU(turn: ChatTurnAssistant): string {
@@ -602,17 +602,17 @@ function buildAssistantDetailContent_ACU(turn: ChatTurnAssistant): string {
     const progressSummary = buildAssistantRoundProgressLabel_ACU(turn);
 
     if (progressSummary) {
-        sections.push(`<div class="acu-assistant-diff-block"><strong>${isFinalAssistantTurn_ACU(turn) ? '会话信息' : '结果信息'}</strong><div>${escapeHtml_ACU(progressSummary)}${isFinalAssistantTurn_ACU(turn) ? '' : '（中间结果，暂不可应用）'}</div></div>`);
+        sections.push(`<div class="acu-assistant-diff-block"><strong>${isFinalAssistantTurn_ACU(turn) ? 'Thông tin phiên' : 'Thông tin kết quả'}</strong><div>${escapeHtml_ACU(progressSummary)}${isFinalAssistantTurn_ACU(turn) ? '' : ' (kết quả trung gian, chưa thể áp dụng)'}</div></div>`);
     }
     
     // 警告部分
     const warningsDetail = draft.warnings.length
         ? `<ul>${draft.warnings.map((item) => `<li>${escapeHtml_ACU(item)}</li>`).join('')}</ul>`
-        : '<div class="acu-hint">无</div>';
-    sections.push(`<div class="acu-assistant-diff-block"><strong>警告</strong>${warningsDetail}</div>`);
+        : '<div class="acu-hint">Không có</div>';
+    sections.push(`<div class="acu-assistant-diff-block"><strong>Cảnh báo</strong>${warningsDetail}</div>`);
     
     // 变更部分
-    sections.push(`<div class="acu-assistant-diff-block"><strong>变更详情</strong>${buildDiffHtml_ACU(compileResult.diff)}</div>`);
+    sections.push(`<div class="acu-assistant-diff-block"><strong>Chi tiết thay đổi</strong>${buildDiffHtml_ACU(compileResult.diff)}</div>`);
     
     // 高风险部分
     const riskDetail = compileResult.highRiskItems.length
@@ -628,8 +628,8 @@ function buildAssistantDetailContent_ACU(turn: ChatTurnAssistant): string {
                 </label>
             `;
         }).join('')
-        : '<div class="acu-hint">无高风险操作</div>';
-    sections.push(`<div class="acu-assistant-diff-block"><strong>高风险确认</strong><div class="acu-assistant-risk-list">${riskDetail}</div></div>`);
+        : '<div class="acu-hint">Không có thao tác rủi ro cao</div>';
+    sections.push(`<div class="acu-assistant-diff-block"><strong>Xác nhận rủi ro cao</strong><div class="acu-assistant-risk-list">${riskDetail}</div></div>`);
     
     return sections.join('');
 }
@@ -643,18 +643,18 @@ function renderAssistantTurn_ACU(turn: ChatTurnAssistant, isLatest: boolean, mod
 
     const applyDisabled = compileResult.highRiskItems.length > 0 && !areHighRiskItemsConfirmed_ACU(turn);
     const applyHtml = isLatest && isFinalAssistantTurn_ACU(turn)
-        ? `<button id="acu-vis-assistant-apply" class="acu-btn-primary" data-turn-id="${escapeHtml_ACU(turn.id)}" ${applyDisabled ? 'disabled' : ''}>应用到编辑器</button>`
+        ? `<button id="acu-vis-assistant-apply" class="acu-btn-primary" data-turn-id="${escapeHtml_ACU(turn.id)}" ${applyDisabled ? 'disabled' : ''}>Áp dụng vào trình chỉnh sửa</button>`
         : '';
-    const turnLabel = 'AI 助手';
+    const turnLabel = 'Trợ lý AI';
 
     return `
         <div class="acu-chat-turn acu-chat-turn-assistant" data-turn-id="${escapeHtml_ACU(turn.id)}" style="display:flex; justify-content:flex-start;">
             <div class="acu-message-bubble acu-message-bubble-assistant" style="${buildAssistantBubbleStyle_ACU('assistant', mode)}">
                 <div class="acu-chat-turn-label" style="font-size:12px; font-weight:600; opacity:0.78; margin-bottom:6px;">${escapeHtml_ACU(turnLabel)}</div>
                 <div class="acu-chat-turn-content">
-                    <div class="acu-assistant-summary" style="line-height:1.6; white-space:pre-wrap; word-break:break-word;">${escapeHtml_ACU(draft.summary || '（无摘要）')}</div>
+                    <div class="acu-assistant-summary" style="line-height:1.6; white-space:pre-wrap; word-break:break-word;">${escapeHtml_ACU(draft.summary || '(Không có tóm tắt)')}</div>
                 </div>
-                ${renderCollapsedSection_ACU('详情', detailSummary, 'details', isExpanded, detailContent)}
+                ${renderCollapsedSection_ACU('Chi tiết', detailSummary, 'details', isExpanded, detailContent)}
                 ${applyHtml ? `<div class="acu-assistant-actions-row">${applyHtml}</div>` : ''}
             </div>
         </div>
@@ -665,7 +665,7 @@ function renderErrorTurn_ACU(turn: ChatTurnError, mode: AssistantViewportMode_AC
     return `
         <div class="acu-chat-turn acu-chat-turn-error" data-turn-id="${escapeHtml_ACU(turn.id)}" style="display:flex; justify-content:flex-start;">
             <div class="acu-message-bubble acu-message-bubble-error" style="${buildAssistantBubbleStyle_ACU('error', mode)}">
-                <div class="acu-chat-turn-label" style="font-size:12px; font-weight:600; color:#ffb2b2; margin-bottom:6px;">执行错误</div>
+                <div class="acu-chat-turn-label" style="font-size:12px; font-weight:600; color:#ffb2b2; margin-bottom:6px;">Lỗi thực thi</div>
                 <div class="acu-chat-turn-content">
                     <div class="acu-error-message" style="line-height:1.6; white-space:pre-wrap; word-break:break-word;">${escapeHtml_ACU(turn.errorMessage)}</div>
                 </div>
@@ -678,7 +678,7 @@ function renderUserTurn_ACU(turn: ChatTurnUser, mode: AssistantViewportMode_ACU)
     return `
         <div class="acu-chat-turn acu-chat-turn-user" data-turn-id="${escapeHtml_ACU(turn.id)}" style="display:flex; justify-content:flex-end;">
             <div class="acu-message-bubble acu-message-bubble-user" style="${buildAssistantBubbleStyle_ACU('user', mode)}">
-                <div class="acu-chat-turn-label" style="font-size:12px; font-weight:600; opacity:0.72; margin-bottom:6px; text-align:right;">你</div>
+                <div class="acu-chat-turn-label" style="font-size:12px; font-weight:600; opacity:0.72; margin-bottom:6px; text-align:right;">Bạn</div>
                 <div class="acu-chat-turn-content" style="line-height:1.6; white-space:pre-wrap; word-break:break-word; text-align:left;">
                     ${escapeHtml_ACU(turn.content)}
                 </div>
@@ -697,8 +697,8 @@ function renderTranscript_ACU() {
             <div class="acu-chat-transcript acu-chat-transcript-empty" style="flex:1 1 auto; min-height:0; height:100%; display:flex; flex-direction:column;">
                 <div class="acu-chat-empty-state" style="flex:1 1 auto; min-height:max(${emptyStateMinHeight}, 100%); height:100%; align-self:stretch; box-sizing:border-box; display:flex; align-items:center; justify-content:center; text-align:center; padding:${emptyStatePadding}; color:var(--vis-text-mute, #9ca3af); line-height:1.7; border:1px dashed color-mix(in srgb, var(--vis-border-color) 72%, transparent); border-radius:10px; background:color-mix(in srgb, var(--vis-bg-color, #111827) 72%, transparent);">
                     <div>
-                        <div style="font-size:15px; font-weight:600; color:var(--vis-text-dim, #d1d5db); margin-bottom:10px;">AI 改表助手已就绪</div>
-                        <div style="font-size:12px;">输入修改需求后发送，聊天记录会显示在这里。</div>
+                        <div style="font-size:15px; font-weight:600; color:var(--vis-text-dim, #d1d5db); margin-bottom:10px;">Trợ lý AI chỉnh bảng đã sẵn sàng</div>
+                        <div style="font-size:12px;">Nhập yêu cầu chỉnh sửa rồi gửi, lịch sử trò chuyện sẽ hiển thị ở đây.</div>
                     </div>
                 </div>
             </div>
@@ -803,7 +803,7 @@ function bindEvents_ACU() {
                 const errorTurn: ChatTurnError = {
                     type: 'error',
                     id: generateTurnId_ACU(),
-                    errorMessage: '当前选中表已变化，请重新生成 assistant 草稿。',
+                    errorMessage: 'Bảng đang chọn đã thay đổi, hãy tạo lại bản nháp của assistant.',
                     timestamp: Date.now(),
                 };
                 assistantUiState_ACU.transcript.push(errorTurn);
@@ -844,7 +844,7 @@ function bindEvents_ACU() {
             const errorTurn: ChatTurnError = {
                 type: 'error',
                 id: generateTurnId_ACU(),
-                errorMessage: error?.message || '生成失败',
+                errorMessage: error?.message || 'Tạo thất bại',
                 timestamp: Date.now(),
             };
             assistantUiState_ACU.transcript.push(errorTurn);
@@ -886,7 +886,7 @@ function bindEvents_ACU() {
         const turn = assistantUiState_ACU.transcript.find(t => t.id === turnId && t.type === 'assistant') as ChatTurnAssistant | undefined;
         if (!turn || !isFinalAssistantTurn_ACU(turn)) return;
         if (getAssistantCompileResult_ACU(turn).highRiskItems.length > 0 && !areHighRiskItemsConfirmed_ACU(turn)) {
-            showToastr_ACU('warning', '请先确认所有高风险项后再应用。');
+            showToastr_ACU('warning', 'Hãy xác nhận tất cả mục rủi ro cao trước khi áp dụng.');
             return;
         }
         
@@ -989,17 +989,17 @@ export function renderVisualizerTemplateAssistantPanel_ACU() {
         ${showFloatingRestore ? `
             <button id="acu-vis-assistant-restore" class="acu-btn-primary acu-vis-assistant-floating-restore" type="button">
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <span>恢复 AI 改表助手</span>
+                <span>Khôi phục trợ lý AI chỉnh bảng</span>
             </button>
         ` : ''}
         <div class="acu-vis-assistant-panel" data-assistant-mode="${escapeHtml_ACU(mode)}" style="${buildAssistantPanelStyle_ACU(mode, display)}">
             <div class="acu-vis-assistant-header" style="${buildAssistantHeaderStyle_ACU(mode)}">
                 <div>
-                    <div style="font-weight:600;">AI 改表助手</div>
-                    <div class="acu-hint" style="font-size:12px; margin-top:4px;">当前表：${escapeHtml_ACU(getSelectedSheetLabel_ACU())}</div>
+                    <div style="font-weight:600;">Trợ lý AI chỉnh bảng</div>
+                    <div class="acu-hint" style="font-size:12px; margin-top:4px;">Bảng hiện tại: ${escapeHtml_ACU(getSelectedSheetLabel_ACU())}</div>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-                    <button id="acu-vis-assistant-close" class="acu-btn-secondary" type="button">关闭</button>
+                    <button id="acu-vis-assistant-close" class="acu-btn-secondary" type="button">Đóng</button>
                 </div>
             </div>
             <div class="acu-chat-scroll-frame" style="${buildAssistantScrollFrameStyle_ACU(mode)}">
@@ -1009,15 +1009,15 @@ export function renderVisualizerTemplateAssistantPanel_ACU() {
             </div>
             <div class="acu-vis-assistant-footer" style="${buildAssistantFooterStyle_ACU(mode)}">
                 <div class="acu-assistant-control-row acu-assistant-api-preset-row" style="${buildAssistantControlRowStyle_ACU(mode)}">
-                    <label for="acu-vis-assistant-api-preset" style="font-size:12px; opacity:0.78; white-space:nowrap;">API预设</label>
+                    <label for="acu-vis-assistant-api-preset" style="font-size:12px; opacity:0.78; white-space:nowrap;">Preset API</label>
                     <select id="acu-vis-assistant-api-preset" class="acu-form-input" style="flex:1; min-width:0; ${mode === 'fullscreen-overlay' ? 'width:100%;' : ''}">
                         ${buildAssistantTableApiPresetOptionsHtml_ACU()}
                     </select>
                 </div>
-                <textarea id="acu-vis-assistant-input" class="acu-form-textarea" style="min-height:${mode === 'fullscreen-overlay' ? '96px' : '80px'};" placeholder="例如：新增一张战利品表，并关闭旧表独立导出。">${escapeHtml_ACU(assistantUiState_ACU.userRequest)}</textarea>
+                <textarea id="acu-vis-assistant-input" class="acu-form-textarea" style="min-height:${mode === 'fullscreen-overlay' ? '96px' : '80px'};" placeholder="Ví dụ: Thêm một bảng chiến lợi phẩm và tắt xuất riêng của bảng cũ.">${escapeHtml_ACU(assistantUiState_ACU.userRequest)}</textarea>
                 <div class="acu-assistant-action-row" style="${buildAssistantActionRowStyle_ACU(mode)}">
-                    <button id="acu-vis-assistant-generate" class="acu-btn-primary" style="flex:1; ${mode === 'fullscreen-overlay' ? 'width:100%;' : ''}" ${generateDisabled ? 'disabled' : ''}>${assistantUiState_ACU.isGenerating ? '生成中...' : '发送'}</button>
-                    <button id="acu-vis-assistant-stop" class="acu-btn-secondary" style="${mode === 'fullscreen-overlay' ? 'width:100%;' : 'width:88px;'}" ${stopDisabled ? 'disabled' : ''}>停止</button>
+                    <button id="acu-vis-assistant-generate" class="acu-btn-primary" style="flex:1; ${mode === 'fullscreen-overlay' ? 'width:100%;' : ''}" ${generateDisabled ? 'disabled' : ''}>${assistantUiState_ACU.isGenerating ? 'Đang tạo...' : 'Gửi'}</button>
+                    <button id="acu-vis-assistant-stop" class="acu-btn-secondary" style="${mode === 'fullscreen-overlay' ? 'width:100%;' : 'width:88px;'}" ${stopDisabled ? 'disabled' : ''}>Dừng</button>
                 </div>
             </div>
         </div>

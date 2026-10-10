@@ -5,11 +5,11 @@ export const optionsSheet = {
   uid: "sheet_OptionsNew",
   name: "选项表",
   sourceData: {
-    note: "记录每轮主角可以进行的动作选项。此表有且仅有一行。（列号为 0 基，与表格数据中的列标一致）\n- 列0: 选项一 \u2013 以第三人称描述主角可采取的合理行动，偏向策略或推进剧情。\n- 列1: 选项二 \u2013 以第三人称描述主角可采取的中立行动，不偏向任何立场。\n- 列2: 选项三 \u2013 以第三人称描述主角可采取的善意行动，体现帮助、保护或安抚。\n- 列3: 选项四 \u2013 以第三人称描述主角可采取的 NSFW 相关行动，但必须符合剧情逻辑，不得代替主角说话。\n所有选项必须使用第三人称（如\u201C主角尝试\u2026\u201D，\u201C主角决定\u2026\u201D），不得代替主角发言；必须紧扣当前剧情；四个选项需风格明确、互不重复。",
-    initNode: "游戏初始化时，生成四个初始选项。",
-    deleteNode: "禁止删除。",
-    updateNode: "每轮交互后必须更新此表，根据当前剧情生成新的四个选项覆盖原有内容。\nSQL示例: UPDATE options SET option_1 = '新选项一', option_2 = '新选项二', option_3 = '新选项三', option_4 = '新选项四' WHERE row_id = 1;",
-    insertNode: "禁止操作。",
+    note: "Ghi lại các lựa chọn hành động mà nhân vật chính có thể thực hiện mỗi lượt. Bảng này có đúng một hàng. (Số cột đánh số từ 0, khớp với chỉ số cột trong dữ liệu bảng)\n- Cột 0: 选项一 (Lựa chọn một) \u2013 Dùng ngôi thứ ba mô tả hành động hợp lý nhân vật chính có thể làm, thiên về chiến lược hoặc đẩy cốt truyện.\n- Cột 1: 选项二 (Lựa chọn hai) \u2013 Dùng ngôi thứ ba mô tả hành động trung lập nhân vật chính có thể làm, không thiên về lập trường nào.\n- Cột 2: 选项三 (Lựa chọn ba) \u2013 Dùng ngôi thứ ba mô tả hành động thiện chí nhân vật chính có thể làm, thể hiện sự giúp đỡ, bảo vệ hoặc xoa dịu.\n- Cột 3: 选项四 (Lựa chọn bốn) \u2013 Dùng ngôi thứ ba mô tả hành động liên quan đến NSFW nhân vật chính có thể làm, nhưng phải phù hợp logic cốt truyện, không được nói thay nhân vật chính.\nTất cả lựa chọn phải dùng ngôi thứ ba (như \u201CNhân vật chính thử...\u201D, \u201CNhân vật chính quyết định...\u201D), không được phát ngôn thay nhân vật chính; phải bám sát cốt truyện hiện tại; bốn lựa chọn cần phong cách rõ ràng, không trùng lặp.",
+    initNode: "Khi khởi tạo game, tạo bốn lựa chọn ban đầu.",
+    deleteNode: "Cấm xóa.",
+    updateNode: "Sau mỗi lượt tương tác bắt buộc cập nhật bảng này, dựa trên cốt truyện hiện tại tạo bốn lựa chọn mới để ghi đè nội dung cũ.\nVí dụ SQL: UPDATE options SET option_1 = 'Lựa chọn một mới', option_2 = 'Lựa chọn hai mới', option_3 = 'Lựa chọn ba mới', option_4 = 'Lựa chọn bốn mới' WHERE row_id = 1;",
+    insertNode: "Cấm thao tác.",
     ddl: `CREATE TABLE options ( -- 选项表
   row_id INTEGER PRIMARY KEY, -- 行号
   option_1 TEXT NOT NULL, -- 选项一

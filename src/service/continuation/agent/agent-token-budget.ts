@@ -177,22 +177,22 @@ export function buildAgentHandoffReport_ACU(messages: readonly AgentConversation
     const lines: string[] = [];
     const instructions = group.filter(message => message.kind === 'user').map(message => quote_ACU(message.text));
     const announcements = group.filter(message => message.kind === 'turn').map(message => quote_ACU(message.digest || message.text));
-    const actions = group.filter(message => message.kind === 'agent').map(message => message.digest || '（未标注动作）');
+    const actions = group.filter(message => message.kind === 'agent').map(message => message.digest || '(chưa đánh dấu hành động)');
     const results = group.filter(message => message.kind === 'tool').map(message => message.digest).filter(Boolean);
     const snapshots = group.filter(message => message.kind === 'runtime').map(message => message.digest).filter(Boolean);
-    if (announcements.length) lines.push(`  轮次：${announcements.join('；')}`);
-    if (instructions.length) lines.push(`  用户要求：${instructions.join('；')}`);
-    if (actions.length) lines.push(`  我的动作：${actions.join(' → ')}`);
-    if (results.length) lines.push(`  运行时结果：${results.join('；')}`);
-    if (snapshots.length) lines.push(`  运行时快照：${snapshots.join('；')}`);
+    if (announcements.length) lines.push(`  Lượt: ${announcements.join('; ')}`);
+    if (instructions.length) lines.push(`  Yêu cầu người dùng: ${instructions.join('; ')}`);
+    if (actions.length) lines.push(`  Hành động của tôi: ${actions.join(' → ')}`);
+    if (results.length) lines.push(`  Kết quả thời gian chạy: ${results.join('; ')}`);
+    if (snapshots.length) lines.push(`  Snapshot thời gian chạy: ${snapshots.join('; ')}`);
     if (!lines.length) continue;
-    sections.push(`- ${group[0].turnKey || '未编号轮次'}\n${lines.join('\n')}`);
+    sections.push(`- ${group[0].turnKey || 'lượt chưa đánh số'}\n${lines.join('\n')}`);
   }
   if (!sections.length && !inherited.length) return '';
-  const head = '以下是更早会话的浓缩记录（原始消息已因 token 预算被移出上下文）。这些是已经发生的过程，不要重复执行：';
+  const head = 'Sau đây là bản ghi cô đọng của hội thoại sớm hơn (tin nhắn gốc đã bị đưa ra khỏi ngữ cảnh do ngân sách token). Đây là các quá trình đã xảy ra, đừng thực hiện lại:';
   // 曾调阅过的资料地址单独列出：内容已移出上下文，但地址可直接用 read 重新调阅。
   const readKeys = [...new Set(messages.filter(message => message.kind === 'tool' && message.readKey).map(message => message.readKey!))];
-  const readsLine = readKeys.length ? `\n曾调阅过的资料地址（内容已移出上下文，需要时用 read 重新调阅）：${readKeys.join('、')}` : '';
+  const readsLine = readKeys.length ? `\nCác địa chỉ tư liệu đã từng tra cứu (nội dung đã bị đưa ra khỏi ngữ cảnh, khi cần thì dùng read để tra cứu lại): ${readKeys.join(', ')}` : '';
   return [...inherited, `${head}\n${sections.join('\n')}${readsLine}`].join('\n\n');
 }
 
@@ -254,7 +254,7 @@ export async function compactAgentConversation_ACU(
     id: compactedThroughId,
     kind: 'handoff',
     text: report,
-    digest: `交接报告（浓缩 ${firstKept} 个轮次）`,
+    digest: `Báo cáo bàn giao (cô đọng ${firstKept} lượt)`,
     turnKey: '',
     at: mark.at,
   };

@@ -267,14 +267,14 @@ describe('Agent 资料热上下文渲染', () => {
 
     expect(text.indexOf('H-high')).toBeLessThan(text.indexOf('H-fill-0'));
     expect(text).not.toContain('H-retired');
-    expect(text).toContain('另有 2 条活跃伏笔未进入本次热上下文');
+    expect(text).toContain('Còn 2 phục bút đang hoạt động chưa vào ngữ cảnh nóng lần này');
   });
 
   it('空模块如实说明为空而不是返回空串', () => {
     const empty = buildEmptyAgentModuleSnapshot_ACU();
-    expect(renderAgentHooksLedger_ACU(empty)).toContain('没有活跃伏笔');
-    expect(renderAgentInfoGap_ACU(empty)).toContain('没有登记的信息差条目');
-    expect(renderAgentConstraints_ACU(empty)).toContain('没有登记的长期约束');
+    expect(renderAgentHooksLedger_ACU(empty)).toContain('không có phục bút đang hoạt động');
+    expect(renderAgentInfoGap_ACU(empty)).toContain('không có mục chênh lệch thông tin nào được đăng ký');
+    expect(renderAgentConstraints_ACU(empty)).toContain('không có ràng buộc dài hạn nào được đăng ký');
   });
 
   it('活动卷规划上下文区分承载阶段、真实完成进度、剩余目标与禁翻底牌', () => {
@@ -287,25 +287,25 @@ describe('Agent 资料热上下文渲染', () => {
 
     const text = renderAgentActiveVolumePlanningContext_ACU(snapshot, [1]);
 
-    expect(text).toContain('当前 active 卷：[VOL-01]「商行之乱」');
-    expect(text).toContain('卷级结构职责：development');
-    expect(text).toContain('目标阶段容量：4–6 个阶段');
-    expect(text).toContain('目标故事时间：两个月');
-    expect(text).toContain('已完成阶段 1');
-    expect(text).toContain('已登记但尚未完成阶段 2');
+    expect(text).toContain('Tập active hiện tại: [VOL-01] "商行之乱"');
+    expect(text).toContain('Chức trách cấu trúc cấp tập: development');
+    expect(text).toContain('Dung lượng giai đoạn mục tiêu: 4–6 giai đoạn');
+    expect(text).toContain('Thời gian truyện mục tiêu: 两个月');
+    expect(text).toContain('giai đoạn đã hoàn thành 1');
+    expect(text).toContain('giai đoạn đã đăng ký nhưng chưa hoàn thành 2');
     expect(text).toContain('主角夺回商行控制权');
-    expect(text).toContain('主线进度上限：只查明第三方签名存在');
-    expect(text).toContain('持续经营线：主角与账房建立互信');
-    expect(text).toContain('兑现目标：兑现夺回印信的期待');
+    expect(text).toContain('Trần tiến độ mạch chính: 只查明第三方签名存在');
+    expect(text).toContain('Tuyến duy trì: 主角与账房建立互信');
+    expect(text).toContain('Mục tiêu thu hồi: 兑现夺回印信的期待');
     expect(text).toContain('第三方身份');
   });
 
 
   it('三个模块都在首行给出修订号，作为写入并发校验的依据', () => {
     const snapshot = snapshotAt_ACU(2, { revisions: { hooks: 4, infoGap: 5, constraints: 6 } });
-    expect(renderAgentHooksLedger_ACU(snapshot).startsWith('当前修订号=4')).toBe(true);
-    expect(renderAgentInfoGap_ACU(snapshot).startsWith('当前修订号=5')).toBe(true);
-    expect(renderAgentConstraints_ACU(snapshot).startsWith('当前修订号=6')).toBe(true);
+    expect(renderAgentHooksLedger_ACU(snapshot).startsWith('Số hiệu chỉnh hiện tại=4')).toBe(true);
+    expect(renderAgentInfoGap_ACU(snapshot).startsWith('Số hiệu chỉnh hiện tại=5')).toBe(true);
+    expect(renderAgentConstraints_ACU(snapshot).startsWith('Số hiệu chỉnh hiện tại=6')).toBe(true);
   });
 
   it('超长资料块截断到上限并标注未展示部分不代表不存在', () => {
@@ -322,16 +322,16 @@ describe('Agent 资料热上下文渲染', () => {
     }));
     const text = renderAgentInfoGap_ACU(snapshotAt_ACU(1, { infoGap: long as any }));
 
-    expect(text).toContain(`超出 ${AGENT_BLOCK_CHAR_LIMIT_ACU} 字上限，已截断`);
-    expect(text).toContain('未展示部分不代表不存在');
-    expect(text.startsWith('当前修订号=0')).toBe(true);
+    expect(text).toContain(`vượt giới hạn ${AGENT_BLOCK_CHAR_LIMIT_ACU} chữ, đã cắt bớt`);
+    expect(text).toContain('phần chưa hiển thị không có nghĩa là không tồn tại');
+    expect(text.startsWith('Số hiệu chỉnh hiện tại=0')).toBe(true);
   });
 
   it('年代学热渲染给出当前时间锚与逐条转换，空账本说明事实来源', () => {
     const empty = renderAgentChronology_ACU(buildEmptyAgentModuleSnapshot_ACU());
-    expect(empty).toContain('当前修订号=0');
-    expect(empty).toContain('没有已结算的故事时间记录');
-    expect(empty).toContain('大纲里的时间字段是计划');
+    expect(empty).toContain('Số hiệu chỉnh hiện tại=0');
+    expect(empty).toContain('không có bản ghi thời gian truyện nào đã quyết toán');
+    expect(empty).toContain('trường thời gian trong dàn ý là kế hoạch');
 
     const snapshot = snapshotAt_ACU(6, {
       revisions: { ...buildEmptyAgentModuleSnapshot_ACU().revisions, chronology: 3 },
@@ -343,13 +343,13 @@ describe('Agent 资料热上下文渲染', () => {
     });
     const text = renderAgentChronology_ACU(snapshot);
 
-    expect(text.startsWith('当前修订号=3')).toBe(true);
+    expect(text.startsWith('Số hiệu chỉnh hiện tại=3')).toBe(true);
     // 按结算次序排列后，最新锚是 T2；作废条目不进热上下文但如实标注。
-    expect(text).toContain('当前时间锚：入城后的第七天');
+    expect(text).toContain('Mốc thời gian hiện tại: 入城后的第七天');
     expect(text.indexOf('T1')).toBeLessThan(text.indexOf('[T2]'));
     expect(text).not.toContain('误登记的锚');
-    expect(text).toContain('另有 1 条已作废记录未列出');
-    expect(text).toContain('证据楼层：4、5');
+    expect(text).toContain('Còn 1 bản ghi đã vô hiệu chưa liệt kê');
+    expect(text).toContain('Tầng bằng chứng: 4, 5');
   });
 
   it('年代学按 ID 精读含已作废条目，未知 ID 如实提示', () => {
@@ -362,8 +362,8 @@ describe('Agent 资料热上下文渲染', () => {
 
     const byId = renderAgentChronologyByIds_ACU(snapshot, ['T0', 'T9']);
     expect(byId).toContain('误登记的锚');
-    expect(byId).toContain('作废原因：登记错误');
-    expect(byId).toContain('以下 ID 不存在于故事年代学账本：T9');
+    expect(byId).toContain('Lý do vô hiệu: 登记错误');
+    expect(byId).toContain('Các ID sau không tồn tại trong Sổ niên đại học câu chuyện: T9');
   });
 
   it('信息差渲染包含客观事实、读者已知与角色知晓', () => {
@@ -374,6 +374,6 @@ describe('Agent 资料热上下文渲染', () => {
     expect(text).toContain('守门人是内应');
     expect(text).toContain('只知道行为反常');
     expect(text).toContain('林瑶=完全不知');
-    expect(text).toContain('揭示楼层=4');
+    expect(text).toContain('tầng tiết lộ=4');
   });
 });

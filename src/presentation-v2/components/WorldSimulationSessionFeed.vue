@@ -1,15 +1,15 @@
 ﻿<template>
   <div ref="feedElement" class="acu-v2-session-feed">
     <p v-if="!entries.length" class="acu-v2-session-feed__empty">
-      还没有运行记录。发送一条补充后，格林推演主 Agent 的取证、派工、候选审核与提交过程会实时显示在这里。
+      Chưa có bản ghi chạy. Sau khi gửi một bổ sung, quá trình thu thập chứng cứ, giao việc, duyệt ứng viên và nộp của Agent chính Mô phỏng thế giới sẽ hiển thị theo thời gian thực ở đây.
     </p>
     <button v-if="hiddenCount > 0" type="button" class="acu-v2-session-feed__fold" @click="expandOlder">
-      已折叠 {{ hiddenCount }} 条更早消息 · 点击展开更早的 {{ nextExpandCount }} 条
+      Đã thu gọn {{ hiddenCount }} tin cũ hơn · bấm để mở thêm {{ nextExpandCount }} tin cũ hơn
     </button>
     <template v-for="entry in visibleEntries" :key="entry.id">
       <!-- 运行分隔条：一次运行（或恢复）的起点 -->
       <div v-if="entry.kind === 'run_started' || entry.kind === 'run_resumed'" class="acu-v2-session-feed__run-divider">
-        <span class="acu-v2-session-feed__run-divider-badge">{{ entry.kind === 'run_resumed' ? '恢复运行' : '开始运行' }}</span>
+        <span class="acu-v2-session-feed__run-divider-badge">{{ entry.kind === 'run_resumed' ? 'Tiếp tục chạy' : 'Bắt đầu chạy' }}</span>
         <span class="acu-v2-session-feed__run-divider-title">{{ entry.title }}</span>
         <span class="acu-v2-session-feed__time">{{ formatTime(entry.at) }}</span>
       </div>
@@ -26,7 +26,7 @@
       <details v-else-if="entry.kind === 'protocol_retry'" class="acu-v2-session-feed__protocol">
         <summary class="acu-v2-session-feed__protocol-summary">
           <!-- 标题由服务层写明这一次被拒在哪；折叠行不能用固定文案盖掉它。 -->
-          <span>{{ entry.title || '已自动修正一次模型输出' }}</span>
+          <span>{{ entry.title || 'Đã tự động sửa một lần đầu ra của mô hình' }}</span>
           <span class="acu-v2-session-feed__time">{{ formatTime(entry.at) }}</span>
         </summary>
         <p v-if="entry.detail" class="acu-v2-session-feed__protocol-detail">{{ entry.detail }}</p>
@@ -60,7 +60,7 @@
       </div>
     </template>
     <div v-if="running" class="acu-v2-session-feed__running">
-      <span class="acu-v2-session-feed__pulse" />格林推演 Agent 正在工作…
+      <span class="acu-v2-session-feed__pulse" />Agent Mô phỏng thế giới đang làm việc…
     </div>
   </div>
 </template>
@@ -96,21 +96,21 @@ async function expandOlder(): Promise<void> {
 }
 
 const KIND_LABELS: Record<WorldSimulationSessionEntry_ACU['kind'], string> = {
-  run_started: '开始',
-  run_resumed: '恢复',
-  user_message: '你',
-  thought: '思考',
-  main_action: '主 Agent',
-  protocol_retry: '重试',
-  tool_read: '取证',
-  write_sql: '写入',
-  delegation: '子代理',
-  stage_plan: '阶段计划',
-  handoff: '交接',
-  finalize: '交付',
-  block: '阻断',
-  run_failed: '失败',
-  run_completed: '完成',
+  run_started: 'Bắt đầu',
+  run_resumed: 'Tiếp tục',
+  user_message: 'Bạn',
+  thought: 'Suy nghĩ',
+  main_action: 'Agent chính',
+  protocol_retry: 'Thử lại',
+  tool_read: 'Thu thập chứng cứ',
+  write_sql: 'Ghi',
+  delegation: 'Agent phụ',
+  stage_plan: 'Kế hoạch giai đoạn',
+  handoff: 'Bàn giao',
+  finalize: 'Giao nộp',
+  block: 'Chặn',
+  run_failed: 'Thất bại',
+  run_completed: 'Hoàn tất',
 };
 
 /** 会话流展示沿用「各 Agent 渠道」里的中文角色名，内部 agentName 不直接暴露给用户（与 ContinuationSessionFeed 同构）。 */

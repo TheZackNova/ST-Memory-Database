@@ -44,7 +44,7 @@ const ZERO_LAYER_REQUEST_ID_ACU = '_acu_zero_layer_attempt_id';
 
 function assertCurrent_ACU(lease: ZeroLayerRequestLease_ACU, signal?: AbortSignal | null): void {
   if (lease.signal.aborted || signal?.aborted || !lease.isCurrent()) {
-    const error = new Error('零层回合已中止或聊天身份已变化。');
+    const error = new Error('Lượt Tầng 0 đã bị hủy hoặc danh tính cuộc trò chuyện đã thay đổi.');
     error.name = 'AbortError';
     throw error;
   }
@@ -88,7 +88,7 @@ async function forward_ACU(
     const payload = await request.readPayload();
     assertCurrent_ACU(lease, request.signal);
     if (!Array.isArray(payload.messages) || payload.messages.length === 0) {
-      throw new Error('酒馆最终请求缺少消息，数据库未发送请求。');
+      throw new Error('Yêu cầu cuối của SillyTavern thiếu tin nhắn, cơ sở dữ liệu chưa gửi yêu cầu.');
     }
     // 现有 CHAT_COMPLETION_SETTINGS_READY 处理器已处理模板；这里只消费最终消息。
     const parameters = Object.create(null) as Record<string, unknown>;
@@ -96,7 +96,7 @@ async function forward_ACU(
       if (!DATABASE_TRANSPORT_FIELDS_ACU.has(key) && key !== ZERO_LAYER_REQUEST_ID_ACU) parameters[key] = payload[key];
     }
     if (payload.stream !== undefined && typeof payload.stream !== 'boolean') {
-      throw new Error('酒馆最终请求的 stream 字段无效，数据库未发送请求。');
+      throw new Error('Trường stream của yêu cầu cuối SillyTavern không hợp lệ, cơ sở dữ liệu chưa gửi yêu cầu.');
     }
     // 酒馆 quiet 装配固定 stream:false，不是正文的流式选择；此时沿认领时冻结的数据库流式开关。
     const requestStreaming = payload.type === 'quiet' ? streaming : payload.stream as boolean | undefined ?? streaming;
@@ -113,7 +113,7 @@ async function forward_ACU(
       },
     );
     assertCurrent_ACU(lease, request.signal);
-    if (typeof body !== 'string' || !body.trim()) throw new Error('数据库 API 未返回有效正文。');
+    if (typeof body !== 'string' || !body.trim()) throw new Error('API cơ sở dữ liệu không trả về nội dung hợp lệ.');
     await lease.commitReply(body);
   } catch (error) {
     // 即使失败回调自身出错，也保留本次请求的原始失败，原发送不会放行。

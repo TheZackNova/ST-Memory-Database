@@ -22,7 +22,7 @@ export function updateGlobalVectorMemoryConfigFields_ACU(
     settings_ACU.vectorMemoryConfig = config;
     return {
       ok: false,
-      message: saveResult.warning || saveResult.error || '保存失败，已回滚。',
+      message: saveResult.warning || saveResult.error || 'Lưu thất bại, đã khôi phục.',
     };
   }
   return { ok: true };
@@ -316,7 +316,7 @@ export function validateVectorMemoryRerankConfig_ACU(configInput?: any): VectorM
     }
 
     if (hasRerankEndpoint !== hasRerankModel) {
-        errors.push('rerankEndpoint 和 rerankModel 必须同时填写或同时留空');
+        errors.push('rerankEndpoint và rerankModel phải cùng điền hoặc cùng để trống');
     }
 
     return {
@@ -329,37 +329,37 @@ function collectVectorMemoryCommonErrors_ACU(config: VectorMemoryConfig_ACU): st
     const errors: string[] = [];
 
     if (!config.embeddingEndpoint) {
-        errors.push('缺少 embeddingEndpoint');
+        errors.push('Thiếu embeddingEndpoint');
     }
     if (!config.embeddingModel) {
-        errors.push('缺少 embeddingModel');
+        errors.push('Thiếu embeddingModel');
     }
     if (config.threshold < 1) {
-        errors.push('threshold 必须大于 0');
+        errors.push('threshold phải lớn hơn 0');
     }
     if (config.archiveTriggerCount < 1) {
-        errors.push('archiveTriggerCount 必须大于 0');
+        errors.push('archiveTriggerCount phải lớn hơn 0');
     }
     if (config.archiveBatchSize < 1) {
-        errors.push('archiveBatchSize 必须大于 0');
+        errors.push('archiveBatchSize phải lớn hơn 0');
     }
     if (config.archiveMaxConcurrency < 1) {
-        errors.push('archiveMaxConcurrency 必须大于 0');
+        errors.push('archiveMaxConcurrency phải lớn hơn 0');
     }
     if (config.summaryChunkSentenceCount < 1) {
-        errors.push('summaryChunkSentenceCount 必须大于 0');
+        errors.push('summaryChunkSentenceCount phải lớn hơn 0');
     }
     if (!config.summaryPromptGroupId) {
-        errors.push('缺少 summaryPromptGroupId');
+        errors.push('Thiếu summaryPromptGroupId');
     }
     if (config.recallCandidateLimit < config.topK) {
-        errors.push('recallCandidateLimit 不能小于 topK');
+        errors.push('recallCandidateLimit không được nhỏ hơn topK');
     }
     if (config.bm25CandidateLimit < 1) {
-        errors.push('bm25CandidateLimit 必须大于 0');
+        errors.push('bm25CandidateLimit phải lớn hơn 0');
     }
     if (config.rrfK < 1) {
-        errors.push('rrfK 必须大于 0');
+        errors.push('rrfK phải lớn hơn 0');
     }
 
     return errors;
@@ -380,10 +380,10 @@ export function validateVectorMemoryConfig_ACU(configInput?: any): VectorMemoryC
     const errors = collectVectorMemoryCommonErrors_ACU(config);
 
     if (!config.entryComment) {
-        errors.push('缺少 entryComment');
+        errors.push('Thiếu entryComment');
     }
     if (!config.entryKey) {
-        errors.push('缺少 entryKey');
+        errors.push('Thiếu entryKey');
     }
 
     return {
@@ -489,22 +489,22 @@ export function validateSummaryVectorIndexConfig_ACU(configInput?: any): VectorM
     const config = getEffectiveSummaryVectorIndexConfig_ACU(configInput);
     const errors: string[] = [];
     if (!config.embeddingEndpoint) {
-        errors.push('缺少 embeddingEndpoint');
+        errors.push('Thiếu embeddingEndpoint');
     }
     if (!config.embeddingModel) {
-        errors.push('缺少 embeddingModel');
+        errors.push('Thiếu embeddingModel');
     }
     if (config.summaryIndexKeywordMinRows < 1) {
-        errors.push('summaryIndexKeywordMinRows 必须大于 0');
+        errors.push('summaryIndexKeywordMinRows phải lớn hơn 0');
     }
     if (config.summaryIndexBm25CandidateLimit < 1) {
-        errors.push('bm25CandidateLimit 必须大于 0');
+        errors.push('bm25CandidateLimit phải lớn hơn 0');
     }
     if (config.summaryIndexRollingDeltaFoldThreshold < 1) {
-        errors.push('summaryIndexRollingDeltaFoldThreshold 必须大于 0');
+        errors.push('summaryIndexRollingDeltaFoldThreshold phải lớn hơn 0');
     }
     if (config.summaryIndexRrfK < 1) {
-        errors.push('rrfK 必须大于 0');
+        errors.push('rrfK phải lớn hơn 0');
     }
     const rerankValidation = validateVectorMemoryRerankConfig_ACU(config);
     errors.push(...rerankValidation.errors);

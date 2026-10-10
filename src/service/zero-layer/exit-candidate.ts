@@ -20,7 +20,7 @@ export async function buildZeroLayerExitCandidate_ACU(source: ZeroLayerEnvelope_
   stageExitSimulation_ACU(staged, input);
   await stageExitTable_ACU(staged, input);
   requireExit_ACU(physicalHistorySnapshot_ACU(staged) === physicalHistorySnapshot_ACU(original),
-    '退出候选改动了物理正文或楼层。');
+    'Ứng viên thoát đã sửa nội dung hoặc tầng vật lý.');
   const assignments = original.flatMap((message, messageIndex) => ZERO_LAYER_EXIT_FIELDS_ACU.map(field => ({
     messageIndex, field, before: exitFieldValue_ACU(message, field), after: exitFieldValue_ACU(staged[messageIndex], field),
   })));
@@ -35,6 +35,6 @@ export async function buildZeroLayerExitCandidate_ACU(source: ZeroLayerEnvelope_
   };
   manifest.candidateFingerprint = exitCandidateFingerprint_ACU(manifest);
   requireExit_ACU(bridgeSourceFingerprint_ACU(chat) === bridgeSourceFingerprint_ACU(original),
-    '候选回放期间普通状态已变化。');
+    'Trạng thái thường đã thay đổi trong lúc phát lại ứng viên.');
   return manifest;
 }

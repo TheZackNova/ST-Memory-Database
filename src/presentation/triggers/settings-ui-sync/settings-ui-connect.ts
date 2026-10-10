@@ -39,32 +39,32 @@ import { buildTavernHelperCompat_ACU, formatHostCapabilities_ACU } from '../../.
       !$apiStatusDisplay_ACU
     ) {
       logError_ACU('加载模型列表失败：UI元素未初始化。');
-      showToastr_ACU('error', 'UI未就绪。');
+      showToastr_ACU('error', 'UI chưa sẵn sàng.');
       return;
     }
     const apiUrl = String($customApiUrlInput_ACU.val() || '').trim();
     const apiKey = String($customApiKeyInput_ACU.val() || '');
     if (!apiUrl) {
-      showToastr_ACU('warning', '请输入API基础URL。');
-      $apiStatusDisplay_ACU.text('状态:请输入API基础URL').css('color', 'orange');
+      showToastr_ACU('warning', 'Vui lòng nhập URL cơ sở của API.');
+      $apiStatusDisplay_ACU.text('Trạng thái: vui lòng nhập URL cơ sở của API').css('color', 'orange');
       return;
     }
-    $apiStatusDisplay_ACU.text('状态: 正在检查API端点状态...').css('color', '#61afef');
-    showToastr_ACU('info', '正在检查自定义API端点状态...');
+    $apiStatusDisplay_ACU.text('Trạng thái: đang kiểm tra trạng thái endpoint API...').css('color', '#61afef');
+    showToastr_ACU('info', 'Đang kiểm tra trạng thái endpoint API tùy chỉnh...');
 
     try {
         // [重构] 调用 service 层获取模型列表
         const result = await fetchAvailableModels_ACU(apiUrl, apiKey);
 
         if (!result.success) {
-            throw new Error(result.error || '未知错误');
+            throw new Error(result.error || 'Lỗi không xác định');
         }
 
         const models = result.models!;
         const currentSelectedModel = settings_ACU.apiConfig.model || '';
 
         // UI 操作：填充模型下拉列表
-        $customApiModelSelect_ACU.empty().append('<option value="">-- 请选择模型 --</option>');
+        $customApiModelSelect_ACU.empty().append('<option value="">-- Vui lòng chọn mô hình --</option>');
         models.forEach((modelName: string) => {
             const selected = modelName === currentSelectedModel ? ' selected' : '';
             $customApiModelSelect_ACU.append(`<option value="${escapeHtml_ACU(modelName)}"${selected}>${escapeHtml_ACU(modelName)}</option>`);
@@ -72,13 +72,13 @@ import { buildTavernHelperCompat_ACU, formatHostCapabilities_ACU } from '../../.
 
         // 如果之前保存的模型不在列表中，也添加进去
         if (currentSelectedModel && $customApiModelSelect_ACU.find(`option[value="${escapeHtml_ACU(currentSelectedModel)}"]`).length === 0) {
-            $customApiModelSelect_ACU.append(`<option value="${escapeHtml_ACU(currentSelectedModel)}" selected>${escapeHtml_ACU(currentSelectedModel)} (已保存)</option>`);
+            $customApiModelSelect_ACU.append(`<option value="${escapeHtml_ACU(currentSelectedModel)}" selected>${escapeHtml_ACU(currentSelectedModel)} (đã lưu)</option>`);
         }
-        showToastr_ACU('success', `模型列表加载成功！共加载 ${models.length} 个模型。`);
+        showToastr_ACU('success', `Tải danh sách mô hình thành công! Đã tải ${models.length} mô hình.`);
     } catch (error) {
       logError_ACU('加载模型列表时出错:', error);
-      showToastr_ACU('error', `加载模型列表失败: ${error.message}`);
-      $apiStatusDisplay_ACU.text(`状态: 加载模型失败 - ${error.message}`).css('color', '#ff6b6b');
+      showToastr_ACU('error', `Tải danh sách mô hình thất bại: ${error.message}`);
+      $apiStatusDisplay_ACU.text(`Trạng thái: tải mô hình thất bại - ${error.message}`).css('color', '#ff6b6b');
     }
     updateApiStatusDisplay_ACU();
   }
@@ -86,15 +86,15 @@ import { buildTavernHelperCompat_ACU, formatHostCapabilities_ACU } from '../../.
     if (!$popupInstance_ACU || !$apiStatusDisplay_ACU) return;
     if (settings_ACU.apiConfig.url && settings_ACU.apiConfig.model)
       $apiStatusDisplay_ACU.html(
-        `当前URL: <span style="color:lightgreen;word-break:break-all;">${escapeHtml_ACU(
+        `URL hiện tại: <span style="color:lightgreen;word-break:break-all;">${escapeHtml_ACU(
           settings_ACU.apiConfig.url,
-        )}</span><br>已选模型: <span style="color:lightgreen;">${escapeHtml_ACU(settings_ACU.apiConfig.model)}</span>`,
+        )}</span><br>Mô hình đã chọn: <span style="color:lightgreen;">${escapeHtml_ACU(settings_ACU.apiConfig.model)}</span>`,
       );
     else if (settings_ACU.apiConfig.url)
       $apiStatusDisplay_ACU.html(
-        `当前URL: ${escapeHtml_ACU(settings_ACU.apiConfig.url)} - <span style="color:orange;">请加载并选择模型</span>`,
+        `URL hiện tại: ${escapeHtml_ACU(settings_ACU.apiConfig.url)} - <span style="color:orange;">Hãy tải và chọn mô hình</span>`,
       );
-    else $apiStatusDisplay_ACU.html(`<span style="color:#ffcc80;">未配置自定义API。数据库更新功能可能不可用。</span>`);
+    else $apiStatusDisplay_ACU.html(`<span style="color:#ffcc80;">Chưa cấu hình API tùy chỉnh. Chức năng cập nhật cơ sở dữ liệu có thể không dùng được.</span>`);
   }
   export function attemptToLoadCoreApis_ACU() {
     // 根据运行模式选择宿主窗口

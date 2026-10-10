@@ -495,9 +495,9 @@ describe('validateSummaryVectorMirrorDelta_ACU', () => {
 
   it('operations 为空 / rowId 为空 / 未知 kind / 缺 vectorSourceHash 均非法', () => {
     const base = delta({ seq: 1, entryId: 'v', sourceEntryId: 'e', ops: [add('1', 'p')] });
-    expect(validateSummaryVectorMirrorDelta_ACU({ ...base, operations: [] })).toMatch(/operations 为空/);
-    expect(validateSummaryVectorMirrorDelta_ACU({ ...base, operations: [{ kind: 'row_remove', rowId: '' }] })).toMatch(/rowId 为空/);
-    expect(validateSummaryVectorMirrorDelta_ACU({ ...base, operations: [{ kind: 'row_upsert', rowId: '1' }] })).toMatch(/未知 operation kind/);
+    expect(validateSummaryVectorMirrorDelta_ACU({ ...base, operations: [] })).toMatch(/operations rỗng/);
+    expect(validateSummaryVectorMirrorDelta_ACU({ ...base, operations: [{ kind: 'row_remove', rowId: '' }] })).toMatch(/rowId rỗng/);
+    expect(validateSummaryVectorMirrorDelta_ACU({ ...base, operations: [{ kind: 'row_upsert', rowId: '1' }] })).toMatch(/operation kind không xác định/);
     expect(validateSummaryVectorMirrorDelta_ACU({ ...base, operations: [{ kind: 'row_add', rowId: '1', chunks: [{ packHash: 'p', chunkIndex: 0 }] }] })).toMatch(/vectorSourceHash/);
   });
 });
@@ -513,27 +513,27 @@ describe('assertSummaryVectorMirrorFrameInvariantsV2_ACU', () => {
     const misplaced = logFrame([tableEntry('e1')], [], {
       summaryVectorIndexFrame: { version: 3, sourceTableKey: SOURCE, checkpoint: checkpoint(), logEntries: [] },
     });
-    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(fullFrame()), ai(misplaced)], ISOLATION, 'test')).toMatch(/没有表格 full checkpoint 却存在 vector checkpoint/);
+    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(fullFrame()), ai(misplaced)], ISOLATION, 'test')).toMatch(/không có full checkpoint của bảng nhưng lại có vector checkpoint/);
   });
 
   it('多个 vector checkpoint 被拒绝', () => {
-    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(fullFrame()), ai(fullFrame())], ISOLATION, 'test')).toMatch(/存在 2 个 vector checkpoint/);
+    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(fullFrame()), ai(fullFrame())], ISOLATION, 'test')).toMatch(/có 2 vector checkpoint/);
   });
 
   it('非法 delta 与重复 entryId 被拒绝', () => {
     const bad = logFrame([tableEntry('e1')], [{ ...delta({ seq: 1, entryId: 'v1', sourceEntryId: 'e1', ops: [add('3', 'p1')] }), operations: [] }]);
-    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(fullFrame()), ai(bad)], ISOLATION, 'test')).toMatch(/vector delta 非法/);
+    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(fullFrame()), ai(bad)], ISOLATION, 'test')).toMatch(/vector delta của tầng #\d+ không hợp lệ/);
 
     const d = delta({ seq: 1, entryId: 'v1', sourceEntryId: 'e1', ops: [add('3', 'p1')] });
     const dup = logFrame([tableEntry('e1')], [d, { ...d, seq: 2 }]);
-    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(fullFrame()), ai(dup)], ISOLATION, 'test')).toMatch(/重复的 vector delta entryId=v1/);
+    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(fullFrame()), ai(dup)], ISOLATION, 'test')).toMatch(/vector delta entryId trùng lặp v1/);
   });
 
   it('镜像 frame 结构非法被拒绝', () => {
     const broken = logFrame([tableEntry('e1')], [], {
       summaryVectorIndexFrame: { version: 2, sourceTableKey: SOURCE, logEntries: [] } as any,
     });
-    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(fullFrame()), ai(broken)], ISOLATION, 'test')).toMatch(/结构非法/);
+    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(fullFrame()), ai(broken)], ISOLATION, 'test')).toMatch(/không hợp lệ/);
   });
 
   it('rowCount=0 但 embedding.dimension>0 的 vector_full 合法', () => {
@@ -551,6 +551,6 @@ describe('assertSummaryVectorMirrorFrameInvariantsV2_ACU', () => {
         embedding: { ...EMB, dimension: 0 },
       }),
     });
-    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(illegal)], ISOLATION, 'test')).toMatch(/结构非法/);
+    expect(assertSummaryVectorMirrorFrameInvariantsV2_ACU([ai(illegal)], ISOLATION, 'test')).toMatch(/không hợp lệ/);
   });
 });

@@ -60,7 +60,7 @@ describe('summarizeAgentHandoff_ACU', () => {
     });
 
     expect(calls).toHaveLength(2);
-    expect(calls[1][1].content).toContain('上一次输出不符合 JSON 契约');
+    expect(calls[1][1].content).toContain('Đầu ra lần trước không đúng hợp đồng JSON');
     expect(result.degraded).toBe(false);
     expect(result.state.readKeys).toEqual(['$TABLE:纪要表:1-2']);
     expect(result.state.recentTurns).toEqual(['turn-real']);
@@ -101,7 +101,7 @@ describe('summarizeAgentHandoff_ACU', () => {
     expect(result.degraded).toBe(true);
     expect(result.degradationReason).toBe('semantic_summary_failed');
     expect(result.reportTokens).toBeLessThanOrEqual(300);
-    expect(result.report).toContain('摘要降级');
+    expect(result.report).toContain('Hạ cấp tóm tắt');
     expect(result.report).toContain('完成动作');
   });
 });

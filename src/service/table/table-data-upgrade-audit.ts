@@ -87,7 +87,7 @@ function resolveRequiredHeaderIndexes_ACU(result: UpgradeAuditResult_ACU, sheetK
     if (existing && existing !== canonicalName) {
       addIssue_ACU(result, {
         code: 'upgrade_required_mapping_ambiguous', sheetKey, rowIndex: 0,
-        message: `表头第 ${headerIndex + 1} 列同时映射到 NOT NULL 业务列「${existing}」与「${canonicalName}」，无法安全确定列位置`,
+        message: `Cột thứ ${headerIndex + 1} của tiêu đề đồng thời ánh xạ tới cột nghiệp vụ NOT NULL「${existing}」và「${canonicalName}」, không thể xác định vị trí cột một cách an toàn`,
       });
       return;
     }
@@ -124,8 +124,8 @@ function resolveRequiredHeaderIndexes_ACU(result: UpgradeAuditResult_ACU, sheetK
       sheetKey,
       rowIndex: 0,
       message: matches.length > 1
-        ? `NOT NULL 业务列「${canonicalPhysicalName_ACU(column.sqlName)}」匹配到多个表头，无法安全确定列位置`
-        : `NOT NULL 业务列「${canonicalPhysicalName_ACU(column.sqlName)}」无法映射到表头，不能跳过必填审计`,
+        ? `Cột nghiệp vụ NOT NULL「${canonicalPhysicalName_ACU(column.sqlName)}」khớp nhiều tiêu đề, không thể xác định vị trí cột một cách an toàn`
+        : `Cột nghiệp vụ NOT NULL「${canonicalPhysicalName_ACU(column.sqlName)}」không thể ánh xạ tới tiêu đề, không thể bỏ qua kiểm tra bắt buộc`,
     });
   }
   return required;
@@ -134,52 +134,52 @@ function inspectRows_ACU(result: UpgradeAuditResult_ACU, sheetKey: string, rows:
   rows.forEach((row, offset) => {
     const rowIndex = pool === 'content' ? offset + 1 : offset;
     if (!Array.isArray(row)) {
-      addIssue_ACU(result, { code: 'upgrade_invalid_row_shape', sheetKey, rowIndex, rowPool: pool, message: '行不是数组，无法无损自动修复' });
+      addIssue_ACU(result, { code: 'upgrade_invalid_row_shape', sheetKey, rowIndex, rowPool: pool, message: 'Hàng không phải mảng, không thể tự động sửa mà không mất dữ liệu' });
       return;
     }
     const rowId = canonicalId_ACU(row[0]);
-    if (!rowId) addIssue_ACU(result, { code: 'upgrade_empty_row_id', sheetKey, rowIndex, rowPool: pool, message: '行缺少稳定 row_id' }, { action: 'assign_row_id', sheetKey, rowIndex, rowPool: pool });
+    if (!rowId) addIssue_ACU(result, { code: 'upgrade_empty_row_id', sheetKey, rowIndex, rowPool: pool, message: 'Hàng thiếu row_id ổn định' }, { action: 'assign_row_id', sheetKey, rowIndex, rowPool: pool });
     else {
       if (row[0] !== rowId) result.repairPlan.push({ action: 'normalize_row_id', sheetKey, rowIndex, rowPool: pool });
       const existing = ids.get(rowId);
       if (existing) {
         const code = existing.pool === pool ? 'upgrade_duplicate_row_id' : 'upgrade_seed_pool_conflict';
         const message = existing.pool === pool
-          ? 'row_id 在同一行集中重复'
-          : 'row_id 同时存在于 content 与 seedRows 中';
+          ? 'row_id trùng trong cùng một tập hàng'
+          : 'row_id đồng thời tồn tại trong content và seedRows';
         addIssue_ACU(result, { code, sheetKey, rowIndex, rowPool: pool, rowId, message }, { action: 'assign_row_id', sheetKey, rowIndex, rowPool: pool });
       } else ids.set(rowId, { pool, rowIndex });
     }
     if (row.length < headerLength) {
-      addIssue_ACU(result, { code: 'upgrade_row_width_mismatch', sheetKey, rowIndex, rowPool: pool, rowId: rowId || undefined, message: '行短于表头，可尾部补 null' }, { action: 'pad_row', sheetKey, rowIndex, rowPool: pool });
+      addIssue_ACU(result, { code: 'upgrade_row_width_mismatch', sheetKey, rowIndex, rowPool: pool, rowId: rowId || undefined, message: 'Hàng ngắn hơn tiêu đề, có thể bù null ở cuối' }, { action: 'pad_row', sheetKey, rowIndex, rowPool: pool });
     }
     for (const [headerIndex, sqlName] of requiredHeaderIndexes) {
       if (headerIndex < row.length && row[headerIndex] !== null && row[headerIndex] !== undefined) continue;
       addIssue_ACU(result, {
         code: 'upgrade_required_business_cell_missing', sheetKey, rowIndex, rowPool: pool,
         rowId: rowId || undefined,
-        message: `缺少 NOT NULL 且无默认值的业务列「${sqlName}」，不能猜测填充值`,
+        message: `Thiếu cột nghiệp vụ NOT NULL không có giá trị mặc định「${sqlName}」, không thể đoán giá trị điền`,
       });
     }
-    if (row.length > headerLength) addIssue_ACU(result, { code: 'upgrade_overflow_cells', sheetKey, rowIndex, rowPool: pool, rowId: rowId || undefined, message: '行超出表头，必须保留原值并等待确认' }, { action: 'preserve_overflow', sheetKey, rowIndex, rowPool: pool });
+    if (row.length > headerLength) addIssue_ACU(result, { code: 'upgrade_overflow_cells', sheetKey, rowIndex, rowPool: pool, rowId: rowId || undefined, message: 'Hàng vượt quá tiêu đề, phải giữ giá trị gốc và chờ xác nhận' }, { action: 'preserve_overflow', sheetKey, rowIndex, rowPool: pool });
   });
 }
 function inspectRowsWithoutIds_ACU(result: UpgradeAuditResult_ACU, sheetKey: string, rows: unknown[], pool: 'content' | 'seedRows', expectedWidth: number, requiredHeaderIndexes: Map<number, string>): void {
   rows.forEach((row, offset) => {
     const rowIndex = pool === 'content' ? offset + 1 : offset;
     if (!Array.isArray(row)) {
-      addIssue_ACU(result, { code: 'upgrade_invalid_row_shape', sheetKey, rowIndex, rowPool: pool, message: '行不是数组，无法无损自动修复' });
+      addIssue_ACU(result, { code: 'upgrade_invalid_row_shape', sheetKey, rowIndex, rowPool: pool, message: 'Hàng không phải mảng, không thể tự động sửa mà không mất dữ liệu' });
     } else if (row.length < expectedWidth) {
-      addIssue_ACU(result, { code: 'upgrade_row_width_mismatch', sheetKey, rowIndex, rowPool: pool, message: '行短于业务表头，可尾部补 null' }, { action: 'pad_row', sheetKey, rowIndex, rowPool: pool });
+      addIssue_ACU(result, { code: 'upgrade_row_width_mismatch', sheetKey, rowIndex, rowPool: pool, message: 'Hàng ngắn hơn tiêu đề nghiệp vụ, có thể bù null ở cuối' }, { action: 'pad_row', sheetKey, rowIndex, rowPool: pool });
     } else if (row.length > expectedWidth) {
-      addIssue_ACU(result, { code: 'upgrade_overflow_cells', sheetKey, rowIndex, rowPool: pool, message: '行超出业务表头，必须保留原值并等待确认' }, { action: 'preserve_overflow', sheetKey, rowIndex, rowPool: pool });
+      addIssue_ACU(result, { code: 'upgrade_overflow_cells', sheetKey, rowIndex, rowPool: pool, message: 'Hàng vượt quá tiêu đề nghiệp vụ, phải giữ giá trị gốc và chờ xác nhận' }, { action: 'preserve_overflow', sheetKey, rowIndex, rowPool: pool });
     }
     if (!Array.isArray(row)) return;
     for (const [headerIndex, sqlName] of requiredHeaderIndexes) {
       if (headerIndex < row.length && row[headerIndex] !== null && row[headerIndex] !== undefined) continue;
       addIssue_ACU(result, {
         code: 'upgrade_required_business_cell_missing', sheetKey, rowIndex, rowPool: pool,
-        message: `缺少 NOT NULL 且无默认值的业务列「${sqlName}」，不能猜测填充值`,
+        message: `Thiếu cột nghiệp vụ NOT NULL không có giá trị mặc định「${sqlName}」, không thể đoán giá trị điền`,
       });
     }
   });
@@ -226,18 +226,18 @@ export function normalizeHeaderOnlyRowIdColumns_ACU<T>(data: T): T {
 function determineHeaderRepair_ACU(result: UpgradeAuditResult_ACU, sheetKey: string, sheet: RecordValue): { header: unknown[]; insertsRowId: boolean } | null {
   const content = sheet.content;
   if (!Array.isArray(content) || !Array.isArray(content[0]) || content[0].length === 0) {
-    addIssue_ACU(result, { code: 'upgrade_invalid_header', sheetKey, rowIndex: 0, message: '缺少可识别表头，无法安全推导 row_id 位置' });
+    addIssue_ACU(result, { code: 'upgrade_invalid_header', sheetKey, rowIndex: 0, message: 'Thiếu tiêu đề có thể nhận dạng, không thể suy ra vị trí row_id một cách an toàn' });
     return null;
   }
   const header = content[0];
   const firstHeader = String(header[0] ?? '').trim();
   if (canonicalPhysicalName_ACU(firstHeader) === 'row_id') return { header, insertsRowId: false };
   if (!firstHeader || /^(id|rowid|row_id)$/i.test(firstHeader) || firstHeader === '行号') {
-    addIssue_ACU(result, { code: 'upgrade_invalid_header', sheetKey, rowIndex: 0, message: '身份列表头可确定地规范化为 row_id' }, { action: 'rename_header', sheetKey, rowIndex: 0, targetHeader: 'row_id' });
+    addIssue_ACU(result, { code: 'upgrade_invalid_header', sheetKey, rowIndex: 0, message: 'Tiêu đề cột danh tính có thể chuẩn hóa chắc chắn thành row_id' }, { action: 'rename_header', sheetKey, rowIndex: 0, targetHeader: 'row_id' });
     return { header: ['row_id', ...header.slice(1)], insertsRowId: false };
   }
   if (headerOnlyRowIdNormalizationAction_ACU(sheet) === 'insert') {
-    addIssue_ACU(result, { code: 'upgrade_invalid_header', sheetKey, rowIndex: 0, message: '无数据模板缺少 row_id，可在首列插入' }, { action: 'insert_row_id_column', sheetKey, rowIndex: 0, targetHeader: 'row_id' });
+    addIssue_ACU(result, { code: 'upgrade_invalid_header', sheetKey, rowIndex: 0, message: 'Mẫu không có dữ liệu thiếu row_id, có thể chèn vào cột đầu' }, { action: 'insert_row_id_column', sheetKey, rowIndex: 0, targetHeader: 'row_id' });
     return { header: ['row_id', ...header], insertsRowId: true };
   }
   const ddl = isRecord_ACU(sheet.sourceData) ? sheet.sourceData.ddl : undefined;
@@ -250,10 +250,10 @@ function determineHeaderRepair_ACU(result: UpgradeAuditResult_ACU, sheetKey: str
     return !!ddlColumn && headerMatchesColumn_ACU(value, ddlColumn.sqlName, ddlColumn.comment);
   });
   if (headerMatchesDdlWithoutRowId) {
-    addIssue_ACU(result, { code: 'upgrade_invalid_header', sheetKey, rowIndex: 0, message: 'DDL 证明当前业务表头缺少 row_id 列，可在首列插入' }, { action: 'insert_row_id_column', sheetKey, rowIndex: 0, targetHeader: 'row_id' });
+    addIssue_ACU(result, { code: 'upgrade_invalid_header', sheetKey, rowIndex: 0, message: 'DDL chứng minh tiêu đề nghiệp vụ hiện tại thiếu cột row_id, có thể chèn vào cột đầu' }, { action: 'insert_row_id_column', sheetKey, rowIndex: 0, targetHeader: 'row_id' });
     return { header: ['row_id', ...header], insertsRowId: true };
   }
-  addIssue_ACU(result, { code: 'upgrade_invalid_header', sheetKey, rowIndex: 0, message: '无法依据 DDL 安全判定应改名还是插入 row_id' });
+  addIssue_ACU(result, { code: 'upgrade_invalid_header', sheetKey, rowIndex: 0, message: 'Không thể dựa vào DDL để xác định an toàn nên đổi tên hay chèn row_id' });
   return null;
 }
 
@@ -264,19 +264,19 @@ export function getTableDataFingerprint_ACU(data: unknown): string {
 export function auditTableDataForUpgrade_ACU(data: unknown): UpgradeAuditResult_ACU {
   const result: UpgradeAuditResult_ACU = { status: 'clean', issues: [], repairPlan: [], dataFingerprintBefore: fingerprint_ACU(data), sourceData: data };
   if (!isRecord_ACU(data)) {
-    addIssue_ACU(result, { code: 'upgrade_invalid_data', message: '表格数据不是对象' });
+    addIssue_ACU(result, { code: 'upgrade_invalid_data', message: 'Dữ liệu bảng không phải đối tượng' });
     result.status = 'unrecoverable';
     return result;
   }
   const sheets = Object.entries(data).filter(([key]) => key.startsWith('sheet_'));
   if (sheets.length === 0) {
-    addIssue_ACU(result, { code: 'upgrade_missing_sheet', message: '表格数据不含 sheet_*' });
+    addIssue_ACU(result, { code: 'upgrade_missing_sheet', message: 'Dữ liệu bảng không chứa sheet_*' });
     result.status = 'unrecoverable';
     return result;
   }
   for (const [sheetKey, rawSheet] of sheets) {
     if (!isRecord_ACU(rawSheet)) {
-      addIssue_ACU(result, { code: 'upgrade_invalid_data', sheetKey, message: 'sheet 不是对象' });
+      addIssue_ACU(result, { code: 'upgrade_invalid_data', sheetKey, message: 'sheet không phải đối tượng' });
       continue;
     }
     const headerState = determineHeaderRepair_ACU(result, sheetKey, rawSheet);

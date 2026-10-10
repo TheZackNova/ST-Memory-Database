@@ -13,14 +13,14 @@ function includeBody(raw: string): Record<string, any> {
     const parsed = parseYaml(raw);
     if (isRecord(parsed)) return parsed;
     if (Array.isArray(parsed)) return Object.assign(Object.create(null), ...parsed.filter(isRecord));
-    throw new Error('直连 API 的附加主体参数必须是 YAML 对象或对象数组，未发送请求。');
+    throw new Error('Tham số thân bổ sung của API kết nối trực tiếp phải là đối tượng YAML hoặc mảng đối tượng, chưa gửi yêu cầu.');
 }
 
 function exclusions(raw: string): string[] {
     if (!raw.trim()) return [];
     if (raw.trim().startsWith('- ') || raw.trim().startsWith('[')) {
         const parsed = parseYaml(raw);
-        if (!Array.isArray(parsed) || parsed.some(key => typeof key !== 'string')) throw new Error('排除主体参数必须是字段名列表。');
+        if (!Array.isArray(parsed) || parsed.some(key => typeof key !== 'string')) throw new Error('Tham số thân cần loại trừ phải là danh sách tên trường.');
         return parsed;
     }
     return raw.split(/[,\n]/).map(key => key.trim()).filter(Boolean);
@@ -70,7 +70,7 @@ export async function sendCustomApiRequest_ACU(
     for (const line of String(config.requestHeaders ?? '').split('\n')) {
         if (!line.trim()) continue;
         const colon = line.indexOf(':');
-        if (colon < 1) throw new Error('附加请求标头须按 Header: Value 填写。');
+        if (colon < 1) throw new Error('Tiêu đề yêu cầu bổ sung phải điền theo dạng Header: Value.');
         headers.set(line.slice(0, colon).trim(), line.slice(colon + 1).trim());
     }
     const url = providerEndpoint_ACU(config.url, format);

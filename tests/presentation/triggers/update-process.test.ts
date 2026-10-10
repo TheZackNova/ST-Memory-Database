@@ -88,11 +88,11 @@ describe('handleManualUpdate_ACU destructive refill confirmation', () => {
     await handleManualUpdate_ACU();
 
     expect(showCustomConfirm_ACU).toHaveBeenCalledTimes(1);
-    expect(showCustomConfirm_ACU.mock.calls[0][0]).toBe('手动填表确认');
+    expect(showCustomConfirm_ACU.mock.calls[0][0]).toBe('Xác nhận điền bảng thủ công');
     const message = showCustomConfirm_ACU.mock.calls[0][1];
-    expect(message).toContain('会先删除本次重填范围内选中表的 checkpoint 与 V2 增量日志');
-    expect(message).toContain('此前楼层的表格数据将无法恢复');
-    expect(message).toContain('范围外的 checkpoint、范围外聊天记录的表格数据和未选中的表不会被删除');
+    expect(message).toContain('xóa checkpoint và nhật ký tăng dần V2 của các bảng đã chọn trong phạm vi điền lại');
+    expect(message).toContain('dữ liệu bảng của các tầng trước đó sẽ không thể khôi phục');
+    expect(message).toContain('checkpoint ngoài phạm vi, dữ liệu bảng của lịch sử trò chuyện ngoài phạm vi và các bảng không được chọn sẽ không bị xóa');
     expect(message).not.toContain('第二次破坏性确认');
   });
 
@@ -104,7 +104,7 @@ describe('handleManualUpdate_ACU destructive refill confirmation', () => {
 
     expect(orchestrateManualUpdate_ACU).not.toHaveBeenCalled();
     expect(showCustomConfirm_ACU).toHaveBeenCalledTimes(1);
-    expect(showToastr_ACU).toHaveBeenCalledWith('info', '已取消手动填表。');
+    expect(showToastr_ACU).toHaveBeenCalledWith('info', 'Đã hủy điền bảng thủ công.');
     expect(showToastr_ACU.mock.calls.some(call => call[0] === 'error')).toBe(false);
   });
 
@@ -156,9 +156,9 @@ describe('update error toast ownership', () => {
     expect(notifyStart).toHaveBeenCalledTimes(1);
     expect(updateTask).toHaveBeenCalledTimes(2);
     expect(endTask).toHaveBeenCalledTimes(1);
-    expect(beginTask.mock.calls[0][1].action.label).toBe('终止');
+    expect(beginTask.mock.calls[0][1].action.label).toBe('Dừng');
     expect(showToastr_ACU.mock.calls.filter(call => call[0] === 'error')).toEqual([
-      ['error', '更新失败: 单次失败'],
+      ['error', 'Cập nhật thất bại: 单次失败'],
     ]);
   });
 

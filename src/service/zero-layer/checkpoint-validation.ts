@@ -21,46 +21,46 @@ export function validateZeroLayerCheckpointSet_ACU(
     && typeof raw.isolationKey === 'string'
     && integer(raw.sourceRevision) && raw.sourceRevision < source.revision
     && integer(raw.triggeredAtAiCount) && record(raw.position) && raw.position.schemaVersion === 1
-    && integer(raw.position.aiOrdinal) && record(raw.position.ref), '逻辑 checkpoint 身份或版本无效。');
+    && integer(raw.position.aiOrdinal) && record(raw.position.ref), 'Danh tính hoặc phiên bản checkpoint logic không hợp lệ.');
   const path = checkpointPath_ACU(source, branch.branchId);
   const target = path.findIndex(turn => turn.turnId === (raw.position as { ref: { turnId?: unknown } }).ref.turnId);
   const head = path.findIndex(turn => turn.turnId === raw.sourceHeadTurnId);
   requireValue(target >= 0 && head >= target && fingerprint(raw.position.ref)
-    === fingerprint(checkpointTurnRef_ACU(source, path[target])), 'checkpoint 切点不在已发布父链。');
+    === fingerprint(checkpointTurnRef_ACU(source, path[target])), 'Điểm cắt checkpoint không nằm trên chuỗi cha đã phát hành.');
   const hostAiCount = raw.triggeredAtAiCount - head - 1;
   requireValue(hostAiCount >= 0 && hostAiCount <= source.activationMessageCount
-    && raw.position.aiOrdinal === hostAiCount + target + 1, 'checkpoint AI 计数与切点不一致。');
+    && raw.position.aiOrdinal === hostAiCount + target + 1, 'Số đếm AI của checkpoint không khớp với điểm cắt.');
   requireValue(record(raw.cadence) && ['retainRecentLayers', 'bufferLayers', 'periodicStepLayers']
     .every(key => integer((raw.cadence as Record<string, unknown>)[key]))
-    && ['compaction', 'periodic'].includes(String(raw.reason)), 'checkpoint 节奏无效。');
+    && ['compaction', 'periodic'].includes(String(raw.reason)), 'Nhịp checkpoint không hợp lệ.');
 
   requireValue(record(raw.table) && record(raw.table.payload) && raw.table.payload.kind === 'full'
-    && validateCanonicalCheckpoint_ACU(raw.table.payload).valid, 'checkpoint 表格 canonical 校验失败。');
+    && validateCanonicalCheckpoint_ACU(raw.table.payload).valid, 'Kiểm tra canonical bảng checkpoint thất bại.');
   validateZeroLayerTableResult_ACU(raw.table.result, path[target].assistantFloor.floorId);
   requireValue(fingerprint(raw.table.payload.data) === fingerprint(raw.table.result.tableData)
     && fingerprint(raw.table.result) === fingerprint(path[target].assistantFloor.data.table)
-    && path[target].tableInput?.isolationKey === raw.isolationKey, 'checkpoint 表格切点或 isolation 不一致。');
+    && path[target].tableInput?.isolationKey === raw.isolationKey, 'Điểm cắt bảng hoặc isolation của checkpoint không nhất quán.');
   validateZeroLayerSimulationResult_ACU(raw.simulation);
   requireValue(fingerprint(raw.simulation) === fingerprint(path[target].assistantFloor.data.simulation),
-    'checkpoint 推演成员不属于同一切点。');
+    'Thành viên mô phỏng của checkpoint không thuộc cùng điểm cắt.');
   requireValue(record(raw.continuation) && record(raw.continuation.checkpoint)
     && raw.continuation.checkpoint.swipeId === '0' && integer(raw.continuation.checkpoint.operationSeq)
     && record(raw.continuation.checkpoint.fieldSnapshot)
     && Array.isArray(raw.continuation.deltas) && raw.continuation.deltas.length === 0,
-  'checkpoint 续写成员缺少无损基底或操作水位。');
+  'Thành viên viết tiếp của checkpoint thiếu nền không mất dữ liệu hoặc mốc thao tác.');
   foldCheckpointContinuation_ACU([{ payload: raw.continuation, swipeId: '0' }]);
-  requireValue(Array.isArray(raw.covered) && raw.covered.length > 0, 'checkpoint 来源引用缺失。');
+  requireValue(Array.isArray(raw.covered) && raw.covered.length > 0, 'Thiếu tham chiếu nguồn của checkpoint.');
   const refs = new Set<string>();
   for (const member of raw.covered) {
     requireValue(record(member) && record(member.ref) && typeof member.fingerprint === 'string'
       && member.fingerprint.trim() && Array.isArray(member.operationSeqs)
       && member.operationSeqs.every(integer),
-    'checkpoint 来源覆盖无效。');
+    'Phạm vi bao phủ nguồn của checkpoint không hợp lệ.');
     const operationSeqs = member.operationSeqs;
     requireValue(operationSeqs.every((seq: number, index: number) => index === 0 || seq > operationSeqs[index - 1]),
-      'checkpoint 来源操作序号必须递增。');
+      'Số thứ tự thao tác nguồn của checkpoint phải tăng dần.');
     const key = fingerprint(member.ref);
-    requireValue(!refs.has(key), 'checkpoint 来源引用重复。');
+    requireValue(!refs.has(key), 'Tham chiếu nguồn của checkpoint bị trùng.');
     refs.add(key);
     const ref = member.ref;
     if (ref.kind === 'logical') {
@@ -68,16 +68,16 @@ export function validateZeroLayerCheckpointSet_ACU(
       requireValue(turn && ref.sessionId === source.sessionId && ref.branchId === turn.branchId
         && ['user', 'assistant'].includes(String(ref.role))
         && ref.floorId === (ref.role === 'user' ? turn.userFloor : turn.assistantFloor).floorId,
-      'checkpoint 来源跨越切点或分支。');
+      'Nguồn checkpoint vượt qua điểm cắt hoặc nhánh.');
     } else {
       requireValue(ref.kind === 'host' && integer(ref.messageIndex) && ref.messageIndex < source.activationMessageCount
         && integer(ref.swipeId) && fingerprint(ref.scope) === fingerprint(source.scope)
-        && ref.sourceFingerprint === source.activationFingerprint, 'checkpoint 宿主来源身份无效。');
+        && ref.sourceFingerprint === source.activationFingerprint, 'Danh tính nguồn host của checkpoint không hợp lệ.');
     }
   }
   requireValue(typeof raw.sourceFingerprint === 'string' && raw.sourceFingerprint.trim()
     && raw.fingerprint === checkpointSetFingerprint_ACU(raw as unknown as ZeroLayerCheckpointSet_ACU),
-  'checkpoint 成员指纹不一致。');
+  'Dấu vân tay thành viên checkpoint không nhất quán.');
 }
 
 /** pending 不参与读取，active 至多一组；档案仅保存被覆盖的原始续写帧。 */
@@ -86,14 +86,14 @@ export function validateZeroLayerCheckpointState_ACU(source: ZeroLayerEnvelope_A
   if (state === undefined) return;
   requireValue(record(state) && state.schemaVersion === 1 && typeof state.cleanupPending === 'boolean'
     && record(state.replayFrames) && Object.keys(state).every(key =>
-      ['schemaVersion', 'active', 'pending', 'cleanupPending', 'replayFrames'].includes(key)), 'checkpoint manifest 无效。');
+      ['schemaVersion', 'active', 'pending', 'cleanupPending', 'replayFrames'].includes(key)), 'Manifest checkpoint không hợp lệ.');
   requireValue(state.active !== undefined && state.pending !== undefined
-    && (!state.cleanupPending || state.active !== null && state.pending === null), 'checkpoint 提交阶段无效。');
+    && (!state.cleanupPending || state.active !== null && state.pending === null), 'Giai đoạn gửi checkpoint không hợp lệ.');
   if (state.active !== null) validateZeroLayerCheckpointSet_ACU(state.active, source, branch);
   if (state.pending !== null) {
     validateZeroLayerCheckpointSet_ACU(state.pending, source, branch);
     requireValue(!state.cleanupPending && (!state.active
-      || state.pending.position.aiOrdinal > state.active.position.aiOrdinal), 'checkpoint 候选不能回退或重叠清理。');
+      || state.pending.position.aiOrdinal > state.active.position.aiOrdinal), 'Ứng viên checkpoint không được lùi hoặc chồng lấn khi dọn dẹp.');
   }
   const path = checkpointPath_ACU(source, branch.branchId);
   const permitted = new Set(path.flatMap(turn => [turn.userFloor, turn.assistantFloor].map(floor =>
@@ -101,13 +101,13 @@ export function validateZeroLayerCheckpointState_ACU(source: ZeroLayerEnvelope_A
       turnId: turn.turnId, floorId: floor.floorId, role: floor.role }))));
   for (const [key, payload] of Object.entries(state.replayFrames)) {
     let ref: unknown;
-    try { ref = JSON.parse(key); } catch { requireValue(false, 'checkpoint 档案引用不可解析。'); }
-    requireValue(record(ref), 'checkpoint 档案引用无效。');
+    try { ref = JSON.parse(key); } catch { requireValue(false, 'Không thể phân tích tham chiếu hồ sơ checkpoint.'); }
+    requireValue(record(ref), 'Tham chiếu hồ sơ checkpoint không hợp lệ.');
     if (ref.kind === 'host') {
       requireValue(integer(ref.messageIndex) && ref.messageIndex < source.activationMessageCount
         && integer(ref.swipeId) && fingerprint(ref.scope) === fingerprint(source.scope)
-        && ref.sourceFingerprint === source.activationFingerprint, 'checkpoint 档案宿主引用无效。');
-    } else requireValue(permitted.has(key), 'checkpoint 档案引用不在选中父链。');
+        && ref.sourceFingerprint === source.activationFingerprint, 'Tham chiếu host của hồ sơ checkpoint không hợp lệ.');
+    } else requireValue(permitted.has(key), 'Tham chiếu hồ sơ checkpoint không nằm trên chuỗi cha đã chọn.');
     foldCheckpointContinuation_ACU([{ payload, swipeId: ref.kind === 'host' ? String(ref.swipeId) : '0' }]);
   }
 }

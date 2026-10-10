@@ -223,7 +223,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
       $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-context-extract-add-rule`).on('click', function(this: HTMLElement) {
         appendExcludeRuleRow_ACU(
           `#${SCRIPT_ID_PREFIX_ACU}-plot-context-extract-rules`,
-          { startPlaceholder: '开始词（例如：<think）', endPlaceholder: '结束词（例如：</think>）' },
+          { startPlaceholder: 'Từ bắt đầu (ví dụ: <think)', endPlaceholder: 'Từ kết thúc (ví dụ: </think>)' },
         );
       });
       $popupInstance_ACU.on('input', `#${SCRIPT_ID_PREFIX_ACU}-plot-context-extract-rules .acu-exclude-rule-start, #${SCRIPT_ID_PREFIX_ACU}-plot-context-extract-rules .acu-exclude-rule-end`, function(this: HTMLElement) {
@@ -245,7 +245,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
       $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-context-exclude-add-rule`).on('click', function(this: HTMLElement) {
         appendExcludeRuleRow_ACU(
           `#${SCRIPT_ID_PREFIX_ACU}-plot-context-exclude-rules`,
-          { startPlaceholder: '开始词（例如：<thinking）', endPlaceholder: '结束词（例如：</thinking>）' },
+          { startPlaceholder: 'Từ bắt đầu (ví dụ: <thinking)', endPlaceholder: 'Từ kết thúc (ví dụ: </thinking>)' },
         );
       });
       $popupInstance_ACU.on('input', `#${SCRIPT_ID_PREFIX_ACU}-plot-context-exclude-rules .acu-exclude-rule-start, #${SCRIPT_ID_PREFIX_ACU}-plot-context-exclude-rules .acu-exclude-rule-end`, function(this: HTMLElement) {
@@ -285,7 +285,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
           });
 
           if (!result) {
-            showToastr_ACU('error', '找不到选中的全局预设。');
+            showToastr_ACU('error', 'Không tìm thấy preset toàn cục đã chọn.');
           }
           // 无论成功或失败，统一刷新所有预设相关 UI
           refreshPresetUIAfterSwitch_ACU();
@@ -303,7 +303,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
           });
 
           if (!result) {
-            showToastr_ACU('error', '找不到选中的当前聊天预设。');
+            showToastr_ACU('error', 'Không tìm thấy preset cuộc trò chuyện hiện tại đã chọn.');
             refreshPresetUIAfterSwitch_ACU();
             return;
           }
@@ -313,8 +313,8 @@ export async function bindPlotEvents_ACU(): Promise<void> {
           showToastr_ACU(
             'success',
             result.followsGlobal
-              ? '当前聊天已改为跟随全局剧情推进预设。'
-              : `当前聊天已切换到预设 "${result.presetName}"。`,
+              ? 'Cuộc trò chuyện hiện tại đã chuyển sang theo preset đẩy cốt truyện toàn cục.'
+              : `Cuộc trò chuyện hiện tại đã chuyển sang preset "${result.presetName}".`,
           );
         });
       }
@@ -332,7 +332,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
         $plotExportPresets.on('click', function(this: HTMLElement) {
           const selectedName = normalizePlotPresetSelectionValue_ACU($plotPresetSelect.val());
           if (isDefaultPlotPresetSelection_ACU(selectedName)) {
-            showToastr_ACU('info', '默认预设不支持直接导出，请先另存为自定义预设。');
+            showToastr_ACU('info', 'Preset mặc định không hỗ trợ xuất trực tiếp, hãy lưu thành preset tùy chỉnh trước.');
             return;
           }
 
@@ -340,7 +340,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
           const selectedPreset = presets.find((p: any) => p.name === selectedName);
 
           if (!selectedPreset) {
-            showToastr_ACU('error', '找不到选中的全局预设。');
+            showToastr_ACU('error', 'Không tìm thấy preset toàn cục đã chọn.');
             return;
           }
 
@@ -357,7 +357,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
 
-          showToastr_ACU('success', `全局预设 "${selectedName}" 已成功导出。`);
+          showToastr_ACU('success', `Đã xuất preset toàn cục "${selectedName}" thành công.`);
         });
       }
 
@@ -371,7 +371,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
             return;
           }
 
-          if (!confirm(`确定要用当前设置覆盖全局预设 "${selectedName}" 吗？`)) {
+          if (!confirm(`Xác nhận dùng cài đặt hiện tại để ghi đè preset toàn cục "${selectedName}"?`)) {
             return;
           }
 
@@ -379,13 +379,13 @@ export async function bindPlotEvents_ACU(): Promise<void> {
           const existingIndex = presets.findIndex((p: any) => p.name === selectedName);
 
           if (existingIndex === -1) {
-            showToastr_ACU('error', '找不到要覆盖的全局预设。');
+            showToastr_ACU('error', 'Không tìm thấy preset toàn cục cần ghi đè.');
             return;
           }
 
           const currentSettings = getCurrentPlotSettingsFromUI_ACU();
           if (!currentSettings || typeof currentSettings !== 'object') {
-            showToastr_ACU('error', '读取当前剧情推进设置失败。');
+            showToastr_ACU('error', 'Đọc cài đặt đẩy cốt truyện hiện tại thất bại.');
             return;
           }
 
@@ -406,7 +406,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
           persistPlotPresetSelectionState_ACU(selectedName, { source: 'ui_global_save', updateGlobal: true, save: false });
           saveSettingsAndNotify_ACU();
           refreshPresetUIAfterSwitch_ACU();
-          showToastr_ACU('success', `全局预设 "${selectedName}" 已被成功覆盖。`);
+          showToastr_ACU('success', `Đã ghi đè preset toàn cục "${selectedName}" thành công.`);
         });
       }
 
@@ -422,11 +422,11 @@ export async function bindPlotEvents_ACU(): Promise<void> {
         $plotDeletePreset.on('click', function(this: HTMLElement) {
           const selectedName = normalizePlotPresetSelectionValue_ACU($plotPresetSelect.val());
           if (isDefaultPlotPresetSelection_ACU(selectedName)) {
-            showToastr_ACU('warning', '默认全局预设不能删除。');
+            showToastr_ACU('warning', 'Không thể xóa preset toàn cục mặc định.');
             return;
           }
 
-          if (!confirm(`确定要删除全局预设 "${selectedName}" 吗？`)) {
+          if (!confirm(`Xác nhận xóa preset toàn cục "${selectedName}"?`)) {
             return;
           }
 
@@ -451,9 +451,9 @@ export async function bindPlotEvents_ACU(): Promise<void> {
 
             // 刷新预设选择器 + 状态卡片 + 可视化编辑器
             refreshPresetUIAfterSwitch_ACU();
-            showToastr_ACU('success', `全局预设 "${selectedName}" 已被删除。`);
+            showToastr_ACU('success', `Đã xóa preset toàn cục "${selectedName}".`);
           } else {
-            showToastr_ACU('error', '找不到要删除的全局预设。');
+            showToastr_ACU('error', 'Không tìm thấy preset toàn cục cần xóa.');
           }
         });
       }
@@ -461,7 +461,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
       // 恢复全局默认提示词
       if ($plotResetDefaults.length) {
         $plotResetDefaults.on('click', function(this: HTMLElement) {
-          if (!confirm('确定要恢复全局默认的剧情推进提示词吗？这将覆盖当前的提示词设置，并重置"标签摘取"。')) {
+          if (!confirm('Xác nhận khôi phục prompt đẩy cốt truyện mặc định toàn cục? Thao tác này sẽ ghi đè cài đặt prompt hiện tại và đặt lại "trích thẻ".')) {
             return;
           }
 
@@ -472,11 +472,11 @@ export async function bindPlotEvents_ACU(): Promise<void> {
           });
 
           if (!result) {
-            showToastr_ACU('error', '恢复全局默认预设失败。');
+            showToastr_ACU('error', 'Khôi phục preset toàn cục mặc định thất bại.');
             return;
           }
 
-          showToastr_ACU('success', '全局剧情推进提示词与"标签摘取"已恢复为默认值。');
+          showToastr_ACU('success', 'Prompt đẩy cốt truyện toàn cục và "trích thẻ" đã khôi phục về mặc định.');
         });
       }
 
@@ -492,7 +492,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
               const importedPresets = JSON.parse(String(e.target?.result || ''));
 
               if (!Array.isArray(importedPresets)) {
-                throw new Error('JSON文件格式不正确，根节点必须是一个数组。');
+                throw new Error('Định dạng tệp JSON không đúng, nút gốc phải là một mảng.');
               }
 
               let currentPresets = settings_ACU.plotSettings.promptPresets || [];
@@ -567,8 +567,8 @@ export async function bindPlotEvents_ACU(): Promise<void> {
                 refreshPresetUIAfterSwitch_ACU();
 
                 let messages = [];
-                if (importedCount > 0) messages.push(`成功导入 ${importedCount} 个新预设。`);
-                if (overwrittenCount > 0) messages.push(`成功覆盖 ${overwrittenCount} 个同名预设。`);
+                if (importedCount > 0) messages.push(`Đã nhập ${importedCount} preset mới.`);
+                if (overwrittenCount > 0) messages.push(`Đã ghi đè ${overwrittenCount} preset cùng tên.`);
                 showToastr_ACU('success', messages.join(' '));
 
                 // 导入后：自动选择第一个有效全局预设并加载到UI（方便继续修改）
@@ -579,11 +579,11 @@ export async function bindPlotEvents_ACU(): Promise<void> {
                   }, 50);
                 }
               } else {
-                showToastr_ACU('warning', '未找到可导入的有效预设。');
+                showToastr_ACU('warning', 'Không tìm thấy preset hợp lệ để nhập.');
               }
             } catch (error) {
               logError_ACU('[剧情推进] 导入预设失败:', error);
-              showToastr_ACU('error', `导入失败: ${error.message}`);
+              showToastr_ACU('error', `Nhập thất bại: ${error.message}`);
             } finally {
               // 清空文件输入框
               $plotPresetFileInput.val('');
@@ -666,7 +666,7 @@ export async function bindPlotEvents_ACU(): Promise<void> {
             phase,
             error: { category: 'unknown' },
           });
-          showToastr_ACU('error', '剧情世界书操作失败，请重试。');
+          showToastr_ACU('error', 'Thao tác sổ thế giới cốt truyện thất bại, vui lòng thử lại.');
         };
         const setPlotEntriesSelection_ACU = async (mode: string) => {
           // mode: 'all' | 'none'

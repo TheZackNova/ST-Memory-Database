@@ -68,11 +68,11 @@ function summaryOf_ACU(decision: MixedStorageDecision_ACU): MixedStorageDecision
 
 function requireCurrentDecision_ACU(decisionId: string): RegisteredMixedStorageDecision_ACU {
   const registered = decisions_ACU.get(decisionId);
-  if (!registered) throw new Error('混合存储决议不存在、已失效或已被替换。');
+  if (!registered) throw new Error('Quyết định lưu trữ hỗn hợp không tồn tại, đã hết hiệu lực hoặc đã bị thay thế.');
   if (!isCurrentScope_ACU(registered.decision)) {
     decisions_ACU.delete(decisionId);
     if (activeDecisionId_ACU === decisionId) activeDecisionId_ACU = null;
-    throw new Error('混合存储决议已失效：当前聊天或隔离范围已变化。');
+    throw new Error('Quyết định lưu trữ hỗn hợp đã hết hiệu lực: cuộc trò chuyện hoặc phạm vi cô lập hiện tại đã thay đổi.');
   }
   return registered;
 }

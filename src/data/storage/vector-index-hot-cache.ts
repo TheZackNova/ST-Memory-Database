@@ -103,7 +103,7 @@ function buildRecordKey_ACU(indexId: string, chunkId: string, chunkKey: string):
 function openDb_ACU(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
         if (!isIdbAvailable_ACU()) {
-            reject(new Error('IndexedDB 不可用'));
+            reject(new Error('IndexedDB không khả dụng'));
             return;
         }
         const request = indexedDB.open(DB_NAME_ACU, DB_VERSION_ACU);
@@ -125,7 +125,7 @@ function openDb_ACU(): Promise<IDBDatabase> {
             }
         };
         request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error || new Error('打开交火向量热缓存失败'));
+        request.onerror = () => reject(request.error || new Error('Mở bộ nhớ đệm nóng vector giao hỏa thất bại'));
     });
 }
 
@@ -228,9 +228,9 @@ export async function trimSummaryVectorHotCacheToBudget_ACU(
                 cursor.continue();
             }
         };
-        request.onerror = () => reject(request.error || new Error('统计交火向量热缓存体积失败'));
+        request.onerror = () => reject(request.error || new Error('Thống kê dung lượng bộ nhớ đệm nóng vector giao hỏa thất bại'));
         tx.oncomplete = () => { db.close(); resolve(bytes); };
-        tx.onerror = () => { db.close(); reject(tx.error || new Error('统计交火向量热缓存体积事务失败')); };
+        tx.onerror = () => { db.close(); reject(tx.error || new Error('Giao dịch thống kê dung lượng bộ nhớ đệm nóng vector giao hỏa thất bại')); };
     });
     if (totalBytes <= maxBytes) return;
     let bytesToFree = totalBytes - maxBytes;
@@ -246,9 +246,9 @@ export async function trimSummaryVectorHotCacheToBudget_ACU(
                 cursor.continue();
             }
         };
-        request.onerror = () => reject(request.error || new Error('交火向量热缓存 LRU 淘汰失败'));
+        request.onerror = () => reject(request.error || new Error('Loại bỏ LRU của bộ nhớ đệm nóng vector giao hỏa thất bại'));
         tx.oncomplete = () => { trimDb.close(); resolve(); };
-        tx.onerror = () => { trimDb.close(); reject(tx.error || new Error('交火向量热缓存 LRU 淘汰事务失败')); };
+        tx.onerror = () => { trimDb.close(); reject(tx.error || new Error('Giao dịch loại bỏ LRU của bộ nhớ đệm nóng vector giao hỏa thất bại')); };
     });
 }
 
@@ -319,7 +319,7 @@ export async function putSummaryVectorHotCacheChunks_ACU(options: VectorIndexHot
                     store.put(record);
                 });
                 tx.oncomplete = () => { db.close(); resolve(); };
-                tx.onerror = () => { db.close(); reject(tx.error || new Error('写入交火向量热缓存事务失败（单文件快照）')); };
+                tx.onerror = () => { db.close(); reject(tx.error || new Error('Giao dịch ghi bộ nhớ đệm nóng vector giao hỏa thất bại (snapshot một tệp)')); };
             });
             await maybeScheduleHotCacheTrim_ACU();
             return;
@@ -373,7 +373,7 @@ export async function putSummaryVectorHotCacheChunks_ACU(options: VectorIndexHot
             };
             tx.onerror = () => {
                 db.close();
-                reject(tx.error || new Error('写入交火向量热缓存事务失败'));
+                reject(tx.error || new Error('Giao dịch ghi bộ nhớ đệm nóng vector giao hỏa thất bại'));
             };
         });
         await maybeScheduleHotCacheTrim_ACU();
@@ -422,9 +422,9 @@ export async function getSummaryVectorHotCacheChunks_ACU(options: VectorIndexHot
                         cursor.continue();
                     }
                 };
-                request.onerror = () => reject(request.error || new Error('读取交火向量热缓存失败（单文件快照）'));
+                request.onerror = () => reject(request.error || new Error('Đọc bộ nhớ đệm nóng vector giao hỏa thất bại (snapshot một tệp)'));
                 tx.oncomplete = () => { db.close(); resolve(loaded); };
-                tx.onerror = () => { db.close(); reject(tx.error || new Error('读取交火向量热缓存事务失败（单文件快照）')); };
+                tx.onerror = () => { db.close(); reject(tx.error || new Error('Giao dịch đọc bộ nhớ đệm nóng vector giao hỏa thất bại (snapshot một tệp)')); };
             });
             if (records.length === 0) return null;
             return records
@@ -456,12 +456,12 @@ export async function getSummaryVectorHotCacheChunks_ACU(options: VectorIndexHot
                     }
                     finishOne();
                 };
-                request.onerror = () => reject(request.error || new Error('读取交火向量热缓存失败'));
+                request.onerror = () => reject(request.error || new Error('Đọc bộ nhớ đệm nóng vector giao hỏa thất bại'));
             });
             tx.oncomplete = () => db.close();
             tx.onerror = () => {
                 db.close();
-                reject(tx.error || new Error('读取交火向量热缓存事务失败'));
+                reject(tx.error || new Error('Giao dịch đọc bộ nhớ đệm nóng vector giao hỏa thất bại'));
             };
         });
         if (records.length !== refs.length || records.some((record) => !record)) return null;
@@ -490,14 +490,14 @@ export async function deleteSummaryVectorHotCacheByIndex_ACU(indexId: string): P
                     cursor.continue();
                 }
             };
-            request.onerror = () => reject(request.error || new Error('清理交火向量热缓存失败'));
+            request.onerror = () => reject(request.error || new Error('Dọn dẹp bộ nhớ đệm nóng vector giao hỏa thất bại'));
             tx.oncomplete = () => {
                 db.close();
                 resolve();
             };
             tx.onerror = () => {
                 db.close();
-                reject(tx.error || new Error('清理交火向量热缓存事务失败'));
+                reject(tx.error || new Error('Giao dịch dọn dẹp bộ nhớ đệm nóng vector giao hỏa thất bại'));
             };
         });
     } catch {}
@@ -525,14 +525,14 @@ export async function deleteSummaryVectorHotCacheByScope_ACU(scope: VectorIndexH
                     cursor.continue();
                 }
             };
-            request.onerror = () => reject(request.error || new Error('按作用域清理交火向量热缓存失败'));
+            request.onerror = () => reject(request.error || new Error('Dọn dẹp bộ nhớ đệm nóng vector giao hỏa theo phạm vi thất bại'));
             tx.oncomplete = () => {
                 db.close();
                 resolve();
             };
             tx.onerror = () => {
                 db.close();
-                reject(tx.error || new Error('按作用域清理交火向量热缓存事务失败'));
+                reject(tx.error || new Error('Giao dịch dọn dẹp bộ nhớ đệm nóng vector giao hỏa theo phạm vi thất bại'));
             };
         });
     } catch {}
@@ -546,11 +546,11 @@ export async function clearSummaryVectorHotCache_ACU(): Promise<void> {
             const store = tx.objectStore(STORE_NAME_ACU);
             const request = store.clear();
             request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error || new Error('清空交火向量热缓存失败'));
+            request.onerror = () => reject(request.error || new Error('Xóa sạch bộ nhớ đệm nóng vector giao hỏa thất bại'));
             tx.oncomplete = () => db.close();
             tx.onerror = () => {
                 db.close();
-                reject(tx.error || new Error('清空交火向量热缓存事务失败'));
+                reject(tx.error || new Error('Giao dịch xóa sạch bộ nhớ đệm nóng vector giao hỏa thất bại'));
             };
         });
     } catch {}
@@ -578,14 +578,14 @@ export async function estimateSummaryVectorHotCache_ACU(indexId?: string): Promi
                     cursor.continue();
                 }
             };
-            request.onerror = () => reject(request.error || new Error('估算交火向量热缓存失败'));
+            request.onerror = () => reject(request.error || new Error('Ước tính bộ nhớ đệm nóng vector giao hỏa thất bại'));
             tx.oncomplete = () => {
                 db.close();
                 resolve({ bytes, count });
             };
             tx.onerror = () => {
                 db.close();
-                reject(tx.error || new Error('估算交火向量热缓存事务失败'));
+                reject(tx.error || new Error('Giao dịch ước tính bộ nhớ đệm nóng vector giao hỏa thất bại'));
             };
         });
     } catch {
@@ -674,14 +674,14 @@ export async function upsertSummaryVectorFlushTask_ACU(input: SummaryVectorIndex
                 };
                 store.put(nextRecord);
             };
-            getRequest.onerror = () => reject(getRequest.error || new Error('读取交火向量 flush task 失败'));
+            getRequest.onerror = () => reject(getRequest.error || new Error('Đọc flush task vector giao hỏa thất bại'));
             tx.oncomplete = () => {
                 db.close();
                 resolve(nextRecord ? cloneFlushTask_ACU(nextRecord) : null);
             };
             tx.onerror = () => {
                 db.close();
-                reject(tx.error || new Error('写入交火向量 flush task 事务失败'));
+                reject(tx.error || new Error('Giao dịch ghi flush task vector giao hỏa thất bại'));
             };
         });
     } catch {
@@ -700,7 +700,7 @@ export async function invalidateSummaryVectorFlushTaskStrict_ACU(input: {
     const isolationKey = normalizeSummaryVectorIsolationKey_ACU(input.isolationKey);
     const sourceTableKey = normalizeKeyPart_ACU(input.sourceTableKey);
     if (!scopeKey || !chatKey || !sourceTableKey) {
-        throw new Error('持久化交火向量 flush 失效墓碑失败：scope 不完整');
+        throw new Error('Lưu bền tombstone vô hiệu flush vector giao hỏa thất bại: scope không đầy đủ');
     }
     const db = await openDb_ACU();
     const record = await new Promise<SummaryVectorIndexFlushTaskRecord_ACU>((resolve, reject) => {
@@ -730,18 +730,18 @@ export async function invalidateSummaryVectorFlushTaskStrict_ACU(input: {
             };
             store.put(nextRecord);
         };
-        request.onerror = () => reject(request.error || new Error('读取交火向量 flush task 以写入失效墓碑失败'));
+        request.onerror = () => reject(request.error || new Error('Đọc flush task vector giao hỏa để ghi tombstone vô hiệu thất bại'));
         tx.oncomplete = () => {
             db.close();
-            if (!nextRecord) reject(new Error('持久化交火向量 flush 失效墓碑失败：记录未生成'));
+            if (!nextRecord) reject(new Error('Lưu bền tombstone vô hiệu flush vector giao hỏa thất bại: bản ghi chưa được tạo'));
             else resolve(cloneFlushTask_ACU(nextRecord));
         };
-        tx.onerror = () => { db.close(); reject(tx.error || new Error('持久化交火向量 flush 失效墓碑事务失败')); };
-        tx.onabort = () => { db.close(); reject(tx.error || new Error('持久化交火向量 flush 失效墓碑事务已中止')); };
+        tx.onerror = () => { db.close(); reject(tx.error || new Error('Giao dịch lưu bền tombstone vô hiệu flush vector giao hỏa thất bại')); };
+        tx.onabort = () => { db.close(); reject(tx.error || new Error('Giao dịch lưu bền tombstone vô hiệu flush vector giao hỏa đã bị hủy')); };
     });
     const verified = await getSummaryVectorFlushTaskStrict_ACU(scopeKey);
     if (!verified || verified.status !== 'invalidated' || verified.generation !== record.generation) {
-        throw new Error(`持久化交火向量 flush 失效墓碑后校验失败：scope=${scopeKey}`);
+        throw new Error(`Kiểm tra sau khi lưu bền tombstone vô hiệu flush vector giao hỏa thất bại: scope=${scopeKey}`);
     }
     return verified;
 }
@@ -755,7 +755,7 @@ export async function assertSummaryVectorFlushGenerationCurrent_ACU(scopeKey: st
 
 export class SummaryVectorFlushGenerationInvalidatedError_ACU extends Error {
     constructor(public readonly scopeKey: string, public readonly expectedGeneration: number, public readonly actualGeneration?: number) {
-        super(`交火向量 flush 代次已失效：scope=${scopeKey}, expected=${expectedGeneration}, actual=${actualGeneration ?? 'missing'}`);
+        super(`Thế hệ flush vector giao hỏa đã hết hiệu lực: scope=${scopeKey}, expected=${expectedGeneration}, actual=${actualGeneration ?? 'missing'}`);
         this.name = 'SummaryVectorFlushGenerationInvalidatedError_ACU';
     }
 }
@@ -800,7 +800,7 @@ export async function reconcileLegacySummaryVectorFlushTaskStrict_ACU(input: {
     const isolationKey = normalizeSummaryVectorIsolationKey_ACU(input.isolationKey);
     const sourceTableKey = normalizeKeyPart_ACU(input.sourceTableKey);
     if (!legacyScopeKey || !canonicalScopeKey || !chatKey || !sourceTableKey) {
-        throw new Error('迁移旧版交火向量 flush task 失败：scope 不完整');
+        throw new Error('Di chuyển flush task vector giao hỏa phiên bản cũ thất bại: scope không đầy đủ');
     }
     if (legacyScopeKey === canonicalScopeKey) {
         const db = await openDb_ACU();
@@ -819,10 +819,10 @@ export async function reconcileLegacySummaryVectorFlushTaskStrict_ACU(input: {
                     task: migrated,
                 };
             };
-            request.onerror = () => reject(request.error || new Error('读取同 key 旧版交火向量 flush task 失败'));
+            request.onerror = () => reject(request.error || new Error('Đọc flush task vector giao hỏa phiên bản cũ cùng key thất bại'));
             tx.oncomplete = () => { db.close(); resolve(result); };
-            tx.onerror = () => { db.close(); reject(tx.error || new Error('迁移同 key 旧版交火向量 flush task 事务失败')); };
-            tx.onabort = () => { db.close(); reject(tx.error || new Error('迁移同 key 旧版交火向量 flush task 事务已中止')); };
+            tx.onerror = () => { db.close(); reject(tx.error || new Error('Giao dịch di chuyển flush task vector giao hỏa phiên bản cũ cùng key thất bại')); };
+            tx.onabort = () => { db.close(); reject(tx.error || new Error('Giao dịch di chuyển flush task vector giao hỏa phiên bản cũ cùng key đã bị hủy')); };
         });
     }
 
@@ -887,20 +887,20 @@ export async function reconcileLegacySummaryVectorFlushTaskStrict_ACU(input: {
             canonicalLoaded = true;
             process();
         };
-        legacyRequest.onerror = () => reject(legacyRequest.error || new Error('读取旧版交火向量 flush task 失败'));
-        canonicalRequest.onerror = () => reject(canonicalRequest.error || new Error('读取 canonical 交火向量 flush task 失败'));
+        legacyRequest.onerror = () => reject(legacyRequest.error || new Error('Đọc flush task vector giao hỏa phiên bản cũ thất bại'));
+        canonicalRequest.onerror = () => reject(canonicalRequest.error || new Error('Đọc flush task vector giao hỏa canonical thất bại'));
         tx.oncomplete = () => {
             db.close();
             resolve(result || { outcome: 'not_found', task: null });
         };
-        tx.onerror = () => { db.close(); reject(tx.error || new Error('迁移旧版交火向量 flush task 事务失败')); };
-        tx.onabort = () => { db.close(); reject(tx.error || new Error('迁移旧版交火向量 flush task 事务已中止')); };
+        tx.onerror = () => { db.close(); reject(tx.error || new Error('Giao dịch di chuyển flush task vector giao hỏa phiên bản cũ thất bại')); };
+        tx.onabort = () => { db.close(); reject(tx.error || new Error('Giao dịch di chuyển flush task vector giao hỏa phiên bản cũ đã bị hủy')); };
     });
 }
 
 export async function getSummaryVectorFlushTaskStrict_ACU(scopeKey: string): Promise<SummaryVectorIndexFlushTaskRecord_ACU | null> {
     const normalizedScopeKey = normalizeKeyPart_ACU(scopeKey);
-    if (!normalizedScopeKey) throw new Error('读取交火向量 flush task 失败：scopeKey 为空');
+    if (!normalizedScopeKey) throw new Error('Đọc flush task vector giao hỏa thất bại: scopeKey rỗng');
     const db = await openDb_ACU();
     return await new Promise((resolve, reject) => {
         const tx = db.transaction(FLUSH_TASK_STORE_NAME_ACU, 'readonly');
@@ -908,18 +908,18 @@ export async function getSummaryVectorFlushTaskStrict_ACU(scopeKey: string): Pro
         const request = store.get(normalizedScopeKey) as IDBRequest<SummaryVectorIndexFlushTaskRecord_ACU | undefined>;
         let result: SummaryVectorIndexFlushTaskRecord_ACU | null = null;
         request.onsuccess = () => { result = request.result ? cloneFlushTask_ACU(request.result) : null; };
-        request.onerror = () => reject(request.error || new Error('读取交火向量 flush task 失败'));
+        request.onerror = () => reject(request.error || new Error('Đọc flush task vector giao hỏa thất bại'));
         tx.oncomplete = () => {
             db.close();
             resolve(result);
         };
         tx.onerror = () => {
             db.close();
-            reject(tx.error || new Error('读取交火向量 flush task 事务失败'));
+            reject(tx.error || new Error('Giao dịch đọc flush task vector giao hỏa thất bại'));
         };
         tx.onabort = () => {
             db.close();
-            reject(tx.error || new Error('读取交火向量 flush task 事务已中止'));
+            reject(tx.error || new Error('Giao dịch đọc flush task vector giao hỏa đã bị hủy'));
         };
     });
 }
@@ -957,14 +957,14 @@ export async function listSummaryVectorFlushTasks_ACU(scope?: VectorIndexHotCach
                     cursor.continue();
                 }
             };
-            request.onerror = () => reject(request.error || new Error('列出交火向量 flush task 失败'));
+            request.onerror = () => reject(request.error || new Error('Liệt kê flush task vector giao hỏa thất bại'));
             tx.oncomplete = () => {
                 db.close();
                 resolve(records.sort((left, right) => left.debounceUntil - right.debounceUntil || left.scopeKey.localeCompare(right.scopeKey)));
             };
             tx.onerror = () => {
                 db.close();
-                reject(tx.error || new Error('列出交火向量 flush task 事务失败'));
+                reject(tx.error || new Error('Giao dịch liệt kê flush task vector giao hỏa thất bại'));
             };
         });
     } catch {
@@ -974,28 +974,28 @@ export async function listSummaryVectorFlushTasks_ACU(scope?: VectorIndexHotCach
 
 export async function deleteSummaryVectorFlushTaskStrict_ACU(scopeKey: string): Promise<void> {
     const normalizedScopeKey = normalizeKeyPart_ACU(scopeKey);
-    if (!normalizedScopeKey) throw new Error('删除交火向量 flush task 失败：scopeKey 为空');
+    if (!normalizedScopeKey) throw new Error('Xóa flush task vector giao hỏa thất bại: scopeKey rỗng');
     const db = await openDb_ACU();
     await new Promise<void>((resolve, reject) => {
         const tx = db.transaction(FLUSH_TASK_STORE_NAME_ACU, 'readwrite');
         const store = tx.objectStore(FLUSH_TASK_STORE_NAME_ACU);
         const request = store.delete(normalizedScopeKey);
-        request.onerror = () => reject(request.error || new Error('删除交火向量 flush task 失败'));
+        request.onerror = () => reject(request.error || new Error('Xóa flush task vector giao hỏa thất bại'));
         tx.oncomplete = () => {
             db.close();
             resolve();
         };
         tx.onerror = () => {
             db.close();
-            reject(tx.error || new Error('删除交火向量 flush task 事务失败'));
+            reject(tx.error || new Error('Giao dịch xóa flush task vector giao hỏa thất bại'));
         };
         tx.onabort = () => {
             db.close();
-            reject(tx.error || new Error('删除交火向量 flush task 事务已中止'));
+            reject(tx.error || new Error('Giao dịch xóa flush task vector giao hỏa đã bị hủy'));
         };
     });
     if (await getSummaryVectorFlushTaskStrict_ACU(normalizedScopeKey)) {
-        throw new Error(`删除交火向量 flush task 后校验失败：scope=${normalizedScopeKey}`);
+        throw new Error(`Kiểm tra sau khi xóa flush task vector giao hỏa thất bại: scope=${normalizedScopeKey}`);
     }
 }
 
@@ -1006,7 +1006,7 @@ export async function deleteSummaryVectorFlushTaskStrict_ACU(scopeKey: string): 
 export async function markSummaryVectorFlushTaskReadyIfGenerationMatchesStrict_ACU(scopeKey: string, expectedGeneration: number): Promise<boolean> {
     const normalizedScopeKey = normalizeKeyPart_ACU(scopeKey);
     const normalizedGeneration = Math.max(0, Number(expectedGeneration) || 0);
-    if (!normalizedScopeKey) throw new Error('按代次完成交火向量 flush task 失败：scopeKey 为空');
+    if (!normalizedScopeKey) throw new Error('Hoàn tất flush task vector giao hỏa theo thế hệ thất bại: scopeKey rỗng');
     const db = await openDb_ACU();
     const completed = await new Promise<boolean>((resolve, reject) => {
         const tx = db.transaction(FLUSH_TASK_STORE_NAME_ACU, 'readwrite');
@@ -1028,23 +1028,23 @@ export async function markSummaryVectorFlushTaskReadyIfGenerationMatchesStrict_A
                 });
             }
         };
-        getRequest.onerror = () => reject(getRequest.error || new Error('按代次完成交火向量 flush task 读取失败'));
+        getRequest.onerror = () => reject(getRequest.error || new Error('Đọc khi hoàn tất flush task vector giao hỏa theo thế hệ thất bại'));
         tx.oncomplete = () => {
             db.close();
             resolve(shouldComplete);
         };
         tx.onerror = () => {
             db.close();
-            reject(tx.error || new Error('按代次完成交火向量 flush task 事务失败'));
+            reject(tx.error || new Error('Giao dịch hoàn tất flush task vector giao hỏa theo thế hệ thất bại'));
         };
         tx.onabort = () => {
             db.close();
-            reject(tx.error || new Error('按代次完成交火向量 flush task 事务已中止'));
+            reject(tx.error || new Error('Giao dịch hoàn tất flush task vector giao hỏa theo thế hệ đã bị hủy'));
         };
     });
     const verified = await getSummaryVectorFlushTaskStrict_ACU(normalizedScopeKey);
     if (completed && (!verified || verified.generation !== normalizedGeneration || verified.status !== 'ready')) {
-        throw new Error(`按代次完成交火向量 flush task 后校验失败：scope=${normalizedScopeKey}`);
+        throw new Error(`Kiểm tra sau khi hoàn tất flush task vector giao hỏa theo thế hệ thất bại: scope=${normalizedScopeKey}`);
     }
     return completed;
 }

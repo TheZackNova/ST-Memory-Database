@@ -43,7 +43,7 @@ describe('relevanceGate 三轨', () => {
     const report = relevanceGate_ACU(base, '');
     expect(report.reachable).toEqual([]);
     expect(report.ripeRumors).toEqual([]);
-    expect(report.secludedNote).toContain('传闻渠道不可用');
+    expect(report.secludedNote).toContain('kênh tin đồn không khả dụng');
     expect(report.collided).toEqual(['seed-1']);
   });
 

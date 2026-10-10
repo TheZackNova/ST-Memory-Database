@@ -124,7 +124,7 @@ export function createNativeStBackend_ACU(getStApi: GetStApi_ACU): NativeStBacke
     async function loadBookOrThrow(bookName: string): Promise<any> {
         const api = ctx();
         if (!api || typeof api.loadWorldInfo !== 'function') {
-            throw new Error('SillyTavern loadWorldInfo 接口不可用');
+            throw new Error('API loadWorldInfo của SillyTavern không khả dụng');
         }
         try {
             const data = await api.loadWorldInfo(bookName);
@@ -145,7 +145,7 @@ export function createNativeStBackend_ACU(getStApi: GetStApi_ACU): NativeStBacke
     async function saveBook(bookName: string, data: any): Promise<void> {
         const api = ctx();
         if (!api || typeof api.saveWorldInfo !== 'function') {
-            throw new Error('SillyTavern saveWorldInfo 接口不可用');
+            throw new Error('API saveWorldInfo của SillyTavern không khả dụng');
         }
         await api.saveWorldInfo(bookName, data, true);
     }
@@ -352,7 +352,7 @@ export function createNativeStBackend_ACU(getStApi: GetStApi_ACU): NativeStBacke
     async function triggerSlash(command: string): Promise<string> {
         const api = ctx();
         if (!api || typeof api.executeSlashCommandsWithOptions !== 'function') {
-            throw new Error('SillyTavern executeSlashCommandsWithOptions 接口不可用');
+            throw new Error('API executeSlashCommandsWithOptions của SillyTavern không khả dụng');
         }
         const result = await api.executeSlashCommandsWithOptions(command);
         return typeof result?.pipe === 'string' ? result.pipe : '';

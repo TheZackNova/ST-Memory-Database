@@ -44,16 +44,16 @@ export function createTableFillStagingSession_ACU(
 
   const assertScope = (phase: string): StagingBucketResult_ACU | null => {
     if (discarded) {
-      return { ok: false, error: `staging session 已释放，拒绝 ${phase}。`, errorCategory: 'precondition' };
+      return { ok: false, error: `staging session đã được giải phóng, từ chối ${phase}. `, errorCategory: 'precondition' };
     }
     try { assertCurrent?.(); }
-    catch { return { ok: false, error: 'staging session 租约已失效。', errorCategory: 'precondition' }; }
+    catch { return { ok: false, error: 'Lease của staging session đã hết hiệu lực.', errorCategory: 'precondition' }; }
     if (run.storageMode && run.storageMode !== getCurrentStorageMode()) {
-      return { ok: false, error: 'staging session 存储模式已变化。', errorCategory: 'precondition' };
+      return { ok: false, error: 'Chế độ lưu trữ của staging session đã thay đổi.', errorCategory: 'precondition' };
     }
     if (String(currentChatFileIdentifier_ACU || '') !== String(run.chatKey || '')
       || String(getCurrentIsolationKey_ACU() || '') !== String(run.isolationKey || '')) {
-      return { ok: false, error: `staging session ${phase} 检测到聊天或隔离标识已切换。`, errorCategory: 'precondition' };
+      return { ok: false, error: `staging session ${phase} phát hiện cuộc trò chuyện hoặc định danh cô lập đã chuyển.`, errorCategory: 'precondition' };
     }
     return null;
   };
@@ -81,10 +81,10 @@ export function createTableFillStagingSession_ACU(
       if (scopeError) return scopeError;
       if (run.logicalTarget) {
         if (input.saveTargetIndex !== undefined || JSON.stringify(input.logicalTarget) !== JSON.stringify(run.logicalTarget)) {
-          return { ok: false, error: 'staging session 逻辑楼层身份不匹配。', errorCategory: 'precondition' };
+          return { ok: false, error: 'Danh tính tầng logic của staging session không khớp.', errorCategory: 'precondition' };
         }
       } else if (input.logicalTarget || !Number.isSafeInteger(input.saveTargetIndex) || input.saveTargetIndex! < 0) {
-        return { ok: false, error: 'staging session 物理目标下标无效。', errorCategory: 'precondition' };
+        return { ok: false, error: 'Chỉ số đích vật lý của staging session không hợp lệ.', errorCategory: 'precondition' };
       }
       const mergeOverlay = (data: Record<string, any>) => {
         const stale = assertScope('mergeOverlay');
@@ -105,7 +105,7 @@ export function createTableFillStagingSession_ACU(
             await releaseDetached();
             return {
               ok: false,
-              error: loaded.error || 'staging detached SQLite 未能就绪。',
+              error: loaded.error || 'staging detached SQLite chưa sẵn sàng.',
               errorCategory: 'infrastructure',
             };
           }
@@ -120,7 +120,7 @@ export function createTableFillStagingSession_ACU(
             await releaseDetached();
             return {
               ok: false,
-              error: parseResult?.error || 'staging SQL 执行失败。',
+              error: parseResult?.error || 'Thực thi staging SQL thất bại.',
               errorCategory: 'model',
             };
           }
@@ -146,7 +146,7 @@ export function createTableFillStagingSession_ACU(
                 ok: false,
                 error: (parseResult && typeof parseResult.error === 'string' && parseResult.error)
                   ? parseResult.error
-                  : 'staging DSL 应用失败。',
+                  : 'Áp dụng staging DSL thất bại.',
                 errorCategory: 'model',
               };
             }
@@ -156,7 +156,7 @@ export function createTableFillStagingSession_ACU(
             if (unauthorized.length > 0) {
               return {
                 ok: false,
-                error: `staging DSL 越权修改了非目标表（${unauthorized.join(', ')}）。`,
+                error: `staging DSL đã sửa vượt quyền các bảng không phải đích (${unauthorized.join(', ')}).`,
                 errorCategory: 'model',
               };
             }

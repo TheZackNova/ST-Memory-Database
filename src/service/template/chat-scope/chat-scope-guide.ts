@@ -51,7 +51,7 @@ function normalizeGuideRowIdentitiesForUse_ACU(guideData: Record<string, any> | 
     // 会被伪造为 [null]，从而把损坏结构误判成可安全插入 row_id 的空表。
     const result = normalizeSheetGuideRowIds_ACU(guideData);
     if (result.blockers.length > 0) {
-        throw new Error(`Sheet Guide row_id 结构无效：${result.blockers.join('；')}`);
+        throw new Error(`Cấu trúc row_id của Sheet Guide không hợp lệ: ${result.blockers.join('; ')}`);
     }
     return normalizeGuideData_ACU(result.guideData);
 }
@@ -133,18 +133,18 @@ export function shouldUseOpeningSeedRows_ACU(): boolean {
           const legacyRaw = first ? first[LEGACY_CHAT_TABLE_HEADER_GUIDE_FIELD_ACU] : null;
           const legacyObj = legacyRaw ? ((typeof legacyRaw === 'string') ? safeJsonParse_ACU(legacyRaw, null) : legacyRaw) : null;
           if (readOnly && legacyRaw != null && (!legacyObj || typeof legacyObj !== 'object' || Array.isArray(legacyObj))) {
-              throw new Error('只读旧表头来源损坏，禁止建立桥接模板。');
+              throw new Error('Nguồn tiêu đề cột cũ chỉ đọc bị hỏng, cấm thiết lập mẫu cầu nối.');
           }
           const legacyTags = legacyObj?.tags;
           if (readOnly && legacyTags !== undefined
               && (!legacyTags || typeof legacyTags !== 'object' || Array.isArray(legacyTags))) {
-              throw new Error('只读旧表头标签容器损坏，禁止回退默认模板。');
+              throw new Error('Vùng chứa nhãn tiêu đề cột cũ chỉ đọc bị hỏng, cấm quay về mẫu mặc định.');
           }
           const legacySlot = (legacyTags && typeof legacyTags === 'object') ? legacyTags[normalizedKey] : null;
           const legacyHeaders = Array.isArray(legacySlot?.headers) ? legacySlot.headers : null;
           if (readOnly && legacySlot != null && (!legacyHeaders || Array.isArray(legacySlot)
               || typeof legacySlot !== 'object')) {
-              throw new Error('只读旧表头槽位损坏，禁止以缺失模板替代。');
+              throw new Error('Vị trí tiêu đề cột cũ chỉ đọc bị hỏng, cấm thay bằng mẫu bị thiếu.');
           }
           if (!legacyHeaders || legacyHeaders.length === 0) return null;
 
@@ -153,7 +153,7 @@ export function shouldUseOpeningSeedRows_ACU(): boolean {
               .filter((uid: any) => typeof uid === 'string' && uid.startsWith('sheet_'));
           if (readOnly && (orderedUids.length !== legacyHeaders.length
               || new Set(orderedUids).size !== orderedUids.length)) {
-              throw new Error('只读旧表头身份缺失或重复，禁止丢弃损坏映射。');
+              throw new Error('Danh tính tiêu đề cột cũ chỉ đọc bị thiếu hoặc trùng, cấm loại bỏ ánh xạ bị hỏng.');
           }
           if (orderedUids.length === 0) return null;
 
@@ -163,7 +163,7 @@ export function shouldUseOpeningSeedRows_ACU(): boolean {
           const out: any = { mate: { type: 'chatSheets', version: CHAT_SHEET_GUIDE_VERSION_ACU } };
           orderedUids.forEach((uid: string, idx: number) => {
               if (readOnly && !templateObj?.[uid]) {
-                  throw new Error('只读旧表头缺少对应模板结构，不能伪造桥接基线。');
+                  throw new Error('Tiêu đề cột cũ chỉ đọc thiếu cấu trúc mẫu tương ứng, không được giả mạo đường cơ sở cầu nối.');
               }
               const base = (templateObj && templateObj[uid])
                   ? JSON.parse(JSON.stringify(templateObj[uid]))
@@ -193,7 +193,7 @@ export function shouldUseOpeningSeedRows_ACU(): boolean {
       const encounteredSet = new Set();
       const appendTables = (dataObj: Record<string, any> | null, { summaryOnly = null as boolean | null } = {}) => {
           if (readOnly && dataObj != null && (typeof dataObj !== 'object' || Array.isArray(dataObj))) {
-              throw new Error('只读历史模板来源损坏，禁止忽略后继续桥接。');
+              throw new Error('Nguồn mẫu lịch sử chỉ đọc bị hỏng, cấm bỏ qua rồi tiếp tục cầu nối.');
           }
           if (!dataObj || typeof dataObj !== 'object' || Array.isArray(dataObj)) return;
           Object.keys(dataObj).forEach(key => {
@@ -256,9 +256,9 @@ export function shouldUseOpeningSeedRows_ACU(): boolean {
   }
 
   function getLegacyTemplateSnapshotLabel_ACU(source = 'legacy_frozen') {
-      if (source === 'legacy_history_frozen') return '旧对话历史模板快照';
-      if (source === 'legacy_header_frozen') return '旧版表头冻结模板';
-      return '旧版聊天冻结模板';
+      if (source === 'legacy_history_frozen') return 'Snapshot mẫu lịch sử hội thoại cũ';
+      if (source === 'legacy_header_frozen') return 'Mẫu đóng băng tiêu đề cột bản cũ';
+      return 'Mẫu đóng băng cuộc trò chuyện bản cũ';
   }
 
   function buildChatTemplateScopeStateFromGuideData_ACU({ isolationKey = getCurrentIsolationKey_ACU(), presetName = '', source = 'legacy_frozen', originGlobalName = '', originGlobalRevision = 0, updatedAt = Date.now(), guideData = null as Record<string, any> | null } = {}) {
@@ -306,7 +306,7 @@ export function shouldUseOpeningSeedRows_ACU(): boolean {
           && (!legacySlot || typeof legacySlot !== 'object' || Array.isArray(legacySlot)
               || legacySlot.templateScopeMode !== undefined
                   && !['inherit_global', 'chat_override', 'preset_link'].includes(legacySlot.templateScopeMode))) {
-          throw new Error('只读旧 guide 槽位或作用域损坏，禁止回退其它模板。');
+          throw new Error('Vị trí hoặc phạm vi guide cũ chỉ đọc bị hỏng, cấm quay về mẫu khác.');
       }
       const hasExplicitLegacyScopeMode = typeof legacySlot?.templateScopeMode === 'string' && legacySlot.templateScopeMode.trim() !== '';
       const legacySlotMode = hasExplicitLegacyScopeMode

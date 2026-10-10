@@ -26,18 +26,18 @@ import type { WorldSimulationPromptSegment_ACU } from '../../service/simulation/
 import { useAgentToolMode } from './useAgentToolMode';
 
 const TASK_STATUS_LABELS_ACU: Record<WorldSimulationTaskStatus_ACU, string> = {
-  drafting: '运行中',
-  running: '运行中',
-  stopping_after_inflight: '正在停止',
-  paused: '已暂停',
-  completed: '已完成',
-  failed: '已失败',
-  abandoned: '已中止',
+  drafting: 'Đang chạy',
+  running: 'Đang chạy',
+  stopping_after_inflight: 'Đang dừng',
+  paused: 'Đã tạm dừng',
+  completed: 'Đã hoàn tất',
+  failed: 'Đã thất bại',
+  abandoned: 'Đã hủy',
 };
 
 function errorMessage_ACU(error: unknown): string {
   if (error instanceof WorldSimulationValidationError_ACU) return error.error.message;
-  return error instanceof Error ? error.message : '格林推演操作失败';
+  return error instanceof Error ? error.message : 'Thao tác mô phỏng thế giới thất bại';
 }
 
 /** 严格读取失败时给 UI 的结构化文案：保留错误码，用户能据此判断是数据损坏还是聊天不可用。 */
@@ -75,7 +75,7 @@ export function projectWorldSimulationSessionFromConversation_ACU(
               : 'tool_read';
       return {
         kind: persistedKind ?? fallbackKind,
-        title: message.title || message.digest || (message.kind === 'user' ? '你的消息' : '历史会话'),
+        title: message.title || message.digest || (message.kind === 'user' ? 'Tin nhắn của bạn' : 'Phiên lịch sử'),
         detail: message.text,
         agentName: message.agentName,
         ok: message.ok,
@@ -188,25 +188,25 @@ export function useWorldSimulationRuntime() {
   // 停止原因与最近错误直接并入状态文案，用户不用再翻别处找原因（与智能续写 statusText 同构）。
   const statusText = computed(() => {
     const current = task.value;
-    if (!current) return '尚未创建任务';
+    if (!current) return 'Chưa tạo tác vụ';
     const parts: string[] = [TASK_STATUS_LABELS_ACU[current.status] ?? current.status];
     if (current.stopReason && ['paused', 'completed', 'failed', 'abandoned'].includes(current.status)) {
       parts.push(WORLD_SIMULATION_STOP_REASON_LABELS_ACU[current.stopReason] ?? current.stopReason);
     }
     const lastError = envelope.value?.lastError;
-    if (lastError && ['paused', 'failed'].includes(current.status)) parts.push(`最近错误：${lastError.message}`);
+    if (lastError && ['paused', 'failed'].includes(current.status)) parts.push(`Lỗi gần nhất: ${lastError.message}`);
     return parts.join(' · ');
   });
   const stageText = computed(() => {
-    if (!task.value) return '尚未创建任务';
-    return activeStage.value ? `第 ${activeStage.value.stageNumber} 阶段` : '计划待创建';
+    if (!task.value) return 'Chưa tạo tác vụ';
+    return activeStage.value ? `Giai đoạn ${activeStage.value.stageNumber}` : 'Kế hoạch chờ tạo';
   });
   const revisionText = computed(() => (activeRevision.value ? `revision ${activeRevision.value.revision}` : ''));
   const anchorText = computed(() => {
     const current = anchor.value;
     return !current ? '' : 'logicalRef' in current
-      ? `逻辑回合 ${current.logicalRef.turnId}`
-      : `第 ${current.messageIndex + 1} 楼 · swipe ${Number(current.swipeId) + 1}`;
+      ? `Lượt logic ${current.logicalRef.turnId}`
+      : `Tầng ${current.messageIndex + 1} · swipe ${Number(current.swipeId) + 1}`;
   });
 
   /**
@@ -215,18 +215,18 @@ export function useWorldSimulationRuntime() {
    */
   function reportSendOutcome_ACU(result: WorldSimulationOrchestratorResult_ACU | null): boolean {
     if (!result) {
-      toast.error('当前聊天没有 assistant 楼层，格林推演无法确定写入锚点。', { muteable: false });
+      toast.error('Cuộc trò chuyện hiện tại không có tầng assistant, mô phỏng thế giới không thể xác định mốc neo ghi.', { muteable: false });
       return false;
     }
     if (result.status === 'skipped') {
-      if (result.reason === 'duplicate') toast.info('该楼层已有一次推演在处理这条指令。');
-      else if (result.reason === 'busy') toast.error('格林推演正在运行，请先停止再发送。', { muteable: false });
-      else if (result.reason === 'disabled') toast.info('自动触发已关闭。');
-      else toast.info('推演已排队，将在当前运行结束后开始。');
+      if (result.reason === 'duplicate') toast.info('Tầng này đã có một lần mô phỏng đang xử lý chỉ thị này.');
+      else if (result.reason === 'busy') toast.error('Mô phỏng thế giới đang chạy, vui lòng dừng trước rồi mới gửi.', { muteable: false });
+      else if (result.reason === 'disabled') toast.info('Đã tắt tự động kích hoạt.');
+      else toast.info('Mô phỏng đã được xếp hàng, sẽ bắt đầu sau khi lần chạy hiện tại kết thúc.');
       return false;
     }
     if (result.status === 'cancelled') {
-      toast.info('本次格林推演已停止，发送新指令即可从中断处继续。');
+      toast.info('Lần mô phỏng thế giới này đã dừng, gửi chỉ thị mới là có thể tiếp tục từ điểm bị gián đoạn.');
       return true;
     }
     if (result.status === 'failed') {
@@ -252,7 +252,7 @@ export function useWorldSimulationRuntime() {
   async function stop(): Promise<void> {
     const chatIdentity = snapshot.value?.session.chatIdentity ?? null;
     if (chatIdentity && isWorldSimulationSessionRunning_ACU(chatIdentity)) {
-      logWorldSimulationSession_ACU(chatIdentity, { kind: 'run_failed', title: '已停止', detail: '用户停止', ok: false });
+      logWorldSimulationSession_ACU(chatIdentity, { kind: 'run_failed', title: 'Đã dừng', detail: 'Người dùng dừng', ok: false });
     }
     try {
       await runtime().stop();
@@ -293,7 +293,7 @@ export function useWorldSimulationRuntime() {
     try {
       await runtime().saveUserRequirements(requirements);
       refresh();
-      toast.success('已保存用户要求。');
+      toast.success('Đã lưu yêu cầu của người dùng.');
       return true;
     } catch (cause) {
       toast.error(errorMessage_ACU(cause), { muteable: false });
@@ -314,7 +314,7 @@ export function useWorldSimulationRuntime() {
     try {
       const outcome = await runtime().clearData();
       refresh();
-      toast.success(`已清空格林推演任务、账本、会话记录与 ${outcome.clearedFloors} 个楼层的资料快照，正文未改动。`);
+      toast.success(`Đã xóa trống tác vụ mô phỏng thế giới, sổ cái, bản ghi phiên và snapshot dữ liệu của ${outcome.clearedFloors} tầng; nội dung không bị thay đổi.`);
       return true;
     } catch (cause) {
       toast.error(errorMessage_ACU(cause), { muteable: false });
@@ -345,15 +345,15 @@ export function useWorldSimulationRuntime() {
     try {
       raw = JSON.parse(text);
     } catch {
-      throw new Error('导入文件不是合法的 JSON。');
+      throw new Error('Tệp nhập không phải JSON hợp lệ.');
     }
-    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('提示词 JSON 必须是对象（含 agentPrompts）。');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('JSON prompt phải là đối tượng (gồm agentPrompts).');
     const agentRaw = (raw as Record<string, unknown>).agentPrompts;
-    if (!agentRaw || typeof agentRaw !== 'object' || Array.isArray(agentRaw)) throw new Error('提示词 JSON 缺少 agentPrompts 对象。');
+    if (!agentRaw || typeof agentRaw !== 'object' || Array.isArray(agentRaw)) throw new Error('JSON prompt thiếu đối tượng agentPrompts.');
     try {
       return adaptWorldSimulationAgentPromptsToToolMode_ACU(validateWorldSimulationAgentPrompts_ACU(agentRaw, 'load'), toolMode.mode.value);
     } catch (cause) {
-      throw new Error(`提示词校验失败：${errorMessage_ACU(cause)}`);
+      throw new Error(`Kiểm tra prompt thất bại: ${errorMessage_ACU(cause)}`);
     }
   }
 
@@ -369,8 +369,8 @@ export function useWorldSimulationRuntime() {
     if (chatIdentity && readWorldSimulationSessionLog_ACU(chatIdentity).length) {
       logWorldSimulationSession_ACU(chatIdentity, {
         kind: 'thought',
-        title: '楼层已变化，会话已按现存楼层重新加载',
-        detail: '被删除或重新生成的楼层上的推演记录已随楼层一起回退；账本与锚点也按仍存在的正文楼层重算。',
+        title: 'Tầng đã thay đổi, phiên đã được nạp lại theo các tầng hiện còn',
+        detail: 'Bản ghi mô phỏng trên các tầng bị xóa hoặc tạo lại đã được hoàn tác cùng tầng; sổ cái và mốc neo cũng được tính lại theo các tầng nội dung còn tồn tại.',
       });
     }
   }

@@ -59,27 +59,27 @@ function fail_ACU(code: ContinuationErrorCode_ACU, message: string, details?: Re
 
 function requireKeys_ACU(value: Record<string, unknown>, keys: readonly string[], path: string, optionalKeys: readonly string[] = []): void {
   for (const key of keys) {
-    if (!Object.prototype.hasOwnProperty.call(value, key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `缺少持久化字段：${path}.${key}`, { path: `${path}.${key}` });
+    if (!Object.prototype.hasOwnProperty.call(value, key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Thiếu trường lưu trữ: ${path}.${key}`, { path: `${path}.${key}` });
   }
   const allKeys = [...keys, ...optionalKeys];
   for (const key of Object.keys(value)) {
-    if (!allKeys.includes(key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `存在未知持久化字段：${path}.${key}`, { path: `${path}.${key}` });
+    if (!allKeys.includes(key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Có trường lưu trữ không xác định: ${path}.${key}`, { path: `${path}.${key}` });
   }
 }
 
 function requireString_ACU(value: unknown, path: string): string {
-  if (typeof value !== 'string') fail_ACU('CONTINUATION_ENVELOPE_INVALID', `字段必须是字符串：${path}`, { path });
+  if (typeof value !== 'string') fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Trường phải là chuỗi: ${path}`, { path });
   return value;
 }
 
 function requireBoolean_ACU(value: unknown, path: string): boolean {
-  if (typeof value !== 'boolean') fail_ACU('CONTINUATION_ENVELOPE_INVALID', `字段必须是布尔值：${path}`, { path });
+  if (typeof value !== 'boolean') fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Trường phải là giá trị boolean: ${path}`, { path });
   return value;
 }
 
 function requireInteger_ACU(value: unknown, path: string, minimum?: number): number {
   if (typeof value !== 'number' || !Number.isInteger(value) || (minimum !== undefined && value < minimum)) {
-    fail_ACU('CONTINUATION_ENVELOPE_INVALID', `字段必须是${minimum === undefined ? '' : `不小于 ${minimum} 的`}整数：${path}`, { path });
+    fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Trường phải là số nguyên${minimum === undefined ? '' : ` không nhỏ hơn ${minimum}`}: ${path}`, { path });
   }
   return value;
 }
@@ -87,23 +87,23 @@ function requireInteger_ACU(value: unknown, path: string, minimum?: number): num
 /** 校验 0 到 maximum 之间的整数。上界存在的意义是：设得过大等于关闭兜底，应显式选 0 而不是靠大数糊弄。 */
 function requireBoundedInteger_ACU(value: unknown, path: string, maximum: number): number {
   if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > maximum) {
-    fail_ACU('CONTINUATION_ENVELOPE_INVALID', `字段必须是 0 到 ${maximum} 之间的整数：${path}`, { path });
+    fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Trường phải là số nguyên từ 0 đến ${maximum}: ${path}`, { path });
   }
   return value;
 }
 
 function requireEnum_ACU<T extends string>(value: unknown, allowed: readonly T[], path: string): T {
   if (typeof value !== 'string' || !allowed.includes(value as T)) {
-    fail_ACU('CONTINUATION_ENVELOPE_INVALID', `字段枚举值非法：${path}`, { path });
+    fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Giá trị enum của trường không hợp lệ: ${path}`, { path });
   }
   return value as T;
 }
 
 
 function validateRules_ACU(value: unknown, path: string): { start: string; end: string }[] {
-  if (!Array.isArray(value)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `字段必须是数组：${path}`, { path });
+  if (!Array.isArray(value)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Trường phải là mảng: ${path}`, { path });
   return value.map((rule, index) => {
-    if (!isRecord_ACU(rule)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `规则必须是对象：${path}[${index}]`, { path: `${path}[${index}]` });
+    if (!isRecord_ACU(rule)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Quy tắc phải là đối tượng: ${path}[${index}]`, { path: `${path}[${index}]` });
     requireKeys_ACU(rule, ['start', 'end'], `${path}[${index}]`);
     return { start: requireString_ACU(rule.start, `${path}[${index}].start`), end: requireString_ACU(rule.end, `${path}[${index}].end`) };
   });
@@ -115,7 +115,7 @@ function validateRules_ACU(value: unknown, path: string): { start: string; end: 
  * @returns 逐组校验后的提示词集合
  */
 function validateAgentPrompts_ACU(raw: unknown): ContinuationSettings_ACU['agentPrompts'] {
-  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.agentPrompts 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.agentPrompts phải là đối tượng');
   requireKeys_ACU(raw, CONTINUATION_AGENT_PROMPT_KEYS_ACU, 'settings.agentPrompts');
   return {
     main: validateContinuationPromptSegments_ACU(raw.main, 'load', 'CONTINUATION_ENVELOPE_INVALID'),
@@ -906,7 +906,7 @@ function migrateV26OutlinePromptToV27_ACU(raw: unknown): unknown {
  * @returns 逐角色校验后的渠道配置
  */
 function validateAgentApiPresets_ACU(raw: unknown): ContinuationSettings_ACU['agentApiPresets'] {
-  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.agentApiPresets 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.agentApiPresets phải là đối tượng');
   // 新增渠道角色时存量信封必然缺键。提示词组有版本强刷兜底，渠道配置没有——不在这里补默认
   // 就会让所有旧信封报「缺少持久化字段」而整体加载失败。缺失即 inherit，与新建默认一致。
   for (const role of CONTINUATION_AGENT_API_PRESET_ROLES_ACU) {
@@ -916,9 +916,9 @@ function validateAgentApiPresets_ACU(raw: unknown): ContinuationSettings_ACU['ag
   const result = {} as ContinuationSettings_ACU['agentApiPresets'];
   for (const role of CONTINUATION_AGENT_API_PRESET_ROLES_ACU) {
     const choice = raw[role];
-    if (!isRecord_ACU(choice)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `settings.agentApiPresets.${role} 必须是对象`);
+    if (!isRecord_ACU(choice)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `settings.agentApiPresets.${role} phải là đối tượng`);
     requireKeys_ACU(choice, ['mode', 'presetName'], `settings.agentApiPresets.${role}`);
-    if (!['inherit', 'current', 'fixed'].includes(choice.mode as string)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `settings.agentApiPresets.${role}.mode 非法`);
+    if (!['inherit', 'current', 'fixed'].includes(choice.mode as string)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `settings.agentApiPresets.${role}.mode không hợp lệ`);
     result[role] = { mode: choice.mode as 'inherit' | 'current' | 'fixed', presetName: requireString_ACU(choice.presetName, `settings.agentApiPresets.${role}.presetName`) };
   }
   return result;
@@ -939,20 +939,20 @@ function validateReadTokenBudget_ACU(raw: unknown): number | string {
     const numeric = Number(trimmed);
     if (Number.isInteger(numeric) && numeric >= 1) return numeric;
   }
-  fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.agentReadTokenBudget 必须是正整数或 1%-100% 百分比');
+  fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.agentReadTokenBudget phải là số nguyên dương hoặc phần trăm 1%-100%');
 }
 
 function validateWebResearchSettings_ACU(raw: unknown): ContinuationSettings_ACU['webResearch'] {
-  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.webResearch 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.webResearch phải là đối tượng');
   requireKeys_ACU(raw, ['enabled', 'sources', 'searchProvider', 'searxngBaseUrl', 'maxToolRounds', 'maxPages', 'pageCharLimit', 'blockedDomains'], 'settings.webResearch');
-  if (!isRecord_ACU(raw.sources)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.webResearch.sources 必须是对象');
+  if (!isRecord_ACU(raw.sources)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.webResearch.sources phải là đối tượng');
   requireKeys_ACU(raw.sources, ['moegirl', 'wikipediaZh', 'wikipediaEn', 'baidu'], 'settings.webResearch.sources');
   if (!(CONTINUATION_WEB_SEARCH_PROVIDERS_ACU as readonly string[]).includes(raw.searchProvider as string)) {
-    fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.webResearch.searchProvider 非法');
+    fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.webResearch.searchProvider không hợp lệ');
   }
   const bounded = (value: unknown, path: string, minimum: number, maximum: number): number => {
     if (typeof value !== 'number' || !Number.isInteger(value) || value < minimum || value > maximum) {
-      fail_ACU('CONTINUATION_ENVELOPE_INVALID', `字段必须是 ${minimum} 到 ${maximum} 之间的整数：${path}`, { path });
+      fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Trường phải là số nguyên từ ${minimum} đến ${maximum}: ${path}`, { path });
     }
     return value;
   };
@@ -974,15 +974,15 @@ function validateWebResearchSettings_ACU(raw: unknown): ContinuationSettings_ACU
 }
 
 function validateWorkflowSettings_ACU(raw: unknown): ContinuationSettings_ACU['workflow'] {
-  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.workflow 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.workflow phải là đối tượng');
   requireKeys_ACU(raw, ['reviseLimit'], 'settings.workflow', ['autoFixEnabled', 'autoFixMaxAttempts', 'repairMaxExtraReads']);
   const reviseLimit = requireBoundedInteger_ACU(raw.reviseLimit, 'settings.workflow.reviseLimit', 10);
-  if (reviseLimit < 1) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.workflow.reviseLimit 至少为 1');
+  if (reviseLimit < 1) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.workflow.reviseLimit tối thiểu là 1');
   return { reviseLimit };
 }
 
 function validateFinalReviewSettings_ACU(raw: unknown): ContinuationSettings_ACU['finalReview'] {
-  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.finalReview 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.finalReview phải là đối tượng');
   requireKeys_ACU(raw, ['enabled', 'readTokenBudget', 'maxExtraReads'], 'settings.finalReview');
   return {
     enabled: requireBoolean_ACU(raw.enabled, 'settings.finalReview.enabled'),
@@ -996,11 +996,11 @@ function validateFinalReviewSettings_ACU(raw: unknown): ContinuationSettings_ACU
  * 下界区分「必须至少一次」（迭代/同代理/并发）与「0 即显式关闭」（派工/读取/工具轮）。
  */
 function validateAgentRunBudget_ACU(raw: unknown): ContinuationSettings_ACU['agentRunBudget'] {
-  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.agentRunBudget 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings.agentRunBudget phải là đối tượng');
   requireKeys_ACU(raw, ['maxIterations', 'maxDelegations', 'maxSameAgent', 'maxConcurrent', 'maxReads', 'maxExtraReads'], 'settings.agentRunBudget');
   const bounded = (value: unknown, path: string, minimum: number, maximum: number): number => {
     if (typeof value !== 'number' || !Number.isInteger(value) || value < minimum || value > maximum) {
-      fail_ACU('CONTINUATION_ENVELOPE_INVALID', `字段必须是 ${minimum} 到 ${maximum} 之间的整数：${path}`, { path });
+      fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Trường phải là số nguyên từ ${minimum} đến ${maximum}: ${path}`, { path });
     }
     return value;
   };
@@ -1025,7 +1025,7 @@ export function validateContinuationSettings_ACU(raw: unknown): ContinuationSett
 }
 
 function validateSettings_ACU(raw: unknown): ContinuationSettings_ACU {
-  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'settings phải là đối tượng');
   // V51 以前沿用已发布的整组重置；V51 只精确升级维护默认段，保留用户编辑。
   // 版本号只写进返回值，不就地改 raw：初始化落盘要凭首楼原始版本号判断是否需要写回。
   if (raw.promptForceDefaultVersion !== CONTINUATION_PROMPT_FORCE_DEFAULT_VERSION_V51_ACU
@@ -1097,15 +1097,15 @@ function validateSettings_ACU(raw: unknown): ContinuationSettings_ACU {
   if (!Object.prototype.hasOwnProperty.call(raw, 'customStoryArcVolumeCount')) raw.customStoryArcVolumeCount = null;
   const keys = ['stageSize', 'customTurnMin', 'customTurnMax', 'storyArcVolumePlan', 'customStoryArcVolumeCount', 'outlinePreview', 'autoNextStage', 'maxAutomaticStages', 'loopTags', 'loopDelaySeconds', 'totalDurationMinutes', 'retryDelaySeconds', 'generationRetryLimit', 'internalAiRetryLimit', 'minGenerationTokens', 'maxConsecutivePressureTurns', 'storyWindowFloors', 'agentHistoryTokenBudget', 'storyTailFloors', 'agentReadTokenBudget', 'agentReadFallbackTokens', 'finalReview', 'workflow', 'webResearch', 'contextExtractRules', 'contextExcludeRules', 'agentRunBudget', 'apiPresetMode', 'fixedApiPresetName', 'promptCacheEnabled', 'agentApiPresets', 'outlinePrompt', 'agentPrompts'];
   requireKeys_ACU(raw, keys, 'settings', ['promptForceDefaultVersion']);
-  if (!['short', 'standard', 'long', 'custom'].includes(raw.stageSize as string)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'stageSize 非法');
+  if (!['short', 'standard', 'long', 'custom'].includes(raw.stageSize as string)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'stageSize không hợp lệ');
   const customTurnMin = raw.customTurnMin === null ? null : requireInteger_ACU(raw.customTurnMin, 'settings.customTurnMin', 1);
   const customTurnMax = raw.customTurnMax === null ? null : requireInteger_ACU(raw.customTurnMax, 'settings.customTurnMax', 1);
-  if (raw.stageSize === 'custom' && (customTurnMin === null || customTurnMax === null || customTurnMin > customTurnMax || customTurnMax > 50)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', '自定义轮数范围非法');
-  if (!['short', 'medium', 'long', 'custom'].includes(raw.storyArcVolumePlan as string)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'storyArcVolumePlan 非法');
+  if (raw.stageSize === 'custom' && (customTurnMin === null || customTurnMax === null || customTurnMin > customTurnMax || customTurnMax > 50)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'Phạm vi số lượt tùy chỉnh không hợp lệ');
+  if (!['short', 'medium', 'long', 'custom'].includes(raw.storyArcVolumePlan as string)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'storyArcVolumePlan không hợp lệ');
   const customStoryArcVolumeCount = raw.customStoryArcVolumeCount === null ? null : requireInteger_ACU(raw.customStoryArcVolumeCount, 'settings.customStoryArcVolumeCount', 1);
-  if (raw.storyArcVolumePlan === 'custom' && (customStoryArcVolumeCount === null || customStoryArcVolumeCount > 50)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', '自定义总纲卷数必须在 1 到 50 之间');
+  if (raw.storyArcVolumePlan === 'custom' && (customStoryArcVolumeCount === null || customStoryArcVolumeCount > 50)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'Số tập tổng cương tùy chỉnh phải nằm trong khoảng 1 đến 50');
   if (raw.apiPresetMode === 'follow_plot') raw.apiPresetMode = 'current';
-  if (!['current', 'fixed'].includes(raw.apiPresetMode as string)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'apiPresetMode 非法');
+  if (!['current', 'fixed'].includes(raw.apiPresetMode as string)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'apiPresetMode không hợp lệ');
 
   return {
     stageSize: raw.stageSize as ContinuationSettings_ACU['stageSize'], customTurnMin, customTurnMax,
@@ -1135,19 +1135,19 @@ function validateOutline_ACU(raw: unknown, settings: ContinuationSettings_ACU) {
     return validateStageOutline_ACU(raw, range);
   } catch (error) {
     if (error instanceof ContinuationValidationError_ACU) throw error;
-    fail_ACU('CONTINUATION_ENVELOPE_INVALID', '阶段大纲无效');
+    fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'Dàn ý giai đoạn không hợp lệ');
   }
 }
 
 export function validateContinuationLogicalRef_ACU(raw: unknown): import('./model').ContinuationLogicalRef_ACU {
-  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', '逻辑正文引用必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'Tham chiếu chính văn logic phải là đối tượng');
   requireKeys_ACU(raw, ['sessionId', 'branchId', 'turnId', 'attemptId', 'floorId'], 'logicalRef');
   return Object.fromEntries(['sessionId', 'branchId', 'turnId', 'attemptId', 'floorId'].map(key =>
     [key, requireString_ACU(raw[key], `logicalRef.${key}`)])) as unknown as import('./model').ContinuationLogicalRef_ACU;
 }
 
 export function validateContinuationLogicalAnchor_ACU(raw: unknown): import('./model').ContinuationLogicalAnchor_ACU {
-  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', '逻辑历史前沿必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'Biên giới lịch sử logic phải là đối tượng');
   requireKeys_ACU(raw, ['sessionId', 'branchId', 'headTurnId'], 'logicalAnchor');
   return { sessionId: requireString_ACU(raw.sessionId, 'logicalAnchor.sessionId'),
     branchId: requireString_ACU(raw.branchId, 'logicalAnchor.branchId'),
@@ -1156,23 +1156,23 @@ export function validateContinuationLogicalAnchor_ACU(raw: unknown): import('./m
 
 function validateHistoryAnchor_ACU(raw: Record<string, unknown>): import('./model').ContinuationHistoryAnchor_ACU {
   if (('messageIndex' in raw) === ('logicalAnchor' in raw)) {
-    fail_ACU('CONTINUATION_ENVELOPE_INVALID', '历史依据必须且只能选择物理楼层或逻辑前沿');
+    fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'Căn cứ lịch sử phải và chỉ được chọn tầng vật lý hoặc biên giới logic');
   }
   return 'logicalAnchor' in raw ? { logicalAnchor: validateContinuationLogicalAnchor_ACU(raw.logicalAnchor) }
     : { messageIndex: requireInteger_ACU(raw.messageIndex, 'messageIndex', 0) };
 }
 
 function validateTimeline_ACU(raw: unknown): any[] {
-  if (!Array.isArray(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'timeline 必须是数组');
+  if (!Array.isArray(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'timeline phải là mảng');
   return raw.map((entry, index) => {
     const path = `activeTask.timeline[${index}]`;
-    if (!isRecord_ACU(entry)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `时间线条目必须是对象：${path}`);
-    for (const key of Object.keys(entry)) if (!['id', 'at', 'kind', 'stageId', 'revision', 'nodeId', 'turnId', 'attemptId', 'messageIndex', 'logicalRef', 'errorCode'].includes(key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `时间线存在未知字段：${path}.${key}`);
+    if (!isRecord_ACU(entry)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Mục dòng thời gian phải là đối tượng: ${path}`);
+    for (const key of Object.keys(entry)) if (!['id', 'at', 'kind', 'stageId', 'revision', 'nodeId', 'turnId', 'attemptId', 'messageIndex', 'logicalRef', 'errorCode'].includes(key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Dòng thời gian có trường không xác định: ${path}.${key}`);
     const result: Record<string, unknown> = { id: requireString_ACU(entry.id, `${path}.id`), at: requireInteger_ACU(entry.at, `${path}.at`, 0), kind: requireEnum_ACU(entry.kind, TIMELINE_KINDS_ACU, `${path}.kind`) };
     for (const key of ['stageId', 'nodeId', 'turnId', 'attemptId'] as const) if (key in entry) result[key] = requireString_ACU(entry[key], `${path}.${key}`);
     for (const key of ['revision', 'messageIndex'] as const) if (key in entry) result[key] = requireInteger_ACU(entry[key], `${path}.${key}`, 0);
     if ('logicalRef' in entry) {
-      if ('messageIndex' in entry) fail_ACU('CONTINUATION_ENVELOPE_INVALID', '逻辑正文不能携带物理下标');
+      if ('messageIndex' in entry) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'Chính văn logic không được mang chỉ số vật lý');
       result.logicalRef = validateContinuationLogicalRef_ACU(entry.logicalRef);
     }
     if ('errorCode' in entry) result.errorCode = requireString_ACU(entry.errorCode, `${path}.errorCode`);
@@ -1182,11 +1182,11 @@ function validateTimeline_ACU(raw: unknown): any[] {
 
 function validatePendingHostTurn_ACU(raw: unknown): ContinuationEnvelope_ACU['activeTask'] extends infer T ? T extends { pendingHostTurn?: infer P } ? P : never : never {
   if (raw === null || raw === undefined) return null as any;
-  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'pendingHostTurn 必须是对象或 null');
+  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'pendingHostTurn phải là đối tượng hoặc null');
   requireKeys_ACU(raw, ['identity', 'capture', 'retryCount', 'status'], 'activeTask.pendingHostTurn');
-  if (!isRecord_ACU(raw.identity)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'pendingHostTurn.identity 必须是对象');
+  if (!isRecord_ACU(raw.identity)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'pendingHostTurn.identity phải là đối tượng');
   requireKeys_ACU(raw.identity, ['chatIdentity', 'taskId', 'stageId', 'revision', 'nodeId', 'turnId', 'attemptId'], 'activeTask.pendingHostTurn.identity');
-  if (!isRecord_ACU(raw.capture)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'pendingHostTurn.capture 必须是对象');
+  if (!isRecord_ACU(raw.capture)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'pendingHostTurn.capture phải là đối tượng');
   requireKeys_ACU(raw.capture, ['capturedAt', 'capturedChatLength', 'capturedAiFloorCount', 'generationSeq'], 'activeTask.pendingHostTurn.capture', ['logicalRef']);
   return {
     identity: {
@@ -1211,22 +1211,22 @@ function validatePendingHostTurn_ACU(raw: unknown): ContinuationEnvelope_ACU['ac
 }
 
 function validateTask_ACU(raw: unknown, settings: ContinuationSettings_ACU): ContinuationEnvelope_ACU['activeTask'] {
-  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'activeTask 必须是对象或 null');
+  if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'activeTask phải là đối tượng hoặc null');
   const requiredKeys = ['taskId', 'originInstruction', 'status', 'createdAt', 'updatedAt', 'runStartedAt', 'deadlineAt', 'runStageCount', 'activeStageId', 'stages', 'timeline', 'stopReason', 'lastError'];
   const allowedKeys = [...requiredKeys, 'pendingHostTurn', 'stageBudgetBaseCount', 'progressSelections'];
-  for (const key of requiredKeys) if (!Object.prototype.hasOwnProperty.call(raw, key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `缺少持久化字段：activeTask.${key}`, { path: `activeTask.${key}` });
-  for (const key of Object.keys(raw)) if (!allowedKeys.includes(key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `存在未知持久化字段：activeTask.${key}`, { path: `activeTask.${key}` });
+  for (const key of requiredKeys) if (!Object.prototype.hasOwnProperty.call(raw, key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Thiếu trường lưu trữ: activeTask.${key}`, { path: `activeTask.${key}` });
+  for (const key of Object.keys(raw)) if (!allowedKeys.includes(key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Có trường lưu trữ không xác định: activeTask.${key}`, { path: `activeTask.${key}` });
   const runStageCount = requireInteger_ACU(raw.runStageCount, 'activeTask.runStageCount', 0);
   const stageBudgetBaseCount = 'stageBudgetBaseCount' in raw ? requireInteger_ACU(raw.stageBudgetBaseCount, 'activeTask.stageBudgetBaseCount', 0) : 0;
   if (stageBudgetBaseCount > runStageCount) {
-    fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'stageBudgetBaseCount 不能大于 runStageCount', { path: 'activeTask.stageBudgetBaseCount' });
+    fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'stageBudgetBaseCount không được lớn hơn runStageCount', { path: 'activeTask.stageBudgetBaseCount' });
   }
   const status = requireEnum_ACU(raw.status, TASK_STATUSES_ACU, 'activeTask.status');
-  if (!Array.isArray(raw.stages)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'activeTask.stages 必须是数组');
+  if (!Array.isArray(raw.stages)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'activeTask.stages phải là mảng');
   const stageIds = new Set<string>();
   const stages = raw.stages.map((stage, index) => {
     const path = `activeTask.stages[${index}]`;
-    if (!isRecord_ACU(stage)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `阶段必须是对象：${path}`);
+    if (!isRecord_ACU(stage)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Giai đoạn phải là đối tượng: ${path}`);
     // 阶段纪要统计链（chronicle*）在 V17 彻底退役；旧信封先就地丢弃再进入严格键校验。
     for (const legacyKey of ['chronicleStartCount', 'chronicleEndCount', 'chronicleAddedCount', 'chronicleRange']) {
       if (Object.prototype.hasOwnProperty.call(stage, legacyKey)) delete stage[legacyKey];
@@ -1234,35 +1234,35 @@ function validateTask_ACU(raw: unknown, settings: ContinuationSettings_ACU): Con
     const stageKeys = ['stageId', 'stageNumber', 'status', 'activeRevision', 'revisions', 'activeNodeIndex', 'activeTurnIndex', 'completedTurns'];
     requireKeys_ACU(stage, stageKeys, path, ['agentTurnLabel', 'progressAdjustments']);
     const stageId = requireString_ACU(stage.stageId, `${path}.stageId`);
-    if (stageIds.has(stageId)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `阶段 ID 重复：${stageId}`);
+    if (stageIds.has(stageId)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `ID giai đoạn bị trùng: ${stageId}`);
     stageIds.add(stageId);
     const stageStatus = requireEnum_ACU(stage.status, STAGE_STATUSES_ACU, `${path}.status`);
-    if (!Array.isArray(stage.revisions) || stage.revisions.length === 0) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `阶段 revisions 必须是非空数组：${path}`);
+    if (!Array.isArray(stage.revisions) || stage.revisions.length === 0) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `revisions của giai đoạn phải là mảng không rỗng: ${path}`);
     const revisionNumbers = new Set<number>();
     const revisions = stage.revisions.map((revision, revisionIndex) => {
       const revisionPath = `${path}.revisions[${revisionIndex}]`;
-      if (!isRecord_ACU(revision)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `revision 必须是对象：${revisionPath}`);
+      if (!isRecord_ACU(revision)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `revision phải là đối tượng: ${revisionPath}`);
       requireKeys_ACU(revision, ['revision', 'createdAt', 'reason', 'replanInstruction', 'frozen', 'outline'], revisionPath);
       const number = requireInteger_ACU(revision.revision, `${revisionPath}.revision`, 1);
-      if (revisionNumbers.has(number)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `revision 重复：${revisionPath}.revision`);
+      if (revisionNumbers.has(number)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `revision bị trùng: ${revisionPath}.revision`);
       revisionNumbers.add(number);
       return { revision: number, createdAt: requireInteger_ACU(revision.createdAt, `${revisionPath}.createdAt`, 0), reason: requireEnum_ACU(revision.reason, REVISION_REASONS_ACU, `${revisionPath}.reason`), replanInstruction: requireString_ACU(revision.replanInstruction, `${revisionPath}.replanInstruction`), frozen: requireBoolean_ACU(revision.frozen, `${revisionPath}.frozen`), outline: validateOutline_ACU(revision.outline, settings) };
     });
     const activeRevision = requireInteger_ACU(stage.activeRevision, `${path}.activeRevision`, 1);
-    if (!revisionNumbers.has(activeRevision)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `activeRevision 未指向现有 revision：${path}`);
+    if (!revisionNumbers.has(activeRevision)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `activeRevision không trỏ tới revision hiện có: ${path}`);
     const progressAdjustments = (() => {
       if (!('progressAdjustments' in stage)) return {};
-      if (!Array.isArray(stage.progressAdjustments)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `进度校准必须是数组：${path}.progressAdjustments`);
+      if (!Array.isArray(stage.progressAdjustments)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Hiệu chỉnh tiến độ phải là mảng: ${path}.progressAdjustments`);
       const records = stage.progressAdjustments.map((item, adjustmentIndex) => {
         const itemPath = `${path}.progressAdjustments[${adjustmentIndex}]`;
-        if (!isRecord_ACU(item)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `进度校准必须是对象：${itemPath}`);
+        if (!isRecord_ACU(item)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Hiệu chỉnh tiến độ phải là đối tượng: ${itemPath}`);
         requireKeys_ACU(item, ['revision', 'completedTurns', 'timelineOffset', 'reason'], itemPath, ['messageIndex', 'logicalAnchor']);
         const revision = requireInteger_ACU(item.revision, `${itemPath}.revision`, 1);
         const outline = revisions.find(entry => entry.revision === revision)?.outline;
         const completedTurns = requireInteger_ACU(item.completedTurns, `${itemPath}.completedTurns`, 0);
         const timelineOffset = requireInteger_ACU(item.timelineOffset, `${itemPath}.timelineOffset`, 0);
         if (!outline || completedTurns > outline.totalTurns || !Array.isArray(raw.timeline) || timelineOffset > raw.timeline.length) {
-          fail_ACU('CONTINUATION_ENVELOPE_INVALID', `进度校准引用或范围无效：${itemPath}`);
+          fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Tham chiếu hoặc phạm vi hiệu chỉnh tiến độ không hợp lệ: ${itemPath}`);
         }
         return { revision, completedTurns, timelineOffset,
           ...validateHistoryAnchor_ACU(item),
@@ -1273,7 +1273,7 @@ function validateTask_ACU(raw: unknown, settings: ContinuationSettings_ACU): Con
     })();
     const agentTurnLabel = (() => {
       if (!('agentTurnLabel' in stage)) return {};
-      if (!isRecord_ACU(stage.agentTurnLabel)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `轮次标注必须是对象：${path}.agentTurnLabel`);
+      if (!isRecord_ACU(stage.agentTurnLabel)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Chú thích lượt phải là đối tượng: ${path}.agentTurnLabel`);
       requireKeys_ACU(stage.agentTurnLabel, ['revision', 'turnId', 'text'], `${path}.agentTurnLabel`);
       return { agentTurnLabel: {
         revision: requireInteger_ACU(stage.agentTurnLabel.revision, `${path}.agentTurnLabel.revision`, 1),
@@ -1284,35 +1284,35 @@ function validateTask_ACU(raw: unknown, settings: ContinuationSettings_ACU): Con
     return { stageId, stageNumber: requireInteger_ACU(stage.stageNumber, `${path}.stageNumber`, 1), status: stageStatus, activeRevision, revisions, activeNodeIndex: requireInteger_ACU(stage.activeNodeIndex, `${path}.activeNodeIndex`, 0), activeTurnIndex: requireInteger_ACU(stage.activeTurnIndex, `${path}.activeTurnIndex`, 0), completedTurns: requireInteger_ACU(stage.completedTurns, `${path}.completedTurns`, 0), ...agentTurnLabel, ...progressAdjustments };
   });
   const activeStageId = raw.activeStageId === null ? null : requireString_ACU(raw.activeStageId, 'activeTask.activeStageId');
-  if (activeStageId !== null && !stageIds.has(activeStageId)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'activeStageId 未指向现有阶段');
+  if (activeStageId !== null && !stageIds.has(activeStageId)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'activeStageId không trỏ tới giai đoạn hiện có');
   const progressSelections = (() => {
     if (!('progressSelections' in raw)) return {};
-    if (!Array.isArray(raw.progressSelections)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', '阶段选择必须是数组');
+    if (!Array.isArray(raw.progressSelections)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'Lựa chọn giai đoạn phải là mảng');
     return { progressSelections: raw.progressSelections.map((item, index) => {
       const path = `activeTask.progressSelections[${index}]`;
-      if (!isRecord_ACU(item)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `阶段选择必须是对象：${path}`);
+      if (!isRecord_ACU(item)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Lựa chọn giai đoạn phải là đối tượng: ${path}`);
       requireKeys_ACU(item, ['stageId', 'timelineOffset'], path, ['messageIndex', 'logicalAnchor']);
       const stageId = requireString_ACU(item.stageId, `${path}.stageId`);
       const timelineOffset = requireInteger_ACU(item.timelineOffset, `${path}.timelineOffset`, 0);
       if (!stageIds.has(stageId) || !Array.isArray(raw.timeline) || timelineOffset > raw.timeline.length) {
-        fail_ACU('CONTINUATION_ENVELOPE_INVALID', `阶段选择引用或范围无效：${path}`);
+        fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Tham chiếu hoặc phạm vi lựa chọn giai đoạn không hợp lệ: ${path}`);
       }
       return { stageId, timelineOffset, ...validateHistoryAnchor_ACU(item) };
     }) };
   })();
   const stopReason = raw.stopReason === null ? null : requireEnum_ACU(raw.stopReason, STOP_REASONS_ACU, 'activeTask.stopReason');
   const lastError = raw.lastError === null ? null : (() => {
-    if (!isRecord_ACU(raw.lastError)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'lastError 必须是对象');
+    if (!isRecord_ACU(raw.lastError)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'lastError phải là đối tượng');
     const requiredErrorKeys = ['code', 'message', 'phase', 'retryable'];
-    for (const key of requiredErrorKeys) if (!Object.prototype.hasOwnProperty.call(raw.lastError, key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `缺少持久化字段：activeTask.lastError.${key}`, { path: `activeTask.lastError.${key}` });
-    for (const key of Object.keys(raw.lastError)) if (![...requiredErrorKeys, 'details'].includes(key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `存在未知持久化字段：activeTask.lastError.${key}`, { path: `activeTask.lastError.${key}` });
+    for (const key of requiredErrorKeys) if (!Object.prototype.hasOwnProperty.call(raw.lastError, key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Thiếu trường lưu trữ: activeTask.lastError.${key}`, { path: `activeTask.lastError.${key}` });
+    for (const key of Object.keys(raw.lastError)) if (![...requiredErrorKeys, 'details'].includes(key)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', `Có trường lưu trữ không xác định: activeTask.lastError.${key}`, { path: `activeTask.lastError.${key}` });
     const error: Record<string, unknown> = {
       code: requireEnum_ACU(raw.lastError.code, ERROR_CODES_ACU, 'activeTask.lastError.code'),
       message: requireString_ACU(raw.lastError.message, 'activeTask.lastError.message'),
       phase: requireEnum_ACU(raw.lastError.phase, ERROR_PHASES_ACU, 'activeTask.lastError.phase'),
       retryable: requireBoolean_ACU(raw.lastError.retryable, 'activeTask.lastError.retryable'),
     };
-    if ('details' in raw.lastError) { if (!isRecord_ACU(raw.lastError.details)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'lastError.details 必须是对象'); error.details = { ...raw.lastError.details }; }
+    if ('details' in raw.lastError) { if (!isRecord_ACU(raw.lastError.details)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'lastError.details phải là đối tượng'); error.details = { ...raw.lastError.details }; }
     return error;
   })();
   return { taskId: requireString_ACU(raw.taskId, 'activeTask.taskId'), originInstruction: requireString_ACU(raw.originInstruction, 'activeTask.originInstruction'), status, createdAt: requireInteger_ACU(raw.createdAt, 'activeTask.createdAt', 0), updatedAt: requireInteger_ACU(raw.updatedAt, 'activeTask.updatedAt', 0), runStartedAt: raw.runStartedAt === null ? null : requireInteger_ACU(raw.runStartedAt, 'activeTask.runStartedAt', 0), deadlineAt: raw.deadlineAt === null ? null : requireInteger_ACU(raw.deadlineAt, 'activeTask.deadlineAt', 0), runStageCount, stageBudgetBaseCount, activeStageId, stages, timeline: validateTimeline_ACU(raw.timeline), stopReason, lastError: lastError as any, ...progressSelections, ...('pendingHostTurn' in raw ? { pendingHostTurn: validatePendingHostTurn_ACU(raw.pendingHostTurn) } : {}) } as ContinuationEnvelope_ACU['activeTask'];
@@ -1320,9 +1320,9 @@ function validateTask_ACU(raw: unknown, settings: ContinuationSettings_ACU): Con
 
 export function validateContinuationEnvelope_ACU(raw: unknown, phase: ContinuationErrorPhase_ACU = 'load'): ContinuationEnvelope_ACU {
   try {
-    if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', '智能续写状态必须是对象');
+    if (!isRecord_ACU(raw)) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'Trạng thái viết tiếp thông minh phải là đối tượng');
     requireKeys_ACU(raw, ['schemaVersion', 'settings', 'activeTask'], 'envelope');
-    if (raw.schemaVersion !== CONTINUATION_SCHEMA_VERSION_ACU) fail_ACU('CONTINUATION_ENVELOPE_INVALID', '智能续写 schemaVersion 必须为 1', { actual: raw.schemaVersion });
+    if (raw.schemaVersion !== CONTINUATION_SCHEMA_VERSION_ACU) fail_ACU('CONTINUATION_ENVELOPE_INVALID', 'schemaVersion của viết tiếp thông minh phải là 1', { actual: raw.schemaVersion });
     const settings = validateSettings_ACU(raw.settings);
     const activeTask = raw.activeTask === null ? null : validateTask_ACU(raw.activeTask, settings);
     return { schemaVersion: CONTINUATION_SCHEMA_VERSION_ACU, settings, activeTask };
@@ -1343,24 +1343,24 @@ function getActiveRevision_ACU(envelope: ContinuationEnvelope_ACU | null): numbe
 function assertWriteGuard_ACU(envelope: ContinuationEnvelope_ACU | null, guard: ContinuationWriteGuard_ACU | undefined): void {
   if (!guard) return;
   const task = envelope?.activeTask ?? null;
-  if (guard.taskId !== undefined && (task?.taskId ?? null) !== guard.taskId) fail_ACU('CONTINUATION_WRITE_GUARD_MISMATCH', '任务身份已变化');
-  if (guard.stageId !== undefined && (task?.activeStageId ?? null) !== guard.stageId) fail_ACU('CONTINUATION_WRITE_GUARD_MISMATCH', '阶段身份已变化');
-  if (guard.revision !== undefined && getActiveRevision_ACU(envelope) !== guard.revision) fail_ACU('CONTINUATION_WRITE_GUARD_MISMATCH', 'revision 已变化');
+  if (guard.taskId !== undefined && (task?.taskId ?? null) !== guard.taskId) fail_ACU('CONTINUATION_WRITE_GUARD_MISMATCH', 'Danh tính tác vụ đã thay đổi');
+  if (guard.stageId !== undefined && (task?.activeStageId ?? null) !== guard.stageId) fail_ACU('CONTINUATION_WRITE_GUARD_MISMATCH', 'Danh tính giai đoạn đã thay đổi');
+  if (guard.revision !== undefined && getActiveRevision_ACU(envelope) !== guard.revision) fail_ACU('CONTINUATION_WRITE_GUARD_MISMATCH', 'revision đã thay đổi');
 }
 
 function captureChatContext_ACU(guard?: ContinuationWriteGuard_ACU) {
   const chat = getChatArray_ACU();
   const firstMessage = Array.isArray(chat) && chat[0] && typeof chat[0] === 'object' ? chat[0] as Record<string, unknown> : null;
   const chatIdentity = getActiveChatStorageIdentity_ACU(chat);
-  if (!firstMessage || !chatIdentity) fail_ACU('CONTINUATION_CHAT_UNAVAILABLE', '当前聊天首楼不可用');
-  if (guard?.chatIdentity !== undefined && guard.chatIdentity !== chatIdentity) fail_ACU('CONTINUATION_CHAT_CHANGED', '写入身份所属聊天已变化');
+  if (!firstMessage || !chatIdentity) fail_ACU('CONTINUATION_CHAT_UNAVAILABLE', 'Tầng đầu của cuộc trò chuyện hiện tại không khả dụng');
+  if (guard?.chatIdentity !== undefined && guard.chatIdentity !== chatIdentity) fail_ACU('CONTINUATION_CHAT_CHANGED', 'Cuộc trò chuyện của danh tính ghi đã thay đổi');
   return { chat, firstMessage, chatIdentity };
 }
 
 function assertChatContext_ACU(context: ReturnType<typeof captureChatContext_ACU>): void {
   const activeChat = getChatArray_ACU();
   if (activeChat !== context.chat || activeChat[0] !== context.firstMessage || getActiveChatStorageIdentity_ACU(activeChat) !== context.chatIdentity) {
-    fail_ACU('CONTINUATION_CHAT_CHANGED', '目标聊天已切换，拒绝写入');
+    fail_ACU('CONTINUATION_CHAT_CHANGED', 'Cuộc trò chuyện đích đã chuyển, từ chối ghi');
   }
 }
 
@@ -1441,10 +1441,10 @@ export class FirstFloorContinuationStore_ACU {
       const chatStillActive = getChatArray_ACU() === context.chat && getChatArray_ACU()[0] === context.firstMessage && getActiveChatStorageIdentity_ACU(context.chat) === context.chatIdentity;
       if (primarySaveAttempted && chatStillActive) {
         try { await saveChatToHostStrict_ACU(); }
-        catch (rollbackError) { fail_ACU('CONTINUATION_PERSIST_FAILED', '智能续写状态保存与回滚均失败', { primaryMessage: error instanceof Error ? error.message : String(error), rollbackMessage: rollbackError instanceof Error ? rollbackError.message : String(rollbackError) }); }
+        catch (rollbackError) { fail_ACU('CONTINUATION_PERSIST_FAILED', 'Lưu trạng thái viết tiếp thông minh và khôi phục đều thất bại', { primaryMessage: error instanceof Error ? error.message : String(error), rollbackMessage: rollbackError instanceof Error ? rollbackError.message : String(rollbackError) }); }
       }
       if (error instanceof ContinuationValidationError_ACU) throw error;
-      fail_ACU('CONTINUATION_PERSIST_FAILED', '智能续写状态保存失败', { message: error instanceof Error ? error.message : String(error) });
+      fail_ACU('CONTINUATION_PERSIST_FAILED', 'Lưu trạng thái viết tiếp thông minh thất bại', { message: error instanceof Error ? error.message : String(error) });
     }
   }
 
@@ -1474,7 +1474,7 @@ export function derivePausedContinuationEnvelopeAfterReload_ACU(envelope: Contin
     ? task.stages.map(stage => stage.stageId === activeStage!.stageId ? { ...stage, status: 'failed' as const } : stage)
     : task.stages;
   const lastError = interruptedPlanning
-    ? createContinuationError_ACU('CONTINUATION_TASK_STATE_INVALID', 'load', '重载中断了阶段规划；请手动重新规划剩余阶段', false)
+    ? createContinuationError_ACU('CONTINUATION_TASK_STATE_INVALID', 'load', 'Việc tải lại đã làm gián đoạn hoạch định giai đoạn; hãy tự hoạch định lại các giai đoạn còn lại', false)
     : task.lastError;
   // 重载后桥的内存认领已丢失，等待中的宿主生成永远无法再被归属；
   // 清掉等待轮，让任务回到可以直接点继续的暂停态。

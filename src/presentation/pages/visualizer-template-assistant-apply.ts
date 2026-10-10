@@ -19,7 +19,7 @@ export async function applyTemplateAssistantDraftToVisualizer_ACU(result: Templa
     const baselineFingerprint = getTemplateAssistantApplyBaselineFingerprint_ACU(result);
     const currentFingerprint = buildTemplateAssistantFingerprint_ACU(_acuVisState.tempData || {});
     if (!baselineFingerprint || currentFingerprint !== baselineFingerprint) {
-        showToastr_ACU('warning', '当前结构已变化，assistant 草稿已失效，请重新生成。');
+        showToastr_ACU('warning', 'Cấu trúc hiện tại đã thay đổi, bản nháp của assistant đã hết hiệu lực, hãy tạo lại.');
         return false;
     }
 
@@ -34,11 +34,11 @@ export async function applyTemplateAssistantDraftToVisualizer_ACU(result: Templa
         intents: result.compileResult.schemaMigrationIntents,
     });
     if (preflight.blockers.length > 0) {
-        showToastr_ACU('warning', `assistant 草稿未通过 schema migration preflight：${preflight.blockers.join('；')}`);
+        showToastr_ACU('warning', `Bản nháp của assistant không qua schema migration preflight: ${preflight.blockers.join('; ')}`);
         return false;
     }
     if (JSON.stringify({ tempData: _acuVisState.tempData, sheetOrder: _acuVisState.sheetOrder, deletedSheetKeys: _acuVisState.deletedSheetKeys }) !== applyStateSnapshot) {
-        showToastr_ACU('warning', '当前结构在 schema migration preflight 期间已变化，assistant 草稿已失效，请重新生成。');
+        showToastr_ACU('warning', 'Cấu trúc hiện tại đã thay đổi trong lúc schema migration preflight, bản nháp của assistant đã hết hiệu lực, hãy tạo lại.');
         return false;
     }
     const nextDeletedKeys = new Set<string>(Array.isArray(_acuVisState.deletedSheetKeys) ? _acuVisState.deletedSheetKeys : []);
@@ -83,6 +83,6 @@ export async function applyTemplateAssistantDraftToVisualizer_ACU(result: Templa
 
     renderVisualizerSidebar_ACU();
     renderVisualizerMain_ACU();
-    showToastr_ACU('success', 'assistant 草稿已应用到当前编辑器临时态。');
+    showToastr_ACU('success', 'Bản nháp của assistant đã được áp dụng vào trạng thái tạm của trình chỉnh sửa hiện tại.');
     return true;
 }

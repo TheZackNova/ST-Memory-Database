@@ -42,7 +42,7 @@ function commitSetting_ACU(key: AppearanceSettingsKey_ACU | 'desktopPetPosition'
   if (result?.saved === false) {
     if (had) settings_ACU[key] = previous;
     else delete settings_ACU[key];
-    throw new Error(result.warning || result.error || '设置保存失败');
+    throw new Error(result.warning || result.error || 'Lưu cài đặt thất bại');
   }
   if (result?.warning) logWarn_ACU(`[外观设置] ${result.warning}`);
   notifyNoticeSettingsChanged_ACU();
@@ -130,18 +130,18 @@ export function readDeskPetPosition_ACU(): DeskPetPosition_ACU | null {
 /** 设置桌宠位置：x / y 为 0~1 的比例（0 最左 / 最上，1 最右 / 最下），edge 为吸附侧边，省略或 null 表示自由停放。 */
 export function setDeskPetPosition_ACU(position: unknown): DeskPetPosition_ACU {
   if (!position || typeof position !== 'object' || Array.isArray(position)) {
-    throw new TypeError('deskPet.position：应为 { x, y, edge? } 对象');
+    throw new TypeError('deskPet.position: phải là đối tượng { x, y, edge? }');
   }
   const { x, y, edge = null, ...rest } = position as Record<string, unknown>;
   const extra = Object.keys(rest);
-  if (extra.length) throw new RangeError(`deskPet.position.${extra[0]}：不支持的设置项；可用：x、y、edge`);
+  if (extra.length) throw new RangeError(`deskPet.position.${extra[0]}: mục cài đặt không được hỗ trợ; có thể dùng: x, y, edge`);
   for (const [name, value] of [['x', x], ['y', y]] as const) {
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1) {
-      throw new RangeError(`deskPet.position.${name}：应为 0~1 的比例`);
+      throw new RangeError(`deskPet.position.${name}: phải là tỉ lệ từ 0 đến 1`);
     }
   }
   const dockEdge = normalizeDeskPetDockEdge_ACU(edge);
-  if (edge !== null && dockEdge === null) throw new RangeError('deskPet.position.edge：可选 left / right / top / bottom 或 null');
+  if (edge !== null && dockEdge === null) throw new RangeError('deskPet.position.edge: tùy chọn left / right / top / bottom hoặc null');
   const next: DeskPetPosition_ACU = { x: Number((x as number).toFixed(4)), y: Number((y as number).toFixed(4)), edge: dockEdge };
   commitSetting_ACU('desktopPetPosition', next);
   return { ...next };

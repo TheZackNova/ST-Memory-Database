@@ -98,9 +98,9 @@ export interface AgentTableRowRange_ACU {
  * @returns 形如「表名（共 N 行）\n列: a | b\n1. x | y」的文本
  */
 export function renderAgentSheet_ACU(view: AgentSheetView_ACU, range?: AgentTableRowRange_ACU): string {
-  const lines = [`表名：${view.name}（共 ${view.rows.length} 行）`, `列：${view.header.join(' | ')}`];
+  const lines = [`Tên bảng: ${view.name} (tổng ${view.rows.length} hàng)`, `Cột: ${view.header.join(' | ')}`];
   if (!view.rows.length) {
-    lines.push('（该表暂无数据行）');
+    lines.push('(bảng này chưa có hàng dữ liệu)');
     return lines.join('\n');
   }
   if (!range) {
@@ -110,10 +110,10 @@ export function renderAgentSheet_ACU(view: AgentSheetView_ACU, range?: AgentTabl
   const start = Math.max(1, range.start);
   const end = Math.min(view.rows.length, range.end);
   if (start > end) {
-    lines.push(`请求的行区间 ${range.start}-${range.end} 超出范围：该表只有 1-${view.rows.length} 行。请修正区间后重读。`);
+    lines.push(`Khoảng hàng yêu cầu ${range.start}-${range.end} vượt phạm vi: bảng này chỉ có hàng 1-${view.rows.length}. Hãy sửa khoảng rồi đọc lại.`);
     return lines.join('\n');
   }
-  lines.push(`（只列第 ${start}-${end} 行）`);
+  lines.push(`(chỉ liệt kê hàng ${start}-${end})`);
   for (let index = start; index <= end; index += 1) lines.push(`${index}. ${view.rows[index - 1].join(' | ')}`);
   return lines.join('\n');
 }
@@ -127,10 +127,10 @@ export function renderAgentSheet_ACU(view: AgentSheetView_ACU, range?: AgentTabl
 export function renderAgentTableByAliases_ACU(table: AgentGuaranteedTable_ACU, tableData?: unknown): string {
   const matched = findAgentSheetsByAliases_ACU(AGENT_TABLE_ALIASES_ACU[table], tableData);
   if (!matched.length) {
-    return `当前聊天不存在${TABLE_LABELS_ACU[table]}（已按候选表名 ${AGENT_TABLE_ALIASES_ACU[table].join('、')} 查找）。请勿据此推断内容，需要该类信息时改用表格目录里实际存在的表。`;
+    return `Cuộc trò chuyện hiện tại không có ${TABLE_LABELS_ACU[table]} (đã tìm theo các tên bảng ứng viên ${AGENT_TABLE_ALIASES_ACU[table].join(', ')}). Đừng suy diễn nội dung từ đó, khi cần loại thông tin này hãy dùng bảng thực sự tồn tại trong danh mục bảng.`;
   }
   if (matched.length === 1) return renderAgentSheet_ACU(matched[0]);
-  const header = `命中 ${matched.length} 张同名或同类表，全部列出，请自行判断使用哪一张：`;
+  const header = `Khớp ${matched.length} bảng cùng tên hoặc cùng loại, liệt kê tất cả, hãy tự phán đoán dùng bảng nào:`;
   return [header, ...matched.map(view => renderAgentSheet_ACU(view))].join('\n\n');
 }
 
@@ -143,11 +143,11 @@ export function renderAgentTableByAliases_ACU(table: AgentGuaranteedTable_ACU, t
  */
 export function renderAgentTableByName_ACU(name: string, tableData?: unknown, range?: AgentTableRowRange_ACU): string {
   const target = String(name ?? '').trim();
-  if (!target) return '读集里的表名为空，无法读取。';
+  if (!target) return 'Tên bảng trong tập đọc rỗng, không thể đọc.';
   const matched = listSheetViews_ACU(tableData).filter(view => view.name === target);
-  if (!matched.length) return `当前聊天不存在名为「${target}」的表。可用表名见表格目录。`;
+  if (!matched.length) return `Cuộc trò chuyện hiện tại không có bảng tên "${target}". Tên bảng khả dụng xem trong danh mục bảng.`;
   if (matched.length === 1) return renderAgentSheet_ACU(matched[0], range);
-  return [`命中 ${matched.length} 张名为「${target}」的表，全部列出：`, ...matched.map(view => renderAgentSheet_ACU(view, range))].join('\n\n');
+  return [`Khớp ${matched.length} bảng tên "${target}", liệt kê tất cả:`, ...matched.map(view => renderAgentSheet_ACU(view, range))].join('\n\n');
 }
 
 /**
@@ -157,7 +157,7 @@ export function renderAgentTableByName_ACU(name: string, tableData?: unknown, ra
  */
 export function renderAgentTableCatalog_ACU(tableData?: unknown): string {
   const views = listSheetViews_ACU(tableData);
-  if (!views.length) return '当前聊天没有任何可读表格。';
-  const lines = views.map(view => `- ${view.name}（${view.rows.length} 行）列：${view.header.join(' | ')}｜整表读取：$TABLE:${view.name}｜行区间读取：$TABLE:${view.name}:起始行-结束行`);
-  return ['以下是当前聊天实际存在的全部表格；只有这里列出的表才能读取：', ...lines].join('\n');
+  if (!views.length) return 'Cuộc trò chuyện hiện tại không có bảng nào đọc được.';
+  const lines = views.map(view => `- ${view.name} (${view.rows.length} hàng) cột: ${view.header.join(' | ')}｜đọc cả bảng: $TABLE:${view.name}｜đọc theo khoảng hàng: $TABLE:${view.name}:hàng_đầu-hàng_cuối`);
+  return ['Sau đây là toàn bộ bảng thực sự tồn tại trong cuộc trò chuyện hiện tại; chỉ các bảng được liệt kê ở đây mới đọc được:', ...lines].join('\n');
 }

@@ -13,11 +13,11 @@ export function generateOptimizationTabHTML(): string {
                     <div class="acu-card">
                         <div class="acu-card-header">
                             <div>
-                                <h3>正文替换设置</h3>
-                                <p class="notes">AI生成正文后，自动替换内容（在填表之前执行）</p>
+                                <h3>Cài đặt thay thế nội dung</h3>
+                                <p class="notes">Sau khi AI tạo nội dung, tự động thay thế nội dung (thực hiện trước khi điền bảng)</p>
                             </div>
                             <div class="acu-row" style="gap: 8px;">
-                                <label for="${SCRIPT_ID_PREFIX_ACU}-optimization-enabled" style="font-weight: 500; cursor: pointer;">启用功能</label>
+                                <label for="${SCRIPT_ID_PREFIX_ACU}-optimization-enabled" style="font-weight: 500; cursor: pointer;">Bật chức năng</label>
                                 <label class="toggle-switch">
                                     <input id="${SCRIPT_ID_PREFIX_ACU}-optimization-enabled" type="checkbox" />
                                     <span class="slider"></span>
@@ -27,150 +27,150 @@ export function generateOptimizationTabHTML(): string {
 
                         <!-- 基础设置 -->
                         <div class="acu-section">
-                            <h4 class="acu-section-title"><i class="fa-solid fa-cog"></i> 基础设置</h4>
+                            <h4 class="acu-section-title"><i class="fa-solid fa-cog"></i> Cài đặt cơ bản</h4>
                             <div class="acu-grid-auto">
                                 <div>
-                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-api-preset">API预设</label>
+                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-api-preset">Preset API</label>
                                     <select id="${SCRIPT_ID_PREFIX_ACU}-optimization-api-preset" class="text_pole">
-                                        <option value="">使用当前API配置</option>
+                                        <option value="">Dùng cấu hình API hiện tại</option>
                                     </select>
-                                    <small class="notes">选择正文替换使用的API配置，留空则使用酒馆当前API</small>
+                                    <small class="notes">Chọn cấu hình API dùng cho thay thế nội dung, để trống thì dùng API hiện tại của SillyTavern</small>
                                 </div>
                                 <div>
-                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-min-length">最小优化长度</label>
+                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-min-length">Độ dài tối ưu tối thiểu</label>
                                     <input id="${SCRIPT_ID_PREFIX_ACU}-optimization-min-length" type="number" class="text_pole" min="0" step="10" value="100">
-                                    <small class="notes">正文长度小于此值时跳过优化</small>
+                                    <small class="notes">Bỏ qua tối ưu khi độ dài nội dung nhỏ hơn giá trị này</small>
                                 </div>
                                 <div>
-                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-max-items">最大优化项数</label>
+                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-max-items">Số mục tối ưu tối đa</label>
                                     <input id="${SCRIPT_ID_PREFIX_ACU}-optimization-max-items" type="number" class="text_pole" min="1" max="100" step="1" value="10">
-                                    <small class="notes">单次优化的最大修改项数（1-100）</small>
+                                    <small class="notes">Số mục sửa tối đa trong một lần tối ưu (1-100)</small>
                                 </div>
                                 <div>
-                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-loop-count">循环优化次数</label>
+                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-loop-count">Số lần tối ưu lặp</label>
                                     <input id="${SCRIPT_ID_PREFIX_ACU}-optimization-loop-count" type="number" class="text_pole" min="1" max="10" step="1" value="1">
-                                    <small class="notes">优化完成后再次优化，达到完整优化效果（1-10次）</small>
+                                    <small class="notes">Tối ưu lại sau khi hoàn tất để đạt hiệu quả tối ưu đầy đủ (1-10 lần)</small>
                                 </div>
                                 <div>
-                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-retry-count">自动重试次数</label>
+                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-retry-count">Số lần tự động thử lại</label>
                                     <input id="${SCRIPT_ID_PREFIX_ACU}-optimization-retry-count" type="number" class="text_pole" min="1" max="10" step="1" value="3">
-                                    <small class="notes">API调用失败时自动重试（1-10次，默认3次）</small>
+                                    <small class="notes">Tự động thử lại khi gọi API thất bại (1-10 lần, mặc định 3 lần)</small>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 优化模式 -->
                         <div class="acu-section">
-                            <h4 class="acu-section-title"><i class="fa-solid fa-magic"></i> 优化模式</h4>
+                            <h4 class="acu-section-title"><i class="fa-solid fa-magic"></i> Chế độ tối ưu</h4>
                             <div class="acu-col">
                                 <div class="checkbox-group">
                                     <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-optimization-seamless-mode" checked>
-                                    <label for="${SCRIPT_ID_PREFIX_ACU}-optimization-seamless-mode">无感替换模式</label>
+                                    <label for="${SCRIPT_ID_PREFIX_ACU}-optimization-seamless-mode">Chế độ thay thế không cảm nhận</label>
                                 </div>
                                 <div class="checkbox-group">
                                     <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-optimization-auto-apply" checked>
-                                    <label for="${SCRIPT_ID_PREFIX_ACU}-optimization-auto-apply">自动应用优化结果</label>
+                                    <label for="${SCRIPT_ID_PREFIX_ACU}-optimization-auto-apply">Tự động áp dụng kết quả tối ưu</label>
                                 </div>
                                 <div class="checkbox-group">
                                     <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-optimization-show-diff" checked>
-                                    <label for="${SCRIPT_ID_PREFIX_ACU}-optimization-show-diff">显示优化对比</label>
+                                    <label for="${SCRIPT_ID_PREFIX_ACU}-optimization-show-diff">Hiển thị so sánh tối ưu</label>
                                 </div>
                                 <div class="checkbox-group">
                                     <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-optimization-parallel-mode">
-                                    <label for="${SCRIPT_ID_PREFIX_ACU}-optimization-parallel-mode">填表与正文替换并行执行</label>
+                                    <label for="${SCRIPT_ID_PREFIX_ACU}-optimization-parallel-mode">Chạy song song điền bảng và thay thế nội dung</label>
                                 </div>
                                 <div class="acu-divider-dashed" style="margin: 8px 0;"></div>
-                                <label class="acu-label">快捷操作</label>
+                                <label class="acu-label">Thao tác nhanh</label>
                                 <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-reoptimize-latest" title="对最近一次已执行正文替换的 AI 回复，基于替换前原文重新优化并再次替换" style="white-space: nowrap;">
-                                        <i class="fa-solid fa-rotate-right"></i> 重新优化
+                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-reoptimize-latest" title="Với phản hồi AI gần nhất đã được thay thế nội dung, tối ưu lại dựa trên nguyên văn trước khi thay và thay thế lần nữa" style="white-space: nowrap;">
+                                        <i class="fa-solid fa-rotate-right"></i> Tối ưu lại
                                     </button>
                                 </div>
-                                <small class="notes">定位"最近一次已经被正文替换过的 AI 回复"，使用替换前保留的原文重新优化后再次替换。取消正文优化请使用进行中提示框里的"取消优化"按钮。</small>
+                                <small class="notes">Xác định "phản hồi AI gần nhất đã được thay thế nội dung", dùng nguyên văn giữ lại trước khi thay để tối ưu lại rồi thay thế lần nữa. Để hủy tối ưu nội dung, hãy dùng nút "Hủy tối ưu" trong hộp thông báo đang chạy.</small>
                             </div>
                         </div>
 
                         <!-- 标签筛选 -->
                         <div class="acu-section">
-                            <h4 class="acu-section-title"><i class="fa-solid fa-filter"></i> 标签筛选</h4>
+                            <h4 class="acu-section-title"><i class="fa-solid fa-filter"></i> Lọc thẻ</h4>
                             <div class="acu-grid-auto" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
                                 <div>
-                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-extract-tags">标签提取</label>
-                                    <input id="${SCRIPT_ID_PREFIX_ACU}-optimization-extract-tags" type="text" class="text_pole" placeholder="例如: think,plot">
-                                    <small class="notes">仅提取指定标签内的内容进行优化</small>
+                                    <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-extract-tags">Trích xuất thẻ</label>
+                                    <input id="${SCRIPT_ID_PREFIX_ACU}-optimization-extract-tags" type="text" class="text_pole" placeholder="Ví dụ: think,plot">
+                                    <small class="notes">Chỉ trích xuất nội dung trong thẻ chỉ định để tối ưu</small>
                                 </div>
                                 <div>
-                                    <label class="acu-label">正文标签提取规则</label>
+                                    <label class="acu-label">Quy tắc trích xuất thẻ nội dung</label>
                                     <div id="${SCRIPT_ID_PREFIX_ACU}-optimization-extract-rules"></div>
-                                    <button type="button" id="${SCRIPT_ID_PREFIX_ACU}-optimization-extract-add-rule" class="button">添加规则</button>
-                                    <small class="notes">每条规则填写开始词和结束词，仅提取最后一组匹配内容</small>
+                                    <button type="button" id="${SCRIPT_ID_PREFIX_ACU}-optimization-extract-add-rule" class="button">Thêm quy tắc</button>
+                                    <small class="notes">Mỗi quy tắc điền từ bắt đầu và từ kết thúc, chỉ trích xuất nhóm nội dung khớp cuối cùng</small>
                                 </div>
                                 <div>
-                                    <label class="acu-label">标签排除规则</label>
+                                    <label class="acu-label">Quy tắc loại trừ thẻ</label>
                                     <div id="${SCRIPT_ID_PREFIX_ACU}-optimization-exclude-rules"></div>
-                                    <button type="button" id="${SCRIPT_ID_PREFIX_ACU}-optimization-exclude-add-rule" class="button">添加规则</button>
-                                    <small class="notes">每条规则填写开始词和结束词，仅移除最后一组匹配内容</small>
+                                    <button type="button" id="${SCRIPT_ID_PREFIX_ACU}-optimization-exclude-add-rule" class="button">Thêm quy tắc</button>
+                                    <small class="notes">Mỗi quy tắc điền từ bắt đầu và từ kết thúc, chỉ loại bỏ nhóm nội dung khớp cuối cùng</small>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 预设管理 -->
                         <div class="acu-section">
-                            <h4 class="acu-section-title"><i class="fa-solid fa-bookmark"></i> 预设管理</h4>
+                            <h4 class="acu-section-title"><i class="fa-solid fa-bookmark"></i> Quản lý preset</h4>
                             <div>
-                                <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-preset-select">选择预设</label>
+                                <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-preset-select">Chọn preset</label>
                                 <div class="acu-row-wrap" style="margin-top: 4px;">
                                     <select id="${SCRIPT_ID_PREFIX_ACU}-optimization-preset-select" class="text_pole" style="flex: 1; min-width: 160px;">
-                                        <option value="">-- 选择一个预设 --</option>
+                                        <option value="">-- Chọn một preset --</option>
                                     </select>
-                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-save-preset" class="acu-btn-icon" title="覆盖保存当前预设"><i class="fa-solid fa-save"></i></button>
-                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-save-as-new-preset" class="acu-btn-icon" title="另存为新预设"><i class="fa-solid fa-file-export"></i></button>
-                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-import-presets" class="acu-btn-icon" title="导入预设"><i class="fa-solid fa-upload"></i></button>
-                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-export-presets" class="acu-btn-icon" title="导出当前预设"><i class="fa-solid fa-download"></i></button>
-                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-reset-defaults" class="acu-btn-icon" title="恢复默认提示词" style="color: var(--acu-warning);"><i class="fa-solid fa-undo"></i></button>
-                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-delete-preset" class="acu-btn-icon" title="删除当前选中的预设" style="display: none; color: var(--acu-danger);"><i class="fa-solid fa-trash-alt"></i></button>
+                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-save-preset" class="acu-btn-icon" title="Ghi đè lưu preset hiện tại"><i class="fa-solid fa-save"></i></button>
+                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-save-as-new-preset" class="acu-btn-icon" title="Lưu thành preset mới"><i class="fa-solid fa-file-export"></i></button>
+                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-import-presets" class="acu-btn-icon" title="Nhập preset"><i class="fa-solid fa-upload"></i></button>
+                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-export-presets" class="acu-btn-icon" title="Xuất preset hiện tại"><i class="fa-solid fa-download"></i></button>
+                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-reset-defaults" class="acu-btn-icon" title="Khôi phục prompt mặc định" style="color: var(--acu-warning);"><i class="fa-solid fa-undo"></i></button>
+                                    <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-delete-preset" class="acu-btn-icon" title="Xóa preset đang chọn" style="display: none; color: var(--acu-danger);"><i class="fa-solid fa-trash-alt"></i></button>
                                     <input type="file" id="${SCRIPT_ID_PREFIX_ACU}-optimization-preset-file-input" style="display: none;" accept=".json">
                                 </div>
-                                <small class="notes">选择预设应用提示词组设置，或保存当前配置为新预设</small>
+                                <small class="notes">Chọn preset để áp dụng cài đặt nhóm prompt, hoặc lưu cấu hình hiện tại thành preset mới</small>
                             </div>
                         </div>
 
                         <!-- 优化提示词 -->
                         <div class="acu-section">
-                            <h4 class="acu-section-title"><i class="fa-solid fa-edit"></i> 优化提示词</h4>
+                            <h4 class="acu-section-title"><i class="fa-solid fa-edit"></i> Prompt tối ưu</h4>
                             <div class="acu-info-panel">
                                 <small class="notes">
-                                    <strong>占位符说明：</strong><br>
-                                    <code>$CONTENT</code> - 需要优化的正文内容<br>
-                                    <code>$1</code> - 世界书内容 &nbsp; <code>$5</code> - 纪要表/大纲 &nbsp; <code>$6</code> - 上一轮规划<br>
-                                    <code>$7</code> - 前文上下文 &nbsp; <code>$8</code> - 本轮用户输入<br>
-                                    <code>$U</code> - 用户设定 &nbsp; <code>$C</code> - 角色描述<br>
-                                    <strong>输出格式：</strong>AI 需返回 JSON 格式的优化指令，包含 optimizations 数组
+                                    <strong>Giải thích placeholder:</strong><br>
+                                    <code>$CONTENT</code> - nội dung cần tối ưu<br>
+                                    <code>$1</code> - nội dung sổ thế giới &nbsp; <code>$5</code> - bảng kỷ yếu/dàn ý &nbsp; <code>$6</code> - quy hoạch lượt trước<br>
+                                    <code>$7</code> - ngữ cảnh phía trước &nbsp; <code>$8</code> - nội dung người dùng nhập lượt này<br>
+                                    <code>$U</code> - thiết lập người dùng &nbsp; <code>$C</code> - mô tả nhân vật<br>
+                                    <strong>Định dạng đầu ra:</strong> AI cần trả về chỉ thị tối ưu dạng JSON, chứa mảng optimizations
                                 </small>
                             </div>
                             <div id="${SCRIPT_ID_PREFIX_ACU}-optimization-prompt-constructor-area">
-                                <div class="button-group" style="margin-bottom: 10px; justify-content: center;"><button class="${SCRIPT_ID_PREFIX_ACU}-optimization-add-prompt-segment-btn" data-position="top" title="在上方添加对话轮次">+</button></div>
+                                <div class="button-group" style="margin-bottom: 10px; justify-content: center;"><button class="${SCRIPT_ID_PREFIX_ACU}-optimization-add-prompt-segment-btn" data-position="top" title="Thêm lượt hội thoại ở trên">+</button></div>
                                 <div id="${SCRIPT_ID_PREFIX_ACU}-optimization-prompt-segments-container"></div>
-                                <div class="button-group" style="margin-top: 10px; justify-content: center;"><button class="${SCRIPT_ID_PREFIX_ACU}-optimization-add-prompt-segment-btn" data-position="bottom" title="在下方添加对话轮次">+</button></div>
+                                <div class="button-group" style="margin-top: 10px; justify-content: center;"><button class="${SCRIPT_ID_PREFIX_ACU}-optimization-add-prompt-segment-btn" data-position="bottom" title="Thêm lượt hội thoại ở dưới">+</button></div>
                             </div>
                             <div class="button-group">
-                                <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-save-prompt-group" class="primary">保存提示词组</button>
-                                <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-reset-prompt-group">恢复默认提示词组</button>
+                                <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-save-prompt-group" class="primary">Lưu nhóm prompt</button>
+                                <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-reset-prompt-group">Khôi phục nhóm prompt mặc định</button>
                             </div>
                         </div>
 
                         <!-- 手动测试 -->
                         <div class="acu-section">
-                            <h4 class="acu-section-title"><i class="fa-solid fa-flask"></i> 手动测试</h4>
+                            <h4 class="acu-section-title"><i class="fa-solid fa-flask"></i> Thử thủ công</h4>
                             <div>
-                                <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-test-input">测试文本</label>
-                                <textarea id="${SCRIPT_ID_PREFIX_ACU}-optimization-test-input" class="text_pole" rows="5" placeholder="输入需要优化的文本进行测试..."></textarea>
+                                <label class="acu-label" for="${SCRIPT_ID_PREFIX_ACU}-optimization-test-input">Văn bản thử</label>
+                                <textarea id="${SCRIPT_ID_PREFIX_ACU}-optimization-test-input" class="text_pole" rows="5" placeholder="Nhập văn bản cần tối ưu để thử..."></textarea>
                             </div>
                             <div class="button-group">
-                                <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-test-btn" class="primary">执行优化测试</button>
+                                <button id="${SCRIPT_ID_PREFIX_ACU}-optimization-test-btn" class="primary">Chạy thử tối ưu</button>
                             </div>
                             <div id="${SCRIPT_ID_PREFIX_ACU}-optimization-test-result" style="display: none; margin-top: 12px;">
-                                <label class="acu-label">优化结果</label>
+                                <label class="acu-label">Kết quả tối ưu</label>
                                 <div id="${SCRIPT_ID_PREFIX_ACU}-optimization-test-output" class="acu-result-panel"></div>
                             </div>
                         </div>

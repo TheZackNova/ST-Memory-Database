@@ -94,7 +94,7 @@ describe('purgeCurrentChatDatabaseState_ACU', () => {
     mocks.chat = [{ mes: '正文', TavernDB_ACU_Data: { sheet_0: {} } }];
     mocks.saveStrict.mockRejectedValueOnce(new Error('host down')).mockResolvedValueOnce(undefined);
     const result = await purgeCurrentChatDatabaseState_ACU();
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('已回滚并严格保存恢复状态') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('đã khôi phục và lưu nghiêm ngặt trạng thái khôi phục') });
     expect(mocks.chat[0].TavernDB_ACU_Data).toEqual({ sheet_0: {} });
     expect(mocks.saveStrict).toHaveBeenCalledTimes(2);
     expect(mocks.restoreMetadata).toHaveBeenCalledTimes(1);

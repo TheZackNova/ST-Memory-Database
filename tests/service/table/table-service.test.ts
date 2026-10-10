@@ -344,7 +344,7 @@ describe('ensureLegacyStorageMigratedBeforeWrite_ACU', () => {
 
     const result = await ensureLegacyStorageMigratedBeforeWrite_ACU('test');
 
-    expect(result).toEqual({ success: false, error: '旧存储迁移到 V2 失败: 迁移成功结果缺少修复后的表格数据。' });
+    expect(result).toEqual({ success: false, error: 'Di chuyển kho cũ sang V2 thất bại: kết quả di chuyển thành công thiếu dữ liệu bảng đã sửa.' });
     expect(mockSetCurrentJsonTableData).not.toHaveBeenCalled();
     expect(mockCurrentJsonTableDataRef.value).toBe(runtimeBefore);
   });

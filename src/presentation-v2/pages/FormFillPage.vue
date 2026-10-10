@@ -12,48 +12,48 @@
         <AcuText
           variant="status-line"
           class="acu-v2-form-fill-page__status-line"
-          aria-label="表格状态概览"
+          aria-label="Tổng quan trạng thái bảng"
         >
-          当前聊天:
+          Cuộc trò chuyện hiện tại:
           <strong
             class="acu-text__value acu-v2-form-fill-page__status-chat"
-            :title="dashboard.chatFileIdentifier.value || '未初始化'"
+            :title="dashboard.chatFileIdentifier.value || 'Chưa khởi tạo'"
           >
-            {{ dashboard.chatFileIdentifier.value || "未初始化" }}
+            {{ dashboard.chatFileIdentifier.value || "Chưa khởi tạo" }}
           </strong>
-          · AI回复累计层数:
+          · Số tầng phản hồi AI tích lũy:
           <strong class="acu-text__value">{{
             dashboard.aiMessageCount.value
           }}</strong>
-          · 当前 full checkpoint:
+          · full checkpoint hiện tại:
           <strong class="acu-text__value acu-v2-form-fill-page__checkpoint-label">
             {{ manualUpdate.checkpointFloorsLabel.value }}
           </strong>
         </AcuText>
 
         <AcuMessage kind="info">
-          按当前手动填表设置，预计处理范围：{{ manualUpdate.manualRefillRangeLabel.value }}。
+          Theo cài đặt điền bảng thủ công hiện tại, phạm vi dự kiến xử lý: {{ manualUpdate.manualRefillRangeLabel.value }}.
         </AcuMessage>
 
         <AcuMessage v-if="!dashboard.hasTables.value" kind="info">
-          当前尚未加载数据库表格。
+          Hiện chưa tải bảng CSDL.
         </AcuMessage>
 
         <div class="acu-v2-form-fill-page__table-wrap">
           <table class="acu-v2-form-fill-page__status-table">
             <thead>
               <tr>
-                <th>表格</th>
-                <th>频率</th>
-                <th>未记录</th>
-                <th>上次更新</th>
-                <th>下次触发</th>
+                <th>Bảng</th>
+                <th>Tần suất</th>
+                <th>Chưa ghi nhận</th>
+                <th>Cập nhật lần trước</th>
+                <th>Kích hoạt lần sau</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="!dashboard.tableRows.value.length">
                 <td colspan="5" class="acu-v2-form-fill-page__empty">
-                  暂无数据
+                  Chưa có dữ liệu
                 </td>
               </tr>
               <tr
@@ -68,7 +68,7 @@
                 <td>{{ row.unrecordedLabel }}</td>
                 <td>{{ row.lastUpdatedLabel }}</td>
                 <td>
-                  <AcuBadge v-if="row.ready" variant="success">就绪</AcuBadge>
+                  <AcuBadge v-if="row.ready" variant="success">Sẵn sàng</AcuBadge>
                   <span v-else>{{ row.nextTriggerLabel }}</span>
                 </td>
               </tr>
@@ -90,8 +90,8 @@
       >
         <div class="acu-v2-form-fill-page__number-grid">
           <AcuFormRow
-            label="手动处理最近 N 层"
-            hint="从可用 AI 回复中取最近 N 层执行手动填表。"
+            label="Xử lý thủ công N tầng gần nhất"
+            hint="Lấy N tầng gần nhất từ các phản hồi AI khả dụng để điền bảng thủ công."
           >
             <AcuInput
               type="number"
@@ -103,8 +103,8 @@
           </AcuFormRow>
 
           <AcuFormRow
-            label="每 N 层合并为一次填表"
-            hint="把多少层 AI 回复压缩成一次填表请求。"
+            label="Gộp mỗi N tầng thành một lần điền bảng"
+            hint="Số tầng phản hồi AI được nén thành một yêu cầu điền bảng."
           >
             <AcuInput
               type="number"
@@ -117,8 +117,8 @@
         </div>
 
         <AcuMessage kind="info">
-          当前 full checkpoint：{{ manualUpdate.checkpointFloorsLabel.value }}；按当前设置预计处理范围：{{ manualUpdate.manualRefillRangeLabel.value }}。
-          选中表：{{ manualUpdate.selectedSheetSummary.value }}。
+          full checkpoint hiện tại: {{ manualUpdate.checkpointFloorsLabel.value }}; theo cài đặt hiện tại, phạm vi dự kiến xử lý: {{ manualUpdate.manualRefillRangeLabel.value }}.
+          Bảng đã chọn: {{ manualUpdate.selectedSheetSummary.value }}.
         </AcuMessage>
 
         <TableSelector
@@ -126,7 +126,7 @@
           :selected-keys="manualUpdate.selectedManualTableKeys.value"
           :sheet-names="manualUpdate.sheetNames.value"
           :disabled="!manualUpdate.runtimeReady.value"
-          empty-text="当前没有可手动填表的表格。"
+          empty-text="Hiện không có bảng nào có thể điền thủ công."
           @update:selected-keys="manualUpdate.setManualSelectedKeys($event)"
           @select-all="manualUpdate.selectAllManualTables"
           @select-none="manualUpdate.selectNoManualTables"
@@ -134,19 +134,19 @@
 
         <AcuFormRow
           class="acu-v2-form-fill-page__manual-extra"
-          label="本次填表附加要求"
-          hint="留空时不会给本次手动填表追加额外要求。"
+          label="Yêu cầu bổ sung cho lần điền bảng này"
+          hint="Để trống thì không thêm yêu cầu bổ sung cho lần điền bảng thủ công này."
         >
           <AcuTextarea
             :model-value="manualUpdate.manualExtraHint.value"
             :rows="4"
-            placeholder="仅用于本次手动填表..."
+            placeholder="Chỉ dùng cho lần điền bảng thủ công này..."
             @update:model-value="manualUpdate.manualExtraHint.value = $event"
           />
         </AcuFormRow>
 
         <AcuMessage v-if="manualUpdate.vectorIndexWarning.value" kind="warning">
-          交火模式纪要索引启用时不建议手动更新表格；特殊场景下仍可点击执行。
+          Khi chỉ mục kỷ yếu chế độ giao hỏa đang bật, không nên cập nhật bảng thủ công; trong tình huống đặc biệt vẫn có thể bấm thực thi.
         </AcuMessage>
         <AcuMessage kind="info">
           {{ formFillCopy.panels.manual.catchUpBoundary }}
@@ -179,9 +179,9 @@
           >
             {{
               manualUpdate.manualUpdateBusy.value
-                ? "填表中..."
+                ? "Đang điền bảng..."
                 : manualUpdate.vectorIndexWarning.value
-                  ? "交火索引已启用"
+                  ? "Chỉ mục giao hỏa đã bật"
                   : formFillCopy.panels.manual.runLabel
             }}
           </AcuButton>
@@ -209,12 +209,12 @@
             v-if="!promptSlotSummary.hasA || !promptSlotSummary.hasB"
             kind="warning"
           >
-            填表提示词缺少必要主插槽，建议在编辑器里载入默认提示词后保存。
+            Prompt điền bảng thiếu slot chính cần thiết, nên nạp prompt mặc định trong trình sửa rồi lưu.
           </AcuMessage>
 
           <div class="acu-v2-form-fill-page__actions">
             <AcuButton variant="primary" @click="promptDrawerOpen = true">
-              编辑提示词
+              Sửa prompt
             </AcuButton>
           </div>
         </AcuPanel>
@@ -226,44 +226,44 @@
         >
           <div class="acu-v2-form-fill-page__filter">
             <AcuFormRow
-              label="丢弃纯越权 SQL 语句"
-              hint="默认开启。仅丢弃可证明只影响非目标表的独立 SQL；跨目标表或无法归属的语句仍会拒绝并重试。"
+              label="Loại bỏ câu SQL vượt quyền thuần túy"
+              hint="Mặc định bật. Chỉ loại bỏ SQL độc lập có thể chứng minh chỉ ảnh hưởng bảng không phải mục tiêu; câu lệnh liên bảng đích hoặc không xác định được thuộc về đâu vẫn bị từ chối và thử lại."
             >
               <AcuToggle
                 :model-value="settings.discardUnauthorizedTableEditsEnabled.value"
-                aria-label="丢弃纯越权 SQL 语句"
+                aria-label="Loại bỏ câu SQL vượt quyền thuần túy"
                 data-acu-setting-key="discardUnauthorizedTableEditsEnabled"
                 @update:model-value="settings.setDiscardUnauthorizedTableEditsEnabled($event)"
               />
             </AcuFormRow>
 
             <AcuFormRow
-              label="仅识别最后一对 &lt;tableEdit&gt; 标签"
-              hint="默认开启，用于忽略前面思维链或草稿里的旧指令。"
+              label="Chỉ nhận diện cặp thẻ &lt;tableEdit&gt; cuối cùng"
+              hint="Mặc định bật, dùng để bỏ qua các chỉ dẫn cũ trong chuỗi suy nghĩ hoặc bản nháp phía trước."
             >
               <AcuToggle
                 :model-value="settings.tableEditLastPairOnly.value"
-                aria-label="仅识别最后一对 tableEdit 标签"
+                aria-label="Chỉ nhận diện cặp thẻ tableEdit cuối cùng"
                 data-acu-setting-key="tableEditLastPairOnly"
                 @update:model-value="settings.setTableEditLastPairOnly($event)"
               />
             </AcuFormRow>
 
             <AcuRulePairList
-              label="提取规则"
+              label="Quy tắc trích xuất"
               :model-value="settings.extractRules.value"
-              start-placeholder="提取开始边界"
-              end-placeholder="提取结束边界"
-              add-label="添加提取规则"
+              start-placeholder="Biên bắt đầu trích xuất"
+              end-placeholder="Biên kết thúc trích xuất"
+              add-label="Thêm quy tắc trích xuất"
               @update:model-value="settings.setExtractRules($event)"
             />
 
             <AcuRulePairList
-              label="排除规则"
+              label="Quy tắc loại trừ"
               :model-value="settings.excludeRules.value"
-              start-placeholder="排除开始边界"
-              end-placeholder="排除结束边界"
-              add-label="添加排除规则"
+              start-placeholder="Biên bắt đầu loại trừ"
+              end-placeholder="Biên kết thúc loại trừ"
+              add-label="Thêm quy tắc loại trừ"
               @update:model-value="settings.setExcludeRules($event)"
             />
           </div>
@@ -284,12 +284,12 @@
             :status="injectionWb.status.value"
             :error="injectionWb.error.value"
             show-character-option
-            character-option-label="角色卡绑定世界书"
+            character-option-label="Sổ thế giới gắn với thẻ nhân vật"
             filterable
             @update:model-value="onInjectionTargetChange($event)"
           />
           <p class="acu-v2-form-fill-page__hint">
-            目前已选: <strong>{{ injectionTargetLabel }}</strong>
+            Hiện đã chọn: <strong>{{ injectionTargetLabel }}</strong>
           </p>
         </AcuPanel>
 
@@ -414,8 +414,8 @@ const promptSlotSummary = computed(() => ({
 }));
 const promptTemplateBadgeLabel = computed(() =>
   settings.promptTemplateMode.value === "default"
-    ? "使用默认提示词"
-    : "已自定义提示词",
+    ? "Dùng prompt mặc định"
+    : "Đã tùy chỉnh prompt",
 );
 const promptTemplateBadgeVariant = computed<AcuBadgeVariant>(() =>
   settings.promptTemplateMode.value === "default" ? "neutral" : "accent",
@@ -431,9 +431,9 @@ async function refreshInjectionLabel(): Promise<void> {
 function confirmPromptClose(): boolean | Promise<boolean> {
   if (!promptDrawerOpen.value || !settings.promptDirty.value) return true;
   return dialogStore.confirm({
-    title: "关闭新 UI",
-    message: "你有未保存的填表提示词修改，确定要关闭新 UI 吗？",
-    confirmLabel: "关闭新 UI",
+    title: "Đóng UI mới",
+    message: "Bạn có thay đổi prompt điền bảng chưa lưu, chắc chắn đóng UI mới?",
+    confirmLabel: "Đóng UI mới",
     confirmVariant: "danger",
   });
 }
@@ -452,11 +452,11 @@ async function refreshEntriesGroups(): Promise<void> {
   if (entriesSource.source.value === "character") {
     const charPrimary = entriesWb.charPrimary.value;
     entriesSourceLabel.value = charPrimary
-      ? `角色卡所有世界书 · 主册 ${charPrimary}`
-      : "角色卡所有世界书";
+      ? `Tất cả sổ thế giới của thẻ nhân vật · sổ chính ${charPrimary}`
+      : "Tất cả sổ thế giới của thẻ nhân vật";
   } else {
     const manualNames = entriesSource.manualSelection.value;
-    entriesSourceLabel.value = manualNames.length ? manualNames.join("、") : "（未选择）";
+    entriesSourceLabel.value = manualNames.length ? manualNames.join(", ") : "(Chưa chọn)";
   }
 }
 

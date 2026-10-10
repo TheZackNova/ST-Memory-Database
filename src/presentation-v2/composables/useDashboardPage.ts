@@ -289,7 +289,7 @@ function resolveApiConnectionStatus(input: {
     apiConfig.model.trim() ? "" : dashboardCopy.api.modelField,
   ]
     .filter(Boolean)
-    .join("、");
+    .join(", ");
   return {
     ready: false,
     label: dashboardCopy.api.customApiLabel,
@@ -452,7 +452,7 @@ function buildTableHealthItem(
       kind: "info",
       summary: dashboardCopy.tableHealth.overdueSummary(
         issueCount,
-        detailParts.join("；"),
+        detailParts.join("; "),
       ),
       action: {
         label: dashboardCopy.tableHealth.statusAction,
@@ -518,7 +518,7 @@ function readCurrentSqlTemplateCheck(): SqlTemplateCheck {
 }
 
 function formatTableNameSamples(names: string[]): string {
-  const visible = names.slice(0, 3).join("、");
+  const visible = names.slice(0, 3).join(", ");
   return dashboardCopy.sqlHealth.tableNameSamples(visible, names.length);
 }
 
@@ -695,7 +695,7 @@ function formatVectorConfigErrors(errors: string[]): string[] {
 function interpretLogEntry(entry: LogEntry): string {
   const message = String(entry.message || "");
   if (
-    /API未配置|API未就绪|API请求失败|自定义API的URL或模型未配置|TavernHelper\.generateRaw|未选择酒馆连接预设|无法找到ID为|没有配置API|没有选择预设/.test(
+    /API未配置|API未就绪|API请求失败|自定义API的URL或模型未配置|TavernHelper\.generateRaw|未选择酒馆连接预设|无法找到ID为|没有配置API|没有选择预设|Chưa chọn preset kết nối SillyTavern|Không tìm thấy preset kết nối có ID|chưa cấu hình API|URL hoặc mô hình của API tùy chỉnh chưa được cấu hình/.test(
       message,
     )
   ) {
@@ -723,7 +723,7 @@ function interpretLogEntry(entry: LogEntry): string {
     return dashboardCopy.logs.sqlIssue;
   }
   if (
-    /无法将更新后的数据库保存到聊天记录|saveChat|setChatMessages|Save failed|Save aborted|聊天记录为空/.test(
+    /无法将更新后的数据库保存到聊天记录|Không thể lưu CSDL đã cập nhật vào lịch sử trò chuyện|saveChat|setChatMessages|Save failed|Save aborted|聊天记录为空|(?:Lịch sử trò chuyện|Bản ghi cuộc trò chuyện(?: hiện tại)?)(?: đang)? trống/.test(
       message,
     )
   ) {
@@ -1101,7 +1101,7 @@ export function useDashboardPage(): DashboardPageState {
     if (!writeResult.ok) {
       storageMessage.value = {
         kind: "error",
-        text: writeResult.message || "存储模式保存失败。",
+        text: writeResult.message || "Lưu chế độ lưu trữ thất bại.",
       };
       await refresh();
       return;
@@ -1121,7 +1121,7 @@ export function useDashboardPage(): DashboardPageState {
       }
       storageMode.value = previousMode;
       storageMessage.value = null;
-      toast.error("存储模式切换失败，详情见运行日志");
+      toast.error("Chuyển chế độ lưu trữ thất bại, xem chi tiết trong nhật ký chạy");
     } finally {
       await refresh();
     }

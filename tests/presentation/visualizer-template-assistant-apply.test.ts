@@ -202,7 +202,7 @@ describe('applyTemplateAssistantDraftToVisualizer_ACU', () => {
     expect(state.sheetOrder).toEqual(['sheet_a', 'sheet_concurrent']);
     expect(mockRenderSidebar).not.toHaveBeenCalled();
     expect(mockRenderMain).not.toHaveBeenCalled();
-    expect(mockShowToastr).toHaveBeenCalledWith('warning', expect.stringContaining('preflight 期间已变化'));
+    expect(mockShowToastr).toHaveBeenCalledWith('warning', expect.stringContaining('trong lúc schema migration preflight'));
   });
 
   it('schema migration preflight 期间 deletedSheetKeys 单独变化时不覆盖并发编辑', async () => {
@@ -225,7 +225,7 @@ describe('applyTemplateAssistantDraftToVisualizer_ACU', () => {
     expect(state.deletedSheetKeys).toEqual(['legacy_deleted', 'sheet_concurrent_deleted']);
     expect(mockRenderSidebar).not.toHaveBeenCalled();
     expect(mockRenderMain).not.toHaveBeenCalled();
-    expect(mockShowToastr).toHaveBeenCalledWith('warning', expect.stringContaining('preflight 期间已变化'));
+    expect(mockShowToastr).toHaveBeenCalledWith('warning', expect.stringContaining('trong lúc schema migration preflight'));
   });
 
   it('未提供 originalBaseFingerprint 时回退到 draft.baseFingerprint', async () => {

@@ -16,7 +16,7 @@ const texts_ACU = (value: unknown): string[] => Array.isArray(value) ? value.map
 
 function fail_ACU(reasonCode: string, path: string, expected: string, actual: unknown): never {
   const issue: WorldSimulationProtocolIssue_ACU = { reasonCode, path, expected, actual };
-  throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU('WORLD_SIMULATION_AGENT_PROTOCOL_INVALID', 'agent_loop', `${reasonCode}: ${path} 应为 ${expected}`, true, { ...issue }));
+  throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU('WORLD_SIMULATION_AGENT_PROTOCOL_INVALID', 'agent_loop', `${reasonCode}: ${path} cần là ${expected}`, true, { ...issue }));
 }
 
 function stripNoise_ACU(raw: string): string {
@@ -484,7 +484,7 @@ export function normalizeOneShotSpecialistPayload_ACU(payload: Record<string, un
     issues.push({ module, source: 'contract_rejected', path, message: error instanceof Error ? error.message : String(error) });
   };
   if (payload.agentName !== undefined && payload.agentName !== ctx.agentName) throw new Error('WORLD_SIMULATION_AGENT_IDENTITY_MISMATCH');
-  const common = { agentName: ctx.agentName, summary: typeof payload.summary === 'string' && payload.summary.trim() ? payload.summary : '本轮资料维护', uncertainties: Array.isArray(payload.uncertainties) ? payload.uncertainties : [] };
+  const common = { agentName: ctx.agentName, summary: typeof payload.summary === 'string' && payload.summary.trim() ? payload.summary : 'Bảo trì tài liệu lượt này', uncertainties: Array.isArray(payload.uncertainties) ? payload.uncertainties : [] };
   if (payload.status === 'no_change') return { payload: { ...common, status: 'no_change', evidenceRefs: [ctx.anchorEvidenceRef] }, issues };
   if (payload.status === 'failed') return { payload: { status: 'failed', agentName: ctx.agentName, reasonCode: payload.reasonCode, message: payload.message }, issues };
   if (payload.status !== 'candidate' || typeof payload.sql !== 'string' || !payload.sql.trim()) throw new Error('WORLD_SIMULATION_ONE_SHOT_SQL_REQUIRED');
@@ -580,7 +580,7 @@ export function normalizeOneShotSpecialistPayload_ACU(payload: Record<string, un
   collect(patch);
   return { payload: Object.keys(patch).length
     ? { ...common, status: 'candidate', patch, evidenceRefs: [...refs] }
-    : issues.length ? { status: 'failed', agentName: ctx.agentName, reasonCode: 'SQL_REJECTED', message: issues.map(item => item.message).join('；') }
+    : issues.length ? { status: 'failed', agentName: ctx.agentName, reasonCode: 'SQL_REJECTED', message: issues.map(item => item.message).join('; ') }
       : { ...common, status: 'no_change', evidenceRefs: [ctx.anchorEvidenceRef] }, issues };
 }
 
@@ -882,31 +882,31 @@ export function renderWorldSimulationDirectorProtocolRejection_ACU(issue: WorldS
   const example = (record: Record<string, unknown>): string => {
     if (!tools) return JSON.stringify(record);
     const { action, ...args } = record;
-    return `调用 ${String(action)}，参数 ${JSON.stringify(args)}`;
+    return `Gọi ${String(action)}, tham số ${JSON.stringify(args)}`;
   };
   const lines = [
-    `你上一次的输出没有被采纳。原因：${issue.reasonCode} ${issue.path} 应为 ${issue.expected}。`,
+    `Đầu ra lần trước của bạn không được chấp nhận. Lý do: ${issue.reasonCode} ${issue.path} cần là ${issue.expected}.`,
     tools
-      ? 'read、search 与 open_round、delegate、finalize、block 都使用函数调用，不要写成 JSON 文本。推理写在思维链里，闭合后再调用函数；一次回复只调用一个决策函数，且不要与 read/search 同时调用。不要输出 <WORLD_SIMULATION_ENGINE_SEAM:...> 标签。'
-      : '每个动作都写成一个 JSON 对象，用 action 字段区分：read、search、open_round、delegate、finalize、block。推理写在思维链里，闭合后再输出 JSON。不要 Markdown 围栏，也不要输出 <WORLD_SIMULATION_ENGINE_SEAM:...> 标签。',
+      ? 'read, search cùng open_round, delegate, finalize, block đều dùng lời gọi hàm, không viết thành văn bản JSON. Phần suy luận viết trong chuỗi suy nghĩ, sau khi đóng mới gọi hàm; mỗi phản hồi chỉ gọi một hàm quyết định và không gọi cùng lúc với read/search. Không xuất thẻ <WORLD_SIMULATION_ENGINE_SEAM:...>.'
+      : 'Mỗi hành động viết thành một đối tượng JSON, phân biệt bằng trường action: read, search, open_round, delegate, finalize, block. Phần suy luận viết trong chuỗi suy nghĩ, sau khi đóng mới xuất JSON. Không dùng rào Markdown và không xuất thẻ <WORLD_SIMULATION_ENGINE_SEAM:...>.',
     tools
-      ? '调用 read 时参数 reads 必须是非空地址数组；调用 search 时参数 query 必填，可选 scope、maxResults、isRegex。不要添加 evidenceRef、purpose 或其他字段。'
-      : 'read 只能包含 action、reads，reads 必须是非空地址数组；search 只能包含 action、query，可选 scope、maxResults、isRegex。不要添加 evidenceRef、purpose 或其他字段。',
-    `字段地址必须使用 ${formatWorldSimulationToolAddressHints_ACU()}；必须包含模块名和条目 ID，例如 field:dimensions:dim-a；不得使用 field:dimensions 这类裸模块地址。`,
-    'evidenceRef 由服务端在读取成功后随工具结果颁发；只能在后续 finalize / candidate 的 evidenceRefs 数组中引用，不能由模型在 read/search 请求中生成。',
+      ? 'Khi gọi read, tham số reads phải là mảng địa chỉ không rỗng; khi gọi search, tham số query là bắt buộc, scope, maxResults, isRegex là tùy chọn. Không thêm evidenceRef, purpose hay trường nào khác.'
+      : 'read chỉ được chứa action, reads, trong đó reads phải là mảng địa chỉ không rỗng; search chỉ được chứa action, query, scope, maxResults, isRegex là tùy chọn. Không thêm evidenceRef, purpose hay trường nào khác.',
+    `Địa chỉ trường phải dùng ${formatWorldSimulationToolAddressHints_ACU()}; phải chứa tên module và ID mục, ví dụ field:dimensions:dim-a; không được dùng địa chỉ module trần như field:dimensions.`,
+    'evidenceRef do phía máy chủ cấp kèm kết quả công cụ sau khi đọc thành công; chỉ được trích dẫn trong mảng evidenceRefs của finalize / candidate về sau, mô hình không được tự tạo trong yêu cầu read/search.',
     tools
-      ? 'delegate 只能包含 delegations；open_round 只能包含 summary、focus、dispatchChronicler，skipModules 可选；block 只能包含 reason、unresolved。evidenceRefs 只允许出现在 finalize，其他函数禁止携带。'
-      : 'delegate 只能包含 action、delegations；open_round 只能包含 action、summary、focus、dispatchChronicler，skipModules 可选；block 只能包含 action、reason、unresolved。evidenceRefs 只允许出现在 finalize 顶层，其他动作禁止携带。',
-    '动作格式必须是下面之一：',
+      ? 'delegate chỉ được chứa delegations; open_round chỉ được chứa summary, focus, dispatchChronicler, skipModules là tùy chọn; block chỉ được chứa reason, unresolved. evidenceRefs chỉ được xuất hiện trong finalize, các hàm khác cấm mang theo.'
+      : 'delegate chỉ được chứa action, delegations; open_round chỉ được chứa action, summary, focus, dispatchChronicler, skipModules là tùy chọn; block chỉ được chứa action, reason, unresolved. evidenceRefs chỉ được xuất hiện ở cấp cao nhất của finalize, các hành động khác cấm mang theo.',
+    'Định dạng hành động phải là một trong các dạng sau:',
     example({ action: 'read', reads: ['ledger:current', 'summary:current'] }),
-    example({ action: 'search', query: '关键词', scope: ['worldbook'], maxResults: 10 }),
+    example({ action: 'search', query: 'từ khóa', scope: ['worldbook'], maxResults: 10 }),
   ];
-  if (allowDelegate) lines.push(example({ action: 'delegate', delegations: [{ agentName: 'dramatis-keeper', instruction: '按用户要求核对人物档案', reads: [] }] }));
-  lines.push(example({ action: 'open_round', summary: '锁定本轮幕后焦点并启动固定工作流', focus: '时间推进与暗流压力', dispatchChronicler: false }));
-  lines.push(`finalize ${tools ? '参数' : '顶层'}只能包含 ${tools ? '' : 'action、'}outcome、summary、evidenceRefs；candidateId、acceptedCandidateIds、status、verdict 禁止出现。`);
-  lines.push('outcome 必须精确为 commit、no_change、blocked 之一，不得使用 candidate、success、done、finalized 等别名。');
-  lines.push(example({ action: 'finalize', outcome: 'commit', summary: '提交已审核候选', evidenceRefs: ['evidence:已颁发引用'] }));
-  lines.push(example({ action: 'finalize', outcome: 'no_change', summary: '证据表明无需变更', evidenceRefs: ['evidence:已颁发引用'] }));
+  if (allowDelegate) lines.push(example({ action: 'delegate', delegations: [{ agentName: 'dramatis-keeper', instruction: 'Đối chiếu hồ sơ nhân vật theo yêu cầu của người dùng', reads: [] }] }));
+  lines.push(example({ action: 'open_round', summary: 'Chốt tiêu điểm hậu trường của lượt này và khởi động quy trình cố định', focus: 'Đẩy tiến thời gian và áp lực dòng ngầm', dispatchChronicler: false }));
+  lines.push(`finalize ${tools ? 'tham số' : 'cấp cao nhất'} chỉ được chứa ${tools ? '' : 'action, '}outcome, summary, evidenceRefs; cấm xuất hiện candidateId, acceptedCandidateIds, status, verdict.`);
+  lines.push('outcome phải chính xác là một trong commit, no_change, blocked, không được dùng các bí danh như candidate, success, done, finalized.');
+  lines.push(example({ action: 'finalize', outcome: 'commit', summary: 'Nộp ứng viên đã được rà soát', evidenceRefs: ['evidence:已颁发引用'] }));
+  lines.push(example({ action: 'finalize', outcome: 'no_change', summary: 'Bằng chứng cho thấy không cần thay đổi', evidenceRefs: ['evidence:已颁发引用'] }));
   lines.push(example({ action: 'block', reason: '……', unresolved: ['……'] }));
   return lines.join('\n');
 }
@@ -918,62 +918,62 @@ export function renderWorldSimulationSpecialistProtocolRejection_ACU(
   mode: 'json' | 'tools' = 'json',
 ): string {
   const tools = mode === 'tools';
-  const example = (record: Record<string, unknown>): string => (tools ? `调用 submit，参数 ${JSON.stringify(record)}` : JSON.stringify(record));
+  const example = (record: Record<string, unknown>): string => (tools ? `Gọi submit, tham số ${JSON.stringify(record)}` : JSON.stringify(record));
   const lines = [
-    `你上一次的输出没有被采纳。原因：${issue.reasonCode} ${issue.path} 应为 ${issue.expected}。`,
+    `Đầu ra lần trước của bạn không được chấp nhận. Lý do: ${issue.reasonCode} ${issue.path} cần là ${issue.expected}.`,
     tools
-      ? '推理写在思维链里。闭合后调用函数：读取与写入用对应函数，交付结果调用 submit；submit 不能与其它函数在同一次回复里调用，不要输出 JSON 文本。'
-      : '推理写在思维链里。闭合后只输出一个 JSON 对象，不要 Markdown、解释或额外字段。',
-    'status 必须精确为 candidate、no_change、failed、blocked 之一。',
-    `agentName 必须精确为 ${agentName}。`,
+      ? 'Phần suy luận viết trong chuỗi suy nghĩ. Sau khi đóng thì gọi hàm: đọc và ghi dùng hàm tương ứng, nộp kết quả thì gọi submit; submit không được gọi cùng các hàm khác trong cùng một phản hồi, không xuất văn bản JSON.'
+      : 'Phần suy luận viết trong chuỗi suy nghĩ. Sau khi đóng chỉ xuất một đối tượng JSON, không Markdown, không giải thích, không trường bổ sung.',
+    'status phải chính xác là một trong candidate, no_change, failed, blocked.',
+    `agentName phải chính xác là ${agentName}.`,
   ];
   if (writableModules.length) {
-    lines.push(`candidate 的 sql 只允许写：${writableModules.join(' | ')}${writableModules.includes('chronicle') ? ' | chronicle_archive | chronicle_overview' : ''}；不得输出 patch。`);
-    lines.push('使用受限 INSERT/UPDATE/DELETE；数组模块 UPDATE/DELETE 的 WHERE 必须带 id、expected_revision，DELETE 还须带 reason；chronicle 仅 INSERT 新事件、UPDATE 已保存未完成的草稿缺栏（WHERE id、expected_revision=0）或 DELETE（WHERE 只带 id、reason），完整编年禁止 UPDATE；单例 UPDATE 只带 expected_revision。字符串用单引号，数组与对象用单引号包裹 JSON 文本；禁止 SELECT、DDL、函数及子查询。');
+    lines.push(`sql của candidate chỉ được ghi: ${writableModules.join(' | ')}${writableModules.includes('chronicle') ? ' | chronicle_archive | chronicle_overview' : ''}; không được xuất patch.`);
+    lines.push('Dùng INSERT/UPDATE/DELETE bị giới hạn; WHERE của UPDATE/DELETE trên module mảng phải kèm id, expected_revision, DELETE còn phải kèm reason; chronicle chỉ INSERT sự kiện mới, UPDATE cột còn thiếu của bản nháp đã lưu chưa hoàn chỉnh (WHERE id, expected_revision=0) hoặc DELETE (WHERE chỉ kèm id, reason), niên biểu hoàn chỉnh cấm UPDATE; UPDATE singleton chỉ kèm expected_revision. Chuỗi dùng dấu nháy đơn, mảng và đối tượng là văn bản JSON bọc trong dấu nháy đơn; cấm SELECT, DDL, hàm và truy vấn con.');
     const firstModule = writableModules[0];
     const sqlExample = ['clock', 'player', 'guidance'].includes(firstModule)
       ? `UPDATE ${firstModule} SET ${firstModule === 'clock' ? 'days = 1' : firstModule === 'player' ? "contact = 'open'" : "signals = '[]'"} WHERE expected_revision = 0;`
-      : firstModule === 'chronicle' ? "INSERT INTO chronicle (summary) VALUES ('有证据的新事件');"
-        : `INSERT INTO ${firstModule} (${firstModule === 'seeds' ? 'title' : firstModule === 'rumors' ? 'fact' : 'name'}, expected_revision) VALUES ('有证据的新条目', 0);`;
+      : firstModule === 'chronicle' ? "INSERT INTO chronicle (summary) VALUES ('Sự kiện mới có bằng chứng');"
+        : `INSERT INTO ${firstModule} (${firstModule === 'seeds' ? 'title' : firstModule === 'rumors' ? 'fact' : 'name'}, expected_revision) VALUES ('Mục mới có bằng chứng', 0);`;
     lines.push(example({
       status: 'candidate',
       agentName,
       sql: sqlExample,
-      summary: '基于已颁发证据形成候选',
+      summary: 'Hình thành ứng viên dựa trên bằng chứng đã cấp',
       evidenceRefs: ['evidence:已颁发引用'],
       uncertainties: [],
     }));
   }
-  lines.push(example({ status: 'no_change', agentName, summary: '没有需要修改的内容', evidenceRefs: [], uncertainties: [] }));
-  lines.push(example({ status: 'failed', agentName, reasonCode: 'REASON_CODE', message: '失败原因' }));
-  lines.push(example({ status: 'blocked', agentName, unresolved: ['仍需解决的问题'] }));
+  lines.push(example({ status: 'no_change', agentName, summary: 'Không có nội dung cần sửa', evidenceRefs: [], uncertainties: [] }));
+  lines.push(example({ status: 'failed', agentName, reasonCode: 'REASON_CODE', message: 'Lý do thất bại' }));
+  lines.push(example({ status: 'blocked', agentName, unresolved: ['Vấn đề còn cần giải quyết'] }));
   return lines.join('\n');
 }
 
 export function renderWorldSimulationReviewerProtocolRejection_ACU(issue: WorldSimulationProtocolIssue_ACU, mode: 'json' | 'tools' = 'json'): string {
   const tools = mode === 'tools';
-  const example = (record: Record<string, unknown>): string => (tools ? `调用 submit，参数 ${JSON.stringify(record)}` : JSON.stringify(record));
+  const example = (record: Record<string, unknown>): string => (tools ? `Gọi submit, tham số ${JSON.stringify(record)}` : JSON.stringify(record));
   return [
-    `你上一次的审核输出没有被采纳。原因：${issue.reasonCode} ${issue.path} 应为 ${issue.expected}。`,
+    `Đầu ra rà soát lần trước của bạn không được chấp nhận. Lý do: ${issue.reasonCode} ${issue.path} cần là ${issue.expected}.`,
     tools
-      ? '推理写在思维链里，闭合后调用 submit 交付审核结论；需要补读时先单独调用 read。不要输出 JSON 文本或 <WORLD_SIMULATION_ENGINE_SEAM:...> 标签。'
-      : '推理写在思维链里，闭合后再输出一个 JSON 对象。不要 Markdown 围栏、解释、<WORLD_SIMULATION_ENGINE_SEAM:...> 标签或额外字段。',
-    `${tools ? 'submit 参数' : '顶层'}必须且只能包含 verdict、summary、findings、acceptedCandidateIds；不得输出 guidance。`,
-    'verdict 必须精确为 accept、revise、reject 之一；不得使用 approve、approved、pass、success、done 等别名。',
-    'findings 必须是数组；每项必须且只能包含 severity、reasonCode、path、expected、actual。severity 必须精确为 blocking、major、minor 之一。',
-    'accept 必须包含至少一个真实候选 ID；reject 的 acceptedCandidateIds 必须为空；不得编造候选 ID。',
-    '不得输出 guidance：投影由 guidance-composer 专责，审核只判断时间、空间、因果、权限与证据。',
-    example({ verdict: 'accept', summary: '候选满足时间、因果、权限与证据约束', findings: [], acceptedCandidateIds: ['candidate:已有候选ID'] }),
+      ? 'Phần suy luận viết trong chuỗi suy nghĩ, sau khi đóng thì gọi submit để nộp kết luận rà soát; khi cần đọc bổ sung thì gọi riêng read trước. Không xuất văn bản JSON hay thẻ <WORLD_SIMULATION_ENGINE_SEAM:...>.'
+      : 'Phần suy luận viết trong chuỗi suy nghĩ, sau khi đóng mới xuất một đối tượng JSON. Không dùng rào Markdown, không giải thích, không thẻ <WORLD_SIMULATION_ENGINE_SEAM:...> hay trường bổ sung.',
+    `${tools ? 'Tham số submit' : 'Cấp cao nhất'} phải và chỉ được chứa verdict, summary, findings, acceptedCandidateIds; không được xuất guidance.`,
+    'verdict phải chính xác là một trong accept, revise, reject; không được dùng các bí danh như approve, approved, pass, success, done.',
+    'findings phải là mảng; mỗi mục phải và chỉ được chứa severity, reasonCode, path, expected, actual. severity phải chính xác là một trong blocking, major, minor.',
+    'accept phải chứa ít nhất một ID ứng viên thật; acceptedCandidateIds của reject phải rỗng; không được bịa ID ứng viên.',
+    'Không được xuất guidance: phép chiếu do guidance-composer chuyên trách, việc rà soát chỉ đánh giá thời gian, không gian, nhân quả, quyền hạn và bằng chứng.',
+    example({ verdict: 'accept', summary: 'Ứng viên thỏa mãn các ràng buộc về thời gian, nhân quả, quyền hạn và bằng chứng', findings: [], acceptedCandidateIds: ['candidate:已有候选ID'] }),
     example({
       verdict: 'revise',
-      summary: '候选仍需修正',
-      findings: [{ severity: 'major', reasonCode: 'CAUSE_GAP', path: '$.clock', expected: '时间与因果连续', actual: '缺少因果说明' }],
+      summary: 'Ứng viên vẫn cần chỉnh sửa',
+      findings: [{ severity: 'major', reasonCode: 'CAUSE_GAP', path: '$.clock', expected: 'Thời gian và nhân quả liền mạch', actual: 'Thiếu giải thích nhân quả' }],
       acceptedCandidateIds: [],
     }),
     example({
       verdict: 'reject',
-      summary: '候选不满足证据约束',
-      findings: [{ severity: 'blocking', reasonCode: 'EVIDENCE_GAP', path: '$', expected: '可验证证据', actual: '缺失' }],
+      summary: 'Ứng viên không thỏa mãn ràng buộc bằng chứng',
+      findings: [{ severity: 'blocking', reasonCode: 'EVIDENCE_GAP', path: '$', expected: 'Bằng chứng có thể xác minh', actual: 'Thiếu' }],
       acceptedCandidateIds: [],
     }),
   ].join('\n');
@@ -981,26 +981,26 @@ export function renderWorldSimulationReviewerProtocolRejection_ACU(issue: WorldS
 
 export function renderWorldSimulationPlannerProtocolRejection_ACU(issue: WorldSimulationProtocolIssue_ACU): string {
   return [
-    `你上一次的阶段规划输出没有被采纳。原因：${issue.reasonCode} ${issue.path} 应为 ${issue.expected}。`,
-    '推理写在思维链里，闭合后再输出一个 JSON 对象。不要 Markdown 围栏、解释、<WORLD_SIMULATION_ENGINE_SEAM:...> 标签或额外字段。',
-    '顶层必须且只能包含 action、summary、plan；action 必须精确为 plan，summary 必须是非空字符串，plan 不得省略、设为 null 或只返回摘要。',
-    `plan 必须完整包含 schemaVersion、title、objective、impactScope、factsToVerify、plannedTools、plannedSpecialists、expectedLedgerChanges、convergenceConditions、blockingConditions、completedSteps、nextStep。expectedLedgerChanges 只能使用：${WORLD_SIMULATION_LEDGER_MODULES_ACU.join(' | ')}。`,
+    `Đầu ra lập kế hoạch giai đoạn lần trước của bạn không được chấp nhận. Lý do: ${issue.reasonCode} ${issue.path} cần là ${issue.expected}.`,
+    'Phần suy luận viết trong chuỗi suy nghĩ, sau khi đóng mới xuất một đối tượng JSON. Không dùng rào Markdown, không giải thích, không thẻ <WORLD_SIMULATION_ENGINE_SEAM:...> hay trường bổ sung.',
+    'Cấp cao nhất phải và chỉ được chứa action, summary, plan; action phải chính xác là plan, summary phải là chuỗi không rỗng, plan không được bỏ, đặt null hay chỉ trả về tóm tắt.',
+    `plan phải chứa đầy đủ schemaVersion, title, objective, impactScope, factsToVerify, plannedTools, plannedSpecialists, expectedLedgerChanges, convergenceConditions, blockingConditions, completedSteps, nextStep. expectedLedgerChanges chỉ được dùng: ${WORLD_SIMULATION_LEDGER_MODULES_ACU.join(' | ')}.`,
     JSON.stringify({
       action: 'plan',
-      summary: '锁定本轮幕后推演焦点',
+      summary: 'Chốt tiêu điểm mô phỏng hậu trường của lượt này',
       plan: {
         schemaVersion: WORLD_SIMULATION_SCHEMA_VERSION_ACU,
-        title: '推演本轮幕后动态',
-        objective: '根据最新剧情推算幕后世界演变',
-        impactScope: ['当前世界状态'],
-        factsToVerify: ['时间是否推进'],
+        title: 'Suy diễn động thái hậu trường của lượt này',
+        objective: 'Suy diễn diễn biến thế giới hậu trường dựa trên cốt truyện mới nhất',
+        impactScope: ['Trạng thái thế giới hiện tại'],
+        factsToVerify: ['Thời gian có được đẩy tiến không'],
         plannedTools: ['read'],
         plannedSpecialists: ['timekeeper', 'undercurrent-analyst'],
         expectedLedgerChanges: ['clock'],
-        convergenceConditions: ['证据与候选闭合'],
-        blockingConditions: ['缺少锚点'],
+        convergenceConditions: ['Bằng chứng và ứng viên đã khép kín'],
+        blockingConditions: ['Thiếu neo'],
         completedSteps: [],
-        nextStep: '读取当前账本',
+        nextStep: 'Đọc sổ cái hiện tại',
       },
     }),
   ].join('\n');
@@ -1071,28 +1071,28 @@ export function parseWorldSimulationSqlFieldWrites_ACU(sql: string, role: string
     const path = `sql[${index}].${statement.table}`;
     const reject = (field: string, reason: string) => result.rejected.push({ path: `${path}${field ? `.${field}` : ''}`, reason });
     const module = WORLD_SIMULATION_SQL_TABLE_MODULE_ACU[statement.table as keyof typeof WORLD_SIMULATION_SQL_TABLE_MODULE_ACU];
-    if (!module || !writable.has(module === 'chronicleArchive' ? 'chronicle' : module)) { reject('', '角色无权写入该表'); return; }
+    if (!module || !writable.has(module === 'chronicleArchive' ? 'chronicle' : module)) { reject('', 'Vai trò không có quyền ghi vào bảng này'); return; }
     const archive = statement.table === 'chronicle_archive' || statement.table === 'chronicle_overview';
     const singleton = statement.table === 'clock' || statement.table === 'player' || statement.table === 'guidance';
     const chronicle = statement.table === 'chronicle';
     if (archive && statement.kind !== 'insert'
-      || singleton && statement.kind !== 'update') { reject('', '该表不允许此操作'); return; }
+      || singleton && statement.kind !== 'update') { reject('', 'Bảng này không cho phép thao tác này'); return; }
     const where = statement.kind === 'insert' ? {} : statement.where;
     const required = singleton ? ['expected_revision'] : chronicle && statement.kind === 'delete' ? ['id', 'reason'] : ['id', 'expected_revision', ...(statement.kind === 'delete' ? ['reason'] : [])];
     if (statement.kind !== 'insert' && (Object.keys(where).some(key => !required.includes(key)) || required.some(key => !Object.prototype.hasOwnProperty.call(where, key)))) {
-      reject('WHERE', `WHERE 只允许且必须包含 ${required.join(', ')}`); return;
+      reject('WHERE', `WHERE chỉ cho phép và bắt buộc chứa ${required.join(', ')}`); return;
     }
-    if (statement.kind !== 'insert' && !singleton && (typeof where.id !== 'string' || !where.id.trim())) { reject('WHERE.id', '必须指定非空 ID'); return; }
-    if (statement.kind === 'delete' && (typeof where.reason !== 'string' || !where.reason.trim())) { reject('WHERE.reason', '必须指定非空理由'); return; }
+    if (statement.kind !== 'insert' && !singleton && (typeof where.id !== 'string' || !where.id.trim())) { reject('WHERE.id', 'Phải chỉ định ID không rỗng'); return; }
+    if (statement.kind === 'delete' && (typeof where.reason !== 'string' || !where.reason.trim())) { reject('WHERE.reason', 'Phải chỉ định lý do không rỗng'); return; }
     const rawRevision = statement.kind === 'insert' ? statement.values.expected_revision : where.expected_revision;
     if (!archive && !(chronicle && statement.kind !== 'update') && (typeof rawRevision !== 'number' || !Number.isInteger(rawRevision) || rawRevision < 0)) {
-      reject('expected_revision', '必须指定非负整数 revision'); return;
+      reject('expected_revision', 'Phải chỉ định revision là số nguyên không âm'); return;
     }
     if (chronicle && statement.kind === 'update' && rawRevision !== 0) {
-      reject('expected_revision', '编年草稿补栏必须使用 expected_revision=0'); return;
+      reject('expected_revision', 'Bổ sung cột cho bản nháp niên biểu phải dùng expected_revision=0'); return;
     }
     const id = singleton ? '_' : statement.kind === 'insert' ? statement.values.id : where.id;
-    if (statement.kind === 'insert' && id !== undefined && (typeof id !== 'string' || !id.trim())) { reject('id', 'ID 必须为非空字符串'); return; }
+    if (statement.kind === 'insert' && id !== undefined && (typeof id !== 'string' || !id.trim())) { reject('id', 'ID phải là chuỗi không rỗng'); return; }
     if (statement.kind === 'delete') {
       result.intents.push({ kind: 'delete', module: statement.table as WorldSimulationSqlFieldIntent_ACU['module'], id: String(id).trim(), fields: {},
         ...(typeof rawRevision === 'number' ? { expectedRevision: rawRevision } : {}), reason: String(where.reason).trim() });
@@ -1102,13 +1102,13 @@ export function parseWorldSimulationSqlFieldWrites_ACU(sql: string, role: string
     const columns = WORLD_SIMULATION_SQL_COLUMNS_ACU[statement.table];
     for (const [column, value] of Object.entries(statement.values)) {
       if (column === 'expected_revision' || column === 'id') {
-        if (statement.kind !== 'insert') reject(column, 'SET 不得写入 ID 或 revision');
+        if (statement.kind !== 'insert') reject(column, 'SET không được ghi ID hoặc revision');
         continue;
       }
       if (!columns?.has(column)) { reject(column, 'field_forbidden'); continue; }
       fields[simulationSqlColumnName_ACU(column)] = simulationSqlValue_ACU(value);
     }
-    if (!Object.keys(fields).length) { reject('', '没有可提交的栏目'); return; }
+    if (!Object.keys(fields).length) { reject('', 'Không có cột nào có thể nộp'); return; }
     result.intents.push({ kind: statement.kind, module: statement.table as WorldSimulationSqlFieldIntent_ACU['module'],
       id: typeof id === 'string' ? id.trim() : '', fields,
       ...(typeof rawRevision === 'number' ? { expectedRevision: rawRevision } : {}) });

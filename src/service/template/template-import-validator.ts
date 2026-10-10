@@ -24,7 +24,7 @@ export class TemplateImportValidationError_ACU extends Error {
   readonly diagnostics: readonly TemplateImportDiagnostic_ACU[];
 
   constructor(diagnostics: readonly TemplateImportDiagnostic_ACU[]) {
-    super(`模板导入校验失败：${diagnostics.map(item => item.message).join('；')}`);
+    super(`Kiểm tra nhập mẫu thất bại: ${diagnostics.map(item => item.message).join('; ')}`);
     this.name = 'TemplateImportValidationError_ACU';
     this.diagnostics = diagnostics;
   }
@@ -47,7 +47,7 @@ export function validateImportedTemplateObject_ACU(template: unknown): TemplateI
   Object.keys(data).filter(key => !key.startsWith('sheet_')).forEach(key => {
     const value = data[key];
     if (!SHEET_LIKE_KEY_PATTERN_ACU.test(key) && !isSheetLikeObject_ACU(value)) return;
-    diagnostics.push(issue_ACU('invalid_sheet_key', key, value?.name, `表「${String(value?.name || key)}」的 key「${key}」不合法。`));
+    diagnostics.push(issue_ACU('invalid_sheet_key', key, value?.name, `Key "${key}" của bảng "${String(value?.name || key)}" không hợp lệ.`));
   });
   const names = sheetKeys.map(key => data[key]?.name);
   const allocation = allocateStableSheetKeys_ACU(names);
@@ -55,9 +55,9 @@ export function validateImportedTemplateObject_ACU(template: unknown): TemplateI
   allocation.diagnostics.forEach(diagnostic => {
     const sheetKey = sheetKeys[diagnostic.index] || '';
     if (diagnostic.code === 'empty_name') {
-      diagnostics.push(issue_ACU('empty_sheet_name', sheetKey, names[diagnostic.index], '表名不能为空。'));
+      diagnostics.push(issue_ACU('empty_sheet_name', sheetKey, names[diagnostic.index], 'Tên bảng không được để trống.'));
     } else if (diagnostic.code === 'duplicate_canonical_name') {
-      diagnostics.push(issue_ACU('duplicate_sheet_name', sheetKey, names[diagnostic.index], `表名与「${String(names[diagnostic.conflictsWithIndex!])}」规范化后重复。`, undefined, diagnostic.conflictsWithIndex));
+      diagnostics.push(issue_ACU('duplicate_sheet_name', sheetKey, names[diagnostic.index], `Tên bảng trùng với "${String(names[diagnostic.conflictsWithIndex!])}" sau khi chuẩn hóa.`, undefined, diagnostic.conflictsWithIndex));
     }
   });
   validateTableAliases_ACU(data, sheetKeys, diagnostics);
@@ -67,17 +67,17 @@ export function validateImportedTemplateObject_ACU(template: unknown): TemplateI
     const sheet = data[sheetKey];
     const sheetName = String(sheet?.name ?? '');
     if (!SHEET_KEY_PATTERN_ACU.test(sheetKey)) {
-      diagnostics.push(issue_ACU('invalid_sheet_key', sheetKey, sheetName, `表「${sheetName || sheetKey}」的 key「${sheetKey}」不合法。`));
+      diagnostics.push(issue_ACU('invalid_sheet_key', sheetKey, sheetName, `Key "${sheetKey}" của bảng "${sheetName || sheetKey}" không hợp lệ.`));
     }
     const canonicalKey = sheetKey.toLowerCase();
     const firstKey = seenKeys.get(canonicalKey);
-    if (firstKey) diagnostics.push(issue_ACU('duplicate_sheet_key', sheetKey, sheetName, `表 key「${sheetKey}」与「${firstKey}」冲突。`, undefined, firstKey));
+    if (firstKey) diagnostics.push(issue_ACU('duplicate_sheet_key', sheetKey, sheetName, `Key bảng "${sheetKey}" xung đột với "${firstKey}".`, undefined, firstKey));
     else seenKeys.set(canonicalKey, sheetKey);
     if (!sheet || typeof sheet !== 'object' || Array.isArray(sheet)) return;
     if (typeof sheet.uid !== 'string' || !sheet.uid) {
-      diagnostics.push(issue_ACU('missing_sheet_uid', sheetKey, sheetName, `表「${sheetName || sheetKey}」缺少 uid。`));
+      diagnostics.push(issue_ACU('missing_sheet_uid', sheetKey, sheetName, `Bảng "${sheetName || sheetKey}" thiếu uid.`));
     } else if (sheet.uid !== sheetKey) {
-      diagnostics.push(issue_ACU('sheet_uid_mismatch', sheetKey, sheetName, `表「${sheetName || sheetKey}」的 uid「${sheet.uid}」必须与 key「${sheetKey}」一致。`));
+      diagnostics.push(issue_ACU('sheet_uid_mismatch', sheetKey, sheetName, `uid "${sheet.uid}" của bảng "${sheetName || sheetKey}" phải khớp với key "${sheetKey}".`));
     }
     validateHeaders_ACU(sheetKey, sheetName, sheet.content, diagnostics);
   });
@@ -118,7 +118,7 @@ export function detectDisplayNameTranslationHazards_ACU(template: unknown): Temp
         } else if (first.sheetKey !== sheetKey && first.sqlName.toLowerCase() !== sqlName.toLowerCase()) {
           warnings.push(issue_ACU(
             'display_column_translation_ambiguity', sheetKey, sheetName,
-            `列展示名「${displayName}」在表「${sheetName || sheetKey}」映射为「${sqlName}」，但在表「${first.sheetName || first.sheetKey}」映射为「${first.sqlName}」；旧式 SQL 全文翻译可能按表加载顺序选错列。`,
+            `Tên hiển thị cột "${displayName}" được ánh xạ thành "${sqlName}" trong bảng "${sheetName || sheetKey}", nhưng được ánh xạ thành "${first.sqlName}" trong bảng "${first.sheetName || first.sheetKey}"; dịch toàn văn SQL kiểu cũ có thể chọn nhầm cột theo thứ tự tải bảng.`,
             undefined, first.sheetKey,
           ));
         }
@@ -136,7 +136,7 @@ export function detectDisplayNameTranslationHazards_ACU(template: unknown): Temp
       if (!column.displayName.includes(table.displayName)) continue;
       warnings.push(issue_ACU(
         'display_name_substring_hazard', table.sheetKey, table.sheetName,
-        `表展示名「${table.displayName}」是表「${column.sheetName || column.sheetKey}」列展示名「${column.displayName}」的子串；旧式 SQL 翻译会先替换表名，可能破坏列名。`,
+        `Tên hiển thị bảng "${table.displayName}" là chuỗi con của tên hiển thị cột "${column.displayName}" trong bảng "${column.sheetName || column.sheetKey}"; dịch SQL kiểu cũ sẽ thay tên bảng trước, có thể làm hỏng tên cột.`,
         undefined, column.sheetKey,
       ));
     }
@@ -146,25 +146,25 @@ export function detectDisplayNameTranslationHazards_ACU(template: unknown): Temp
 
 function validateHeaders_ACU(sheetKey: string, sheetName: string, content: unknown, diagnostics: TemplateImportDiagnostic_ACU[]): void {
   if (!Array.isArray(content) || content.length === 0) {
-    diagnostics.push(issue_ACU('missing_header_row', sheetKey, sheetName, `表「${sheetName || sheetKey}」缺少表头行。`));
+    diagnostics.push(issue_ACU('missing_header_row', sheetKey, sheetName, `Bảng "${sheetName || sheetKey}" thiếu hàng tiêu đề.`));
     return;
   }
   const headers = content[0];
   if (!Array.isArray(headers)) {
-    diagnostics.push(issue_ACU('invalid_header_row', sheetKey, sheetName, `表「${sheetName || sheetKey}」的表头必须是数组。`));
+    diagnostics.push(issue_ACU('invalid_header_row', sheetKey, sheetName, `Tiêu đề của bảng "${sheetName || sheetKey}" phải là mảng.`));
     return;
   }
   const mapping = mapSqlColumnIdentifiers_ACU(headers);
   mapping.diagnostics.forEach(diagnostic => {
     const messages: Record<string, string> = {
-      empty_column_name: `第 ${diagnostic.index + 1} 列列名不能为空。`,
-      missing_row_id: '首列必须是 row_id。',
-      misplaced_row_id: `row_id 只能位于首列（当前第 ${diagnostic.index + 1} 列）。`,
-      duplicate_canonical_column_name: `第 ${diagnostic.index + 1} 列与第 ${(diagnostic.conflictsWithIndex ?? 0) + 1} 列规范化后重名。`,
+      empty_column_name: `Tên cột ${diagnostic.index + 1} không được để trống.`,
+      missing_row_id: 'Cột đầu phải là row_id.',
+      misplaced_row_id: `row_id chỉ được nằm ở cột đầu (hiện ở cột ${diagnostic.index + 1}).`,
+      duplicate_canonical_column_name: `Cột ${diagnostic.index + 1} và cột ${(diagnostic.conflictsWithIndex ?? 0) + 1} trùng tên sau khi chuẩn hóa.`,
     };
     const code = diagnostic.code === 'empty_column_name' ? 'empty_header_cell'
       : diagnostic.code === 'duplicate_canonical_column_name' ? 'duplicate_column_name' : diagnostic.code;
-    diagnostics.push(issue_ACU(code, sheetKey, sheetName, `表「${sheetName || sheetKey}」${messages[diagnostic.code]}`, diagnostic.index, diagnostic.conflictsWithIndex));
+    diagnostics.push(issue_ACU(code, sheetKey, sheetName, `Bảng "${sheetName || sheetKey}": ${messages[diagnostic.code]}`, diagnostic.index, diagnostic.conflictsWithIndex));
   });
   const firstPhysicalCandidate = new Map<string, number>();
   headers.forEach((header, index) => {
@@ -177,7 +177,7 @@ function validateHeaders_ACU(sheetKey: string, sheetName: string, content: unkno
     }
     diagnostics.push(issue_ACU(
       'physical_column_name_collision', sheetKey, sheetName,
-      `第 ${index + 1} 列与第 ${firstIndex + 1} 列映射为相同物理列名候选「${candidate}」。`,
+      `Cột ${index + 1} và cột ${firstIndex + 1} được ánh xạ tới cùng một tên cột vật lý ứng viên "${candidate}".`,
       index, firstIndex,
     ));
   });
@@ -209,7 +209,7 @@ function validateTableAliases_ACU(data: Record<string, any>, sheetKeys: string[]
       if (owner.sheetKey !== sheetKey) {
         diagnostics.push(issue_ACU(
           'table_alias_conflict', sheetKey, sheetName,
-          `表「${sheetName || sheetKey}」的名称或历史别名「${String(identity).trim()}」与表「${owner.sheetName || owner.sheetKey}」冲突。`,
+          `Tên hoặc bí danh lịch sử "${String(identity).trim()}" của bảng "${sheetName || sheetKey}" xung đột với bảng "${owner.sheetName || owner.sheetKey}".`,
           undefined, owner.sheetKey,
         ));
       }

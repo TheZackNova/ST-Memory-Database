@@ -99,7 +99,7 @@ beforeEach(() => {
 describe('TableTemplatePresetPanel · runtime 导出与状态展示', () => {
   it('渲染导出当前生效模板按钮，点击调用 exportTemplate(runtime)', async () => {
     const { app, tplExportTemplate } = await mountPanel();
-    const exportBtn = Array.from(document.querySelectorAll<HTMLButtonElement>('button')).find(btn => btn.title === '导出当前生效模板');
+    const exportBtn = Array.from(document.querySelectorAll<HTMLButtonElement>('button')).find(btn => btn.title === 'Xuất mẫu đang có hiệu lực');
     expect(exportBtn).toBeDefined();
     exportBtn!.click();
     await nextTick();
@@ -109,7 +109,7 @@ describe('TableTemplatePresetPanel · runtime 导出与状态展示', () => {
 
   it('运行时不可用时导出按钮 disabled', async () => {
     const { app } = await mountPanel({ runtimeAvailable: false });
-    const exportBtn = Array.from(document.querySelectorAll<HTMLButtonElement>('button')).find(btn => btn.title === '导出当前生效模板');
+    const exportBtn = Array.from(document.querySelectorAll<HTMLButtonElement>('button')).find(btn => btn.title === 'Xuất mẫu đang có hiệu lực');
     expect(exportBtn).toBeDefined();
     expect(exportBtn!.disabled).toBe(true);
     app.unmount();
@@ -141,7 +141,7 @@ describe('TableTemplatePresetPanel · runtime 导出与状态展示', () => {
 
   it('跟随全局按钮仅在聊天覆盖时显示，点击调用 followGlobalTemplate（S1-2）', async () => {
     const { app, tplFollowGlobalTemplate, isChatOverridden } = await mountPanel({ chatOverridden: true });
-    const findBtn = () => Array.from(document.querySelectorAll<HTMLButtonElement>('button')).find(btn => btn.title === '跟随全局（清除聊天覆盖）');
+    const findBtn = () => Array.from(document.querySelectorAll<HTMLButtonElement>('button')).find(btn => btn.title === 'Theo toàn cục (xóa ghi đè của cuộc trò chuyện)');
     const followBtn = findBtn();
     expect(followBtn).toBeDefined();
     followBtn!.click();

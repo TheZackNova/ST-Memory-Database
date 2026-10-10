@@ -257,10 +257,10 @@ describe('world simulation envelope store', () => {
   it('pendingFixes 非数组或条目缺键 fail-closed', () => {
     const notArray: any = buildEmptyWorldSimulationLedger_ACU();
     notArray.pendingFixes = { module: 'clock' };
-    expect(() => validateWorldSimulationLedger_ACU(notArray)).toThrow(/pendingFixes 必须是数组/);
+    expect(() => validateWorldSimulationLedger_ACU(notArray)).toThrow(/pendingFixes phải là mảng/);
     const missing: any = buildEmptyWorldSimulationLedger_ACU();
     missing.pendingFixes = [{ module: 'clock', candidateId: 'c1', agentName: 'timekeeper' }];
-    expect(() => validateWorldSimulationLedger_ACU(missing)).toThrow(/缺少必填字段/);
+    expect(() => validateWorldSimulationLedger_ACU(missing)).toThrow(/thiếu trường bắt buộc/);
   });
 
   it('chronicleOverview 超过 512 行 fail-closed', () => {
@@ -271,16 +271,16 @@ describe('world simulation envelope store', () => {
       oneLine: `事件${index}`,
       archiveRef: `arc-${index}`,
     }));
-    expect(() => validateWorldSimulationLedger_ACU(ledger)).toThrow(/chronicleOverview 容量非法/);
+    expect(() => validateWorldSimulationLedger_ACU(ledger)).toThrow(/chronicleOverview có dung lượng không hợp lệ/);
   });
 
   it('chronicleOverview 行缺字段或未知字段 fail-closed', () => {
     const missing: any = buildEmptyWorldSimulationLedger_ACU();
     missing.chronicleOverview = [{ fingerprint: 'fp', day: 1, oneLine: '一行' }];
-    expect(() => validateWorldSimulationLedger_ACU(missing)).toThrow(/缺少必填字段/);
+    expect(() => validateWorldSimulationLedger_ACU(missing)).toThrow(/thiếu trường bắt buộc/);
     const extra: any = buildEmptyWorldSimulationLedger_ACU();
     extra.chronicleOverview = [{ fingerprint: 'fp', day: 1, oneLine: '一行', archiveRef: 'arc-1', extra: true }];
-    expect(() => validateWorldSimulationLedger_ACU(extra)).toThrow(/未知持久化字段/);
+    expect(() => validateWorldSimulationLedger_ACU(extra)).toThrow(/trường lưu trữ không xác định/);
   });
 
   it('无法从 elapsed/storyTime 解析 day 时回退为 1', () => {
@@ -386,7 +386,7 @@ describe('world simulation anchor rescan', () => {
     expect(() => resolveCurrentWorldSimulationAnchor_ACU(staleAnchor, chat)).toThrow(WorldSimulationValidationError_ACU);
     chat[1].message_id = 20;
     chat.push({ ...chat[1] });
-    expect(() => resolveCurrentWorldSimulationAnchor_ACU(staleAnchor, chat)).toThrow(/无法唯一定位/);
+    expect(() => resolveCurrentWorldSimulationAnchor_ACU(staleAnchor, chat)).toThrow(/không thể định vị duy nhất/);
   });
 
   it('归档桶随 swipe 分桶，切换 swipe 后读不到旧条目', async () => {

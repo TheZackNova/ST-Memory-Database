@@ -1,7 +1,7 @@
 <template>
   <AcuDrawer
     :is-open="isOpen"
-    title="管理正文替换预设"
+    title="Quản lý preset thay thế nội dung"
     width="560px"
     @close="$emit('close')"
   >
@@ -12,7 +12,7 @@
     <div class="acu-content-replace-preset-drawer__top-actions">
       <AcuButton variant="primary" class="acu-content-replace-preset-drawer__create-btn" @click="$emit('create-from-default')">
         <i class="fa-solid fa-plus"></i>
-        从默认新建
+       Tạo mới từ mặc định
       </AcuButton>
     </div>
 
@@ -20,19 +20,19 @@
       <li v-for="preset in presets" :key="preset.name" class="acu-v2-manage-item">
         <div class="acu-v2-manage-item__info">
           <AcuText as="span" variant="list-title" class="acu-v2-manage-item__name">{{ preset.name }}</AcuText>
-          <AcuText as="span" variant="caption" class="acu-v2-manage-item__meta">{{ preset.promptGroup.length }} 段提示词</AcuText>
+          <AcuText as="span" variant="caption" class="acu-v2-manage-item__meta">{{ preset.promptGroup.length }} đoạn prompt</AcuText>
         </div>
         <div class="acu-v2-manage-item__actions">
-          <AcuIconButton icon="fa-solid fa-upload" title="导出 JSON" @click="$emit('export', preset.name)" />
-          <AcuIconButton icon="fa-solid fa-i-cursor" title="重命名" @click="$emit('rename', preset.name)" />
-          <AcuIconButton icon="fa-solid fa-pen" title="编辑提示词" @click="$emit('edit', preset.name)" />
-          <AcuIconButton icon="fa-solid fa-trash-can" variant="danger" title="删除" @click="$emit('delete', preset.name)" />
+          <AcuIconButton icon="fa-solid fa-upload" title="Xuất JSON" @click="$emit('export', preset.name)" />
+          <AcuIconButton icon="fa-solid fa-i-cursor" title="Đổi tên" @click="$emit('rename', preset.name)" />
+          <AcuIconButton icon="fa-solid fa-pen" title="Sửa prompt" @click="$emit('edit', preset.name)" />
+          <AcuIconButton icon="fa-solid fa-trash-can" variant="danger" title="Xóa" @click="$emit('delete', preset.name)" />
         </div>
       </li>
     </ul>
-    <AcuText v-else variant="empty" class="acu-content-replace-preset-drawer__empty">暂无预设。点击上方"从默认新建"，或使用面板下拉栏右侧的导入按钮创建。</AcuText>
+    <AcuText v-else variant="empty" class="acu-content-replace-preset-drawer__empty">Chưa có preset. Bấm "Tạo mới từ mặc định" ở trên, hoặc dùng nút nhập bên phải danh sách thả của bảng để tạo.</AcuText>
     <AcuText variant="hint" class="acu-content-replace-preset-drawer__hint">
-      提示：点击"编辑提示词"会先把该预设载入为当前正文替换提示词，再打开提示词编辑器；保存后会同步更新这个预设。
+      Gợi ý: bấm "Sửa prompt" sẽ nạp preset này làm prompt thay thế nội dung hiện tại rồi mở trình sửa prompt; sau khi lưu, preset này sẽ được cập nhật theo.
     </AcuText>
   </AcuDrawer>
 </template>

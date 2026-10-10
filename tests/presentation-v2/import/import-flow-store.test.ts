@@ -165,19 +165,19 @@ describe('useImportFlowStore', () => {
     const { store } = await importStore(settings);
     store.refreshFromSettings();
 
-    expect(store.statusText).toMatch(/尚未加载文件/);
+    expect(store.statusText).toMatch(/chưa tải tệp/);
 
     store.staging = { hasChunks: true, chunkCount: 5, totalChars: 100, processedIndex: 0, selectionSig: null };
-    expect(store.statusText).toMatch(/已暂停/);
+    expect(store.statusText).toMatch(/đã tạm dừng/);
     expect(store.statusText).toMatch(/0\/5/);
 
     store.staging = { hasChunks: true, chunkCount: 5, totalChars: 100, processedIndex: 2, selectionSig: null };
-    expect(store.statusText).toMatch(/已暂停/);
+    expect(store.statusText).toMatch(/đã tạm dừng/);
 
     store.staging = { hasChunks: true, chunkCount: 5, totalChars: 100, processedIndex: null, selectionSig: null };
-    expect(store.statusText).toMatch(/已准备好 5/);
+    expect(store.statusText).toMatch(/đã chuẩn bị 5/);
 
     store.selectNoneSheets();
-    expect(store.statusText).toMatch(/未选择任何表格/);
+    expect(store.statusText).toMatch(/chưa chọn bảng nào/);
   });
 });

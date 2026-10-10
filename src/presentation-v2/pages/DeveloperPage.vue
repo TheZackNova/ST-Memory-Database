@@ -16,8 +16,8 @@
       </AcuPanel>
 
       <AcuPanel
-        title="填表高级选项"
-        description="仅在需要严格约束模型填表响应时开启。开启后将切换到隔离提示词和严格 JSON 解析链路。"
+        title="Tùy chọn nâng cao điền bảng"
+        description="Chỉ bật khi cần ràng buộc nghiêm ngặt phản hồi điền bảng của mô hình. Khi bật sẽ chuyển sang prompt cô lập và luồng phân tích JSON nghiêm ngặt."
       >
         <div class="acu-v2-developer-page__toggle-list">
           <ToggleRow
@@ -32,8 +32,8 @@
         :description="developerCopy.panels.formFillRuntime.description"
       >
         <AcuFormRow
-          label="最大并发更新组数"
-          hint="大于 1 时，多个表格分组可能同时调用填表 API。数值越大越快，但 API 压力和失败后排查难度也越高。"
+          label="Số nhóm cập nhật đồng thời tối đa"
+          hint="Khi lớn hơn 1, nhiều nhóm bảng có thể gọi API điền bảng cùng lúc. Giá trị càng lớn càng nhanh, nhưng áp lực API và độ khó điều tra khi thất bại cũng cao hơn."
         >
           <AcuInput
             type="number"
@@ -72,21 +72,21 @@ interface DeveloperFieldItem {
 const toggles = computed<DeveloperFieldItem[]>(() => [
   {
     key: "plotAdvanced",
-    label: "剧情推进",
-    description: '在编辑剧情推进预设的侧抽屉中显示"匹配替换"字段。',
+    label: "Đẩy cốt truyện",
+    description: 'Hiển thị trường "Khớp và thay thế" trong ngăn kéo bên khi sửa preset đẩy cốt truyện.',
     value: devOptions.plotAdvanced.value,
   },
   {
     key: "legacyUiMenuVisible",
-    label: "旧 UI 入口",
-    description: "在 SillyTavern 扩展菜单中显示旧 UI 入口。默认隐藏；新 UI 出问题时可临时开启。",
+    label: "Lối vào UI cũ",
+    description: "Hiển thị lối vào UI cũ trong menu tiện ích mở rộng của SillyTavern. Mặc định ẩn; có thể bật tạm khi UI mới gặp sự cố.",
     value: devOptions.legacyUiMenuVisible.value,
   },
 ]);
 const strictJsonTableFillToggle = computed<DeveloperFieldItem>(() => ({
   key: "strictJsonTableFillEnabled",
-  label: "严格 JSON 填表响应",
-  description: "默认关闭。开启后原生表格输出结构化操作，SQLite 输出 JSON 包裹的 SQL 脚本。",
+  label: "Phản hồi điền bảng JSON nghiêm ngặt",
+  description: "Mặc định tắt. Khi bật, bảng gốc xuất thao tác có cấu trúc, SQLite xuất script SQL được bọc trong JSON.",
   value: settings.strictJsonTableFillEnabled.value,
 }));
 const maxConcurrentGroups = computed(

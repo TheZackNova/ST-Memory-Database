@@ -136,7 +136,7 @@ export class ZeroLayerStableView_ACU {
   /** 只替换自有叶节点文本；模型返回的 HTML、script 和 iframe 均不会执行。 */
   private paint(body: string): void {
     const busy = this.busyKey !== null && this.busyKey === this.context?.key && !this.preview;
-    this.slot!.textContent = busy ? `${body}${body ? '\n\n' : ''}（零层回合处理中…）` : body;
+    this.slot!.textContent = busy ? `${body}${body ? '\n\n' : ''}(Lượt Tầng 0 đang xử lý…)` : body;
   }
 
   private render(body: string): void {
@@ -193,7 +193,7 @@ export class ZeroLayerStableView_ACU {
   private markOutOfSync(): void {
     if (!this.slot) return;
     this.slot.dataset.viewError = 'view-out-of-sync';
-    this.slot.title = '正文显示未同步，请使用数据重同步；不会重新生成或重载游戏。';
+    this.slot.title = 'Phần hiển thị nội dung chưa đồng bộ, hãy dùng đồng bộ lại dữ liệu; sẽ không tạo lại hoặc tải lại trò chơi.';
   }
 
   get isMounted(): boolean { return this.snapshot !== null; }

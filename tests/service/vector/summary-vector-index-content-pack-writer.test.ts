@@ -212,7 +212,7 @@ describe('T12: content pack writer', () => {
       return { ok: true, ref: { role: params.role, path: params.path, byteSize: 1, checksum, createdAt: '', updatedAt: '', status: 'ready' } };
     });
     await expect(persistSummaryVectorIndexSnapshot_ACU(packOptions()))
-      .rejects.toThrow('内容寻址 pack 上传后 checksum 不一致');
+      .rejects.toThrow('checksum không khớp sau khi tải lên pack định vị theo nội dung');
     // 回滚只删除本次新建的 pack（snapshot 还没上传，pack 先失败）
     expect(h.remove).toHaveBeenCalledTimes(1);
     expect(h.remove.mock.calls[0][0]).toMatch(/v2pack_/);
@@ -246,7 +246,7 @@ describe('T12: content pack writer', () => {
     h.blobs.set(collidingPath, { schema: 'content_addressed_vector_pack', packKey: 'pack_tampered', version: 1, packScope: 'x', embeddingModel: 'm', dimension: 2, chunks: [] });
     // 不传 previousManifest：首次写入路径，幂等检查必须读到 tampered blob 并抛 collision
     await expect(persistSummaryVectorIndexSnapshot_ACU(packOptions()))
-      .rejects.toThrow('pack 路径冲突');
+      .rejects.toThrow('Xung đột đường dẫn pack định vị theo nội dung của vector giao hỏa');
     // snapshot 未上传（pack 冲突在 snapshot 之前抛出；只有第一次 persist 的 snapshot）
     expect(h.upload.mock.calls.filter((call) => call[0].role === 'manifest').length).toBe(1);
   });
@@ -258,7 +258,7 @@ describe('T12: content pack writer', () => {
         { chunkId: 'c1', rowKey: 'row-1', text: 'text1', vector: [0.1, 0.2], sequence: 0 },
         { chunkId: 'c1', rowKey: 'row-2', text: 'text2', vector: [0.3, 0.4], sequence: 1 },
       ],
-    }))).rejects.toThrow('chunkId 重复');
+    }))).rejects.toThrow('chunkId của snapshot vector giao hỏa bị trùng');
     expect(h.upload).not.toHaveBeenCalled();
   });
 

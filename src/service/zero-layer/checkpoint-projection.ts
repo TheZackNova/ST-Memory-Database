@@ -18,13 +18,13 @@ export function checkpointReplayFrames_ACU(source: ZeroLayerEnvelope_ACU,
     let payload = original ?? current;
     if (original !== undefined && current !== undefined) {
       requireValue(record(original) && record(current) && Array.isArray(original.deltas)
-        && Array.isArray(current.deltas), '回放帧不能与旧全量资料叠加。');
+        && Array.isArray(current.deltas), 'Khung phát lại không được chồng lên tài liệu toàn bộ cũ.');
       const deltas = [...original.deltas, ...current.deltas];
       const unique = new Map<number, unknown>();
       for (const delta of deltas) {
-        requireValue(record(delta) && typeof delta.seq === 'number', '回放操作缺少序号。');
+        requireValue(record(delta) && typeof delta.seq === 'number', 'Thao tác phát lại thiếu số thứ tự.');
         const previous = unique.get(delta.seq);
-        requireValue(previous === undefined || fingerprint(previous) === fingerprint(delta), '回放操作序号冲突。');
+        requireValue(previous === undefined || fingerprint(previous) === fingerprint(delta), 'Số thứ tự thao tác phát lại xung đột.');
         unique.set(delta.seq, delta);
       }
       payload = { ...original, deltas: [...unique.values()] };
@@ -38,14 +38,14 @@ export function projectWorkingContinuation_ACU(source: ZeroLayerEnvelope_ACU,
   timeline: ZeroLayerTimelineSnapshot_ACU, state?: ZeroLayerContinuationState_ACU | null) {
   const branch = source.branches.find(item => item.branchId === timeline.branchId);
   requireValue(branch && timeline.sessionId === source.sessionId
-    && timeline.headTurnId === branch.headTurnId, '续写工作投影前沿已变化。');
+    && timeline.headTurnId === branch.headTurnId, 'Đầu của phép chiếu làm việc viết tiếp đã thay đổi.');
   const effective = state === undefined ? branch.continuation : state;
   const projection = projectCheckpointContinuation_ACU(source, timeline, effective);
   const working = effective?.workingFrame;
   if (!working) return projection;
   validateZeroLayerWorkingFrameScope_ACU(source, { ...branch, continuation: effective! });
   const at = timeline.floors.findIndex(floor => fingerprint(floor.ref) === fingerprint(working.anchor));
-  requireValue(at >= 0 && at === timeline.floors.length - 1, '续写工作帧来源不在所选前沿。');
+  requireValue(at >= 0 && at === timeline.floors.length - 1, 'Nguồn khung làm việc viết tiếp không nằm ở đầu nhánh đã chọn.');
   // 工作基底采用固定内存 swipe；宿主 swipe 与来源 FloorRef 保持原样。
   projection[at].swipe_id = 0;
   projection[at][AGENT_MODULE_FIELD_ACU] = structuredClone(working.payload);
@@ -59,7 +59,7 @@ export function projectCheckpointContinuation_ACU(source: ZeroLayerEnvelope_ACU,
   const frames = state?.moduleFrames ?? branch.continuation?.moduleFrames ?? {};
   const active = branch.checkpoints?.active;
   const cut = active ? timeline.floors.findIndex(floor => fingerprint(floor.ref) === fingerprint(active.position.ref)) : -1;
-  requireValue(!active || cut >= 0, '活动 checkpoint 不在当前时间线。');
+  requireValue(!active || cut >= 0, 'Checkpoint đang hoạt động không nằm trên dòng thời gian hiện tại.');
   return timeline.floors.map((floor, index) => {
     const message: Record<string, unknown> = { ...floor.data, mes: floor.body,
       is_user: floor.role === 'user', is_system: floor.role === 'system',
@@ -71,7 +71,7 @@ export function projectCheckpointContinuation_ACU(source: ZeroLayerEnvelope_ACU,
     } else if (index === cut) {
       const baseline = structuredClone(active.continuation);
       if (payload !== undefined) {
-        requireValue(record(payload) && Array.isArray(payload.deltas), '活动切点帧无效。');
+        requireValue(record(payload) && Array.isArray(payload.deltas), 'Khung điểm cắt đang hoạt động không hợp lệ.');
         baseline.deltas = structuredClone(payload.deltas.filter(delta => record(delta)
           && typeof delta.seq === 'number' && delta.seq > (baseline.checkpoint!.operationSeq ?? 0))) as typeof baseline.deltas;
       }

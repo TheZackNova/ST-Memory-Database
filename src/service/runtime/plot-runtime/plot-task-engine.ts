@@ -252,12 +252,12 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
           logDebug_ACU('[剧情推进] $5 回退使用总体大纲表内容');
         }
       } else {
-        outlineTableContent = '纪要索引：当前未加载到数据库数据。';
+        outlineTableContent = 'Chỉ mục kỷ yếu: hiện chưa tải được dữ liệu CSDL.';
       }
     } catch (error) {
       if (requestContext) throw error;
       logError_ACU('[剧情推进] 生成纪要索引($5)时出错:', error);
-      outlineTableContent = '{"error": "加载表格数据时发生错误"}';
+      outlineTableContent = '{"error": "Đã xảy ra lỗi khi tải dữ liệu bảng"}';
     }
 
     const plotExcludeTags = (plotSettings.contextExcludeTags || '').trim();
@@ -359,11 +359,11 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
     };
 
     const formattedHistory = (slicedContext && Array.isArray(slicedContext) ? slicedContext : [])
-      .map(msg => `assistant："${sanitizeHtml(msg.content)}"`)
+      .map(msg => `assistant: "${sanitizeHtml(msg.content)}"`)
       .join(' \n ');
 
     const contextInjectionText = formattedHistory && formattedHistory.trim()
-      ? `以下是前文的故事发展（AI输出），给你用作参考：\n ${formattedHistory}`
+      ? `Sau đây là diễn biến câu chuyện trước đó (đầu ra của AI), dùng để bạn tham khảo:\n ${formattedHistory}`
       : '';
 
     let userInfoContent_Plot = '';
@@ -498,7 +498,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
       } catch (error) {
         if (sharedContext.requestContext) throw error;
         if (isManualPlotAbort_ACU(error)) throw error;
-        sharedContext.reportWarning?.('提示词段处理未完成，保留已处理的文本并继续任务。');
+        sharedContext.reportWarning?.('Xử lý đoạn prompt chưa hoàn tất, giữ lại văn bản đã xử lý và tiếp tục tác vụ.');
         logWarn_ACU('[剧情推进] 提示词段处理异常，继续任务。', {
           error: summarizePlotRuntimeError_ACU(error),
         });
@@ -538,17 +538,17 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
     const candidate = error && typeof error === 'object'
       ? error as { status?: unknown; name?: unknown; code?: unknown } : {};
     const status = typeof candidate.status === 'number' ? candidate.status : 0;
-    if (status === 401 || status === 403) return `API 鉴权或访问权限失败（HTTP ${status}）。`;
-    if (status === 408 || status === 504) return `API 请求超时（HTTP ${status}）。`;
-    if (status === 413) return 'API 请求体超过服务允许的大小（HTTP 413）。';
-    if (status === 429) return 'API 服务限流或配额受限（HTTP 429）。';
-    if (Number.isInteger(status) && status >= 500 && status <= 599) return `API 服务端异常（HTTP ${status}）。`;
-    if (Number.isInteger(status) && status >= 400 && status <= 499) return `API 拒绝了请求（HTTP ${status}）。`;
-    if (candidate.code === 'API_PRESET_UNRESOLVED') return 'API 预设无法解析，未取得有效响应。';
-    if (candidate.name === 'TimeoutError') return 'API 请求超时，未取得有效响应。';
-    if (candidate.name === 'AbortError') return 'API 请求被上游中断，未取得有效响应。';
-    if (candidate.name === 'TypeError') return 'API 请求出现网络或传输异常，未取得有效响应。';
-    return 'API 调用失败，未取得有效响应；具体原因尚未确认。';
+    if (status === 401 || status === 403) return `Xác thực hoặc quyền truy cập API thất bại (HTTP ${status}).`;
+    if (status === 408 || status === 504) return `Yêu cầu API hết thời gian (HTTP ${status}).`;
+    if (status === 413) return 'Phần thân yêu cầu API vượt quá kích thước dịch vụ cho phép (HTTP 413).';
+    if (status === 429) return 'Dịch vụ API bị giới hạn tốc độ hoặc hết hạn mức (HTTP 429).';
+    if (Number.isInteger(status) && status >= 500 && status <= 599) return `Lỗi phía máy chủ API (HTTP ${status}).`;
+    if (Number.isInteger(status) && status >= 400 && status <= 499) return `API đã từ chối yêu cầu (HTTP ${status}).`;
+    if (candidate.code === 'API_PRESET_UNRESOLVED') return 'Không thể phân tích preset API, chưa nhận được phản hồi hợp lệ.';
+    if (candidate.name === 'TimeoutError') return 'Yêu cầu API hết thời gian, chưa nhận được phản hồi hợp lệ.';
+    if (candidate.name === 'AbortError') return 'Yêu cầu API bị ngắt từ phía thượng nguồn, chưa nhận được phản hồi hợp lệ.';
+    if (candidate.name === 'TypeError') return 'Yêu cầu API gặp lỗi mạng hoặc truyền tải, chưa nhận được phản hồi hợp lệ.';
+    return 'Gọi API thất bại, chưa nhận được phản hồi hợp lệ; nguyên nhân cụ thể chưa được xác nhận.';
   }
 
   type PlotTaskRetryFailure_ACU =
@@ -561,17 +561,17 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
   function buildPlotTaskRetryFeedback_ACU(failure: PlotTaskRetryFailure_ACU): string {
     switch (failure.kind) {
       case 'empty_response':
-        return '失败原因：上一轮没有返回非空文本。\n修正要求：重新输出本任务的完整结果，不要只输出空白；若配置了提取标签，至少完整闭合其中一对。';
+        return 'Nguyên nhân thất bại: lượt trước không trả về văn bản không rỗng.\nYêu cầu sửa: xuất lại toàn bộ kết quả của tác vụ này, đừng chỉ xuất khoảng trắng; nếu đã cấu hình thẻ trích xuất thì phải đóng đầy đủ ít nhất một cặp.';
       case 'too_short':
-        return `失败原因：上一轮回复长度不足，实际 ${failure.actualLength}，最低要求 ${failure.minLength}（按字符串长度计）。\n修正要求：在原任务与已有资料范围内补充必要内容，完整回复至少达到 ${failure.minLength}；不要用重复文本凑长度，也不要编造记忆或事实。`;
+        return `Nguyên nhân thất bại: phản hồi lượt trước không đủ độ dài, thực tế ${failure.actualLength}, yêu cầu tối thiểu ${failure.minLength}(tính theo độ dài chuỗi).\nYêu cầu sửa: bổ sung nội dung cần thiết trong phạm vi tác vụ gốc và tài liệu sẵn có, phản hồi đầy đủ phải đạt ít nhất ${failure.minLength}; đừng lặp văn bản để cho đủ độ dài, cũng đừng bịa ký ức hay sự thật.`;
       case 'missing_tags': {
-        const examples = failure.tags.map(tag => `<${tag}></${tag}>`).join('、');
-        return `失败原因：上一轮未提取到任何完整闭合的配置标签（可选：${failure.tags.join('、')}）。\n修正要求：重新输出完整结果，至少完整闭合一对配置标签，可选示例：${examples}；无需补齐所有配置标签，不要只补写残片。若原任务允许空召回且确实无可用记忆或资料，保留对应的闭合空标签，不省略标签、不编造内容；原有最小长度要求仍需满足。`;
+        const examples = failure.tags.map(tag => `<${tag}></${tag}>`).join(', ');
+        return `Nguyên nhân thất bại: lượt trước không trích xuất được thẻ cấu hình nào được đóng đầy đủ (tùy chọn: ${failure.tags.join(', ')}).\nYêu cầu sửa: xuất lại toàn bộ kết quả, đóng đầy đủ ít nhất một cặp thẻ cấu hình, ví dụ tùy chọn: ${examples}; không cần bổ sung tất cả thẻ cấu hình, đừng chỉ viết thêm mảnh vụn. Nếu tác vụ gốc cho phép truy hồi rỗng và thực sự không có ký ức hay tài liệu khả dụng, hãy giữ thẻ rỗng đã đóng tương ứng, không bỏ thẻ, không bịa nội dung; yêu cầu độ dài tối thiểu ban đầu vẫn phải được đáp ứng.`;
       }
       case 'extraction_error':
-        return '失败原因：上一轮回复的标签提取发生异常，结果未通过验收。\n修正要求：重新输出完整结果；若配置了提取标签，至少完整闭合其中一对，不要只返回说明或续写残片；无需也无法通过编造内容修复提取器。';
+        return 'Nguyên nhân thất bại: việc trích xuất thẻ của phản hồi lượt trước gặp lỗi, kết quả không qua nghiệm thu.\nYêu cầu sửa: xuất lại toàn bộ kết quả; nếu đã cấu hình thẻ trích xuất thì phải đóng đầy đủ ít nhất một cặp, đừng chỉ trả về lời giải thích hoặc mảnh vụn viết tiếp; không cần và cũng không thể sửa bộ trích xuất bằng cách bịa nội dung.';
       case 'api_error':
-        return `失败原因：${failure.reason}\n处理要求：这是请求或服务故障，不是回复内容验收失败；鉴权、配额、配置与服务问题需要由调用方处理，不能靠修改任务内容解决。本次仍按原任务和已有资料完整作答，不要把接口故障编入剧情或记忆。`;
+        return `Nguyên nhân thất bại: ${failure.reason}\nYêu cầu xử lý: đây là sự cố yêu cầu hoặc dịch vụ, không phải nội dung phản hồi không qua nghiệm thu; các vấn đề xác thực, hạn mức, cấu hình và dịch vụ cần bên gọi xử lý, không thể giải quyết bằng cách sửa nội dung tác vụ. Lần này vẫn trả lời đầy đủ theo tác vụ gốc và tài liệu sẵn có, đừng đưa lỗi giao diện vào cốt truyện hoặc ký ức.`;
     }
   }
 
@@ -580,7 +580,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
     const checkCurrent = () => requestContext ? requestContext.assertCurrent() : checkPlotAbortRequested_ACU();
     const signal = requestContext?.signal ?? abortController_ACU?.signal;
     const normalizedTask = normalizePlotTask_ACU(task, { index: task?.order ?? 0, fallbackTask: task || null });
-    const taskLabel = normalizedTask.name || normalizedTask.id || '未命名任务';
+    const taskLabel = normalizedTask.name || normalizedTask.id || 'Tác vụ chưa đặt tên';
     const taskStage = normalizePositiveInteger_ACU(normalizedTask.stage, 1);
     const maxRetries = normalizePositiveInteger_ACU(
       normalizedTask.maxRetries,
@@ -658,7 +658,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
     } catch (wbError) {
       if (sharedContext.requestContext) throw wbError;
       if (isManualPlotAbort_ACU(wbError)) throw wbError;
-      sharedContext.reportWarning?.(`任务「${taskLabel}」的世界书处理失败，使用已取得的资料继续。`);
+      sharedContext.reportWarning?.(`Tác vụ「${taskLabel}」xử lý Sổ thế giới thất bại, tiếp tục với tài liệu đã lấy được.`);
       logWarn_ACU(`[剧情推进] [任务:${taskLabel}] 世界书处理失败，继续 AI 调用。`, {
         phase: 'strict_worldbook_read',
         runId: sharedContext.worldbookReadContext?.runId || '',
@@ -687,7 +687,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
           rawResponse: '',
           extractedTags: {},
           injectedFragments: [],
-          error: '任务未生成任何有效提示词消息。',
+          error: 'Tác vụ không tạo ra tin nhắn prompt hợp lệ nào.',
           stage: taskStage,
           order: normalizedTask.order ?? 0,
         };
@@ -716,7 +716,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
         const attemptMessages = retryFeedback
           ? [...messages, {
             role: 'system',
-            content: `【本任务重试纠错说明】\n这是第 ${attemptIndex + 1}/${maxRetries} 次尝试。\n${retryFeedback}`,
+            content: `【Hướng dẫn sửa lỗi khi thử lại tác vụ này】\nĐây là lần thử thứ ${attemptIndex + 1}/${maxRetries}.\n${retryFeedback}`,
           }]
           : messages;
         try {
@@ -741,10 +741,10 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
           acceptedTagExtraction = null;
           try {
             if (!rawResponse.trim()) {
-              lastErrorMessage = '任务回复为空。';
+              lastErrorMessage = 'Phản hồi của tác vụ trống.';
               retryFeedback = buildPlotTaskRetryFeedback_ACU({ kind: 'empty_response' });
             } else if (rawResponse.length < minLength) {
-              lastErrorMessage = `任务回复长度不足（${rawResponse.length}/${minLength}）。`;
+              lastErrorMessage = `Phản hồi của tác vụ không đủ độ dài (${rawResponse.length}/${minLength}).`;
               retryFeedback = buildPlotTaskRetryFeedback_ACU({ kind: 'too_short', actualLength: rawResponse.length, minLength });
             } else {
               const extraction = extractPlotTagsFromResponse_ACU(rawResponse, normalizedTask.extractTags, normalizedTask.extractInjectTags);
@@ -753,7 +753,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
               const extractedTagNames = new Set(Object.keys(extraction.extractedTags).map(tag => tag.toLowerCase()));
               const hasCompleteTag = configuredTags.some(tag => extractedTagNames.has(tag));
               if (configuredTags.length > 0 && !hasCompleteTag) {
-                lastErrorMessage = `任务回复未包含任何完整闭合的配置标签（可选：${configuredTags.join('、')}）。`;
+                lastErrorMessage = `Phản hồi của tác vụ không chứa thẻ cấu hình nào được đóng đầy đủ (tùy chọn: ${configuredTags.join(', ')}).`;
                 retryFeedback = buildPlotTaskRetryFeedback_ACU({ kind: 'missing_tags', tags: configuredTags });
               } else {
                 acceptedTagExtraction = extraction;
@@ -762,11 +762,11 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
             }
           } catch (error) {
             if (isManualPlotAbort_ACU(error)) throw error;
-            lastErrorMessage = '任务回复标签提取失败。';
+            lastErrorMessage = 'Trích xuất thẻ từ phản hồi của tác vụ thất bại.';
             retryFeedback = buildPlotTaskRetryFeedback_ACU({ kind: 'extraction_error' });
           }
           if (apiSucceeded) break;
-          sharedContext.reportWarning?.(`任务「${taskLabel}」的第 ${attemptIndex + 1} 次回复未通过验收：${lastErrorMessage}`);
+          sharedContext.reportWarning?.(`Tác vụ「${taskLabel}」: lần phản hồi thứ ${attemptIndex + 1} không qua nghiệm thu: ${lastErrorMessage}`);
         }
 
         if (attemptIndex < maxRetries - 1) {
@@ -783,7 +783,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
           rawResponse: '',
           extractedTags: {},
           injectedFragments: [] as any[],
-          error: lastAttemptApiFailed ? 'API 调用失败且已耗尽重试次数。' : `任务回复验收失败且已耗尽重试次数：${lastErrorMessage}`,
+          error: lastAttemptApiFailed ? 'Gọi API thất bại và đã hết số lần thử lại.' : `Phản hồi của tác vụ không qua nghiệm thu và đã hết số lần thử lại: ${lastErrorMessage}`,
           apiRetriesExhausted: lastAttemptApiFailed,
           validationRetriesExhausted: !lastAttemptApiFailed,
           stage: taskStage,
@@ -814,7 +814,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
       if (requestContext) throw error;
       if (isManualPlotAbort_ACU(error)) throw error;
       if (isStrictLorebookReadError_ACU(error) || String((error as any)?.message || '').startsWith('StrictLorebookRead:')) {
-        sharedContext.reportWarning?.(`任务「${taskLabel}」的提示词处理失败，继续后续任务。`);
+        sharedContext.reportWarning?.(`Tác vụ「${taskLabel}」xử lý prompt thất bại, tiếp tục các tác vụ sau.`);
         logWarn_ACU(`[剧情推进] [任务:${taskLabel}] 提示词处理失败，继续后续任务。`, {
           phase: 'strict_worldbook_read',
           runId: sharedContext.worldbookReadContext?.runId || '',
@@ -822,7 +822,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
         });
         return {
           taskId: normalizedTask.id, taskName: taskLabel, success: false, rawResponse: '',
-          extractedTags: {}, injectedFragments: [], error: '世界书提示词处理失败。',
+          extractedTags: {}, injectedFragments: [], error: 'Xử lý prompt Sổ thế giới thất bại.',
           stage: taskStage, order: normalizedTask.order ?? 0,
         };
       }
@@ -834,7 +834,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
         rawResponse: '',
         extractedTags: {},
         injectedFragments: [] as any[],
-        error: error?.message || '任务执行失败。',
+        error: error?.message || 'Thực thi tác vụ thất bại.',
         stage: taskStage,
         order: normalizedTask.order ?? 0,
       };
@@ -897,13 +897,13 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
         const clearGreenlightsOutcome = await clearFinalGenerationGreenlights_ACU(worldbookReadContext);
         checkPlotAbortRequested_ACU();
         if (clearGreenlightsOutcome.status === 'failed') {
-          reportWarning('世界书绿灯清理未完成，继续剧情任务。');
+          reportWarning('Dọn dẹp đèn xanh Sổ thế giới chưa hoàn tất, tiếp tục tác vụ cốt truyện.');
         } else if (clearGreenlightsOutcome.status === 'isolated_stale' && clearGreenlightsOutcome.staleBookNames.length > 0) {
-          reportWarning('部分世界书已失效，使用其余资料继续剧情任务。');
+          reportWarning('Một số Sổ thế giới đã mất hiệu lực, dùng tài liệu còn lại để tiếp tục tác vụ cốt truyện.');
         }
       } catch (error) {
         if (isManualPlotAbort_ACU(error)) throw error;
-        reportWarning('世界书绿灯清理异常，继续剧情任务。');
+        reportWarning('Dọn dẹp đèn xanh Sổ thế giới gặp lỗi, tiếp tục tác vụ cốt truyện.');
       }
       }
 
@@ -934,7 +934,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
     const agentAvailability = await resolveAgentWorldbookFilterAvailability_ACU(worldbookReadContext).catch((error): { available: false; control: null } => {
       if (requestContext) throw error;
       if (isManualPlotAbort_ACU(error)) throw error;
-      reportWarning('世界书 Agent 状态读取失败，继续普通剧情任务。');
+      reportWarning('Đọc trạng thái Agent Sổ thế giới thất bại, tiếp tục tác vụ cốt truyện thông thường.');
       return { available: false, control: null };
     });
     const agentWorldbookControl = agentAvailability.available ? agentAvailability.control : null;
@@ -974,7 +974,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
       if (agentDecision.active === true) {
         const written = await writeFinalGenerationGreenlights_ACU(finalGenerationGreenlights).catch((error): false => {
           if (isManualPlotAbort_ACU(error)) throw error;
-          reportWarning('正文世界书绿灯写入异常，保留剧情结果并继续。');
+          reportWarning('Ghi đèn xanh Sổ thế giới cho nội dung chính gặp lỗi, giữ kết quả cốt truyện và tiếp tục.');
           logWarn_ACU('[剧情推进] 正文世界书绿灯写入异常，继续剧情任务。', {
             error: summarizePlotRuntimeError_ACU(error),
           });
@@ -1084,7 +1084,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
       }
       const exhaustedTasks = stageFailedResults.filter((result: any) => result.apiRetriesExhausted === true);
       if (stageFailedResults.length > 0) {
-        const failedTaskNames = stageFailedResults.map((result: any) => result.taskName || result.taskId || '未命名任务').join('、');
+        const failedTaskNames = stageFailedResults.map((result: any) => result.taskName || result.taskId || 'Tác vụ chưa đặt tên').join(', ');
         return {
           finalMessage: null as string | null,
           successfulResults,
@@ -1094,7 +1094,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
           abortedByStageFailure: true,
           apiRetriesExhausted: exhaustedTasks.length > 0,
           failedStage: stageGroup.stage,
-          errorMessage: `剧情任务未通过验收（${failedTaskNames}），后续阶段与正文发送已停止。`,
+          errorMessage: `Tác vụ cốt truyện không qua nghiệm thu (${failedTaskNames}), các giai đoạn sau và việc gửi nội dung chính đã dừng.`,
         };
       }
 
@@ -1156,7 +1156,7 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
 
     const saveOutcome = await savePlotToLatestMessage_ACU(true).catch((error): null => {
       if (isManualPlotAbort_ACU(error)) throw error;
-      reportWarning('剧情反馈保存异常，保留结果并继续发送。');
+      reportWarning('Lưu phản hồi cốt truyện gặp lỗi, giữ kết quả và tiếp tục gửi.');
       return null;
     });
     if (saveOutcome?.status === 'committed') {

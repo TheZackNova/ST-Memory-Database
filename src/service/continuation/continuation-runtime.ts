@@ -65,8 +65,8 @@ function allocateContinuationId_ACU(prefix: string): string {
 const STAGE_HISTORY_DETAILED_STAGES_ACU = 2;
 
 function serializeStageTurnMeta_ACU(turn: StageTurn_ACU): string {
-  const anchor = turn.timeAnchor ? `，anchor=${turn.timeAnchor}` : '';
-  return `pacing=${turn.pacing}，function=${turn.function ?? '未标注'}，mainline=${turn.mainlineDelta ?? '未标注'}，time=${turn.timeAdvance ?? '未标注'}${anchor}`;
+  const anchor = turn.timeAnchor ? `, anchor=${turn.timeAnchor}` : '';
+  return `pacing=${turn.pacing}, function=${turn.function ?? 'chưa đánh dấu'}, mainline=${turn.mainlineDelta ?? 'chưa đánh dấu'}, time=${turn.timeAdvance ?? 'chưa đánh dấu'}${anchor}`;
 }
 
 /**
@@ -80,24 +80,24 @@ function serializeStageTurnMeta_ACU(turn: StageTurn_ACU): string {
  * @returns 自然语言文本
  */
 export function serializeStageHistory_ACU(task: ContinuationTask_ACU): string {
-  if (!task.stages.length) return '还没有任何阶段，本次是第一个阶段。';
+  if (!task.stages.length) return 'Chưa có giai đoạn nào, lần này là giai đoạn đầu tiên.';
   const detailedFrom = Math.max(0, task.stages.length - STAGE_HISTORY_DETAILED_STAGES_ACU);
   const sections = task.stages.map((stage, index) => {
     const revision = stage.revisions.find(item => item.revision === stage.activeRevision) ?? null;
-    const head = `## 第 ${stage.stageNumber} 阶段（${stage.status}，已完成 ${stage.completedTurns}/${revision?.outline.totalTurns ?? 0} 轮）`;
-    if (!revision) return `${head}\n（该阶段没有可读的大纲。）`;
+    const head = `## Giai đoạn ${stage.stageNumber} (${stage.status}, đã hoàn thành ${stage.completedTurns}/${revision?.outline.totalTurns ?? 0} lượt)`;
+    if (!revision) return `${head}\n(Giai đoạn này không có dàn ý đọc được.)`;
     const lines = [
       head,
-      `标题：${revision.outline.title}`,
-      `目标：${revision.outline.goal}`,
-      `结构职责：${revision.outline.role ?? '未标注'}`,
-      `时间目标：${revision.outline.timeSpanGoal ?? '未设定'}`,
+      `Tiêu đề: ${revision.outline.title}`,
+      `Mục tiêu: ${revision.outline.goal}`,
+      `Chức trách cấu trúc: ${revision.outline.role ?? 'chưa đánh dấu'}`,
+      `Mục tiêu thời gian: ${revision.outline.timeSpanGoal ?? 'chưa đặt'}`,
     ];
     for (const node of revision.outline.nodes) {
-      lines.push(`- 节点「${node.title}」：${node.goal}`);
+      lines.push(`- Nút "${node.title}": ${node.goal}`);
       if (index >= detailedFrom) for (const turn of node.turns) lines.push(`  · [${serializeStageTurnMeta_ACU(turn)}] ${turn.goal}`);
     }
-    if (index < detailedFrom) lines.push('（该阶段较早，已省略逐轮目标；其事实已进入纪要。）');
+    if (index < detailedFrom) lines.push('(Giai đoạn này khá sớm, đã lược bỏ mục tiêu từng lượt; sự thật của nó đã vào kỷ yếu.)');
     return lines.join('\n');
   });
   return sections.join('\n\n');
@@ -105,22 +105,22 @@ export function serializeStageHistory_ACU(task: ContinuationTask_ACU): string {
 
 /** 当前正在启用的阶段大纲全文。新建阶段时还没有活动大纲。 */
 export function renderEnabledStageOutline_ACU(stage: ContinuationStage_ACU | null, revision: StageRevision_ACU | null): string {
-  if (!stage || !revision) return '当前没有正在启用的阶段大纲。';
+  if (!stage || !revision) return 'Hiện không có dàn ý giai đoạn nào đang bật.';
   const lines = [
-    `第 ${stage.stageNumber} 阶段（${stage.status}，活动 revision ${revision.revision}）`,
-    `标题：${revision.outline.title}`,
-    `目标：${revision.outline.goal}`,
-    `节奏形态：${revision.outline.tempo}`,
-    `结构职责：${revision.outline.role ?? '未标注'}`,
-    `时间目标：${revision.outline.timeSpanGoal ?? '未设定'}`,
-    `已完成轮数：${stage.completedTurns} / ${revision.outline.totalTurns}`,
+    `Giai đoạn ${stage.stageNumber} (${stage.status}, revision đang hoạt động ${revision.revision})`,
+    `Tiêu đề: ${revision.outline.title}`,
+    `Mục tiêu: ${revision.outline.goal}`,
+    `Hình thái nhịp: ${revision.outline.tempo}`,
+    `Chức trách cấu trúc: ${revision.outline.role ?? 'chưa đánh dấu'}`,
+    `Mục tiêu thời gian: ${revision.outline.timeSpanGoal ?? 'chưa đặt'}`,
+    `Số lượt đã hoàn thành: ${stage.completedTurns} / ${revision.outline.totalTurns}`,
   ];
   let turnNumber = 0;
   for (const node of revision.outline.nodes) {
-    lines.push(`节点「${node.title}」：${node.goal}`);
+    lines.push(`Nút "${node.title}": ${node.goal}`);
     for (const turn of node.turns) {
       turnNumber += 1;
-      const done = turnNumber <= stage.completedTurns ? '已完成' : '未完成';
+      const done = turnNumber <= stage.completedTurns ? 'đã hoàn thành' : 'chưa hoàn thành';
       lines.push(`  ${turnNumber}. [${done}] [${serializeStageTurnMeta_ACU(turn)}] ${turn.goal}`);
     }
   }
@@ -138,10 +138,10 @@ function completedPrefix_ACU(stage: ContinuationStage_ACU | null, revision: Stag
     const turns = node.turns.slice(0, Math.min(remaining, node.turns.length));
     remaining -= turns.length;
     if (!turns.length) continue;
-    const lines = [`节点「${node.title}」：${node.goal}`];
+    const lines = [`Nút "${node.title}": ${node.goal}`];
     for (const turn of turns) {
       turnNumber += 1;
-      lines.push(`已完成第 ${turnNumber} 轮：[${serializeStageTurnMeta_ACU(turn)}] ${turn.goal}`);
+      lines.push(`Đã hoàn thành lượt ${turnNumber}: [${serializeStageTurnMeta_ACU(turn)}] ${turn.goal}`);
     }
     parts.push(lines.join('\n'));
   }
@@ -160,14 +160,14 @@ function buildResolvers_ACU(task: ContinuationTask_ACU, stage: ContinuationStage
   return {
     $ORIGIN_INSTRUCTION: () => task.originInstruction,
     $USER_REQUIREMENTS: () => renderAgentUserRequirements_ACU(readModules(), task.originInstruction),
-    $1: async () => `${renderAgentWorldbookBrowseCatalog_ACU(await loadContinuationWorldbookSnapshot_ACU())}\n写阶段标签之前，如需查阅，先输出 JSON：{"action":"read","reads":["$WORLDBOOK:书名:uid"]} 或 {"action":"search","query":"关键词","scope":["worldbook"]}。不要把设定全文写进标签。`,
+    $1: async () => `${renderAgentWorldbookBrowseCatalog_ACU(await loadContinuationWorldbookSnapshot_ACU())}\nTrước khi viết thẻ giai đoạn, nếu cần tra cứu thì xuất JSON trước: {"action":"read","reads":["$WORLDBOOK:tên_sách:uid"]} hoặc {"action":"search","query":"từ khóa","scope":["worldbook"]}. Đừng viết toàn văn thiết lập vào thẻ.`,
     $STORY_OVERVIEW: () => renderAgentStoryOverview_ACU({ recallCodes: extractAgentRecallCodesFromChat_ACU(readChat()) }),
     $STORY_TAIL: storyTail,
     $STAGE_HISTORY: () => serializeStageHistory_ACU(task),
     $COMPLETED_STAGE_PART: () => completedPrefix_ACU(stage, revision),
     $REPLAN_INSTRUCTION: () => revision?.replanInstruction ?? '',
     $REMAINING_TURNS: () => revision ? String(revision.outline.totalTurns - (stage?.completedTurns ?? 0)) : '',
-    $CURRENT_STAGE: () => stage && revision ? `阶段 ${stage.stageNumber}: ${revision.outline.title}\n${revision.outline.goal}` : '',
+    $CURRENT_STAGE: () => stage && revision ? `Giai đoạn ${stage.stageNumber}: ${revision.outline.title}\n${revision.outline.goal}` : '',
     $CURRENT_NODE: () => current ? `${current.node.title}\n${current.node.goal}` : '',
     $CURRENT_TURN_GOAL: () => current?.turn.goal ?? '',
     // 总纲是大纲的方向约束：阶段目标必须落在当前 active 卷的台阶内，否则每个阶段都会各自为政。

@@ -13,7 +13,7 @@ import { readAgentModuleSnapshot_ACU, writeAgentModuleSnapshot_ACU } from './age
  * 继续/恢复类关键词。与格林推演 `RESUME_KEYWORD_ACU` 对齐，并补上验收要求的「开始」。
  * 整段匹配才视为无实质要求，避免「继续写主角隐瞒身份」被误过滤。
  */
-export const AGENT_RESUME_KEYWORD_ACU = /^(继续|开始|恢复(?:任务)?|resume|continue)$/i;
+export const AGENT_RESUME_KEYWORD_ACU = /^(继续|开始|恢复(?:任务)?|resume|continue|tiếp tục|bắt đầu|khôi phục(?: tác vụ)?)$/i;
 
 export function isMechanicalResumeUserText_ACU(text: string): boolean {
   const trimmed = text.trim();
@@ -26,7 +26,7 @@ export function isMechanicalResumeUserText_ACU(text: string): boolean {
 export function renderAgentUserRequirements_ACU(snapshot: AgentModuleSnapshot_ACU, originInstruction: string): string {
   const fallback = originInstruction.trim();
   const lines = snapshot.userRequirements.length ? snapshot.userRequirements : (fallback ? [fallback] : []);
-  if (!lines.length) return '（用户尚未提出任务要求）';
+  if (!lines.length) return '(Người dùng chưa nêu yêu cầu cho tác vụ)';
   return lines.map(line => `- ${line}`).join('\n');
 }
 

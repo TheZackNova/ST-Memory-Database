@@ -44,25 +44,25 @@ export const AGENT_WORLDBOOK_TOKEN_PREFIX_ACU = '$WORLDBOOK:';
 
 /** 每条虚拟/模块/表占位符对应的人类可读标题，进入材料块的分节标题。 */
 const READ_TOKEN_TITLES_ACU: Record<string, string> = {
-  $STORY_TEXT: '已经发生的小说正文（只含 AI 楼层）',
-  $STORY_CATALOG: '正文楼层索引',
-  $STORY_OVERVIEW: '事件概览（纪要表逐轮）',
-  $STORY_TAIL: '最近正文（尾部全文楼层）',
-  $HISTORY_UNSETTLED: '尚未结算的真实历史',
-  $OUTLINE_WINDOW: '当前大纲窗口',
-  $CURRENT_TURN_GOAL: '本轮目标',
-  $CURRENT_TURN_PACING: '本轮节奏',
-  $USER_INTENT: '用户的初始要求',
-  $USER_REQUIREMENTS: '用户对任务曾经提过的要求',
-  $STORY_ARC: '故事总纲',
-  $HOOKS_LEDGER: '伏笔账本',
-  $INFO_GAP: '认知与信息差时间线',
-  $ACTIVE_CONSTRAINTS: '长期约束',
-  $CHRONOLOGY: '故事年代学账本',
-  $WEB_REFS: '百科资料库',
-  $TABLE_GLOBAL: '全局数据表',
-  $TABLE_CHARACTERS: '角色表',
-  $TABLE_CHRONICLES: '纪要表',
+  $STORY_TEXT: 'Chính văn tiểu thuyết đã xảy ra (chỉ gồm tầng AI)',
+  $STORY_CATALOG: 'Chỉ mục tầng chính văn',
+  $STORY_OVERVIEW: 'Tổng quan sự kiện (từng lượt trong 纪要表)',
+  $STORY_TAIL: 'Chính văn gần nhất (các tầng toàn văn ở cuối)',
+  $HISTORY_UNSETTLED: 'Lịch sử thật chưa quyết toán',
+  $OUTLINE_WINDOW: 'Cửa sổ dàn ý hiện tại',
+  $CURRENT_TURN_GOAL: 'Mục tiêu lượt này',
+  $CURRENT_TURN_PACING: 'Nhịp lượt này',
+  $USER_INTENT: 'Yêu cầu ban đầu của người dùng',
+  $USER_REQUIREMENTS: 'Các yêu cầu người dùng từng nêu cho tác vụ',
+  $STORY_ARC: 'Tổng cương câu chuyện',
+  $HOOKS_LEDGER: 'Sổ phục bút',
+  $INFO_GAP: 'Dòng thời gian nhận thức và chênh lệch thông tin',
+  $ACTIVE_CONSTRAINTS: 'Ràng buộc dài hạn',
+  $CHRONOLOGY: 'Sổ niên đại học câu chuyện',
+  $WEB_REFS: 'Kho tư liệu bách khoa',
+  $TABLE_GLOBAL: 'Bảng dữ liệu toàn cục (全局数据表)',
+  $TABLE_CHARACTERS: 'Bảng nhân vật (角色表)',
+  $TABLE_CHRONICLES: 'Kỷ yếu (纪要表)',
 };
 
 /** 续写侧的上下文标签提取/排除规则（与剧情推进共用 applyContextTagFilters_ACU 语义）。 */
@@ -158,7 +158,7 @@ export function extractAgentRecallCodesFromChat_ACU(chat: readonly any[]): strin
 }
 
 function renderStoryFloors_ACU(floors: readonly AgentStoryFloor_ACU[]): string {
-  return floors.map(floor => `【楼层 ${floor.index}】\n${floor.text}`).join('\n\n');
+  return floors.map(floor => `【Tầng ${floor.index}】\n${floor.text}`).join('\n\n');
 }
 
 function storyOpening_ACU(text: string): string {
@@ -203,13 +203,13 @@ export interface AgentStoryOverviewOptions_ACU {
 export function renderAgentStoryOverview_ACU(source: AgentStoryOverviewSource_ACU, options?: AgentStoryOverviewOptions_ACU): string {
   const sheets = findAgentSheetsByAliases_ACU(AGENT_TABLE_ALIASES_ACU.chronicles, source.tableData);
   if (!sheets.length) {
-    return '当前聊天没有纪要表，无法提供事件概览。剧情脉络只能依靠楼层索引与正文楼层本身。';
+    return 'Cuộc trò chuyện hiện tại không có 纪要表, không thể cung cấp tổng quan sự kiện. Mạch cốt truyện chỉ có thể dựa vào chỉ mục tầng và chính các tầng chính văn.';
   }
   const recall = new Set((source.recallCodes ?? []).map(code => normalizeAmCode_ACU(code)).filter(Boolean));
   const maxRows = options?.maxRows && options.maxRows > 0 ? Math.floor(options.maxRows) : null;
   let anyExpanded = false;
   const sections = sheets.map(sheet => {
-    if (!sheet.rows.length) return `表「${sheet.name}」存在但没有数据行。`;
+    if (!sheet.rows.length) return `Bảng "${sheet.name}" tồn tại nhưng không có hàng dữ liệu.`;
     const codeColumn = findColumnIndex_ACU(sheet.header, ['编码索引', '编码']);
     const overviewColumn = findColumnIndex_ACU(sheet.header, ['概览', '概要']);
     const digestColumn = sheet.header.findIndex(cell => cell.includes('纪要') && !cell.includes('概'));
@@ -217,18 +217,18 @@ export function renderAgentStoryOverview_ACU(source: AgentStoryOverviewSource_AC
       const code = codeColumn >= 0 ? normalizeAmCode_ACU(row[codeColumn]) : null;
       const overview = overviewColumn >= 0 ? row[overviewColumn] : '';
       const digest = digestColumn >= 0 ? row[digestColumn] : '';
-      const label = code ?? `第 ${rowIndex + 1} 行`;
+      const label = code ?? `Hàng ${rowIndex + 1}`;
       if (code && recall.has(code) && digest) {
         anyExpanded = true;
         return `- ${label}｜【纪要全文】${digest}`;
       }
-      return `- ${label}｜${overview || digest || '（空行）'}`;
+      return `- ${label}｜${overview || digest || '(hàng trống)'}`;
     };
     const windowStart = maxRows !== null ? Math.max(0, sheet.rows.length - maxRows) : 0;
     const windowLines = sheet.rows.slice(windowStart).map((row, offset) => renderRow(row, windowStart + offset));
     const parts: string[] = [];
     if (windowStart > 0) {
-      parts.push(`更早的 ${windowStart} 轮概览已省略（对应「${sheet.name}」第 1-${windowStart} 行），需要时用 $TABLE:${sheet.name}:行区间 精读。`);
+      parts.push(`Tổng quan ${windowStart} lượt sớm hơn đã được lược bỏ (ứng với hàng 1-${windowStart} của "${sheet.name}"), khi cần thì đọc kỹ bằng $TABLE:${sheet.name}:khoảng hàng.`);
       // 窗口外被召回命中的行按行序前置：召回命中说明与本轮直接相关，不能被截断静默丢掉。
       const recalledEarlier = sheet.rows.slice(0, windowStart)
         .map((row, rowIndex) => ({ row, rowIndex }))
@@ -237,18 +237,18 @@ export function renderAgentStoryOverview_ACU(source: AgentStoryOverviewSource_AC
           return code !== null && recall.has(code);
         });
       if (recalledEarlier.length) {
-        parts.push(`以下为本轮召回命中的更早轮次（不受截断影响）：\n${recalledEarlier.map(({ row, rowIndex }) => renderRow(row, rowIndex)).join('\n')}`);
+        parts.push(`Sau đây là các lượt sớm hơn được truy hồi trong lượt này (không bị ảnh hưởng bởi cắt bớt):\n${recalledEarlier.map(({ row, rowIndex }) => renderRow(row, rowIndex)).join('\n')}`);
       }
     }
     parts.push(windowLines.join('\n'));
-    const head = sheets.length > 1 ? `## 表「${sheet.name}」\n` : '';
+    const head = sheets.length > 1 ? `## Bảng "${sheet.name}"\n` : '';
     return `${head}${parts.join('\n\n')}`;
   });
   const expandedNote = anyExpanded
-    ? '带【纪要全文】标记的行已按本轮召回码展开为详细纪要。'
+    ? 'Các hàng có dấu 【纪要全文】 đã được mở rộng thành kỷ yếu chi tiết theo mã truy hồi của lượt này.'
     : '';
   return [
-    '以下是纪要表的逐轮事件概览（每行对应一轮剧情，与楼层号无一一映射；需要某轮的详细纪要时用 $TABLE:纪要表:行区间 精读）：',
+    'Sau đây là tổng quan sự kiện từng lượt của 纪要表 (mỗi hàng ứng với một lượt cốt truyện, không ánh xạ một-một với số tầng; khi cần kỷ yếu chi tiết của một lượt thì đọc kỹ bằng $TABLE:纪要表:khoảng hàng):',
     ...sections,
     expandedNote,
   ].filter(Boolean).join('\n\n');
@@ -262,11 +262,11 @@ export function renderAgentStoryOverview_ACU(source: AgentStoryOverviewSource_AC
  */
 export function renderAgentStoryTail_ACU(source: AgentStoryFloorSource_ACU): string {
   const windowFloors = listAgentStoryWindowFloors_ACU(source);
-  if (!windowFloors.length) return '当前没有可注入的正文楼层（聊天里还没有 AI 正文，或可读窗口为 0）。';
+  if (!windowFloors.length) return 'Hiện không có tầng chính văn nào để tiêm (trong cuộc trò chuyện chưa có chính văn AI, hoặc cửa sổ đọc được bằng 0).';
   const tailCount = Math.max(0, source.storyTailFloors ?? AGENT_STORY_TAIL_FLOORS_DEFAULT_ACU);
-  if (tailCount === 0) return '未注入正文楼层全文（尾部楼层数设置为 0）。需要正文时用 $STORY_RANGE:起始楼-结束楼 读取。';
+  if (tailCount === 0) return 'Chưa tiêm toàn văn các tầng chính văn (số tầng ở cuối được đặt là 0). Khi cần chính văn thì đọc bằng $STORY_RANGE:tầng_đầu-tầng_cuối.';
   const tailFloors = windowFloors.slice(-tailCount);
-  return `最近 ${tailFloors.length} 楼全文（续写必须无缝衔接这里的结尾）：\n${renderStoryFloors_ACU(tailFloors)}`;
+  return `Toàn văn ${tailFloors.length} tầng gần nhất (phần viết tiếp phải nối liền mạch với phần kết ở đây):\n${renderStoryFloors_ACU(tailFloors)}`;
 }
 
 /**
@@ -277,22 +277,22 @@ export function renderAgentStoryTail_ACU(source: AgentStoryFloorSource_ACU): str
  */
 export function renderAgentStoryCatalog_ACU(source: AgentStoryFloorSource_ACU & { tableData?: unknown }): string {
   const allFloors = listAgentStoryFloors_ACU(source);
-  if (!allFloors.length) return '当前聊天还没有 AI 产出的正文楼层。';
+  if (!allFloors.length) return 'Cuộc trò chuyện hiện tại chưa có tầng chính văn do AI tạo ra.';
   const windowFloors = listAgentStoryWindowFloors_ACU(source);
-  if (!windowFloors.length) return '正文可读窗口设置为 0 楼：正文楼层不可直接读取；剧情脉络请依靠事件概览与 $TABLE:纪要表。';
+  if (!windowFloors.length) return 'Cửa sổ đọc chính văn được đặt là 0 tầng: không thể đọc trực tiếp các tầng chính văn; mạch cốt truyện hãy dựa vào tổng quan sự kiện và $TABLE:纪要表.';
   const hiddenCount = allFloors.length - windowFloors.length;
   const headNote = hiddenCount > 0
-    ? `更早的 ${hiddenCount} 个 AI 楼层不在可读窗口内；其剧情脉络请查看事件概览，或用 $TABLE:纪要表:行区间 精读对应纪要。`
-    : '当前全部 AI 楼层都在可读窗口内。';
+    ? `${hiddenCount} tầng AI sớm hơn nằm ngoài cửa sổ đọc được; mạch cốt truyện của chúng hãy xem ở tổng quan sự kiện, hoặc dùng $TABLE:纪要表:khoảng hàng để đọc kỹ kỷ yếu tương ứng.`
+    : 'Toàn bộ tầng AI hiện đều nằm trong cửa sổ đọc được.';
   const hasChronicleRows = findAgentSheetsByAliases_ACU(AGENT_TABLE_ALIASES_ACU.chronicles, source.tableData)
     .some(sheet => sheet.rows.length > 0);
   const lines = windowFloors.map(floor => hasChronicleRows
-    ? `- 楼层 ${floor.index}｜约 ${floor.text.length} 字｜读取地址 $STORY_RANGE:${floor.index}-${floor.index}`
-    : `- 楼层 ${floor.index}｜约 ${floor.text.length} 字｜开头：${storyOpening_ACU(floor.text)}｜读取地址 $STORY_RANGE:${floor.index}-${floor.index}`);
+    ? `- Tầng ${floor.index}｜khoảng ${floor.text.length} chữ｜địa chỉ đọc $STORY_RANGE:${floor.index}-${floor.index}`
+    : `- Tầng ${floor.index}｜khoảng ${floor.text.length} chữ｜mở đầu: ${storyOpening_ACU(floor.text)}｜địa chỉ đọc $STORY_RANGE:${floor.index}-${floor.index}`);
   return [
-    `${headNote}\n可读窗口内的楼层索引（区间读取写 $STORY_RANGE:起始楼-结束楼；按内容找楼层用 search story）：`,
+    `${headNote}\nChỉ mục tầng trong cửa sổ đọc được (đọc theo khoảng thì viết $STORY_RANGE:tầng_đầu-tầng_cuối; tìm tầng theo nội dung thì dùng search story):`,
     lines.join('\n'),
-    '注意：事件概览按剧情轮记录，与楼层号无一一映射；需要精确正文时按本索引区间读取。',
+    'Lưu ý: tổng quan sự kiện ghi theo lượt cốt truyện, không ánh xạ một-một với số tầng; khi cần chính văn chính xác thì đọc theo khoảng của chỉ mục này.',
   ].join('\n');
 }
 
@@ -307,15 +307,15 @@ export function renderAgentStoryRange_ACU(context: AgentResolveContext_ACU, star
   const start = Number.parseInt(startRaw, 10);
   const end = Number.parseInt(endRaw, 10);
   if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start) {
-    return `楼层区间「${startRaw}-${endRaw}」不合法：写法为 $STORY_RANGE:起始楼-结束楼（两端都是楼层号，起始不大于结束）。可用楼层见正文目录。`;
+    return `Khoảng tầng "${startRaw}-${endRaw}" không hợp lệ: cách viết là $STORY_RANGE:tầng_đầu-tầng_cuối (hai đầu đều là số tầng, đầu không lớn hơn cuối). Các tầng khả dụng xem trong danh mục chính văn.`;
   }
   const windowFloors = listAgentStoryWindowFloors_ACU(context);
-  if (!windowFloors.length) return '正文可读窗口当前为空，无法读取正文；早期剧情脉络请查看事件概览或用 $TABLE:纪要表:行区间 精读。';
+  if (!windowFloors.length) return 'Cửa sổ đọc chính văn hiện đang trống, không thể đọc chính văn; mạch cốt truyện sớm hãy xem tổng quan sự kiện hoặc dùng $TABLE:纪要表:khoảng hàng để đọc kỹ.';
   const hit = windowFloors.filter(floor => floor.index >= start && floor.index <= end);
   if (!hit.length) {
     const first = windowFloors[0].index;
     const last = windowFloors[windowFloors.length - 1].index;
-    return `区间 ${start}-${end} 内没有可读的 AI 楼层。可读窗口目前覆盖楼层 ${first}-${last}（只含 AI 楼）；更早的剧情脉络请查看事件概览或用 $TABLE:纪要表:行区间 精读。`;
+    return `Trong khoảng ${start}-${end} không có tầng AI nào đọc được. Cửa sổ đọc được hiện bao phủ các tầng ${first}-${last} (chỉ gồm tầng AI); mạch cốt truyện sớm hơn hãy xem tổng quan sự kiện hoặc dùng $TABLE:纪要表:khoảng hàng để đọc kỹ.`;
   }
   return renderStoryFloors_ACU(hit);
 }
@@ -355,21 +355,21 @@ export function resolveAgentUnsettledStoryWindow_ACU(context: AgentResolveContex
 
 function renderUnsettledWindow_ACU(selection: ReturnType<typeof resolveAgentUnsettledStoryWindow_ACU>): string {
   if (!selection.hiddenCount && !selection.floors.length) {
-    return '没有尚未结算的真实历史；当前正文已完成结算。';
+    return 'Không có lịch sử thật chưa quyết toán; chính văn hiện tại đã quyết toán xong.';
   }
   const note = selection.hiddenCount > 0
-    ? `更早的 ${selection.hiddenCount} 个未结算 AI 楼层不在正文可读窗口内，本次未注入、也不属于本次逐楼结算范围；不能据此宣称旧正文已被完整结算。更早剧情请通过事件概览或 $TABLE:纪要表:行区间 回溯。`
+    ? `${selection.hiddenCount} tầng AI chưa quyết toán sớm hơn nằm ngoài cửa sổ đọc chính văn, lần này không được tiêm và cũng không thuộc phạm vi quyết toán từng tầng lần này; không thể dựa vào đó để tuyên bố chính văn cũ đã được quyết toán đầy đủ. Cốt truyện sớm hơn hãy truy lại qua tổng quan sự kiện hoặc $TABLE:纪要表:khoảng hàng.`
     : '';
   return [note, selection.floors.length
     ? renderStoryFloors_ACU(selection.floors)
-    : '当前可读窗口内没有待结算正文（窗口为 0 或窗口内正文已处理）；本次不注入或逐楼结算正文。'].filter(Boolean).join('\n\n');
+    : 'Trong cửa sổ đọc được hiện không có chính văn chờ quyết toán (cửa sổ bằng 0 hoặc chính văn trong cửa sổ đã xử lý); lần này không tiêm hay quyết toán từng tầng chính văn.'].filter(Boolean).join('\n\n');
 }
 
 /** 已发生正文只注入可读窗口内的 AI 楼层，已结算与未结算两段共用同一个上限。 */
 export function renderAgentStoryText_ACU(context: AgentResolveContext_ACU): string {
-  if (!context.chat.length) return '当前聊天还没有任何楼层，也就没有已经发生的正文。';
+  if (!context.chat.length) return 'Cuộc trò chuyện hiện tại chưa có tầng nào, nên cũng chưa có chính văn đã xảy ra.';
   const allFloors = listAgentStoryFloors_ACU(context);
-  if (!allFloors.length) return '当前聊天还没有 AI 产出的正文楼层。';
+  if (!allFloors.length) return 'Cuộc trò chuyện hiện tại chưa có tầng chính văn do AI tạo ra.';
   const selection = resolveAgentUnsettledStoryWindow_ACU(context);
   const pendingIndexes = new Set(selection.floors.map(floor => floor.index));
   const shownSettled = listAgentStoryWindowFloors_ACU(context).filter(floor => !pendingIndexes.has(floor.index));
@@ -377,11 +377,11 @@ export function renderAgentStoryText_ACU(context: AgentResolveContext_ACU): stri
   const hiddenSettled = settled.length - shownSettled.length;
   const sections: string[] = [];
   const settledHead = hiddenSettled > 0
-    ? `## 已结算正文（窗口内 ${shownSettled.length} 楼；更早的 ${hiddenSettled} 楼未注入，需要时通过事件概览与纪要回溯）`
-    : '## 已结算正文';
+    ? `## Chính văn đã quyết toán (${shownSettled.length} tầng trong cửa sổ; ${hiddenSettled} tầng sớm hơn chưa tiêm, khi cần thì truy lại qua tổng quan sự kiện và kỷ yếu)`
+    : '## Chính văn đã quyết toán';
   if (shownSettled.length) sections.push(`${settledHead}\n${renderStoryFloors_ACU(shownSettled)}`);
-  else if (settled.length) sections.push(`${settledHead}\n（本次未注入任何已结算正文。）`);
-  sections.push(`## 尚未结算的最新正文（正文可读窗口内）\n${renderUnsettledWindow_ACU(selection)}`);
+  else if (settled.length) sections.push(`${settledHead}\n(Lần này không tiêm chính văn đã quyết toán nào.)`);
+  sections.push(`## Chính văn mới nhất chưa quyết toán (trong cửa sổ đọc chính văn)\n${renderUnsettledWindow_ACU(selection)}`);
   return sections.join('\n\n');
 }
 
@@ -413,10 +413,10 @@ export function buildAgentWorldbookScanText_ACU(context: AgentResolveContext_ACU
 
 /** 四档节奏标签的语义与写作指导。低压轮的约束写成禁令，否则模型会习惯性地往每一轮里塞冲突。 */
 const TURN_PACING_GUIDANCE_ACU: Record<StageTurnPacing_ACU, string> = {
-  setup: '铺垫日常轮：允许主线 hold，通过具体生活动作与人物互动，让关系、习惯、世界理解、资源、身体或认知发生可观察变化；没有必须立即处理的危机时，可隔夜、数日后或更久开始。本轮禁止制造新危机、引入新敌对方或让局势升级，允许安静闭合或留下普通生活期待。',
-  pressure: '冲突推进轮：外部压力上升，危机、对抗或追逼向前推进一步。本轮只推进一个冲突，不要同时开新战线。',
-  turn: '转折揭示轮：反转、信息揭露或伏笔回收。揭示要落在已经埋过的东西上，不要临时造一个真相。',
-  cooldown: '余波消化轮：允许主线 hold，完整处理上一波的伤势、代价、情绪与关系变化；可让恢复所需的一夜或数日自然流逝。本轮禁止制造新危机，让后果被真正看见，并允许安静闭合。',
+  setup: 'Lượt đời thường dọn nền: cho phép mạch chính hold, thông qua hành động sinh hoạt cụ thể và tương tác giữa các nhân vật, khiến quan hệ, thói quen, hiểu biết về thế giới, tài nguyên, thân thể hoặc nhận thức có thay đổi quan sát được; khi không có khủng hoảng cần xử lý ngay thì có thể bắt đầu sau một đêm, vài ngày hoặc lâu hơn. Lượt này cấm tạo khủng hoảng mới, đưa phe đối địch mới vào hoặc làm tình thế leo thang, cho phép khép lại yên tĩnh hoặc để lại kỳ vọng đời thường bình thường.',
+  pressure: 'Lượt đẩy xung đột: áp lực bên ngoài tăng, khủng hoảng, đối kháng hoặc truy đuổi tiến thêm một bước. Lượt này chỉ đẩy một xung đột, đừng mở thêm mặt trận mới cùng lúc.',
+  turn: 'Lượt chuyển ngoặt và tiết lộ: đảo ngược, lộ thông tin hoặc thu hồi phục bút. Tiết lộ phải rơi vào thứ đã được chôn từ trước, đừng tạm bịa ra một sự thật.',
+  cooldown: 'Lượt tiêu hóa dư chấn: cho phép mạch chính hold, xử lý trọn vẹn thương tích, cái giá, cảm xúc và thay đổi quan hệ của đợt trước; có thể để một đêm hoặc vài ngày cần cho hồi phục trôi qua tự nhiên. Lượt này cấm tạo khủng hoảng mới, để hậu quả thực sự được nhìn thấy, và cho phép khép lại yên tĩnh.',
 };
 
 /**
@@ -425,39 +425,39 @@ const TURN_PACING_GUIDANCE_ACU: Record<StageTurnPacing_ACU, string> = {
  * @returns 标签名与对应的写作指导
  */
 export function renderAgentTurnPacingGuidance_ACU(pacing: StageTurnPacing_ACU | null): string {
-  if (!pacing) return '本轮节奏：尚无可执行的大纲轮次，节奏待大纲创建或继续后确定。';
-  return `本轮节奏：${pacing}。${TURN_PACING_GUIDANCE_ACU[pacing]}`;
+  if (!pacing) return 'Nhịp lượt này: chưa có lượt dàn ý khả thi, nhịp sẽ được xác định sau khi dàn ý được tạo hoặc tiếp tục.';
+  return `Nhịp lượt này: ${pacing}. ${TURN_PACING_GUIDANCE_ACU[pacing]}`;
 }
 
 const TURN_FUNCTION_LABELS_ACU: Record<NonNullable<StageTurn_ACU['function']>, string> = {
-  daily_bond: '关系日常',
-  daily_world: '世界日常',
-  recovery: '恢复余波',
-  preparation: '准备',
-  training: '训练/成长',
-  economy: '经营',
-  side_thread: '支线',
-  conflict: '冲突',
-  reveal: '揭示',
-  payoff: '兑现',
-  transition: '过渡',
+  daily_bond: 'đời thường quan hệ',
+  daily_world: 'đời thường thế giới',
+  recovery: 'hồi phục dư chấn',
+  preparation: 'chuẩn bị',
+  training: 'luyện tập/trưởng thành',
+  economy: 'kinh doanh',
+  side_thread: 'tuyến phụ',
+  conflict: 'xung đột',
+  reveal: 'tiết lộ',
+  payoff: 'thu hồi',
+  transition: 'chuyển tiếp',
 };
 
 const TURN_MAINLINE_LABELS_ACU: Record<NonNullable<StageTurn_ACU['mainlineDelta']>, string> = {
-  hold: '主线停驻',
-  micro: '主线微推进',
-  step: '主线前进一步',
-  milestone: '主线里程碑',
+  hold: 'mạch chính dừng chân',
+  micro: 'mạch chính nhích nhẹ',
+  step: 'mạch chính tiến một bước',
+  milestone: 'cột mốc mạch chính',
 };
 
 const TURN_TIME_LABELS_ACU: Record<NonNullable<StageTurn_ACU['timeAdvance']>, string> = {
-  continuous: '紧接上一轮',
-  same_day: '同日稍后',
-  overnight: '隔夜',
-  days: '数日后',
-  weeks: '数周后',
-  months: '数月后',
-  years: '数年后',
+  continuous: 'nối liền lượt trước',
+  same_day: 'cùng ngày, muộn hơn một chút',
+  overnight: 'qua đêm',
+  days: 'vài ngày sau',
+  weeks: 'vài tuần sau',
+  months: 'vài tháng sau',
+  years: 'vài năm sau',
 };
 
 const LONG_TIME_ADVANCES_ACU: ReadonlySet<string> = new Set(['days', 'weeks', 'months', 'years']);
@@ -472,19 +472,19 @@ export function renderAgentTurnGuidance_ACU(turn: StageTurn_ACU | null): string 
   if (!turn) return renderAgentTurnPacingGuidance_ACU(null);
   const lines = [renderAgentTurnPacingGuidance_ACU(turn.pacing)];
   const marks: string[] = [];
-  if (turn.function) marks.push(`叙事功能=${turn.function}（${TURN_FUNCTION_LABELS_ACU[turn.function]}）`);
-  if (turn.mainlineDelta) marks.push(`主线增量=${turn.mainlineDelta}（${TURN_MAINLINE_LABELS_ACU[turn.mainlineDelta]}）`);
-  if (turn.timeAdvance) marks.push(`时间关系=${turn.timeAdvance}（${TURN_TIME_LABELS_ACU[turn.timeAdvance]}）`);
-  if (turn.timeAnchor) marks.push(`时间锚=${turn.timeAnchor}`);
-  if (marks.length) lines.push(`本轮标记：${marks.join('；')}。`);
+  if (turn.function) marks.push(`chức năng tự sự=${turn.function} (${TURN_FUNCTION_LABELS_ACU[turn.function]})`);
+  if (turn.mainlineDelta) marks.push(`gia tăng mạch chính=${turn.mainlineDelta} (${TURN_MAINLINE_LABELS_ACU[turn.mainlineDelta]})`);
+  if (turn.timeAdvance) marks.push(`quan hệ thời gian=${turn.timeAdvance} (${TURN_TIME_LABELS_ACU[turn.timeAdvance]})`);
+  if (turn.timeAnchor) marks.push(`mốc thời gian=${turn.timeAnchor}`);
+  if (marks.length) lines.push(`Đánh dấu lượt này: ${marks.join('; ')}.`);
   if (turn.inferred?.length) {
-    lines.push(`注意：${turn.inferred.join('、')} 是系统按节奏档保守补全的推断值，不是大纲作者的明确意图；与正文实际情况冲突时以正文为准。`);
+    lines.push(`Lưu ý: ${turn.inferred.join(', ')} là giá trị suy đoán do hệ thống bổ sung thận trọng theo mức nhịp, không phải ý đồ rõ ràng của tác giả dàn ý; khi mâu thuẫn với thực tế chính văn thì lấy chính văn làm chuẩn.`);
   }
   if (turn.timeAdvance && LONG_TIME_ADVANCES_ACU.has(turn.timeAdvance)) {
-    lines.push('时间跳跃义务：本轮计划跨越较长故事时间，finalize 的 instruction 必须写明新的相对时间锚、至少两项可感知变化（季节天气、身体伤势、衣着环境、关系熟悉度、资源经营、社会状态等），以及上一紧迫问题为何允许被跨过的连续性桥梁；不得用摘要跳过此前已承诺的关键场景。先 read $CHRONOLOGY 核对累计时间。');
+    lines.push('Nghĩa vụ nhảy thời gian: lượt này dự định vượt qua khoảng thời gian truyện khá dài, instruction của finalize phải ghi rõ mốc thời gian tương đối mới, ít nhất hai thay đổi có thể cảm nhận (mùa và thời tiết, thương tích thân thể, trang phục và môi trường, mức thân quen trong quan hệ, kinh doanh tài nguyên, trạng thái xã hội, v.v.), cùng cầu nối liên tục giải thích vì sao vấn đề cấp bách trước đó được phép bỏ qua; không được dùng tóm tắt để bỏ qua các cảnh then chốt đã cam kết trước đó. Trước hết read $CHRONOLOGY để đối chiếu thời gian tích lũy.');
   }
   if (turn.mainlineDelta === 'hold') {
-    lines.push('本轮主线允许停驻：不推进核心矛盾、不揭示重大情报、不制造敌方动作，但必须有一项可观察的非危机变化。');
+    lines.push('Mạch chính lượt này được phép dừng chân: không đẩy mâu thuẫn cốt lõi, không tiết lộ tình báo trọng đại, không tạo hành động của phe địch, nhưng phải có một thay đổi quan sát được không thuộc khủng hoảng.');
   }
   return lines.join('\n');
 }
@@ -498,44 +498,44 @@ export function renderAgentTurnGuidance_ACU(turn: StageTurn_ACU | null): string 
 function renderTurnSemanticMeta_ACU(turn: StageTurn_ACU): string {
   const parts = [
     `pacing=${turn.pacing}`,
-    `function=${turn.function ?? '未标注'}`,
-    `mainline=${turn.mainlineDelta ?? '未标注'}`,
-    `time=${turn.timeAdvance ?? '未标注'}`,
+    `function=${turn.function ?? 'chưa đánh dấu'}`,
+    `mainline=${turn.mainlineDelta ?? 'chưa đánh dấu'}`,
+    `time=${turn.timeAdvance ?? 'chưa đánh dấu'}`,
   ];
   if (turn.timeAnchor) parts.push(`anchor=${turn.timeAnchor}`);
-  if (turn.inferred?.length) parts.push(`系统补全=${turn.inferred.join(',')}`);
+  if (turn.inferred?.length) parts.push(`hệ thống bổ sung=${turn.inferred.join(',')}`);
   return parts.join('｜');
 }
 
 export function renderAgentOutlineWindow_ACU(context: AgentResolveContext_ACU): string {
   const { execution } = context;
   if (!execution.stage) {
-    return '当前任务还没有阶段大纲。可单独 delegate outline-architect 创建，或用 open_round 固定工作流准备可执行阶段后进入写作指令编排。';
+    return 'Tác vụ hiện tại chưa có dàn ý giai đoạn. Có thể delegate riêng outline-architect để tạo, hoặc dùng quy trình cố định open_round để chuẩn bị giai đoạn khả thi rồi chuyển sang điều phối chỉ thị viết.';
   }
   if (execution.stage.status === 'completed') {
-    return `第 ${execution.stage.stageNumber} 阶段已全部完成（共 ${execution.stage.completedTurns} 轮）。输出 open_round 后，固定工作流会继续下一阶段大纲，再进入资料工作流与写作指令编排。`;
+    return `Giai đoạn ${execution.stage.stageNumber} đã hoàn thành toàn bộ (tổng ${execution.stage.completedTurns} lượt). Sau khi xuất open_round, quy trình cố định sẽ tiếp tục dàn ý giai đoạn kế tiếp, rồi chuyển sang quy trình tư liệu và điều phối chỉ thị viết.`;
   }
   if (!execution.revision || !execution.node || !execution.turn) {
-    return `第 ${execution.stage.stageNumber} 阶段的大纲当前不可执行（可能等待用户确认或游标无效）。本轮无法交付写作指导。`;
+    return `Dàn ý của giai đoạn ${execution.stage.stageNumber} hiện không khả thi (có thể đang chờ người dùng xác nhận hoặc con trỏ không hợp lệ). Lượt này không thể giao chỉ dẫn viết.`;
   }
   const nodes = execution.revision.outline.nodes?.length ? execution.revision.outline.nodes : [execution.node];
   const nodeBlocks = nodes.map(node => {
     const turns = node.turns
-      .map((turn, index) => `${index + 1}. [${turn.id}]（${renderTurnSemanticMeta_ACU(turn)}）${turn.goal}${turn.id === execution.turn!.id ? '  ← 本轮' : ''}`)
+      .map((turn, index) => `${index + 1}. [${turn.id}] (${renderTurnSemanticMeta_ACU(turn)}) ${turn.goal}${turn.id === execution.turn!.id ? '  ← lượt này' : ''}`)
       .join('\n');
-    return [`节点：[${node.id}] ${node.title}`, `节点目标：${node.goal}`, turns].join('\n');
+    return [`Nút: [${node.id}] ${node.title}`, `Mục tiêu nút: ${node.goal}`, turns].join('\n');
   });
   return [
-    `阶段 ${execution.stage.stageNumber}：${execution.revision.outline.title} [${execution.stage.stageId}] revision=${execution.stage.activeRevision}`,
-    `阶段目标：${execution.revision.outline.goal}`,
-    `阶段节奏形态：${describeStageTempo_ACU(execution.revision.outline.tempo)}——它决定本阶段低压轮的下限，也决定下一阶段不能选什么形态。`,
-    `阶段结构职责：${execution.revision.outline.role ?? '旧快照未标注'}`,
-    `阶段时间目标：${execution.revision.outline.timeSpanGoal ?? '未设定'}`,
-    `阶段内轮次进度：第 ${execution.turnNumber} / ${execution.revision.outline.totalTurns} 轮`,
-    '当前启用的阶段大纲（全部节点与轮次；括号内依次给出 pacing、function、mainline、time 与可选 anchor）：',
+    `Giai đoạn ${execution.stage.stageNumber}: ${execution.revision.outline.title} [${execution.stage.stageId}] revision=${execution.stage.activeRevision}`,
+    `Mục tiêu giai đoạn: ${execution.revision.outline.goal}`,
+    `Hình thái nhịp giai đoạn: ${describeStageTempo_ACU(execution.revision.outline.tempo)} — nó quyết định mức sàn của các lượt áp lực thấp trong giai đoạn này, cũng quyết định giai đoạn kế tiếp không được chọn hình thái nào.`,
+    `Chức trách cấu trúc giai đoạn: ${execution.revision.outline.role ?? 'snapshot cũ chưa đánh dấu'}`,
+    `Mục tiêu thời gian giai đoạn: ${execution.revision.outline.timeSpanGoal ?? 'chưa đặt'}`,
+    `Tiến độ lượt trong giai đoạn: lượt ${execution.turnNumber} / ${execution.revision.outline.totalTurns}`,
+    'Dàn ý giai đoạn đang bật (toàn bộ nút và lượt; trong ngoặc lần lượt nêu pacing, function, mainline, time và anchor tùy chọn):',
     nodeBlocks.join('\n\n'),
     renderAgentTurnPacingGuidance_ACU(execution.turn.pacing),
-    '注意：大纲是计划，不是已经发生的事实。',
+    'Lưu ý: dàn ý là kế hoạch, không phải sự thật đã xảy ra.',
   ].join('\n');
 }
 
@@ -547,21 +547,21 @@ export function renderAgentOutlineWindow_ACU(context: AgentResolveContext_ACU): 
  */
 export function renderAgentOutlineState_ACU(context: AgentResolveContext_ACU): string {
   const { execution } = context;
-  const catalog = execution.task.stages.map(stage => `第 ${stage.stageNumber} 阶段 [${stage.stageId}] revision=${stage.activeRevision} status=${stage.status} 已完成 ${stage.completedTurns} 轮`).join('；');
+  const catalog = execution.task.stages.map(stage => `Giai đoạn ${stage.stageNumber} [${stage.stageId}] revision=${stage.activeRevision} status=${stage.status} đã hoàn thành ${stage.completedTurns} lượt`).join('; ');
   const state = renderCurrentAgentOutlineState_ACU(context);
-  return catalog ? `${state}\n阶段进度目录：${catalog}。用 adjust_progress 选择阶段和下一轮，或修改阶段完结状态；总纲可用 correct_materials 或 delegate arc-architect 修改，阶段大纲修改单独 delegate outline-architect。` : state;
+  return catalog ? `${state}\nDanh mục tiến độ giai đoạn: ${catalog}. Dùng adjust_progress để chọn giai đoạn và lượt kế, hoặc sửa trạng thái hoàn tất của giai đoạn; tổng cương có thể sửa bằng correct_materials hoặc delegate arc-architect, dàn ý giai đoạn thì delegate riêng outline-architect.` : state;
 }
 
 function renderCurrentAgentOutlineState_ACU(context: AgentResolveContext_ACU): string {
   const { execution } = context;
-  if (!execution.stage) return '大纲状态：尚无阶段大纲（open_round 固定工作流先创建，之后才能交付）。';
+  if (!execution.stage) return 'Trạng thái dàn ý: chưa có dàn ý giai đoạn (quy trình cố định open_round tạo trước, sau đó mới có thể giao).';
   if (execution.stage.status === 'completed') {
-    return `大纲状态：第 ${execution.stage.stageNumber} 阶段已全部完成，open_round 固定工作流准备下一阶段大纲。`;
+    return `Trạng thái dàn ý: giai đoạn ${execution.stage.stageNumber} đã hoàn thành toàn bộ, quy trình cố định open_round chuẩn bị dàn ý giai đoạn kế tiếp.`;
   }
   if (!execution.revision || !execution.node || !execution.turn) {
-    return `大纲状态：第 ${execution.stage.stageNumber} 阶段的大纲当前不可执行（可能等待确认或游标无效）。`;
+    return `Trạng thái dàn ý: dàn ý của giai đoạn ${execution.stage.stageNumber} hiện không khả thi (có thể đang chờ xác nhận hoặc con trỏ không hợp lệ).`;
   }
-  return `大纲状态：第 ${execution.stage.stageNumber} 阶段「${execution.revision.outline.title}」（节奏形态 ${describeStageTempo_ACU(execution.revision.outline.tempo)}，结构职责 ${execution.revision.outline.role ?? '未标注'}），第 ${execution.turnNumber}/${execution.revision.outline.totalTurns} 轮，当前节点 [${execution.node.id}]，本轮轮次 [${execution.turn.id}]，${renderTurnSemanticMeta_ACU(execution.turn)}。完整大纲窗口用 read $OUTLINE_WINDOW 调阅。`;
+  return `Trạng thái dàn ý: giai đoạn ${execution.stage.stageNumber} "${execution.revision.outline.title}" (hình thái nhịp ${describeStageTempo_ACU(execution.revision.outline.tempo)}, chức trách cấu trúc ${execution.revision.outline.role ?? 'chưa đánh dấu'}), lượt ${execution.turnNumber}/${execution.revision.outline.totalTurns}, nút hiện tại [${execution.node.id}], lượt hiện tại [${execution.turn.id}], ${renderTurnSemanticMeta_ACU(execution.turn)}. Cửa sổ dàn ý đầy đủ xem bằng read $OUTLINE_WINDOW.`;
 }
 
 const ROW_RANGE_PATTERN_ACU = /^(\d+)-(\d+)$/;
@@ -584,12 +584,12 @@ function resolveTableToken_ACU(token: string, context: AgentResolveContext_ACU):
   const lastColon = body.lastIndexOf(':');
   const rangeCandidate = lastColon >= 0 ? parseRowRange_ACU(body.slice(lastColon + 1)) : null;
   const name = rangeCandidate ? body.slice(0, lastColon).trim() : body;
-  const title = rangeCandidate ? `表格「${name}」第 ${rangeCandidate.start}-${rangeCandidate.end} 行` : `表格「${name}」`;
+  const title = rangeCandidate ? `Bảng "${name}" hàng ${rangeCandidate.start}-${rangeCandidate.end}` : `Bảng "${name}"`;
   const sheets = findAgentSheetsByAliases_ACU([name], context.tableData);
-  if (!name || sheets.length !== 1) return { title, text: `表格地址「${token}」无法唯一定位已加载的表格，请核对表格目录。`, status: 'failed' };
+  if (!name || sheets.length !== 1) return { title, text: `Địa chỉ bảng "${token}" không thể định vị duy nhất bảng đã tải, hãy đối chiếu danh mục bảng.`, status: 'failed' };
   if (rangeCandidate && (!Number.isSafeInteger(rangeCandidate.start) || !Number.isSafeInteger(rangeCandidate.end)
     || rangeCandidate.start < 1 || rangeCandidate.end < rangeCandidate.start || rangeCandidate.end > sheets[0].rows.length)) {
-    return { title, text: `表格地址「${token}」行区间无效或超出表格范围（共 ${sheets[0].rows.length} 行），请修正后重读。`, status: 'failed' };
+    return { title, text: `Khoảng hàng của địa chỉ bảng "${token}" không hợp lệ hoặc vượt phạm vi bảng (tổng ${sheets[0].rows.length} hàng), hãy sửa rồi đọc lại.`, status: 'failed' };
   }
   return { title, text: renderAgentTableByName_ACU(name, context.tableData, rangeCandidate ?? undefined) };
 }
@@ -599,15 +599,15 @@ function resolveWorldbookToken_ACU(token: string, context: AgentResolveContext_A
   const body = token.slice(AGENT_WORLDBOOK_TOKEN_PREFIX_ACU.length);
   const lastColon = body.lastIndexOf(':');
   if (lastColon <= 0) {
-    return { title: '世界书条目', text: '世界书读取地址不完整：写法为 $WORLDBOOK:书名:uid（逗号分隔多个 uid），地址请从世界书目录复制。', status: 'failed' };
+    return { title: 'Mục sổ thế giới', text: 'Địa chỉ đọc sổ thế giới không đầy đủ: cách viết là $WORLDBOOK:tên_sách:uid (nhiều uid ngăn cách bằng dấu phẩy), hãy sao chép địa chỉ từ danh mục sổ thế giới.', status: 'failed' };
   }
   const bookName = body.slice(0, lastColon).trim();
   const uids = body.slice(lastColon + 1).split(/[,，]/).map(uid => uid.trim());
-  if (!worldbook.available) return { title: '世界书条目', text: '世界书快照读取失败，不得将其视为没有条目。', status: 'failed' };
+  if (!worldbook.available) return { title: 'Mục sổ thế giới', text: 'Đọc snapshot sổ thế giới thất bại, không được coi là không có mục nào.', status: 'failed' };
   if (!bookName || uids.some(uid => !uid || !worldbook.entries.some(entry => entry.bookName === bookName && entry.uid === uid))) {
-    return { title: '世界书条目', text: `世界书地址「${token}」未能完整匹配已启用条目，请从世界书目录核对书名与 uid。`, status: 'failed' };
+    return { title: 'Mục sổ thế giới', text: `Địa chỉ sổ thế giới "${token}" không khớp đầy đủ với các mục đã bật, hãy đối chiếu tên sách và uid từ danh mục sổ thế giới.`, status: 'failed' };
   }
-  return { title: `世界书「${bookName}」条目 ${uids.join('、')}`, text: renderAgentWorldbookEntries_ACU(worldbook, bookName, uids) };
+  return { title: `Sổ thế giới "${bookName}" mục ${uids.join(', ')}`, text: renderAgentWorldbookEntries_ACU(worldbook, bookName, uids) };
 }
 
 /**
@@ -639,26 +639,26 @@ export function resolveAgentReadToken_ACU(token: string, context: AgentResolveCo
     const valid = floors.length > 0 && start >= floors[0].index && end <= floors[floors.length - 1].index
       && floors.some(floor => floor.index >= start && floor.index <= end);
     return {
-      title: matched ? `正文楼层 ${matched[1]}-${matched[2]}` : '正文楼层区间',
+      title: matched ? `Tầng chính văn ${matched[1]}-${matched[2]}` : 'Khoảng tầng chính văn',
       text: invalidSyntax
-        ? `楼层区间「${normalized}」不合法：写法为 $STORY_RANGE:起始楼-结束楼（两端都是楼层号，起始不大于结束）。可用楼层见正文目录。`
+        ? `Khoảng tầng "${normalized}" không hợp lệ: cách viết là $STORY_RANGE:tầng_đầu-tầng_cuối (hai đầu đều là số tầng, đầu không lớn hơn cuối). Các tầng khả dụng xem trong danh mục chính văn.`
         : valid
         ? renderAgentStoryRange_ACU(context, matched![1], matched![2])
-        : `楼层区间「${normalized}」不可完整读取：写法为 $STORY_RANGE:起始楼-结束楼，范围必须落在当前正文可读窗口内。可用楼层见正文目录；更早的剧情脉络请查看事件概览或用 $TABLE:纪要表:行区间 精读。`,
+        : `Khoảng tầng "${normalized}" không thể đọc đầy đủ: cách viết là $STORY_RANGE:tầng_đầu-tầng_cuối, phạm vi phải nằm trong cửa sổ đọc chính văn hiện tại. Các tầng khả dụng xem trong danh mục chính văn; mạch cốt truyện sớm hơn hãy xem tổng quan sự kiện hoặc dùng $TABLE:纪要表:khoảng hàng để đọc kỹ.`,
       ...(!valid ? { status: 'failed' as const } : {}),
     };
   }
 
   if (normalized.startsWith('$FIELD:')) {
     const match = /^\$FIELD:(storyArc|hooks|infoGap|chronology|webRefs|constraints):([^:]+)(?::([^:]+))?$/.exec(normalized);
-    if (!match) return { title: '资料栏目', text: '栏目地址非法：$FIELD:模块:ID[:栏目]。', status: 'failed' };
+    if (!match) return { title: 'Cột tư liệu', text: 'Địa chỉ cột không hợp lệ: $FIELD:mô-đun:ID[:cột].', status: 'failed' };
     const [, moduleName, id, field] = match;
     const module = moduleName as keyof typeof AGENT_MODULE_FIELD_MATRIX_ACU;
-    if (field && !AGENT_MODULE_FIELD_MATRIX_ACU[module].fields.includes(field)) return { title: '资料栏目', text: `栏目 ${module}.${field} 不在受控字段矩阵中。`, status: 'failed' };
+    if (field && !AGENT_MODULE_FIELD_MATRIX_ACU[module].fields.includes(field)) return { title: 'Cột tư liệu', text: `Cột ${module}.${field} không nằm trong ma trận trường được kiểm soát.`, status: 'failed' };
     const folded = readAgentModuleFoldState_ACU(context.chat);
-    if (folded.salvaged || folded.candidates.some(item => !item.valid)) return { title: '资料栏目读取失败', text: '资料帧校验失败；不得将损坏数据解释为空状态。', status: 'failed' };
+    if (folded.salvaged || folded.candidates.some(item => !item.valid)) return { title: 'Đọc cột tư liệu thất bại', text: 'Kiểm tra khung tư liệu thất bại; không được diễn giải dữ liệu hỏng thành trạng thái rỗng.', status: 'failed' };
     const record = folded.fields.records[module]?.[id];
-    return { title: `资料栏目 ${module}#${id}`, text: JSON.stringify(record
+    return { title: `Cột tư liệu ${module}#${id}`, text: JSON.stringify(record
       ? { module, id, status: record.status, missingFields: record.missingFields,
         fields: field ? { [field]: record.fields[field] ?? null } : record.fields,
         revisions: folded.snapshot.revisions[module] }
@@ -670,30 +670,30 @@ export function resolveAgentReadToken_ACU(token: string, context: AgentResolveCo
     const completedStageNumbers = context.execution.task.stages
       .filter(stage => stage.status === 'completed')
       .map(stage => stage.stageNumber);
-    return { title: storyArcIds.length ? `故事总纲条目 ${storyArcIds.join('、')}` : '故事总纲（全部活跃条目）', text: renderAgentStoryArcByIds_ACU(context.moduleSnapshot, storyArcIds.length ? storyArcIds : undefined, completedStageNumbers) };
+    return { title: storyArcIds.length ? `Mục tổng cương câu chuyện ${storyArcIds.join(', ')}` : 'Tổng cương câu chuyện (toàn bộ mục đang hoạt động)', text: renderAgentStoryArcByIds_ACU(context.moduleSnapshot, storyArcIds.length ? storyArcIds : undefined, completedStageNumbers) };
   }
   const hookIds = splitIdSuffix_ACU(normalized, '$HOOKS_LEDGER');
   if (hookIds !== null) {
-    return { title: hookIds.length ? `伏笔账本条目 ${hookIds.join('、')}` : '伏笔账本（全部活跃条目）', text: renderAgentHooksByIds_ACU(context.moduleSnapshot, hookIds.length ? hookIds : undefined) };
+    return { title: hookIds.length ? `Mục sổ phục bút ${hookIds.join(', ')}` : 'Sổ phục bút (toàn bộ mục đang hoạt động)', text: renderAgentHooksByIds_ACU(context.moduleSnapshot, hookIds.length ? hookIds : undefined) };
   }
   const infoGapIds = splitIdSuffix_ACU(normalized, '$INFO_GAP');
   if (infoGapIds !== null) {
-    return { title: infoGapIds.length ? `信息差条目 ${infoGapIds.join('、')}` : '认知与信息差时间线（全部活跃条目）', text: renderAgentInfoGapByIds_ACU(context.moduleSnapshot, infoGapIds.length ? infoGapIds : undefined) };
+    return { title: infoGapIds.length ? `Mục chênh lệch thông tin ${infoGapIds.join(', ')}` : 'Dòng thời gian nhận thức và chênh lệch thông tin (toàn bộ mục đang hoạt động)', text: renderAgentInfoGapByIds_ACU(context.moduleSnapshot, infoGapIds.length ? infoGapIds : undefined) };
   }
   const constraintIds = splitIdSuffix_ACU(normalized, '$ACTIVE_CONSTRAINTS');
   if (constraintIds !== null) {
-    return { title: constraintIds.length ? `长期约束条目 ${constraintIds.join('、')}` : '长期约束（全部条目）', text: renderAgentConstraintsByIds_ACU(context.moduleSnapshot, constraintIds.length ? constraintIds : undefined) };
+    return { title: constraintIds.length ? `Mục ràng buộc dài hạn ${constraintIds.join(', ')}` : 'Ràng buộc dài hạn (toàn bộ mục)', text: renderAgentConstraintsByIds_ACU(context.moduleSnapshot, constraintIds.length ? constraintIds : undefined) };
   }
   const chronologyIds = splitIdSuffix_ACU(normalized, '$CHRONOLOGY');
   if (chronologyIds !== null) {
     return chronologyIds.length
-      ? { title: `故事年代学条目 ${chronologyIds.join('、')}`, text: renderAgentChronologyByIds_ACU(context.moduleSnapshot, chronologyIds) }
-      : { title: '故事年代学账本（已发生正文结算出的时间事实）', text: renderAgentChronology_ACU(context.moduleSnapshot) };
+      ? { title: `Mục niên đại học câu chuyện ${chronologyIds.join(', ')}`, text: renderAgentChronologyByIds_ACU(context.moduleSnapshot, chronologyIds) }
+      : { title: 'Sổ niên đại học câu chuyện (các sự thật thời gian được quyết toán từ chính văn đã xảy ra)', text: renderAgentChronology_ACU(context.moduleSnapshot) };
   }
   const webRefIds = splitIdSuffix_ACU(normalized, '$WEB_REFS');
   if (webRefIds !== null) {
     return {
-      title: webRefIds.length ? `百科资料库条目 ${webRefIds.join('、')}（外部参考，非本故事事实）` : '百科资料库（全部活跃条目摘要；外部参考，非本故事事实）',
+      title: webRefIds.length ? `Mục kho tư liệu bách khoa ${webRefIds.join(', ')} (tham khảo bên ngoài, không phải sự thật của câu chuyện này)` : 'Kho tư liệu bách khoa (tóm tắt toàn bộ mục đang hoạt động; tham khảo bên ngoài, không phải sự thật của câu chuyện này)',
       text: renderAgentWebRefsByIds_ACU(context.moduleSnapshot, webRefIds.length ? webRefIds : undefined),
     };
   }
@@ -706,14 +706,14 @@ export function resolveAgentReadToken_ACU(token: string, context: AgentResolveCo
     case '$STORY_TAIL': return { title, text: renderAgentStoryTail_ACU(context) };
     case '$HISTORY_UNSETTLED': return { title, text: renderAgentUnsettledHistory_ACU(context) };
     case '$OUTLINE_WINDOW': return { title, text: renderAgentOutlineWindow_ACU(context) };
-    case '$CURRENT_TURN_GOAL': return { title, text: context.execution.turn?.goal || '（尚无可执行的大纲轮次，本轮目标待大纲创建或继续后确定）' };
+    case '$CURRENT_TURN_GOAL': return { title, text: context.execution.turn?.goal || '(chưa có lượt dàn ý khả thi, mục tiêu lượt này sẽ được xác định sau khi dàn ý được tạo hoặc tiếp tục)' };
     case '$CURRENT_TURN_PACING': return { title, text: renderAgentTurnGuidance_ACU(context.execution.turn ?? null) };
-    case '$USER_INTENT': return { title, text: context.originInstruction || '（用户未提供初始要求）' };
+    case '$USER_INTENT': return { title, text: context.originInstruction || '(Người dùng chưa cung cấp yêu cầu ban đầu)' };
     case '$USER_REQUIREMENTS': return { title, text: renderAgentUserRequirements_ACU(context.moduleSnapshot, context.originInstruction) };
     case '$TABLE_GLOBAL': return { title, text: renderAgentTableByAliases_ACU('global', context.tableData) };
     case '$TABLE_CHARACTERS': return { title, text: renderAgentTableByAliases_ACU('characters', context.tableData) };
     case '$TABLE_CHRONICLES': return { title, text: renderAgentTableByAliases_ACU('chronicles', context.tableData) };
-    default: return { title, text: `占位符 ${normalized || '(空)'} 不是可读资料接口，本次没有为你提供任何内容。请从各资料目录里复制读取地址。`, status: 'failed' };
+    default: return { title, text: `Placeholder ${normalized || '(rỗng)'} không phải giao diện tư liệu đọc được, lần này không cung cấp nội dung nào cho bạn. Hãy sao chép địa chỉ đọc từ các danh mục tư liệu.`, status: 'failed' };
   }
 }
 
@@ -819,7 +819,7 @@ export function resolveAgentReadTokenWithProof_ACU(
   if (!completeWithinFence) {
     return {
       title: resolved.title,
-      text: `读取地址「${stableAddress}」的实际范围超出 requestedFence，已拒绝注入。`,
+      text: `Phạm vi thực tế của địa chỉ đọc "${stableAddress}" vượt quá requestedFence, đã từ chối tiêm.`,
       status: 'failed',
       proof,
     };
@@ -907,8 +907,8 @@ export function resolveAgentReadAddressAxis_ACU(token: string, context: AgentRes
  */
 export function renderAgentReadMaterials_ACU(tokens: readonly string[], context: AgentResolveContext_ACU): string {
   const unique = [...new Set(tokens.map(token => String(token ?? '').trim()).filter(Boolean))];
-  if (!unique.length) return '本次没有为你注入任何资料。你只能基于任务描述作答，缺少的信息必须标注「信息不足」。';
+  if (!unique.length) return 'Lần này không tiêm tư liệu nào cho bạn. Bạn chỉ có thể trả lời dựa trên mô tả tác vụ, thông tin còn thiếu phải đánh dấu "thiếu thông tin".';
   return unique
-    .map(token => { const resolved = resolveAgentReadToken_ACU(token, context); return `### ${resolved.title}（${token}）\n${resolved.text}`; })
+    .map(token => { const resolved = resolveAgentReadToken_ACU(token, context); return `### ${resolved.title} (${token})\n${resolved.text}`; })
     .join('\n\n');
 }

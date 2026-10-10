@@ -122,15 +122,15 @@ describe('PlotPage', () => {
     const { mount, settings } = await mountPlotPage({ uiTier: 'low' });
 
     const plotEntry = document.querySelector<HTMLButtonElement>('.acu-v2-sidebar [data-page-id="plot"]');
-    expect(plotEntry?.textContent).toContain('剧情推进');
+    expect(plotEntry?.textContent).toContain('Đẩy cốt truyện');
     const page = document.querySelector('.acu-v2-plot-page');
     expect(page).not.toBeNull();
     const text = page!.textContent || '';
-    expect(text).toContain('剧情推进');
-    expect(text).toContain('剧情推进预设');
-    expect(text).toContain('剧情推进世界书');
+    expect(text).toContain('Đẩy cốt truyện');
+    expect(text).toContain('Preset đẩy cốt truyện');
+    expect(text).toContain('Sổ thế giới đẩy cốt truyện');
     expect(text).toContain('记忆召回'); // active preset name
-    expect(Array.from(page!.querySelectorAll('button')).some(b => b.textContent?.trim() === '刷新')).toBe(false);
+    expect(Array.from(page!.querySelectorAll('button')).some(b => b.textContent?.trim() === 'Làm mới')).toBe(false);
 
     const toggle = document.querySelector('button[data-acu-plot-toggle="enabled"]') as HTMLButtonElement | null;
     expect(toggle).toBeNull();
@@ -191,28 +191,28 @@ describe('PlotPage', () => {
     const { mount } = await mountPlotPage();
 
     const editButton = Array.from(document.querySelectorAll('button'))
-      .find(b => b.getAttribute('title') === '编辑当前预设') as HTMLButtonElement | undefined;
+      .find(b => b.getAttribute('title') === 'Sửa preset hiện tại') as HTMLButtonElement | undefined;
     expect(editButton).not.toBeUndefined();
     editButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
     const drawer = document.querySelector('.acu-v2-drawer');
     expect(drawer).not.toBeNull();
-    expect(drawer!.textContent || '').not.toContain('匹配替换（进阶）');
+    expect(drawer!.textContent || '').not.toContain('Khớp và thay thế (nâng cao)');
     const footerButtons = Array.from(drawer!.querySelectorAll<HTMLButtonElement>('.acu-v2-plot-drawer__actions button'));
-    expect(footerButtons[0].textContent?.trim()).toBe('关闭');
+    expect(footerButtons[0].textContent?.trim()).toBe('Đóng');
     expect(footerButtons[0].classList.contains('acu-btn--default')).toBe(true);
-    expect(drawer!.textContent || '').not.toContain('取消');
+    expect(drawer!.textContent || '').not.toContain('Hủy');
     mount.__resetAcuV2MountForTests();
   });
 
   it('开发者选项开启时，在编辑抽屉渲染"匹配替换"字段（含 5 个数字字段）', async () => {
     const { mount } = await mountPlotPage({ devOptions: { plotAdvanced: true } });
 
-    expect(document.querySelector('.acu-v2-plot-page')!.textContent || '').not.toContain('匹配替换（进阶）');
+    expect(document.querySelector('.acu-v2-plot-page')!.textContent || '').not.toContain('Khớp và thay thế (nâng cao)');
 
     const editButton = Array.from(document.querySelectorAll('button'))
-      .find(b => b.getAttribute('title') === '编辑当前预设') as HTMLButtonElement | undefined;
+      .find(b => b.getAttribute('title') === 'Sửa preset hiện tại') as HTMLButtonElement | undefined;
     expect(editButton).not.toBeUndefined();
     editButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -220,10 +220,10 @@ describe('PlotPage', () => {
     const drawer = document.querySelector('.acu-v2-drawer');
     expect(drawer).not.toBeNull();
     const drawerText = drawer!.textContent || '';
-    expect(drawerText).toContain('匹配替换（进阶）');
-    expect(drawerText).toContain('随当前剧情推进预设保存');
-    expect(drawerText.indexOf('标签筛选')).toBeLessThan(drawerText.indexOf('匹配替换（进阶）'));
-    expect(drawerText.indexOf('匹配替换（进阶）')).toBeLessThan(drawerText.indexOf('当前任务使用的 API'));
+    expect(drawerText).toContain('Khớp và thay thế (nâng cao)');
+    expect(drawerText).toContain('được lưu theo preset đẩy cốt truyện hiện tại');
+    expect(drawerText.indexOf('Lọc theo thẻ')).toBeLessThan(drawerText.indexOf('Khớp và thay thế (nâng cao)'));
+    expect(drawerText.indexOf('Khớp và thay thế (nâng cao)')).toBeLessThan(drawerText.indexOf('API dùng cho tác vụ hiện tại'));
 
     const inputs = Array.from(document.querySelectorAll('.acu-v2-plot-match-fields input[type="number"]'));
     expect(inputs).toHaveLength(5);
@@ -235,7 +235,7 @@ describe('PlotPage', () => {
     const { mount, settings } = await mountPlotPage({ devOptions: { plotAdvanced: true } });
 
     const editButton = Array.from(document.querySelectorAll('button'))
-      .find(b => b.getAttribute('title') === '编辑当前预设') as HTMLButtonElement | undefined;
+      .find(b => b.getAttribute('title') === 'Sửa preset hiện tại') as HTMLButtonElement | undefined;
     expect(editButton).not.toBeUndefined();
     editButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -253,7 +253,7 @@ describe('PlotPage', () => {
     }
 
     const saveButton = Array.from(drawer!.querySelectorAll('button'))
-      .find(button => (button.textContent || '').includes('保存预设')) as HTMLButtonElement | undefined;
+      .find(button => (button.textContent || '').includes('Lưu preset')) as HTMLButtonElement | undefined;
     expect(saveButton).not.toBeUndefined();
     saveButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -274,7 +274,7 @@ describe('PlotPage', () => {
     const { mount } = await mountPlotPage();
 
     const editButton = Array.from(document.querySelectorAll('button'))
-      .find(b => b.getAttribute('title') === '编辑当前预设') as HTMLButtonElement | undefined;
+      .find(b => b.getAttribute('title') === 'Sửa preset hiện tại') as HTMLButtonElement | undefined;
     expect(editButton).not.toBeUndefined();
     editButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -282,7 +282,7 @@ describe('PlotPage', () => {
     const drawer = document.querySelector('.acu-v2-drawer');
     expect(drawer).not.toBeNull();
     const text = drawer!.textContent || '';
-    expect(text).toContain('当前任务使用的 API');
+    expect(text).toContain('API dùng cho tác vụ hiện tại');
     expect(text).not.toContain('D23.4');
     expect(text).not.toContain('override');
     expect(text).not.toContain('三层 fallback');
@@ -294,15 +294,15 @@ describe('PlotPage', () => {
     const { mount } = await mountPlotPage();
 
     const editButton = Array.from(document.querySelectorAll('button'))
-      .find(b => b.getAttribute('title') === '编辑当前预设') as HTMLButtonElement | undefined;
+      .find(b => b.getAttribute('title') === 'Sửa preset hiện tại') as HTMLButtonElement | undefined;
     expect(editButton).not.toBeUndefined();
     editButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
     const promptSegments = document.querySelector('.acu-v2-drawer .acu-prompt-segs') as HTMLElement | null;
     expect(promptSegments).not.toBeNull();
-    const moveUpButton = promptSegments!.querySelector('button[title="上移该段"]') as HTMLButtonElement | null;
-    const moveDownButton = promptSegments!.querySelector('button[title="下移该段"]') as HTMLButtonElement | null;
+    const moveUpButton = promptSegments!.querySelector('button[title="Dời đoạn lên"]') as HTMLButtonElement | null;
+    const moveDownButton = promptSegments!.querySelector('button[title="Dời đoạn xuống"]') as HTMLButtonElement | null;
     expect(moveUpButton).not.toBeNull();
     expect(moveDownButton).not.toBeNull();
     expect(moveUpButton!.textContent?.trim()).toBe('');
@@ -311,24 +311,24 @@ describe('PlotPage', () => {
     mount.__resetAcuV2MountForTests();
   });
 
-  it('编辑预设抽屉包含标签筛选，并将规则保存进预设', async () => {
+  it('编辑预设抽屉包含Lọc theo thẻ，并将规则保存进预设', async () => {
     const { mount, settings } = await mountPlotPage();
 
     const editButton = Array.from(document.querySelectorAll('button'))
-      .find(b => b.getAttribute('title') === '编辑当前预设') as HTMLButtonElement | undefined;
+      .find(b => b.getAttribute('title') === 'Sửa preset hiện tại') as HTMLButtonElement | undefined;
     expect(editButton).not.toBeUndefined();
     editButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
     const drawer = document.querySelector('.acu-v2-drawer') as HTMLElement | null;
     expect(drawer).not.toBeNull();
-    expect(drawer!.textContent || '').toContain('标签筛选');
+    expect(drawer!.textContent || '').toContain('Lọc theo thẻ');
     expect(drawer!.textContent || '').not.toContain('剧情上下文过滤');
-    expect(drawer!.textContent || '').toContain('提取规则');
-    expect(drawer!.textContent || '').toContain('排除规则');
+    expect(drawer!.textContent || '').toContain('Quy tắc trích xuất');
+    expect(drawer!.textContent || '').toContain('Quy tắc loại trừ');
 
     const filterSection = Array.from(drawer!.querySelectorAll('.acu-v2-form__section'))
-      .find(section => (section.textContent || '').includes('标签筛选')) as HTMLElement | undefined;
+      .find(section => (section.textContent || '').includes('Lọc theo thẻ')) as HTMLElement | undefined;
     expect(filterSection).not.toBeUndefined();
 
     // 规则列表默认折叠：先点 header 展开，再寻找添加按钮。
@@ -338,9 +338,9 @@ describe('PlotPage', () => {
     await new Promise(r => setTimeout(r, 0));
 
     const addExtractButton = Array.from(filterSection!.querySelectorAll('button'))
-      .find(button => (button.textContent || '').includes('添加提取规则')) as HTMLButtonElement | undefined;
+      .find(button => (button.textContent || '').includes('Thêm quy tắc trích xuất')) as HTMLButtonElement | undefined;
     const addExcludeButton = Array.from(filterSection!.querySelectorAll('button'))
-      .find(button => (button.textContent || '').includes('添加排除规则')) as HTMLButtonElement | undefined;
+      .find(button => (button.textContent || '').includes('Thêm quy tắc loại trừ')) as HTMLButtonElement | undefined;
     expect(addExtractButton).not.toBeUndefined();
     expect(addExcludeButton).not.toBeUndefined();
 
@@ -359,7 +359,7 @@ describe('PlotPage', () => {
     }
 
     const saveButton = Array.from(drawer!.querySelectorAll('button'))
-      .find(button => (button.textContent || '').includes('保存预设')) as HTMLButtonElement | undefined;
+      .find(button => (button.textContent || '').includes('Lưu preset')) as HTMLButtonElement | undefined;
     expect(saveButton).not.toBeUndefined();
     saveButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -383,21 +383,21 @@ describe('PlotPage', () => {
     mount.__resetAcuV2MountForTests();
   });
 
-  it('剧情推进 API 预设下拉默认空选项 = "跟随当前活动"，并列出 apiStore 预设', async () => {
+  it('Preset API đẩy cốt truyện下拉默认空选项 = "跟随当前活动"，并列出 apiStore 预设', async () => {
     const { mount } = await mountPlotPage();
 
     const panel = Array.from(document.querySelectorAll('.acu-v2-plot-page .acu-panel'))
-      .find(p => (p.textContent || '').includes('剧情推进 API 预设'));
+      .find(p => (p.textContent || '').includes('Preset API đẩy cốt truyện'));
     expect(panel).not.toBeUndefined();
     const acuSelect = panel!.querySelector('.acu-select') as HTMLElement | null;
     expect(acuSelect).not.toBeNull();
     const trigger = acuSelect!.querySelector('.acu-select__trigger') as HTMLButtonElement;
-    expect(trigger.textContent).toContain('跟随当前活动 API（gpt-mini）');
+    expect(trigger.textContent).toContain('Theo API đang hoạt động (gpt-mini)');
     trigger.click();
     await new Promise(r => setTimeout(r, 0));
     const items = Array.from(acuSelect!.querySelectorAll('.acu-select__item'));
     const labels = items.map(li => li.textContent?.trim() || '');
-    expect(labels[0]).toBe('跟随当前活动 API（gpt-mini）');
+    expect(labels[0]).toBe('Theo API đang hoạt động (gpt-mini)');
     expect(labels.some(l => l === 'gpt-mini')).toBe(true);
 
     mount.__resetAcuV2MountForTests();
@@ -407,14 +407,14 @@ describe('PlotPage', () => {
     const { mount } = await mountPlotPage();
 
     const gearButton = Array.from(document.querySelectorAll('button'))
-      .find(b => b.getAttribute('title') === '管理预设') as HTMLButtonElement | undefined;
+      .find(b => b.getAttribute('title') === 'Quản lý preset') as HTMLButtonElement | undefined;
     expect(gearButton).not.toBeUndefined();
     gearButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
     const drawer = document.querySelector('.acu-v2-drawer');
     expect(drawer).not.toBeNull();
-    expect(drawer!.textContent || '').toContain('管理剧情推进预设');
+    expect(drawer!.textContent || '').toContain('Quản lý preset đẩy cốt truyện');
     expect(drawer!.textContent || '').toContain('记忆召回');
 
     mount.__resetAcuV2MountForTests();
@@ -430,12 +430,12 @@ describe('PlotPage', () => {
     trigger!.click();
     await Promise.resolve();
     const items = Array.from(document.querySelectorAll('#plot-preset-panel .acu-preset-dd__item')) as HTMLElement[];
-    const defaultItem = items.find(item => item.textContent?.includes('默认预设'));
+    const defaultItem = items.find(item => item.textContent?.includes('Preset mặc định'));
     expect(defaultItem).not.toBeUndefined();
-    expect(defaultItem!.textContent).toContain('1 个任务');
+    expect(defaultItem!.textContent).toContain('1 tác vụ');
     const slowItem = items.find(item => item.textContent?.includes('低速推进'));
     expect(slowItem).not.toBeUndefined();
-    expect(slowItem!.textContent).toContain('2 个任务');
+    expect(slowItem!.textContent).toContain('2 tác vụ');
     slowItem!.click();
     await Promise.resolve();
     expect(trigger!.textContent).toContain('低速推进');
@@ -459,7 +459,7 @@ describe('PlotPage', () => {
     trigger!.click();
     await Promise.resolve();
     const defaultItem = Array.from(document.querySelectorAll('#plot-preset-panel .acu-preset-dd__item'))
-      .find(item => item.textContent?.includes('默认预设')) as HTMLElement | undefined;
+      .find(item => item.textContent?.includes('Preset mặc định')) as HTMLElement | undefined;
     expect(defaultItem).not.toBeUndefined();
     defaultItem!.click();
     await Promise.resolve();
@@ -470,13 +470,13 @@ describe('PlotPage', () => {
     trigger!.click();
     await Promise.resolve();
     const defaultStar = Array.from(document.querySelectorAll('#plot-preset-panel .acu-preset-dd__star'))
-      .find(star => star.closest('.acu-preset-dd__item')?.textContent?.includes('默认预设')) as HTMLButtonElement | undefined;
+      .find(star => star.closest('.acu-preset-dd__item')?.textContent?.includes('Preset mặc định')) as HTMLButtonElement | undefined;
     expect(defaultStar).not.toBeUndefined();
     defaultStar!.click();
     await Promise.resolve();
 
     expect(settings.plotSettings.lastUsedPresetName).toBe('');
-    expect((document.querySelector('.acu-v2-plot-page__status-line') as HTMLElement).textContent || '').toContain('全局默认: 默认预设');
+    expect((document.querySelector('.acu-v2-plot-page__status-line') as HTMLElement).textContent || '').toContain('Mặc định toàn cục: Preset mặc định');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -486,7 +486,7 @@ describe('PlotPage', () => {
     settings.plotSettings.lastUsedPresetName = '';
     const { mount } = await mountPlotPage({ settings });
 
-    const editButton = document.querySelector('button[title="从默认新建预设"]') as HTMLButtonElement | null;
+    const editButton = document.querySelector('button[title="Tạo preset mới từ mặc định"]') as HTMLButtonElement | null;
     expect(editButton).not.toBeNull();
     expect(editButton!.disabled).toBe(false);
     editButton!.click();
@@ -494,12 +494,12 @@ describe('PlotPage', () => {
 
     const drawer = document.querySelector('.acu-v2-drawer') as HTMLElement | null;
     expect(drawer).not.toBeNull();
-    expect(drawer!.textContent || '').toContain('从默认新建剧情推进预设');
+    expect(drawer!.textContent || '').toContain('Tạo preset đẩy cốt truyện từ mặc định');
     expect(drawer!.querySelectorAll('.acu-v2-plot-tasks__card')).toHaveLength(1);
     expect(drawer!.querySelector('.acu-v2-plot-tasks__card')?.tagName).toBe('BUTTON');
     const nameInput = drawer!.querySelector('.acu-v2-form__section input.acu-input') as HTMLInputElement | null;
     expect(nameInput).not.toBeNull();
-    expect(nameInput!.value).toBe('新预设');
+    expect(nameInput!.value).toBe('Preset mới');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -508,34 +508,34 @@ describe('PlotPage', () => {
     const { mount, settings } = await mountPlotPage();
 
     const gearButton = Array.from(document.querySelectorAll('button'))
-      .find(b => b.getAttribute('title') === '管理预设') as HTMLButtonElement | undefined;
+      .find(b => b.getAttribute('title') === 'Quản lý preset') as HTMLButtonElement | undefined;
     expect(gearButton).not.toBeUndefined();
     gearButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
     const createButton = Array.from(document.querySelectorAll('.acu-v2-drawer button'))
-      .find(button => (button.textContent || '').includes('从默认新建')) as HTMLButtonElement | undefined;
+      .find(button => (button.textContent || '').includes('Tạo mới từ mặc định')) as HTMLButtonElement | undefined;
     expect(createButton).not.toBeUndefined();
     createButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
     const drawer = document.querySelector('.acu-v2-drawer') as HTMLElement | null;
     expect(drawer).not.toBeNull();
-    expect(drawer!.textContent || '').toContain('从默认新建剧情推进预设');
+    expect(drawer!.textContent || '').toContain('Tạo preset đẩy cốt truyện từ mặc định');
     expect(drawer!.querySelectorAll('.acu-v2-plot-tasks__card')).toHaveLength(1);
     expect(drawer!.querySelector('.acu-v2-plot-tasks__card')?.tagName).toBe('BUTTON');
 
     const nameInput = drawer!.querySelector('.acu-v2-form__section input.acu-input') as HTMLInputElement | null;
     expect(nameInput).not.toBeNull();
-    expect(nameInput!.value).toBe('新预设');
+    expect(nameInput!.value).toBe('Preset mới');
 
     const saveButton = Array.from(drawer!.querySelectorAll('button'))
-      .find(button => (button.textContent || '').includes('保存预设')) as HTMLButtonElement | undefined;
+      .find(button => (button.textContent || '').includes('Lưu preset')) as HTMLButtonElement | undefined;
     expect(saveButton).not.toBeUndefined();
     saveButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
-    const savedPreset = settings.plotSettings.promptPresets.find((preset: any) => preset.name === '新预设');
+    const savedPreset = settings.plotSettings.promptPresets.find((preset: any) => preset.name === 'Preset mới');
     expect(savedPreset).toBeDefined();
     expect(savedPreset.plotTasks).toHaveLength(1);
 
@@ -571,12 +571,12 @@ describe('PlotPage', () => {
 
     const picker = document.querySelector('.acu-v2-wb-source-picker') as HTMLElement | null;
     expect(picker).not.toBeNull();
-    expect(picker!.textContent).not.toContain('当前角色卡所有世界书 · 主册 CharBook');
+    expect(picker!.textContent).not.toContain('Sổ thế giới chính của thẻ nhân vật hiện tại · CharBook');
     expect(document.querySelector('.acu-v2-wb-entry-picker__hint')?.textContent)
-      .toContain('目前已选: 角色卡所有世界书 · 主册 CharBook');
+      .toContain('Hiện đã chọn: Tất cả sổ thế giới của thẻ nhân vật · sổ chính CharBook');
 
     const manualButton = Array.from(picker!.querySelectorAll<HTMLButtonElement>('.acu-segmented__item'))
-      .find(button => button.textContent?.trim() === '手动选择')!;
+      .find(button => button.textContent?.trim() === 'Chọn thủ công')!;
     manualButton.click();
     await Promise.resolve();
 
@@ -590,7 +590,7 @@ describe('PlotPage', () => {
 
     expect(settings.plotSettings.plotWorldbookConfig.source).toBe('manual');
     expect(settings.plotSettings.plotWorldbookConfig.manualSelection).toEqual(['world-A', 'world-B']);
-    expect(document.querySelector('.acu-v2-wb-entry-picker__hint')?.textContent).toContain('目前已选: world-A、world-B');
+    expect(document.querySelector('.acu-v2-wb-entry-picker__hint')?.textContent).toContain('Hiện đã chọn: world-A, world-B');
     expect(worldA.getAttribute('aria-checked')).toBe('true');
     expect(worldB.getAttribute('aria-checked')).toBe('true');
 
@@ -607,7 +607,7 @@ describe('PlotPage', () => {
     await new Promise(r => setTimeout(r, 50));
 
     const error = document.querySelector('.acu-v2-wb-entries [role="alert"]');
-    expect(error?.textContent).toContain('加载角色世界书失败');
+    expect(error?.textContent).toContain('Tải sổ thế giới nhân vật thất bại');
     expect(error?.textContent).not.toContain(bindingError.message);
     expect(settings.plotSettings.plotWorldbookConfig.enabledEntries).toEqual({});
     expect(mockGetCurrentCharacterWorldbookBinding).toHaveBeenCalledTimes(1);
@@ -625,7 +625,7 @@ describe('PlotPage', () => {
 
     const header = entryList!.querySelector('.acu-v2-wb-entry-group__header') as HTMLButtonElement | null;
     expect(header).not.toBeNull();
-    expect(header!.textContent).toContain('2/2 条');
+    expect(header!.textContent).toContain('2/2 mục');
     header!.click();
     await Promise.resolve();
 
@@ -644,10 +644,10 @@ describe('PlotPage', () => {
     const toolbar = document.querySelector('.acu-v2-wb-entry-toolbar');
     expect(toolbar).not.toBeNull();
     const buttons = Array.from(toolbar!.querySelectorAll('button')).map(b => b.textContent?.trim());
-    expect(buttons).toContain('全选');
-    expect(buttons).toContain('全不选');
-    expect(buttons).not.toContain('Skill 全选');
-    expect(buttons).not.toContain('对所选 Skill 化');
+    expect(buttons).toContain('Chọn tất cả');
+    expect(buttons).toContain('Bỏ chọn tất cả');
+    expect(buttons).not.toContain('Chọn tất cả Skill');
+    expect(buttons).not.toContain('Skill hóa mục đã chọn');
     expect(document.querySelector('.acu-v2-agent-wb-control')).toBeNull();
 
     mount.__resetAcuV2MountForTests();
@@ -659,7 +659,7 @@ describe('PlotPage', () => {
 
     const filterInput = document.querySelector('.acu-v2-wb-entry-toolbar__filter .acu-input') as HTMLInputElement | null;
     expect(filterInput).not.toBeNull();
-    expect(filterInput!.placeholder).toContain('搜索');
+    expect(filterInput!.placeholder).toContain('Tìm');
 
     mount.__resetAcuV2MountForTests();
   });

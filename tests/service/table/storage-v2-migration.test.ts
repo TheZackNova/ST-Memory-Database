@@ -314,7 +314,7 @@ describe('migrateLegacyStorageToV2OnLoad_ACU', () => {
     });
 
     expect(result.migrated).toBe(false);
-    expect(result.error).toContain('拒绝迁移');
+    expect(result.error).toContain('đã từ chối di chuyển');
     expect(mockSaveChatToHost).not.toHaveBeenCalled();
     // 旧字段原件必须原样保留
     expect(mockChatRef.value[0].TavernDB_ACU_IndependentData.sheet_0.content).toEqual([['row_id', '名称'], ['1', '铁剑']]);
@@ -369,7 +369,7 @@ describe('migrateLegacyStorageToV2OnLoad_ACU', () => {
     });
 
     expect(result.migrated).toBe(false);
-    expect(result.error).toContain('缺失');
+    expect(result.error).toContain('Kết quả gộp thiếu các bảng');
     expect(result.error).toContain('背包物品表');
     expect(mockSaveChatToHost).not.toHaveBeenCalled();
     expect(mockChatRef.value[0].TavernDB_ACU_IndependentData.sheet_bag.content).toEqual([['row_id', '名称', '数量'], ['1', '铁剑', '3']]);
@@ -460,7 +460,7 @@ describe('migrateLegacyStorageToV2OnLoad_ACU', () => {
     });
 
     expect(result.migrated).toBe(false);
-    expect(result.error).toContain('缺失');
+    expect(result.error).toContain('Kết quả gộp thiếu các bảng');
     expect(result.error).toContain('背包物品表');
     expect(mockSaveChatToHost).not.toHaveBeenCalled();
   });

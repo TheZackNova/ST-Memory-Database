@@ -41,7 +41,7 @@ export class ApiPresetUnresolvedError_ACU extends Error {
   readonly presetName: string;
 
   constructor(presetName: string) {
-    super(`API 预设「${presetName}」不存在，请在设置中重新选择`);
+    super(`Preset API "${presetName}" không tồn tại, hãy chọn lại trong Cài đặt`);
     this.name = 'ApiPresetUnresolvedError_ACU';
     this.presetName = presetName;
   }
@@ -251,7 +251,7 @@ export function buildCustomApiRequestBody_ACU(
   const composedIncludeBody = composeCustomIncludeBody_ACU(userBodyParams, pluginFields);
   if (composedIncludeBody.diagnostic.reason === 'parse_error' || composedIncludeBody.diagnostic.reason === 'unsupported_root') {
     if (opts.generationParameters) {
-      throw new Error('数据库 API 的附加请求体无法合并最终生成字段，未发送请求。');
+      throw new Error('Phần thân yêu cầu bổ sung của API cơ sở dữ liệu không thể gộp với các trường tạo cuối cùng, chưa gửi yêu cầu.');
     }
     logWarn_ACU('[buildCustomApiRequestBody] 跳过插件请求体字段', composedIncludeBody.diagnostic);
   } else if (composedIncludeBody.diagnostic.reason === 'stream_options_replaced') {
@@ -647,18 +647,18 @@ export function assertResolvedPresetDirectTransport_ACU(
     if (resolved.apiMode === 'tavern') {
         const profile = getConnectionManagerProfiles_ACU().find(item => item.id === resolved.tavernProfile);
         if (!profile || !isConnectionProfileChatCompletion_ACU(profile)) {
-            throw new Error('零层正文需要有效的 Chat Completion 连接预设，未发送请求。');
+            throw new Error('Nội dung chính Tầng 0 cần preset kết nối Chat Completion hợp lệ, chưa gửi yêu cầu.');
         }
         return;
     }
     if (resolved.apiConfig.useMainApi) {
         if (!isMainApiChatCompletionAvailable_ACU()) {
-            throw new Error('零层正文不支持当前主 API 的宿主生成回退，请选择 Chat Completion 或自定义 API。');
+            throw new Error('Nội dung chính Tầng 0 không hỗ trợ phương án dự phòng tạo của host cho API chính hiện tại, hãy chọn Chat Completion hoặc API tùy chỉnh.');
         }
         return;
     }
     if (!resolved.apiConfig.url || !resolved.apiConfig.model) {
-        throw new Error('自定义 API 的 URL 或模型未配置。');
+        throw new Error('URL hoặc mô hình của API tùy chỉnh chưa được cấu hình.');
     }
 }
 
@@ -676,8 +676,8 @@ let tavernProfileCallTail_ACU: Promise<unknown> = Promise.resolve();
 async function runWithTavernProfile_ACU<T>(profileId: string, action: (profile: any) => Promise<T>): Promise<T> {
     const run = async (): Promise<any> => {
         const targetProfile = getConnectionManagerProfiles_ACU().find(profile => profile.id === profileId);
-        if (!targetProfile) throw new Error(`无法找到 ID 为 "${profileId}" 的连接预设。`);
-        if (!targetProfile.api) throw new Error(`预设 "${targetProfile.name || targetProfile.id}" 没有配置 API。`);
+        if (!targetProfile) throw new Error(`Không tìm thấy preset kết nối có ID "${profileId}".`);
+        if (!targetProfile.api) throw new Error(`Preset "${targetProfile.name || targetProfile.id}" chưa cấu hình API.`);
         const targetProfileName = String(targetProfile.name || targetProfile.id);
         const originalProfile = await triggerSlash_ACU('/profile');
         const needSwitch = !!originalProfile && originalProfile !== targetProfileName;
@@ -712,7 +712,7 @@ export async function callAIWithResolvedPreset_ACU(
     extras?: ResolvedPresetCallExtras_ACU,
 ): Promise<string | null> {
     if (!Array.isArray(messages) || messages.length === 0) {
-        throw new Error('内部 AI 消息必须是非空数组。');
+        throw new Error('Tin nhắn AI nội bộ phải là mảng không rỗng.');
     }
     return withApiRequestTimeout_ACU(resolved.apiConfig, signal, async (signal) => {
     const reportUsage = (raw: unknown): void => {
@@ -724,7 +724,7 @@ export async function callAIWithResolvedPreset_ACU(
     if (extras?.requireDirectTransport) assertResolvedPresetDirectTransport_ACU(resolved);
     const finalMaxTokens = extras?.requireDirectTransport ? extras.generationParameters?.max_tokens : undefined;
     if (finalMaxTokens !== undefined && (typeof finalMaxTokens !== 'number' || !Number.isFinite(finalMaxTokens) || finalMaxTokens <= 0)) {
-        throw new Error('最终生成请求的 max_tokens 无效，未发送请求。');
+        throw new Error('max_tokens của yêu cầu tạo cuối cùng không hợp lệ, chưa gửi yêu cầu.');
     }
     const maxTokens = typeof finalMaxTokens === 'number'
         ? finalMaxTokens : resolveRequestMaxTokens_ACU(resolved.apiConfig, extras?.minOutputTokens);
@@ -740,7 +740,7 @@ export async function callAIWithResolvedPreset_ACU(
         : undefined;
     const wireMessages = extras?.requireDirectTransport ? messages : toWireMessages_ACU(messages);
     if (resolved.apiMode === 'tavern') {
-        if (!resolved.tavernProfile) throw new Error('该预设为酒馆连接模式但未选择连接预设。');
+        if (!resolved.tavernProfile) throw new Error('Preset này ở chế độ kết nối SillyTavern nhưng chưa chọn preset kết nối.');
         const profile = getConnectionManagerProfiles_ACU().find(item => item.id === resolved.tavernProfile);
         if (profile && isConnectionProfileChatCompletion_ACU(profile)) {
             // 宿主连接管理器经被第三方脚本包装的全局 fetch 发送；Chat Completion 预设改为直发生成端点。
@@ -784,7 +784,7 @@ export async function callAIWithResolvedPreset_ACU(
         return typeof response === 'string' ? response.trim() : null;
     }
     if (!resolved.apiConfig.url || !resolved.apiConfig.model) {
-        throw new Error('自定义 API 的 URL 或模型未配置。');
+        throw new Error('URL hoặc mô hình của API tùy chỉnh chưa được cấu hình.');
     }
     // 内部续写/推演请求绕过第三方脚本对生成端点的 fetch 包装：脚本注入的传输函数
     // 会与本链路的原生工具协议互相污染（见 data/gateways/pristine-fetch.ts）。
@@ -864,7 +864,7 @@ export async function callAIChatTurn_ACU(
     lifecycle?: ResolvedPresetCallLifecycle_ACU,
     extras?: ResolvedPresetCallExtras_ACU,
 ): Promise<AiChatTurn_ACU> {
-    if (!Array.isArray(messages) || messages.length === 0) throw new Error('内部 AI 消息必须是非空数组。');
+    if (!Array.isArray(messages) || messages.length === 0) throw new Error('Tin nhắn AI nội bộ phải là mảng không rỗng.');
     return withApiRequestTimeout_ACU(resolved.apiConfig, signal, async (signal) => {
     const reportUsage = (raw: unknown): void => {
         if (!lifecycle?.onUsage) return;
@@ -891,9 +891,9 @@ export async function callAIChatTurn_ACU(
             return parsed.turn;
         }
         if (hasNativeToolTraffic) {
-            throw new Error('酒馆连接管理器不支持原生工具调用及回执：所选连接预设不是 Chat Completion 类型；请改用 Chat Completion 连接预设或自定义 API。');
+            throw new Error('Trình quản lý kết nối của SillyTavern không hỗ trợ gọi công cụ gốc và biên nhận: preset kết nối đã chọn không phải loại Chat Completion; hãy đổi sang preset kết nối Chat Completion hoặc API tùy chỉnh.');
         }
-        if (!resolved.tavernProfile) throw new Error('该预设为酒馆连接模式但未选择连接预设。');
+        if (!resolved.tavernProfile) throw new Error('Preset này ở chế độ kết nối SillyTavern nhưng chưa chọn preset kết nối.');
         const response = await runWithTavernProfile_ACU(resolved.tavernProfile, () => sendConnectionManagerRequest_ACU(resolved.tavernProfile, messages, maxTokens));
         assertNotAborted_ACU(signal);
         const parsed = chatTurnFromJson_ACU(response?.result ?? response);
@@ -915,7 +915,7 @@ export async function callAIChatTurn_ACU(
             return parsed.turn;
         }
         if (hasNativeToolTraffic) {
-            throw new Error('酒馆主 API 无法保证原生工具调用及回执：当前主连接不是 Chat Completion；请切换为 Chat Completion 连接或为 Agent 选择自定义 API。');
+            throw new Error('API chính của SillyTavern không thể đảm bảo gọi công cụ gốc và biên nhận: kết nối chính hiện tại không phải Chat Completion; hãy chuyển sang kết nối Chat Completion hoặc chọn API tùy chỉnh cho Agent.');
         }
         lifecycle?.beforeMainApiCall?.();
         let operation: Promise<string>;
@@ -928,7 +928,7 @@ export async function callAIChatTurn_ACU(
         assertNotAborted_ACU(signal);
         return { content: typeof response === 'string' ? response.trim() : '', toolCalls: [] };
     }
-    if (!resolved.apiConfig.url || !resolved.apiConfig.model) throw new Error('自定义 API 的 URL 或模型未配置。');
+    if (!resolved.apiConfig.url || !resolved.apiConfig.model) throw new Error('URL hoặc mô hình của API tùy chỉnh chưa được cấu hình.');
     // 自定义通道同样使用统一发送口，保留原生工具与宿主传输扩展。
     const response = await sendCustomApiRequest_ACU(resolved.apiConfig, buildCustomApiRequestBody_ACU(messages, resolved.apiConfig, {
             maxTokens,

@@ -25,18 +25,18 @@ const fn_ACU = (name: string, description: string, parameters: Record<string, un
   function: { name, description, parameters },
 });
 
-const thought_ACU = text_ACU('可选：一两句说明这次决定的理由。');
+const thought_ACU = text_ACU('Tùy chọn: một hai câu giải thích lý do của quyết định này.');
 
 /** 续写主 Agent 的决策函数；字段与 parseAgentMainAction_ACU 读取的键一一对应。 */
 export function continuationDecisionTools_ACU(names: readonly ContinuationDecisionToolName_ACU[] = CONTINUATION_DECISION_TOOL_NAMES_ACU): AiNativeToolDefinition_ACU[] {
   const catalog: Record<ContinuationDecisionToolName_ACU, AiNativeToolDefinition_ACU> = {
-    open_round: fn_ACU('open_round', '开启本轮续写规划，进入固定工作流。何时使用：本轮还没有开启，资料已经足够确定本轮焦点时。调用后本次回复结束，等待工作流结果。focus 必填，写本轮要推进的核心；summary 可写当前局面一句话；需要联网补资料时 dispatchWebResearcher 设为 true。', closed_ACU({
-      focus: text_ACU('本轮推进焦点，不能为空。'),
+    open_round: fn_ACU('open_round', 'Mở lập kế hoạch viết tiếp của lượt này, vào quy trình cố định. Khi nào dùng: lượt này chưa mở và tài liệu đã đủ để xác định trọng tâm của lượt. Sau khi gọi, phản hồi lần này kết thúc, chờ kết quả quy trình. focus bắt buộc, ghi phần cốt lõi cần đẩy tiến trong lượt này; summary có thể viết một câu về tình hình hiện tại; khi cần lên mạng bổ sung tài liệu thì đặt dispatchWebResearcher thành true.', closed_ACU({
+      focus: text_ACU('Trọng tâm đẩy tiến của lượt này, không được để trống.'),
       summary: text_ACU(),
       dispatchWebResearcher: { type: 'boolean' },
       thought: thought_ACU,
     }, ['focus'])),
-    delegate: fn_ACU('delegate', '把任务派给目录里的子代理。何时使用：需要子代理补资料、维护账本或给出建议时。调用后本次回复结束，等待子代理交付。delegations 至少一项，agentName 必须从子代理目录复制，prompt 写清要它做什么，reads 可附上它需要先读的地址。', closed_ACU({
+    delegate: fn_ACU('delegate', 'Giao tác vụ cho Agent phụ trong danh mục. Khi nào dùng: cần Agent phụ bổ sung tài liệu, bảo trì sổ cái hoặc đưa ra đề xuất. Sau khi gọi, phản hồi lần này kết thúc, chờ Agent phụ bàn giao. delegations có ít nhất một mục, agentName phải sao chép từ danh mục Agent phụ, prompt ghi rõ cần nó làm gì, reads có thể kèm các địa chỉ nó cần đọc trước.', closed_ACU({
       delegations: {
         type: 'array',
         minItems: 1,
@@ -44,29 +44,29 @@ export function continuationDecisionTools_ACU(names: readonly ContinuationDecisi
       },
       thought: thought_ACU,
     }, ['delegations'])),
-    finalize: fn_ACU('finalize', '结束规划，交付本次续写指令。何时使用：资料与子代理结果已经足够写出续写指令时。调用后规划结束。instruction 必填，是交给正文写作的完整指令；summary 写本轮结论；constraints 可增补或退役长期约束。', closed_ACU({
-      instruction: text_ACU('交给正文写作的完整指令，不能为空。'),
+    finalize: fn_ACU('finalize', 'Kết thúc lập kế hoạch, bàn giao chỉ thị viết tiếp lần này. Khi nào dùng: tài liệu và kết quả của Agent phụ đã đủ để viết chỉ thị viết tiếp. Sau khi gọi, việc lập kế hoạch kết thúc. instruction bắt buộc, là chỉ thị đầy đủ giao cho phần viết nội dung chính; summary ghi kết luận của lượt này; constraints có thể bổ sung hoặc cho nghỉ hưu các ràng buộc dài hạn.', closed_ACU({
+      instruction: text_ACU('Chỉ thị đầy đủ giao cho phần viết nội dung chính, không được để trống.'),
       summary: text_ACU(),
-      constraints: closed_ACU({ add: texts_ACU('新增的长期约束。'), retire: texts_ACU('要退役的长期约束原文。') }),
+      constraints: closed_ACU({ add: texts_ACU('Ràng buộc dài hạn mới thêm.'), retire: texts_ACU('Nguyên văn ràng buộc dài hạn cần cho nghỉ hưu.') }),
       thought: thought_ACU,
     }, ['instruction'])),
-    correct_materials: fn_ACU('correct_materials', '主会话纠正资料或执行用户指定的追溯起点。sql 可写 hooks、info_gap、chronology、story_arc 的受限 INSERT/UPDATE/DELETE，复用逐栏校验与保存回执；已有条目必须指定 id 和当前 expected_revision，不能凭空补事实。仅当用户明确要求跳过旧历史时给 settlementStartIndex（从该 AI 楼层开始，包含该楼）和 userMessageId（会话中真实用户消息的 ID），reason 必填。跳过记录另存，不冒充已结算；没有新事实不提交 SQL。单独调用，随后依据回执 open_round，不反复提交已保存栏目。', closed_ACU({
-      reason: text_ACU('纠正依据或用户选择，不能为空。'),
-      sql: text_ACU('可选受限资料 DML；不可写水位、用户要求或其它表。'),
+    correct_materials: fn_ACU('correct_materials', 'Phiên chính sửa tài liệu hoặc thực hiện điểm truy ngược do người dùng chỉ định. sql có thể ghi INSERT/UPDATE/DELETE bị giới hạn cho hooks, info_gap, chronology, story_arc, dùng lại kiểm tra từng mục và biên nhận lưu; mục đã có phải chỉ định id và expected_revision hiện tại, không được tự bịa thêm sự kiện. Chỉ khi người dùng yêu cầu rõ ràng bỏ qua lịch sử cũ mới đưa settlementStartIndex (bắt đầu từ tầng AI đó, bao gồm tầng đó) và userMessageId (ID của tin nhắn người dùng thật trong hội thoại), reason bắt buộc. Bản ghi bỏ qua được lưu riêng, không giả làm đã quyết toán; không có sự kiện mới thì không gửi SQL. Gọi riêng, sau đó dựa vào biên nhận để open_round, không gửi lặp các mục đã lưu.', closed_ACU({
+      reason: text_ACU('Căn cứ chỉnh sửa hoặc lựa chọn của người dùng, không được để trống.'),
+      sql: text_ACU('DML tài liệu bị giới hạn (tùy chọn); không được ghi mốc, yêu cầu người dùng hoặc bảng khác.'),
       settlementStartIndex: { type: 'integer', minimum: 0 },
       userMessageId: { type: 'integer', minimum: 1 },
       thought: thought_ACU,
     }, ['reason'])),
-    adjust_progress: fn_ACU('adjust_progress', '依据实际剧情选择当前阶段和下一轮，或修改阶段完结状态。stageId 与 revision 从阶段目录复制；nextTurnId 选择该阶段接下来执行的已有轮次，其前面的规划轮次视为完成，同时切换当前阶段。completeStage=true 标记阶段完结；false 重新开启阶段，从其最后一轮接续。nextTurnId 与 completeStage 必须且只能给一项，reason 写清依据。选择阶段不自动完结其他阶段，也不推进资料结算水位。总纲修改用 correct_materials 或 delegate arc-architect；阶段大纲修改单独 delegate outline-architect。等 committed 回执后再 open_round；正文重试不可用。', closed_ACU({
-      reason: text_ACU('剧情依据或用户要求，不能为空。'),
-      stageId: text_ACU('已有阶段的稳定 ID。'),
+    adjust_progress: fn_ACU('adjust_progress', 'Dựa vào cốt truyện thực tế để chọn giai đoạn hiện tại và lượt kế tiếp, hoặc sửa trạng thái hoàn tất của giai đoạn. stageId và revision sao chép từ danh mục giai đoạn; nextTurnId chọn lượt đã có mà giai đoạn đó sẽ thực hiện tiếp, các lượt lập kế hoạch phía trước được coi là hoàn tất, đồng thời chuyển giai đoạn hiện tại. completeStage=true đánh dấu giai đoạn hoàn tất; false mở lại giai đoạn, nối tiếp từ lượt cuối cùng của nó. nextTurnId và completeStage phải và chỉ được đưa một trong hai, reason ghi rõ căn cứ. Chọn giai đoạn không tự hoàn tất giai đoạn khác, cũng không đẩy mốc quyết toán tài liệu. Sửa tổng cương dùng correct_materials hoặc delegate arc-architect; sửa dàn ý giai đoạn thì delegate outline-architect riêng. Chờ biên nhận committed rồi mới open_round; thử lại nội dung chính không khả dụng.', closed_ACU({
+      reason: text_ACU('Căn cứ cốt truyện hoặc yêu cầu của người dùng, không được để trống.'),
+      stageId: text_ACU('ID ổn định của giai đoạn đã có.'),
       revision: { type: 'integer', minimum: 1 },
-      nextTurnId: text_ACU('接下来执行的已有轮次 ID；其前面的轮次视为完成。'),
-      completeStage: { type: 'boolean', description: 'true 标记完结；false 重新开启阶段，从最后一轮接续。' },
+      nextTurnId: text_ACU('ID lượt đã có sẽ thực hiện tiếp; các lượt phía trước được coi là hoàn tất.'),
+      completeStage: { type: 'boolean', description: 'true đánh dấu hoàn tất; false mở lại giai đoạn, nối tiếp từ lượt cuối cùng.' },
       thought: thought_ACU,
     }, ['reason', 'stageId', 'revision'])),
-    block: fn_ACU('block', '无法继续时停止本次续写。何时使用：关键资料缺失或冲突，无法写出可靠指令时。reason 必填，unresolved 列出未解决的问题。', closed_ACU({
-      reason: text_ACU('停止的原因，不能为空。'),
+    block: fn_ACU('block', 'Dừng lần viết tiếp này khi không thể tiếp tục. Khi nào dùng: tài liệu then chốt bị thiếu hoặc xung đột, không thể viết chỉ thị đáng tin cậy. reason bắt buộc, unresolved liệt kê các vấn đề chưa giải quyết.', closed_ACU({
+      reason: text_ACU('Lý do dừng, không được để trống.'),
       unresolved: texts_ACU(),
       thought: thought_ACU,
     }, ['reason'])),
@@ -77,25 +77,25 @@ export function continuationDecisionTools_ACU(names: readonly ContinuationDecisi
 /** 续写子代理 submit 的契约种类：与 KIND_PAYLOAD_KEYS_ACU 的 kind 对齐，终审单列。 */
 export type ContinuationSubmitContract_ACU = 'arc' | 'maintain' | 'plan' | 'review' | 'research' | 'compose' | 'finalReview';
 
-const SUBMIT_DESCRIPTION_ACU = '交付本次结果；调用后本次任务结束。资料不足时先调用读取类工具，确认无误后再调用 submit。';
+const SUBMIT_DESCRIPTION_ACU = 'Bàn giao kết quả lần này; sau khi gọi, tác vụ lần này kết thúc. Khi thiếu tài liệu, hãy gọi công cụ đọc trước, xác nhận đúng rồi mới gọi submit.';
 
 function continuationSubmitParameters_ACU(contract: ContinuationSubmitContract_ACU): Record<string, unknown> {
   switch (contract) {
     case 'maintain':
       return closed_ACU({
-        summary: text_ACU('本次结算与尚存缺口的简短总结。'),
-        delta: freeObject_ACU('可选：一次提交全部维护变化，使用角色格式说明中的 hooks / infoGap / chronology / constraintProposals。程序负责字段映射、版本校验和保存；成功后无需再次确认。'),
+        summary: text_ACU('Tóm tắt ngắn về quyết toán lần này và các khoảng trống còn lại.'),
+        delta: freeObject_ACU('Tùy chọn: gửi toàn bộ thay đổi bảo trì một lần, dùng hooks / infoGap / chronology / constraintProposals trong phần mô tả định dạng vai trò. Chương trình lo ánh xạ trường, kiểm tra phiên bản và lưu; thành công rồi thì không cần xác nhận lại.'),
       });
     case 'arc':
     case 'research':
       return closed_ACU({
-        summary: text_ACU('本次工作的简短总结。'),
-        delta: freeObject_ACU('可选：按你的角色说明给出的结构化补充；写入资料请使用 write_sql。'),
+        summary: text_ACU('Tóm tắt ngắn về công việc lần này.'),
+        delta: freeObject_ACU('Tùy chọn: phần bổ sung có cấu trúc theo mô tả vai trò của bạn; để ghi tài liệu hãy dùng write_sql.'),
       });
     case 'plan':
       return closed_ACU({
         summary: text_ACU(),
-        recommendation: text_ACU('建议正文，不能为空。'),
+        recommendation: text_ACU('Nội dung đề xuất, không được để trống.'),
         mustPreserve: texts_ACU(),
         risks: texts_ACU(),
       }, ['recommendation']);
@@ -107,7 +107,7 @@ function continuationSubmitParameters_ACU(contract: ContinuationSubmitContract_A
       }, ['verdict']);
     case 'compose':
       return closed_ACU({
-        instruction: text_ACU('完整的续写指令，不能为空。'),
+        instruction: text_ACU('Chỉ thị viết tiếp đầy đủ, không được để trống.'),
         summary: text_ACU(),
         constraints: closed_ACU({ add: texts_ACU(), retire: texts_ACU() }),
       }, ['instruction']);
@@ -131,25 +131,25 @@ export function continuationSubmitTool_ACU(contract: ContinuationSubmitContract_
 /** 推演导演的决策函数；字段与 parseWorldSimulationMainAction_ACU 的封闭对象一一对应（不收额外键）。 */
 export function worldSimulationDecisionTools_ACU(names: readonly AgentDecisionToolName_ACU[] = AGENT_DECISION_TOOL_NAMES_ACU): AiNativeToolDefinition_ACU[] {
   const catalog: Record<AgentDecisionToolName_ACU, AiNativeToolDefinition_ACU> = {
-    open_round: fn_ACU('open_round', '开启本轮世界推演，进入固定工作流。何时使用：本轮还没有开启，已经确定本轮推演焦点时。调用后本次回复结束。summary 写当前局面，focus 写本轮焦点，dispatchChronicler 表示是否派出编年记录；skipModules 可列出本轮无需处理的账本模块。', closed_ACU({
+    open_round: fn_ACU('open_round', 'Mở mô phỏng thế giới của lượt này, vào quy trình cố định. Khi nào dùng: lượt này chưa mở và đã xác định được trọng tâm mô phỏng của lượt. Sau khi gọi, phản hồi lần này kết thúc. summary ghi tình hình hiện tại, focus ghi trọng tâm lượt này, dispatchChronicler cho biết có cử người ghi biên niên hay không; skipModules có thể liệt kê các mô-đun sổ cái không cần xử lý trong lượt này.', closed_ACU({
       summary: text_ACU(),
       focus: text_ACU(),
       dispatchChronicler: { type: 'boolean' },
       skipModules: texts_ACU(),
     }, ['summary', 'focus', 'dispatchChronicler'])),
-    delegate: fn_ACU('delegate', '把任务派给目录里的推演子代理。调用后本次回复结束，等待交付。delegations 至少一项，agentName 必须从子代理目录复制，instruction 写清任务，reads 可附上它需要先读的地址。', closed_ACU({
+    delegate: fn_ACU('delegate', 'Giao tác vụ cho Agent phụ mô phỏng trong danh mục. Sau khi gọi, phản hồi lần này kết thúc, chờ bàn giao. delegations có ít nhất một mục, agentName phải sao chép từ danh mục Agent phụ, instruction ghi rõ tác vụ, reads có thể kèm các địa chỉ nó cần đọc trước.', closed_ACU({
       delegations: {
         type: 'array',
         minItems: 1,
         items: closed_ACU({ agentName: text_ACU(), instruction: text_ACU(), reads: texts_ACU() }, ['agentName', 'instruction']),
       },
     }, ['delegations'])),
-    finalize: fn_ACU('finalize', '结束本次推演。outcome 取 commit（提交已审定的变更）、no_change（本次无变化）或 blocked（无法推进）；summary 写结论；evidenceRefs 只能填工具回执里颁发过的引用。', closed_ACU({
+    finalize: fn_ACU('finalize', 'Kết thúc lần mô phỏng này. outcome chọn commit (gửi các thay đổi đã duyệt), no_change (lần này không có thay đổi) hoặc blocked (không thể tiến hành); summary ghi kết luận; evidenceRefs chỉ được điền các tham chiếu đã được cấp trong biên nhận công cụ.', closed_ACU({
       outcome: { type: 'string', enum: ['commit', 'no_change', 'blocked'] },
       summary: text_ACU(),
       evidenceRefs: texts_ACU(),
     }, ['outcome', 'summary'])),
-    block: fn_ACU('block', '无法继续时停止本次推演。reason 写原因，unresolved 列出未解决的问题（至少一项）。', closed_ACU({
+    block: fn_ACU('block', 'Dừng lần mô phỏng này khi không thể tiếp tục. reason ghi nguyên nhân, unresolved liệt kê các vấn đề chưa giải quyết (ít nhất một mục).', closed_ACU({
       reason: text_ACU(),
       unresolved: { type: 'array', items: { type: 'string' }, minItems: 1 },
     }, ['reason', 'unresolved'])),
@@ -159,12 +159,12 @@ export function worldSimulationDecisionTools_ACU(names: readonly AgentDecisionTo
 
 /** 推演 specialist 的交付函数：字段对齐 parseWorldSimulationSpecialistResult_ACU，按 status 决定必填字段。 */
 export function worldSimulationSpecialistSubmitTool_ACU(): AiNativeToolDefinition_ACU {
-  return fn_ACU(AGENT_SUBMIT_TOOL_NAME_ACU, `${SUBMIT_DESCRIPTION_ACU} status=candidate 时给 agentName、patch、summary、evidenceRefs、uncertainties；no_change 时给 agentName、summary、evidenceRefs、uncertainties；failed 时给 agentName、reasonCode、message；blocked 时给 agentName、unresolved。不要附带其它字段。`, closed_ACU({
+  return fn_ACU(AGENT_SUBMIT_TOOL_NAME_ACU, `${SUBMIT_DESCRIPTION_ACU} Khi status=candidate hãy đưa agentName, patch, summary, evidenceRefs, uncertainties; khi no_change đưa agentName, summary, evidenceRefs, uncertainties; khi failed đưa agentName, reasonCode, message; khi blocked đưa agentName, unresolved. Không kèm trường khác.`, closed_ACU({
     status: { type: 'string', enum: ['candidate', 'no_change', 'failed', 'blocked'] },
-    agentName: text_ACU('你自己的子代理名称。'),
-    patch: freeObject_ACU('候选账本补丁，结构按你的角色说明。'),
+    agentName: text_ACU('Tên Agent phụ của chính bạn.'),
+    patch: freeObject_ACU('Bản vá sổ cái ứng viên, cấu trúc theo mô tả vai trò của bạn.'),
     summary: text_ACU(),
-    evidenceRefs: texts_ACU('只能填工具回执里颁发过的引用。'),
+    evidenceRefs: texts_ACU('Chỉ được điền các tham chiếu đã được cấp trong biên nhận công cụ.'),
     uncertainties: texts_ACU(),
     reasonCode: text_ACU(),
     message: text_ACU(),
@@ -174,9 +174,9 @@ export function worldSimulationSpecialistSubmitTool_ACU(): AiNativeToolDefinitio
 
 /** 一次性推演交付：candidate 只确认已由 write_sql 校验的候选，不重新提交写集。 */
 export function worldSimulationOneShotSubmitTool_ACU(): AiNativeToolDefinition_ACU {
-  return fn_ACU(AGENT_SUBMIT_TOOL_NAME_ACU, '交付本次结果；调用后本次任务结束。candidate 仅确认上次 write_sql 回执中的候选；没有变更用 no_change，无法完成用 failed 或 blocked。单独调用，不与 read 或 write_sql 同回复。', closed_ACU({
+  return fn_ACU(AGENT_SUBMIT_TOOL_NAME_ACU, 'Bàn giao kết quả lần này; sau khi gọi, tác vụ lần này kết thúc. candidate chỉ xác nhận ứng viên trong biên nhận write_sql lần trước; không có thay đổi thì dùng no_change, không thể hoàn thành thì dùng failed hoặc blocked. Gọi riêng, không đi cùng read hoặc write_sql trong cùng một phản hồi.', closed_ACU({
     status: { type: 'string', enum: ['candidate', 'no_change', 'failed', 'blocked'] },
-    agentName: text_ACU('当前角色名。'),
+    agentName: text_ACU('Tên vai trò hiện tại.'),
     summary: text_ACU(),
     evidenceRefs: texts_ACU(),
     uncertainties: texts_ACU(),
@@ -188,9 +188,9 @@ export function worldSimulationOneShotSubmitTool_ACU(): AiNativeToolDefinition_A
 
 /** 阶段规划交付；action=plan 由调用边界注入，不交给模型填写。 */
 export function worldSimulationPlannerSubmitTool_ACU(): AiNativeToolDefinition_ACU {
-  return fn_ACU(AGENT_SUBMIT_TOOL_NAME_ACU, '交付本次完整阶段计划；单独调用，调用后本次任务结束。', closed_ACU({
-    summary: text_ACU('阶段规划摘要，不能为空。'),
-    plan: freeObject_ACU('完整阶段计划，字段遵守当前规划协议。'),
+  return fn_ACU(AGENT_SUBMIT_TOOL_NAME_ACU, 'Bàn giao kế hoạch giai đoạn đầy đủ lần này; gọi riêng, sau khi gọi tác vụ lần này kết thúc.', closed_ACU({
+    summary: text_ACU('Tóm tắt lập kế hoạch giai đoạn, không được để trống.'),
+    plan: freeObject_ACU('Kế hoạch giai đoạn đầy đủ, các trường tuân theo giao thức lập kế hoạch hiện tại.'),
   }, ['summary', 'plan']));
 }
 
@@ -234,9 +234,9 @@ export interface NativeDecisionSplit_ACU {
 export function splitNativeDecisionCalls_ACU(entries: readonly NativeToolEntry_ACU[], decisionNames: readonly string[]): NativeDecisionSplit_ACU {
   const decisions = entries.filter(entry => decisionNames.includes(entry.call.name));
   const tools = entries.filter(entry => !decisionNames.includes(entry.call.name));
-  if (decisions.length > 1) throw new Error(`一次回复只能调用一个 ${decisionNames.join(' / ')} 函数，实际调用了 ${decisions.map(entry => entry.call.name).join('、')}`);
+  if (decisions.length > 1) throw new Error(`Một phản hồi chỉ được gọi một hàm ${decisionNames.join(' / ')}, nhưng thực tế đã gọi ${decisions.map(entry => entry.call.name).join(', ')}`);
   if (decisions.length && tools.length) {
-    throw new Error(`${decisions[0].call.name} 不能与 ${tools.map(entry => entry.call.name).join('、')} 在同一次回复里调用；先完成工具调用，拿到结果后再单独调用 ${decisions[0].call.name}`);
+    throw new Error(`${decisions[0].call.name} không được gọi cùng trong một phản hồi với ${tools.map(entry => entry.call.name).join(', ')}; hãy hoàn tất việc gọi công cụ trước, có kết quả rồi mới gọi riêng ${decisions[0].call.name}`);
   }
   return { decision: decisions[0] ?? null, tools };
 }

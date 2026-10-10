@@ -58,7 +58,7 @@ describe('格林推演提示词装配契约', () => {
     expect(() => validateWorldSimulationAgentPrompts_ACU({ ...buildDefaultWorldSimulationAgentPrompts_ACU(), 'world-director': [...prompt].reverse() })).not.toThrow();
     // 仍然拦住的两条：段字段非法、用户要求段不唯一。
     expect(() => validateWorldSimulationAgentPrompts_ACU({ ...buildDefaultWorldSimulationAgentPrompts_ACU(), 'world-director': [{ role: 'system', content: '', enabled: true, deletable: true, pinned: false }] })).toThrow();
-    expect(() => validateWorldSimulationAgentPrompts_ACU({ ...buildDefaultWorldSimulationAgentPrompts_ACU(), 'world-director': [...prompt, { role: 'system', content: '$WORLD_USER_REQUIREMENTS', enabled: true, deletable: true, pinned: false }] })).toThrow(/用户要求/);
+    expect(() => validateWorldSimulationAgentPrompts_ACU({ ...buildDefaultWorldSimulationAgentPrompts_ACU(), 'world-director': [...prompt, { role: 'system', content: '$WORLD_USER_REQUIREMENTS', enabled: true, deletable: true, pinned: false }] })).toThrow(/Yêu cầu của người dùng/);
   });
 
   it('导入导出、恢复默认迁移与协议示例闭合', () => {
@@ -86,8 +86,8 @@ describe('格林推演提示词装配契约', () => {
     expect(instruction).toContain('输出 open_round');
     expect(instruction).toContain('历史会话中的 MISSING_FIELD、REQUIRED_TEXT_LIST、INVALID_SPECIALIST_STATUS');
     expect(instruction).toContain('"reads":["ledger:current","summary:current"]');
-    expect(directorPrompt).toContain('我没有账本写入权限，writableModules=[] 是职责隔离');
-    expect(directorPrompt).toContain('账本为空或 revision=0 时同样先取证再 open_round');
+    expect(directorPrompt).toContain('Tôi không có quyền ghi sổ cái, writableModules=[] là sự cách ly trách nhiệm');
+    expect(directorPrompt).toContain('Khi sổ cái rỗng hoặc revision=0 thì vẫn thu thập bằng chứng trước rồi open_round');
   });
 
   it('规划协议指令固化账本模块白名单并禁止历史遗留命名', () => {
@@ -183,8 +183,8 @@ describe('格林推演提示词装配契约', () => {
     expect(director).toContain('"agentName":"dramatis-keeper"');
     expect(director).toContain('dispatchChronicler');
     expect(directorPrompt).toContain('secluded');
-    expect(directorPrompt).toContain('台前正文里的对话和事件是观察素材');
-    expect(directorPrompt).toContain('固定工作流');
+    expect(directorPrompt).toContain('Hội thoại và sự kiện trong chính văn trên màn là tư liệu quan sát');
+    expect(directorPrompt).toContain('quy trình cố định');
     expect(director).not.toContain('编年与归档派 chronicler');
 
     const timekeeper = worldSimulationSpecialistProtocolInstruction_ACU(
@@ -203,8 +203,8 @@ describe('格林推演提示词装配契约', () => {
     );
     expect(undercurrent).toContain('exposePolicy');
     // v28 的交付纪律改由 assistant 自述承载，不再是 system 段的【交付方式】标记。
-    expect(undercurrentPrompt).toContain('同一次 write_sql');
-    expect(undercurrentPrompt).toContain('clock、dimensions、seeds');
+    expect(undercurrentPrompt).toContain('cùng một lần write_sql');
+    expect(undercurrentPrompt).toContain('clock, dimensions, seeds');
     expect(undercurrentPrompt).not.toContain('调用 write_sql 函数');
 
     const dramatis = worldSimulationSpecialistProtocolInstruction_ACU(
@@ -233,16 +233,16 @@ describe('格林推演提示词装配契约', () => {
     expect(chroniclerPrompt).toContain('chronicle 的 id/at');
     expect(chroniclerPrompt).toContain('归档职责');
     expect(chroniclerPrompt).toContain('不是每轮常规角色');
-    expect(reviewerPrompt).toContain('不得输出 guidance');
+    expect(reviewerPrompt).toContain('không được xuất guidance');
     expect(reviewerPrompt).not.toContain('guidance 是幕后→台面的唯一通道');
     const composerPrompt = prompts['guidance-composer'].map(item => item.content).join('\n');
     expect(composerPrompt).toContain('sourceId');
     expect(composerPrompt).toContain('80');
-    expect(composerPrompt).toContain('正文没写过');
+    expect(composerPrompt).toContain('chính văn chưa viết');
     // v29：场外信号是写给后续剧情的引导提示，大变局时逐轮牵引，且每轮至少保留 1 条（与运行时门禁一致）。
-    expect(composerPrompt).toContain('写给接下来续写者的引导提示');
-    expect(composerPrompt).toContain('世界出现大变局时怎么牵引？');
-    expect(composerPrompt).toContain('每轮至少保留 1 条');
+    expect(composerPrompt).toContain('gợi ý dẫn dắt viết cho người viết tiếp theo');
+    expect(composerPrompt).toContain('Khi thế giới xuất hiện biến cục lớn thì dẫn dắt thế nào?');
+    expect(composerPrompt).toContain('mỗi lượt giữ ít nhất 1 mục');
     expect(composerPrompt).not.toContain('需要清理时可以提交空 signals');
     expect(composerPrompt).not.toContain('禁止把正文已发生事件做记录、总结或评价');
     const composerInstruction = worldSimulationSpecialistProtocolInstruction_ACU(
@@ -251,21 +251,21 @@ describe('格林推演提示词装配契约', () => {
     );
     expect(composerInstruction).toContain('选题纪律');
     expect(composerInstruction).toContain('正文剧情所在位置附近、或与正文强相关、但正文尚未描写');
-    expect(composerPrompt).toContain('每轮新信号一般不超过 4 条、encounter 不超过 2 条');
-    expect(composerPrompt).toContain('玩家处于隐居（secluded）时不写 rumor');
-    expect(directorPrompt).toContain('focus 应该怎么写？');
-    expect(directorPrompt).toContain('「更新世界动态」这类空泛说法不合格');
+    expect(composerPrompt).toContain('Tín hiệu mới mỗi lượt thường không quá 4 mục, encounter không quá 2 mục');
+    expect(composerPrompt).toContain('Khi người chơi ở ẩn (secluded) thì không ghi rumor');
+    expect(directorPrompt).toContain('focus nên viết ra sao?');
+    expect(directorPrompt).toContain('cách nói chung chung như "cập nhật động thái thế giới" là không đạt');
     expect(timekeeperPrompt).toContain('时间判定细则');
     expect(timekeeperPrompt).toContain('正文无时间流逝证据时 days=0');
-    expect(undercurrentPrompt).toContain('value 取 0–100 表示当下烈度，trend 写 rising、stable 或 falling');
+    expect(undercurrentPrompt).toContain('value lấy 0-100 biểu thị cường độ hiện tại, trend ghi rising, stable hoặc falling');
     expect(undercurrentPrompt).toContain('catalyst');
     const dramatisPrompt = prompts['dramatis-keeper'].map(item => item.content).join('\n');
-    expect(dramatisPrompt).toContain('同一次 write_sql');
-    expect(dramatisPrompt).toContain('我只写 actors（人物谱）和 player（玩家处境）；rumors 只写人物死亡的伴生风声');
-    expect(dramatisPrompt).toContain('确实没有变化才交 no_change');
-    expect(reviewerPrompt).toContain('审核清单逐项怎么过？');
-    expect(reviewerPrompt).toContain('仅因事实客观存在、读者知道或账本有记录就让人物知道');
-    expect(reviewerPrompt).toContain('空壳条目按 MISSING_FIELD 打回');
+    expect(dramatisPrompt).toContain('cùng một lần write_sql');
+    expect(dramatisPrompt).toContain('Tôi chỉ ghi actors (danh bạ nhân vật) và player (hoàn cảnh người chơi); rumors tôi chỉ ghi phong thanh đi kèm cái chết của nhân vật');
+    expect(dramatisPrompt).toContain('thực sự không có thay đổi mới nộp no_change');
+    expect(reviewerPrompt).toContain('Danh sách rà soát đi qua từng mục thế nào?');
+    expect(reviewerPrompt).toContain('chỉ vì sự thật tồn tại khách quan, độc giả biết hoặc sổ cái có ghi mà để nhân vật biết');
+    expect(reviewerPrompt).toContain('mục vỏ rỗng thì trả lại theo MISSING_FIELD');
     expect(undercurrent).toContain('rationale、catalyst、interests/goals/known_facts');
     expect(undercurrent).toContain('缺少事实依据时把缺口写进 uncertainties');
     expect(undercurrent).not.toContain('其余字段由服务端按缺省补齐');
@@ -294,9 +294,9 @@ describe('格林推演提示词装配契约', () => {
       role: 'system',
       content: worldSimulationSpecialistProtocolInstruction_ACU('dramatis-keeper', ['actors', 'player', 'rumors']),
     }].map(message => message.content).join('\n');
-    expect(sent).toContain('同一次 write_sql');
-    expect(sent).toContain('我只写 actors（人物谱）和 player（玩家处境）；rumors 只写人物死亡的伴生风声');
-    expect(sent).toContain('确实没有变化才交 no_change');
+    expect(sent).toContain('cùng một lần write_sql');
+    expect(sent).toContain('Tôi chỉ ghi actors (danh bạ nhân vật) và player (hoàn cảnh người chơi); rumors tôi chỉ ghi phong thanh đi kèm cái chết của nhân vật');
+    expect(sent).toContain('thực sự không có thay đổi mới nộp no_change');
     expect(sent).toContain('UPDATE player');
     expect(sent).toContain('"sql"');
     expect(sent).not.toMatch(/"patch"\s*:|玩家位置按正文地标 upsert player/);

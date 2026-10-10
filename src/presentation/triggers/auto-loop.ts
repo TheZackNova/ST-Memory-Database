@@ -24,7 +24,7 @@ export async function startAutoLoop_ACU() {
     // [重构] 调用 service 层校验
     const validationError = validateLoopStartParams_ACU();
     if (validationError) {
-        showToastr_ACU('error', validationError, '无法启动循环');
+        showToastr_ACU('error', validationError, 'Không thể khởi động vòng lặp');
         stopAutoLoop_ACU();
         return;
     }
@@ -41,7 +41,7 @@ export async function startAutoLoop_ACU() {
         const remaining = Math.max(0, loopState_ACU.totalDuration - elapsed);
         if (remaining <= 0) {
             stopAutoLoop_ACU();
-            showToastr_ACU('info', '总倒计时结束，自动化循环已停止。', '循环结束');
+            showToastr_ACU('info', 'Tổng thời gian đếm ngược đã kết thúc, vòng lặp tự động đã dừng.', 'Vòng lặp kết thúc');
             return;
         }
         const minutes = Math.floor(remaining / 60000);
@@ -100,7 +100,7 @@ export async function enterLoopRetryFlow_ACU({ loopSettings, shouldDeleteAiReply
     const canRetry = await handleRetryLogic_ACU(shouldDeleteAiReply);
     if (!canRetry) {
         const maxRetries = loopSettings.maxRetries ?? 3;
-        showToastr_ACU('error', `连续失败超过 ${maxRetries} 次，自动化循环已停止。`, '循环中止');
+        showToastr_ACU('error', `Thất bại liên tiếp quá ${maxRetries} lần, vòng lặp tự động đã dừng.`, 'Vòng lặp bị hủy');
         stopAutoLoop_ACU();
         return;
     }

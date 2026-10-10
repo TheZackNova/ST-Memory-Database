@@ -71,8 +71,8 @@ export class ZeroLayerSession_ACU {
   }
 
   async prepare(input: string, requiredEffects: ZeroLayerEffectReceipt_ACU['kind'][], continuationIdentity?: TurnAttemptIdentity_ACU): Promise<ZeroLayerPreparedInvocation_ACU> {
-    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', '零层会话已有在途回合。');
-    if (!input.trim()) throw new ZeroLayerError_ACU('corrupt-data', '零层输入不能为空。');
+    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', 'Phiên Tầng 0 đã có lượt đang chạy.');
+    if (!input.trim()) throw new ZeroLayerError_ACU('corrupt-data', 'Đầu vào Tầng 0 không được để trống.');
     this.preparing = true;
     try {
       return await this.prepareWithinLease(input, requiredEffects, continuationIdentity);
@@ -84,11 +84,11 @@ export class ZeroLayerSession_ACU {
     const context = captureZeroLayerCarrier_ACU();
     let envelope = await this.store.read();
     assertZeroLayerCarrier_ACU(context);
-    if (epoch !== this.epoch) throw new ZeroLayerError_ACU('scope-changed', '准备期间会话已失效。');
-    if (!envelope?.enabled) throw new ZeroLayerError_ACU('mode-disabled', '零层模式未启用。');
+    if (epoch !== this.epoch) throw new ZeroLayerError_ACU('scope-changed', 'Phiên đã mất hiệu lực trong lúc chuẩn bị.');
+    if (!envelope?.enabled) throw new ZeroLayerError_ACU('mode-disabled', 'Chế độ Tầng 0 chưa được bật.');
     envelope = await synchronizeZeroLayerCheckpoints_ACU(this.store, envelope, new AbortController().signal, () => {
       assertZeroLayerCarrier_ACU(context);
-      if (epoch !== this.epoch) throw new ZeroLayerError_ACU('scope-changed', 'checkpoint 恢复期间会话已失效。');
+      if (epoch !== this.epoch) throw new ZeroLayerError_ACU('scope-changed', 'Phiên đã mất hiệu lực trong lúc khôi phục checkpoint.');
     });
     const turnId = crypto.randomUUID();
     const attemptId = crypto.randomUUID();
@@ -98,7 +98,7 @@ export class ZeroLayerSession_ACU {
       requiredEffects: [...new Set<ZeroLayerEffectReceipt_ACU['kind']>([...requiredEffects, 'plot', ...(continuationIdentity ? ['continuation' as const] : [])])],
       tableInput, ...(continuationIdentity ? { continuationIdentity } : {}) }, envelope.revision);
     assertZeroLayerCarrier_ACU(context);
-    if (epoch !== this.epoch) throw new ZeroLayerError_ACU('scope-changed', '准备保存后会话已失效，请恢复已保存回合。');
+    if (epoch !== this.epoch) throw new ZeroLayerError_ACU('scope-changed', 'Phiên đã mất hiệu lực sau khi chuẩn bị lưu, hãy khôi phục lượt đã lưu.');
     const timeline = buildZeroLayerTimeline_ACU(envelope, context.chat as Record<string, unknown>[]);
     const active = this.createPreparedLease(envelope, context, turnId, attemptId);
     this.active = active;
@@ -122,20 +122,20 @@ export class ZeroLayerSession_ACU {
 
   /** 显式恢复正文尚未发送的指定回合；只回读候选，不再次调用剧情 API。 */
   async recoverPrepared(turnId: string, attemptId: string): Promise<ZeroLayerPreparedInvocation_ACU> {
-    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', '已有零层任务正在执行。');
+    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', 'Đang có tác vụ Tầng 0 chạy.');
     const epoch = this.epoch;
     const context = captureZeroLayerCarrier_ACU();
     this.preparing = true;
     try {
       const envelope = await this.store.recover();
       assertZeroLayerCarrier_ACU(context);
-      if (epoch !== this.epoch) throw new ZeroLayerError_ACU('scope-changed', '恢复期间会话已失效。');
-      if (!envelope?.enabled) throw new ZeroLayerError_ACU('mode-disabled', '零层模式未启用。');
+      if (epoch !== this.epoch) throw new ZeroLayerError_ACU('scope-changed', 'Phiên đã mất hiệu lực trong lúc khôi phục.');
+      if (!envelope?.enabled) throw new ZeroLayerError_ACU('mode-disabled', 'Chế độ Tầng 0 chưa được bật.');
       const turn = envelope.turns.find(item => item.turnId === turnId && item.attemptId === attemptId);
       const branch = envelope.branches.find(item => item.branchId === envelope.activeBranchId);
       if (!turn || turn.branchId !== envelope.activeBranchId || turn.phase !== 'prepared'
         || turn.body !== null || !turn.plotCandidate || !turn.tableInput || branch?.headTurnId !== turn.parentTurnId) {
-        throw new ZeroLayerError_ACU('invalid-transition', '只能恢复已保存剧情候选且正文尚未发送的活动回合。');
+        throw new ZeroLayerError_ACU('invalid-transition', 'Chỉ có thể khôi phục lượt đang hoạt động đã lưu ứng viên cốt truyện và chưa gửi nội dung chính.');
       }
       const active = this.createPreparedLease(envelope, context, turnId, attemptId);
       this.active = active;
@@ -148,7 +148,7 @@ export class ZeroLayerSession_ACU {
     envelope: ZeroLayerEnvelope_ACU, context: ZeroLayerCarrierContext_ACU, turnId: string, attemptId: string,
   ): ActiveTurn_ACU {
     const turn = envelope.turns.find(item => item.turnId === turnId && item.attemptId === attemptId);
-    if (!turn?.tableInput) throw new ZeroLayerError_ACU('effects-pending', '准备回合缺少表格快照。');
+    if (!turn?.tableInput) throw new ZeroLayerError_ACU('effects-pending', 'Lượt chuẩn bị thiếu snapshot bảng.');
     const timeline = buildZeroLayerTimeline_ACU(envelope, context.chat as Record<string, unknown>[]);
     const active: ActiveTurn_ACU = {
       context, envelope, turnId, attemptId, controller: new AbortController(),
@@ -174,7 +174,7 @@ export class ZeroLayerSession_ACU {
   /** 续写等待身份保存后接纳新 revision；正文与其它回合数据必须仍是原候选。 */
   async refreshPrepared(ref: ContinuationLogicalRef_ACU): Promise<void> {
     const active = this.active;
-    if (!active || active.controller.signal.aborted) throw new ZeroLayerError_ACU('scope-changed', '准备租约已失效。');
+    if (!active || active.controller.signal.aborted) throw new ZeroLayerError_ACU('scope-changed', 'Lease chuẩn bị đã mất hiệu lực.');
     assertZeroLayerCarrier_ACU(active.context);
     const current = await this.store.read();
     const turn = current?.turns.find(item => item.turnId === ref.turnId && item.attemptId === ref.attemptId);
@@ -185,7 +185,7 @@ export class ZeroLayerSession_ACU {
       || turn.turnId !== active.turnId || turn.attemptId !== active.attemptId
       || turn.assistantFloor.floorId !== ref.floorId || turn.phase !== 'prepared'
       || JSON.stringify(turn) !== JSON.stringify(before)) {
-      throw new ZeroLayerError_ACU('revision-conflict', '发送前逻辑正文候选已变化。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Ứng viên nội dung logic đã thay đổi trước khi gửi.');
     }
     if (turn.continuationIdentity) {
       const task = current.branches.find(branch => branch.branchId === ref.branchId)?.continuation?.envelope?.activeTask;
@@ -195,7 +195,7 @@ export class ZeroLayerSession_ACU {
           .every(key => pending.identity[key] === turn.continuationIdentity![key])
         || !pending.capture.logicalRef || !(['sessionId', 'branchId', 'turnId', 'attemptId', 'floorId'] as const)
           .every(key => pending.capture.logicalRef![key] === ref[key])) {
-        throw new ZeroLayerError_ACU('revision-conflict', '正文发送前必须保存匹配的续写等待身份。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Trước khi gửi nội dung chính phải lưu danh tính chờ viết tiếp khớp.');
       }
     }
     active.envelope = current;
@@ -214,14 +214,14 @@ export class ZeroLayerSession_ACU {
     });
     if (!matches.length) return;
     this.assertCurrent(active);
-    if (matches.length !== 1 || active.messages) throw new ZeroLayerError_ACU('revision-conflict', '本轮提示词身份重复或装配重入。');
+    if (matches.length !== 1 || active.messages) throw new ZeroLayerError_ACU('revision-conflict', 'Danh tính prompt của lượt này bị trùng hoặc lắp ráp bị vào lại.');
     const index = matches[0];
     const message = data.chat[index] as Record<string, unknown>;
     const content = message.content as string;
     const begin = content.indexOf(start);
     const finish = content.indexOf(end, begin + start.length);
     if (finish < 0 || content.indexOf(start, begin + start.length) >= 0) {
-      throw new ZeroLayerError_ACU('corrupt-data', '本轮提示词标记不完整。');
+      throw new ZeroLayerError_ACU('corrupt-data', 'Dấu prompt của lượt này không đầy đủ.');
     }
     const replacement: unknown[] = [];
     const prefix = content.slice(0, begin);
@@ -231,7 +231,7 @@ export class ZeroLayerSession_ACU {
       replacement.push({ role: 'user', content: turn.input }, { role: 'assistant', content: turn.body });
     }
     const turn = active.envelope.turns.find(item => item.turnId === active.turnId)!;
-    if (!turn.plotCandidate) throw new ZeroLayerError_ACU('effects-pending', '正文装配缺少已确认的剧情候选。');
+    if (!turn.plotCandidate) throw new ZeroLayerError_ACU('effects-pending', 'Lắp ráp nội dung chính thiếu ứng viên cốt truyện đã xác nhận.');
     if (turn.plotCandidate.finalMessage) replacement.push({ role: 'system', content: turn.plotCandidate.finalMessage });
     replacement.push({ role: 'user', content: turn.input });
     if (suffix.trim()) replacement.push({ ...message, content: suffix });
@@ -244,7 +244,7 @@ export class ZeroLayerSession_ACU {
     if (!active?.messages || !Array.isArray(data?.messages)) return;
     if (data.messages !== active.messages) return;
     this.assertCurrent(active);
-    if (active.request && active.request !== data) throw new ZeroLayerError_ACU('revision-conflict', '本轮已绑定其他请求对象。');
+    if (active.request && active.request !== data) throw new ZeroLayerError_ACU('revision-conflict', 'Lượt này đã gắn với đối tượng yêu cầu khác.');
     active.request = data;
     data[ZERO_LAYER_REQUEST_ID_ACU] = active.attemptId;
     bindZeroLayerPromptContext_ACU(data, active.promptContext);
@@ -257,13 +257,13 @@ export class ZeroLayerSession_ACU {
     try { payload = JSON.parse(request.bodyText); }
     catch { return null; }
     if (payload?.[ZERO_LAYER_REQUEST_ID_ACU] !== active.attemptId) {
-      if (request.bodyText.includes(active.marker)) throw new ZeroLayerError_ACU('corrupt-data', '零层请求尚未完成模板绑定，原发送已阻断。');
+      if (request.bodyText.includes(active.marker)) throw new ZeroLayerError_ACU('corrupt-data', 'Yêu cầu Tầng 0 chưa hoàn tất gắn mẫu, lần gửi gốc đã bị chặn.');
       return null;
     }
     this.assertCurrent(active);
-    if (active.claimed) throw new ZeroLayerError_ACU('revision-conflict', '本次请求已经认领，禁止重复发送。');
+    if (active.claimed) throw new ZeroLayerError_ACU('revision-conflict', 'Yêu cầu này đã được nhận, cấm gửi lặp.');
     if (!active.request || JSON.stringify(payload.messages) !== JSON.stringify((active.request as Record<string, unknown>).messages)) {
-      throw new ZeroLayerError_ACU('revision-conflict', '实际请求消息与本轮模板处理结果不一致。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Tin nhắn yêu cầu thực tế không khớp với kết quả xử lý mẫu của lượt này.');
     }
     active.claimed = true;
     return {
@@ -287,7 +287,7 @@ export class ZeroLayerSession_ACU {
             active.envelope = await this.settleAndPublish(
               active.envelope, active.turnId, active.attemptId, active.controller.signal,
               () => {
-                if (this.active !== active) throw new ZeroLayerError_ACU('scope-changed', '结算租约已失效。');
+                if (this.active !== active) throw new ZeroLayerError_ACU('scope-changed', 'Lease quyết toán đã mất hiệu lực.');
                 assertZeroLayerCarrier_ACU(active.context);
               },
             );
@@ -311,7 +311,7 @@ export class ZeroLayerSession_ACU {
   /** 宿主可能吞掉 fetch 的取消异常；结果仅以本轮内部响应保存状态判定。 */
   async finish(error?: unknown): Promise<ZeroLayerEnvelope_ACU> {
     const active = this.active;
-    if (!active) throw new ZeroLayerError_ACU('scope-changed', '零层租约已失效。');
+    if (!active) throw new ZeroLayerError_ACU('scope-changed', 'Lease Tầng 0 đã mất hiệu lực.');
     try {
       if (!active.responseSaved) {
         const failure = active.failure ?? error;
@@ -319,22 +319,22 @@ export class ZeroLayerSession_ACU {
           throw failure;
         }
         await this.failActive(active, failure);
-        throw new ZeroLayerError_ACU(active.dispatchStarted ? 'pending-turn' : 'invalid-transition', '本轮未获得已保存的完整响应，请检查恢复状态。');
+        throw new ZeroLayerError_ACU(active.dispatchStarted ? 'pending-turn' : 'invalid-transition', 'Lượt này chưa có phản hồi đầy đủ đã lưu, hãy kiểm tra trạng thái khôi phục.');
       }
       if (active.failure instanceof ZeroLayerError_ACU && ['persist-failed', 'persist-unknown'].includes(active.failure.code)) {
         throw active.failure;
       }
       if (this.active !== active || active.controller.signal.aborted) {
-        throw new ZeroLayerError_ACU('scope-changed', '响应保存后租约已中止或失效。');
+        throw new ZeroLayerError_ACU('scope-changed', 'Lease đã bị hủy hoặc mất hiệu lực sau khi lưu phản hồi.');
       }
       assertZeroLayerCarrier_ACU(active.context);
       const current = await this.store.read();
       const turn = current?.turns.find(item => item.turnId === active.turnId && item.attemptId === active.attemptId);
       if (!current || current.sessionId !== active.envelope.sessionId || !turn) {
-        throw new ZeroLayerError_ACU('revision-conflict', '响应回读与本轮身份不匹配。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Dữ liệu đọc lại của phản hồi không khớp danh tính lượt này.');
       }
       if (active.settlementFailed || turn.phase !== 'published') {
-        throw new ZeroLayerError_ACU('effects-pending', '完整响应已保存，结算尚未确认；仅恢复结算，不重发正文请求。');
+        throw new ZeroLayerError_ACU('effects-pending', 'Phản hồi đầy đủ đã lưu, quyết toán chưa được xác nhận; chỉ khôi phục quyết toán, không gửi lại yêu cầu nội dung chính.');
       }
       return current;
     } finally {
@@ -345,23 +345,23 @@ export class ZeroLayerSession_ACU {
 
   /** 指定持久化身份补结算；不装配提示词、不认领 fetch，也不重发正文。 */
   async recoverSettlement(turnId: string, attemptId: string): Promise<ZeroLayerEnvelope_ACU> {
-    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', '已有零层任务正在执行。');
-    if (!this.settleResponse) throw new ZeroLayerError_ACU('effects-pending', '零层结算适配器尚未就绪。');
+    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', 'Đang có tác vụ Tầng 0 chạy.');
+    if (!this.settleResponse) throw new ZeroLayerError_ACU('effects-pending', 'Bộ chuyển đổi quyết toán Tầng 0 chưa sẵn sàng.');
     const context = captureZeroLayerCarrier_ACU();
     const epoch = this.epoch;
     const controller = new AbortController();
     this.recoveryController = controller;
     const assertLease = () => {
       if (epoch !== this.epoch || this.recoveryController !== controller) {
-        throw new ZeroLayerError_ACU('scope-changed', '补结算期间会话已失效。');
+        throw new ZeroLayerError_ACU('scope-changed', 'Phiên đã mất hiệu lực trong lúc quyết toán bù.');
       }
       assertZeroLayerCarrier_ACU(context);
     };
     try {
       const envelope = await this.store.recover();
       assertLease();
-      if (controller.signal.aborted) throw new ZeroLayerError_ACU('scope-changed', '补结算已中止。');
-      if (!envelope?.enabled) throw new ZeroLayerError_ACU('mode-disabled', '零层模式未启用。');
+      if (controller.signal.aborted) throw new ZeroLayerError_ACU('scope-changed', 'Quyết toán bù đã bị hủy.');
+      if (!envelope?.enabled) throw new ZeroLayerError_ACU('mode-disabled', 'Chế độ Tầng 0 chưa được bật.');
       return await this.settleAndPublish(envelope, turnId, attemptId, controller.signal, assertLease);
     } finally {
       if (this.recoveryController === controller) this.recoveryController = null;
@@ -370,21 +370,21 @@ export class ZeroLayerSession_ACU {
 
   /** 用户显式放弃正文未保存的回合；先回读权威存档，只记取消，不认领宿主请求、不重发正文。 */
   async abandonPending(turnId: string, attemptId: string): Promise<ZeroLayerEnvelope_ACU> {
-    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', '请先停止在途任务，再放弃未保存回合。');
+    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', 'Hãy dừng tác vụ đang chạy trước, rồi hãy bỏ lượt chưa lưu.');
     const context = captureZeroLayerCarrier_ACU();
     const epoch = this.epoch;
     const controller = new AbortController();
     this.recoveryController = controller;
     const assertLease = () => {
       if (epoch !== this.epoch || this.recoveryController !== controller || controller.signal.aborted) {
-        throw new ZeroLayerError_ACU('scope-changed', '放弃回合的租约已失效。');
+        throw new ZeroLayerError_ACU('scope-changed', 'Lease bỏ lượt đã mất hiệu lực.');
       }
       assertZeroLayerCarrier_ACU(context);
     };
     try {
       const envelope = await this.store.recover();
       assertLease();
-      if (!envelope) throw new ZeroLayerError_ACU('carrier-unavailable', '没有可放弃的零层回合。');
+      if (!envelope) throw new ZeroLayerError_ACU('carrier-unavailable', 'Không có lượt Tầng 0 nào để bỏ.');
       const saved = await this.store.commit({ type: 'abandon-turn', turnId, attemptId }, envelope.revision);
       assertLease();
       return saved;
@@ -395,7 +395,7 @@ export class ZeroLayerSession_ACU {
 
   /** 分支操作只修改 carrier；保存未知时不能重试或重新生成正文。 */
   async changeBranch(command: ZeroLayerBranchCommand_ACU): Promise<ZeroLayerEnvelope_ACU> {
-    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', '请先停止或恢复在途任务，再操作逻辑分支。');
+    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', 'Hãy dừng hoặc khôi phục tác vụ đang chạy trước, rồi hãy thao tác nhánh logic.');
     const frozen = structuredClone(command);
     const context = captureZeroLayerCarrier_ACU();
     const epoch = this.epoch;
@@ -403,7 +403,7 @@ export class ZeroLayerSession_ACU {
     this.recoveryController = controller;
     const assertLease = () => {
       if (epoch !== this.epoch || this.recoveryController !== controller || controller.signal.aborted) {
-        throw new ZeroLayerError_ACU('scope-changed', '分支操作租约已失效。');
+        throw new ZeroLayerError_ACU('scope-changed', 'Lease thao tác nhánh đã mất hiệu lực.');
       }
       assertZeroLayerCarrier_ACU(context);
     };
@@ -411,7 +411,7 @@ export class ZeroLayerSession_ACU {
       assertLease();
       let current = await this.store.read();
       assertLease();
-      if (!current?.enabled) throw new ZeroLayerError_ACU('mode-disabled', '零层模式未启用。');
+      if (!current?.enabled) throw new ZeroLayerError_ACU('mode-disabled', 'Chế độ Tầng 0 chưa được bật.');
       current = await synchronizeZeroLayerCheckpoints_ACU(this.store, current, controller.signal, assertLease);
       assertLease();
       const saved = await this.store.commit(frozen, current.revision);
@@ -419,7 +419,7 @@ export class ZeroLayerSession_ACU {
       const confirmed = await this.store.read();
       assertLease();
       if (!confirmed || getTableDataFingerprint_ACU(confirmed) !== getTableDataFingerprint_ACU(saved)) {
-        throw new ZeroLayerError_ACU('revision-conflict', '分支保存回读不一致，禁止继续。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Dữ liệu đọc lại sau khi lưu nhánh không nhất quán, cấm tiếp tục.');
       }
       return confirmed;
     } finally {
@@ -440,14 +440,14 @@ export class ZeroLayerSession_ACU {
   private async withExitLease(
     work: (assertLease: () => void) => Promise<ZeroLayerEnvelope_ACU>,
   ): Promise<ZeroLayerEnvelope_ACU> {
-    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', '请先停止在途任务，再退出或恢复退出。');
+    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', 'Hãy dừng tác vụ đang chạy trước, rồi hãy thoát hoặc khôi phục thoát.');
     const context = captureZeroLayerCarrier_ACU();
     const epoch = this.epoch;
     const controller = new AbortController();
     this.recoveryController = controller;
     const assertLease = () => {
       if (epoch !== this.epoch || this.recoveryController !== controller || controller.signal.aborted) {
-        throw new ZeroLayerError_ACU('scope-changed', '退出操作租约已失效；已保存意图须显式恢复。');
+        throw new ZeroLayerError_ACU('scope-changed', 'Lease thao tác thoát đã mất hiệu lực; ý định đã lưu phải được khôi phục rõ ràng.');
       }
       assertZeroLayerCarrier_ACU(context);
     };
@@ -472,14 +472,14 @@ export class ZeroLayerSession_ACU {
   }
 
   private async configureBridge(options: { enabled?: boolean; apiPresetName?: string; recover?: boolean }): Promise<ZeroLayerEnvelope_ACU> {
-    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', '已有零层任务正在执行。');
+    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', 'Đang có tác vụ Tầng 0 chạy.');
     const context = captureZeroLayerCarrier_ACU();
     const epoch = this.epoch;
     const controller = new AbortController();
     this.recoveryController = controller;
     const assertLease = () => {
       if (epoch !== this.epoch || this.recoveryController !== controller || controller.signal.aborted) {
-        throw new ZeroLayerError_ACU('scope-changed', '零层启用或桥接恢复已失效。');
+        throw new ZeroLayerError_ACU('scope-changed', 'Việc bật Tầng 0 hoặc khôi phục cầu nối đã mất hiệu lực.');
       }
       assertZeroLayerCarrier_ACU(context);
     };
@@ -490,7 +490,7 @@ export class ZeroLayerSession_ACU {
       assertLease();
       if (!envelope) {
         if (options.enabled !== true || !options.apiPresetName?.trim()) {
-          throw new ZeroLayerError_ACU('carrier-unavailable', '零层存档尚未初始化，首次启用需要数据库 API 预设。');
+          throw new ZeroLayerError_ACU('carrier-unavailable', 'Bản lưu Tầng 0 chưa được khởi tạo, lần bật đầu tiên cần preset API cơ sở dữ liệu.');
         }
         envelope = await this.store.commit({ type: 'initialize', apiPresetName: options.apiPresetName }, null);
         assertLease();
@@ -509,7 +509,7 @@ export class ZeroLayerSession_ACU {
       const confirmed = await this.store.read();
       assertLease();
       if (!confirmed || getTableDataFingerprint_ACU(confirmed) !== getTableDataFingerprint_ACU(envelope)) {
-        throw new ZeroLayerError_ACU('revision-conflict', '零层启用或恢复后载体已变化。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Vật mang đã thay đổi sau khi bật hoặc khôi phục Tầng 0.');
       }
       return confirmed;
     } finally {
@@ -519,21 +519,21 @@ export class ZeroLayerSession_ACU {
 
   /** 显式恢复 checkpoint 阶段；不规划、不调用模型、不认领宿主请求。 */
   async recoverCheckpoints(): Promise<ZeroLayerEnvelope_ACU> {
-    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', '已有零层任务正在执行。');
+    if (this.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', 'Đang có tác vụ Tầng 0 chạy.');
     const context = captureZeroLayerCarrier_ACU();
     const epoch = this.epoch;
     const controller = new AbortController();
     this.recoveryController = controller;
     const assertLease = () => {
       if (epoch !== this.epoch || this.recoveryController !== controller || controller.signal.aborted) {
-        throw new ZeroLayerError_ACU('scope-changed', 'checkpoint 恢复已失效或中止。');
+        throw new ZeroLayerError_ACU('scope-changed', 'Khôi phục checkpoint đã mất hiệu lực hoặc bị hủy.');
       }
       assertZeroLayerCarrier_ACU(context);
     };
     try {
       const envelope = await this.store.recover();
       assertLease();
-      if (!envelope?.enabled) throw new ZeroLayerError_ACU('mode-disabled', '零层模式未启用。');
+      if (!envelope?.enabled) throw new ZeroLayerError_ACU('mode-disabled', 'Chế độ Tầng 0 chưa được bật.');
       return await synchronizeZeroLayerCheckpoints_ACU(this.store, envelope, controller.signal, assertLease);
     } finally {
       if (this.recoveryController === controller) this.recoveryController = null;
@@ -546,24 +546,24 @@ export class ZeroLayerSession_ACU {
   ): Promise<ZeroLayerEnvelope_ACU> {
     const assertCurrent = (current: ZeroLayerEnvelope_ACU | null): ZeroLayerEnvelope_ACU => {
       assertLease();
-      if (signal.aborted) throw new ZeroLayerError_ACU('scope-changed', '结算已中止。');
+      if (signal.aborted) throw new ZeroLayerError_ACU('scope-changed', 'Quyết toán đã bị hủy.');
       if (!current || !current.enabled || current.sessionId !== envelope.sessionId
         || current.activeBranchId !== envelope.activeBranchId) {
-        throw new ZeroLayerError_ACU('revision-conflict', '补结算会话或活动分支已变化。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Phiên quyết toán bù hoặc nhánh đang hoạt động đã thay đổi.');
       }
       const turn = current.turns.find(item => item.turnId === turnId && item.attemptId === attemptId);
       if (!turn || turn.branchId !== current.activeBranchId) {
-        throw new ZeroLayerError_ACU('revision-conflict', '补结算回合或尝试身份不匹配。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Lượt quyết toán bù hoặc danh tính lần thử không khớp.');
       }
       if (!['response-durable', 'effects-durable', 'published'].includes(turn.phase)) {
-        throw new ZeroLayerError_ACU('invalid-transition', '回合尚无已保存的完整响应，不能补结算。');
+        throw new ZeroLayerError_ACU('invalid-transition', 'Lượt chưa có phản hồi đầy đủ đã lưu, không thể quyết toán bù.');
       }
       return current;
     };
     let current = assertCurrent(envelope);
     let turn = current.turns.find(item => item.turnId === turnId)!;
     if (turn.phase === 'response-durable') {
-      if (!this.settleResponse) throw new ZeroLayerError_ACU('effects-pending', '零层结算适配器尚未就绪。');
+      if (!this.settleResponse) throw new ZeroLayerError_ACU('effects-pending', 'Bộ chuyển đổi quyết toán Tầng 0 chưa sẵn sàng.');
       await this.settleResponse(structuredClone(current), turnId, attemptId, signal);
       current = assertCurrent(await this.store.read());
       turn = current.turns.find(item => item.turnId === turnId)!;
@@ -572,7 +572,7 @@ export class ZeroLayerSession_ACU {
           receipt => receipt.kind === kind && (receipt.status === 'durable'
             || kind === 'simulation' && receipt.status === 'skipped-by-config'),
         ))) {
-          throw new ZeroLayerError_ACU('effects-pending', '必需效果尚未取得持久化回执，禁止发布。');
+          throw new ZeroLayerError_ACU('effects-pending', 'Hiệu ứng bắt buộc chưa có biên nhận lưu bền, cấm phát hành.');
         }
         current = assertCurrent(await this.store.commit({
           type: 'transition-turn', turnId, attemptId, phase: 'effects-durable',
@@ -647,12 +647,12 @@ export class ZeroLayerSession_ACU {
   }
 
   private assertCurrent(active: ActiveTurn_ACU): void {
-    if (this.active !== active || active.controller.signal.aborted) throw new ZeroLayerError_ACU('scope-changed', '本轮租约已中止或失效。');
+    if (this.active !== active || active.controller.signal.aborted) throw new ZeroLayerError_ACU('scope-changed', 'Lease của lượt này đã bị hủy hoặc mất hiệu lực.');
     assertZeroLayerCarrier_ACU(active.context);
     const current = readZeroLayerCarrier_ACU(active.context);
     if (current?.sessionId !== active.envelope.sessionId || current.revision !== active.envelope.revision
       || current.activeBranchId !== active.envelope.activeBranchId || !current.enabled) {
-      throw new ZeroLayerError_ACU('revision-conflict', '本轮会话或 revision 已变化。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Phiên hoặc revision của lượt này đã thay đổi.');
     }
   }
 }

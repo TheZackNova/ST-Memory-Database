@@ -69,7 +69,7 @@ describe('SqliteEngine T5 运行时初始化收敛', () => {
     h.initSqlJs.mockRejectedValueOnce(new Error('engine load fail'));
     const engine = new SqliteEngine();
 
-    await expect(engine.init()).rejects.toThrow('sql.js 初始化失败');
+    await expect(engine.init()).rejects.toThrow('Khởi tạo sql.js thất bại');
     expect(h.initSqlJs).toHaveBeenCalledTimes(1);
 
     h.initSqlJs.mockResolvedValue(runtime);

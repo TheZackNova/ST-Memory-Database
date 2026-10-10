@@ -4,29 +4,29 @@
     :description="apiCopy.panels.preset.description"
   >
     <AcuMessage v-if="!store.hasPresets" kind="warning">
-      暂无可用 API 预设，请新建并设为当前或全局默认。
+      Chưa có preset API khả dụng, hãy tạo mới và đặt làm hiện tại hoặc mặc định toàn cục.
     </AcuMessage>
 
-    <AcuFormRow label="当前 API 预设" hint="星标表示新聊天默认使用的预设。">
+    <AcuFormRow label="Preset API hiện tại" hint="Dấu sao là preset mặc định cho cuộc trò chuyện mới.">
       <div class="acu-api-config-panel__select-row">
         <AcuPresetDropdown
           :items="presetDropdownItems"
           :model-value="store.activePresetName"
           :default-name="store.defaultApiPresetName"
           :disabled="!store.hasPresets"
-          placeholder="未选择 API 预设"
+          placeholder="Chưa chọn preset API"
           @update:model-value="selectPreset"
           @set-default="store.setDefaultPreset($event)"
         />
         <AcuIconButton
           icon="fa-solid fa-plus"
-          title="新建预设"
+          title="Tạo preset mới"
           @click="startCreateDraft"
         />
         <AcuIconButton
           icon="fa-solid fa-trash-can"
           variant="danger"
-          title="删除当前预设"
+          title="Xóa preset hiện tại"
           :disabled="!store.activePreset"
           @click="store.activePreset && deletePreset(store.activePreset.name)"
         />
@@ -38,31 +38,31 @@
       class="acu-api-config-panel__editor"
       @submit.prevent="saveActiveDraft"
     >
-      <AcuFormRow label="预设名称">
+      <AcuFormRow label="Tên preset">
         <AcuInput v-model="activeDraft.name" type="text" autocomplete="off" />
       </AcuFormRow>
 
       <div class="acu-api-config-panel__editor-section">
-        <AcuFormRow label="连接方式">
+        <AcuFormRow label="Kiểu kết nối">
           <AcuSegmentedControl
             :options="connectionModeOptions"
             :model-value="activeConnectionMode"
-            aria-label="连接方式"
+            aria-label="Kiểu kết nối"
             @update:model-value="setActiveConnectionMode($event)"
           />
         </AcuFormRow>
 
-        <AcuFormRow label="请求超时（秒）" hint="默认 300 秒；单次请求超过此期限按错误处理，并沿用当前功能的重试次数。">
+        <AcuFormRow label="Hết thời gian chờ (giây)" hint="Mặc định 300 giây; một yêu cầu vượt quá thời hạn này được coi là lỗi và dùng số lần thử lại của chức năng hiện tại.">
           <AcuInput v-model="activeDraft.requestTimeoutSeconds" type="number" :min="1" :step="1" />
         </AcuFormRow>
 
         <template v-if="activeConnectionMode === 'custom'">
-          <AcuFormRow label="通过酒馆渠道发送" hint="默认开启，由酒馆后端转发；关闭后由插件直连预设端点，需端点允许跨域。运行日志可检查实际渠道，分享前请检查隐私。">
-            <AcuToggle v-model="activeDraft.sendViaTavern" aria-label="通过酒馆渠道发送" />
+          <AcuFormRow label="Gửi qua kênh SillyTavern" hint="Mặc định bật, do backend SillyTavern chuyển tiếp; khi tắt, plugin kết nối thẳng tới endpoint của preset, endpoint phải cho phép CORS. Nhật ký chạy cho biết kênh thực tế, hãy kiểm tra quyền riêng tư trước khi chia sẻ.">
+            <AcuToggle v-model="activeDraft.sendViaTavern" aria-label="Gửi qua kênh SillyTavern" />
           </AcuFormRow>
           <AcuFormRow
-            label="接口协议"
-            hint="直连按所选协议请求 /chat/completions、/responses、/messages 或 /interactions。酒馆渠道沿用宿主协议适配。纯原生端点下「加载模型」可能失败，可手填模型名。"
+            label="Giao thức API"
+            hint="Kết nối trực tiếp gọi /chat/completions, /responses, /messages hoặc /interactions theo giao thức đã chọn. Kênh SillyTavern dùng bộ chuyển đổi giao thức của host. Với endpoint thuần gốc, «Tải mô hình» có thể thất bại, hãy nhập tên mô hình thủ công."
           >
             <AcuSelect
               :options="customApiFormatOptions"
@@ -70,29 +70,29 @@
               @update:model-value="setCustomApiFormat"
             />
           </AcuFormRow>
-          <AcuFormRow label="端点(基础URL)">
+          <AcuFormRow label="Endpoint (URL cơ sở)">
             <AcuInput
               v-model="activeDraft.url"
               type="text"
               placeholder="https://example.com/v1"
             />
           </AcuFormRow>
-          <AcuFormRow label="API 密钥">
+          <AcuFormRow label="Khóa API">
             <AcuInput
               v-model="activeDraft.apiKey"
               type="password"
               autocomplete="off"
             />
           </AcuFormRow>
-          <AcuFormRow label="模型名">
+          <AcuFormRow label="Tên mô hình">
             <AcuInput v-model="activeDraft.model" type="text" />
           </AcuFormRow>
           <div class="acu-api-config-panel__inline-action">
-            <AcuButton @click="loadModelsForActive">加载模型</AcuButton>
+            <AcuButton @click="loadModelsForActive">Tải mô hình</AcuButton>
             <span
               v-if="store.modelLoadStatus === 'loading'"
               class="acu-api-config-panel__muted"
-              >加载中...</span
+              >Đang tải...</span
             >
             <span
               v-else-if="store.modelLoadStatus === 'error'"
@@ -100,27 +100,27 @@
               >{{ store.modelLoadError }}</span
             >
           </div>
-          <AcuFormRow v-if="store.modelOptions.length" label="模型列表">
+          <AcuFormRow v-if="store.modelOptions.length" label="Danh sách mô hình">
             <AcuSelect
               :options="modelSelectOptions"
               :model-value="activeDraft.model"
-              placeholder="请选择"
+              placeholder="Vui lòng chọn"
               @update:model-value="activeDraft.model = $event"
             />
           </AcuFormRow>
         </template>
 
         <template v-if="activeConnectionMode === 'tavern'">
-          <AcuFormRow label="酒馆连接预设">
+          <AcuFormRow label="Preset kết nối SillyTavern">
             <AcuSelect
               :options="tavernProfileOptions"
               :model-value="activeDraft.tavernProfile"
-              placeholder="请选择"
+              placeholder="Vui lòng chọn"
               @update:model-value="activeDraft.tavernProfile = $event"
             />
           </AcuFormRow>
           <div class="acu-api-config-panel__inline-action">
-            <AcuButton @click="store.refreshTavernProfiles">刷新列表</AcuButton>
+            <AcuButton @click="store.refreshTavernProfiles">Làm mới danh sách</AcuButton>
           </div>
         </template>
       </div>
@@ -129,7 +129,7 @@
         v-if="activeConnectionMode === 'custom'"
         class="acu-api-config-panel__two-col"
       >
-        <AcuFormRow label="最大回复长度">
+        <AcuFormRow label="Độ dài phản hồi tối đa">
           <AcuInput
             v-model="activeDraft.max_tokens"
             type="number"
@@ -137,7 +137,7 @@
             :step="1"
           />
         </AcuFormRow>
-        <AcuFormRow label="温度">
+        <AcuFormRow label="Nhiệt độ">
           <AcuInput
             v-model="activeDraft.temperature"
             type="number"
@@ -152,14 +152,14 @@
         v-if="activeConnectionMode === 'custom'"
         class="acu-api-config-panel__editor-section"
       >
-        <AcuFormRow label="附加主体参数" hint="SillyTavern custom_include_body，填写 YAML object，会合并到最终模型请求体。">
+        <AcuFormRow label="Tham số body bổ sung" hint="SillyTavern custom_include_body, nhập YAML object, sẽ được gộp vào body yêu cầu mô hình cuối cùng.">
           <AcuTextarea
             v-model="activeDraft.bodyParams"
             :rows="3"
             placeholder="response_format:&#10;  type: json_object&#10;top_k: 50"
           />
         </AcuFormRow>
-        <AcuFormRow label="排除主体参数" hint="会转换为 SillyTavern custom_exclude_body，从最终模型请求体删除指定字段。">
+        <AcuFormRow label="Tham số body loại trừ" hint="Được chuyển thành SillyTavern custom_exclude_body, xóa các trường chỉ định khỏi body yêu cầu mô hình cuối cùng.">
           <AcuTextarea
             v-model="activeDraft.excludeBodyParams"
             :rows="2"
@@ -167,18 +167,18 @@
           />
         </AcuFormRow>
         <AcuFormRow
-          label="提示词后处理"
-          hint="仅酒馆渠道生效，默认合并相同角色连续发言（含工具）。插件直连保留消息原序，不合并消息，支持工具并保留 system 身份。"
+          label="Xử lý hậu kỳ prompt"
+          hint="Chỉ có hiệu lực với kênh SillyTavern, mặc định gộp các lượt nói liên tiếp cùng vai trò (gồm công cụ). Kết nối trực tiếp của plugin giữ nguyên thứ tự tin nhắn, không gộp, hỗ trợ công cụ và giữ vai trò system."
         >
           <AcuSelect
             :options="promptPostProcessingOptions"
             :model-value="activeDraft.promptPostProcessing"
             :disabled="!activeDraft.sendViaTavern"
-            placeholder="未选择"
+            placeholder="Chưa chọn"
             @update:model-value="setPromptPostProcessing"
           />
         </AcuFormRow>
-        <AcuFormRow label="附加请求标头" hint="每行一个 Header: Value，追加到请求头中。">
+        <AcuFormRow label="Header yêu cầu bổ sung" hint="Mỗi dòng một Header: Value, được thêm vào header yêu cầu.">
           <AcuTextarea
             v-model="activeDraft.requestHeaders"
             :rows="2"
@@ -193,20 +193,20 @@
 
       <div class="acu-api-config-panel__actions">
         <AcuButton :disabled="!activeDraftDirty" @click="syncActiveDraft"
-          >放弃修改</AcuButton
+          >Bỏ thay đổi</AcuButton
         >
         <AcuButton
           variant="primary"
           native-type="submit"
           :disabled="!activeDraftDirty"
         >
-          {{ formMode === "create" ? "保存并选中预设" : "保存当前预设" }}
+          {{ formMode === "create" ? "Lưu và chọn preset" : "Lưu preset hiện tại" }}
         </AcuButton>
       </div>
     </form>
 
     <AcuMessage v-else kind="warning">
-      暂无可用 API 预设，请新建并设为当前或全局默认。
+      Chưa có preset API khả dụng, hãy tạo mới và đặt làm hiện tại hoặc mặc định toàn cục.
     </AcuMessage>
   </AcuPanel>
 </template>
@@ -270,44 +270,44 @@ const activeDraftDirty = computed(() => {
   );
 });
 const connectionModeOptions: AcuSegmentedOption[] = [
-  { value: "main", label: "酒馆主 API" },
-  { value: "custom", label: "自定义" },
-  { value: "tavern", label: "酒馆预设" },
+  { value: "main", label: "API chính của SillyTavern" },
+  { value: "custom", label: "Tùy chỉnh" },
+  { value: "tavern", label: "Preset SillyTavern" },
 ];
 // 选项与 SillyTavern「提示词后处理」下拉一致；默认 merge_tools。
 const promptPostProcessingOptions: AcuSelectOption[] = [
-  { value: "", label: "未选择" },
+  { value: "", label: "Chưa chọn" },
   {
     value: "merge_tools",
-    label: "合并相同角色连续的发言（含工具）",
+    label: "Gộp các lượt nói liên tiếp cùng vai trò (gồm công cụ)",
     group: "With Tools",
   },
   {
     value: "semi_tools",
-    label: "半严格（强制对话角色交替）（含工具）",
+    label: "Bán nghiêm ngặt (buộc vai trò luân phiên) (gồm công cụ)",
     group: "With Tools",
   },
   {
     value: "strict_tools",
-    label: "严格（强制对话角色交替、用户最先）（含工具）",
+    label: "Nghiêm ngặt (buộc vai trò luân phiên, người dùng trước) (gồm công cụ)",
     group: "With Tools",
   },
-  { value: "merge", label: "合并相同角色连续的发言", group: "No Tools" },
-  { value: "semi", label: "半严格（强制对话角色交替）", group: "No Tools" },
+  { value: "merge", label: "Gộp các lượt nói liên tiếp cùng vai trò", group: "No Tools" },
+  { value: "semi", label: "Bán nghiêm ngặt (buộc vai trò luân phiên)", group: "No Tools" },
   {
     value: "strict",
-    label: "严格（强制对话角色交替、用户最先）",
+    label: "Nghiêm ngặt (buộc vai trò luân phiên, người dùng trước)",
     group: "No Tools",
   },
-  { value: "single", label: "单一用户消息（无工具）" },
+  { value: "single", label: "Một tin nhắn người dùng duy nhất (không công cụ)" },
 ];
 // 接口协议选项（对齐 TT 主 API 四个「自定义」选项，custom_api_format 契约）；值集合以
 // api-preset-service 的 CUSTOM_API_FORMAT_VALUES_ACU 为唯一来源，此处只补人类可读标签。
 const customApiFormatOptions: AcuSelectOption[] = [
-  { value: "openai_compat", label: "兼容 OpenAI" },
-  { value: "openai_responses", label: "兼容 OpenAI Responses" },
-  { value: "claude_messages", label: "兼容 Claude Messages" },
-  { value: "gemini_interactions", label: "兼容 Gemini Interactions" },
+  { value: "openai_compat", label: "Tương thích OpenAI" },
+  { value: "openai_responses", label: "Tương thích OpenAI Responses" },
+  { value: "claude_messages", label: "Tương thích Claude Messages" },
+  { value: "gemini_interactions", label: "Tương thích Gemini Interactions" },
 ];
 const modelSelectOptions = computed<AcuSelectOption[]>(() =>
   store.modelOptions.map((m) => ({ value: m, label: m })),
@@ -334,9 +334,9 @@ onMounted(() => {
 useUiCloseGuard(async () => {
   if (!activeDraftDirty.value) return true;
   return dialogStore.confirm({
-    title: "关闭新 UI",
-    message: "你有未保存的当前 API 修改，确定要关闭新 UI 吗？",
-    confirmLabel: "关闭新 UI",
+    title: "Đóng UI mới",
+    message: "Bạn có thay đổi API hiện tại chưa lưu, chắc chắn đóng UI mới?",
+    confirmLabel: "Đóng UI mới",
     confirmVariant: "danger",
   });
 });
@@ -376,9 +376,9 @@ function selectPreset(name: string): void {
 
 async function deletePreset(name: string): Promise<void> {
   const confirmed = await dialogStore.confirm({
-    title: "删除 API 预设",
-    message: `删除 API 预设"${name}"？`,
-    confirmLabel: "删除预设",
+    title: "Xóa preset API",
+    message: `Xóa preset API "${name}"?`,
+    confirmLabel: "Xóa preset",
     confirmVariant: "danger",
   });
   if (!confirmed) return;
@@ -386,28 +386,28 @@ async function deletePreset(name: string): Promise<void> {
 }
 
 function presetMeta(preset: AcuV2ApiPreset): string {
-  if (preset.apiMode === "tavern") return "酒馆预设";
+  if (preset.apiMode === "tavern") return "Preset SillyTavern";
   return preset.apiConfig.useMainApi
-    ? "酒馆主 API"
-    : preset.apiConfig.model || "自定义";
+    ? "API chính của SillyTavern"
+    : preset.apiConfig.model || "Tùy chỉnh";
 }
 
 function validateActiveDraft(): boolean {
   if (!activeDraft.name.trim()) {
-    activeDraftError.value = "预设名称不能为空。";
+    activeDraftError.value = "Tên preset không được để trống.";
     return false;
   }
   if (activeDraft.apiMode === "tavern" && !activeDraft.tavernProfile.trim()) {
-    activeDraftError.value = "请选择酒馆连接预设。";
+    activeDraftError.value = "Vui lòng chọn preset kết nối SillyTavern.";
     return false;
   }
   if (activeDraft.apiMode === "custom" && !activeDraft.useMainApi) {
     if (!activeDraft.url.trim()) {
-      activeDraftError.value = "自定义 API 需要填写端点(基础URL)。";
+      activeDraftError.value = "API tùy chỉnh cần nhập endpoint (URL cơ sở).";
       return false;
     }
     if (!activeDraft.model.trim()) {
-      activeDraftError.value = "自定义 API 需要填写模型。";
+      activeDraftError.value = "API tùy chỉnh cần nhập mô hình.";
       return false;
     }
   }
@@ -420,20 +420,20 @@ function saveActiveDraft(): void {
   const preset = apiPresetFromDraft(activeDraft);
   const ok = store.savePreset(preset, activeDraftOriginalName.value);
   if (!ok) {
-    activeDraftError.value = "预设保存失败。";
+    activeDraftError.value = "Lưu preset thất bại.";
     return;
   }
   if (formMode.value === "create") {
     const activateOk = store.setActivePresetForCurrentChat(preset.name);
     if (!activateOk) {
-      activeDraftError.value = "预设已保存，但切换为当前聊天预设失败。";
+      activeDraftError.value = "Đã lưu preset nhưng chuyển sang preset của cuộc trò chuyện hiện tại thất bại.";
       return;
     }
   }
   store.refreshFromSettings();
   syncActiveDraft();
   activeDraftSavedAt.value = Date.now();
-  toast.success("已保存当前 API 预设。");
+  toast.success("Đã lưu preset API hiện tại.");
 }
 
 function setActiveConnectionMode(value: string): void {

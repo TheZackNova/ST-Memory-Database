@@ -1,12 +1,12 @@
 <template>
   <fieldset class="acu-v2-plot-tasks">
     <legend>
-      <span>剧情任务列表</span>
+      <span>Danh sách tác vụ cốt truyện</span>
       <span class="acu-v2-plot-tasks__toolbar">
-        <AcuIconButton icon="fa-solid fa-arrow-left" size="sm" :disabled="!canMove(-1)" title="左移" @click="$emit('move', -1)" />
-        <AcuIconButton icon="fa-solid fa-arrow-right" size="sm" :disabled="!canMove(1)" title="右移" @click="$emit('move', 1)" />
-        <AcuIconButton icon="fa-solid fa-trash-can" size="sm" variant="danger" :disabled="tasks.length <= 1" title="删除当前任务" @click="$emit('delete')" />
-        <AcuIconButton icon="fa-solid fa-plus" size="sm" variant="accent" title="新增任务" @click="$emit('add')" />
+        <AcuIconButton icon="fa-solid fa-arrow-left" size="sm" :disabled="!canMove(-1)" title="Dời trái" @click="$emit('move', -1)" />
+        <AcuIconButton icon="fa-solid fa-arrow-right" size="sm" :disabled="!canMove(1)" title="Dời phải" @click="$emit('move', 1)" />
+        <AcuIconButton icon="fa-solid fa-trash-can" size="sm" variant="danger" :disabled="tasks.length <= 1" title="Xóa tác vụ hiện tại" @click="$emit('delete')" />
+        <AcuIconButton icon="fa-solid fa-plus" size="sm" variant="accent" title="Thêm tác vụ" @click="$emit('add')" />
       </span>
     </legend>
 
@@ -23,11 +23,11 @@
         @click="$emit('select', task.id)"
       >
         <span class="acu-v2-plot-tasks__name">{{ task.name }}</span>
-        <span class="acu-v2-plot-tasks__stage" title="阶段号 — 同阶段并发，跨阶段串行">阶段 {{ task.stage }}</span>
-        <span class="acu-v2-plot-tasks__seg-count">{{ task.promptGroup.length }} 段</span>
-        <span v-if="!task.enabled" class="acu-v2-plot-tasks__disabled-label">已禁用</span>
+        <span class="acu-v2-plot-tasks__stage" title="Số giai đoạn — cùng giai đoạn chạy song song, khác giai đoạn chạy tuần tự">Giai đoạn  {{ task.stage }}</span>
+        <span class="acu-v2-plot-tasks__seg-count">{{ task.promptGroup.length }} đoạn</span>
+        <span v-if="!task.enabled" class="acu-v2-plot-tasks__disabled-label">Đã tắt</span>
       </button>
-      <div v-if="!tasks.length" class="acu-v2-plot-tasks__empty">暂无任务，点击右上 + 新增。</div>
+      <div v-if="!tasks.length" class="acu-v2-plot-tasks__empty">Chưa có tác vụ, bấm + ở góc trên bên phải để thêm.</div>
     </div>
   </fieldset>
 </template>

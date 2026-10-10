@@ -9,7 +9,7 @@ import { checkpointFingerprint_ACU as fingerprint, checkpointRecord_ACU as recor
 /** 来源指纹覆盖正文附属结果与原帧；操作序号只取载荷，不取楼层 ordinal。 */
 export function captureCheckpointSource_ACU(source: ZeroLayerEnvelope_ACU,
   timeline: ZeroLayerTimelineSnapshot_ACU, cut: number) {
-  requireValue(cut >= 0 && cut < timeline.floors.length, 'checkpoint 来源切点无效。');
+  requireValue(cut >= 0 && cut < timeline.floors.length, 'Điểm cắt nguồn checkpoint không hợp lệ.');
   const frames = checkpointReplayFrames_ACU(source, timeline).slice(0, cut + 1);
   const covered = timeline.floors.slice(0, cut + 1).map((floor, index) => {
     const payload = frames[index].payload;
@@ -31,10 +31,10 @@ export function assertCheckpointSource_ACU(source: ZeroLayerEnvelope_ACU,
     && floor.ref.turnId === set.sourceHeadTurnId && floor.role === 'assistant');
   requireValue(head?.aiOrdinal === set.triggeredAtAiCount
     && timeline.floors[cut]?.aiOrdinal === set.position.aiOrdinal,
-  'checkpoint 来源计数或覆盖切点已变化。');
+  'Số đếm nguồn hoặc điểm cắt bao phủ của checkpoint đã thay đổi.');
   const captured = captureCheckpointSource_ACU(source, timeline, cut);
   requireValue(fingerprint(captured.covered) === fingerprint(set.covered)
     && captured.sourceFingerprint === set.sourceFingerprint
     && fingerprint(captured.continuation) === fingerprint(set.continuation),
-  'checkpoint 来源或无损折叠候选已变化，禁止激活。');
+  'Nguồn checkpoint hoặc ứng viên gấp không mất dữ liệu đã thay đổi, cấm kích hoạt.');
 }

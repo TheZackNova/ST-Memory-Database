@@ -61,7 +61,7 @@ function isKind_ACU(value: unknown): value is AgentConversationMessageKind_ACU {
 
 function truncateText_ACU(text: string): string {
   if (text.length <= AGENT_CONVERSATION_TEXT_LIMIT_ACU) return text;
-  return `${text.slice(0, AGENT_CONVERSATION_TEXT_LIMIT_ACU)}\n（本条内容超出 ${AGENT_CONVERSATION_TEXT_LIMIT_ACU} 字上限，已截断）`;
+  return `${text.slice(0, AGENT_CONVERSATION_TEXT_LIMIT_ACU)}\n(Nội dung này vượt giới hạn ${AGENT_CONVERSATION_TEXT_LIMIT_ACU} chữ, đã cắt bớt)`;
 }
 
 export function buildEmptyAgentConversation_ACU(): AgentConversationSnapshot_ACU {
@@ -247,7 +247,7 @@ export function validateAgentConversationFloorRecord_ACU(raw: unknown): AgentCon
       throw new ContinuationValidationError_ACU(createContinuationError_ACU(
         'CONTINUATION_AGENT_SNAPSHOT_INVALID',
         'load',
-        'Agent 会话压缩标记版本或字段无效',
+        'Phiên bản hoặc trường của dấu nén hội thoại Agent không hợp lệ',
         false,
       ));
     }
@@ -257,7 +257,7 @@ export function validateAgentConversationFloorRecord_ACU(raw: unknown): AgentCon
 }
 
 function invalidConversation_ACU(index: number): never {
-  throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'load', 'Agent 会话楼层记录损坏，不能当作空历史', false, { index }));
+  throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'load', 'Bản ghi tầng hội thoại Agent bị hỏng, không thể coi là lịch sử rỗng', false, { index }));
 }
 
 /** 读取当前生效的压缩标记；与模型投影相同，选择 compactedThroughId 最大的合法标记。 */
@@ -418,7 +418,7 @@ export function readAgentConversationTimeline_ACU(
   if (!marks.length) return collected;
   const latestThroughId = marks[marks.length - 1].compactedThroughId;
   const describe = (mark: AgentConversationCompactionMark_ACU): string =>
-    mark.compactedThroughId === latestThroughId ? '早期会话交接报告（此前内容对当前 AI 不可见）' : '早期会话交接报告（已被更晚的总结取代）';
+    mark.compactedThroughId === latestThroughId ? 'Báo cáo bàn giao hội thoại sớm (nội dung trước đó không hiển thị với AI hiện tại)' : 'Báo cáo bàn giao hội thoại sớm (đã bị tóm tắt muộn hơn thay thế)';
   const timeline: AgentConversationMessage_ACU[] = [];
   let markIndex = 0;
   for (const item of collected) {
@@ -453,7 +453,7 @@ function floorRecordOf_ACU(container: Record<string, unknown>): AgentConversatio
 async function writeFloorRecord_ACU(chat: any[], targetIndex: number, record: AgentConversationFloorRecord_ACU): Promise<void> {
   const message = Array.isArray(chat) ? chat[targetIndex] : null;
   if (!message || typeof message !== 'object') {
-    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Agent 会话记录的目标楼层不可用', false, { targetIndex }));
+    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Tầng đích của bản ghi hội thoại Agent không khả dụng', false, { targetIndex }));
   }
   const container = message as Record<string, unknown>;
   const hadPrevious = Object.prototype.hasOwnProperty.call(container, AGENT_CONVERSATION_FIELD_ACU);
@@ -464,7 +464,7 @@ async function writeFloorRecord_ACU(chat: any[], targetIndex: number, record: Ag
   } catch (error) {
     if (hadPrevious) container[AGENT_CONVERSATION_FIELD_ACU] = previous;
     else delete container[AGENT_CONVERSATION_FIELD_ACU];
-    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Agent 会话记录写盘失败，已还原楼层字段', false, { targetIndex, message: error instanceof Error ? error.message : String(error) }));
+    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Ghi bản ghi hội thoại Agent xuống lưu trữ thất bại, đã khôi phục các trường của tầng', false, { targetIndex, message: error instanceof Error ? error.message : String(error) }));
   }
 }
 
@@ -572,7 +572,7 @@ export async function appendConfirmedAgentTurn_ACU(chat: any[], messageIndex: nu
   if (getChatArray_ACU() !== chat || messageIndex !== chat.length - 1 || !chat[messageIndex] || chat[messageIndex].is_user) return false;
   const snapshot = readAgentConversation_ACU(chat);
   if (lastAnnouncedTurnKey_ACU(snapshot) === turnKey) return false;
-  const next = appendAgentConversation_ACU(snapshot, [{ kind: 'turn', text, digest: `已确认正文 · 第 ${messageIndex + 1} 楼`, turnKey }]);
+  const next = appendAgentConversation_ACU(snapshot, [{ kind: 'turn', text, digest: `Chính văn đã xác nhận · tầng ${messageIndex + 1}`, turnKey }]);
   return appendPreparedAgentConversationMessages_ACU(chat, next.messages.slice(snapshot.messages.length), messageIndex);
 }
 

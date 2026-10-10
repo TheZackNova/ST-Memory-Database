@@ -93,7 +93,7 @@ export async function inspectSummaryVectorDataForCurrentChat_ACU(): Promise<Summ
       });
       if (head.status === 'no_mirror' || head.status === 'source_table_changed') return { status: 'absent' };
       if (head.status !== 'ok' || head.stale || head.chainConflict) {
-        return { status: 'unknown', error: `当前向量镜像无法可靠回放（${head.status}${head.stale ? '/stale' : ''}）。` };
+        return { status: 'unknown', error: `Bản sao vector hiện tại không thể phát lại đáng tin (${head.status}${head.stale ? '/stale' : ''}).` };
       }
       const packs = new Map<string, Awaited<ReturnType<typeof loadSummaryVectorMirrorPack_ACU>>>();
       for (const [rowId, refs] of head.head) {
@@ -104,7 +104,7 @@ export async function inspectSummaryVectorDataForCurrentChat_ACU(): Promise<Summ
             packs.set(ref.packHash, packRef ? await loadSummaryVectorMirrorPack_ACU(packRef) : null);
           }
           const chunk = packs.get(ref.packHash)?.chunks?.[ref.chunkIndex];
-          if (!chunk) return { status: 'unknown', error: '当前向量镜像引用的数据块不可读。' };
+          if (!chunk) return { status: 'unknown', error: 'Khối dữ liệu mà bản sao vector hiện tại tham chiếu không đọc được.' };
           const vector = decodeSummaryVectorMirrorVector_ACU(String(chunk.vector || ''));
           if (hasFiniteVector_ACU(vector) && vector.length === head.checkpoint?.embedding.dimension) {
             return { status: 'present' };
@@ -121,7 +121,7 @@ export async function inspectSummaryVectorDataForCurrentChat_ACU(): Promise<Summ
       const { loadSummaryVectorIndexChunksFromManifest_ACU } = await import('../vector/summary-vector-index-storage-service');
       chunks = await loadSummaryVectorIndexChunksFromManifest_ACU(state.manifest, { preferExternalFiles: true });
       if (chunks.length === 0 && Number(state.manifest.chunkCount) > 0) {
-        return { status: 'unknown', error: '旧向量索引声明含数据，但实际数据块不可读。' };
+        return { status: 'unknown', error: 'Chỉ mục vector cũ khai báo có dữ liệu, nhưng khối dữ liệu thực tế không đọc được.' };
       }
     }
     const removedKeys = new Set(state.manifest?.snapshot?.removedRowKeys || []);
@@ -138,6 +138,6 @@ export async function inspectSummaryVectorDataForCurrentChat_ACU(): Promise<Summ
       && (!Array.isArray(activeChunkIds) || activeChunkIds.includes(chunk.chunkId))
       && hasFiniteVector_ACU(chunk.vector)) ? 'present' : 'absent' };
   } catch (error: any) {
-    return { status: 'unknown', error: String(error?.message || error || '向量数据核验失败') };
+    return { status: 'unknown', error: String(error?.message || error || 'Kiểm chứng dữ liệu vector thất bại') };
   }
 }

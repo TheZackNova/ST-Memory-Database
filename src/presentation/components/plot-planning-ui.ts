@@ -38,12 +38,12 @@ export async function runOptimizationLogicWithUI_ACU(userMessage: any, options: 
       abortController_ACU.abort();
       logDebug_ACU('[剧情推进] 用户手动中止了规划任务。');
     }
-    task.end({ kind: 'info', text: '规划任务已被用户中止。' });
+    task.end({ kind: 'info', text: 'Tác vụ quy hoạch đã bị người dùng hủy.' });
   };
   // 1. 登记带中止按钮的规划任务；中止只作用于本次规划
-  const task = beginNoticeTask_ACU('剧情规划', {
-    detail: '正在读取过往的记忆并分析，请稍后...',
-    action: { label: '终止', variant: 'danger', run: abort },
+  const task = beginNoticeTask_ACU('Quy hoạch cốt truyện', {
+    detail: 'Đang đọc ký ức trước đây và phân tích, vui lòng chờ...',
+    action: { label: 'Dừng', variant: 'danger', run: abort },
   });
   abortActivePlanning_ACU = abort;
 
@@ -52,13 +52,13 @@ export async function runOptimizationLogicWithUI_ACU(userMessage: any, options: 
   try {
     result = await runOptimizationLogic_ACU(userMessage, {
       ...options,
-      reportWarning: (text: string) => showToastr_ACU('warning', text, '剧情推进'),
+      reportWarning: (text: string) => showToastr_ACU('warning', text, 'Đẩy cốt truyện'),
     });
   } catch {
     if (manuallyAborted) {
       return { aborted: true, manual: true, restoreText: String(userMessage || '') };
     }
-    showToastr_ACU('error', unmaskedCompatibility ? '剧情任务处理异常，保留原指令继续发送。' : '剧情任务处理异常，正文发送已停止。', '剧情推进');
+    showToastr_ACU('error', unmaskedCompatibility ? 'Lỗi xử lý tác vụ cốt truyện, giữ chỉ thị gốc và tiếp tục gửi.' : 'Lỗi xử lý tác vụ cốt truyện, đã dừng gửi nội dung chính.', 'Đẩy cốt truyện');
     if (unmaskedCompatibility) return null;
     return { blocked: true };
   } finally {
@@ -88,33 +88,33 @@ export async function runOptimizationLogicWithUI_ACU(userMessage: any, options: 
   if (!result.success) {
     if (unmaskedCompatibility) {
       if (['stage_failure', 'all_failed', 'no_tasks', 'exception', 'api_retries_exhausted'].includes(result.errorType || '')) {
-        showToastr_ACU('error', result.errorMessage || '剧情规划失败。', '规划失败', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+        showToastr_ACU('error', result.errorMessage || 'Quy hoạch cốt truyện thất bại.', 'Quy hoạch thất bại', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
       }
       return null;
     }
     if (result.errorType === 'no_tasks') return { skipped: true, reason: 'no_tasks' };
-    const errorMsg = result.errorMessage || '剧情任务未返回有效结果，正文发送已停止。';
-    showToastr_ACU('error', errorMsg, '规划失败', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+    const errorMsg = result.errorMessage || 'Tác vụ cốt truyện không trả về kết quả hợp lệ, đã dừng gửi nội dung chính.';
+    showToastr_ACU('error', errorMsg, 'Quy hoạch thất bại', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
     return { blocked: true, apiRetriesExhausted: result.apiRetriesExhausted === true };
   }
 
   // 成功：弹结果 toast
   if (result.aggregatedTagNames && result.aggregatedTagNames.length > 0) {
-    showToastr_ACU('info', `已成功聚合 [${result.aggregatedTagNames.join(', ')}] 标签内容并注入。`, '标签摘取');
+    showToastr_ACU('info', `Đã gộp thành công nội dung các thẻ [${result.aggregatedTagNames.join(', ')}] và chèn vào.`, 'Trích thẻ');
   }
 
   if (result.hasPartialFailure) {
     if (unmaskedCompatibility) {
-      showToastr_ACU('warning', `剧情规划完成，${result.successCount}/${result.enabledTaskCount} 个任务成功。`, '部分成功', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.PLAN_OK });
+      showToastr_ACU('warning', `Quy hoạch cốt truyện hoàn tất, ${result.successCount}/${result.enabledTaskCount} tác vụ thành công.`, 'Thành công một phần', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.PLAN_OK });
       return result.finalMessage;
     }
-    showToastr_ACU('error', '剧情任务未全部通过验收，正文发送已停止。', '规划失败');
+    showToastr_ACU('error', 'Không phải mọi tác vụ cốt truyện đều đạt nghiệm thu, đã dừng gửi nội dung chính.', 'Quy hoạch thất bại');
     return { blocked: true };
   } else {
     showToastr_ACU(
       'success',
-      `剧情规划成功，共完成 ${result.successCount} 个任务。`,
-      '规划成功',
+      `Quy hoạch cốt truyện thành công, hoàn tất ${result.successCount} tác vụ.`,
+      'Quy hoạch thành công',
       { acuToastCategory: ACU_TOAST_CATEGORY_ACU.PLAN_OK },
     );
   }

@@ -1,35 +1,35 @@
 export const contentReplaceCopy = {
   nav: {
-    basic: "基础设置",
-    mode: "替换模式",
-    preset: "预设",
-    filter: "标签筛选",
-    test: "手动测试",
+    basic: "Cài đặt cơ bản",
+    mode: "Chế độ thay thế",
+    preset: "Preset",
+    filter: "Lọc theo thẻ",
+    test: "Kiểm thử thủ công",
   },
   panels: {
     basic: {
-      title: "基础设置",
-      description: "控制使用哪套 API、以及短文本和失败重试的边界。",
+      title: "Cài đặt cơ bản",
+      description: "Điều khiển dùng bộ API nào, cũng như giới hạn cho văn bản ngắn và thử lại khi thất bại.",
     },
     mode: {
-      title: "替换模式",
+      title: "Chế độ thay thế",
       description:
-        "无感模式：尽量将优化结果直接写回聊天，关闭则需手动确认。排查误替换时，建议关闭无感与自动应用，保留对比。",
+        "Chế độ không cảm nhận: cố gắng ghi kết quả đã tối ưu trực tiếp vào cuộc trò chuyện, tắt thì cần xác nhận thủ công. Khi kiểm tra thay thế nhầm, nên tắt chế độ không cảm nhận và tự động áp dụng, giữ lại bản đối chiếu.",
     },
     preset: {
-      title: "正文替换预设",
+      title: "Preset thay thế nội dung",
       description:
-        "下拉框切换当前通用API，星标设为全局默认。点击按钮，可导入新预设、管理全部预设。内置默认预设无法修改，请使用「从默认新建」。",
+        "Danh sách thả xuống chuyển API chung hiện tại, dấu sao đặt làm mặc định toàn cục. Bấm nút để nhập preset mới hoặc quản lý tất cả preset. Preset mặc định tích hợp không thể sửa, hãy dùng \"Tạo mới từ mặc định\".",
     },
     filter: {
-      title: "标签筛选",
+      title: "Lọc theo thẻ",
       description:
-        "按标签提取内容，提升填表准确性。提取仅保留指定范围，排除移除指定范围。",
+        "Trích nội dung theo thẻ để điền bảng chính xác hơn. Trích xuất chỉ giữ lại phạm vi chỉ định, loại trừ sẽ bỏ phạm vi chỉ định.",
     },
     test: {
-      title: "手动测试",
+      title: "Kiểm thử thủ công",
       description:
-        "使用当前配置测试文本，不写回聊天。失败通常为 API、提示词格式或筛选问题，请检查错误并调整配置。",
+        "Dùng cấu hình hiện tại để kiểm thử văn bản, không ghi lại vào cuộc trò chuyện. Thất bại thường do API, định dạng prompt hoặc bộ lọc, hãy kiểm tra lỗi và điều chỉnh cấu hình.",
     },
   },
 };

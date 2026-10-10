@@ -94,7 +94,7 @@ async function mountTablePage(opts: {
       selectedChatPresetLabel: ref(`${opts.selectedChatPreset ?? 'global-A'}（全局预设）`),
       isChatOverridden: computed(() => selectedChatPreset.value !== selectedGlobalPresetValue.value),
       chatPresetItems: ref([
-        { value: 'global:', label: '默认预设（全局）', meta: '2 张表' },
+        { value: 'global:', label: 'Preset mặc định (toàn cục)', meta: '2 张表' },
         { value: 'global:global-A', label: 'global-A（全局预设）', meta: '2 张表' },
         { value: 'snapshot:chat-A', label: 'chat-A（当前聊天快照）', meta: '3 张表' },
       ]),
@@ -116,7 +116,7 @@ async function mountTablePage(opts: {
   // —— useTablePresetManagement（抽屉） ——
   const drawerView = ref<'closed' | 'manage'>('closed');
   const isDrawerOpen = computed(() => drawerView.value !== 'closed');
-  const title = computed(() => (drawerView.value === 'manage' ? '管理表格模板预设' : ''));
+  const title = computed(() => (drawerView.value === 'manage' ? 'Quản lý preset mẫu bảng' : ''));
   const presetMeta = ref<Array<{ name: string }>>([{ name: 'global-A' }, { name: 'global-B' }]);
   const defaultPresetName = ref('global-A');
   const message = ref<{ kind: 'success' | 'error' | 'info' | 'warning'; text: string } | null>(null);
@@ -158,7 +158,7 @@ async function mountTablePage(opts: {
   });
   const describeInjectionTarget = vi.fn(async () =>
     injectionTargetRef.value === 'character'
-      ? '角色卡绑定世界书 · CharBookT'
+      ? 'Sổ thế giới gắn với thẻ nhân vật · CharBookT'
       : injectionTargetRef.value,
   );
   vi.doMock('../../../src/presentation-v2/composables/useFormFillInjectionTarget', () => ({
@@ -201,7 +201,7 @@ async function mountTablePage(opts: {
   }));
 
   const groupsRef = shallowRef<any[]>([
-    { bookName: 'CharBookT', expanded: true, entries: [{ uid: 1, bookName: 'CharBookT', label: '人物', checked: true, disabled: false }] },
+    { bookName: 'CharBookT', expanded: true, entries: [{ uid: 1, bookName: 'CharBookT', label: 'Nhân vật', checked: true, disabled: false }] },
   ]);
   vi.doMock('../../../src/presentation-v2/composables/useFormFillWorldbookEntries', () => ({
     useFormFillWorldbookEntries: () => ({
@@ -272,26 +272,26 @@ describe('填表工作台 · 填表规则', () => {
     const page = document.querySelector('.acu-v2-form-fill-page');
     expect(page).not.toBeNull();
     const text = page!.textContent || '';
-    expect(document.querySelector('.acu-v2-app__page-title')?.textContent || '').toContain('填表工作台');
-    expect(text).toContain('标签筛选');
-    expect(text).toContain('填表提示词');
-    expect(text).toContain('写入目标世界书');
-    expect(text).toContain('附加世界书条目');
-    expect(text).not.toContain('表格工具');
+    expect(document.querySelector('.acu-v2-app__page-title')?.textContent || '').toContain('Bàn điền bảng');
+    expect(text).toContain('Lọc theo thẻ');
+    expect(text).toContain('Prompt điền bảng');
+    expect(text).toContain('Sổ thế giới đích để ghi');
+    expect(text).toContain('Mục sổ thế giới bổ sung');
+    expect(text).not.toContain('Công cụ bảng');
     expect(page!.querySelector('.acu-v2-form-fill-page__tool-card')).toBeNull();
     expect(text).not.toContain('立即构建交火纪要索引');
     expect(text).not.toContain('Embedding / Rerank');
-    expect(Array.from(page!.querySelectorAll('button')).some(b => b.textContent?.trim() === '刷新')).toBe(false);
+    expect(Array.from(page!.querySelectorAll('button')).some(b => b.textContent?.trim() === 'Làm mới')).toBe(false);
     expect(page!.querySelector('[data-acu-toggle-key="strictJsonTableFillEnabled"]')).toBeNull();
 
     const cols = page!.querySelectorAll('.acu-v2-form-fill-page__col');
     expect(cols.length).toBe(2);
     const panelTitles = Array.from(page!.querySelectorAll('.acu-v2-form-fill-page__col .acu-panel .acu-panel__title'))
       .map(title => (title.textContent || '').trim());
-    expect(panelTitles).toEqual(['填表提示词', '标签筛选', '写入目标世界书', '附加世界书条目']);
+    expect(panelTitles).toEqual(['Prompt điền bảng', 'Lọc theo thẻ', 'Sổ thế giới đích để ghi', 'Mục sổ thế giới bổ sung']);
     const mobileNavItems = Array.from(page!.querySelectorAll('.acu-mobile-panel-nav__item'))
       .map(item => (item.textContent || '').trim());
-    expect(mobileNavItems.slice(-4)).toEqual(['提示词', '标签筛选', '写入目标世界书', '附加世界书条目']);
+    expect(mobileNavItems.slice(-4)).toEqual(['Prompt', 'Lọc theo thẻ', 'Sổ thế giới đích để ghi', 'Mục sổ thế giới bổ sung']);
 
     mount.__resetAcuV2MountForTests();
   });
@@ -348,14 +348,14 @@ describe('填表工作台 · 填表规则', () => {
     const injectionPanel = page.querySelector<HTMLElement>('#form-fill-injection-target-panel')!;
     const trigger = injectionPanel.querySelector<HTMLButtonElement>('.acu-select__trigger');
     expect(trigger).not.toBeNull();
-    expect(trigger!.textContent).toContain('角色卡绑定世界书');
+    expect(trigger!.textContent).toContain('Sổ thế giới gắn với thẻ nhân vật');
 
     trigger!.click();
     await Promise.resolve();
 
     const labels = Array.from(injectionPanel.querySelectorAll('.acu-select__item'))
       .map(item => item.textContent?.trim());
-    expect(labels).toContain('角色卡绑定世界书');
+    expect(labels).toContain('Sổ thế giới gắn với thẻ nhân vật');
     expect(labels).toContain('CharBookT');
 
     mount.__resetAcuV2MountForTests();
@@ -367,7 +367,7 @@ describe('填表工作台 · 填表规则', () => {
     const page = document.querySelector('.acu-v2-form-fill-page') as HTMLElement;
     const entriesPanel = page.querySelector<HTMLElement>('#form-fill-entries-panel')!;
     const manualButton = Array.from(entriesPanel.querySelectorAll<HTMLButtonElement>('.acu-segmented__item'))
-      .find(button => button.textContent?.trim() === '手动选择')!;
+      .find(button => button.textContent?.trim() === 'Chọn thủ công')!;
     manualButton.click();
     await Promise.resolve();
 
@@ -379,7 +379,7 @@ describe('填表工作台 · 填表规则', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(entriesPanel.textContent).toContain('目前已选: CharBookT、Other');
+    expect(entriesPanel.textContent).toContain('Hiện đã chọn: CharBookT, Other');
     expect(charBook.getAttribute('aria-checked')).toBe('true');
     expect(other.getAttribute('aria-checked')).toBe('true');
 
@@ -391,7 +391,7 @@ describe('填表工作台 · 填表规则', () => {
 
     const page = document.querySelector('.acu-v2-form-fill-page') as HTMLElement;
     const injectionPanel = page.querySelector<HTMLElement>('#form-fill-injection-target-panel')!;
-    expect(injectionPanel.textContent).toContain('目前已选: 角色卡绑定世界书 · CharBookT');
+    expect(injectionPanel.textContent).toContain('Hiện đã chọn: Sổ thế giới gắn với thẻ nhân vật · CharBookT');
 
     const trigger = injectionPanel.querySelector<HTMLButtonElement>('.acu-select__trigger')!;
     trigger.click();
@@ -404,7 +404,7 @@ describe('填表工作台 · 填表规则', () => {
 
     expect(injectionTargetChange).toHaveBeenCalledWith('Other');
     expect(describeInjectionTarget).toHaveBeenCalledTimes(2);
-    expect(injectionPanel.textContent).toContain('目前已选: Other');
+    expect(injectionPanel.textContent).toContain('Hiện đã chọn: Other');
 
     mount.__resetAcuV2MountForTests();
   });

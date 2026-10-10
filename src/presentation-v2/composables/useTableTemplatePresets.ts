@@ -73,14 +73,14 @@ function isRuntimeSentinelName(name: string): boolean {
 }
 
 function buildRuntimePresetItem(meta?: string): PresetItem {
-  return { value: RUNTIME_PRESET_VALUE, label: '当前生效模板（内存）', meta };
+  return { value: RUNTIME_PRESET_VALUE, label: 'Mẫu đang có hiệu lực (bộ nhớ)', meta };
 }
 
 function defaultPresetItem(label: string, meta?: string, value = ''): PresetItem {
   return { value, label, meta };
 }
 
-const RUNTIME_TEMPLATE_LABEL = '当前生效模板（内存）';
+const RUNTIME_TEMPLATE_LABEL = 'Mẫu đang có hiệu lực (bộ nhớ)';
 
 function countTemplateSheets(templateSource: unknown): number | null {
   const templateObj = typeof templateSource === 'string'
@@ -93,13 +93,13 @@ function countTemplateSheets(templateSource: unknown): number | null {
 
 function formatSheetCountMeta(templateSource: unknown): string | undefined {
   const count = countTemplateSheets(templateSource);
-  return count ? `${count} 张表` : undefined;
+  return count ? `${count} bảng` : undefined;
 }
 
 function formatArchiveMeta(entry: TemplateArchiveEntry): string | undefined {
   const parts = [formatSheetCountMeta(entry?.templateStr)].filter(Boolean) as string[];
   const source = String(entry?.presetName || '').trim();
-  if (source) parts.push(`来源: ${source}`);
+  if (source) parts.push(`Nguồn: ${source}`);
   return parts.length > 0 ? parts.join(' · ') : undefined;
 }
 
@@ -107,7 +107,7 @@ function readFileText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = event => resolve(String(event.target?.result || ''));
-    reader.onerror = () => reject(new Error('读取模板文件失败'));
+    reader.onerror = () => reject(new Error('Đọc tệp mẫu thất bại'));
     reader.readAsText(file, 'UTF-8');
   });
 }
@@ -132,15 +132,15 @@ function isStaleRevisionConflict(result: unknown): boolean {
 }
 
 function formatTemplateOperationError(error: unknown): string {
-  const text = error instanceof Error ? error.message : String(error || '操作失败。');
+  const text = error instanceof Error ? error.message : String(error || 'Thao tác thất bại.');
   if (/^V2 stale_revision_conflict(?:\b|:)/.test(text)) {
-    return '表格状态在提交时已更新；系统重新读取后仍无法完成切换。请刷新当前聊天后重试。';
+    return 'Trạng thái bảng đã được cập nhật khi cam kết; sau khi hệ thống đọc lại vẫn không thể hoàn tất việc chuyển đổi. Vui lòng làm mới cuộc trò chuyện hiện tại rồi thử lại.';
   }
   if (/^V2 history_indeterminate(?:\b|:)/.test(text)) {
-    return '表格历史状态不完整或顺序异常，已拒绝覆盖数据。请先在数据管理中检查并恢复 V2 历史后重试。';
+    return 'Trạng thái lịch sử bảng không đầy đủ hoặc thứ tự bất thường, đã từ chối ghi đè dữ liệu. Vui lòng kiểm tra và khôi phục lịch sử V2 trong Quản lý dữ liệu trước rồi thử lại.';
   }
   if (/^V2 reveal_source_(?:missing|indeterminate)(?:\b|:)/.test(text)) {
-    return '历史表的可信恢复来源不可用，已拒绝写入。请先在数据管理中检查并恢复 V2 历史后重试。';
+    return 'Nguồn khôi phục đáng tin cậy của bảng lịch sử không khả dụng, đã từ chối ghi. Vui lòng kiểm tra và khôi phục lịch sử V2 trong Quản lý dữ liệu trước rồi thử lại.';
   }
   return text;
 }
@@ -198,7 +198,7 @@ export function useTableTemplatePresets() {
   const selectedGlobalPreset = ref('');
   const selectedGlobalPresetValue = ref(encodeChatPresetValue('global', ''));
   const selectedChatPreset = ref(encodeChatPresetValue('global', ''));
-  const selectedChatPresetLabel = ref('默认预设（全局）');
+  const selectedChatPresetLabel = ref('Preset mặc định (toàn cục)');
   const chatPresetItems = ref<PresetItem[]>([]);
   const chatArchiveItems = ref<PresetItem[]>([]);
   const activeTemplateScope = ref<'global' | 'chat'>('global');
@@ -218,7 +218,7 @@ export function useTableTemplatePresets() {
   ): PresetItem[] {
     const seen = new Set<string>();
     const defaultSnapshot = getDefaultTemplateSnapshot_ACU();
-    const items = [defaultPresetItem('默认预设（全局）', formatSheetCountMeta(defaultSnapshot?.templateObj || defaultSnapshot?.templateStr), encodeChatPresetValue('global', ''))];
+    const items = [defaultPresetItem('Preset mặc định (toàn cục)', formatSheetCountMeta(defaultSnapshot?.templateObj || defaultSnapshot?.templateStr), encodeChatPresetValue('global', ''))];
     seen.add(encodeChatPresetValue('global', ''));
     if (runtimeItem) {
       items.push(runtimeItem);
@@ -230,7 +230,7 @@ export function useTableTemplatePresets() {
       const value = encodeChatPresetValue('global', normalized);
       if (seen.has(value)) continue;
       seen.add(value);
-      items.push({ value, label: `${normalized}（全局预设）`, meta: formatSheetCountMeta(getTemplatePreset_ACU(normalized)?.templateStr) });
+      items.push({ value, label: `${normalized} (preset toàn cục)`, meta: formatSheetCountMeta(getTemplatePreset_ACU(normalized)?.templateStr) });
     }
     chatSnapshotDiffersFromLibrary.value = false;
     if (activeMeta.mode === 'chat_override') {
@@ -245,12 +245,12 @@ export function useTableTemplatePresets() {
         // S3-8：快照内容偏离库中同名预设时在标签处明示，避免同名不同内容的静默混淆。
         const diff = computeChatSnapshotDiff(currentScope?.templateStr, normalized);
         chatSnapshotDiffersFromLibrary.value = diff.differs;
-        const divergenceSuffix = diff.reason === 'diverged' ? '（内容已偏离库预设）' : '';
+        const divergenceSuffix = diff.reason === 'diverged' ? ' (nội dung đã lệch khỏi preset trong thư viện)' : '';
         const metaParts = [formatSheetCountMeta(currentScope?.templateStr)].filter(Boolean) as string[];
-        if (diff.reason === 'library_preset_missing') metaParts.push('库中已无同名预设');
+        if (diff.reason === 'library_preset_missing') metaParts.push('Thư viện không còn preset cùng tên');
         items.push({
           value,
-          label: `${normalized || '默认预设'}（当前聊天快照）${divergenceSuffix}`,
+          label: `${normalized || 'Preset mặc định'} (snapshot cuộc trò chuyện hiện tại)${divergenceSuffix}`,
           meta: metaParts.length > 0 ? metaParts.join(' · ') : undefined,
         });
       }
@@ -314,12 +314,12 @@ export function useTableTemplatePresets() {
     selectedGlobalPreset.value = nextSelectedGlobal;
     selectedGlobalPresetValue.value = encodeChatPresetValue('global', nextSelectedGlobal || '');
     selectedChatPreset.value = nextSelectedChat;
-    selectedChatPresetLabel.value = nextItems.find(item => item.value === nextSelectedChat)?.label || '默认预设（全局）';
+    selectedChatPresetLabel.value = nextItems.find(item => item.value === nextSelectedChat)?.label || 'Preset mặc định (toàn cục)';
     activeTemplateScope.value = activeMeta.scope === 'chat' ? 'chat' : 'global';
     chatPresetItems.value = nextItems;
     chatArchiveItems.value = nextChatArchives.map((entry: TemplateArchiveEntry) => ({
       value: String(entry?.archiveKey || '').trim(),
-      label: String(entry?.label || entry?.presetName || '聊天历史模板快照'),
+      label: String(entry?.label || entry?.presetName || 'Snapshot mẫu lịch sử cuộc trò chuyện'),
       meta: formatArchiveMeta(entry),
     })).filter((item: PresetItem) => !!item.value);
   }
@@ -328,7 +328,7 @@ export function useTableTemplatePresets() {
     // busy 以前只用于渲染，重复点击仍会并发进入同一聊天的模板协调窗口。
     // UI 侧直接拒绝重入；service/transaction 的 revision 校验仍负责兜住其他入口。
     if (busy.value) {
-      toast.info('模板切换正在进行中，请等待当前操作完成。');
+      toast.info('Đang chuyển mẫu, vui lòng chờ thao tác hiện tại hoàn tất.');
       return null;
     }
     busy.value = true;
@@ -360,9 +360,9 @@ export function useTableTemplatePresets() {
         destructiveChangeConfirmed,
         signal: templateOperationController.signal,
       }));
-      if (!result) throw new Error('全局模板预设切换失败。');
+      if (!result) throw new Error('Chuyển preset mẫu toàn cục thất bại.');
       if (typeof result === 'object' && result.saved === false) {
-        throw new Error(typeof result.error === 'string' && result.error ? result.error : '全局模板预设切换失败。');
+        throw new Error(typeof result.error === 'string' && result.error ? result.error : 'Chuyển preset mẫu toàn cục thất bại.');
       }
       if (typeof result === 'object' && typeof result.postCommitWarning === 'string' && result.postCommitWarning) {
         toast.warning(result.postCommitWarning, { muteable: false, durationMs: 6000 });
@@ -414,15 +414,15 @@ export function useTableTemplatePresets() {
       return firstResult;
     }
     const destructiveBlockers = firstResult.blockers.filter((blocker: unknown) => (
-      typeof blocker === 'string' && /删除(?:表|列).+需要显式确认/.test(blocker)
+      typeof blocker === 'string' && (/删除(?:表|列).+需要显式确认/.test(blocker) || /Xóa (?:bảng|cột) .+ cần xác nhận (?:rõ ràng|tường minh)/.test(blocker))
     ));
     if (destructiveBlockers.length === 0) return firstResult;
     const confirmed = await dialogStore.confirm({
-      title: '确认破坏性模板变更',
-      message: `此模板变更会删除现有表或列：\n${destructiveBlockers.join('\n')}`,
-      dangerMessage: '确认后将按 V2 原子提交执行。删除的数据只能通过聊天备份或 checkpoint 恢复。',
-      confirmLabel: '确认删除并继续',
-      cancelLabel: '取消',
+      title: 'Xác nhận thay đổi mẫu có tính phá hủy',
+      message: `Thay đổi mẫu này sẽ xóa bảng hoặc cột hiện có:\n${destructiveBlockers.join('\n')}`,
+      dangerMessage: 'Sau khi xác nhận sẽ thực hiện theo cam kết nguyên tử V2. Dữ liệu đã xóa chỉ có thể khôi phục qua bản sao lưu trò chuyện hoặc checkpoint.',
+      confirmLabel: 'Xác nhận xóa và tiếp tục',
+      cancelLabel: 'Hủy',
       confirmVariant: 'danger',
     });
     return confirmed ? applyWithSingleStaleRetry(true) : firstResult;
@@ -445,8 +445,8 @@ export function useTableTemplatePresets() {
         destructiveChangeConfirmed,
         signal: templateOperationController.signal,
       }));
-      if (!result) throw new Error('当前聊天模板预设切换失败。');
-      if (result.saved === false) throw new Error(result.error || '当前聊天模板预设切换失败。');
+      if (!result) throw new Error('Chuyển preset mẫu của cuộc trò chuyện hiện tại thất bại.');
+      if (result.saved === false) throw new Error(result.error || 'Chuyển preset mẫu của cuộc trò chuyện hiện tại thất bại.');
       if (result.postCommitWarning) {
         toast.warning(result.postCommitWarning, { muteable: false, durationMs: 6000 });
       }
@@ -458,22 +458,22 @@ export function useTableTemplatePresets() {
     await run(async () => {
       const archives = listChatTemplateArchiveEntries_ACU();
       if (archives.length === 0) {
-        message.value = { kind: 'info', text: '当前聊天没有可恢复的历史模板归档。' };
-        toast.info('当前聊天没有可恢复的历史模板归档。');
+        message.value = { kind: 'info', text: 'Cuộc trò chuyện hiện tại không có bản lưu mẫu lịch sử nào để khôi phục.' };
+        toast.info('Cuộc trò chuyện hiện tại không có bản lưu mẫu lịch sử nào để khôi phục.');
         return;
       }
       const selectedArchiveKey = await dialogStore.choose({
-        title: '恢复历史模板归档',
-        message: '请选择要恢复为当前聊天表格模板的历史归档。恢复前会按当前数据恢复规则进行检查。',
+        title: 'Khôi phục bản lưu mẫu lịch sử',
+        message: 'Vui lòng chọn bản lưu lịch sử để khôi phục thành mẫu bảng của cuộc trò chuyện hiện tại. Trước khi khôi phục sẽ kiểm tra theo quy tắc khôi phục dữ liệu hiện hành.',
         actions: archives.map((entry: TemplateArchiveEntry) => ({
           value: String(entry.archiveKey || '').trim(),
-          label: `${entry.label || entry.presetName || '聊天历史模板快照'}${formatArchiveMeta(entry) ? ` · ${formatArchiveMeta(entry)}` : ''}`,
+          label: `${entry.label || entry.presetName || 'Snapshot mẫu lịch sử cuộc trò chuyện'}${formatArchiveMeta(entry) ? ` · ${formatArchiveMeta(entry)}` : ''}`,
         })).filter((action: { value: string; label: string }) => !!action.value),
-        cancelLabel: '取消',
+        cancelLabel: 'Hủy',
       });
       if (!selectedArchiveKey) return;
       const archive = archives.find((entry: TemplateArchiveEntry) => String(entry.archiveKey || '').trim() === selectedArchiveKey);
-      if (!archive) throw new Error('找不到选择的历史模板归档。');
+      if (!archive) throw new Error('Không tìm thấy bản lưu mẫu lịch sử đã chọn.');
       const guideData = archive.guideData && typeof archive.guideData === 'object'
         ? archive.guideData
         : buildChatSheetGuideDataFromTemplateObj_ACU(
@@ -492,42 +492,42 @@ export function useTableTemplatePresets() {
         destructiveChangeConfirmed,
         signal: templateOperationController.signal,
       }));
-      if (!result) throw new Error('历史模板归档恢复失败。');
+      if (!result) throw new Error('Khôi phục bản lưu mẫu lịch sử thất bại.');
       if ('saved' in result && result.saved === false) {
-        throw new Error('error' in result && typeof result.error === 'string' ? result.error : '历史模板归档恢复失败。');
+        throw new Error('error' in result && typeof result.error === 'string' ? result.error : 'Khôi phục bản lưu mẫu lịch sử thất bại.');
       }
       message.value = null;
       const warning = 'postCommitWarning' in result && typeof result.postCommitWarning === 'string' ? result.postCommitWarning : '';
       if (warning) toast.warning(warning, { muteable: false, durationMs: 6000 });
-      else toast.success('已恢复历史模板归档。', { muteable: false });
+      else toast.success('Đã khôi phục bản lưu mẫu lịch sử.', { muteable: false });
     });
   }
 
   async function saveGlobalAs(): Promise<void> {
     const current = selectedGlobalPreset.value;
     const raw = await dialogStore.prompt({
-      title: '另存为全局模板预设',
-      message: '请输入要另存为的全局模板预设名称。',
-      label: '预设名称',
-      defaultValue: current ? `${current}_副本` : '新模板预设',
-      confirmLabel: '另存为',
+      title: 'Lưu thành preset mẫu toàn cục',
+      message: 'Vui lòng nhập tên preset mẫu toàn cục cần lưu thành.',
+      label: 'Tên preset',
+      defaultValue: current ? `${current}_bản_sao` : 'Preset mẫu mới',
+      confirmLabel: 'Lưu thành',
     });
     if (!raw) return;
     const requested = raw.trim();
     if (!requested) return;
     await run(async () => {
       const normalizedTemplate = normalizeTemplateForPresetSave_ACU();
-      if (!normalizedTemplate) throw new Error('无法解析当前模板。');
+      if (!normalizedTemplate) throw new Error('Không thể phân tích mẫu hiện tại.');
       const finalName = ensureUniqueTemplatePresetName_ACU(requested);
       if (finalName !== requested) {
         const confirmed = await dialogStore.confirm({
-          title: '预设名已存在',
-          message: `预设名已存在，将自动另存为「${finalName}」。是否继续？`,
-          confirmLabel: '继续保存',
+          title: 'Tên preset đã tồn tại',
+          message: `Tên preset đã tồn tại, sẽ tự động lưu thành「${finalName}」. Tiếp tục không?`,
+          confirmLabel: 'Tiếp tục lưu',
         });
         if (!confirmed) return;
       }
-      if (!upsertTemplatePreset_ACU(finalName, normalizedTemplate.templateStr)) throw new Error('无法写入全局模板预设。');
+      if (!upsertTemplatePreset_ACU(finalName, normalizedTemplate.templateStr)) throw new Error('Không thể ghi vào preset mẫu toàn cục.');
       const result = await applyTemplatePresetToCurrent_ACU(finalName, {
         source: 'v2_table_global_save_as',
         updateGlobal: true,
@@ -535,38 +535,38 @@ export function useTableTemplatePresets() {
         persistChatScope: false,
         signal: templateOperationController.signal,
       });
-      if (!result) throw new Error('另存后切换全局模板预设失败。');
+      if (!result) throw new Error('Chuyển preset mẫu toàn cục sau khi lưu thành thất bại.');
       if (typeof result === 'object' && result.saved === false) {
-        throw new Error(typeof result.error === 'string' && result.error ? result.error : '另存后切换全局模板预设失败。');
+        throw new Error(typeof result.error === 'string' && result.error ? result.error : 'Chuyển preset mẫu toàn cục sau khi lưu thành thất bại.');
       }
       message.value = null;
-      toast.success(`已另存为全局模板预设「${finalName}」。`);
+      toast.success(`Đã lưu thành preset mẫu toàn cục「${finalName}」.`);
     });
   }
 
   async function renameGlobalPreset(): Promise<void> {
     const oldName = selectedGlobalPreset.value;
     if (!oldName) {
-      message.value = { kind: 'warning', text: '默认预设不能重命名。' };
+      message.value = { kind: 'warning', text: 'Không thể đổi tên preset mặc định.' };
       return;
     }
     const preset = getTemplatePreset_ACU(oldName);
     if (!preset?.templateStr) {
-      message.value = { kind: 'warning', text: '找不到当前选中的全局模板预设。' };
+      message.value = { kind: 'warning', text: 'Không tìm thấy preset mẫu toàn cục đang chọn.' };
       return;
     }
     const raw = await dialogStore.prompt({
-      title: '重命名全局模板预设',
-      message: `将全局模板预设「${oldName}」重命名为：`,
-      label: '预设名称',
+      title: 'Đổi tên preset mẫu toàn cục',
+      message: `Đổi tên preset mẫu toàn cục「${oldName}」thành:`,
+      label: 'Tên preset',
       defaultValue: oldName,
-      confirmLabel: '重命名',
+      confirmLabel: 'Đổi tên',
     });
     if (!raw) return;
     const newName = raw.trim();
     if (!newName) return;
     await run(async () => {
-      if (!upsertTemplatePreset_ACU(newName, preset.templateStr)) throw new Error('重命名全局模板预设失败。');
+      if (!upsertTemplatePreset_ACU(newName, preset.templateStr)) throw new Error('Đổi tên preset mẫu toàn cục thất bại.');
       if (newName !== oldName) deleteTemplatePreset_ACU(oldName);
       if (selectedGlobalPreset.value === oldName) {
         const result = await applyTemplatePresetToCurrent_ACU(newName, {
@@ -576,9 +576,9 @@ export function useTableTemplatePresets() {
           persistChatScope: false,
           signal: templateOperationController.signal,
         });
-        if (!result) throw new Error('重命名后切换全局模板预设失败。');
+        if (!result) throw new Error('Chuyển preset mẫu toàn cục sau khi đổi tên thất bại.');
         if (typeof result === 'object' && result.saved === false) {
-          throw new Error(typeof result.error === 'string' && result.error ? result.error : '重命名后切换全局模板预设失败。');
+          throw new Error(typeof result.error === 'string' && result.error ? result.error : 'Chuyển preset mẫu toàn cục sau khi đổi tên thất bại.');
         }
       }
       message.value = null;
@@ -588,18 +588,18 @@ export function useTableTemplatePresets() {
   async function deleteGlobalPreset(): Promise<void> {
     const name = selectedGlobalPreset.value;
     if (!name) {
-      message.value = { kind: 'warning', text: '默认预设不能删除。' };
+      message.value = { kind: 'warning', text: 'Không thể xóa preset mặc định.' };
       return;
     }
     const confirmed = await dialogStore.confirm({
-      title: '删除全局模板预设',
-      message: `确定要删除全局模板预设「${name}」吗？此操作不可撤销。`,
-      confirmLabel: '删除预设',
+      title: 'Xóa preset mẫu toàn cục',
+      message: `Bạn có chắc muốn xóa preset mẫu toàn cục「${name}」không? Thao tác này không thể hoàn tác.`,
+      confirmLabel: 'Xóa preset',
       confirmVariant: 'danger',
     });
     if (!confirmed) return;
     await run(() => {
-      if (!deleteTemplatePreset_ACU(name)) throw new Error('删除失败或全局模板预设不存在。');
+      if (!deleteTemplatePreset_ACU(name)) throw new Error('Xóa thất bại hoặc preset mẫu toàn cục không tồn tại.');
       message.value = null;
     });
   }
@@ -610,9 +610,9 @@ export function useTableTemplatePresets() {
       const prepared = parseImportedTemplateData_ACU(content);
       const baseName = deriveTemplatePresetNameForImport_ACU({
         filename: file.name,
-        fallbackLabel: `导入模板_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`,
+        fallbackLabel: `Mẫu_nhập_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`,
       });
-      if (!baseName) throw new Error('无法确定导入预设名称。');
+      if (!baseName) throw new Error('Không thể xác định tên preset nhập.');
       const finalName = ensureUniqueTemplatePresetName_ACU(baseName);
       const canProceed = await ensureTemplateSwitchCanProceed(
         buildChatSheetGuideDataFromTemplateObj_ACU(prepared.templateObj, { stripSeedRows: false }),
@@ -628,14 +628,14 @@ export function useTableTemplatePresets() {
         destructiveChangeConfirmed,
         signal: templateOperationController.signal,
       }));
-      if (!result) throw new Error('导入模板切换到当前聊天失败。');
-      if (result.saved === false) throw new Error(result.error || '导入模板切换到当前聊天失败。');
-      if (!upsertTemplatePreset_ACU(finalName, prepared.templateStr)) throw new Error('模板已应用，但保存到预设库失败。');
+      if (!result) throw new Error('Chuyển mẫu nhập sang cuộc trò chuyện hiện tại thất bại.');
+      if (result.saved === false) throw new Error(result.error || 'Chuyển mẫu nhập sang cuộc trò chuyện hiện tại thất bại.');
+      if (!upsertTemplatePreset_ACU(finalName, prepared.templateStr)) throw new Error('Đã áp dụng mẫu nhưng lưu vào thư viện preset thất bại.');
       message.value = null;
       if (result.postCommitWarning) {
         toast.warning(result.postCommitWarning, { muteable: false, durationMs: 6000 });
       } else {
-        toast.success(`模板已保存并切换为「${finalName}」。`, { muteable: false });
+        toast.success(`Đã lưu mẫu và chuyển sang「${finalName}」.`, { muteable: false });
       }
     });
   }
@@ -648,7 +648,7 @@ export function useTableTemplatePresets() {
         : decodeChatPresetValue(selectedChatPreset.value).name);
     const resolved = resolveTemplateForExport_ACU(scope, selectedPresetName);
     if (!resolved) {
-      const text = '无法解析当前模板。';
+      const text = 'Không thể phân tích mẫu hiện tại.';
       message.value = { kind: 'error', text };
       toast.error(text);
       return;
@@ -662,7 +662,7 @@ export function useTableTemplatePresets() {
         : `TavernDB_template_runtime_${safeName}.json`);
     downloadJson(sanitized, filename);
     message.value = null;
-    toast.success(scope === 'global' ? '全局模板已导出。' : (scope === 'chat' ? '当前聊天模板已导出。' : '当前生效模板已导出。'));
+    toast.success(scope === 'global' ? 'Đã xuất mẫu toàn cục.' : (scope === 'chat' ? 'Đã xuất mẫu của cuộc trò chuyện hiện tại.' : 'Đã xuất mẫu đang có hiệu lực hiện tại.'));
   }
 
   refresh();

@@ -260,7 +260,12 @@ describe('FirstFloorContinuationStore_ACU', () => {
     current.settings.agentPrompts.beatPlanner[3].enabled = false;
     const expected = structuredClone(current.settings);
     const next = buildMaintainerQaPrompt_ACU();
-    for (const index of [2, 14]) expected.agentPrompts.maintainer[index].content = next[index].content;
+    const previous = buildV51MaintainerQaPrompt_ACU();
+    expected.agentPrompts.maintainer.forEach((segment: any, index: number) => {
+      if (index >= previous.length || segment.content !== previous[index].content) return;
+      segment.content = next[index].content;
+      if (segment.snapshotTemplate !== undefined && segment.snapshotTemplate === previous[index].snapshotTemplate) segment.snapshotTemplate = next[index].snapshotTemplate;
+    });
     _set_SillyTavern_API_ACU({ chat: [{ _qrf_continuation: current }], chatId: 'chat-a', getCurrentChatId: () => 'chat-a', saveChat: vi.fn() } as any);
 
     const first = new FirstFloorContinuationStore_ACU().read()!;
@@ -270,7 +275,7 @@ describe('FirstFloorContinuationStore_ACU', () => {
     expect(first.settings.agentPrompts).toEqual(expected.agentPrompts);
     expect(second.settings).toEqual(first.settings);
     expect(current.settings.promptForceDefaultVersion).toBe(CONTINUATION_PROMPT_FORCE_DEFAULT_VERSION_V51_ACU);
-    expect(current.settings.agentPrompts.maintainer[2].content).not.toContain('优先一次交付');
+    expect(current.settings.agentPrompts.maintainer[2].content).not.toContain('Ưu tiên bàn giao một lần');
     await new FirstFloorContinuationStore_ACU().replaceAtomically(first);
     expect(current.settings.promptForceDefaultVersion).toBe(CONTINUATION_PROMPT_FORCE_DEFAULT_VERSION_V51_ACU);
     expect(new FirstFloorContinuationStore_ACU().read()!.settings).toEqual(first.settings);
@@ -608,6 +613,6 @@ describe('零层初始化与源历史校验', () => {
     const fingerprint = bridgeSourceFingerprint_ACU(chat);
     expect(() => assertBridgeSource_ACU(chat, fingerprint)).not.toThrow();
     chat[0].mes = '已修改的开场';
-    expect(() => assertBridgeSource_ACU(chat, fingerprint)).toThrow('存量桥接来源已变化');
+    expect(() => assertBridgeSource_ACU(chat, fingerprint)).toThrow('Nguồn cầu nối dữ liệu cũ đã thay đổi');
   });
 });

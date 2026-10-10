@@ -27,15 +27,15 @@ export function assertOrdinaryZeroLayerRequest_ACU(
   const permit = permits_ACU.get(state.context.key);
   permits_ACU.delete(state.context.key);
   if (request.signal?.aborted || !permit || request.bodyText === null) {
-    throw new ZeroLayerError_ACU('history-unavailable', '普通请求尚未完成归档与模板装配，禁止发送。');
+    throw new ZeroLayerError_ACU('history-unavailable', 'Yêu cầu thường chưa hoàn tất lưu trữ và lắp ráp mẫu, cấm gửi.');
   }
   let payload: unknown;
   try { payload = JSON.parse(request.bodyText); }
-  catch { throw new ZeroLayerError_ACU('corrupt-data', '普通请求不是已确认的 JSON 请求。'); }
+  catch { throw new ZeroLayerError_ACU('corrupt-data', 'Yêu cầu thường không phải là yêu cầu JSON đã xác nhận.'); }
   if (!payload || typeof payload !== 'object' || !('messages' in payload)
     || !Array.isArray(payload.messages)
     || sha256HexSync_ACU(JSON.stringify(payload.messages)) !== permit.fingerprint) {
-    throw new ZeroLayerError_ACU('revision-conflict', '普通请求消息与成功装配快照不一致，禁止发送。');
+    throw new ZeroLayerError_ACU('revision-conflict', 'Tin nhắn yêu cầu thường không khớp với snapshot lắp ráp thành công, cấm gửi.');
   }
   try {
     permit.assertCurrent();
@@ -54,13 +54,13 @@ export function bindOrdinaryZeroLayerContext_ACU(request: Record<string, unknown
   const lease = Symbol();
   requestLeases_ACU.set(context.key, lease);
   const epoch = permitEpoch_ACU;
-  if (!Array.isArray(request.messages)) throw new ZeroLayerError_ACU('history-unavailable', '普通请求缺少可绑定的消息数组。');
+  if (!Array.isArray(request.messages)) throw new ZeroLayerError_ACU('history-unavailable', 'Yêu cầu thường thiếu mảng tin nhắn để gắn.');
   const messages = request.messages as Record<string, unknown>[];
   const target = context.chat[envelope.exitManifest!.target.messageIndex] as Record<string, unknown>;
   // 只接受宿主保留的唯一接入正文；裁剪、合并或改写后不猜测插入位置。
   const anchors = messages.flatMap((message, index) => message?.role === 'assistant'
     && message.content === target.mes && message.injected !== true ? [index] : []);
-  if (anchors.length !== 1) throw new ZeroLayerError_ACU('history-unavailable', '普通提示词缺少唯一退出接入点，请恢复上下文范围后再生成。');
+  if (anchors.length !== 1) throw new ZeroLayerError_ACU('history-unavailable', 'Prompt thường thiếu điểm tiếp nhập thoát duy nhất, hãy khôi phục phạm vi ngữ cảnh rồi tạo lại.');
   const timeline = buildZeroLayerTimeline_ACU(envelope,
     context.chat.slice(0, envelope.activationMessageCount) as Record<string, unknown>[]);
   const history = [...projectZeroLayerPromptHistory_ACU(timeline),
@@ -72,12 +72,12 @@ export function bindOrdinaryZeroLayerContext_ACU(request: Record<string, unknown
     })];
   const assertCurrent = () => {
     if (epoch !== permitEpoch_ACU || requestLeases_ACU.get(context.key) !== lease) {
-      throw new ZeroLayerError_ACU('scope-changed', '普通请求已停止、被新请求替代或聊天租约已撤销。');
+      throw new ZeroLayerError_ACU('scope-changed', 'Yêu cầu thường đã dừng, bị yêu cầu mới thay thế hoặc lease cuộc trò chuyện đã bị thu hồi.');
     }
     assertZeroLayerCarrier_ACU(context);
     const current = readOrdinaryZeroLayerState_ACU();
     if (!current || JSON.stringify(current.envelope) !== JSON.stringify(envelope)) {
-      throw new ZeroLayerError_ACU('revision-conflict', '普通请求的退出归档已变化。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Bản lưu thoát của yêu cầu thường đã thay đổi.');
     }
   };
   assertCurrent();

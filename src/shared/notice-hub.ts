@@ -252,7 +252,7 @@ export function beginNoticeTask_ACU(feature: string, options: NoticeTaskOptions_
   let ended = false;
   tasks_ACU = [...tasks_ACU, {
     id,
-    feature: String(feature || '任务'),
+    feature: String(feature || 'Tác vụ'),
     detail: toNoticePlainText_ACU(options.detail || ''),
     kind: options.kind || 'info',
     startedAt: Date.now(),

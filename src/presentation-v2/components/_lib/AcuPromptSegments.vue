@@ -2,7 +2,7 @@
   <div class="acu-prompt-segs">
     <div class="acu-prompt-segs__add">
       <AcuButton size="sm" class="acu-prompt-segs__add-btn" @click="$emit('add', 'top')">
-        <i class="fa-solid fa-plus"></i> 在最上方插入
+        <i class="fa-solid fa-plus"></i> Chèn lên trên cùng
       </AcuButton>
     </div>
     <ol class="acu-prompt-segs__list">
@@ -12,7 +12,7 @@
           <AcuCheckbox
             v-if="showEnabled && !isAgentFixedSlot_ACU(seg) && !isAgentFormatAnswer_ACU(seg)"
             :model-value="seg.enabled !== false"
-            label="启用"
+            label="Bật"
             @update:model-value="$emit('update', index, { enabled: $event })"
           />
           <AcuSelect
@@ -29,7 +29,7 @@
             size="sm"
             :options="slotOptions"
             :model-value="seg.mainSlot || ''"
-            title="主插槽 A=主提示词；B=拦截任务详细指令"
+            title="Slot chính A = prompt chính; B = chỉ dẫn chi tiết của tác vụ chặn"
             @update:model-value="onSlot(index, $event)"
           />
           <div class="acu-prompt-segs__actions">
@@ -38,14 +38,14 @@
                 icon="fa-solid fa-arrow-up"
                 size="sm"
                 :disabled="index === 0"
-                :title="index === 0 ? '已经是第一段' : '上移该段'"
+                :title="index === 0 ? 'Đã là đoạn đầu tiên' : 'Dời đoạn lên'"
                 @click="$emit('move', index, -1)"
               />
               <AcuIconButton
                 icon="fa-solid fa-arrow-down"
                 size="sm"
                 :disabled="index === segments.length - 1"
-                :title="index === segments.length - 1 ? '已经是最后一段' : '下移该段'"
+                :title="index === segments.length - 1 ? 'Đã là đoạn cuối cùng' : 'Dời đoạn xuống'"
                 @click="$emit('move', index, 1)"
               />
             </template>
@@ -55,7 +55,7 @@
               variant="danger"
               size="sm"
               :disabled="seg.deletable === false"
-              :title="seg.deletable === false ? '该段不可删除' : '删除该段'"
+              :title="seg.deletable === false ? 'Không thể xóa đoạn này' : 'Xóa đoạn này'"
               @click="$emit('delete', index)"
             />
           </div>
@@ -65,23 +65,23 @@
           :model-value="seg.content"
           :rows="rows"
           disabled
-          title="具体格式输出 · 只读；随工具调用开关显示当前生效的回答。"
+          title="Đầu ra định dạng cụ thể · chỉ đọc; hiển thị câu trả lời đang có hiệu lực theo công tắc gọi công cụ."
         />
         <AcuTextarea
           v-else-if="isAgentSnapshotSlot_ACU(seg)"
           :model-value="seg.snapshotTemplate || ''"
           :rows="rows"
-          placeholder="运行时状态快照模板（SYSTEM）；可编辑正文和资料占位符。"
+          placeholder="Mẫu snapshot trạng thái lúc chạy (SYSTEM); có thể sửa nội dung và placeholder tài liệu."
           @update:model-value="$emit('update', index, { snapshotTemplate: $event })"
         />
         <AcuTextarea
           v-else-if="!isAgentFixedSlot_ACU(seg)"
           :model-value="seg.content"
           :rows="rows"
-          placeholder="提示词内容..."
+          placeholder="Nội dung prompt..."
           @update:model-value="$emit('update', index, { content: $event })"
         />
-        <p v-else-if="isAgentHistorySlot_ACU(seg)" class="acu-prompt-segs__history">真实历史上下文 · 固定插入板块。请求时使用每条真实对话的原身份展开，不包裹为单条提示词；可上下移动调整位置。</p>
+        <p v-else-if="isAgentHistorySlot_ACU(seg)" class="acu-prompt-segs__history">Ngữ cảnh lịch sử thực · khối chèn cố định. Khi gửi yêu cầu, mỗi hội thoại thực được mở ra với đúng vai trò gốc, không gói thành một prompt đơn; có thể dời lên/xuống để chỉnh vị trí.</p>
       </li>
       <li v-if="!segments.length" class="acu-prompt-segs__empty">
         {{ emptyText }}
@@ -89,7 +89,7 @@
     </ol>
     <div class="acu-prompt-segs__add">
       <AcuButton size="sm" class="acu-prompt-segs__add-btn" @click="$emit('add', 'bottom')">
-        <i class="fa-solid fa-plus"></i> 在最下方插入
+        <i class="fa-solid fa-plus"></i> Chèn xuống dưới cùng
       </AcuButton>
     </div>
   </div>
@@ -116,9 +116,9 @@ const DEFAULT_ROLE_OPTIONS: AcuSelectOption[] = [
 ];
 
 const DEFAULT_SLOT_OPTIONS: AcuSelectOption[] = [
-  { value: '', label: '普通段' },
-  { value: 'A', label: '主插槽 A' },
-  { value: 'B', label: '主插槽 B' },
+  { value: '', label: 'Đoạn thường' },
+  { value: 'A', label: 'Slot chính A' },
+  { value: 'B', label: 'Slot chính B' },
 ];
 </script>
 
@@ -147,7 +147,7 @@ withDefaults(defineProps<{
   showEnabled: false,
   allowMove: false,
   rows: 6,
-  emptyText: '暂无提示词段。点击下方按钮添加第一段。',
+  emptyText: 'Chưa có đoạn prompt. Bấm nút bên dưới để thêm đoạn đầu tiên.',
 });
 
 const emit = defineEmits<{

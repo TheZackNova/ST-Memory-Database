@@ -37,7 +37,7 @@ function getRequestHeaders_ACU(): Record<string, string> {
 }
 
 function normalizeError_ACU(error: any): string {
-    return String(error?.message || error || '未知错误');
+    return String(error?.message || error || 'Lỗi không xác định');
 }
 
 const VECTOR_INDEX_OBJECT_PATH_MAX_LENGTH_ACU = 240;
@@ -199,9 +199,9 @@ export function buildVectorIndexSingleSnapshotV2FilePath_ACU(parts: {
     if (path.length > VECTOR_INDEX_OBJECT_PATH_MAX_LENGTH_ACU) {
         // scopeToken 已定长，只有 indexId / writeGeneration 被放宽才可能触发；这是编程错误而非用户数据问题。
         throw new Error(
-            `[纪要向量索引] V2 快照对象路径超长: length=${path.length}, max=${VECTOR_INDEX_OBJECT_PATH_MAX_LENGTH_ACU}，`
-            + `scopeToken 占用 ${scopeToken.length} 字符，indexId 占用 ${indexId.length} 字符，writeGeneration 占用 ${writeGeneration.length} 字符。`
-            + '禁止截断任何路径段后继续写入。',
+            `[Chỉ mục vector kỷ yếu] Đường dẫn đối tượng snapshot V2 quá dài: length=${path.length}, max=${VECTOR_INDEX_OBJECT_PATH_MAX_LENGTH_ACU}, `
+            + `scopeToken chiếm ${scopeToken.length} ký tự, indexId chiếm ${indexId.length} ký tự, writeGeneration chiếm ${writeGeneration.length} ký tự.`
+            + 'Cấm cắt bất kỳ đoạn đường dẫn nào rồi tiếp tục ghi.',
         );
     }
     return path;
@@ -225,9 +225,9 @@ export function buildVectorIndexContentPackPathV2_ACU(parts: {
     const path = `${VECTOR_INDEX_CONTENT_PACK_PATH_V2_PREFIX_ACU}${scopeToken}_${packKey}`;
     if (path.length > VECTOR_INDEX_OBJECT_PATH_MAX_LENGTH_ACU) {
         throw new Error(
-            `[纪要向量索引] 内容寻址 pack 对象路径超长: length=${path.length}, max=${VECTOR_INDEX_OBJECT_PATH_MAX_LENGTH_ACU}，`
-            + `scopeToken 占用 ${scopeToken.length} 字符，packKey 占用 ${packKey.length} 字符。`
-            + '禁止截断任何路径段后继续写入。',
+            `[Chỉ mục vector kỷ yếu] Đường dẫn đối tượng pack định địa chỉ theo nội dung quá dài: length=${path.length}, max=${VECTOR_INDEX_OBJECT_PATH_MAX_LENGTH_ACU}, `
+            + `scopeToken chiếm ${scopeToken.length} ký tự, packKey chiếm ${packKey.length} ký tự.`
+            + 'Cấm cắt bất kỳ đoạn đường dẫn nào rồi tiếp tục ghi.',
         );
     }
     return path;
@@ -249,9 +249,9 @@ export function buildVectorIndexMirrorManifestPathV2_ACU(parts: {
     const path = `${VECTOR_INDEX_MIRROR_MANIFEST_PATH_V2_PREFIX_ACU}${scopeToken}_${manifestHash}`;
     if (path.length > VECTOR_INDEX_OBJECT_PATH_MAX_LENGTH_ACU) {
         throw new Error(
-            `[纪要向量索引] 镜像 checkpoint manifest 对象路径超长: length=${path.length}, max=${VECTOR_INDEX_OBJECT_PATH_MAX_LENGTH_ACU}，`
-            + `scopeToken 占用 ${scopeToken.length} 字符，manifestHash 占用 ${manifestHash.length} 字符。`
-            + '禁止截断任何路径段后继续写入。',
+            `[Chỉ mục vector kỷ yếu] Đường dẫn đối tượng manifest checkpoint mirror quá dài: length=${path.length}, max=${VECTOR_INDEX_OBJECT_PATH_MAX_LENGTH_ACU}, `
+            + `scopeToken chiếm ${scopeToken.length} ký tự, manifestHash chiếm ${manifestHash.length} ký tự.`
+            + 'Cấm cắt bất kỳ đoạn đường dẫn nào rồi tiếp tục ghi.',
         );
     }
     return path;
@@ -465,7 +465,7 @@ export async function uploadVectorIndexJsonFile_ACU(params: {
         });
         if (!response.ok) {
             const detail = await response.text().catch(() => response.statusText);
-            return { ok: false, error: `上传失败 ${response.status}: ${detail}` };
+            return { ok: false, error: `Tải lên thất bại ${response.status}: ${detail}` };
         }
         const now = new Date().toISOString();
         return {
@@ -554,7 +554,7 @@ async function vectorIndexFileExists_ACU(path: string): Promise<boolean> {
 export async function deleteVectorIndexFile_ACU(path: string): Promise<VectorIndexFileDeleteResult_ACU> {
     const normalizedPath = normalizeDeletePathInput_ACU(path);
     if (!normalizedPath) {
-        return { ok: false, path, error: '删除失败：文件路径为空' };
+        return { ok: false, path, error: 'Xóa thất bại: đường dẫn tệp rỗng' };
     }
 
     const attempts: string[] = [];
@@ -587,7 +587,7 @@ export async function deleteVectorIndexFile_ACU(path: string): Promise<VectorInd
     return {
         ok: false,
         path: normalizedPath,
-        error: `删除失败，已尝试 ${attempts.length} 种 path 请求体: ${attempts.join('；')}`,
+        error: `Xóa thất bại, đã thử ${attempts.length} kiểu thân yêu cầu path: ${attempts.join('; ')}`,
     };
 }
 
@@ -616,9 +616,9 @@ export async function saveVectorIndexRegistry_ACU(registry: SummaryVectorIndexRe
         status: 'ready',
     });
     if (!saved.ok) {
-        const detail = saved.error || '未知上传失败';
+        const detail = saved.error || 'Tải lên thất bại không xác định';
         logWarn_ACU('[交火向量索引] registry 保存失败:', detail);
-        throw new Error(`[交火向量索引] registry 保存失败: path=${SUMMARY_VECTOR_INDEX_REGISTRY_PATH_ACU}; error=${detail}`);
+        throw new Error(`[Chỉ mục vector giao hỏa] Lưu registry thất bại: path=${SUMMARY_VECTOR_INDEX_REGISTRY_PATH_ACU}; error=${detail}`);
     }
 }
 

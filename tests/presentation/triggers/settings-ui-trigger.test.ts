@@ -127,7 +127,7 @@ describe('triggerAutomaticUpdateIfNeeded_ACU 逐次串行调度', () => {
         options.onProgress({ phase: 'calling_ai', attempt: 2, maxRetries: 2 });
         expect(m.beginTask).toHaveBeenCalledTimes(taskCount + 1);
         const action = m.beginTask.mock.calls[taskCount][1].action;
-        expect(action.label).toBe('终止');
+        expect(action.label).toBe('Dừng');
         action.run();
         expect(options.abortController.signal.aborted).toBe(true);
         return { success: true, failedGroups: [] };

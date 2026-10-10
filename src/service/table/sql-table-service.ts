@@ -145,7 +145,7 @@ function tokenizeSqlMutationIdentifiers_ACU(statement: string): SqlMutationIdent
     if (char === '/' && next === '*') {
       index += 2;
       while (index < statement.length && !(statement[index] === '*' && statement[index + 1] === '/')) index += 1;
-      if (index >= statement.length) throw new Error('SQL 块注释未闭合，无法安全重绑定表名。');
+      if (index >= statement.length) throw new Error('Chú thích khối SQL chưa đóng, không thể gán lại tên bảng an toàn.');
       index += 2;
       continue;
     }
@@ -161,7 +161,7 @@ function tokenizeSqlMutationIdentifiers_ACU(statement: string): SqlMutationIdent
           break;
         }
       }
-      if (index > statement.length || statement[index - 1] !== "'") throw new Error('SQL 字符串未闭合，无法安全重绑定表名。');
+      if (index > statement.length || statement[index - 1] !== "'") throw new Error('Chuỗi SQL chưa đóng, không thể gán lại tên bảng an toàn.');
       continue;
     }
     if (char === ',') {
@@ -198,7 +198,7 @@ function tokenizeSqlMutationIdentifiers_ACU(statement: string): SqlMutationIdent
           break;
         }
       }
-      if (!closed) throw new Error('SQL 引号标识符未闭合，无法安全重绑定表名。');
+      if (!closed) throw new Error('Định danh có dấu nháy trong SQL chưa đóng, không thể gán lại tên bảng an toàn.');
       tokens.push({ start, end: index, value, quote: char, depth, commaBefore: commaBeforeDepths.delete(depth) });
       continue;
     }
@@ -220,7 +220,7 @@ function isSqlMutationKeyword_ACU(token: SqlMutationIdentifierToken_ACU | undefi
 
 function getSqlMutationActionIndex_ACU(tokens: SqlMutationIdentifierToken_ACU[]): number {
   const first = tokens[0];
-  if (!first) throw new Error('SQL 语句为空或缺少可验证的写入动作。');
+  if (!first) throw new Error('Câu lệnh SQL rỗng hoặc thiếu thao tác ghi có thể xác minh.');
   if (!isSqlMutationKeyword_ACU(first, 'WITH')) return 0;
   const actionIndex = tokens.findIndex((token, index) => index > 0 && token.depth === 0 && (
     isSqlMutationKeyword_ACU(token, 'INSERT')
@@ -228,7 +228,7 @@ function getSqlMutationActionIndex_ACU(tokens: SqlMutationIdentifierToken_ACU[])
     || isSqlMutationKeyword_ACU(token, 'UPDATE')
     || isSqlMutationKeyword_ACU(token, 'DELETE')
   ));
-  if (actionIndex < 0) throw new Error('WITH SQL 缺少可验证的写入语句。');
+  if (actionIndex < 0) throw new Error('WITH SQL thiếu câu lệnh ghi có thể xác minh.');
   return actionIndex;
 }
 
@@ -257,13 +257,13 @@ function getSqlMutationTargetToken_ACU(statement: string, tokens: SqlMutationIde
     if (isSqlMutationKeyword_ACU(action, 'INSERT') && isSqlMutationKeyword_ACU(tokens[index], 'OR')) {
       const action = tokens[index + 1];
       if (!action || action.quote !== null || !new Set(['ROLLBACK', 'ABORT', 'REPLACE', 'FAIL', 'IGNORE']).has(action.value.toUpperCase())) {
-        throw new Error('INSERT OR 子句非法，无法安全重绑定表名。');
+        throw new Error('Mệnh đề INSERT OR không hợp lệ, không thể gán lại tên bảng an toàn.');
       }
       index += 2;
     }
     const target = getQualifiedSqlIdentifierTail_ACU(statement, tokens, index + 1);
     if (!isSqlMutationKeyword_ACU(tokens[index], 'INTO') || !target) {
-      throw new Error('INSERT/REPLACE SQL 缺少可验证的目标表。');
+      throw new Error('INSERT/REPLACE SQL thiếu bảng đích có thể xác minh.');
     }
     return target;
   }
@@ -272,20 +272,20 @@ function getSqlMutationTargetToken_ACU(statement: string, tokens: SqlMutationIde
     if (isSqlMutationKeyword_ACU(tokens[index], 'OR')) {
       const action = tokens[index + 1];
       if (!action || action.quote !== null || !new Set(['ROLLBACK', 'ABORT', 'REPLACE', 'FAIL', 'IGNORE']).has(action.value.toUpperCase())) {
-        throw new Error('UPDATE OR 子句非法，无法安全重绑定表名。');
+        throw new Error('Mệnh đề UPDATE OR không hợp lệ, không thể gán lại tên bảng an toàn.');
       }
       index += 2;
     }
     const target = getQualifiedSqlIdentifierTail_ACU(statement, tokens, index);
-    if (!target) throw new Error('UPDATE SQL 缺少可验证的目标表。');
+    if (!target) throw new Error('UPDATE SQL thiếu bảng đích có thể xác minh.');
     return target;
   }
   if (isSqlMutationKeyword_ACU(action, 'DELETE')) {
     const target = getQualifiedSqlIdentifierTail_ACU(statement, tokens, actionIndex + 2);
-    if (!isSqlMutationKeyword_ACU(tokens[actionIndex + 1], 'FROM') || !target) throw new Error('DELETE SQL 缺少可验证的目标表。');
+    if (!isSqlMutationKeyword_ACU(tokens[actionIndex + 1], 'FROM') || !target) throw new Error('DELETE SQL thiếu bảng đích có thể xác minh.');
     return target;
   }
-  throw new Error(`SQLite 填表仅允许 INSERT、REPLACE、UPDATE、DELETE 数据变更语句，收到：${action?.value || 'empty'}。禁止输出 CREATE、ALTER、DROP、事务或查询语句。`);
+  throw new Error(`Điền bảng SQLite chỉ cho phép các câu lệnh thay đổi dữ liệu INSERT, REPLACE, UPDATE, DELETE, nhận được: ${action?.value || 'empty'}. Cấm xuất CREATE, ALTER, DROP, giao dịch hoặc câu lệnh truy vấn.`);
 }
 
 function collectSqlMutationTableReferenceTokens_ACU(
@@ -495,7 +495,7 @@ export function captureSqlTableApplyScope_ACU(options: {
   const rawTemplateData = options.templateData ? stripSeedRowsFromTemplate_ACU(JSON.parse(JSON.stringify(options.templateData))) : resolveChatTemplateData_ACU({ ...options, stripSeedRows: true });
   const rawTemplateDataWithRows = options.templateData ? JSON.parse(JSON.stringify(options.templateData)) : resolveChatTemplateData_ACU({ ...options, stripSeedRows: false });
   if (!rawTemplateData || !rawTemplateDataWithRows) {
-    throw new Error(`[SqlTableService] 无法捕获提交模板上下文 (isolationKey=${options.isolationKey || 'default'})。`);
+    throw new Error(`[SqlTableService] Không thể ghi nhận ngữ cảnh mẫu commit (isolationKey=${options.isolationKey || 'default'}). `);
   }
 
   // 非首列空业务表头的模板表在 SQL 活动路径中休眠跳过：
@@ -563,17 +563,17 @@ function splitTopLevelSqlList_ACU(value: string, context: string): string[] {
       depth += 1;
     } else if (char === ')') {
       depth -= 1;
-      if (depth < 0) throw new Error(`${context} 的括号不匹配。`);
+      if (depth < 0) throw new Error(`${context} có ngoặc không khớp.`);
     } else if (char === ',' && depth === 0) {
       const item = value.slice(start, index).trim();
-      if (!item) throw new Error(`${context} 包含空项。`);
+      if (!item) throw new Error(`${context} chứa mục rỗng.`);
       items.push(item);
       start = index + 1;
     }
   }
-  if (quote || depth !== 0) throw new Error(`${context} 的字符串或括号未闭合。`);
+  if (quote || depth !== 0) throw new Error(`${context} có chuỗi hoặc ngoặc chưa đóng.`);
   const item = value.slice(start).trim();
-  if (!item) throw new Error(`${context} 包含空项。`);
+  if (!item) throw new Error(`${context} chứa mục rỗng.`);
   items.push(item);
   return items;
 }
@@ -598,7 +598,7 @@ function findSqlClosingParen_ACU(value: string, openingIndex: number, context: s
       if (depth < 0) break;
     }
   }
-  throw new Error(`${context} 的括号未闭合。`);
+  throw new Error(`${context} có ngoặc chưa đóng.`);
 }
 
 function buildRowIdReservationsByRuntimeTable_ACU(
@@ -768,7 +768,7 @@ function collectSignificantCharsBetween_ACU(
     }
     if (char === '/' && next === '*') {
       const end = statement.indexOf('*/', index + 2);
-      if (end < 0 || end + 2 > to) throw new Error(`${context} 的 SQL 块注释未闭合或跨越边界，无法安全解析。`);
+      if (end < 0 || end + 2 > to) throw new Error(`${context} có chú thích khối SQL chưa đóng hoặc vượt biên, không thể phân tích an toàn.`);
       index = end + 2;
       continue;
     }
@@ -802,7 +802,7 @@ function extractSqlInsertColumns_ACU(
 ): SqlInsertColumnList_ACU {
   const targetIndex = tokens.indexOf(target);
   if (targetIndex < 0) {
-    throw new Error(`${context} 无法定位目标表 token。`);
+    throw new Error(`${context} không thể xác định token bảng đích.`);
   }
   // 目标表后第一个 depth+1 的 token 即列清单首列。
   let openIndex = -1;
@@ -819,7 +819,7 @@ function extractSqlInsertColumns_ACU(
   }
   if (openIndex < 0) {
     // 无列清单：调用方（materialize）要求显式列，这里抛错保持 fail-closed。
-    throw new Error(`${context} 必须显式列出业务列，系统才能分配 row_id。`);
+    throw new Error(`${context} phải liệt kê tường minh các cột nghiệp vụ để hệ thống mới có thể cấp row_id.`);
   }
 
   const columns: SqlInsertColumnToken_ACU[] = [];
@@ -833,37 +833,37 @@ function extractSqlInsertColumns_ACU(
       break;
     }
     if (token.depth > target.depth + 1) {
-      throw new Error(`${context} 的列清单包含表达式或限定名，无法安全解析。`);
+      throw new Error(`${context} có danh sách cột chứa biểu thức hoặc tên đủ điều kiện, không thể phân tích an toàn.`);
     }
     if (token.depth === target.depth + 1) {
       // 合法列 token：非关键字、非空、非重复；分隔由 token 间有效字符精确校验。
       const isKeyword = token.quote === null && INSERT_COLUMN_KEYWORDS_ACU.has(token.value.toUpperCase());
       if (isKeyword) {
-        throw new Error(`${context} 的列清单包含非法标识符「${token.value}」。`);
+        throw new Error(`${context} có danh sách cột chứa định danh không hợp lệ「${token.value}」. `);
       }
       const normalized = decodeSqlIdentifier_ACU(token.value).toLowerCase();
       if (!normalized || !/^[a-z_][a-z0-9_$]*$/i.test(normalized)) {
-        throw new Error(`${context} 的列名无法安全解析：「${token.value}」。`);
+        throw new Error(`${context} có tên cột không thể phân tích an toàn: 「${token.value}」. `);
       }
       if (seen.has(normalized)) {
-        throw new Error(`${context} 的列名重复：「${token.value}」。`);
+        throw new Error(`${context} có tên cột trùng: 「${token.value}」. `);
       }
       seen.add(normalized);
       if (previousColumn === null) {
         // 首列前必须恰好一个 `(`（注释/空白被跳过）。
         const between = collectSignificantCharsBetween_ACU(statement, target.end, token.start, context);
         if (between.length !== 1 || between[0].char !== '(') {
-          throw new Error(`${context} 的列清单必须以括号开头，无法安全解析。`);
+          throw new Error(`${context} có danh sách cột phải bắt đầu bằng ngoặc, không thể phân tích an toàn.`);
         }
       } else if (token.commaBefore) {
         // tokenizer 只记录「此 token 前有逗号」；`a,,b` 的连续逗号会被 Set 去重，
         // commaBefore 仍为 true，必须用区段扫描确认 token 间恰好一个 `,`（拒绝空项）。
         const between = collectSignificantCharsBetween_ACU(statement, previousColumn.token.end, token.start, context);
         if (between.length !== 1 || between[0].char !== ',') {
-          throw new Error(`${context} 的列清单包含空项或多余逗号，无法安全解析。`);
+          throw new Error(`${context} có danh sách cột chứa mục rỗng hoặc dấu phẩy thừa, không thể phân tích an toàn.`);
         }
       } else {
-        throw new Error(`${context} 的列清单缺少逗号分隔，无法安全解析。`);
+        throw new Error(`${context} có danh sách cột thiếu dấu phẩy phân cách, không thể phân tích an toàn.`);
       }
       columns.push({
         token,
@@ -876,14 +876,14 @@ function extractSqlInsertColumns_ACU(
   }
 
   if (columns.length === 0) {
-    throw new Error(`${context} 的列清单为空，无法安全解析。`);
+    throw new Error(`${context} có danh sách cột rỗng, không thể phân tích an toàn.`);
   }
   // 闭括号定位：最后一个列 token 之后第一个有效字符必须是 `)`（允许行/块注释与空白），
   // 尾逗号（第一个有效字符为 `,`）直接拒绝；`--` 行注释会把同一行的 `)` 吞掉 → 抛未闭合。
   const lastColumn = columns[columns.length - 1].token;
   const afterLast = collectSignificantCharsBetween_ACU(statement, lastColumn.end, statement.length, context);
   if (afterLast.length === 0 || afterLast[0].char !== ')') {
-    throw new Error(`${context} 的列清单括号未闭合，无法安全解析。`);
+    throw new Error(`${context} có ngoặc của danh sách cột chưa đóng, không thể phân tích an toàn.`);
   }
   closingParenEnd = afterLast[0].index + 1;
 
@@ -902,12 +902,12 @@ export interface SqlMaterializeSelectQueryRunner_ACU {
 function literalizeSqlValueForMaterialization_ACU(value: unknown, context: string): string {
   if (value === null || value === undefined) return 'NULL';
   if (typeof value === 'number') {
-    if (!Number.isFinite(value)) throw new Error(`${context} 的查询结果包含非有限数值，无法物化。`);
+    if (!Number.isFinite(value)) throw new Error(`${context} có kết quả truy vấn chứa giá trị không hữu hạn, không thể vật chất hóa.`);
     return String(value);
   }
   if (typeof value === 'bigint') return value.toString();
   if (typeof value === 'string') return `'${value.replace(/'/g, "''")}'`;
-  throw new Error(`${context} 的查询结果包含无法物化的值类型，无法安全转为 SQL 字面量。`);
+  throw new Error(`${context} có kết quả truy vấn chứa kiểu giá trị không thể vật chất hóa, không thể chuyển an toàn thành literal SQL.`);
 }
 
 /**
@@ -931,7 +931,7 @@ function repairSqlInsertValueCountMismatch_ACU(
     logWarn_ACU(`[SqlTableService] ${context} 的值比列少 ${columnCount - values.length} 个：已按 AI 漏写尾部可选列处理，尾部补 NULL。`);
     return [...values, ...new Array(columnCount - values.length).fill('NULL')];
   }
-  throw new Error(`${context} 的值数量与列数量不一致。`);
+  throw new Error(`${context} có số giá trị không khớp số cột.`);
 }
 
 /**
@@ -955,7 +955,7 @@ export function materializeSystemRowIdsForSqlInserts_ACU(
 ): string[] {
   const reservations = buildRowIdReservationsByRuntimeTable_ACU(tableData, additionalReservations);
   return statements.map((statement, statementIndex) => {
-    const context = `AI INSERT 第 ${statementIndex + 1} 条`;
+    const context = `AI INSERT câu thứ ${statementIndex + 1}`;
     const tokens = tokenizeSqlMutationIdentifiers_ACU(statement);
     const actionIndex = getSqlMutationActionIndex_ACU(tokens);
     const action = tokens[actionIndex];
@@ -967,12 +967,12 @@ export function materializeSystemRowIdsForSqlInserts_ACU(
     const target = getSqlMutationTargetToken_ACU(statement, tokens);
     const reservation = reservations.get(target.value.toLowerCase());
     if (!reservation) {
-      throw new Error(`${context} 无法识别目标表：${target.value}。`);
+      throw new Error(`${context} không nhận diện được bảng đích: ${target.value}. `);
     }
     const suffix = statement.slice(target.end).trim();
     if (!suffix.startsWith('(')) {
       // 无显式列清单一律拒绝（含 INSERT SELECT）：系统无法确定 row_id 之外的列对应关系。
-      throw new Error(`${context} 必须显式列出业务列，系统才能分配 row_id。`);
+      throw new Error(`${context} phải liệt kê tường minh các cột nghiệp vụ để hệ thống mới có thể cấp row_id.`);
     }
     // [阶段 D] 统一为 token 语义：tokenizer 天然跳过列间/列后注释，杜绝注释残留在
     // 列项中导致「列名无法安全解析」（test31 根因 3.3）。
@@ -983,7 +983,7 @@ export function materializeSystemRowIdsForSqlInserts_ACU(
       .filter((_, index) => index !== suppliedRowIdIndex)
       .map(column => column.raw);
     if (businessColumns.length === 0) {
-      throw new Error(`${context} 剔除 row_id 后没有业务列，无法执行插入。`);
+      throw new Error(`${context} sau khi loại row_id không còn cột nghiệp vụ, không thể thực hiện chèn.`);
     }
     const payloadText = statement.slice(columnList.closingParenEnd).trim();
     // 重建头部：WITH 前缀不进入物化结果（SELECT 已被预执行消化），冲突子句前缀
@@ -993,21 +993,21 @@ export function materializeSystemRowIdsForSqlInserts_ACU(
     let tuples: string[][];
     if (/^VALUES\b/i.test(payloadText)) {
       if (withPrefix) {
-        throw new Error(`${context} 不支持 WITH 前缀的 VALUES 插入；请使用标准 INSERT INTO ... (列名) VALUES (...).`);
+        throw new Error(`${context} không hỗ trợ chèn VALUES có tiền tố WITH; hãy dùng INSERT INTO ... (tên cột) VALUES (...) chuẩn.`);
       }
       const tupleText = payloadText.slice('VALUES'.length).trim();
       const rawTuples = splitTopLevelSqlList_ACU(tupleText, `${context} VALUES`);
       tuples = rawTuples.map((tuple, tupleIndex) => {
-        if (!tuple.startsWith('(') || findSqlClosingParen_ACU(tuple, 0, `${context} 第 ${tupleIndex + 1} 个 VALUES`) !== tuple.length - 1) {
-          throw new Error(`${context} 只支持括号包裹的 VALUES 行。`);
+        if (!tuple.startsWith('(') || findSqlClosingParen_ACU(tuple, 0, `${context} VALUES thứ ${tupleIndex + 1}`) !== tuple.length - 1) {
+          throw new Error(`${context} chỉ hỗ trợ hàng VALUES được bọc trong ngoặc.`);
         }
-        const values = splitTopLevelSqlList_ACU(tuple.slice(1, -1), `${context} 第 ${tupleIndex + 1} 个 VALUES`);
-        return repairSqlInsertValueCountMismatch_ACU(values, columnList.columns.length, suppliedRowIdIndex, `${context} 第 ${tupleIndex + 1} 行`);
+        const values = splitTopLevelSqlList_ACU(tuple.slice(1, -1), `${context} VALUES thứ ${tupleIndex + 1}`);
+        return repairSqlInsertValueCountMismatch_ACU(values, columnList.columns.length, suppliedRowIdIndex, `${context} hàng thứ ${tupleIndex + 1}`);
       });
     } else if (/^SELECT\b/i.test(payloadText)) {
       const runner = options?.selectQueryRunner;
       if (!runner) {
-        throw new Error(`${context} 在当前执行路径不支持 INSERT SELECT；请改为显式业务列的 VALUES 插入。`);
+        throw new Error(`${context} không hỗ trợ INSERT SELECT trong đường thực thi hiện tại; hãy đổi sang chèn VALUES với các cột nghiệp vụ tường minh.`);
       }
       let queryResult: { columns: string[]; values: unknown[][] };
       try {
@@ -1015,22 +1015,22 @@ export function materializeSystemRowIdsForSqlInserts_ACU(
         // VALUES 文本同时是 live 执行与回放的输入，两侧结果按构造一致。
         queryResult = runner(`${withPrefix}${payloadText}`);
       } catch (error: any) {
-        throw new Error(`${context} 的 SELECT 预执行失败：${error?.message || String(error)}`);
+        throw new Error(`${context} có SELECT thực thi trước thất bại: ${error?.message || String(error)}`);
       }
       if (queryResult.values.length > SQL_INSERT_SELECT_MATERIALIZE_ROW_CAP_ACU) {
-        throw new Error(`${context} 的 SELECT 结果 ${queryResult.values.length} 行，超过物化上限 ${SQL_INSERT_SELECT_MATERIALIZE_ROW_CAP_ACU} 行，已拒绝。`);
+        throw new Error(`${context} có kết quả SELECT ${queryResult.values.length} hàng, vượt giới hạn vật chất hóa ${SQL_INSERT_SELECT_MATERIALIZE_ROW_CAP_ACU} hàng, đã từ chối.`);
       }
       if (queryResult.values.length === 0) {
         logWarn_ACU(`[SqlTableService] ${context} 的 INSERT SELECT 结果为空，已物化为无操作。`);
         return '';
       }
       if (queryResult.columns.length !== columnList.columns.length) {
-        throw new Error(`${context} 的 SELECT 结果列数（${queryResult.columns.length}）与插入列清单（${columnList.columns.length}）不一致。`);
+        throw new Error(`${context} có số cột kết quả SELECT (${queryResult.columns.length}) không khớp danh sách cột chèn (${columnList.columns.length}).`);
       }
       tuples = queryResult.values.map(row =>
         row.map(value => literalizeSqlValueForMaterialization_ACU(value, context)));
     } else {
-      throw new Error(`${context} 只支持 VALUES 插入或显式列清单的 INSERT SELECT。`);
+      throw new Error(`${context} chỉ hỗ trợ chèn VALUES hoặc INSERT SELECT có danh sách cột tường minh.`);
     }
 
     const materializedTuples = tuples.map(values => {
@@ -1079,13 +1079,13 @@ export function assertNoHiddenPhysicalColumnMutations_ACU(
     const action = tokens[actionIndex];
     const actionKeyword = action?.quote === null ? action.value.toUpperCase() : '';
     if (!new Set(['INSERT', 'REPLACE', 'UPDATE', 'DELETE']).has(actionKeyword)) {
-      throw new Error(`SQLite 填表仅允许 INSERT、REPLACE、UPDATE、DELETE 数据变更语句，收到：${action?.value || 'empty'}。禁止输出 CREATE、ALTER、DROP、事务或查询语句。`);
+      throw new Error(`Điền bảng SQLite chỉ cho phép các câu lệnh thay đổi dữ liệu INSERT, REPLACE, UPDATE, DELETE, nhận được: ${action?.value || 'empty'}. Cấm xuất CREATE, ALTER, DROP, giao dịch hoặc câu lệnh truy vấn.`);
     }
     const target = getSqlMutationTargetToken_ACU(statement, tokens);
     const resolved = sheetsByAlias.get(canonicalizeTableAliasForHiddenProtection_ACU(target.value));
     if (resolved === undefined) continue;
     if (resolved === null) {
-      const error = new Error(`无法唯一解析隐藏列保护的 SQL 目标表：${target.value}。该名称同时指向多张物理表。`);
+      const error = new Error(`Không thể phân tích duy nhất bảng đích SQL của bảo vệ cột ẩn: ${target.value}. Tên này đồng thời trỏ tới nhiều bảng vật lý.`);
       Object.defineProperty(error, 'code', { value: 'SQL_ALIAS_AMBIGUOUS_ACU', enumerable: false });
       throw error;
     }
@@ -1094,7 +1094,7 @@ export function assertNoHiddenPhysicalColumnMutations_ACU(
 
     const hiddenReferences = tokens.filter(token => token !== target && hidden.has(token.value.toLowerCase()));
     if (hiddenReferences.length > 0) {
-      throw new Error(`SQL mutation 不允许引用隐藏物理列：${[...new Set(hiddenReferences.map(token => token.value))].join('、')}。`);
+      throw new Error(`SQL mutation không được tham chiếu cột vật lý ẩn: ${[...new Set(hiddenReferences.map(token => token.value))].join(', ')}. `);
     }
 
     const isInsert = actionKeyword === 'INSERT' || actionKeyword === 'REPLACE';
@@ -1107,7 +1107,7 @@ export function assertNoHiddenPhysicalColumnMutations_ACU(
       const beforeClause = clauseIndex === -1 ? tokens.slice(targetIndex + 1) : tokens.slice(targetIndex + 1, clauseIndex);
       const columnTokens = beforeClause.filter(token => token.depth === target.depth + 1);
       if (columnTokens.length === 0) {
-        throw new Error(`存在隐藏物理列时，INSERT/REPLACE 必须显式列出可见目标列：${target.value}。`);
+        throw new Error(`Khi có cột vật lý ẩn, INSERT/REPLACE phải liệt kê tường minh các cột đích hiển thị: ${target.value}. `);
       }
     }
   }
@@ -1163,15 +1163,15 @@ function extractRowIdsFromSqlWhereRowId_ACU(
 ): { ok: true; rowIds: string[] } | { ok: false; error: string } {
   const whereIndex = tokens.findIndex((token) => token.quote === null && token.value.toUpperCase() === 'WHERE');
   if (whereIndex < 0) {
-    return { ok: false, error: 'SQL 缺少 WHERE row_id 谓词，无法精确归属历史行。' };
+    return { ok: false, error: 'SQL thiếu vị từ WHERE row_id, không thể quy chính xác về hàng lịch sử.' };
   }
   const trailing = tokens.slice(whereIndex + 1);
   if (trailing.some((token) => token.quote === null && (token.value.toUpperCase() === 'AND' || token.value.toUpperCase() === 'OR'))) {
-    return { ok: false, error: 'SQL WHERE 含复合谓词，无法精确归属历史行。' };
+    return { ok: false, error: 'SQL WHERE chứa vị từ phức hợp, không thể quy chính xác về hàng lịch sử.' };
   }
   const rowIdToken = trailing[0];
   if (!rowIdToken || decodeSqlIdentifier_ACU(rowIdToken.value).toLowerCase() !== 'row_id') {
-    return { ok: false, error: 'SQL WHERE 不是 row_id 谓词，无法精确归属历史行。' };
+    return { ok: false, error: 'SQL WHERE không phải vị từ row_id, không thể quy chính xác về hàng lịch sử.' };
   }
   const predicate = statement.slice(rowIdToken.end).trim().replace(/;+\s*$/, '');
   const placeholdersBeforeWhere = countSqlPlaceholdersOutsideStrings_ACU(statement.slice(0, tokens[whereIndex].start));
@@ -1181,7 +1181,7 @@ function extractRowIdsFromSqlWhereRowId_ACU(
     const rowId = decodeSqlScalarToRowId_ACU(eqMatch[1], params, paramCursor);
     return rowId
       ? { ok: true, rowIds: [rowId] }
-      : { ok: false, error: 'SQL WHERE row_id 标量无法解析。' };
+      : { ok: false, error: 'Không thể phân tích giá trị vô hướng SQL WHERE row_id.' };
   }
   const inMatch = predicate.match(/^IN\s*\((.*)\)\s*$/is);
   if (inMatch) {
@@ -1189,14 +1189,14 @@ function extractRowIdsFromSqlWhereRowId_ACU(
     const rowIds: string[] = [];
     for (const item of items) {
       const rowId = decodeSqlScalarToRowId_ACU(item, params, paramCursor);
-      if (!rowId) return { ok: false, error: 'SQL WHERE row_id IN 含无法解析的项。' };
+      if (!rowId) return { ok: false, error: 'SQL WHERE row_id IN chứa mục không thể phân tích.' };
       rowIds.push(rowId);
     }
     return rowIds.length > 0
       ? { ok: true, rowIds }
-      : { ok: false, error: 'SQL WHERE row_id IN 为空。' };
+      : { ok: false, error: 'SQL WHERE row_id IN rỗng.' };
   }
-  return { ok: false, error: 'SQL WHERE 不是 row_id = / IN 谓词，无法精确归属历史行。' };
+  return { ok: false, error: 'SQL WHERE không phải vị từ row_id = / IN, không thể quy chính xác về hàng lịch sử.' };
 }
 
 function extractRowIdsFromSqlMutationStatement_ACU(
@@ -1213,11 +1213,11 @@ function extractRowIdsFromSqlMutationStatement_ACU(
       const columnList = extractSqlInsertColumns_ACU(statement, tokens, target, 'sql_sheet_batch');
       const rowIdIndex = columnList.columns.findIndex((column) => column.normalized === 'row_id');
       if (rowIdIndex < 0) {
-        return { ok: false, error: 'INSERT/REPLACE 未列出 row_id，无法精确归属历史行。' };
+        return { ok: false, error: 'INSERT/REPLACE không liệt kê row_id, không thể quy chính xác về hàng lịch sử.' };
       }
       const payloadText = statement.slice(columnList.closingParenEnd).trim();
       if (!/^VALUES\b/i.test(payloadText)) {
-        return { ok: false, error: 'INSERT/REPLACE 不是 VALUES 形态，无法精确归属历史行。' };
+        return { ok: false, error: 'INSERT/REPLACE không ở dạng VALUES, không thể quy chính xác về hàng lịch sử.' };
       }
       const tupleText = payloadText.slice('VALUES'.length).trim().replace(/;+\s*$/, '');
       const rawTuples = splitTopLevelSqlList_ACU(tupleText, 'sql_sheet_batch VALUES');
@@ -1225,24 +1225,24 @@ function extractRowIdsFromSqlMutationStatement_ACU(
       const rowIds: string[] = [];
       for (const tuple of rawTuples) {
         if (!tuple.startsWith('(') || findSqlClosingParen_ACU(tuple, 0, 'sql_sheet_batch VALUES') !== tuple.length - 1) {
-          return { ok: false, error: 'INSERT VALUES 不是括号行，无法精确归属历史行。' };
+          return { ok: false, error: 'INSERT VALUES không phải hàng trong ngoặc, không thể quy chính xác về hàng lịch sử.' };
         }
-        const values = splitTopLevelSqlList_ACU(tuple.slice(1, -1), 'sql_sheet_batch VALUES 行');
+        const values = splitTopLevelSqlList_ACU(tuple.slice(1, -1), 'hàng VALUES của sql_sheet_batch');
         const decoded = values.map((value) => decodeSqlScalarToRowId_ACU(value, params, paramCursor));
         const rowId = decoded[rowIdIndex] || null;
-        if (!rowId) return { ok: false, error: 'INSERT VALUES 的 row_id 无法解析。' };
+        if (!rowId) return { ok: false, error: 'Không thể phân tích row_id của INSERT VALUES.' };
         rowIds.push(rowId);
       }
       return rowIds.length > 0
         ? { ok: true, rowIds }
-        : { ok: false, error: 'INSERT VALUES 未解析到 row_id。' };
+        : { ok: false, error: 'INSERT VALUES không phân tích được row_id.' };
     }
     if (keyword === 'UPDATE' || keyword === 'DELETE') {
       return extractRowIdsFromSqlWhereRowId_ACU(statement, tokens, params);
     }
-    return { ok: false, error: `不支持从 ${keyword || 'unknown'} 语句精确归属 row_id。` };
+    return { ok: false, error: `Không hỗ trợ quy row_id chính xác từ câu lệnh ${keyword || 'unknown'}.` };
   } catch (error: any) {
-    return { ok: false, error: error?.message || String(error || 'SQL 解析失败') };
+    return { ok: false, error: error?.message || String(error || 'Phân tích SQL thất bại') };
   }
 }
 
@@ -1253,7 +1253,7 @@ export function extractRowIdsFromSqlSheetBatch_ACU(operation: {
   params?: unknown;
 }): { ok: true; rowIds: string[] } | { ok: false; error: string } {
   if (operation?.kind !== 'sql_sheet_batch') {
-    return { ok: false, error: '不是 sql_sheet_batch。' };
+    return { ok: false, error: 'Không phải sql_sheet_batch.' };
   }
   const statements = Array.isArray(operation.statements) ? operation.statements : [];
   const params = Array.isArray(operation.params) ? operation.params : [];
@@ -1269,7 +1269,7 @@ export function extractRowIdsFromSqlSheetBatch_ACU(operation: {
     extracted.rowIds.forEach((rowId) => rowIds.add(rowId));
   }
   if (!sawStatement || rowIds.size === 0) {
-    return { ok: false, error: 'sql_sheet_batch 没有可归属的 row_id。' };
+    return { ok: false, error: 'sql_sheet_batch không có row_id có thể quy chiếu.' };
   }
   return { ok: true, rowIds: [...rowIds] };
 }
@@ -1301,7 +1301,7 @@ function appendSqlSheetBatchOperation_ACU(
 ): void {
   const last = operations[operations.length - 1] as any;
   if (last?.kind === 'sql_sheet_batch' && last.sheetKey === sheetKey) {
-    if (last.tableName !== tableName) throw new Error(`sql_sheet_batch 合并时发现 runtime 表名不一致：${sheetKey}。`);
+    if (last.tableName !== tableName) throw new Error(`Khi gộp sql_sheet_batch phát hiện tên bảng runtime không nhất quán: ${sheetKey}. `);
     last.statements.push(statement);
     if (param !== undefined || Array.isArray(last.params)) {
       if (!Array.isArray(last.params)) last.params = [];
@@ -1457,7 +1457,7 @@ export class SqlTableService implements ITableStorageProvider {
   }
 
   async restoreRuntimeSnapshot(snapshot: unknown): Promise<void> {
-    if (!(snapshot instanceof Uint8Array)) throw new Error('SQLite 运行时快照无效，无法恢复。');
+    if (!(snapshot instanceof Uint8Array)) throw new Error('Snapshot runtime SQLite không hợp lệ, không thể khôi phục.');
     // 失败时要撤回本实例写入的共享 canonical 视图，避免半成功状态污染其他读者。
     const previousJsonView = this._readCanonicalView_ACU();
     this._releaseNameMapperIfShared_ACU();
@@ -1470,12 +1470,12 @@ export class SqlTableService implements ITableStorageProvider {
     const restoredView = this._syncToJson();
     if (!restoredView) {
       this._initialized = false;
-      throw new Error('sqlite_snapshot_restore_failed: 快照恢复后无法导出 canonical 视图。');
+      throw new Error('sqlite_snapshot_restore_failed: sau khi khôi phục snapshot không thể xuất canonical view.');
     }
     if (!this._tryPublishNameMapper_ACU(restoredView)) {
       this._initialized = false;
       this._revertOwnJsonView_ACU(restoredView, previousJsonView);
-      throw new Error('name_mapper_publish_rejected: 快照恢复后未能发布中英文名映射。');
+      throw new Error('name_mapper_publish_rejected: sau khi khôi phục snapshot không thể phát hành ánh xạ tên Trung-Anh.');
     }
     this._initialized = true;
   }
@@ -1564,7 +1564,7 @@ export class SqlTableService implements ITableStorageProvider {
           this._validateRuntimeSchema_ACU(runtimeSeedData);
           this._publishCanonicalView_ACU(runtimeSeedData);
           if (!this._tryPublishNameMapper_ACU(runtimeSeedData)) {
-            throw new Error('name_mapper_publish_rejected: 未能发布当前 runtime 的中英文名映射。');
+            throw new Error('name_mapper_publish_rejected: không thể phát hành ánh xạ tên Trung-Anh của runtime hiện tại.');
           }
           this._initialized = true;
           this._existingTableSet = undefined;
@@ -1580,7 +1580,7 @@ export class SqlTableService implements ITableStorageProvider {
         // runtime 没有任何表可映射。显式标记空 schema，避免同步读门禁把它
         // 误判成「mapper 意外丢失」并按异常反复告警。
         if (!publishGlobalNameMapperEmptySchema_ACU(this.nameMapperOwner_ACU)) {
-          throw new Error('name_mapper_publish_rejected: 未能发布空 schema 标记。');
+          throw new Error('name_mapper_publish_rejected: không thể phát hành dấu schema rỗng.');
         }
         this._initialized = true;
         this._existingTableSet = undefined;
@@ -1591,7 +1591,7 @@ export class SqlTableService implements ITableStorageProvider {
       this._validateRuntimeSchema_ACU(mergedData as TableDataObject_ACU);
       this._publishCanonicalView_ACU(mergedData as TableDataObject_ACU);
       if (!this._tryPublishNameMapper_ACU(mergedData as TableDataObject_ACU)) {
-        throw new Error('name_mapper_publish_rejected: 未能发布当前 runtime 的中英文名映射。');
+        throw new Error('name_mapper_publish_rejected: không thể phát hành ánh xạ tên Trung-Anh của runtime hiện tại.');
       }
       this._initialized = true;
       this._existingTableSet = undefined;
@@ -1635,7 +1635,7 @@ export class SqlTableService implements ITableStorageProvider {
       this._publishCanonicalView_ACU(cloned);
       ownJsonView = cloned;
       if (!this._tryPublishNameMapper_ACU(cloned)) {
-        throw new Error('name_mapper_publish_rejected: 未能发布替换后 runtime 的中英文名映射。');
+        throw new Error('name_mapper_publish_rejected: không thể phát hành ánh xạ tên Trung-Anh của runtime sau khi thay thế.');
       }
       this._initialized = true;
       this._existingTableSet = undefined;
@@ -2045,16 +2045,16 @@ export class SqlTableService implements ITableStorageProvider {
       if (!isSqlActiveTemplateSheet_ACU(sheet)) continue;
       const runtimeTableName = getPhysicalTableNameForSheet_ACU(data, key);
       if (!actualTables.has(runtimeTableName)) {
-        throw new Error(`schema_missing_table: ${key} (${runtimeTableName}) 未在 SQLite runtime 中创建。`);
+        throw new Error(`schema_missing_table: ${key} (${runtimeTableName}) chưa được tạo trong SQLite runtime.`);
       }
       const runtimeSchema = runtimeSchemas.get(key);
       if (!runtimeSchema) {
-        throw new Error(`schema_missing_runtime_descriptor: ${key} 缺少 SyncBridge 实际执行 schema。`);
+        throw new Error(`schema_missing_runtime_descriptor: ${key} thiếu schema SyncBridge thực sự thực thi.`);
       }
       const actualColumns = new Set(this.engine.getTableInfo(runtimeTableName).map(column => column.name));
       for (const mapping of runtimeSchema.columnMap.mappings) {
         if (!actualColumns.has(mapping.sqlName)) {
-          throw new Error(`schema_missing_column: ${key} (${runtimeTableName}).${mapping.sqlName} 未在 SQLite runtime 中创建。`);
+          throw new Error(`schema_missing_column: ${key} (${runtimeTableName}).${mapping.sqlName} chưa được tạo trong SQLite runtime.`);
         }
       }
     }
@@ -2090,7 +2090,7 @@ export class SqlTableService implements ITableStorageProvider {
       // 与 SyncBridge 实际采用的 schema 同源，不能使用可能已 fallback 的旧 sourceData.ddl。
       const runtimeSchema = runtimeSchemas.get(key);
       if (!runtimeSchema) {
-        throw new Error(`${key} 缺少 SyncBridge 实际执行 schema。`);
+        throw new Error(`${key} thiếu schema SyncBridge thực sự thực thi.`);
       }
       ddlMap.set(getPhysicalTableNameForSheet_ACU(data, key), runtimeSchema.effectiveDDL);
     }
@@ -2133,7 +2133,7 @@ export class SqlTableService implements ITableStorageProvider {
   /** 确保引擎已初始化 */
   private _ensureInitialized(): void {
     if (!this._initialized || !this.engine.isReady) {
-      throw new Error('[SqlTableService] SQLite 引擎未初始化，请先调用 loadFromChat()');
+      throw new Error('[SqlTableService] Engine SQLite chưa được khởi tạo, hãy gọi loadFromChat() trước');
     }
   }
 
@@ -2148,20 +2148,20 @@ export class SqlTableService implements ITableStorageProvider {
     const frozenDigest = scope?.runtimeSchema?.digest;
     if (!frozenDigest) return; // 无冻结 schema：兼容旧调用方，不做 gate。
     if (!this._initialized || !this.engine.isReady) {
-      throw new SqlRuntimeSchemaInvalidError_ACU('SQLite 运行时未就绪，无法验证冻结 schema 一致性，已阻止本轮写入。');
+      throw new SqlRuntimeSchemaInvalidError_ACU('Runtime SQLite chưa sẵn sàng, không thể xác minh tính nhất quán của schema đã đóng băng, đã chặn lần ghi này.');
     }
     let currentData: TableDataObject_ACU | null;
     try {
       const mate = (this._readCanonicalView_ACU()?.mate as Mate_ACU) || DEFAULT_MATE_ACU;
       currentData = this.syncBridge.exportToTableData(mate);
     } catch (error: any) {
-      throw new SqlRuntimeSchemaInvalidError_ACU(`无法导出当前 SQLite schema 用于一致性验证：${String(error?.message || error)}`);
+      throw new SqlRuntimeSchemaInvalidError_ACU(`Không thể xuất schema SQLite hiện tại để xác minh tính nhất quán: ${String(error?.message || error)}`);
     }
     const activeSheetKeys = scope?.activeSheetKeys ? new Set(scope.activeSheetKeys) : undefined;
     const current = freezeRuntimeSchemaFromData_ACU(currentData, activeSheetKeys);
     if (!current || current.digest !== frozenDigest) {
       throw new SqlRuntimeSchemaStaleError_ACU(
-        'SQLite runtime schema 在 AI 请求等待期间发生变化，与请求前冻结的 schema 不一致，已阻止本轮写入（零 mutation）。请重新发起本轮填表。',
+        'SQLite runtime schema đã thay đổi trong lúc chờ yêu cầu AI, không khớp schema đã đóng băng trước yêu cầu, đã chặn lần ghi này (không có mutation nào). Hãy điền bảng lại lượt này.',
       );
     }
   }
@@ -2194,7 +2194,7 @@ export class SqlTableService implements ITableStorageProvider {
       Boolean(scope?.templateData) !== Boolean(scope?.templateDataWithRows)
       || (!scope?.templateData && !isolatedSnapshot)
     )) {
-      throw new Error('isolated_template_snapshot_required: 隔离写入缺少本实例快照或完整模板快照。');
+      throw new Error('isolated_template_snapshot_required: Ghi cô lập thiếu snapshot của instance này hoặc snapshot mẫu đầy đủ.');
     }
     const existingTables = new Set(this.engine.getTableNames());
 
@@ -2204,7 +2204,7 @@ export class SqlTableService implements ITableStorageProvider {
       || (this.isolatedRuntime_ACU ? isolatedSnapshot : this._resolveCurrentChatTemplate());
     if (!templateData) {
       if (existingTables.size > 0) return;
-      throw new Error('[SqlTableService] 模板解析失败，无法建表。请检查模板格式。');
+      throw new Error('[SqlTableService] Phân tích mẫu thất bại, không thể tạo bảng. Hãy kiểm tra định dạng mẫu.');
     }
 
     // 建表前自检：模板内拼音物理名冲突直接 fail-loud，避免建表途中报晦涩的 SQL 错误。
@@ -2236,7 +2236,7 @@ export class SqlTableService implements ITableStorageProvider {
       // 不能因物理表已存在就跳过映射同步：删楼回滚/模板切换可重建
       // SQLite runtime，却不会制造缺表；此时外部 CRUD 仍需当前 schema 的列映射。
       if (!this._tryPublishNameMapper_ACU(this._readCanonicalView_ACU() || templateData)) {
-        throw new Error('name_mapper_publish_rejected: 未能发布当前 schema 的中英文名映射，已阻止后续写入。');
+        throw new Error('name_mapper_publish_rejected: không thể phát hành ánh xạ tên Trung-Anh của schema hiện tại, đã chặn các lần ghi tiếp theo.');
       }
       return;
     }
@@ -2296,7 +2296,7 @@ export class SqlTableService implements ITableStorageProvider {
       this._publishCanonicalView_ACU(templateData);
     }
     if (!this._tryPublishNameMapper_ACU(this._readCanonicalView_ACU() || templateData)) {
-      throw new Error('name_mapper_publish_rejected: 建表后未能发布中英文名映射，已阻止后续写入。');
+      throw new Error('name_mapper_publish_rejected: sau khi tạo bảng không thể phát hành ánh xạ tên Trung-Anh, đã chặn các lần ghi tiếp theo.');
     }
 
     logDebug_ACU(`[SqlTableService] 按需建表完成，当前共 ${this.engine.getTableNames().length} 张表`);

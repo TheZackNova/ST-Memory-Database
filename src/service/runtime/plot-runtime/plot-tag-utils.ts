@@ -420,7 +420,7 @@ import { getTemplateVariableStores_ACU, setTemplateVariableStores_ACU, parseRand
     }
 
     return successfulResults
-      .map(result => `【剧情任务：${result.taskName || result.taskId || '未命名任务'}】\n${result.rawResponse.trim()}`)
+      .map(result => `【Tác vụ cốt truyện: ${result.taskName || result.taskId || 'Tác vụ chưa đặt tên'}】\n${result.rawResponse.trim()}`)
       .join('\n\n');
   }
 

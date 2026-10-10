@@ -35,12 +35,12 @@ import { saveApiPreset_ACU as serviceSaveApiPreset_ACU, deleteApiPreset_ACU as s
     if (isRunning) {
       $startBtn.hide();
       $stopBtn.css('display', 'inline-flex').show();
-      $statusText.text('运行中').css('color', 'var(--green, #4CAF50)');
+      $statusText.text('Đang chạy').css('color', 'var(--green, #4CAF50)');
       $timerDisplay.show();
     } else {
       $stopBtn.hide();
       $startBtn.css('display', 'inline-flex').show();
-      $statusText.text('已停止').css('color', 'var(--red, #f44336)');
+      $statusText.text('Đã dừng').css('color', 'var(--red, #f44336)');
       $timerDisplay.hide().text('');
     }
   }
@@ -50,7 +50,7 @@ import { saveApiPreset_ACU as serviceSaveApiPreset_ACU, deleteApiPreset_ACU as s
    */
   export function updateLoopTimerDisplay_ACU(timeLeftFormatted: string) {
     if (!$popupInstance_ACU) return;
-    $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-loop-timer-display`).text(`(剩余: ${timeLeftFormatted})`);
+    $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-loop-timer-display`).text(`(còn lại: ${timeLeftFormatted})`);
   }
 
 
@@ -88,12 +88,12 @@ import { saveApiPreset_ACU as serviceSaveApiPreset_ACU, deleteApiPreset_ACU as s
     const $select = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-tavern-api-profile-select`);
     const currentProfileId = settings_ACU.tavernProfile;
     
-    $select.empty().append('<option value="">-- 请选择一个酒馆预设 --</option>');
+    $select.empty().append('<option value="">-- Hãy chọn một preset SillyTavern --</option>');
 
     try {
         const tavernProfiles = getConnectionManagerProfiles_ACU();
         if (!tavernProfiles || tavernProfiles.length === 0) {
-            $select.append(jQuery_API_ACU('<option>', { value: '', text: '未找到酒馆预设', disabled: true }));
+            $select.append(jQuery_API_ACU('<option>', { value: '', text: 'Không tìm thấy preset SillyTavern', disabled: true }));
             return;
         }
 
@@ -118,18 +118,18 @@ import { saveApiPreset_ACU as serviceSaveApiPreset_ACU, deleteApiPreset_ACU as s
 
     } catch (error) {
         logError_ACU('加载酒馆API预设失败:', error);
-        showToastr_ACU('error', '无法加载酒馆API预设列表。');
+        showToastr_ACU('error', 'Không thể tải danh sách preset API của SillyTavern.');
     }
   }
 
   // [V1 收敛] API 配置写权限已迁移至 V2（service 层单一权威）。
   // 旧 popup 不再直接读写 settings_ACU.apiConfig；调用方应跳转 V2 配置面板。
   export function saveApiConfig_ACU() {
-    showToastr_ACU('warning', `旧UI的API配置编辑已停用，请使用 扩展菜单 → ${ACU_PRODUCT_NAME_ACU} 管理API配置。`);
+    showToastr_ACU('warning', `Chỉnh sửa cấu hình API trong UI cũ đã ngừng dùng, hãy dùng Menu tiện ích mở rộng → ${ACU_PRODUCT_NAME_ACU} để quản lý cấu hình API.`);
   }
 
   export function clearApiConfig_ACU() {
-    showToastr_ACU('warning', `旧UI的API配置清除已停用，请使用 扩展菜单 → ${ACU_PRODUCT_NAME_ACU} 管理API配置。`);
+    showToastr_ACU('warning', `Xóa cấu hình API trong UI cũ đã ngừng dùng, hãy dùng Menu tiện ích mở rộng → ${ACU_PRODUCT_NAME_ACU} để quản lý cấu hình API.`);
   }
 
   // --- [V1 收敛] API预设管理函数 ---
@@ -138,46 +138,46 @@ import { saveApiPreset_ACU as serviceSaveApiPreset_ACU, deleteApiPreset_ACU as s
   // 也不再触发 loadSettingsAndRefreshUI_ACU() 全量重载覆盖内存配置。
   export function saveApiPreset_ACU(presetName: string): boolean {
     if (!presetName || !presetName.trim()) {
-      showToastr_ACU('warning', '请输入预设名称。');
+      showToastr_ACU('warning', 'Vui lòng nhập tên preset.');
       return false;
     }
     const result = saveCurrentConfigAsPreset_ACU(presetName.trim());
     if (!result.ok) {
-      showToastr_ACU('error', result.message || '保存API预设失败，已回滚。');
+      showToastr_ACU('error', result.message || 'Lưu preset API thất bại, đã khôi phục.');
       return false;
     }
     refreshApiPresetSelectors_ACU();
-    showToastr_ACU('success', `API预设 "${presetName.trim()}" 已保存。`);
+    showToastr_ACU('success', `Đã lưu preset API "${presetName.trim()}".`);
     return true;
   }
 
   export function loadApiPreset_ACU(presetName: string): boolean {
     if (!presetName) {
-      showToastr_ACU('warning', '请先选择一个预设。');
+      showToastr_ACU('warning', 'Vui lòng chọn một preset trước.');
       return false;
     }
     const result = setActivePresetForCurrentChat_ACU(presetName);
     if (!result.ok) {
-      showToastr_ACU('error', result.message || `加载预设 "${presetName}" 失败，已回滚。`);
+      showToastr_ACU('error', result.message || `Tải preset "${presetName}" thất bại, đã khôi phục.`);
       return false;
     }
     refreshApiPresetSelectors_ACU();
-    showToastr_ACU('success', `已加载API预设 "${presetName}" 并绑定到当前聊天。`);
+    showToastr_ACU('success', `Đã tải preset API "${presetName}" và gắn vào cuộc trò chuyện hiện tại.`);
     return true;
   }
 
   export function deleteApiPreset_ACU(presetName: string): boolean {
     if (!presetName) {
-      showToastr_ACU('warning', '请先选择一个预设。');
+      showToastr_ACU('warning', 'Vui lòng chọn một preset trước.');
       return false;
     }
     const result = serviceDeleteApiPreset_ACU(presetName);
     if (!result.ok) {
-      showToastr_ACU('error', result.message || `删除预设 "${presetName}" 失败，已回滚。`);
+      showToastr_ACU('error', result.message || `Xóa preset "${presetName}" thất bại, đã khôi phục.`);
       return false;
     }
     refreshApiPresetSelectors_ACU();
-    showToastr_ACU('info', `API预设 "${presetName}" 已删除。`);
+    showToastr_ACU('info', `Đã xóa preset API "${presetName}".`);
     return true;
   }
 
@@ -189,7 +189,7 @@ import { saveApiPreset_ACU as serviceSaveApiPreset_ACU, deleteApiPreset_ACU as s
     // 刷新API配置页面的预设选择器
     const $apiPresetSelect = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-api-preset-select`);
     if ($apiPresetSelect.length) {
-      $apiPresetSelect.empty().append('<option value="">-- 选择预设 --</option>');
+      $apiPresetSelect.empty().append('<option value="">-- Chọn preset --</option>');
       presets.forEach((p: any) => {
 $apiPresetSelect.append(renderOption_ACU(p.name, p.name));
       });
@@ -198,7 +198,7 @@ $apiPresetSelect.append(renderOption_ACU(p.name, p.name));
     // 刷新填表的API预设选择器
     const $tableApiPresetSelect = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-table-api-preset-select`);
     if ($tableApiPresetSelect.length) {
-      $tableApiPresetSelect.empty().append('<option value="">使用当前API配置</option>');
+      $tableApiPresetSelect.empty().append('<option value="">Dùng cấu hình API hiện tại</option>');
       presets.forEach((p: any) => {
 $tableApiPresetSelect.append(renderOption_ACU(p.name, p.name));
       });
@@ -208,7 +208,7 @@ $tableApiPresetSelect.append(renderOption_ACU(p.name, p.name));
     // 刷新剧情推进的API预设选择器
     const $plotApiPresetSelect = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-api-preset-select`);
     if ($plotApiPresetSelect.length) {
-      $plotApiPresetSelect.empty().append('<option value="">使用当前API配置</option>');
+      $plotApiPresetSelect.empty().append('<option value="">Dùng cấu hình API hiện tại</option>');
       presets.forEach((p: any) => {
 $plotApiPresetSelect.append(renderOption_ACU(p.name, p.name));
       });
@@ -219,7 +219,7 @@ $plotApiPresetSelect.append(renderOption_ACU(p.name, p.name));
     const $plotTaskApiPresetSelect = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-task-api-preset`);
     if ($plotTaskApiPresetSelect.length) {
       const currentTaskApiPreset = $plotTaskApiPresetSelect.val() || '';
-      $plotTaskApiPresetSelect.empty().append('<option value="">继承全局剧情推进API预设</option>');
+      $plotTaskApiPresetSelect.empty().append('<option value="">Kế thừa preset API đẩy cốt truyện toàn cục</option>');
       presets.forEach((p: any) => {
 $plotTaskApiPresetSelect.append(renderOption_ACU(p.name, p.name));
       });
@@ -230,7 +230,7 @@ $plotTaskApiPresetSelect.append(renderOption_ACU(p.name, p.name));
     // 刷新正文替换的API预设选择器
     const $optimizationApiPresetSelect = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-optimization-api-preset`);
     if ($optimizationApiPresetSelect.length) {
-      $optimizationApiPresetSelect.empty().append('<option value="">使用当前API配置</option>');
+      $optimizationApiPresetSelect.empty().append('<option value="">Dùng cấu hình API hiện tại</option>');
       presets.forEach((p: any) => {
 $optimizationApiPresetSelect.append(renderOption_ACU(p.name, p.name));
       });
@@ -242,7 +242,7 @@ $optimizationApiPresetSelect.append(renderOption_ACU(p.name, p.name));
     if ($keywordApiPresetSelect.length) {
       const vectorMemoryConfig = getCurrentVectorMemoryConfig_ACU();
       const currentKeywordPreset = String(vectorMemoryConfig.keywordApiPreset || $keywordApiPresetSelect.val() || '');
-      $keywordApiPresetSelect.empty().append('<option value="">使用当前API配置</option>');
+      $keywordApiPresetSelect.empty().append('<option value="">Dùng cấu hình API hiện tại</option>');
       presets.forEach((p: any) => {
 $keywordApiPresetSelect.append(renderOption_ACU(p.name, p.name));
       });
@@ -254,7 +254,7 @@ $keywordApiPresetSelect.append(renderOption_ACU(p.name, p.name));
     const $cfgTableApiPreset = jQuery_API_ACU('#cfg-table-api-preset');
     if ($cfgTableApiPreset.length) {
       const currentVal = String($cfgTableApiPreset.val() || '');
-      $cfgTableApiPreset.empty().append('<option value="">使用填表整体API配置</option>');
+      $cfgTableApiPreset.empty().append('<option value="">Dùng cấu hình API chung của điền bảng</option>');
       presets.forEach((p: any) => {
         $cfgTableApiPreset.append(renderOption_ACU(p.name, p.name));
       });

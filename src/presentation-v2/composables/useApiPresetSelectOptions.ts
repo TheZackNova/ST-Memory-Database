@@ -8,7 +8,7 @@ interface ApiPresetSelectOption {
 
 export function formatFollowActiveApiLabel(activePresetName: string): string {
   const name = String(activePresetName || '').trim();
-  return `跟随当前活动 API（${name || '未选择预设'}）`;
+  return `Theo API đang hoạt động (${name || 'Chưa chọn preset'})`;
 }
 
 export function useApiPresetSelectOptions() {

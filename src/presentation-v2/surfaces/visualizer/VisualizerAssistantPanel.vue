@@ -2,17 +2,17 @@
   <div class="acu-viz-assistant" data-acu-visualizer-assistant>
     <div class="acu-viz-assistant__head">
       <AcuPanel
-        title="AI 改表助手"
-        description="用自然语言让助手生成改表草稿。它可能改多张表或全局配置；应用前先检查变更，不满意就改写需求重来。"
+        title="Trợ lý AI sửa bảng"
+        description="Dùng ngôn ngữ tự nhiên để trợ lý tạo bản nháp sửa bảng. Nó có thể sửa nhiều bảng hoặc cấu hình toàn cục; hãy kiểm tra thay đổi trước khi áp dụng, không hài lòng thì viết lại yêu cầu làm lại."
       >
         <template #actions>
-          <AcuBadge v-if="assistant.isRunning.value" variant="warning">运行中</AcuBadge>
-          <AcuBadge v-else-if="assistant.latestResult.value" variant="accent">有草稿</AcuBadge>
-          <AcuBadge v-else variant="neutral">待输入</AcuBadge>
+          <AcuBadge v-if="assistant.isRunning.value" variant="warning">Đang chạy</AcuBadge>
+          <AcuBadge v-else-if="assistant.latestResult.value" variant="accent">Có bản nháp</AcuBadge>
+          <AcuBadge v-else variant="neutral">Chờ nhập</AcuBadge>
         </template>
 
         <div class="acu-viz-assistant__controls">
-          <AcuFormRow label="API 预设">
+          <AcuFormRow label="Preset API">
             <AcuSelect
               :model-value="assistant.tableApiPreset.value"
               :options="assistant.apiPresetOptions.value"
@@ -21,7 +21,7 @@
             />
           </AcuFormRow>
           <AcuButton size="sm" variant="secondary" :disabled="assistant.isRunning.value" @click="promptDrawerOpen = true">
-            <i class="fa-solid fa-pen-to-square"></i> 编辑提示词
+            <i class="fa-solid fa-pen-to-square"></i> Sửa prompt
           </AcuButton>
         </div>
 
@@ -34,11 +34,11 @@
     <div ref="streamRef" class="acu-viz-assistant__stream">
         <div v-if="assistant.isRunning.value" class="acu-viz-assistant__running">
           <i class="fa-solid fa-spinner fa-spin"></i>
-          <span>正在生成草稿…</span>
+          <span>Đang tạo bản nháp…</span>
         </div>
 
         <p v-if="!assistant.turns.value.length && !assistant.rounds.value.length" class="acu-viz-assistant__empty">
-          还没有会话。输入需求后，助手会返回摘要、警告、分组 diff 和需要确认的风险项。
+          Chưa có phiên. Sau khi nhập yêu cầu, trợ lý sẽ trả về tóm tắt, cảnh báo, diff theo nhóm và các mục rủi ro cần xác nhận.
         </p>
 
         <div class="acu-viz-assistant__turns">
@@ -49,21 +49,21 @@
             :class="`acu-viz-assistant__turn--${turn.type}`"
           >
             <header class="acu-viz-assistant__turn-head">
-              <strong v-if="turn.type === 'user'">你提出的需求</strong>
-              <strong v-else-if="turn.type === 'round'">AI 助手</strong>
-              <strong v-else-if="turn.type === 'final'">AI 助手 · 最终草稿</strong>
-              <strong v-else>执行错误</strong>
+              <strong v-if="turn.type === 'user'">Yêu cầu bạn đưa ra</strong>
+              <strong v-else-if="turn.type === 'round'">Trợ lý AI</strong>
+              <strong v-else-if="turn.type === 'final'">Trợ lý AI · Bản nháp cuối</strong>
+              <strong v-else>Lỗi thực thi</strong>
               <AcuBadge v-if="turn.type === 'final'" variant="accent">
                 {{ assistant.getTurnSessionSummary(turn) }}
               </AcuBadge>
-              <AcuBadge v-else-if="turn.type === 'error'" variant="warning">需要处理</AcuBadge>
-              <AcuBadge v-else variant="neutral">请求</AcuBadge>
+              <AcuBadge v-else-if="turn.type === 'error'" variant="warning">Cần xử lý</AcuBadge>
+              <AcuBadge v-else variant="neutral">Yêu cầu</AcuBadge>
               <div class="acu-viz-assistant__turn-ops">
                 <AcuButton
                   v-if="turn.type === 'user'"
                   size="sm"
                   icon-only
-                  title="从这条需求重新生成（将丢弃它之后的记录）"
+                  title="Tạo lại từ yêu cầu này (sẽ bỏ các bản ghi sau nó)"
                   :disabled="assistant.isRunning.value"
                   @click="assistant.regenerateFromUserTurn(turn)"
                 >
@@ -72,7 +72,7 @@
                 <AcuButton
                   size="sm"
                   icon-only
-                  title="删除这条记录"
+                  title="Xóa bản ghi này"
                   :disabled="assistant.isRunning.value"
                   @click="assistant.deleteTurn(turn.id)"
                 >
@@ -86,12 +86,12 @@
               v-if="assistant.getTurnValidationError(turn)"
               tone="warning"
             >
-              校验失败：{{ assistant.getTurnValidationError(turn) }}
+              Kiểm tra thất bại: {{ assistant.getTurnValidationError(turn) }}
             </AcuInfoBanner>
 
             <AcuDisclosureGroup
               v-if="assistant.getTurnRawText(turn)"
-              label="查看 AI 原始输出"
+              label="Xem đầu ra gốc của AI"
               :expanded="rawExpandedByTurn[turn.id] === true"
               :body-id="`acu-viz-assistant-raw-turn-${turn.id}`"
               body-mode="show"
@@ -140,7 +140,7 @@
                 v-if="assistant.getTurnHighRiskItems(turn).length"
                 class="acu-viz-assistant__turn-risk"
               >
-                <h4>高风险确认</h4>
+                <h4>Xác nhận rủi ro cao</h4>
                 <article
                   v-for="(item, index) in assistant.getTurnHighRiskItems(turn)"
                   :key="`${turn.id}-${item.type}-${index}`"
@@ -160,7 +160,7 @@
                 :title="assistant.getTurnApplyBlockReason(turn)"
                 @click="assistant.applyTurnDraft(turn)"
               >
-                应用到编辑器草稿
+                Áp dụng vào bản nháp của trình chỉnh sửa
               </AcuButton>
               <p
                 v-if="assistant.getTurnApplyPayload(turn) && assistant.getTurnApplyBlockReason(turn)"
@@ -181,7 +181,7 @@
         :max-rows="8"
         auto-resize
         :disabled="assistant.isRunning.value"
-        placeholder="描述你想怎么改表。例如：给角色状态表新增“短期目标”和“风险提示”两列。"
+        placeholder="Mô tả bạn muốn sửa bảng thế nào. Ví dụ: thêm hai cột “短期目标” và “风险提示” vào bảng 角色状态表."
         @update:model-value="value => assistant.userRequest.value = value"
       />
       <div class="acu-viz-assistant__composer-actions">
@@ -192,7 +192,7 @@
           @click="assistant.cancel"
         >
           <i class="fa-solid fa-stop"></i>
-          停止
+          Dừng
         </AcuButton>
         <AcuButton
           v-else
@@ -202,7 +202,7 @@
           @click="assistant.run"
         >
           <i class="fa-solid fa-paper-plane"></i>
-          发送
+          Gửi
         </AcuButton>
       </div>
     </div>

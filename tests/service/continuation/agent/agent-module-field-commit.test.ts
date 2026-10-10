@@ -48,8 +48,8 @@ describe('续写逐栏真实提交', () => {
     expect(bad.status).toBe('committed');
     expect(bad.accepted.map(item => item.field)).toEqual(['scope', 'status']);
     expect(bad.rejected).toEqual(expect.arrayContaining([
-      expect.objectContaining({ path: 'storyArc#STORY-01.title', reason: expect.stringContaining('不能照抄') }),
-      expect.objectContaining({ path: 'storyArc#STORY-01.direction', reason: expect.stringContaining('不能照抄') }),
+      expect.objectContaining({ path: 'storyArc#STORY-01.title', reason: expect.stringContaining('không được chép nguyên') }),
+      expect.objectContaining({ path: 'storyArc#STORY-01.direction', reason: expect.stringContaining('không được chép nguyên') }),
     ]));
     const saved = await commitAgentModuleFieldWrites_ACU({ chat, targetIndex: 1, role: 'arc-architect',
       sql: `UPDATE story_arc SET title = '标题', direction = '主角追查禁区的真实来历' WHERE id = 'STORY-01' AND expected_revision = ${bad.revisions?.storyArc}`,
@@ -500,7 +500,7 @@ describe('续写逐栏真实提交', () => {
     }
     const stale = await commitAgentModuleFieldWrites_ACU({ chat, targetIndex: 1, role, sql, isCurrent: () => false });
     expect(stale.operationOnlyConfirmed).toBeUndefined();
-    expect(stale.rejected.at(-1)?.reason).toContain('派工租约已失效');
+    expect(stale.rejected.at(-1)?.reason).toContain('Hợp đồng giao việc đã hết hiệu lực');
     const { correctAgentMaterials_ACU } = await import('../../../../src/service/continuation/agent/agent-main-correction');
     const corrected = await correctAgentMaterials_ACU({ action: { kind: 'correct_materials', thought: '', reason: '撤回系统字段操作', sql },
       chat, conversation: { messages: [] } as any, isCurrent: () => true, completedStages: [] });
@@ -602,7 +602,7 @@ describe('续写逐栏真实提交', () => {
           isCurrent: () => current });
         const issue = receipt.rejected.find(item => item.path === (scenario === 'ambiguous'
           ? 'infoGap#E1.recent_floor' : 'sql[1].info_gap.recent_floor'))!;
-        expect(issue.reason).toContain('白名单');
+        expect(issue.reason).toContain('danh sách trắng');
         if (scenario === 'complete' || scenario === 'partial') {
           expect(receipt.status).toBe('committed');
           expect(issue.operationOnlyTarget).toEqual({ module: 'infoGap', id: 'E001', expectedRevision: 1 });

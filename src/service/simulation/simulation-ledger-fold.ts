@@ -168,7 +168,7 @@ function hasLedgerFieldUpserts_ACU(upserts: WorldSimulationLedgerFieldUpserts_AC
 function requireLedgerFieldUpserts_ACU(raw: unknown, path: string): WorldSimulationLedgerFieldUpserts_ACU {
   const parsed = parseWorldSimulationLedgerFieldUpserts_ACU(raw);
   if (!parsed) {
-    throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', 'load', `${path} 逐栏写集结构损坏`, false, { path }));
+    throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', 'load', `${path} cấu trúc tập ghi theo từng cột bị hỏng`, false, { path }));
   }
   return parsed;
 }
@@ -179,7 +179,7 @@ function isAssistant_ACU(message: unknown): boolean {
 
 function invalidFloorValue_ACU(path: string): never {
   throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-    'WORLD_SIMULATION_SNAPSHOT_INVALID', 'load', `${path} 结构损坏`, false, { path }));
+    'WORLD_SIMULATION_SNAPSHOT_INVALID', 'load', `${path} cấu trúc bị hỏng`, false, { path }));
 }
 
 function isStrictFoldField_ACU(field: string): boolean {
@@ -537,20 +537,20 @@ export function foldWorldSimulationLedger_ACU(chat: readonly unknown[], throughI
       continue;
     }
     if (value === undefined) continue;
-    if (!isLedgerFrame_ACU(value)) invalidFloorValue_ACU(`楼层 ${index} 账本帧`);
+    if (!isLedgerFrame_ACU(value)) invalidFloorValue_ACU(`Khung sổ cái của tầng ${index}`);
     let touched = false;
     if (value.checkpoint) {
       ledger = validateWorldSimulationLedger_ACU(value.checkpoint, 'load');
       view = seedLedgerFieldView_ACU(ledger, updatedAt);
       if (value.checkpointPartials !== undefined) {
-        view = applyLedgerFieldUpsertsToView_ACU(view, requireLedgerFieldUpserts_ACU(value.checkpointPartials, `楼层 ${index} checkpointPartials`), updatedAt);
+        view = applyLedgerFieldUpsertsToView_ACU(view, requireLedgerFieldUpserts_ACU(value.checkpointPartials, `checkpointPartials của tầng ${index}`), updatedAt);
         reconcileLedgerFieldViewWithLedger_ACU(view, ledger, updatedAt);
       }
       if (value.checkpointFields !== undefined) {
         const fields = validateWorldSimulationFieldSnapshot_ACU(value.checkpointFields);
         const reconciled = cloneJson_ACU(fields);
         reconcileLedgerFieldViewWithLedger_ACU(reconciled, ledger, updatedAt);
-        if (canonicalJson_ACU(reconciled) !== canonicalJson_ACU(fields)) invalidFloorValue_ACU(`楼层 ${index} 完整分栏基线`);
+        if (canonicalJson_ACU(reconciled) !== canonicalJson_ACU(fields)) invalidFloorValue_ACU(`Đường cơ sở phân cột đầy đủ của tầng ${index}`);
         view = fields;
       }
       checkpointIndex = index;
@@ -560,12 +560,12 @@ export function foldWorldSimulationLedger_ACU(chat: readonly unknown[], throughI
     for (const delta of [...value.deltas].sort((left, right) => left.seq - right.seq)) {
       if (!isRecord_ACU(delta) || !Number.isInteger(delta.seq) || !Number.isInteger(delta.revision)
         || !Number.isFinite(delta.updatedAt) || !isRecord_ACU(delta.upserts) || !isRecord_ACU(delta.removedIds)) {
-        invalidFloorValue_ACU(`楼层 ${index} 账本 delta`);
+        invalidFloorValue_ACU(`delta sổ cái của tầng ${index}`);
       }
       if (!ledger) continue;
       ledger = validateWorldSimulationLedger_ACU(applyLedgerDelta_ACU(ledger, delta), 'load');
       if (delta.fieldUpserts !== undefined) {
-        view = applyLedgerFieldUpsertsToView_ACU(view, requireLedgerFieldUpserts_ACU(delta.fieldUpserts, `楼层 ${index} delta#${delta.seq}.fieldUpserts`), delta.updatedAt);
+        view = applyLedgerFieldUpsertsToView_ACU(view, requireLedgerFieldUpserts_ACU(delta.fieldUpserts, `delta#${delta.seq}.fieldUpserts của tầng ${index}`), delta.updatedAt);
       }
       reconcileLedgerFieldViewWithLedger_ACU(view, ledger, delta.updatedAt);
       foldedDeltaCount += 1;
@@ -611,13 +611,13 @@ export function foldWorldSimulationArchive_ACU(chat: readonly unknown[], through
       continue;
     }
     if (value === undefined) continue;
-    if (!isArchiveFrame_ACU(value)) invalidFloorValue_ACU(`楼层 ${index} 归档帧`);
+    if (!isArchiveFrame_ACU(value)) invalidFloorValue_ACU(`Khung lưu trữ của tầng ${index}`);
     if (value.checkpoint) {
       records = { ...validateWorldSimulationChronicleArchiveSnapshot_ACU(value.checkpoint, 'load').records };
       checkpointIndex = index;
     }
     for (const delta of [...value.deltas].sort((left, right) => left.seq - right.seq)) {
-      if (!isRecord_ACU(delta) || !Number.isInteger(delta.seq) || !isRecord_ACU(delta.records)) invalidFloorValue_ACU(`楼层 ${index} 归档 delta`);
+      if (!isRecord_ACU(delta) || !Number.isInteger(delta.seq) || !isRecord_ACU(delta.records)) invalidFloorValue_ACU(`delta lưu trữ của tầng ${index}`);
       records = { ...records, ...validateWorldSimulationChronicleArchiveSnapshot_ACU({ schemaVersion: 1, records: delta.records }, 'load').records };
     }
   }
@@ -722,7 +722,7 @@ export function appendWorldSimulationCommitChain_ACU(input: {
   const beforeFields = preservesFields && input.beforeFields ? validateWorldSimulationFieldSnapshot_ACU(input.beforeFields) : preservesFields && foldedBefore
     && canonicalJson_ACU(foldedBefore.ledger) === canonicalJson_ACU(input.beforeLedger)
     ? cloneJson_ACU(foldedBefore.fields) : undefined;
-  if (preservesFields && !beforeFields) invalidFloorValue_ACU('完整分栏提交基底与账本不一致');
+  if (preservesFields && !beforeFields) invalidFloorValue_ACU('Nền nộp phân cột đầy đủ không khớp với sổ cái');
   if (baselineAnchor && baselineFloor !== null) {
     const baselineMessage = input.chat[baselineFloor] as Record<string, unknown>;
     const frame = checkpointFrame_ACU(input.beforeLedger, partials, []);
@@ -871,7 +871,7 @@ export function assertSingleActiveSimulationCheckpoint_ACU(chat: readonly unknow
     const value = entryValue_ACU(message, WORLD_SIMULATION_STATE_FIELD_ACU, anchor);
     const active = (isLedgerFrame_ACU(value) && !!value.checkpoint) || isLedgerValue_ACU(value);
     if (!active) continue;
-    if (seen !== null) return `格林推演账本存在多个活跃基线：楼层 ${seen} 与 ${index}`;
+    if (seen !== null) return `Sổ cái mô phỏng thế giới có nhiều đường cơ sở đang hoạt động: tầng ${seen} và ${index}`;
     seen = index;
   }
   return null;

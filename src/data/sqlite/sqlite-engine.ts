@@ -103,7 +103,7 @@ export class SqliteEngine {
         logDebug_ACU(`[SQLite引擎] 使用内联 wasmBinary (${config.wasmBinary.byteLength} bytes)`);
       } catch (e: any) {
         throw new SqliteRuntimeUnavailableError_ACU(
-          `内联 wasm base64 解码失败: ${e?.message || String(e)}`,
+          `Giải mã base64 wasm nội tuyến thất bại: ${e?.message || String(e)}`,
           e,
         );
       }
@@ -113,8 +113,8 @@ export class SqliteEngine {
     const engineName = String((globalThis as any).__ACU_SQLITE_ENGINE__ ?? '').toLowerCase();
     if (engineName === 'wasm') {
       throw new SqliteRuntimeUnavailableError_ACU(
-        'wasm 引擎缺少内联 wasm（globalThis.__ACU_SQLITE_WASM_BASE64__ 未注入）。' +
-        '单文件产物必须由构建期注入 base64 wasm；请检查 rollup replace 配置。',
+        'Engine wasm thiếu wasm nội tuyến (globalThis.__ACU_SQLITE_WASM_BASE64__ chưa được inject). ' +
+        'Bản build một tệp phải được inject base64 wasm ở thời điểm build; hãy kiểm tra cấu hình rollup replace.',
       );
     }
     return config;
@@ -133,9 +133,9 @@ export class SqliteEngine {
     // [6.7.2] 检测 sql.js 是否可用（CDN @require 可能加载失败）
     if (typeof initSqlJs !== 'function') {
       throw new SqliteRuntimeUnavailableError_ACU(
-        'sql.js 引擎未加载：initSqlJs 函数不存在。' +
-        '请检查构建产物是否正确打包 sql-wasm.js 与内联 wasm（base64），' +
-        '或 CDN 是否可达。'
+        'Engine sql.js chưa được tải: hàm initSqlJs không tồn tại. ' +
+        'Hãy kiểm tra bản build đã đóng gói đúng sql-wasm.js và wasm nội tuyến (base64) chưa, ' +
+        'hoặc CDN có truy cập được không.'
       );
     }
 
@@ -151,7 +151,7 @@ export class SqliteEngine {
           // 仅「引擎起不来」抛结构化类型；SQL 语义错误（_ensureDb/query/run 抛出的）
           // 不得改类，仍按普通 Error 传播（语义边界见 SqliteRuntimeUnavailableError_ACU）。
           throw new SqliteRuntimeUnavailableError_ACU(
-            `sql.js 初始化失败: ${e?.message || String(e)}`,
+            `Khởi tạo sql.js thất bại: ${e?.message || String(e)}`,
             e,
           );
         }
@@ -268,7 +268,7 @@ export class SqliteEngine {
           // 回滚事务
           try { this.db!.run('ROLLBACK;'); } catch (_) { /* 忽略回滚失败 */ }
           const errMsg = e?.message || String(e);
-          throw new Error(`第 ${i + 1} 条语句失败: ${stmt} → ${errMsg}`);
+          throw new Error(`Câu lệnh thứ ${i + 1} thất bại: ${stmt} → ${errMsg}`);
         }
       }
       this.db!.run('COMMIT;');
@@ -276,7 +276,7 @@ export class SqliteEngine {
       return { totalChanges };
     } catch (e: any) {
       // 如果是我们自己抛出的格式化错误，直接重新抛出
-      if (e.message && e.message.startsWith('第 ')) throw e;
+      if (e.message && e.message.startsWith('Câu lệnh thứ ')) throw e;
       // 其他意外错误（如 COMMIT 失败）
       try { this.db!.run('ROLLBACK;'); } catch (_) { /* 忽略 */ }
       throw e;
@@ -315,12 +315,12 @@ export class SqliteEngine {
           if (uniqueMatch) {
             const conflictedColumns = uniqueMatch[1].trim();
             throw new Error(
-              `第 ${i + 1} 条语句失败: ${stmt} → ${errMsg}；` +
-              `冲突来源：本批次前序语句或 seedRows reseed 与 AI INSERT 命中同一 UNIQUE 键（${conflictedColumns}）。` +
-              `建议：检查是否重复初始化同一业务键；若为 AI 初始化请改为 UPDATE 既有行，若为系统 seed 请确认提交链 dataMode（replace/merge 不应 reseed）。`,
+              `Câu lệnh thứ ${i + 1} thất bại: ${stmt} → ${errMsg}; ` +
+              `Nguồn xung đột: câu lệnh trước đó trong lô này hoặc seedRows reseed trùng cùng khóa UNIQUE với AI INSERT (${conflictedColumns}). ` +
+              `Gợi ý: kiểm tra xem có khởi tạo lặp cùng một khóa nghiệp vụ không; nếu là AI khởi tạo hãy đổi sang UPDATE hàng hiện có, nếu là seed của hệ thống hãy xác nhận dataMode của chuỗi commit (replace/merge không nên reseed).`,
             );
           }
-          throw new Error(`第 ${i + 1} 条语句失败: ${stmt} → ${errMsg}`);
+          throw new Error(`Câu lệnh thứ ${i + 1} thất bại: ${stmt} → ${errMsg}`);
         }
       }
 
@@ -368,7 +368,7 @@ export class SqliteEngine {
     this._ensureDb();
     // 防止 SQL 注入：表名只允许字母、数字、下划线
     if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
-      throw new Error(`非法表名: ${tableName}`);
+      throw new Error(`Tên bảng không hợp lệ: ${tableName}`);
     }
     const result = this.query(`PRAGMA table_info(${tableName});`);
     return result.values.map(row => ({
@@ -389,7 +389,7 @@ export class SqliteEngine {
   getTableDDL(tableName: string): string | null {
     this._ensureDb();
     if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
-      throw new Error(`非法表名: ${tableName}`);
+      throw new Error(`Tên bảng không hợp lệ: ${tableName}`);
     }
     const result = this.query(
       "SELECT sql FROM sqlite_master WHERE type='table' AND name=?;",
@@ -440,7 +440,7 @@ export class SqliteEngine {
   /** 内部方法：确保数据库已初始化 */
   private _ensureDb(): void {
     if (!this.db) {
-      throw new Error('SqliteEngine 未初始化，请先调用 init()');
+      throw new Error('SqliteEngine chưa được khởi tạo, hãy gọi init() trước');
     }
   }
 }

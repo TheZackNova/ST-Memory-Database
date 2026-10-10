@@ -53,7 +53,7 @@ export function abandonZeroLayerTurn_ACU(source: ZeroLayerEnvelope_ACU, turnId: 
   const turn = current.turns.find(item => item.turnId === turnId && item.attemptId === attemptId);
   if (!turn || turn.branchId !== current.activeBranchId
     || !['prepared', 'dispatching', 'delivery-unknown'].includes(turn.phase)) {
-    throw new ZeroLayerError_ACU('invalid-transition', '只能放弃当前分支中正文尚未保存的回合。');
+    throw new ZeroLayerError_ACU('invalid-transition', 'Chỉ có thể bỏ lượt trong nhánh hiện tại mà nội dung chính chưa được lưu.');
   }
   const next = transitionZeroLayerTurn_ACU(current, turnId, 'cancelled', {
     errorCode: turn.phase === 'prepared' ? 'abandoned-before-dispatch' : 'abandoned-delivery-unknown',

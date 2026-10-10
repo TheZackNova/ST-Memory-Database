@@ -23,7 +23,7 @@ const presentPromptSegments = vi.fn((_role: string, segments: any[]) => segments
 const statusText = ref('尚未创建任务');
 const stageText = ref('尚未创建任务');
 const revisionText = ref('');
-const anchorText = ref('第 1 楼 · swipe 1');
+const anchorText = ref('Tầng 1 · swipe 1');
 const refresh = vi.fn(() => true);
 const initialize = vi.fn(async () => undefined);
 const send = vi.fn(async () => true);
@@ -191,19 +191,19 @@ describe('WorldSimulationPage', () => {
     const { host } = await mountPage();
     const root = host.querySelector('.acu-v2-world-simulation-page')!;
     const children = Array.from(root.children);
-    expect(children[0].textContent).toContain('Agent 会话');
+    expect(children[0].textContent).toContain('Phiên Agent');
     expect(children[1].classList.contains('acu-panel-grid')).toBe(true);
-    expect(children[1].textContent).toContain('已有资料');
-    expect(children[1].textContent).toContain('推演设置');
+    expect(children[1].textContent).toContain('Tài liệu hiện có');
+    expect(children[1].textContent).toContain('Cài đặt mô phỏng');
     expect(host.textContent).not.toContain('自动修复违规模块');
     expect(host.textContent).not.toContain('自动修复开');
-    expect(children[2].textContent).toContain('伪 Role 提示词');
+    expect(children[2].textContent).toContain('Prompt giả Role');
     // 旧版把整个工作区塞进 2 列网格的单个格子里；现在会话面板直接是页面子级，内部不再嵌套第二层面板。
     expect(children[0].classList.contains('acu-panel')).toBe(true);
     expect(children[0].querySelectorAll('.acu-panel').length).toBe(0);
     expect(host.textContent).not.toContain('格林推演 Agent 会话');
     expect(button(host, '保存格林推演设置')).toBeUndefined();
-    expect(host.textContent).toContain('锚点 第 1 楼 · swipe 1');
+    expect(host.textContent).toContain('Điểm neo Tầng 1 · swipe 1');
   });
 
   it('挂载与聊天变化只严格刷新，不隐式保存；楼层变动走会话重灌', async () => {
@@ -224,7 +224,7 @@ describe('WorldSimulationPage', () => {
     const { host } = await mountPage();
     typeInto(chatInput(host), '推进北境局势');
     await nextTick();
-    button(host, '发送')!.click();
+    button(host, 'Gửi')!.click();
     await nextTick();
     expect(send).not.toHaveBeenCalled();
     await passFirstSendRpmConfirm();
@@ -238,7 +238,7 @@ describe('WorldSimulationPage', () => {
     const { host } = await mountPage();
     typeInto(chatInput(host), '推进北境局势');
     await nextTick();
-    button(host, '发送')!.click();
+    button(host, 'Gửi')!.click();
     await nextTick();
     const dialog = useDialogStore();
     expect(dialog.active?.kind).toBe('confirm');
@@ -254,7 +254,7 @@ describe('WorldSimulationPage', () => {
     const { host } = await mountPage();
     typeInto(chatInput(host), '补充：北境是重点');
     await nextTick();
-    button(host, '发送')!.click();
+    button(host, 'Gửi')!.click();
     await Promise.resolve();
     await nextTick();
     expect(useDialogStore().active).toBeNull();
@@ -266,12 +266,12 @@ describe('WorldSimulationPage', () => {
   it('运行中只显示停止，点击调用 runtime.stop', async () => {
     setTask('running');
     const { host } = await mountPage();
-    expect(button(host, '发送')).toBeUndefined();
-    const stopButton = button(host, '停止')!;
+    expect(button(host, 'Gửi')).toBeUndefined();
+    const stopButton = button(host, 'Dừng')!;
     stopButton.click();
     await nextTick();
     expect(stop).toHaveBeenCalledTimes(1);
-    expect(host.textContent).toContain('运行中');
+    expect(host.textContent).toContain('Đang chạy');
   });
 
   it('设置修改后 800ms 防抖经 runtime 保存；渠道选择立即保存', async () => {
@@ -307,11 +307,11 @@ describe('WorldSimulationPage', () => {
     await nextTick();
     await vi.advanceTimersByTimeAsync(900);
     expect(saveSettings).toHaveBeenCalledOnce();
-    expect(host.textContent).toContain('将在本轮结束后自动保存');
+    expect(host.textContent).toContain('sẽ tự động lưu sau khi lượt này kết thúc');
     await vi.advanceTimersByTimeAsync(900);
     expect(saveSettings).toHaveBeenCalledTimes(2);
     await nextTick();
-    expect(host.textContent).not.toContain('将在本轮结束后自动保存');
+    expect(host.textContent).not.toContain('sẽ tự động lưu sau khi lượt này kết thúc');
   });
 
   it('非法设置值在页面内报错且不落盘', async () => {
@@ -323,46 +323,46 @@ describe('WorldSimulationPage', () => {
     await nextTick();
     await vi.advanceTimersByTimeAsync(900);
     expect(saveSettings).not.toHaveBeenCalled();
-    expect(host.textContent).toContain('会话自动总结阈值 必须是 0 到 1000000 之间的整数');
+    expect(host.textContent).toContain('Ngưỡng tự động tóm tắt phiên phải là số nguyên từ 0 đến 1000000');
   });
 
   it('设置与提示词按分组折叠，渠道与提示词分组使用中文角色名', async () => {
     const { host } = await mountPage();
     const groups = Array.from(host.querySelectorAll<HTMLElement>('.acu-v2-world-simulation-page__group'));
     const labels = groups.map(group => group.querySelector('.acu-disclosure-group__label')?.textContent?.trim());
-    expect(labels).toEqual(expect.arrayContaining(['Agent 运行预算', '设定研究（网页检索）', '世界动态', '工作流', '各 Agent 渠道', '主 Agent（world-director）提示词', '因果审核（causality-reviewer）提示词', '占位符速查']));
+    expect(labels).toEqual(expect.arrayContaining(['Ngân sách chạy của Agent', 'Nghiên cứu thiết lập (tra cứu web)', 'Động thái thế giới', 'Luồng công việc', 'Kênh từng Agent', 'Prompt Agent chính (world-director)', 'Prompt Thẩm định nhân quả (causality-reviewer)', 'Tra nhanh placeholder']));
     for (const group of groups) {
       expect(group.querySelector('.acu-disclosure-group__header')?.getAttribute('aria-expanded')).toBe('false');
     }
-    const channelGroup = groups.find(group => group.textContent?.includes('各 Agent 渠道'))!;
+    const channelGroup = groups.find(group => group.textContent?.includes('Kênh từng Agent'))!;
     channelGroup.querySelector<HTMLButtonElement>('.acu-disclosure-group__header')!.click();
     await nextTick();
-    expect(channelGroup.textContent).toContain('时序与伏线');
-    expect(channelGroup.textContent).toContain('纪要、风声与场外信号');
-    expect(channelGroup.textContent).not.toContain('旧角色：时计');
-    expect(channelGroup.textContent).not.toContain('设定研究');
+    expect(channelGroup.textContent).toContain('Trình tự thời gian và mạch ngầm');
+    expect(channelGroup.textContent).toContain('Kỷ yếu, tin đồn và tín hiệu ngoài cảnh');
+    expect(channelGroup.textContent).not.toContain('Vai trò cũ: Đồng hồ');
+    expect(channelGroup.textContent).not.toContain('Nghiên cứu thiết lập');
     const topLevelLabels = Array.from(host.querySelectorAll<HTMLElement>('.acu-form-row__label'))
       .filter(label => !label.closest('.acu-v2-world-simulation-page__group'))
       .map(label => label.textContent?.trim());
-    expect(topLevelLabels).toContain('API 预设（全局默认）');
-    expect(topLevelLabels).not.toContain('主 Agent 迭代上限');
+    expect(topLevelLabels).toContain('Preset API (mặc định toàn cục)');
+    expect(topLevelLabels).not.toContain('Giới hạn vòng lặp của Agent chính');
   });
 
   it('资料面板：场外信号页签渲染 runtime 提供的 projection preview，一键清空需确认后才调用 clearData', async () => {
     snapshot.value = baseSnapshot({ projectionPreview: '<!-- projection-test -->北境压力上升' });
     const { host } = await mountPage();
-    expect(host.textContent).toContain('账本总览');
-    expect(host.textContent).not.toContain('待修复');
-    button(host, '场外信号')!.click();
+    expect(host.textContent).toContain('Tổng quan sổ cái');
+    expect(host.textContent).not.toContain('Lần ghi cần sửa');
+    button(host, 'Tín hiệu ngoài cảnh')!.click();
     await nextTick();
-    expect(host.textContent).toContain('按当前账本渲染的〈与此同时〉段');
+    expect(host.textContent).toContain('Đoạn 〈与此同时〉 được dựng theo sổ cái hiện tại');
     expect(host.textContent).toContain('北境压力上升');
 
-    button(host, '一键清空')!.click();
+    button(host, 'Xóa sạch một chạm')!.click();
     await nextTick();
     expect(clearData).not.toHaveBeenCalled();
-    expect(host.textContent).toContain('确认清空');
-    button(host, '确认清空')!.click();
+    expect(host.textContent).toContain('Xác nhận xóa sạch');
+    button(host, 'Xác nhận xóa sạch')!.click();
     await nextTick();
     expect(clearData).toHaveBeenCalledTimes(1);
   });
@@ -394,31 +394,31 @@ describe('WorldSimulationPage', () => {
     next.envelope.timeline = [{ id: 'run:swept', at: 't1', kind: 'swept', taskId: 'task', message: 'seed-miss' }];
     snapshot.value = next;
     const { host } = await mountPage();
-    expect(host.textContent).toContain('待修复的写入（1 条）');
+    expect(host.textContent).toContain('Lần ghi cần sửa (1 mục)');
     expect(host.textContent).toContain('locationRef 必须是对象或 null');
-    expect(host.textContent).toContain('幕后纪要');
-    expect(host.textContent).toContain('错过清单');
-    expect(host.textContent).toContain('风声');
+    expect(host.textContent).toContain('Kỷ yếu hậu trường');
+    expect(host.textContent).toContain('Danh sách bỏ lỡ');
+    expect(host.textContent).toContain('Tin đồn');
 
-    button(host, '幕后纪要')!.click();
+    button(host, 'Kỷ yếu hậu trường')!.click();
     await nextTick();
     expect(host.textContent).toContain('铁匠死于北岭');
-    expect(host.textContent).toContain('滞后 35 天');
+    expect(host.textContent).toContain('trễ 35 ngày');
 
-    button(host, '错过清单')!.click();
+    button(host, 'Danh sách bỏ lỡ')!.click();
     await nextTick();
     expect(host.textContent).toContain('主角远在客栈，没能拦下进山的铁匠');
     expect(host.textContent).toContain('铁匠死于北岭');
     // 错过清单卡片只来自 missedNote 纪要，不再出现「清扫」动作徽标（设置区的「错过清扫」开关不在此范围）。
     const badges = Array.from(host.querySelectorAll('.acu-v2-ws-materials__badge')).map(item => item.textContent?.trim());
-    expect(badges).toContain('错过');
+    expect(badges).toContain('Bỏ lỡ');
     expect(badges).not.toContain('清扫');
 
-    button(host, '风声')!.click();
+    button(host, 'Tin đồn')!.click();
     await nextTick();
-    expect(host.textContent).toContain('接触状态：开放');
+    expect(host.textContent).toContain('Trạng thái tiếp xúc: Mở');
     // 已得知的风声属于已结束条目：归档不显示，只给出计数。
-    expect(host.textContent).toContain('已得知 1 条');
+    expect(host.textContent).toContain('đã biết 1');
     expect(host.textContent).not.toContain('铁匠死在北岭');
   });
 
@@ -426,19 +426,19 @@ describe('WorldSimulationPage', () => {
     vi.useFakeTimers();
     const { host } = await mountPage();
     const groups = Array.from(host.querySelectorAll<HTMLElement>('.acu-v2-world-simulation-page__group'));
-    const dynamicsGroup = groups.find(group => group.textContent?.includes('世界动态'))!;
+    const dynamicsGroup = groups.find(group => group.textContent?.includes('Động thái thế giới'))!;
     dynamicsGroup.querySelector<HTMLButtonElement>('.acu-disclosure-group__header')!.click();
     await nextTick();
     const ttlInput = Array.from(host.querySelectorAll<HTMLInputElement>('input.acu-input[type="number"]')).find(input => {
       const label = input.closest('.acu-form-row')?.querySelector('.acu-form-row__label')?.textContent?.trim();
-      return label === '风声等待上限（天）';
+      return label === 'Giới hạn chờ của tin đồn (ngày)';
     })!;
     ttlInput.value = '0';
     ttlInput.dispatchEvent(new Event('input', { bubbles: true }));
     await nextTick();
     await vi.advanceTimersByTimeAsync(900);
     expect(saveSettings).not.toHaveBeenCalled();
-    expect(host.textContent).toContain('风声等待上限 必须是 1 到 3650 之间的整数');
+    expect(host.textContent).toContain('Giới hạn chờ của tin đồn phải là số nguyên từ 1 đến 3650');
   });
 
   it('锚点 stale 时在状态横幅下渲染 expected/actual 差异；非该错误不渲染', async () => {
@@ -448,7 +448,7 @@ describe('WorldSimulationPage', () => {
     next.envelope.lastError = {
       code: 'WORLD_SIMULATION_ANCHOR_STALE',
       phase: 'anchor',
-      message: '格林推演冻结锚点已变化，拒绝继续写入',
+      message: 'Neo đóng băng của mô phỏng thế giới đã thay đổi, từ chối ghi tiếp',
       retryable: false,
       details: {
         expected: { chatIdentity: 'chat-a', messageKey: 'number:7', swipeId: '0', contentDigest: 'aaaaaaaaaaaabbbb' },
@@ -467,14 +467,14 @@ describe('WorldSimulationPage', () => {
     next.envelope.lastError = {
       code: 'WORLD_SIMULATION_CHAT_CHANGED',
       phase: 'anchor',
-      message: '聊天已切换',
+      message: 'Đã chuyển cuộc trò chuyện',
       retryable: false,
       details: { expected: { swipeId: '0' }, actual: { swipeId: '1' } },
     };
     snapshot.value = { ...next };
     await nextTick();
     expect(host.querySelector('.acu-v2-agent-chat__anchor-diff')).toBeNull();
-    expect(host.textContent).not.toContain('锚点差异');
+    expect(host.textContent).not.toContain('Khác biệt mốc neo');
   });
 
   it('严格读取失败时展示结构化错误且不渲染会话输入与资料', async () => {
@@ -484,9 +484,9 @@ describe('WorldSimulationPage', () => {
     const { host } = await mountPage();
     expect(host.textContent).toContain('WORLD_SIMULATION_ENVELOPE_INVALID');
     expect(host.querySelector('.acu-v2-agent-chat__input')).toBeNull();
-    expect(host.textContent).not.toContain('还没有运行记录');
+    expect(host.textContent).not.toContain('Chưa có bản ghi chạy');
     expect(saveSettings).not.toHaveBeenCalled();
-    button(host, '重新读取')!.click();
+    button(host, 'Đọc lại')!.click();
     expect(refresh).toHaveBeenCalledTimes(2);
   });
 
@@ -495,43 +495,43 @@ describe('WorldSimulationPage', () => {
       userRequirements: { snapshot: { requirements: ['旧要求'], updatedAt: 1 }, diagnostics: [], adoptedIndex: 0 },
     });
     const { host } = await mountPage();
-    button(host, '用户要求')!.click();
+    button(host, 'Yêu cầu người dùng')!.click();
     await nextTick();
     const input = () => host.querySelector<HTMLTextAreaElement>('.acu-requirements-editor textarea')!;
     expect(input().value).toBe('旧要求');
-    button(host, '新增标签')!.click();
+    button(host, 'Thêm thẻ')!.click();
     await nextTick();
-    button(host, '保存用户要求')!.click();
+    button(host, 'Lưu yêu cầu người dùng')!.click();
     await nextTick();
     expect(saveUserRequirements).not.toHaveBeenCalled();
-    expect(host.querySelector('[role="alert"]')?.textContent).toContain('不能为空');
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain('không được để trống');
 
     const added = host.querySelectorAll<HTMLTextAreaElement>('.acu-requirements-editor textarea')[1]!;
     typeInto(added, '  新要求  ');
     await nextTick();
     saveUserRequirements.mockResolvedValueOnce(false).mockRejectedValueOnce(new Error('写入失败')).mockResolvedValueOnce(true);
-    for (const message of ['保存失败，修改已保留', '写入失败']) {
-      button(host, '保存用户要求')!.click();
+    for (const message of ['Lưu thất bại, thay đổi vẫn được giữ lại', '写入失败']) {
+      button(host, 'Lưu yêu cầu người dùng')!.click();
       await new Promise(resolve => setTimeout(resolve, 0));
       await nextTick();
       expect(host.querySelectorAll<HTMLTextAreaElement>('.acu-requirements-editor textarea')[1]!.value).toBe('  新要求  ');
       expect(host.querySelector('[role="alert"]')?.textContent).toContain(message);
-      expect(button(host, '保存用户要求')?.disabled).toBe(false);
+      expect(button(host, 'Lưu yêu cầu người dùng')?.disabled).toBe(false);
     }
-    button(host, '保存用户要求')!.click();
+    button(host, 'Lưu yêu cầu người dùng')!.click();
     await new Promise(resolve => setTimeout(resolve, 0));
     await nextTick();
     expect(saveUserRequirements).toHaveBeenCalledTimes(3);
     expect(saveUserRequirements).toHaveBeenLastCalledWith(['旧要求', '新要求']);
     expect(host.querySelectorAll<HTMLTextAreaElement>('.acu-requirements-editor textarea')[1]!.value).toBe('新要求');
-    expect(button(host, '保存用户要求')?.disabled).toBe(true);
+    expect(button(host, 'Lưu yêu cầu người dùng')?.disabled).toBe(true);
     // 保存结果已经返回，但页面收到的仍可能是上一版快照；不应让迟到快照撤销本地成功值。
     snapshot.value = baseSnapshot({
       userRequirements: { snapshot: { requirements: ['旧要求'], updatedAt: 1 }, diagnostics: [], adoptedIndex: 0 },
     });
     await nextTick();
     expect(Array.from(host.querySelectorAll<HTMLTextAreaElement>('.acu-requirements-editor textarea')).map(item => item.value)).toEqual(['旧要求', '新要求']);
-    expect(button(host, '保存用户要求')?.disabled).toBe(true);
+    expect(button(host, 'Lưu yêu cầu người dùng')?.disabled).toBe(true);
     // 新版已送达后，乱序到达的旧快照仍不可回滚已确认的保存结果。
     snapshot.value = baseSnapshot({
       userRequirements: { snapshot: { requirements: ['旧要求', '新要求'], updatedAt: 2 }, diagnostics: [], adoptedIndex: 0 },

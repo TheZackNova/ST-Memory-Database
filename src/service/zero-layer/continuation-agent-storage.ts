@@ -41,7 +41,7 @@ export function readZeroLayerPublishedContinuationFold_ACU(): ReturnType<typeof 
   const chat = projectWorkingContinuation_ACU(source, timeline, state);
   const folded = readAgentModuleFoldState_ACU(chat);
   if (folded.salvaged || folded.candidates.some(item => !item.valid)) {
-    throw new ZeroLayerError_ACU('corrupt-data', '已发布资料帧损坏，禁止以抢救快照展示。');
+    throw new ZeroLayerError_ACU('corrupt-data', 'Khung tài liệu đã phát hành bị hỏng, cấm hiển thị bằng snapshot cứu hộ.');
   }
   return folded;
 }
@@ -56,10 +56,10 @@ export function createZeroLayerContinuationAgentStorage_ACU(
   const chat = timeline.floors.map(floor => ({ ...floor.data, mes: floor.body,
     is_user: floor.role === 'user', is_system: floor.role === 'system' })) as any[];
   const assertCurrent = () => {
-    if (signal?.aborted) throw new ZeroLayerError_ACU('scope-changed', '逻辑续写规划已中止。');
+    if (signal?.aborted) throw new ZeroLayerError_ACU('scope-changed', 'Lập kế hoạch viết tiếp logic đã bị hủy.');
     const live = store.readSource();
     const branch = live.branches.find(item => item.branchId === store.branchId)!;
-    if (branch.headTurnId !== timeline.headTurnId) throw new ZeroLayerError_ACU('revision-conflict', '规划期间逻辑历史前沿已变化。');
+    if (branch.headTurnId !== timeline.headTurnId) throw new ZeroLayerError_ACU('revision-conflict', 'Đầu lịch sử logic đã thay đổi trong lúc lập kế hoạch.');
   };
   const refresh = () => {
     assertCurrent();
@@ -90,7 +90,7 @@ export function createZeroLayerContinuationAgentStorage_ACU(
         || assigned.has(assignment.index)
         || checkpointFingerprint_ACU(assignment.previous)
           !== checkpointFingerprint_ACU(chat[assignment.index][AGENT_MODULE_FIELD_ACU])) {
-        throw new ZeroLayerError_ACU('revision-conflict', '资料候选不属于已捕获的只读投影。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Ứng viên tài liệu không thuộc phép chiếu chỉ đọc đã ghi nhận.');
       }
       assigned.add(assignment.index);
       if (assignment.value === undefined) delete scratch[assignment.index][AGENT_MODULE_FIELD_ACU];
@@ -102,7 +102,7 @@ export function createZeroLayerContinuationAgentStorage_ACU(
     await store.updateState((state, live) => {
       assertCurrent();
       if (!anchor || live.activeBranchId !== store.branchId || stateFingerprint(state) !== expected) {
-        throw new ZeroLayerError_ACU('revision-conflict', '规划期间续写资料帧已变化。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Khung tài liệu viết tiếp đã thay đổi trong lúc lập kế hoạch.');
       }
       // assignments 仅供纯折叠；来源 FloorRef 不授予历史帧或共享前缀写权限。
       state.workingFrame = { branchId: store.branchId, anchor: structuredClone(anchor), payload };
@@ -113,16 +113,16 @@ export function createZeroLayerContinuationAgentStorage_ACU(
   const moduleCommitStorage: AgentModuleCommitStorage_ACU = {
     isActive: candidate => { assertCurrent(); return candidate === chat; },
     readFold: candidate => {
-      if (candidate !== chat) throw new ZeroLayerError_ACU('scope-changed', '资料读取不属于本请求。');
+      if (candidate !== chat) throw new ZeroLayerError_ACU('scope-changed', 'Việc đọc tài liệu không thuộc yêu cầu này.');
       refresh();
       const folded = readAgentModuleFoldState_ACU(chat);
       if (folded.salvaged || folded.candidates.some(item => !item.valid)) {
-        throw new ZeroLayerError_ACU('corrupt-data', '逻辑资料帧损坏，禁止使用抢救快照。');
+        throw new ZeroLayerError_ACU('corrupt-data', 'Khung tài liệu logic bị hỏng, cấm dùng snapshot cứu hộ.');
       }
       return folded;
     },
     captureBaseline: candidate => {
-      if (candidate !== chat) throw new ZeroLayerError_ACU('scope-changed', '资料基线不属于本请求。');
+      if (candidate !== chat) throw new ZeroLayerError_ACU('scope-changed', 'Đường cơ sở tài liệu không thuộc yêu cầu này.');
       refresh();
       const baseline = { identity: store.getChatIdentity(), floors: chat.map(message => ({ message,
         swipeId: readMessageSwipeId_ACU(message), existed: Object.prototype.hasOwnProperty.call(message, AGENT_MODULE_FIELD_ACU),
@@ -135,17 +135,17 @@ export function createZeroLayerContinuationAgentStorage_ACU(
       const expected = baselines.get(baseline);
       if (candidate !== chat || targetIndex !== chat.length - 1 || !expected
         || expected !== frameFingerprint() || isCurrent?.() === false) {
-        throw new ZeroLayerError_ACU('revision-conflict', '逻辑资料基线或派工租约已变化。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Đường cơ sở tài liệu logic hoặc lease điều phối đã thay đổi.');
       }
       refresh();
       const plan = planAgentModuleCommitDelta_ACU(chat, targetIndex, delta, agentModuleFrameDeps_ACU(), null, at);
       const scratch = chat.map(message => ({ ...message }));
       for (const item of plan.assignments) scratch[item.index][AGENT_MODULE_FIELD_ACU] = item.value;
       if (!plan.changed || !verify(readAgentModuleFoldState_ACU(scratch))) {
-        throw new ZeroLayerError_ACU('corrupt-data', '逻辑资料候选未通过折叠验证。');
+        throw new ZeroLayerError_ACU('corrupt-data', 'Ứng viên tài liệu logic chưa qua kiểm chứng gấp.');
       }
       await persistPlan(plan, expected);
-      if (!verify(moduleCommitStorage.readFold(chat))) throw new ZeroLayerError_ACU('corrupt-data', '逻辑资料保存回读不一致。');
+      if (!verify(moduleCommitStorage.readFold(chat))) throw new ZeroLayerError_ACU('corrupt-data', 'Đọc lại sau khi lưu tài liệu logic không nhất quán.');
       return { status: 'committed' };
     },
   };
@@ -153,12 +153,12 @@ export function createZeroLayerContinuationAgentStorage_ACU(
   const readConversation = () => readAgentConversation_ACU(conversationChat());
   const readCompactionMark = () => readActiveAgentConversationCompactionMark_ACU(conversationChat());
   return {
-    storageLabel: '零层 carrier 续写状态',
+    storageLabel: 'Trạng thái viết tiếp carrier Tầng 0',
     readChat: () => { refresh(); return chat; },
     readModuleSnapshot: candidate => moduleCommitStorage.readFold(candidate).snapshot,
     writeModuleSnapshot: async (candidate, targetIndex, snapshot) => {
       if (candidate !== chat || targetIndex !== chat.length - 1) {
-        throw new ZeroLayerError_ACU('scope-changed', '资料快照目标不属于本请求。');
+        throw new ZeroLayerError_ACU('scope-changed', 'Đích snapshot tài liệu không thuộc yêu cầu này.');
       }
       refresh();
       const expected = frameFingerprint();
@@ -170,38 +170,38 @@ export function createZeroLayerContinuationAgentStorage_ACU(
     readConversation,
     readCompactionMark,
     appendConversationMessages: async (candidate, prepared) => {
-      if (candidate !== chat) throw new ZeroLayerError_ACU('scope-changed', '会话追加不属于本请求。');
+      if (candidate !== chat) throw new ZeroLayerError_ACU('scope-changed', 'Phần thêm vào hội thoại không thuộc yêu cầu này.');
       if (!prepared.length) return false;
       await store.updateState(state => {
         assertCurrent();
         const existing = new Map(state.conversation.segment.map(message => [message.id, message]));
         for (const message of prepared) {
           if (existing.has(message.id) && JSON.stringify(existing.get(message.id)) !== JSON.stringify(message)) {
-            throw new ZeroLayerError_ACU('revision-conflict', '会话消息 ID 与已保存内容冲突。');
+            throw new ZeroLayerError_ACU('revision-conflict', 'ID tin nhắn hội thoại xung đột với nội dung đã lưu.');
           }
         }
         const fresh = prepared.filter(message => !existing.has(message.id));
         const nextId = readAgentConversation_ACU([{ [AGENT_CONVERSATION_FIELD_ACU]: state.conversation }]).nextId;
         if (fresh.some((message, index) => message.id !== nextId + index)) {
-          throw new ZeroLayerError_ACU('revision-conflict', '会话追加序号不连续。');
+          throw new ZeroLayerError_ACU('revision-conflict', 'Số thứ tự phần thêm vào hội thoại không liên tục.');
         }
         state.conversation.segment.push(...structuredClone(fresh));
         state.conversation.updatedAt = Date.now();
         if (!validateAgentConversationFloorRecord_ACU(state.conversation)) {
-          throw new ZeroLayerError_ACU('corrupt-data', '待保存会话记录无效。');
+          throw new ZeroLayerError_ACU('corrupt-data', 'Bản ghi hội thoại chờ lưu không hợp lệ.');
         }
       });
       return true;
     },
     captureCompactionCommit: candidate => {
-      if (candidate !== chat) throw new ZeroLayerError_ACU('scope-changed', '压缩不属于本请求。');
+      if (candidate !== chat) throw new ZeroLayerError_ACU('scope-changed', 'Việc nén không thuộc yêu cầu này.');
       const expected = fingerprintAgentConversationSource_ACU(readConversation(), readCompactionMark());
       return async mark => {
         await store.updateState(state => {
           assertCurrent();
           const messages = [{ [AGENT_CONVERSATION_FIELD_ACU]: state.conversation }];
           const fingerprint = fingerprintAgentConversationSource_ACU(readAgentConversation_ACU(messages), readActiveAgentConversationCompactionMark_ACU(messages));
-          if (fingerprint !== expected) throw new ZeroLayerError_ACU('revision-conflict', '压缩源会话已变化。');
+          if (fingerprint !== expected) throw new ZeroLayerError_ACU('revision-conflict', 'Hội thoại nguồn nén đã thay đổi.');
           state.conversation.compaction = structuredClone(mark);
           state.conversation.updatedAt = Date.now();
           validateAgentConversationFloorRecord_ACU(state.conversation);
@@ -245,6 +245,6 @@ export async function clearZeroLayerContinuationModules_ACU(store: ZeroLayerCont
       .every(row => row.status !== 'partial'))
     && checkpointFingerprint_ACU(folded.snapshot.revisions) === checkpointFingerprint_ACU(revisions),
   baseline, () => { store.assertCanContinue(); return true; });
-  if (result.status !== 'committed') throw new ZeroLayerError_ACU('effects-pending', '资料删除尚未取得保存确认。');
+  if (result.status !== 'committed') throw new ZeroLayerError_ACU('effects-pending', 'Việc xóa tài liệu chưa nhận được xác nhận lưu.');
   return true;
 }

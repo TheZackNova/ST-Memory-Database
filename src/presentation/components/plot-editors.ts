@@ -141,15 +141,15 @@ function stripRuntimeOnlyPlotTaskFields_ACU(task: any) {
                       <div style="display:flex; align-items:center; gap:8px;">
                           <select class="prompt-segment-role">
                               <option value="assistant" ${roleUpper === 'AI' || roleUpper === 'ASSISTANT' || roleLower === 'assistant' ? 'selected' : ''}>AI</option>
-                              <option value="SYSTEM" ${roleUpper === 'SYSTEM' || roleLower === 'system' ? 'selected' : ''}>系统</option>
-                              <option value="USER" ${roleUpper === 'USER' || roleLower === 'user' ? 'selected' : ''}>用户</option>
+                              <option value="SYSTEM" ${roleUpper === 'SYSTEM' || roleLower === 'system' ? 'selected' : ''}>Hệ thống</option>
+                              <option value="USER" ${roleUpper === 'USER' || roleLower === 'user' ? 'selected' : ''}>Người dùng</option>
                           </select>
-                          <label style="display:flex; align-items:center; gap:6px; font-size:0.8em; cursor:pointer; user-select:none;" title="用于运行时替换/合并注入的主提示词槽位。A/B 均不可删除；剧情推进会优先覆盖 A(系统) + B(用户)。">
-                              <span style="opacity:0.85;">主提示词</span>
+                          <label style="display:flex; align-items:center; gap:6px; font-size:0.8em; cursor:pointer; user-select:none;" title="Ô prompt chính dùng để thay thế/gộp chèn khi chạy. A/B đều không thể xóa; đẩy cốt truyện sẽ ưu tiên ghi đè A (hệ thống) + B (người dùng).">
+                              <span style="opacity:0.85;">Prompt chính</span>
                               <select class="prompt-segment-main-slot" style="font-size:0.85em;">
-                                  <option value="" ${!isMainPrompt ? 'selected' : ''}>普通</option>
-                                  <option value="A" ${isMainA ? 'selected' : ''}>A(建议System)</option>
-                                  <option value="B" ${isMainB ? 'selected' : ''}>B(建议User)</option>
+                                  <option value="" ${!isMainPrompt ? 'selected' : ''}>Thường</option>
+                                  <option value="A" ${isMainA ? 'selected' : ''}>A (nên là System)</option>
+                                  <option value="B" ${isMainB ? 'selected' : ''}>B (nên là User)</option>
                               </select>
                           </label>
                       </div>
@@ -236,15 +236,15 @@ function stripRuntimeOnlyPlotTaskFields_ACU(task: any) {
                       <div style="display:flex; align-items:center; gap:8px;">
                           <select class="plot-prompt-segment-role">
                               <option value="assistant" ${roleUpper === 'AI' || roleUpper === 'ASSISTANT' || roleLower === 'assistant' ? 'selected' : ''}>AI</option>
-                              <option value="SYSTEM" ${roleUpper === 'SYSTEM' || roleLower === 'system' ? 'selected' : ''}>系统</option>
-                              <option value="USER" ${roleUpper === 'USER' || roleLower === 'user' ? 'selected' : ''}>用户</option>
+                              <option value="SYSTEM" ${roleUpper === 'SYSTEM' || roleLower === 'system' ? 'selected' : ''}>Hệ thống</option>
+                              <option value="USER" ${roleUpper === 'USER' || roleLower === 'user' ? 'selected' : ''}>Người dùng</option>
                           </select>
-                          <label style="display:flex; align-items:center; gap:6px; font-size:0.8em; cursor:pointer; user-select:none;" title="用于兼容旧预设的A/B槽位。A/B 均不可删除；但运行时不会再对其进行自动替换，完全由本提示词组决定。">
-                              <span style="opacity:0.85;">主提示词</span>
+                          <label style="display:flex; align-items:center; gap:6px; font-size:0.8em; cursor:pointer; user-select:none;" title="Ô A/B để tương thích preset cũ. A/B đều không thể xóa; nhưng khi chạy sẽ không còn tự động thay thế chúng, hoàn toàn do nhóm prompt này quyết định.">
+                              <span style="opacity:0.85;">Prompt chính</span>
                               <select class="plot-prompt-segment-main-slot" style="font-size:0.85em;">
-                                  <option value="" ${!isMainPrompt ? 'selected' : ''}>普通</option>
-                                  <option value="A" ${isMainA ? 'selected' : ''}>A(建议System)</option>
-                                  <option value="B" ${isMainB ? 'selected' : ''}>B(建议User)</option>
+                                  <option value="" ${!isMainPrompt ? 'selected' : ''}>Thường</option>
+                                  <option value="A" ${isMainA ? 'selected' : ''}>A (nên là System)</option>
+                                  <option value="B" ${isMainB ? 'selected' : ''}>B (nên là User)</option>
                               </select>
                           </label>
                       </div>
@@ -347,22 +347,22 @@ function stripRuntimeOnlyPlotTaskFields_ACU(task: any) {
       $plotTaskListContainer_ACU.empty();
 
       if (!tasks.length) {
-          $plotTaskListContainer_ACU.append('<div class="notes" style="padding: 10px 12px;">暂无剧情任务</div>');
+          $plotTaskListContainer_ACU.append('<div class="notes" style="padding: 10px 12px;">Chưa có tác vụ cốt truyện</div>');
           return;
       }
 
       tasks.forEach((task: any, index: number) => {
           const isSelected = selectedTask?.id === task.id;
-          const enabledText = task.enabled !== false ? '启用' : '停用';
+          const enabledText = task.enabled !== false ? 'Bật' : 'Tắt';
           const enabledColor = task.enabled !== false ? 'var(--green)' : 'var(--red)';
           const stageNo = normalizePositiveInteger_ACU(task?.stage, 1);
           const itemHtml = `
               <button type="button" class="button acu-plot-task-item ${isSelected ? 'acu-plot-task-item--active' : ''}" data-task-id="${escapeHtml_ACU(task.id)}" style="display:flex; width:100%; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; padding:10px 12px; text-align:left; border:${isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border_color_light)'}; background:${isSelected ? 'color-mix(in srgb, var(--accent-primary) 12%, var(--background_default))' : 'var(--background_default)'}; border-radius:8px;">
                   <span style="display:flex; flex-direction:column; gap:4px; min-width:0;">
-                      <span style="font-weight:600; color:var(--text_primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${index + 1}. ${escapeHtml_ACU(task.name || task.id || `剧情任务${index + 1}`)}</span>
-                      <span class="notes" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">阶段：${stageNo} · 标签：${escapeHtml_ACU(task.extractTags || '(未设置)')}</span>
+                      <span style="font-weight:600; color:var(--text_primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${index + 1}. ${escapeHtml_ACU(task.name || task.id || `Tác vụ cốt truyện ${index + 1}`)}</span>
+                      <span class="notes" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Giai đoạn: ${stageNo} · Thẻ: ${escapeHtml_ACU(task.extractTags || '(chưa đặt)')}</span>
                   </span>
-                  <span style="flex-shrink:0; font-size:0.8em; color:${enabledColor};">${enabledText}${isSelected ? ' · 编辑中' : ''}</span>
+                  <span style="flex-shrink:0; font-size:0.8em; color:${enabledColor};">${enabledText}${isSelected ? ' · Đang sửa' : ''}</span>
               </button>
           `;
           $plotTaskListContainer_ACU.append(itemHtml);
@@ -429,7 +429,7 @@ function persistPlotTaskEditorSettings_ACU(source = 'ui_task_edit') {
       const taskMaxRetriesRaw = parseInt($popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-task-max-retries`).val() as string, 10);
       const updatedTask = normalizePlotTask_ACU({
           ...stripRuntimeOnlyPlotTaskFields_ACU(selectedTask),
-          name: String(taskNameRaw || '').trim() || selectedTask.name || `剧情任务${selectedIndex + 1}`,
+          name: String(taskNameRaw || '').trim() || selectedTask.name || `Tác vụ cốt truyện ${selectedIndex + 1}`,
           enabled: $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-task-enabled`).is(':checked'),
           promptGroup: getPlotPromptGroupFromUI_ACU(),
           extractTags: String(taskExtractTagsRaw || ''),
@@ -456,7 +456,7 @@ function persistPlotTaskEditorSettings_ACU(source = 'ui_task_edit') {
           persistPlotTaskEditorSettings_ACU('ui_task_edit');
       }
       if (renderTaskList) renderPlotTaskList_ACU(plotSettings);
-      if (!silent) showToastr_ACU('success', '当前剧情任务已保存。');
+      if (!silent) showToastr_ACU('success', 'Đã lưu tác vụ cốt truyện hiện tại.');
       return updatedTask;
   }
 
@@ -492,7 +492,7 @@ function persistPlotTaskEditorSettings_ACU(source = 'ui_task_edit') {
       }
       return normalizePlotTask_ACU({
           id: taskId,
-          name: `剧情任务${tasks.length + 1}`,
+          name: `Tác vụ cốt truyện ${tasks.length + 1}`,
           enabled: true,
           promptGroup: buildDefaultPlotPromptGroup_ACU(),
           extractTags: DEFAULT_PLOT_SETTINGS_ACU.extractTags || '',
@@ -535,7 +535,7 @@ function persistPlotTaskEditorSettings_ACU(source = 'ui_task_edit') {
       persistPlotTaskEditorSettings_ACU('ui_task_add');
       renderPlotTaskList_ACU(plotSettings);
       loadCurrentPlotTaskToUI_ACU(plotSettings);
-      showToastr_ACU('success', '已新增一个剧情任务。');
+      showToastr_ACU('success', 'Đã thêm một tác vụ cốt truyện.');
   }
 
   export function deleteCurrentPlotTaskFromUI_ACU() {
@@ -544,10 +544,10 @@ function persistPlotTaskEditorSettings_ACU(source = 'ui_task_edit') {
       const { tasks, selectedTask, selectedIndex } = getCurrentPlotTaskEditorState_ACU(plotSettings, { autoSelect: true });
       if (!selectedTask || selectedIndex < 0) return;
       if (tasks.length <= 1) {
-          showToastr_ACU('warning', '至少需要保留一个剧情任务。');
+          showToastr_ACU('warning', 'Cần giữ lại ít nhất một tác vụ cốt truyện.');
           return;
       }
-      if (!confirm(`确定要删除剧情任务"${selectedTask.name || selectedTask.id}"吗？`)) {
+      if (!confirm(`Xác nhận xóa tác vụ cốt truyện "${selectedTask.name || selectedTask.id}"?`)) {
           return;
       }
 
@@ -559,7 +559,7 @@ function persistPlotTaskEditorSettings_ACU(source = 'ui_task_edit') {
       persistPlotTaskEditorSettings_ACU('ui_task_delete');
       renderPlotTaskList_ACU(plotSettings);
       loadCurrentPlotTaskToUI_ACU(plotSettings);
-      showToastr_ACU('success', '剧情任务已删除。');
+      showToastr_ACU('success', 'Đã xóa tác vụ cốt truyện.');
   }
 
   export function moveCurrentPlotTask_ACU(direction: string) {

@@ -10,80 +10,80 @@
         @click="activeTab = tab.id"
       >{{ tab.label }}</button>
       <div class="acu-v2-continuation-materials__tab-actions">
-        <AcuButton :loading="busy" @click="reload()">刷新</AcuButton>
-        <AcuButton variant="danger" :loading="busy" @click="requestClear">一键清空</AcuButton>
+        <AcuButton :loading="busy" @click="reload()">Làm mới</AcuButton>
+        <AcuButton variant="danger" :loading="busy" @click="requestClear">Xóa sạch một chạm</AcuButton>
       </div>
     </div>
 
     <p v-if="clearPending" class="acu-v2-continuation-materials__confirm">
-      清空会删除当前续写任务、主 Agent 的会话记录与本地资料快照（伏笔、信息差、长期约束、故事总纲、年代学、百科资料库、用户要求）。
-      小说正文楼层不受影响，清空后可以从当前剧情重新开始规划。
+      Xóa sạch sẽ xóa tác vụ viết tiếp hiện tại, bản ghi phiên của Agent chính và snapshot tài liệu cục bộ (phục bút, chênh lệch thông tin, ràng buộc dài hạn, tổng cương truyện, niên đại học, kho tư liệu bách khoa, yêu cầu người dùng).
+      Các tầng nội dung tiểu thuyết không bị ảnh hưởng; sau khi xóa có thể lên kế hoạch lại từ cốt truyện hiện tại.
       <span class="acu-v2-continuation-materials__confirm-actions">
-        <AcuButton variant="danger" :loading="busy" @click="confirmClear">确认清空</AcuButton>
-        <AcuButton @click="clearPending = false">取消</AcuButton>
+        <AcuButton variant="danger" :loading="busy" @click="confirmClear">Xác nhận xóa sạch</AcuButton>
+        <AcuButton @click="clearPending = false">Hủy</AcuButton>
       </span>
     </p>
 
     <!-- 阶段大纲：当前阶段可编辑，历史阶段只读折叠 -->
     <template v-if="activeTab === 'outline'">
-      <p v-if="!task" class="acu-v2-continuation-materials__empty">还没有续写任务，也就没有阶段大纲。</p>
+      <p v-if="!task" class="acu-v2-continuation-materials__empty">Chưa có tác vụ viết tiếp nên cũng chưa có dàn ý giai đoạn.</p>
       <template v-else>
         <div v-if="activeRevision && activeStage" class="acu-v2-continuation-materials__outline">
           <p class="acu-v2-continuation-materials__meta">
-            当前：第 {{ activeStage?.stageNumber }} 阶段 · revision {{ activeRevision.revision }} · 已完成 {{ activeStage?.completedTurns ?? 0 }} 轮。
-            已完成轮次与正在执行的轮次不可删除或替换，总轮数必须留在阶段规模范围内。
+            Hiện tại: giai đoạn {{ activeStage?.stageNumber }} · revision {{ activeRevision.revision }} · đã xong {{ activeStage?.completedTurns ?? 0 }} lượt.
+            Các lượt đã xong và đang thực thi không thể xóa hoặc thay thế; tổng số lượt phải nằm trong phạm vi quy mô giai đoạn.
           </p>
 
           <section class="acu-v2-continuation-materials__outline-summary">
             <p class="acu-v2-continuation-materials__outline-heading">
-              <strong>第 {{ activeStage.stageNumber }} 阶段：{{ activeRevision.outline.title }}</strong>
+              <strong>Giai đoạn {{ activeStage.stageNumber }}: {{ activeRevision.outline.title }}</strong>
               <span class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--primary">{{ TEMPO_LABELS[activeRevision.outline.tempo] ?? activeRevision.outline.tempo }}</span>
-              <span class="acu-v2-continuation-materials__badge">职责：{{ ROLE_LABELS[activeRevision.outline.role ?? ''] ?? activeRevision.outline.role ?? '未标注' }}</span>
+              <span class="acu-v2-continuation-materials__badge">Vai trò: {{ ROLE_LABELS[activeRevision.outline.role ?? ''] ?? activeRevision.outline.role ?? 'Chưa đánh dấu' }}</span>
               <span class="acu-v2-continuation-materials__badge">revision {{ activeRevision.revision }}</span>
-              <span class="acu-v2-continuation-materials__badge">{{ activeRevision.frozen ? '已冻结' : '待确认' }}</span>
+              <span class="acu-v2-continuation-materials__badge">{{ activeRevision.frozen ? 'Đã đóng băng' : 'Chờ xác nhận' }}</span>
             </p>
-            <p class="acu-v2-continuation-materials__card-body">阶段目标：{{ activeRevision.outline.goal }}</p>
-            <p class="acu-v2-continuation-materials__card-meta">故事时间目标：{{ activeRevision.outline.timeSpanGoal ?? '未设定' }}</p>
-            <p class="acu-v2-continuation-materials__card-meta">完成 {{ activeStage.completedTurns }} / {{ activeRevision.outline.totalTurns }} 轮 · 剩余 {{ remainingTurns(activeStage, activeRevision) }} 轮</p>
+            <p class="acu-v2-continuation-materials__card-body">Mục tiêu giai đoạn: {{ activeRevision.outline.goal }}</p>
+            <p class="acu-v2-continuation-materials__card-meta">Mục tiêu thời gian truyện: {{ activeRevision.outline.timeSpanGoal ?? 'Chưa đặt' }}</p>
+            <p class="acu-v2-continuation-materials__card-meta">Xong {{ activeStage.completedTurns }} / {{ activeRevision.outline.totalTurns }} lượt · còn {{ remainingTurns(activeStage, activeRevision) }} lượt</p>
             <p class="acu-v2-continuation-materials__card-meta">
-              所属 active 卷：{{ activeVolume ? `[${activeVolume.id}]「${activeVolume.title}」` : '未识别（故事总纲尚未加载或当前没有 active 卷）' }}
+              Tập active thuộc về: {{ activeVolume ? `[${activeVolume.id}]「${activeVolume.title}」` : 'Chưa nhận diện (tổng cương truyện chưa tải hoặc hiện không có tập active)' }}
             </p>
           </section>
 
           <div class="acu-v2-continuation-materials__outline-nodes">
             <section v-for="(node, nodeIndex) in activeRevision.outline.nodes" :key="node.id" class="acu-v2-continuation-materials__outline-node">
-              <p class="acu-v2-continuation-materials__card-head"><strong>{{ node.title }}</strong><span class="acu-v2-continuation-materials__badge">{{ node.turns.length }} 轮</span></p>
-              <p class="acu-v2-continuation-materials__card-body">节点目标：{{ node.goal }}</p>
+              <p class="acu-v2-continuation-materials__card-head"><strong>{{ node.title }}</strong><span class="acu-v2-continuation-materials__badge">{{ node.turns.length }} lượt</span></p>
+              <p class="acu-v2-continuation-materials__card-body">Mục tiêu nút: {{ node.goal }}</p>
               <ol class="acu-v2-continuation-materials__turns">
                 <li
                   v-for="(turn, turnIndex) in node.turns"
                   :key="turn.id"
                   :class="`acu-v2-continuation-materials__turn--${turnState(activeRevision, nodeIndex, turnIndex)}`"
                 >
-                  <span>第 {{ turnPosition(activeRevision, node.id, turnIndex) }} 轮 · {{ turn.goal }}</span>
+                  <span>Lượt {{ turnPosition(activeRevision, node.id, turnIndex) }} · {{ turn.goal }}</span>
                   <span class="acu-v2-continuation-materials__badge">{{ PACING_LABELS[turn.pacing] ?? turn.pacing }}</span>
-                  <span class="acu-v2-continuation-materials__badge">功能：{{ FUNCTION_LABELS[turn.function ?? ''] ?? turn.function ?? '未标注' }}</span>
-                  <span class="acu-v2-continuation-materials__badge">主线：{{ MAINLINE_LABELS[turn.mainlineDelta ?? ''] ?? turn.mainlineDelta ?? '未标注' }}</span>
-                  <span class="acu-v2-continuation-materials__badge">时间：{{ TIME_LABELS[turn.timeAdvance ?? ''] ?? turn.timeAdvance ?? '未标注' }}<template v-if="turn.timeAnchor"> · {{ turn.timeAnchor }}</template></span>
-                  <span v-if="turn.inferred?.length" class="acu-v2-continuation-materials__badge" title="这些字段由系统按节奏档保守补全，不是大纲模型或作者明确给出的；可在原始 JSON 里修正">系统补全：{{ turn.inferred.map(field => INFERRED_FIELD_LABELS[field] ?? field).join('、') }}</span>
-                  <span v-if="turnState(activeRevision, nodeIndex, turnIndex) === 'current'" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--primary">当前执行</span>
+                  <span class="acu-v2-continuation-materials__badge">Chức năng: {{ FUNCTION_LABELS[turn.function ?? ''] ?? turn.function ?? 'Chưa đánh dấu' }}</span>
+                  <span class="acu-v2-continuation-materials__badge">Tuyến chính: {{ MAINLINE_LABELS[turn.mainlineDelta ?? ''] ?? turn.mainlineDelta ?? 'Chưa đánh dấu' }}</span>
+                  <span class="acu-v2-continuation-materials__badge">Thời gian: {{ TIME_LABELS[turn.timeAdvance ?? ''] ?? turn.timeAdvance ?? 'Chưa đánh dấu' }}<template v-if="turn.timeAnchor"> · {{ turn.timeAnchor }}</template></span>
+                  <span v-if="turn.inferred?.length" class="acu-v2-continuation-materials__badge" title="Các trường này do hệ thống bổ sung thận trọng theo mức nhịp, không phải do mô hình dàn ý hoặc tác giả nêu rõ; có thể sửa trong JSON gốc">Hệ thống bổ sung: {{  turn.inferred.map(field => INFERRED_FIELD_LABELS[field] ?? field).join(', ') }}</span>
+                  <span v-if="turnState(activeRevision, nodeIndex, turnIndex) === 'current'" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--primary">Đang thực thi</span>
                 </li>
               </ol>
             </section>
           </div>
 
           <details class="acu-v2-continuation-materials__json">
-            <summary>编辑原始 JSON</summary>
-            <p class="acu-v2-continuation-materials__card-meta">修改轮次目标时请同步核对 pacing、function、mainlineDelta、timeAdvance 与 timeAnchor；缺少的语义字段保存时会按 pacing 补默认并标注「系统补全」，标注为 inferred 的字段改成明确值后标注自动消失。</p>
+            <summary>Sửa JSON gốc</summary>
+            <p class="acu-v2-continuation-materials__card-meta">Khi sửa mục tiêu lượt, hãy đối chiếu đồng thời pacing, function, mainlineDelta, timeAdvance và timeAnchor; các trường ngữ nghĩa còn thiếu khi lưu sẽ được bổ sung mặc định theo pacing và gắn nhãn «Hệ thống bổ sung»; trường đánh dấu inferred sau khi đổi sang giá trị rõ ràng thì nhãn tự biến mất.</p>
             <AcuTextarea :model-value="outlineDraft" :rows="16" @update:model-value="onOutlineInput" />
             <p v-if="outlineError" class="acu-v2-continuation-materials__error">{{ outlineError }}</p>
             <div class="acu-v2-continuation-materials__actions">
-              <AcuButton :disabled="!outlineDirty" @click="syncOutlineDraft">放弃修改</AcuButton>
-              <AcuButton variant="primary" :loading="busy" :disabled="!outlineDirty" @click="saveOutline">保存大纲</AcuButton>
+              <AcuButton :disabled="!outlineDirty" @click="syncOutlineDraft">Bỏ thay đổi</AcuButton>
+              <AcuButton variant="primary" :loading="busy" :disabled="!outlineDirty" @click="saveOutline">Lưu dàn ý</AcuButton>
             </div>
           </details>
         </div>
-        <p v-else class="acu-v2-continuation-materials__empty">当前没有已冻结的阶段大纲可编辑。</p>
+        <p v-else class="acu-v2-continuation-materials__empty">Hiện không có dàn ý giai đoạn đã đóng băng để sửa.</p>
 
         <details
           v-for="stage in historyStages"
@@ -92,23 +92,23 @@
           :open="expandedHistoryStageIds.has(stage.stageId)"
           @toggle="onHistoryStageToggle(stage.stageId, $event)"
         >
-          <summary>第 {{ stage.stageNumber }} 阶段 · {{ stage.status }} · {{ stage.completedTurns }} / {{ stageTotalTurns(stage) }} 轮</summary>
+          <summary>Giai đoạn {{ stage.stageNumber }} · {{ stage.status }} · {{ stage.completedTurns }} / {{ stageTotalTurns(stage) }} lượt</summary>
           <template v-if="expandedHistoryStageIds.has(stage.stageId)">
           <template v-for="revision in [displayRevision(stage)]" :key="revision?.revision ?? 'no-revision'">
             <section v-if="revision" class="acu-v2-continuation-materials__outline-summary">
-              <p class="acu-v2-continuation-materials__outline-heading"><strong>{{ revision.outline.title }}</strong><span class="acu-v2-continuation-materials__badge">revision {{ revision.revision }}</span><span class="acu-v2-continuation-materials__badge">{{ revision.frozen ? '已冻结' : '待确认' }}</span><span class="acu-v2-continuation-materials__badge">职责：{{ ROLE_LABELS[revision.outline.role ?? ''] ?? revision.outline.role ?? '未标注' }}</span></p>
-              <p class="acu-v2-continuation-materials__card-body">阶段目标：{{ revision.outline.goal }}</p>
+              <p class="acu-v2-continuation-materials__outline-heading"><strong>{{ revision.outline.title }}</strong><span class="acu-v2-continuation-materials__badge">revision {{ revision.revision }}</span><span class="acu-v2-continuation-materials__badge">{{ revision.frozen ? 'Đã đóng băng' : 'Chờ xác nhận' }}</span><span class="acu-v2-continuation-materials__badge">Vai trò: {{ ROLE_LABELS[revision.outline.role ?? ''] ?? revision.outline.role ?? 'Chưa đánh dấu' }}</span></p>
+              <p class="acu-v2-continuation-materials__card-body">Mục tiêu giai đoạn: {{ revision.outline.goal }}</p>
               <ol class="acu-v2-continuation-materials__list">
-                <li v-for="node in revision.outline.nodes" :key="node.id"><strong>{{ node.title }}</strong>：{{ node.goal }}<ol><li v-for="turn in node.turns" :key="turn.id">{{ turn.goal }} · {{ PACING_LABELS[turn.pacing] ?? turn.pacing }} · {{ FUNCTION_LABELS[turn.function ?? ''] ?? turn.function ?? '未标注' }} · 主线 {{ MAINLINE_LABELS[turn.mainlineDelta ?? ''] ?? turn.mainlineDelta ?? '未标注' }} · {{ TIME_LABELS[turn.timeAdvance ?? ''] ?? turn.timeAdvance ?? '未标注' }}<template v-if="turn.timeAnchor">（{{ turn.timeAnchor }}）</template></li></ol></li>
+                <li v-for="node in revision.outline.nodes" :key="node.id"><strong>{{ node.title }}</strong>: {{ node.goal }}<ol><li v-for="turn in node.turns" :key="turn.id">{{ turn.goal }} · {{ PACING_LABELS[turn.pacing] ?? turn.pacing }} · {{ FUNCTION_LABELS[turn.function ?? ''] ?? turn.function ?? 'Chưa đánh dấu' }} · tuyến chính {{ MAINLINE_LABELS[turn.mainlineDelta ?? ''] ?? turn.mainlineDelta ?? 'Chưa đánh dấu' }} · {{ TIME_LABELS[turn.timeAdvance ?? ''] ?? turn.timeAdvance ?? 'Chưa đánh dấu' }}<template v-if="turn.timeAnchor">({{ turn.timeAnchor }})</template></li></ol></li>
               </ol>
             </section>
-            <p v-else class="acu-v2-continuation-materials__empty">该阶段没有可展示的 revision。</p>
+            <p v-else class="acu-v2-continuation-materials__empty">Giai đoạn này không có revision để hiển thị.</p>
           </template>
           <details v-if="olderRevisions(stage).length" class="acu-v2-continuation-materials__history">
-            <summary>旧 revision（{{ olderRevisions(stage).length }}）</summary>
+            <summary>Revision cũ ({{ olderRevisions(stage).length }})</summary>
             <details v-for="revision in olderRevisions(stage)" :key="revision.revision" class="acu-v2-continuation-materials__history-revision">
               <summary>revision {{ revision.revision }} · {{ revision.reason }} · {{ revision.outline.title }}</summary>
-              <ol class="acu-v2-continuation-materials__list"><li v-for="node in revision.outline.nodes" :key="node.id"><strong>{{ node.title }}</strong>：{{ node.goal }}</li></ol>
+              <ol class="acu-v2-continuation-materials__list"><li v-for="node in revision.outline.nodes" :key="node.id"><strong>{{ node.title }}</strong>: {{ node.goal }}</li></ol>
             </details>
           </details>
           </template>
@@ -119,28 +119,28 @@
     <!-- 本地资料：伏笔 / 信息差 / 长期约束 分类型结构化展示，各自独立 JSON 编辑与保存 -->
     <template v-else-if="activeTab === 'modules'">
       <p class="acu-v2-continuation-materials__meta">
-        本地资料由子代理结算写入，也可以在这里分模块手动修正。保存走与子代理相同的结构校验并推进修订号；
-        每个模块独立保存，只提交本模块数据，不影响其他模块（含未保存的草稿）。
+        Tài liệu cục bộ do Agent phụ kết toán và ghi, cũng có thể sửa thủ công theo từng mô-đun tại đây. Khi lưu sẽ qua cùng bước kiểm tra cấu trúc như Agent phụ và tăng số sửa đổi;
+        mỗi mô-đun lưu độc lập, chỉ gửi dữ liệu của mô-đun đó, không ảnh hưởng mô-đun khác (kể cả bản nháp chưa lưu).
       </p>
       <p v-if="materials.snapshot.value" class="acu-v2-continuation-materials__meta">
-        结算水位：楼层 {{ materials.snapshot.value.settledThroughIndex }} ·
-        伏笔 {{ materials.snapshot.value.hooks.length }} 条 ·
-        信息差 {{ materials.snapshot.value.infoGap.length }} 条 ·
-        长期约束 {{ materials.snapshot.value.constraints.length }} 条 ·
-        故事时间 {{ materials.snapshot.value.chronology.length }} 条 ·
-        修订号 {{ materials.snapshot.value.revisions.hooks }}/{{ materials.snapshot.value.revisions.infoGap }}/{{ materials.snapshot.value.revisions.constraints }}/{{ materials.snapshot.value.revisions.chronology }}
+        Mốc kết toán: tầng  {{ materials.snapshot.value.settledThroughIndex }} ·
+        Phục bút {{ materials.snapshot.value.hooks.length }} mục ·
+        Chênh lệch thông tin {{ materials.snapshot.value.infoGap.length }} mục ·
+        Ràng buộc dài hạn {{ materials.snapshot.value.constraints.length }} mục ·
+        Thời gian truyện {{ materials.snapshot.value.chronology.length }} mục ·
+        Số sửa đổi {{ materials.snapshot.value.revisions.hooks }}/{{ materials.snapshot.value.revisions.infoGap }}/{{ materials.snapshot.value.revisions.constraints }}/{{ materials.snapshot.value.revisions.chronology }}
       </p>
       <p v-if="materials.snapshot.value" class="acu-v2-continuation-materials__meta">
         <template v-if="materials.diagnostics.value.checkpointIndex === null && materials.diagnostics.value.foldedDeltaCount === 0">
-          当前没有基线，也没有楼层增量。结算后会把增量写到当时的楼层；删除该楼或切到别的 swipe 后，这份增量不再参与折叠。
+          Hiện không có baseline cũng không có delta theo tầng. Sau khi kết toán, delta sẽ được ghi vào tầng lúc đó; sau khi xóa tầng đó hoặc chuyển sang swipe khác, delta này không còn tham gia gộp.
         </template>
         <template v-else>
-          资料从最近基线折叠；删除楼层后随该楼增量一并回退。
-          基线楼层 {{ materials.diagnostics.value.checkpointIndex ?? '无' }} · 已折叠 delta {{ materials.diagnostics.value.foldedDeltaCount }} 条。
-          <template v-if="materials.diagnostics.value.salvaged">（基线未通过严格校验，已按宽容模式读取，损坏记录已丢弃）</template>
+          Tài liệu được gộp từ baseline gần nhất; sau khi xóa tầng, delta của tầng đó cũng được hoàn lại theo.
+          Tầng baseline {{ materials.diagnostics.value.checkpointIndex ?? 'Không' }} · đã gộp {{ materials.diagnostics.value.foldedDeltaCount }} delta.
+          <template v-if="materials.diagnostics.value.salvaged">(Baseline không qua kiểm tra nghiêm ngặt, đã đọc theo chế độ khoan dung, bản ghi hỏng đã bị loại bỏ)</template>
           <template v-if="materials.diagnostics.value.candidates.some(item => !item.valid)">
-            另有 {{ materials.diagnostics.value.candidates.filter(item => !item.valid).length }} 个楼层的快照结构损坏被跳过：
-            <span v-for="item in materials.diagnostics.value.candidates.filter(entry => !entry.valid)" :key="item.index">楼层 {{ item.index }}（{{ item.problems.slice(0, 3).join('；') }}）；</span>
+            Ngoài ra có {{ materials.diagnostics.value.candidates.filter(item => !item.valid).length }} tầng bị bỏ qua do cấu trúc snapshot hỏng:
+            <span v-for="item in materials.diagnostics.value.candidates.filter(entry => !entry.valid)" :key="item.index">Tầng {{ item.index }} ({{ item.problems.slice(0, 3).join('; ') }});</span>
           </template>
         </template>
       </p>
@@ -148,19 +148,19 @@
 
       <!-- 逐栏记录：按模块/ID 展示分栏视图；partial 只在这里可见，字段值不在这里展示 -->
       <details class="acu-v2-continuation-materials__block">
-        <summary>逐栏记录 · {{ fieldRecordTotal }} 条</summary>
+        <summary>Bản ghi theo cột · {{ fieldRecordTotal }} mục</summary>
         <p class="acu-v2-continuation-materials__meta">
-          逐栏记录来自子代理的逐栏写入：「部分」条目还没写齐必填栏，不进入上面的完整资料；「旧快照条目」来自旧整条快照，来源不可逐栏拆分。
-          这里只列栏目名与修订身份，字段值在各模块完整条目或原始 JSON 里查看。
+          Bản ghi theo cột đến từ việc Agent phụ ghi từng cột: mục «Một phần» chưa ghi đủ cột bắt buộc, không vào tài liệu đầy đủ ở trên; mục «Mục snapshot cũ» đến từ snapshot nguyên mục cũ, nguồn không thể tách theo cột.
+          Ở đây chỉ liệt kê tên cột và định danh sửa đổi; giá trị trường xem trong mục đầy đủ của từng mô-đun hoặc JSON gốc.
           <template v-if="materials.snapshot.value">
-            本轮结算：{{ COMPLETION_STATE_LABELS[materials.snapshot.value.materialCompletion.state] ?? materials.snapshot.value.materialCompletion.state }}<template v-if="materials.snapshot.value.materialCompletion.rangeEndIndex >= 0"> · 覆盖正文楼层 {{ materials.snapshot.value.materialCompletion.rangeStartIndex }}–{{ materials.snapshot.value.materialCompletion.rangeEndIndex }}</template>。
+            Kết toán lượt này: {{ COMPLETION_STATE_LABELS[materials.snapshot.value.materialCompletion.state] ?? materials.snapshot.value.materialCompletion.state }}<template v-if="materials.snapshot.value.materialCompletion.rangeEndIndex >= 0"> · bao phủ tầng nội dung  {{ materials.snapshot.value.materialCompletion.rangeStartIndex }}–{{ materials.snapshot.value.materialCompletion.rangeEndIndex }}</template>。
           </template>
         </p>
-        <p v-if="!fieldRecordGroups.length" class="acu-v2-continuation-materials__empty">还没有逐栏写入记录。</p>
+        <p v-if="!fieldRecordGroups.length" class="acu-v2-continuation-materials__empty">Chưa có bản ghi ghi theo cột.</p>
         <details v-for="group in fieldRecordGroups" :key="group.module" class="acu-v2-continuation-materials__block">
           <summary>
-            {{ group.label }} · {{ group.records.length }} 条
-            <span v-if="group.completionLabel" class="acu-v2-continuation-materials__badge">结算：{{ group.completionLabel }}</span>
+            {{ group.label }} · {{ group.records.length }} mục
+            <span v-if="group.completionLabel" class="acu-v2-continuation-materials__badge">Kết toán: {{ group.completionLabel }}</span>
           </summary>
           <div class="acu-v2-continuation-materials__cards">
             <div v-for="record in group.records" :key="record.id" class="acu-v2-continuation-materials__card">
@@ -171,16 +171,16 @@
                   :class="{ 'acu-v2-continuation-materials__badge--primary': record.status === 'complete' }"
                 >{{ FIELD_STATUS_LABELS[record.status] ?? record.status }}</span>
               </p>
-              <p class="acu-v2-continuation-materials__card-meta">已写字段：{{ record.fieldNames.join('、') || '（无）' }}</p>
-              <p v-if="record.missingFields.length" class="acu-v2-continuation-materials__card-meta">缺栏：{{ record.missingFields.join('、') }}</p>
+              <p class="acu-v2-continuation-materials__card-meta">Trường đã ghi: {{ record.fieldNames.join(', ') || '(không có)' }}</p>
+              <p v-if="record.missingFields.length" class="acu-v2-continuation-materials__card-meta">Thiếu cột: {{ record.missingFields.join(', ') }}</p>
               <p class="acu-v2-continuation-materials__card-meta">
-                最近更新 {{ formatTimestamp(record.updatedAt) }}<template v-if="record.maxRevision > 0"> · 栏目修订号最高 {{ record.maxRevision }}</template>
+                Cập nhật gần nhất {{ formatTimestamp(record.updatedAt) }}<template v-if="record.maxRevision > 0"> · số sửa đổi cột cao nhất {{ record.maxRevision }}</template>
               </p>
             </div>
           </div>
         </details>
         <template v-if="materials.snapshot.value?.pendingFixes.length">
-          <p class="acu-v2-continuation-materials__meta">待修复的写入（{{ materials.snapshot.value.pendingFixes.length }} 条）：</p>
+          <p class="acu-v2-continuation-materials__meta">Lần ghi cần sửa ({{ materials.snapshot.value.pendingFixes.length }} mục):</p>
           <div class="acu-v2-continuation-materials__cards">
             <div
               v-for="(fix, fixIndex) in materials.snapshot.value.pendingFixes"
@@ -189,14 +189,14 @@
             >
               <p class="acu-v2-continuation-materials__card-head">
                 <strong>{{ CONTINUATION_MATERIAL_MODULE_LABELS_ACU[fix.module] ?? fix.module }}</strong>
-                <span class="acu-v2-continuation-materials__badge">{{ fix.completion === 'partial' ? '部分接受' : '失败' }}</span>
+                <span class="acu-v2-continuation-materials__badge">{{ fix.completion === 'partial' ? 'Chấp nhận một phần' : 'Thất bại' }}</span>
                 <span class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">{{ PENDING_FIX_SOURCE_LABELS[fix.source] ?? fix.source }}</span>
               </p>
               <p class="acu-v2-continuation-materials__card-meta">
-                出错路径：{{ fix.violations.map(item => `${item.path}（${item.message}）`).join('；') || fix.lastError || '（未记录）' }}
+                Đường dẫn lỗi: {{ fix.violations.map(item => `${item.path} (${item.message})`).join('; ') || fix.lastError || '(chưa ghi nhận)' }}
               </p>
               <p class="acu-v2-continuation-materials__card-meta">
-                覆盖楼层 {{ fix.rangeStartIndex }}–{{ fix.rangeEndIndex }} · 已接受 {{ fix.acceptedKeys.length }} 栏 · 尝试 {{ fix.attempts }} 次
+                Bao phủ tầng {{ fix.rangeStartIndex }}–{{ fix.rangeEndIndex }} · đã chấp nhận {{ fix.acceptedKeys.length }} cột · thử {{ fix.attempts }} lần
               </p>
             </div>
           </div>
@@ -205,8 +205,8 @@
 
       <!-- 伏笔账本 -->
       <details class="acu-v2-continuation-materials__block" open>
-        <summary>伏笔账本 · {{ materials.snapshot.value?.hooks.length ?? 0 }} 条<span v-if="materials.modules.hooks.dirty" class="acu-v2-continuation-materials__badge">未保存</span></summary>
-        <p v-if="!materials.snapshot.value?.hooks.length" class="acu-v2-continuation-materials__empty">还没有伏笔条目。</p>
+        <summary>Sổ phục bút · {{ materials.snapshot.value?.hooks.length ?? 0 }} mục<span v-if="materials.modules.hooks.dirty" class="acu-v2-continuation-materials__badge">Chưa lưu</span></summary>
+        <p v-if="!materials.snapshot.value?.hooks.length" class="acu-v2-continuation-materials__empty">Chưa có mục phục bút.</p>
         <div v-else class="acu-v2-continuation-materials__cards">
           <div
             v-for="hook in materials.snapshot.value.hooks"
@@ -218,27 +218,27 @@
               <strong>{{ hook.id }}</strong>
               <span class="acu-v2-continuation-materials__badge">{{ HOOK_STATUS_LABELS[hook.status] ?? hook.status }}</span>
               <span class="acu-v2-continuation-materials__badge">{{ HOOK_IMPORTANCE_LABELS[hook.importance] ?? hook.importance }}</span>
-              <span v-if="hook.retired" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">已退休{{ hook.retiredReason ? `：${hook.retiredReason}` : '' }}</span>
+              <span v-if="hook.retired" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">Đã nghỉ hưu{{  hook.retiredReason ? `: ${hook.retiredReason}` : '' }}</span>
             </p>
             <p class="acu-v2-continuation-materials__card-body">{{ hook.summary }}</p>
-            <p class="acu-v2-continuation-materials__card-meta">植入楼层 {{ hook.plantedIndex }} · 最近更新楼层 {{ hook.updatedIndex }}<template v-if="hook.plannedPayoff"> · 计划回收：{{ hook.plannedPayoff }}</template></p>
+            <p class="acu-v2-continuation-materials__card-meta">Tầng gieo {{ hook.plantedIndex }} · tầng cập nhật gần nhất {{ hook.updatedIndex }}<template v-if="hook.plannedPayoff"> · dự kiến thu hồi: {{ hook.plannedPayoff }}</template></p>
           </div>
         </div>
         <details class="acu-v2-continuation-materials__json">
-          <summary>编辑原始 JSON</summary>
+          <summary>Sửa JSON gốc</summary>
           <AcuTextarea :model-value="materials.modules.hooks.draft" :rows="12" @update:model-value="value => materials.updateDraft('hooks', value)" />
           <p v-if="materials.modules.hooks.error" class="acu-v2-continuation-materials__error">{{ materials.modules.hooks.error }}</p>
           <div class="acu-v2-continuation-materials__actions">
-            <AcuButton :disabled="!materials.modules.hooks.dirty" @click="materials.discard('hooks')">放弃修改</AcuButton>
-            <AcuButton variant="primary" :loading="materials.modules.hooks.saving" :disabled="!materials.modules.hooks.dirty" @click="materials.save('hooks')">保存伏笔账本</AcuButton>
+            <AcuButton :disabled="!materials.modules.hooks.dirty" @click="materials.discard('hooks')">Bỏ thay đổi</AcuButton>
+            <AcuButton variant="primary" :loading="materials.modules.hooks.saving" :disabled="!materials.modules.hooks.dirty" @click="materials.save('hooks')">Lưu sổ phục bút</AcuButton>
           </div>
         </details>
       </details>
 
       <!-- 认知与信息差 -->
       <details class="acu-v2-continuation-materials__block" open>
-        <summary>认知与信息差 · {{ materials.snapshot.value?.infoGap.length ?? 0 }} 条<span v-if="materials.modules.infoGap.dirty" class="acu-v2-continuation-materials__badge">未保存</span></summary>
-        <p v-if="!materials.snapshot.value?.infoGap.length" class="acu-v2-continuation-materials__empty">还没有信息差条目。</p>
+        <summary>Nhận thức và chênh lệch thông tin · {{ materials.snapshot.value?.infoGap.length ?? 0 }} mục<span v-if="materials.modules.infoGap.dirty" class="acu-v2-continuation-materials__badge">Chưa lưu</span></summary>
+        <p v-if="!materials.snapshot.value?.infoGap.length" class="acu-v2-continuation-materials__empty">Chưa có mục chênh lệch thông tin.</p>
         <div v-else class="acu-v2-continuation-materials__cards">
           <div
             v-for="gap in materials.snapshot.value.infoGap"
@@ -250,53 +250,53 @@
               <strong>{{ gap.id }}</strong>
               <span>{{ gap.topic }}</span>
               <span class="acu-v2-continuation-materials__badge">{{ REVEAL_STATUS_LABELS[gap.revealStatus] ?? gap.revealStatus }}</span>
-              <span v-if="gap.revealIndex !== null" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">揭示楼层 {{ gap.revealIndex }}</span>
-              <span v-if="gap.retired" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">已退休{{ gap.retiredReason ? `：${gap.retiredReason}` : '' }}</span>
+              <span v-if="gap.revealIndex !== null" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">Tầng tiết lộ {{ gap.revealIndex }}</span>
+              <span v-if="gap.retired" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">Đã nghỉ hưu{{  gap.retiredReason ? `: ${gap.retiredReason}` : '' }}</span>
             </p>
-            <p class="acu-v2-continuation-materials__card-body">客观事实：{{ gap.objectiveFact }}</p>
-            <p class="acu-v2-continuation-materials__card-meta">读者已知：{{ gap.readerKnown || '（未记录）' }}</p>
+            <p class="acu-v2-continuation-materials__card-body">Sự thật khách quan: {{ gap.objectiveFact }}</p>
+            <p class="acu-v2-continuation-materials__card-meta">Độc giả đã biết: {{ gap.readerKnown || '(chưa ghi nhận)' }}</p>
             <p v-for="knowledge in gap.characterKnowledge" :key="knowledge.name" class="acu-v2-continuation-materials__card-meta">
-              {{ knowledge.name }} 知道：{{ knowledge.knows }}
+              {{ knowledge.name }} biết: {{ knowledge.knows }}
             </p>
           </div>
         </div>
         <details class="acu-v2-continuation-materials__json">
-          <summary>编辑原始 JSON</summary>
+          <summary>Sửa JSON gốc</summary>
           <AcuTextarea :model-value="materials.modules.infoGap.draft" :rows="12" @update:model-value="value => materials.updateDraft('infoGap', value)" />
           <p v-if="materials.modules.infoGap.error" class="acu-v2-continuation-materials__error">{{ materials.modules.infoGap.error }}</p>
           <div class="acu-v2-continuation-materials__actions">
-            <AcuButton :disabled="!materials.modules.infoGap.dirty" @click="materials.discard('infoGap')">放弃修改</AcuButton>
-            <AcuButton variant="primary" :loading="materials.modules.infoGap.saving" :disabled="!materials.modules.infoGap.dirty" @click="materials.save('infoGap')">保存信息差</AcuButton>
+            <AcuButton :disabled="!materials.modules.infoGap.dirty" @click="materials.discard('infoGap')">Bỏ thay đổi</AcuButton>
+            <AcuButton variant="primary" :loading="materials.modules.infoGap.saving" :disabled="!materials.modules.infoGap.dirty" @click="materials.save('infoGap')">Lưu chênh lệch thông tin</AcuButton>
           </div>
         </details>
       </details>
 
       <!-- 长期约束 -->
       <details class="acu-v2-continuation-materials__block" open>
-        <summary>长期约束 · {{ materials.snapshot.value?.constraints.length ?? 0 }} 条<span v-if="materials.modules.constraints.dirty" class="acu-v2-continuation-materials__badge">未保存</span></summary>
-        <p v-if="!materials.snapshot.value?.constraints.length" class="acu-v2-continuation-materials__empty">还没有长期约束。</p>
+        <summary>Ràng buộc dài hạn · {{ materials.snapshot.value?.constraints.length ?? 0 }} mục<span v-if="materials.modules.constraints.dirty" class="acu-v2-continuation-materials__badge">Chưa lưu</span></summary>
+        <p v-if="!materials.snapshot.value?.constraints.length" class="acu-v2-continuation-materials__empty">Chưa có ràng buộc dài hạn.</p>
         <div v-else class="acu-v2-continuation-materials__cards">
           <div v-for="constraint in materials.snapshot.value.constraints" :key="constraint.id" class="acu-v2-continuation-materials__card">
             <p class="acu-v2-continuation-materials__card-head"><strong>{{ constraint.id }}</strong></p>
             <p class="acu-v2-continuation-materials__card-body">{{ constraint.text }}</p>
-            <p class="acu-v2-continuation-materials__card-meta">登记楼层 {{ constraint.createdIndex }}<template v-if="constraint.reason"> · 缘由：{{ constraint.reason }}</template></p>
+            <p class="acu-v2-continuation-materials__card-meta">Tầng đăng ký {{ constraint.createdIndex }}<template v-if="constraint.reason"> · lý do: {{ constraint.reason }}</template></p>
           </div>
         </div>
         <details class="acu-v2-continuation-materials__json">
-          <summary>编辑原始 JSON</summary>
+          <summary>Sửa JSON gốc</summary>
           <AcuTextarea :model-value="materials.modules.constraints.draft" :rows="10" @update:model-value="value => materials.updateDraft('constraints', value)" />
           <p v-if="materials.modules.constraints.error" class="acu-v2-continuation-materials__error">{{ materials.modules.constraints.error }}</p>
           <div class="acu-v2-continuation-materials__actions">
-            <AcuButton :disabled="!materials.modules.constraints.dirty" @click="materials.discard('constraints')">放弃修改</AcuButton>
-            <AcuButton variant="primary" :loading="materials.modules.constraints.saving" :disabled="!materials.modules.constraints.dirty" @click="materials.save('constraints')">保存长期约束</AcuButton>
+            <AcuButton :disabled="!materials.modules.constraints.dirty" @click="materials.discard('constraints')">Bỏ thay đổi</AcuButton>
+            <AcuButton variant="primary" :loading="materials.modules.constraints.saving" :disabled="!materials.modules.constraints.dirty" @click="materials.save('constraints')">Lưu ràng buộc dài hạn</AcuButton>
           </div>
         </details>
       </details>
 
       <!-- 故事年代学账本 -->
       <details class="acu-v2-continuation-materials__block" open>
-        <summary>故事年代学账本 · {{ materials.snapshot.value?.chronology.length ?? 0 }} 条<span v-if="materials.modules.chronology.dirty" class="acu-v2-continuation-materials__badge">未保存</span></summary>
-        <p v-if="!materials.snapshot.value?.chronology.length" class="acu-v2-continuation-materials__empty">还没有已结算的故事时间记录。时间事实由结算维护代理依据真实正文登记；大纲里的时间字段是计划。</p>
+        <summary>Sổ niên đại học truyện · {{ materials.snapshot.value?.chronology.length ?? 0 }} mục<span v-if="materials.modules.chronology.dirty" class="acu-v2-continuation-materials__badge">Chưa lưu</span></summary>
+        <p v-if="!materials.snapshot.value?.chronology.length" class="acu-v2-continuation-materials__empty">Chưa có bản ghi thời gian truyện đã kết toán. Sự thật về thời gian do agent bảo trì kết toán đăng ký dựa trên nội dung thực; các trường thời gian trong dàn ý chỉ là kế hoạch.</p>
         <div v-else class="acu-v2-continuation-materials__cards">
           <div
             v-for="entry in materials.snapshot.value.chronology"
@@ -308,20 +308,20 @@
               <strong>{{ entry.id }}</strong>
               <span>{{ entry.anchor }}</span>
               <span class="acu-v2-continuation-materials__badge">{{ CHRONOLOGY_PRECISION_LABELS[entry.precision] ?? entry.precision }}</span>
-              <span v-if="entry.retired" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">已作废{{ entry.retiredReason ? `：${entry.retiredReason}` : '' }}</span>
+              <span v-if="entry.retired" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">Đã vô hiệu{{  entry.retiredReason ? `: ${entry.retiredReason}` : '' }}</span>
             </p>
-            <p class="acu-v2-continuation-materials__card-body">累计经过：{{ entry.elapsed }}</p>
-            <p class="acu-v2-continuation-materials__card-body">时间转换：{{ entry.transition }}</p>
-            <p class="acu-v2-continuation-materials__card-meta">证据楼层 {{ entry.evidenceIndexes.join('、') }} · 结算楼层 {{ entry.updatedIndex }}</p>
+            <p class="acu-v2-continuation-materials__card-body">Tổng thời gian trôi qua: {{ entry.elapsed }}</p>
+            <p class="acu-v2-continuation-materials__card-body">Chuyển đổi thời gian: {{ entry.transition }}</p>
+            <p class="acu-v2-continuation-materials__card-meta">Tầng chứng cứ {{ entry.evidenceIndexes.join(', ') }} · tầng kết toán {{ entry.updatedIndex }}</p>
           </div>
         </div>
         <details class="acu-v2-continuation-materials__json">
-          <summary>编辑原始 JSON</summary>
+          <summary>Sửa JSON gốc</summary>
           <AcuTextarea :model-value="materials.modules.chronology.draft" :rows="10" @update:model-value="value => materials.updateDraft('chronology', value)" />
           <p v-if="materials.modules.chronology.error" class="acu-v2-continuation-materials__error">{{ materials.modules.chronology.error }}</p>
           <div class="acu-v2-continuation-materials__actions">
-            <AcuButton :disabled="!materials.modules.chronology.dirty" @click="materials.discard('chronology')">放弃修改</AcuButton>
-            <AcuButton variant="primary" :loading="materials.modules.chronology.saving" :disabled="!materials.modules.chronology.dirty" @click="materials.save('chronology')">保存年代学账本</AcuButton>
+            <AcuButton :disabled="!materials.modules.chronology.dirty" @click="materials.discard('chronology')">Bỏ thay đổi</AcuButton>
+            <AcuButton variant="primary" :loading="materials.modules.chronology.saving" :disabled="!materials.modules.chronology.dirty" @click="materials.save('chronology')">Lưu sổ niên đại học</AcuButton>
           </div>
         </details>
       </details>
@@ -330,16 +330,16 @@
     <!-- 百科资料库：web-researcher 从互联网查到的原作/公开设定，按实体分条 -->
     <template v-else-if="activeTab === 'webRefs'">
       <p class="acu-v2-continuation-materials__meta">
-        百科资料库由 web-researcher 子代理从萌娘百科、维基百科、百度百科或网页查到后写入，按实体（人物、法术、物品、事件…）分条。
-        每条固定只有「名称 + 一句话简介」，详情自由格式。Agent 上下文里只注入预览行，详情由它们按 ID 精读。
-        它记录的是原作/公开设定，不是本故事已发生的事实；与世界书或正文冲突时以后者为准。
+        Kho tư liệu bách khoa do Agent phụ web-researcher ghi sau khi tra từ Moegirl, Wikipedia, Baidu Baike hoặc trang web, chia mục theo thực thể (nhân vật, pháp thuật, vật phẩm, sự kiện…).
+        Mỗi mục chỉ có «tên + giới thiệu một câu», chi tiết theo định dạng tự do. Ngữ cảnh Agent chỉ chèn dòng xem trước, chi tiết do chúng đọc kỹ theo ID.
+        Nó ghi lại thiết lập gốc/công khai, không phải sự thật đã xảy ra trong truyện này; khi mâu thuẫn với Sổ thế giới hoặc nội dung chính thì lấy cái sau làm chuẩn.
       </p>
       <p v-if="materials.snapshot.value" class="acu-v2-continuation-materials__meta">
-        条目 {{ materials.snapshot.value.webRefs.length }} 条（活跃 {{ materials.snapshot.value.webRefs.filter(entry => !entry.retired).length }}）· 修订号 {{ materials.snapshot.value.revisions.webRefs }}
+        Mục {{ materials.snapshot.value.webRefs.length }} (đang hoạt động {{ materials.snapshot.value.webRefs.filter(entry => !entry.retired).length }}) · số sửa đổi  {{ materials.snapshot.value.revisions.webRefs }}
       </p>
       <p v-if="materials.loadError.value" class="acu-v2-continuation-materials__error">{{ materials.loadError.value }}</p>
       <p v-if="!materials.snapshot.value?.webRefs.length" class="acu-v2-continuation-materials__empty">
-        还没有百科资料。在续写设置里勾选「启用开场百科检索」后，新任务第一次规划前会自动检索；主 Agent 之后也可按需派工 web-researcher。
+        Chưa có tư liệu bách khoa. Sau khi tích «Bật tra cứu bách khoa mở đầu» trong cài đặt viết tiếp, tác vụ mới sẽ tự tra cứu trước lần lên kế hoạch đầu tiên; Agent chính sau đó cũng có thể giao web-researcher theo nhu cầu.
       </p>
       <div v-else class="acu-v2-continuation-materials__cards">
         <details
@@ -354,25 +354,25 @@
             <span class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--primary">{{ WEB_REF_SOURCE_LABELS[ref.source] ?? ref.source }}</span>
             <span v-for="tag in ref.tags" :key="tag" class="acu-v2-continuation-materials__badge">{{ tag }}</span>
             <span v-if="ref.sourceStatus !== 'ok'" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">{{ WEB_REF_STATUS_LABELS[ref.sourceStatus] ?? ref.sourceStatus }}</span>
-            <span v-if="ref.retired" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">已退休{{ ref.retiredReason ? `：${ref.retiredReason}` : '' }}</span>
+            <span v-if="ref.retired" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">Đã nghỉ hưu{{  ref.retiredReason ? `: ${ref.retiredReason}` : '' }}</span>
           </summary>
           <p class="acu-v2-continuation-materials__card-body">{{ ref.brief }}</p>
           <p v-if="ref.summary" class="acu-v2-continuation-materials__card-body">{{ ref.summary }}</p>
           <p class="acu-v2-continuation-materials__card-meta">
             <a :href="ref.url" target="_blank" rel="noopener noreferrer">{{ ref.url }}</a>
-            <template v-if="ref.query"> · 检索词：{{ ref.query }}</template>
-            <template v-if="ref.fetchedAt"> · 抓取于 {{ new Date(ref.fetchedAt).toLocaleString() }}</template>
+            <template v-if="ref.query"> · từ khóa tra cứu: {{ ref.query }}</template>
+            <template v-if="ref.fetchedAt"> · thu thập lúc  {{ new Date(ref.fetchedAt).toLocaleString() }}</template>
           </p>
         </details>
       </div>
       <details class="acu-v2-continuation-materials__json">
-        <summary>编辑原始 JSON</summary>
-        <p class="acu-v2-continuation-materials__card-meta">每条至少需要 id、title（名称）、url、brief（一句话简介）；summary 为自由格式详情，tags 可选。网页原文不保存。手动新增的条目 source 可写 web。</p>
+        <summary>Sửa JSON gốc</summary>
+        <p class="acu-v2-continuation-materials__card-meta">Mỗi mục cần tối thiểu id, title (tên), url, brief (giới thiệu một câu); summary là chi tiết định dạng tự do, tags tùy chọn. Nguyên văn trang web không được lưu. Mục thêm thủ công có thể ghi source là web.</p>
         <AcuTextarea :model-value="materials.modules.webRefs.draft" :rows="14" @update:model-value="value => materials.updateDraft('webRefs', value)" />
         <p v-if="materials.modules.webRefs.error" class="acu-v2-continuation-materials__error">{{ materials.modules.webRefs.error }}</p>
         <div class="acu-v2-continuation-materials__actions">
-          <AcuButton :disabled="!materials.modules.webRefs.dirty" @click="materials.discard('webRefs')">放弃修改</AcuButton>
-          <AcuButton variant="primary" :loading="materials.modules.webRefs.saving" :disabled="!materials.modules.webRefs.dirty" @click="materials.save('webRefs')">保存百科资料库</AcuButton>
+          <AcuButton :disabled="!materials.modules.webRefs.dirty" @click="materials.discard('webRefs')">Bỏ thay đổi</AcuButton>
+          <AcuButton variant="primary" :loading="materials.modules.webRefs.saving" :disabled="!materials.modules.webRefs.dirty" @click="materials.save('webRefs')">Lưu kho tư liệu bách khoa</AcuButton>
         </div>
       </details>
     </template>
@@ -380,14 +380,14 @@
     <!-- 用户要求：Agent 会话里用户累计提出的任务要求 -->
     <template v-else-if="activeTab === 'userRequirements'">
       <p class="acu-v2-continuation-materials__meta">
-        用户要求在资料库里手动维护。创建任务时会把初始要求写成首条；每个标签是一条要求，保存时自动转换为字符串数组。
+        Yêu cầu người dùng được duy trì thủ công trong kho tài liệu. Khi tạo tác vụ, yêu cầu ban đầu được ghi thành mục đầu tiên; mỗi thẻ là một yêu cầu, khi lưu tự chuyển thành mảng chuỗi.
       </p>
       <p v-if="materials.snapshot.value" class="acu-v2-continuation-materials__meta">
-        条目 {{ materials.snapshot.value.userRequirements.length }} 条 · 修订号 {{ materials.snapshot.value.revisions.userRequirements }}
+        Mục {{ materials.snapshot.value.userRequirements.length }} · số sửa đổi  {{ materials.snapshot.value.revisions.userRequirements }}
       </p>
       <p v-if="materials.loadError.value" class="acu-v2-continuation-materials__error">{{ materials.loadError.value }}</p>
       <p v-if="materials.snapshot.value && !materials.snapshot.value.userRequirements.length" class="acu-v2-continuation-materials__empty">
-        还没有用户要求条目。可点击新增标签手动添加。
+        Chưa có mục yêu cầu người dùng. Có thể bấm thêm thẻ để thêm thủ công.
       </p>
       <UserRequirementsEditor
         editor-id="continuation"
@@ -405,14 +405,14 @@
     <!-- 故事总纲：结构化展示 + JSON 编辑 -->
     <template v-else-if="activeTab === 'storyArc'">
       <p class="acu-v2-continuation-materials__meta">
-        故事总纲由 arc-architect 子代理维护：全书方向一条 + 若干卷台阶。也可以在这里手动修正，保存走同一套结构校验并推进修订号。
+        Tổng cương truyện do Agent phụ arc-architect duy trì: một mục hướng đi toàn truyện + vài bậc theo tập. Cũng có thể sửa thủ công tại đây, khi lưu qua cùng bước kiểm tra cấu trúc và tăng số sửa đổi.
       </p>
       <p v-if="materials.snapshot.value" class="acu-v2-continuation-materials__meta">
-        总纲 {{ materials.snapshot.value.storyArc.length }} 条 · 修订号 {{ materials.snapshot.value.revisions.storyArc }}
+        Tổng cương {{ materials.snapshot.value.storyArc.length }} mục · số sửa đổi  {{ materials.snapshot.value.revisions.storyArc }}
       </p>
       <p v-if="materials.loadError.value" class="acu-v2-continuation-materials__error">{{ materials.loadError.value }}</p>
       <p v-if="!materials.snapshot.value?.storyArc.length" class="acu-v2-continuation-materials__empty">
-        还没有故事总纲。开始规划后主 Agent 会先派工 arc-architect 立总纲。
+        Chưa có tổng cương truyện. Sau khi bắt đầu lên kế hoạch, Agent chính sẽ giao arc-architect lập tổng cương trước.
       </p>
       <div v-else class="acu-v2-continuation-materials__cards">
         <div
@@ -423,26 +423,26 @@
         >
           <p class="acu-v2-continuation-materials__card-head">
             <strong>{{ arc.id }}</strong>
-            <span class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--primary">{{ arc.scope === 'story' ? '全书方向' : '卷台阶' }}</span>
+            <span class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--primary">{{ arc.scope === 'story' ? 'Hướng đi toàn truyện' : 'Bậc theo tập' }}</span>
             <span class="acu-v2-continuation-materials__badge">{{ ARC_STATUS_LABELS[arc.status] ?? arc.status }}</span>
             <span>{{ arc.title }}</span>
-            <span v-if="arc.retired" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">已退休{{ arc.retiredReason ? `：${arc.retiredReason}` : '' }}</span>
+            <span v-if="arc.retired" class="acu-v2-continuation-materials__badge acu-v2-continuation-materials__badge--muted">Đã nghỉ hưu{{  arc.retiredReason ? `: ${arc.retiredReason}` : '' }}</span>
           </p>
-          <p class="acu-v2-continuation-materials__card-body">方向：{{ arc.direction }}</p>
-          <p v-if="arc.escalation" class="acu-v2-continuation-materials__card-body">冲突高度：{{ arc.escalation }}</p>
-          <p v-if="arc.withheld" class="acu-v2-continuation-materials__card-meta">禁翻底牌：{{ arc.withheld }}</p>
+          <p class="acu-v2-continuation-materials__card-body">Hướng đi: {{ arc.direction }}</p>
+          <p v-if="arc.escalation" class="acu-v2-continuation-materials__card-body">Mức xung đột: {{ arc.escalation }}</p>
+          <p v-if="arc.withheld" class="acu-v2-continuation-materials__card-meta">Không được lật bài ngửa: {{ arc.withheld }}</p>
           <p class="acu-v2-continuation-materials__card-meta">
-            已承载阶段：{{ arc.stageNumbers.length ? arc.stageNumbers.join('、') : '（尚未承载）' }}
+            Giai đoạn đã đảm nhận: {{ arc.stageNumbers.length ? arc.stageNumbers.join(', ') : '(chưa đảm nhận)' }}
           </p>
         </div>
       </div>
       <details class="acu-v2-continuation-materials__json">
-        <summary>编辑原始 JSON</summary>
+        <summary>Sửa JSON gốc</summary>
         <AcuTextarea :model-value="materials.modules.storyArc.draft" :rows="14" @update:model-value="value => materials.updateDraft('storyArc', value)" />
         <p v-if="materials.modules.storyArc.error" class="acu-v2-continuation-materials__error">{{ materials.modules.storyArc.error }}</p>
         <div class="acu-v2-continuation-materials__actions">
-          <AcuButton :disabled="!materials.modules.storyArc.dirty" @click="materials.discard('storyArc')">放弃修改</AcuButton>
-          <AcuButton variant="primary" :loading="materials.modules.storyArc.saving" :disabled="!materials.modules.storyArc.dirty" @click="materials.save('storyArc')">保存故事总纲</AcuButton>
+          <AcuButton :disabled="!materials.modules.storyArc.dirty" @click="materials.discard('storyArc')">Bỏ thay đổi</AcuButton>
+          <AcuButton variant="primary" :loading="materials.modules.storyArc.saving" :disabled="!materials.modules.storyArc.dirty" @click="materials.save('storyArc')">Lưu tổng cương truyện</AcuButton>
         </div>
       </details>
     </template>
@@ -474,31 +474,31 @@ const emit = defineEmits<{
 }>();
 
 const TABS = [
-  { id: 'outline', label: '阶段大纲' },
-  { id: 'modules', label: '本地资料' },
-  { id: 'storyArc', label: '故事总纲' },
-  { id: 'webRefs', label: '百科资料' },
-  { id: 'userRequirements', label: '用户要求' },
+  { id: 'outline', label: 'Dàn ý giai đoạn' },
+  { id: 'modules', label: 'Tài liệu cục bộ' },
+  { id: 'storyArc', label: 'Tổng cương truyện' },
+  { id: 'webRefs', label: 'Tư liệu bách khoa' },
+  { id: 'userRequirements', label: 'Yêu cầu người dùng' },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
 
 const HOOK_STATUS_LABELS: Record<string, string> = {
-  planted: '已埋设', reinforced: '已强化', misled: '已误导', partially_paid: '部分回收', paid: '已回收', abandoned: '已放弃',
+  planted: 'Đã gieo', reinforced: 'Đã củng cố', misled: 'Đã đánh lạc hướng', partially_paid: 'Thu hồi một phần', paid: 'Đã thu hồi', abandoned: 'Đã bỏ',
 };
-const HOOK_IMPORTANCE_LABELS: Record<string, string> = { high: '重要度：高', mid: '重要度：中', low: '重要度：低' };
-const REVEAL_STATUS_LABELS: Record<string, string> = { unrevealed: '未揭示', partial: '部分揭示', revealed: '已揭示' };
-const CHRONOLOGY_PRECISION_LABELS: Record<string, string> = { exact: '精确', approximate: '近似', unknown: '未知' };
-const ARC_STATUS_LABELS: Record<string, string> = { planned: '计划中', active: '进行中', done: '已完成' };
-const WEB_REF_SOURCE_LABELS: Record<string, string> = { moegirl: '萌娘百科', wikipedia_zh: '中文维基', wikipedia_en: '英文维基', baidu: '百度百科', web: '网页' };
-const WEB_REF_STATUS_LABELS: Record<string, string> = { ok: '正常', unavailable: '来源不可用', blocked: '被拦截' };
-const TEMPO_LABELS: Record<string, string> = { buildup: '铺垫型', mixed: '起伏型', surge: '高压型', aftermath: '余波型' };
-const ROLE_LABELS: Record<string, string> = { setup: '建立', development: '发展', escalation: '升级', turn: '转折', payoff: '兑现', aftermath: '余波' };
-const PACING_LABELS: Record<string, string> = { setup: '铺垫', pressure: '施压', turn: '转折', cooldown: '缓冲' };
-const FUNCTION_LABELS: Record<string, string> = { daily_bond: '关系日常', daily_world: '世界日常', recovery: '恢复', preparation: '准备', training: '训练', economy: '经营', side_thread: '支线', conflict: '冲突', reveal: '揭示', payoff: '兑现', transition: '过渡' };
-const MAINLINE_LABELS: Record<string, string> = { hold: '停驻', micro: '微增量', step: '推进', milestone: '里程碑' };
-const TIME_LABELS: Record<string, string> = { continuous: '连续', same_day: '同日稍后', overnight: '隔夜', days: '数日', weeks: '数周', months: '数月', years: '数年' };
-const INFERRED_FIELD_LABELS: Record<string, string> = { function: '功能', mainlineDelta: '主线', timeAdvance: '时间' };
+const HOOK_IMPORTANCE_LABELS: Record<string, string> = { high: 'Độ quan trọng: cao', mid: 'Độ quan trọng: vừa', low: 'Độ quan trọng: thấp' };
+const REVEAL_STATUS_LABELS: Record<string, string> = { unrevealed: 'Chưa tiết lộ', partial: 'Tiết lộ một phần', revealed: 'Đã tiết lộ' };
+const CHRONOLOGY_PRECISION_LABELS: Record<string, string> = { exact: 'Chính xác', approximate: 'Xấp xỉ', unknown: 'Không rõ' };
+const ARC_STATUS_LABELS: Record<string, string> = { planned: 'Đã lên kế hoạch', active: 'Đang chạy', done: 'Đã xong' };
+const WEB_REF_SOURCE_LABELS: Record<string, string> = { moegirl: 'Moegirl', wikipedia_zh: 'Wikipedia tiếng Trung', wikipedia_en: 'Wikipedia tiếng Anh', baidu: 'Baidu Baike', web: 'Trang web' };
+const WEB_REF_STATUS_LABELS: Record<string, string> = { ok: 'Bình thường', unavailable: 'Nguồn không khả dụng', blocked: 'Bị chặn' };
+const TEMPO_LABELS: Record<string, string> = { buildup: 'Kiểu dẫn dắt', mixed: 'Kiểu lên xuống', surge: 'Kiểu áp lực cao', aftermath: 'Kiểu dư chấn' };
+const ROLE_LABELS: Record<string, string> = { setup: 'Thiết lập', development: 'Phát triển', escalation: 'Leo thang', turn: 'Chuyển biến', payoff: 'Thực hiện', aftermath: 'Dư chấn' };
+const PACING_LABELS: Record<string, string> = { setup: 'Dẫn dắt', pressure: 'Gây áp lực', turn: 'Chuyển biến', cooldown: 'Hạ nhiệt' };
+const FUNCTION_LABELS: Record<string, string> = { daily_bond: 'Thường nhật quan hệ', daily_world: 'Thường nhật thế giới', recovery: 'Hồi phục', preparation: 'Chuẩn bị', training: 'Huấn luyện', economy: 'Kinh doanh', side_thread: 'Tuyến phụ', conflict: 'Xung đột', reveal: 'Tiết lộ', payoff: 'Thực hiện', transition: 'Chuyển tiếp' };
+const MAINLINE_LABELS: Record<string, string> = { hold: 'Dừng', micro: 'Tăng nhẹ', step: 'Tiến lên', milestone: 'Cột mốc' };
+const TIME_LABELS: Record<string, string> = { continuous: 'Liên tục', same_day: 'Cùng ngày, lát sau', overnight: 'Qua đêm', days: 'Vài ngày', weeks: 'Vài tuần', months: 'Vài tháng', years: 'Vài năm' };
+const INFERRED_FIELD_LABELS: Record<string, string> = { function: 'Chức năng', mainlineDelta: 'Tuyến chính', timeAdvance: 'Thời gian' };
 
 const activeTab = ref<TabId>('outline');
 const materials = useContinuationMaterials();
@@ -518,28 +518,28 @@ function updateRequirementItems(items: string[]): void {
 }
 
 const MATERIAL_STATUS_LABELS_ACU: Record<string, string> = {
-  hooks: '伏笔账本', infoGap: '认知与信息差', constraints: '长期约束', storyArc: '故事总纲',
-  chronology: '故事年代学账本', webRefs: '百科资料库', userRequirements: '用户要求',
+  hooks: 'Sổ phục bút', infoGap: 'Nhận thức và chênh lệch thông tin', constraints: 'Ràng buộc dài hạn', storyArc: 'Tổng cương truyện',
+  chronology: 'Sổ niên đại học truyện', webRefs: 'Kho tư liệu bách khoa', userRequirements: 'Yêu cầu người dùng',
 };
 
 /** 分栏记录状态：complete 完整、partial 未写齐（只在分栏视图）、legacy_unknown 旧整条快照条目。 */
 const FIELD_STATUS_LABELS: Record<string, string> = {
-  complete: '完整',
-  partial: '部分（未提升）',
-  legacy_unknown: '旧快照条目',
+  complete: 'Đầy đủ',
+  partial: 'Một phần (chưa nâng cấp)',
+  legacy_unknown: 'Mục snapshot cũ',
 };
 const COMPLETION_STATE_LABELS: Record<string, string> = {
-  complete: '已完成',
-  partial: '部分完成',
-  failed: '失败',
-  legacy_unknown: '未知（旧帧）',
+  complete: 'Đã xong',
+  partial: 'Xong một phần',
+  failed: 'Thất bại',
+  legacy_unknown: 'Không rõ (khung cũ)',
 };
 const PENDING_FIX_SOURCE_LABELS: Record<string, string> = {
-  truncated: '输出截断',
-  contract_rejected: '契约拒绝',
-  protocol_failed: '协议失败',
-  invoke_failed: '调用失败',
-  transaction_rejected: '事务拒绝',
+  truncated: 'Đầu ra bị cắt',
+  contract_rejected: 'Hợp đồng bị từ chối',
+  protocol_failed: 'Giao thức thất bại',
+  invoke_failed: 'Gọi thất bại',
+  transaction_rejected: 'Giao dịch bị từ chối',
 };
 
 /** 逐栏记录按模块分组：只取栏目名与修订身份，不取字段值。 */
@@ -573,7 +573,7 @@ const fieldRecordGroups = computed(() => {
 const fieldRecordTotal = computed(() => fieldRecordGroups.value.reduce((total, group) => total + group.records.length, 0));
 
 function formatTimestamp(value: number): string {
-  return value > 0 ? new Date(value).toLocaleString() : '（未记录）';
+  return value > 0 ? new Date(value).toLocaleString() : '(chưa ghi nhận)';
 }
 
 
@@ -648,11 +648,11 @@ function saveOutline(): void {
   try {
     parsed = JSON.parse(outlineDraft.value);
   } catch (error) {
-    outlineError.value = error instanceof Error ? `大纲 JSON 无法解析：${error.message}` : '大纲 JSON 无法解析';
+    outlineError.value = error instanceof Error ? `Không thể phân tích JSON dàn ý: ${error.message}` : 'Không thể phân tích JSON dàn ý';
     return;
   }
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    outlineError.value = '大纲必须是 JSON 对象';
+    outlineError.value = 'Dàn ý phải là một đối tượng JSON';
     return;
   }
   outlineError.value = '';

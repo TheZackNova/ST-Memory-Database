@@ -41,7 +41,7 @@ function normalizeImportTxtTextAndSplitOptions_ACU(options: any = {}): { splitSi
 function normalizeInjectImportedSelectedOptions_ACU(options: any = {}): { success: true; options: any } | { success: false; error: string } {
     if (options === undefined || options === null) return { success: true, options: {} };
     if (typeof options !== 'object' || Array.isArray(options)) {
-        return { success: false, error: 'injectImportedSelected options 必须是对象。' };
+        return { success: false, error: 'injectImportedSelected options phải là một đối tượng.' };
     }
 
     const normalized: any = {};
@@ -50,12 +50,12 @@ function normalizeInjectImportedSelectedOptions_ACU(options: any = {}): { succes
         const targetWorldbook = options.targetWorldbook.trim();
         if (targetWorldbook) normalized.targetWorldbook = targetWorldbook;
     } else if (options.targetWorldbook !== undefined) {
-        return { success: false, error: 'targetWorldbook 必须是字符串。' };
+        return { success: false, error: 'targetWorldbook phải là một chuỗi.' };
     }
 
     if (options.selectedSheetKeys !== undefined) {
         if (!Array.isArray(options.selectedSheetKeys)) {
-            return { success: false, error: 'selectedSheetKeys 必须是字符串数组。' };
+            return { success: false, error: 'selectedSheetKeys phải là một mảng chuỗi.' };
         }
         const seen = new Set<string>();
         normalized.selectedSheetKeys = options.selectedSheetKeys
@@ -84,19 +84,19 @@ function normalizeInjectImportedSelectedOptions_ACU(options: any = {}): { succes
 
 function normalizeClearImportedLorebookEntriesOptions_ACU(options: any = {}): { success: true; targetWorldbook: string } | { success: false; error: string } {
     if (options === undefined || options === null) {
-        return { success: false, error: 'clearImportedLorebookEntries options 必须是对象，并提供 targetWorldbook。' };
+        return { success: false, error: 'clearImportedLorebookEntries options phải là một đối tượng và cung cấp targetWorldbook.' };
     }
     if (typeof options !== 'object' || Array.isArray(options)) {
-        return { success: false, error: 'clearImportedLorebookEntries options 必须是对象。' };
+        return { success: false, error: 'clearImportedLorebookEntries options phải là một đối tượng.' };
     }
 
     if (typeof options.targetWorldbook !== 'string') {
-        return { success: false, error: 'targetWorldbook 必须是非空字符串。' };
+        return { success: false, error: 'targetWorldbook phải là một chuỗi không rỗng.' };
     }
 
     const targetWorldbook = options.targetWorldbook.trim();
     if (!targetWorldbook) {
-        return { success: false, error: 'targetWorldbook 必须是非空字符串。' };
+        return { success: false, error: 'targetWorldbook phải là một chuỗi không rỗng.' };
     }
     return { success: true, targetWorldbook };
 }

@@ -23,13 +23,13 @@ export const CONTINUATION_MATERIAL_MODULES_ACU = ['hooks', 'infoGap', 'constrain
 export type ContinuationMaterialModule_ACU = typeof CONTINUATION_MATERIAL_MODULES_ACU[number];
 
 export const CONTINUATION_MATERIAL_MODULE_LABELS_ACU: Record<ContinuationMaterialModule_ACU, string> = {
-  hooks: '伏笔账本',
-  infoGap: '认知与信息差',
-  constraints: '长期约束',
-  storyArc: '故事总纲',
-  chronology: '故事年代学账本',
-  webRefs: '百科资料库',
-  userRequirements: '用户要求',
+  hooks: 'Sổ cái phục bút',
+  infoGap: 'Nhận thức và chênh lệch thông tin',
+  constraints: 'Ràng buộc dài hạn',
+  storyArc: 'Tổng cương cốt truyện',
+  chronology: 'Sổ cái niên đại học cốt truyện',
+  webRefs: 'Kho tư liệu bách khoa',
+  userRequirements: 'Yêu cầu của người dùng',
 };
 
 interface ModuleDraftState_ACU {
@@ -41,7 +41,7 @@ interface ModuleDraftState_ACU {
 
 function errorMessage_ACU(error: unknown): string {
   if (error instanceof ContinuationValidationError_ACU) return error.error.message;
-  return error instanceof Error ? error.message : '资料操作失败';
+  return error instanceof Error ? error.message : 'Thao tác tư liệu thất bại';
 }
 
 function moduleDraftText_ACU(snapshot: AgentModuleSnapshot_ACU, module: ContinuationMaterialModule_ACU): string {
@@ -178,7 +178,7 @@ export function useContinuationMaterials() {
     let source: DraftSource;
     try {
       source = readSource();
-      if (!matchesSource(source)) throw new Error('资料草稿所属聊天、模式或 swipe 已变化，请刷新后重新编辑。');
+      if (!matchesSource(source)) throw new Error('Cuộc trò chuyện, chế độ hoặc swipe của bản nháp tư liệu đã thay đổi, vui lòng làm mới rồi sửa lại.');
     } catch (caught) {
       modules[module].error = errorMessage_ACU(caught);
       return false;
@@ -189,11 +189,11 @@ export function useContinuationMaterials() {
     try {
       parsed = JSON.parse(state.draft);
     } catch (caught) {
-      state.error = caught instanceof Error ? `资料 JSON 无法解析：${caught.message}` : '资料 JSON 无法解析';
+      state.error = caught instanceof Error ? `JSON tư liệu không thể phân tích: ${caught.message}` : 'JSON tư liệu không thể phân tích';
       return false;
     }
     if (!Array.isArray(parsed)) {
-      state.error = `${CONTINUATION_MATERIAL_MODULE_LABELS_ACU[module]} 必须是 JSON 数组`;
+      state.error = `${CONTINUATION_MATERIAL_MODULE_LABELS_ACU[module]} phải là mảng JSON`;
       return false;
     }
     state.saving = true;
@@ -205,7 +205,7 @@ export function useContinuationMaterials() {
       if (!isSourceCurrent(source) || modules[module] !== state) return false;
       snapshot.value = saved;
       resetModule(module, saved);
-      toast.success(`${CONTINUATION_MATERIAL_MODULE_LABELS_ACU[module]}已保存，修订号已推进。`);
+      toast.success(`${CONTINUATION_MATERIAL_MODULE_LABELS_ACU[module]} đã được lưu, số sửa đổi đã tăng.`);
       return true;
     } catch (caught) {
       if (isSourceCurrent(source) && modules[module] === state) state.error = errorMessage_ACU(caught);

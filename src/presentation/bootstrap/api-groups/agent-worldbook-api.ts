@@ -66,7 +66,7 @@ export function createAgentWorldbookApi(_ctx: ApiGroupContext): Record<string, F
                 const success = takeover.failed === 0 && snapshot.active === true;
                 return {
                     success,
-                    error: success ? undefined : (takeover.reason || 'Agent 世界书 Skill 化后接管同步未完全完成。'),
+                    error: success ? undefined : (takeover.reason || 'Việc đồng bộ tiếp quản sau khi Skill hóa sổ thế giới Agent chưa hoàn tất hoàn toàn.'),
                     skillify,
                     takeover,
                     snapshot,
@@ -76,7 +76,7 @@ export function createAgentWorldbookApi(_ctx: ApiGroupContext): Record<string, F
             return { success: true, skillify };
         } catch (e) {
             logError_ACU('runAgentWorldbookSkillify failed:', e);
-            return agentWorldbookApiError_ACU(e, '执行 Agent 世界书 Skill 化失败。');
+            return agentWorldbookApiError_ACU(e, 'Thực hiện Skill hóa sổ thế giới Agent thất bại.');
         }
     };
 
@@ -97,13 +97,13 @@ export function createAgentWorldbookApi(_ctx: ApiGroupContext): Record<string, F
                 ? (updatedBy as any).updatedBy ?? 'manual'
                 : updatedBy;
             if (!isValidWorldbookSkillMetaUpdatedBy_ACU(normalizedUpdatedBy)) {
-                return { success: false, error: 'Skill 元数据 updatedBy 必须是 manual 或 agent-skillify。' };
+                return { success: false, error: 'updatedBy của metadata Skill phải là manual hoặc agent-skillify.' };
             }
             const result = await saveWorldbookEntrySkillMeta_ACU(String(bookName || ''), uid, metaDraft || {}, normalizedUpdatedBy);
             return { success: true, result };
         } catch (e) {
             logError_ACU('saveAgentWorldbookSkillMeta failed:', e);
-            return agentWorldbookApiError_ACU(e, '保存 Agent 世界书 Skill 元数据失败。');
+            return agentWorldbookApiError_ACU(e, 'Lưu metadata Skill của sổ thế giới Agent thất bại.');
         }
     };
 
@@ -113,7 +113,7 @@ export function createAgentWorldbookApi(_ctx: ApiGroupContext): Record<string, F
             return { success: true, result };
         } catch (e) {
             logError_ACU('deleteAgentWorldbookSkillMeta failed:', e);
-            return agentWorldbookApiError_ACU(e, '删除 Agent 世界书 Skill 元数据失败。');
+            return agentWorldbookApiError_ACU(e, 'Xóa metadata Skill của sổ thế giới Agent thất bại.');
         }
     };
 
@@ -124,7 +124,7 @@ export function createAgentWorldbookApi(_ctx: ApiGroupContext): Record<string, F
                 return { success: true, ...result };
             } catch (e) {
                 logError_ACU('getAgentWorldbookControl failed:', e);
-                return agentWorldbookApiError_ACU(e, '读取 Agent 世界书控制配置失败。');
+                return agentWorldbookApiError_ACU(e, 'Đọc cấu hình điều khiển sổ thế giới Agent thất bại.');
             }
         },
 
@@ -132,7 +132,7 @@ export function createAgentWorldbookApi(_ctx: ApiGroupContext): Record<string, F
             try {
                 const nextMode = normalizeAgentWorldbookModeForApi_ACU(mode);
                 if (!nextMode) {
-                    return { success: false, error: 'Agent 世界书模式必须是 disabled、passive 或 agent。' };
+                    return { success: false, error: 'Chế độ sổ thế giới Agent phải là disabled, passive hoặc agent.' };
                 }
 
                 const normalizedOptions = normalizeAgentWorldbookModeOptions_ACU(options);
@@ -143,7 +143,7 @@ export function createAgentWorldbookApi(_ctx: ApiGroupContext): Record<string, F
                 if (!writeResult.updated) {
                     return {
                         success: false,
-                        error: writeResult.reason || '写入 Agent 世界书控制配置失败。',
+                        error: writeResult.reason || 'Ghi cấu hình điều khiển sổ thế giới Agent thất bại.',
                         mode: nextMode,
                         control: writeResult.control,
                         write: writeResult,
@@ -155,7 +155,7 @@ export function createAgentWorldbookApi(_ctx: ApiGroupContext): Record<string, F
                     const success = takeover.failed === 0 && takeover.snapshot?.active === true;
                     return {
                         success,
-                        error: success ? undefined : (takeover.reason || 'Agent 世界书接管未完全完成。'),
+                        error: success ? undefined : (takeover.reason || 'Việc tiếp quản sổ thế giới Agent chưa hoàn tất hoàn toàn.'),
                         mode: nextMode,
                         control: writeResult.control,
                         write: writeResult,
@@ -168,7 +168,7 @@ export function createAgentWorldbookApi(_ctx: ApiGroupContext): Record<string, F
                     const success = restore.skipped === 0 && restore.failed === 0;
                     return {
                         success,
-                        error: success ? undefined : (restore.reason || 'Agent 世界书恢复未完全完成。'),
+                        error: success ? undefined : (restore.reason || 'Việc khôi phục sổ thế giới Agent chưa hoàn tất hoàn toàn.'),
                         mode: nextMode,
                         control: writeResult.control,
                         write: writeResult,
@@ -184,7 +184,7 @@ export function createAgentWorldbookApi(_ctx: ApiGroupContext): Record<string, F
                 };
             } catch (e) {
                 logError_ACU('setAgentWorldbookMode failed:', e);
-                return agentWorldbookApiError_ACU(e, '设置 Agent 世界书模式失败。');
+                return agentWorldbookApiError_ACU(e, 'Đặt chế độ sổ thế giới Agent thất bại.');
             }
         },
 
@@ -205,12 +205,12 @@ export function createAgentWorldbookApi(_ctx: ApiGroupContext): Record<string, F
                 const success = result.failed === 0 && !hasErrors;
                 return {
                     success,
-                    error: success ? undefined : '清除 Agent 世界书 Skill 元数据未完全完成。',
+                    error: success ? undefined : 'Việc xóa metadata Skill của sổ thế giới Agent chưa hoàn tất hoàn toàn.',
                     result,
                 };
             } catch (e) {
                 logError_ACU('clearAgentWorldbookSkillMetas failed:', e);
-                return agentWorldbookApiError_ACU(e, '清除 Agent 世界书 Skill 元数据失败。');
+                return agentWorldbookApiError_ACU(e, 'Xóa metadata Skill của sổ thế giới Agent thất bại.');
             }
         },
     };

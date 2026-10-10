@@ -61,7 +61,7 @@ describe('useContinuationMaterials', () => {
     expect(await materials.save('userRequirements')).toBe(false);
     expect(materials.modules.userRequirements.dirty).toBe(true);
     expect(JSON.parse(materials.modules.userRequirements.draft)).toEqual(['已有要求', '新增要求']);
-    expect(materials.modules.userRequirements.error).toContain('资料快照写盘失败，已还原楼层字段');
+    expect(materials.modules.userRequirements.error).toContain('snapshot tư liệu Agent xuống lưu trữ thất bại, đã khôi phục các trường của tầng');
 
     expect(await materials.save('userRequirements')).toBe(true);
     expect(materials.snapshot.value?.userRequirements).toEqual(['已有要求', '新增要求']);

@@ -41,6 +41,6 @@ describe('stable-row-id-allocator', () => {
   it('在正安全整数上限明确失败，而不是生成不可稳定表示的身份', () => {
     const reserved = createStableRowIdReservation_ACU([[String(Number.MAX_SAFE_INTEGER)]]);
 
-    expect(() => allocateStableRowId_ACU(reserved)).toThrow('正安全整数上限');
+    expect(() => allocateStableRowId_ACU(reserved)).toThrow('số nguyên an toàn dương');
   });
 });

@@ -38,9 +38,9 @@ function formatIssues_ACU(issues: CanonicalCheckpointIssue_ACU[]): string {
   return issues.map(issue => {
     const location = issue.sheetKey === undefined
       ? ''
-      : `: ${issue.sheetKey}${issue.rowIndex === undefined ? '' : ` 第 ${issue.rowIndex} 行`}`;
+      : `: ${issue.sheetKey}${issue.rowIndex === undefined ? '' : ` hàng thứ ${issue.rowIndex}`}`;
     return `${issue.type}${location}`;
-  }).join('；');
+  }).join('; ');
 }
 
 function validateCandidate_ACU<T extends TableCheckpointV2_ACU | TableSheetCheckpointV2_ACU>(
@@ -49,7 +49,7 @@ function validateCandidate_ACU<T extends TableCheckpointV2_ACU | TableSheetCheck
 ): CanonicalCheckpointBuildResult_ACU<T> {
   const validation = validateCanonicalCheckpoint_ACU(checkpoint, context);
   if (!validation.valid) {
-    return { error: `V2 checkpoint 行标识或结构不合法：${formatIssues_ACU(validation.issues)}`, issues: validation.issues };
+    return { error: `Định danh hàng hoặc cấu trúc V2 checkpoint không hợp lệ: ${formatIssues_ACU(validation.issues)}`, issues: validation.issues };
   }
   return { checkpoint };
 }

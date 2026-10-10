@@ -78,7 +78,7 @@ async function mountDeveloperPage() {
     setCurrentChatPlotScopeState_ACU: vi.fn(),
   }));
   vi.doMock('../../src/service/template/template-preset-service', () => ({
-    getActiveTemplatePresetMeta_ACU: () => ({ displayName: '默认预设', scopeLabel: '全局' }),
+    getActiveTemplatePresetMeta_ACU: () => ({ displayName: 'Preset mặc định', scopeLabel: 'Toàn cục' }),
   }));
   vi.doMock('../../src/service/ai/ai-service', () => ({
     getConnectionManagerProfiles_ACU: () => [],
@@ -104,13 +104,13 @@ describe('DeveloperPage', () => {
     const page = document.querySelector('.acu-v2-developer-page');
     expect(page).not.toBeNull();
     const text = page!.textContent || '';
-    expect(text).toContain('开发者 gated 字段');
-    expect(text).toContain('填表执行参数');
-    expect(text).toContain('填表高级选项');
-    expect(text).toContain('旧 UI 入口');
-    expect(text).toContain('严格 JSON 填表响应');
-    expect(text).not.toContain('填表使用工具调用');
-    expect(text).toContain('最大并发更新组数');
+    expect(text).toContain('Trường gated dành cho nhà phát triển');
+    expect(text).toContain('Tham số thực thi điền bảng');
+    expect(text).toContain('Tùy chọn nâng cao điền bảng');
+    expect(text).toContain('Lối vào UI cũ');
+    expect(text).toContain('Phản hồi điền bảng JSON nghiêm ngặt');
+    expect(text).not.toContain('Điền bảng bằng gọi công cụ');
+    expect(text).toContain('Số nhóm cập nhật đồng thời tối đa');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -172,7 +172,7 @@ describe('DeveloperPage', () => {
     const { mount, settings, saveSettings } = await mountDeveloperPage();
 
     const panel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-developer-page .acu-panel'))
-      .find(el => el.querySelector('.acu-panel__title')?.textContent?.includes('填表执行参数'))!;
+      .find(el => el.querySelector('.acu-panel__title')?.textContent?.includes('Tham số thực thi điền bảng'))!;
     const input = panel.querySelector<HTMLInputElement>('input[type="number"]')!;
     input.value = '4';
     input.dispatchEvent(new Event('change', { bubbles: true }));

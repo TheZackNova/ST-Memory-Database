@@ -120,7 +120,7 @@ describe('runTableUpdateCommit_ACU migration gate', () => {
     expect(result).toMatchObject({
       success: false,
       errorCategory: 'precondition',
-      error: expect.stringContaining('聊天或隔离标识已切换'),
+      error: expect.stringContaining('cuộc trò chuyện hoặc định danh cô lập đã chuyển'),
     });
     expect(mocks.transaction).not.toHaveBeenCalled();
     expect(apply).not.toHaveBeenCalled();
@@ -165,7 +165,7 @@ describe('runTableUpdateCommit_ACU migration gate', () => {
       value: 'unreachable',
     }));
 
-    expect(result).toMatchObject({ success: false, error: expect.stringContaining('sheetKey=sheet_0, rowIndex=1 的 row_id 为空') });
+    expect(result).toMatchObject({ success: false, error: expect.stringContaining('sheetKey=sheet_0, rowIndex=1 có row_id rỗng') });
     expect(mocks.persist).not.toHaveBeenCalled();
     expect(invalidData.sheet_0.content[1][0]).toBe('');
   });
@@ -189,7 +189,7 @@ describe('runTableUpdateCommit_ACU migration gate', () => {
       tableData: invalidData,
     }));
 
-    expect(result).toMatchObject({ success: false, error: expect.stringContaining('sheetKey=sheet_0, rowIndex=2 的 row_id 重复：stable') });
+    expect(result).toMatchObject({ success: false, error: expect.stringContaining('sheetKey=sheet_0, rowIndex=2 có row_id trùng: stable') });
     expect(mocks.persist).not.toHaveBeenCalled();
   });
 
@@ -359,7 +359,7 @@ describe('runTableUpdateCommit_ACU migration gate', () => {
 
     expect(result).toMatchObject({
       success: false,
-      error: expect.stringContaining('sheetKey=sheet_broken, rowIndex=1 的 row_id 为空'),
+      error: expect.stringContaining('sheetKey=sheet_broken, rowIndex=1 có row_id rỗng'),
     });
     expect(mocks.persist).not.toHaveBeenCalled();
   });
@@ -555,7 +555,7 @@ describe('runTableUpdateCommit_ACU stage_only 判别联合（计划 5.3）', () 
     expect(result).toMatchObject({
       success: false,
       errorCategory: 'precondition',
-      error: expect.stringContaining('聊天或隔离标识已切换'),
+      error: expect.stringContaining('cuộc trò chuyện hoặc định danh cô lập đã chuyển'),
     });
     expect(mocks.persist).not.toHaveBeenCalled();
     expect(mocks.setCurrentData).not.toHaveBeenCalled();

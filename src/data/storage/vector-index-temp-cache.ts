@@ -30,7 +30,7 @@ function isIdbAvailable_ACU(): boolean {
 function openDb_ACU(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
         if (!isIdbAvailable_ACU()) {
-            reject(new Error('IndexedDB 不可用'));
+            reject(new Error('IndexedDB không khả dụng'));
             return;
         }
         const request = indexedDB.open(DB_NAME_ACU, DB_VERSION_ACU);
@@ -43,7 +43,7 @@ function openDb_ACU(): Promise<IDBDatabase> {
             }
         };
         request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error || new Error('打开向量临时缓存失败'));
+        request.onerror = () => reject(request.error || new Error('Mở bộ nhớ đệm tạm vector thất bại'));
     });
 }
 
@@ -57,11 +57,11 @@ function runStore_ACU<T>(mode: IDBTransactionMode, runner: (store: IDBObjectStor
         const store = tx.objectStore(STORE_NAME_ACU);
         const request = runner(store);
         request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error || new Error('向量临时缓存操作失败'));
+        request.onerror = () => reject(request.error || new Error('Thao tác bộ nhớ đệm tạm vector thất bại'));
         tx.oncomplete = () => db.close();
         tx.onerror = () => {
             db.close();
-            reject(tx.error || new Error('向量临时缓存事务失败'));
+            reject(tx.error || new Error('Giao dịch bộ nhớ đệm tạm vector thất bại'));
         };
     }));
 }
@@ -150,14 +150,14 @@ export async function trimVectorIndexTempCacheToBudget_ACU(
                     cursor.continue();
                 }
             };
-            request.onerror = () => reject(request.error || new Error('向量临时缓存 LRU 淘汰失败'));
+            request.onerror = () => reject(request.error || new Error('Loại bỏ LRU của bộ nhớ đệm tạm vector thất bại'));
             tx.oncomplete = () => {
                 db.close();
                 resolve();
             };
             tx.onerror = () => {
                 db.close();
-                reject(tx.error || new Error('向量临时缓存 LRU 淘汰事务失败'));
+                reject(tx.error || new Error('Giao dịch loại bỏ LRU của bộ nhớ đệm tạm vector thất bại'));
             };
         });
     } catch {
@@ -186,14 +186,14 @@ export async function deleteVectorIndexCacheByIndex_ACU(indexId: string): Promis
                     cursor.continue();
                 }
             };
-            request.onerror = () => reject(request.error || new Error('清理向量临时缓存失败'));
+            request.onerror = () => reject(request.error || new Error('Dọn dẹp bộ nhớ đệm tạm vector thất bại'));
             tx.oncomplete = () => {
                 db.close();
                 resolve();
             };
             tx.onerror = () => {
                 db.close();
-                reject(tx.error || new Error('清理向量临时缓存事务失败'));
+                reject(tx.error || new Error('Giao dịch dọn dẹp bộ nhớ đệm tạm vector thất bại'));
             };
         });
     } catch {}
@@ -227,14 +227,14 @@ export async function estimateVectorIndexTempCache_ACU(indexId?: string): Promis
                     cursor.continue();
                 }
             };
-            request.onerror = () => reject(request.error || new Error('估算向量临时缓存失败'));
+            request.onerror = () => reject(request.error || new Error('Ước tính bộ nhớ đệm tạm vector thất bại'));
             tx.oncomplete = () => {
                 db.close();
                 resolve({ bytes, count });
             };
             tx.onerror = () => {
                 db.close();
-                reject(tx.error || new Error('估算向量临时缓存事务失败'));
+                reject(tx.error || new Error('Giao dịch ước tính bộ nhớ đệm tạm vector thất bại'));
             };
         });
     } catch {

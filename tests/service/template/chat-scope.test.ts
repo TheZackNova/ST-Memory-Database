@@ -505,7 +505,7 @@ describe('buildGuidedBaseDataFromSheetGuide_ACU', () => {
       sheet_0: { name: '表', content: [['名称', '行号']], _seedRows: [['铁剑', '7']] },
     };
 
-    expect(() => buildGuidedBaseDataFromSheetGuide_ACU(guide)).toThrow('Sheet Guide row_id 结构无效');
+    expect(() => buildGuidedBaseDataFromSheetGuide_ACU(guide)).toThrow('Cấu trúc row_id của Sheet Guide không hợp lệ');
   });
 });
 

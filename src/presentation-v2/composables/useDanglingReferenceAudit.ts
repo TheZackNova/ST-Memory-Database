@@ -22,7 +22,7 @@ export function useDanglingReferenceAudit(scope: DanglingReferenceScope_ACU) {
         ? collectDanglingApiPresetReferences_ACU()
         : await collectDanglingWorldbookReferences_ACU();
     } catch (caught) {
-      error.value = caught instanceof Error ? caught.message : '校验失效引用失败';
+      error.value = caught instanceof Error ? caught.message : 'Kiểm tra tham chiếu hỏng thất bại';
       items.value = [];
     } finally {
       loading.value = false;
@@ -35,12 +35,12 @@ export function useDanglingReferenceAudit(scope: DanglingReferenceScope_ACU) {
     try {
       const result = await clearDanglingReference_ACU(item);
       if (!result.ok) {
-        error.value = result.message || '清除失败';
+        error.value = result.message || 'Xóa thất bại';
         return;
       }
       await refresh();
     } catch (caught) {
-      error.value = caught instanceof Error ? caught.message : '清除失败';
+      error.value = caught instanceof Error ? caught.message : 'Xóa thất bại';
     } finally {
       clearingId.value = '';
     }

@@ -19,44 +19,44 @@ export function validateZeroLayerExitManifest_ACU(source: ZeroLayerEnvelope_ACU)
   const raw = source.exitManifest;
   if (raw === undefined) return;
   requireValue(record(raw) && raw.schemaVersion === 1 && ['prepared', 'committed'].includes(raw.phase)
-    && typeof raw.exitId === 'string' && raw.exitId.trim() && !source.enabled, '退出 journal 版本或阶段无效。');
+    && typeof raw.exitId === 'string' && raw.exitId.trim() && !source.enabled, 'Phiên bản hoặc giai đoạn của journal thoát không hợp lệ.');
   requireValue(raw.sessionId === source.sessionId && raw.branchId === source.activeBranchId
     && fingerprint(raw.scope) === fingerprint(source.scope)
     && raw.activationMessageCount === source.activationMessageCount
     && raw.activationFingerprint === source.activationFingerprint
     && typeof raw.physicalPrefixSnapshot === 'string'
     && raw.physicalPrefixSnapshot.trim()
-    && integer(raw.sourceRevision) && raw.sourceRevision < source.revision && integer(raw.createdAt), '退出来源与载体不一致。');
+    && integer(raw.sourceRevision) && raw.sourceRevision < source.revision && integer(raw.createdAt), 'Nguồn thoát không khớp với vật mang.');
   const branch = source.branches.find(item => item.branchId === raw.branchId);
   const turn = source.turns.find(item => item.turnId === branch?.headTurnId);
-  requireValue(turn?.phase === 'published' && fingerprint(raw.head) === fingerprint(checkpointTurnRef_ACU(source, turn)), '退出 head 不是所选已发布逻辑前沿。');
+  requireValue(turn?.phase === 'published' && fingerprint(raw.head) === fingerprint(checkpointTurnRef_ACU(source, turn)), 'Head thoát không phải đầu nhánh logic đã phát hành được chọn.');
   requireValue(record(raw.target) && raw.target.kind === 'host' && integer(raw.target.messageIndex)
     && raw.target.messageIndex === source.activationMessageCount - 1 && integer(raw.target.swipeId)
     && fingerprint(raw.target.scope) === fingerprint(source.scope)
-    && raw.target.sourceFingerprint === source.activationFingerprint, '退出物理接入引用无效。');
-  requireValue(Array.isArray(raw.assignments) && raw.assignments.length > 0, '退出缺少完整写集。');
+    && raw.target.sourceFingerprint === source.activationFingerprint, 'Tham chiếu tiếp nhập vật lý khi thoát không hợp lệ.');
+  requireValue(Array.isArray(raw.assignments) && raw.assignments.length > 0, 'Thoát thiếu tập ghi đầy đủ.');
   const keys = new Set<string>();
   for (const item of raw.assignments) {
     requireValue(record(item) && integer(item.messageIndex)
       && item.messageIndex < source.activationMessageCount
-      && ZERO_LAYER_EXIT_FIELDS_ACU.includes(item.field), '退出写集位置或字段非法。');
+      && ZERO_LAYER_EXIT_FIELDS_ACU.includes(item.field), 'Vị trí hoặc trường của tập ghi thoát không hợp lệ.');
     const key = JSON.stringify([item.messageIndex, item.field]);
-    requireValue(!keys.has(key), '退出写集存在重复字段。');
+    requireValue(!keys.has(key), 'Tập ghi thoát có trường trùng lặp.');
     keys.add(key);
     for (const value of [item.before, item.after]) {
       requireValue(record(value) && typeof value.exists === 'boolean'
         && Object.keys(value).every(key => ['exists', 'value'].includes(key))
         && (value.exists ? Object.prototype.hasOwnProperty.call(value, 'value') && value.value !== undefined
-          : !Object.prototype.hasOwnProperty.call(value, 'value')), '退出字段快照无效。');
+          : !Object.prototype.hasOwnProperty.call(value, 'value')), 'Snapshot trường thoát không hợp lệ.');
     }
   }
   requireValue(keys.size === source.activationMessageCount * ZERO_LAYER_EXIT_FIELDS_ACU.length,
-    '退出写集未覆盖固定物理前缀的完整字段。');
+    'Tập ghi thoát chưa bao phủ đầy đủ các trường của tiền tố vật lý cố định.');
   for (let messageIndex = 0; messageIndex < source.activationMessageCount; messageIndex += 1) {
     requireValue(ZERO_LAYER_EXIT_FIELDS_ACU.every(field => keys.has(JSON.stringify([messageIndex, field]))),
-      '退出写集缺少前缀字段。');
+      'Tập ghi thoát thiếu trường tiền tố.');
   }
   requireValue(typeof raw.configFingerprint === 'string' && raw.configFingerprint.trim()
     && typeof raw.materialFingerprint === 'string' && raw.materialFingerprint.trim()
-    && raw.candidateFingerprint === exitCandidateFingerprint_ACU(raw), '退出候选指纹无效。');
+    && raw.candidateFingerprint === exitCandidateFingerprint_ACU(raw), 'Dấu vân tay ứng viên thoát không hợp lệ.');
 }

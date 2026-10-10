@@ -41,7 +41,7 @@ function splitSqlList_ACU(value: string): string[] {
   }
   if (quoted) throw new Error('SQL 字符串字面量未闭合');
   items.push(value.slice(start).trim());
-  if (items.some(item => !item)) throw new Error('SQL 列表不能包含空项');
+  if (items.some(item => !item)) throw new Error('Danh sách SQL không được chứa mục rỗng');
   return items;
 }
 
@@ -50,8 +50,8 @@ function parseValue_ACU(raw: string): RestrictedSqlValue_ACU {
   if (/^null$/i.test(value)) return null;
   if (/^-?\d+(?:\.\d+)?$/.test(value) && Number.isFinite(Number(value))) return Number(value);
   if (/^'(?:[^']|'')*'$/.test(value)) return value.slice(1, -1).replace(/''/g, "'");
-  const lookalike = /[\u2018\u2019\uFF07\u200B-\u200D\uFEFF]|\\'/.test(value) ? '（字符串须用英文半角单引号 \' 包裹，不能用 ‘’、＇、\\\' 或零宽字符）' : '';
-  throw new Error(`SQL 值只允许字符串、数字或 NULL：${value}${lookalike}`);
+  const lookalike = /[\u2018\u2019\uFF07\u200B-\u200D\uFEFF]|\\'/.test(value) ? ' (chuỗi phải được bọc bằng dấu nháy đơn nửa-độ rộng tiếng Anh \', không được dùng ‘’, ＇, \\\' hoặc ký tự độ rộng bằng không)' : '';
+  throw new Error(`Giá trị SQL chỉ cho phép chuỗi, số hoặc NULL: ${value}${lookalike}`);
 }
 
 /**
@@ -120,7 +120,7 @@ function splitSqlAssignments_ACU(raw: string, mode: 'comma' | 'and'): string[] {
   }
   if (quoted) throw new Error('SQL 字符串字面量未闭合');
   result.push(raw.slice(start).trim());
-  if (result.some(item => !item)) throw new Error('SQL 赋值或条件不能包含空项');
+  if (result.some(item => !item)) throw new Error('Phép gán hoặc điều kiện SQL không được chứa mục rỗng');
   return result;
 }
 
@@ -128,9 +128,9 @@ function parseAssignments_ACU(raw: string, mode: 'comma' | 'and'): Record<string
   const result: Record<string, RestrictedSqlValue_ACU> = {};
   for (const part of splitSqlAssignments_ACU(raw, mode)) {
     const match = part.match(/^([A-Za-z_][\w]*)\s*=\s*([\s\S]+)$/);
-    if (!match) throw new Error(`SQL 条件或赋值必须是 column = value：${part}`);
+    if (!match) throw new Error(`Điều kiện hoặc phép gán SQL phải có dạng column = value: ${part}`);
     const key = unquoteIdentifier_ACU(match[1]);
-    if (Object.prototype.hasOwnProperty.call(result, key)) throw new Error(`SQL 字段重复：${key}`);
+    if (Object.prototype.hasOwnProperty.call(result, key)) throw new Error(`Trường SQL bị trùng: ${key}`);
     result[key] = parseValue_ACU(match[2]);
   }
   return result;
@@ -162,7 +162,7 @@ function parseOneStatement_ACU(statement: string): RestrictedSqlStatement_ACU {
     if (match) {
       const columns = splitSqlList_ACU(match[2]).map(unquoteIdentifier_ACU);
       const values = splitSqlList_ACU(match[3]).map(parseValue_ACU);
-      if (new Set(columns).size !== columns.length) throw new Error('INSERT 字段不能重复');
+      if (new Set(columns).size !== columns.length) throw new Error('Trường INSERT không được trùng lặp');
       if (columns.length !== values.length) throw new Error(`INSERT 字段数与值数量不一致（${columns.length} 个字段、${values.length} 个值）。请逐项核对列名列表与 VALUES 一一对应：不要把正文内容写进列名，也不要漏写值；若正文含单引号，应写成两个单引号。id 和 expected_revision 可以不写`);
       return { kind: 'insert', table: unquoteIdentifier_ACU(match[1]), values: Object.fromEntries(columns.map((column, index) => [column, values[index]])) };
     }
@@ -170,16 +170,16 @@ function parseOneStatement_ACU(statement: string): RestrictedSqlStatement_ACU {
     if (match) {
       const values = parseAssignments_ACU(match[2], 'comma');
       const where = parseAssignments_ACU(match[3], 'and');
-      if (!Object.keys(values).length || !Object.keys(where).length) throw new Error('UPDATE 必须包含 SET 与 WHERE');
+      if (!Object.keys(values).length || !Object.keys(where).length) throw new Error('UPDATE phải chứa SET và WHERE');
       return { kind: 'update', table: unquoteIdentifier_ACU(match[1]), values, where };
     }
     match = statement.match(/^DELETE\s+FROM\s+([A-Za-z_][\w]*)\s+WHERE\s+([\s\S]+)$/i);
     if (match) {
       const where = parseAssignments_ACU(match[2], 'and');
-      if (!Object.keys(where).length) throw new Error('DELETE 必须包含 WHERE');
+      if (!Object.keys(where).length) throw new Error('DELETE phải chứa WHERE');
       return { kind: 'delete', table: unquoteIdentifier_ACU(match[1]), where };
     }
-    throw new Error(`只允许 INSERT、UPDATE、DELETE：${statement.slice(0, 80)}`);
+    throw new Error(`Chỉ cho phép INSERT, UPDATE, DELETE: ${statement.slice(0, 80)}`);
 }
 
 export function parseRestrictedSqlDml_ACU(sql: string): RestrictedSqlStatement_ACU[] {

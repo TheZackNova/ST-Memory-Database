@@ -126,7 +126,7 @@ describe('ContinuationOutlinePlanner_ACU', () => {
     const { planner, callInternalAi } = createPlanner_ACU([tagOutline_ACU(6), tagOutline_ACU(6, '入城试探').replace('<node_goal>节点目标</node_goal>', '<node_goal>守门人决定透露第一处线索</node_goal>')]);
     const result = await planner.plan(request_ACU(formatSettings));
     expect(result).toMatchObject({ attempts: 2, outline: { title: '入城试探' } });
-    expect(lastMessageContent_ACU(callInternalAi, 1)).toContain('大纲照抄了格式说明「阶段标题」');
+    expect(lastMessageContent_ACU(callInternalAi, 1)).toContain('Dàn ý đã chép nguyên phần giải thích định dạng "阶段标题"');
     const legacy = createPlanner_ACU([tagOutline_ACU(6)]);
     expect((await legacy.planner.plan(request_ACU(settings_ACU(0)))).outline.title).toBe('阶段标题');
   });
@@ -138,7 +138,7 @@ describe('ContinuationOutlinePlanner_ACU', () => {
     const { planner, callInternalAi } = createPlanner_ACU([withoutAnchor, '<fix stage role="development"/><fix node="1" turn="2" anchor="…"/>', withAnchor]);
     const result = await planner.plan(request_ACU(formatSettings));
     expect(result.attempts).toBe(2);
-    expect(lastMessageContent_ACU(callInternalAi, 2)).toContain('修补时不能照抄 anchor="…"');
+    expect(lastMessageContent_ACU(callInternalAi, 2)).toContain('Khi vá không được chép nguyên anchor="…"');
     expect(result.outline.nodes[0].turns[1].timeAnchor).toBe('入城后三周');
   });
 
@@ -152,7 +152,7 @@ describe('ContinuationOutlinePlanner_ACU', () => {
       reason: 'manual_replan', replanConstraints: { previousOutline: previous, completedTurns: 2, expectedRemainingTurns: 4 },
     }));
     expect(result.attempts).toBe(2);
-    expect(lastMessageContent_ACU(callInternalAi, 1)).toContain('大纲照抄了格式说明「节点标题」');
+    expect(lastMessageContent_ACU(callInternalAi, 1)).toContain('Dàn ý đã chép nguyên phần giải thích định dạng "节点标题"');
     expect(result.outline.title).toBe('阶段标题');
     expect(result.outline.nodes[1].title).toBe('新的分岔');
   });
@@ -173,10 +173,10 @@ describe('ContinuationOutlinePlanner_ACU', () => {
     expect(result.outline.role).toBe('development');
     expect(result.outline.nodes[0].turns[0]).toEqual({ id: 'turn-fresh-2', goal: '两人第一次一起做晚饭', pacing: 'setup', function: 'daily_bond', mainlineDelta: 'hold', timeAdvance: 'overnight' });
     const repairRequest = lastMessageContent_ACU(callInternalAi, 1);
-    expect(repairRequest).toContain('节点1 第1轮（「两人第一次一起做晚饭」）');
-    expect(repairRequest).toContain('缺 function');
-    expect(repairRequest).toContain('缺 mainline');
-    expect(repairRequest).toContain('缺 role');
+    expect(repairRequest).toContain('Nút 1 lượt 1 ("两人第一次一起做晚饭")');
+    expect(repairRequest).toContain('thiếu function');
+    expect(repairRequest).toContain('thiếu mainline');
+    expect(repairRequest).toContain('thiếu role');
     expect(repairRequest).toContain('<fix node="1" turn="1"');
     expect(repairRequest).not.toContain('重新输出完整标签');
   });
@@ -190,7 +190,7 @@ describe('ContinuationOutlinePlanner_ACU', () => {
     expect(result).toMatchObject({ attempts: 1, repairRounds: 1, inferredFields: 3 });
     expect(result.outline.nodes[0].turns[0]).toMatchObject({ function: 'transition', mainlineDelta: 'hold', timeAdvance: 'same_day', inferred: ['function', 'mainlineDelta', 'timeAdvance'] });
     // 漏写的阶段标题/目标由节点信息兜底，不作为结构错误。
-    expect(result.outline.title).toBe('未命名阶段');
+    expect(result.outline.title).toBe('Giai đoạn chưa đặt tên');
     expect(result.outline.goal).toBe('节点目标');
 
     const hardDraft = `<stage_tempo>mixed</stage_tempo><stage_role>development</stage_role><node><node_goal>节点目标</node_goal><turn>没写节奏</turn>${tagTurns_ACU(5, '目标', 1)}</node>`;
@@ -241,7 +241,7 @@ describe('ContinuationOutlinePlanner_ACU', () => {
     const { planner, callInternalAi } = createPlanner_ACU([tagOutline_ACU(6)]);
     await planner.plan(request_ACU(rangeSettings));
     const content = callInternalAi.mock.calls[0][0][0].content as string;
-    expect(content).toContain('必须在 6 到 10 之间');
+    expect(content).toContain('phải nằm trong khoảng 6 đến 10');
   });
 
   it('tells the model the remaining-turn window on replan instead of only the stage total', async () => {
@@ -253,9 +253,9 @@ describe('ContinuationOutlinePlanner_ACU', () => {
       replanConstraints: { previousOutline: buildOutline_ACU(6), completedTurns: 2, expectedRemainingTurns: 4 },
     }));
     const content = callInternalAi.mock.calls[0][0][0].content as string;
-    expect(content).toContain('必须在 6 到 10 之间');
-    expect(content).toContain('已完成 2 轮不可改动');
-    expect(content).toContain('剩余的 <turn> 数量必须在 4 到 8 之间');
+    expect(content).toContain('phải nằm trong khoảng 6 đến 10');
+    expect(content).toContain('2 lượt đã hoàn thành không thể thay đổi');
+    expect(content).toContain('số <turn> còn lại phải nằm trong khoảng 4 đến 8');
   });
 
   it('把节奏配比违规当作可重试的校验错误回灌，模型改标签后通过', async () => {
@@ -265,7 +265,7 @@ describe('ContinuationOutlinePlanner_ACU', () => {
     expect(result.attempts).toBe(2);
     const retryContent = lastMessageContent_ACU(callInternalAi, 1);
     expect(retryContent).toContain('CONTINUATION_OUTLINE_PACING_INVALID@outline_validate');
-    expect(retryContent).toContain('第1轮=pressure');
+    expect(retryContent).toContain('lượt 1=pressure');
   });
 
   it('重规划的节奏校验只作用于剩余轮次：已完成的高压前缀不参与判定', async () => {
@@ -287,7 +287,7 @@ describe('ContinuationOutlinePlanner_ACU', () => {
     await planner.plan(request_ACU(budgetSettings));
     const content = callInternalAi.mock.calls[0][0][0].content as string;
     expect(content).toContain('800-1200');
-    expect(content).toContain('6000 到 10000 字');
+    expect(content).toContain('6000 đến 10000 chữ');
   });
 
   it('注入 $PACING_CONTEXT：告诉模型上一阶段形态、已连续多少轮高压、本阶段还剩多少高压余量', async () => {
@@ -295,10 +295,10 @@ describe('ContinuationOutlinePlanner_ACU', () => {
     const { planner, callInternalAi } = createPlanner_ACU([tagOutline_ACU(6)]);
     await planner.plan(request_ACU(pacingSettings, { pacingContext: { previousTempo: 'buildup', leadingPressureStreak: 3 } }));
     const content = callInternalAi.mock.calls[0][0][0].content as string;
-    expect(content).toContain('上一阶段的节奏形态是 buildup（铺垫型）');
-    expect(content).toContain('已经连续 3 轮没有出现低压轮');
-    expect(content).toContain('最多还能接着写 5 轮高压');
-    expect(content).toContain('四档都可以选');
+    expect(content).toContain('Hình thái nhịp của giai đoạn trước là buildup (kiểu dọn nền)');
+    expect(content).toContain('đã 3 lượt liên tiếp không xuất hiện lượt áp lực thấp');
+    expect(content).toContain('tối đa còn có thể viết tiếp 5 lượt áp lực cao');
+    expect(content).toContain('đều có thể chọn');
   });
 
   it('上一阶段是 surge 时，$PACING_CONTEXT 明说本阶段不能再选 surge，模型照选会被打回', async () => {
@@ -308,7 +308,7 @@ describe('ContinuationOutlinePlanner_ACU', () => {
     const result = await planner.plan(request_ACU(pacingSettings, { pacingContext: { previousTempo: 'surge', leadingPressureStreak: 9 } }));
 
     expect(result.attempts).toBe(2);
-    expect(callInternalAi.mock.calls[0][0][0].content as string).toContain('只能选 aftermath 或 mixed');
+    expect(callInternalAi.mock.calls[0][0][0].content as string).toContain('chỉ được chọn aftermath hoặc mixed');
     const retryContent = lastMessageContent_ACU(callInternalAi, 1);
     expect(retryContent).toContain('CONTINUATION_OUTLINE_PACING_INVALID@outline_validate');
     expect(retryContent).toContain('consecutive_surge_stages');

@@ -165,7 +165,7 @@ describe('simulation-ledger-sql-view', () => {
   it('物化含无主键条目的账本即失败', async () => {
     const broken = makeLedger();
     (broken.actors as unknown[]).push({ name: '无 id 角色' });
-    await expect(materializeWorldSimulationLedgerSqlView_ACU(broken)).rejects.toThrow(/无法物化/);
+    await expect(materializeWorldSimulationLedgerSqlView_ACU(broken)).rejects.toThrow(/không thể hiện thực hóa/);
   });
 });
 
@@ -329,11 +329,11 @@ describe('simulation-ledger-sql-view 逐栏层', () => {
 
   it('完整条目按草稿丢弃、撤销完整条目栏目、矩阵外模块、空批次、陈旧 revision 均 fail-closed', async () => {
     view = await materializeWorldSimulationLedgerSqlView_ACU(makeLedger());
-    expect(() => view!.applyFieldBatch({ module: 'actors', expectedRevision: 7, updatedAt: 2000, discardPartialIds: ['a1'] })).toThrow(/完整条目/);
-    expect(() => view!.applyFieldBatch({ module: 'actors', expectedRevision: 7, updatedAt: 2000, fieldWrites: { a1: { name: { unset: true } } } })).toThrow(/不能按草稿撤销/);
-    expect(() => view!.applyFieldBatch({ module: 'chronicleOverview', expectedRevision: 7, updatedAt: 2000, fieldWrites: { x: { oneLine: { value: 'x' } } } })).toThrow(/未知账本栏目模块/);
-    expect(() => view!.applyFieldBatch({ module: 'actors', expectedRevision: 7, updatedAt: 2000 })).toThrow(/批次为空/);
-    expect(() => view!.applyFieldBatch({ module: 'actors', expectedRevision: 99, updatedAt: 2000, fieldWrites: { a1: { name: { value: 'x' } } } })).toThrow(/revision 冲突/);
+    expect(() => view!.applyFieldBatch({ module: 'actors', expectedRevision: 7, updatedAt: 2000, discardPartialIds: ['a1'] })).toThrow(/là mục đầy đủ/);
+    expect(() => view!.applyFieldBatch({ module: 'actors', expectedRevision: 7, updatedAt: 2000, fieldWrites: { a1: { name: { unset: true } } } })).toThrow(/không thể hoàn tác như bản nháp/);
+    expect(() => view!.applyFieldBatch({ module: 'chronicleOverview', expectedRevision: 7, updatedAt: 2000, fieldWrites: { x: { oneLine: { value: 'x' } } } })).toThrow(/Module cột sổ cái không xác định/);
+    expect(() => view!.applyFieldBatch({ module: 'actors', expectedRevision: 7, updatedAt: 2000 })).toThrow(/Lô theo từng cột/);
+    expect(() => view!.applyFieldBatch({ module: 'actors', expectedRevision: 99, updatedAt: 2000, fieldWrites: { a1: { name: { value: 'x' } } } })).toThrow(/ung đột revision/);
     const back = view.readLedger();
     expect(back.actors).toHaveLength(1);
     expect(back.revision).toBe(7);

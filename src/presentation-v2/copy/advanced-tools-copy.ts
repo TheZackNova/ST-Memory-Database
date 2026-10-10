@@ -1,18 +1,18 @@
 export const advancedToolsCopy = {
   nav: {
-    sql: "SQL 控制台",
-    logs: "运行日志",
+    sql: "Bảng điều khiển SQL",
+    logs: "Nhật ký chạy",
   },
   panels: {
     sql: {
-      title: "SQL 控制台",
+      title: "Bảng điều khiển SQL",
       description:
-        "直接在当前聊天数据库执行 SQLite 运行库。执行报错时先检查结果区，再确认表名、列名和当前聊天是否已经加载表格。",
+        "Thực thi trực tiếp trên cơ sở dữ liệu SQLite runtime của cuộc trò chuyện hiện tại. Khi gặp lỗi, hãy xem khu vực kết quả trước, rồi kiểm tra tên bảng, tên cột và xem cuộc trò chuyện hiện tại đã nạp bảng hay chưa.",
     },
     logs: {
-      title: "运行日志",
+      title: "Nhật ký chạy",
       description:
-        "查看数据库运行日志。API 请求开关独立采集各渠道的请求与回复，默认关闭；Debug 控制调试过程与自动填表诊断，Warn 控制警告采集，错误始终记录。关闭采集不会删除已有日志，可使用清空按钮移除。API 日志按结构与正文分行展示，宿主包装调用记录可见参数与返回值，不代表最终网络请求。认证信息隐藏，但日志含完整提示词与回复，分享或导出前请检查隐私。筛选仅影响显示和导出，容量不足时淘汰完整旧条目。每条报错下方附有可展开的处理建议。",
+        "Xem nhật ký chạy của cơ sở dữ liệu. Công tắc yêu cầu API thu thập riêng yêu cầu và phản hồi của từng kênh, mặc định tắt; Debug điều khiển quá trình gỡ lỗi và chẩn đoán tự động điền bảng, Warn điều khiển việc thu thập cảnh báo, lỗi luôn được ghi. Tắt thu thập không xóa nhật ký đã có, có thể dùng nút xóa để gỡ bỏ. Nhật ký API hiển thị tách dòng giữa cấu trúc và nội dung, bản ghi gọi bọc của host cho thấy tham số và giá trị trả về, không đại diện cho yêu cầu mạng cuối cùng. Thông tin xác thực được ẩn, nhưng nhật ký chứa đầy đủ prompt và phản hồi, hãy kiểm tra quyền riêng tư trước khi chia sẻ hoặc xuất. Bộ lọc chỉ ảnh hưởng đến hiển thị và xuất, khi thiếu dung lượng sẽ loại bỏ nguyên các mục cũ. Dưới mỗi lỗi có gợi ý xử lý có thể mở rộng.",
     },
   },
 };

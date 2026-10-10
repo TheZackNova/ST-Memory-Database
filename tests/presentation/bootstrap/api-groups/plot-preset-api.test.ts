@@ -190,7 +190,7 @@ describe('initGameSession 模板重置契约', () => {
 
     expect(mocks.reloadStorage).toHaveBeenCalledOnce();
     expect(result).toMatchObject({ success: true, templateInjected: true, runtimeReady: false });
-    expect(result.warning).toContain('回退到原生模式');
+    expect(result.warning).toContain('quay về chế độ gốc');
     const api = createApi();
     mocks.switchFillMode.mockResolvedValueOnce({ ok: false, reason: 'irreversible_confirmation_required', currentMode: 'classic' });
     const imported = await api.initGameSession({}, { injectTemplate: false, presetData: { name: '受保护预设' } });
@@ -202,9 +202,9 @@ describe('initGameSession 模板重置契约', () => {
     mocks.refreshPreset.mockImplementationOnce(() => { throw new Error('刷新异常'); });
     const exceptional = await api.importPlotPresetFromData({ name: '异常后保留' }, { switchTo: true });
     expect(exceptional).toMatchObject({ success: true, switchedCurrentChat: false, fillModeSwitch: { ok: false, reason: 'switch_exception' } });
-    expect(exceptional.warning).toContain('模式切换异常');
-    expect(exceptional.warning).toContain('未能绑定');
-    expect(exceptional.warning).toContain('界面刷新失败');
+    expect(exceptional.warning).toContain('việc chuyển chế độ của phiên hiện tại gặp lỗi');
+    expect(exceptional.warning).toContain('chưa gắn được vào phiên hiện tại');
+    expect(exceptional.warning).toContain('làm mới giao diện thất bại');
     expect(mocks.persistedPresets.map(preset => preset.name)).toContain('异常后保留');
     mocks.switchFillMode.mockResolvedValueOnce({ ok: false, reason: 'save_failed', currentMode: 'llm' });
     const batch = await api.importPlotPresetsFromData([{ name: '批量保留' }]);

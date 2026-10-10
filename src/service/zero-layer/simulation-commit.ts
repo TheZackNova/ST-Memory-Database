@@ -18,7 +18,7 @@ import { validateZeroLayerSimulationReceipt_ACU } from './simulation-validation'
 const canonical = (value: unknown): string => Array.isArray(value) ? `[${value.map(canonical).join(',')}]`
   : value && typeof value === 'object' ? `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical((value as Record<string, unknown>)[key])}`).join(',')}}` : JSON.stringify(value);
 const viewOf = (state: ZeroLayerSimulationState_ACU) => {
-  if (!state.envelope) throw new ZeroLayerError_ACU('effects-pending', '推演账本尚未建立。');
+  if (!state.envelope) throw new ZeroLayerError_ACU('effects-pending', 'Sổ cái mô phỏng chưa được thiết lập.');
   return { ledger: state.envelope.ledger, fields: state.fields, archive: state.archive };
 };
 function assertRun(state: ZeroLayerSimulationState_ACU, identity: WorldSimulationRunIdentity_ACU): void {
@@ -28,7 +28,7 @@ function assertRun(state: ZeroLayerSimulationState_ACU, identity: WorldSimulatio
     || run.taskId !== identity.taskId || run.stageId !== identity.stageId || run.stageRevision !== identity.stageRevision
     || envelope?.task?.status !== 'running'
     || !sameWorldSimulationTargetRef_ACU(worldSimulationRunTargetRef_ACU(run), worldSimulationRunTargetRef_ACU(identity))) {
-    throw new ZeroLayerError_ACU('revision-conflict', '推演联合提交运行租约已失效。');
+    throw new ZeroLayerError_ACU('revision-conflict', 'Lease chạy gửi gộp của mô phỏng đã mất hiệu lực.');
   }
 }
 
@@ -46,14 +46,14 @@ export async function commitZeroLayerSimulationFinal_ACU(
     || candidate.stageId !== input.identity.stageId || candidate.stageRevision !== input.identity.stageRevision
     || candidate.baseLedgerRevision !== input.identity.baseLedgerRevision
     || !sameWorldSimulationTargetRef_ACU(worldSimulationRunTargetRef_ACU(input.identity), worldSimulationTargetRef_ACU(anchor))) {
-    throw new ZeroLayerError_ACU('revision-conflict', '推演交付身份与运行租约不一致。');
+    throw new ZeroLayerError_ACU('revision-conflict', 'Danh tính bàn giao mô phỏng không khớp lease chạy.');
   }
   const view = viewOf(before);
   input.runWrites?.assertCurrent(view);
   input.runWrites?.assertPersistedProof(input.identity, before.runProof);
   input.runWrites?.assertCandidatesDisjoint(candidate.acceptedCandidates);
   if (!candidate.acceptedCandidates.length && !input.runWrites?.hasConfirmedWrites) {
-    throw new ZeroLayerError_ACU('invalid-transition', '终局缺少候选或已确认写入。');
+    throw new ZeroLayerError_ACU('invalid-transition', 'Giai đoạn cuối thiếu ứng viên hoặc ghi đã xác nhận.');
   }
   const body = store.readSource().turns.find(turn => turn.turnId === anchor.logicalRef.turnId)!.body!;
   const planned = await planWorldSimulationFinalCommit_ACU(before.envelope!, input, body, view.archive);
@@ -76,7 +76,7 @@ export async function commitZeroLayerSimulationFinal_ACU(
     assertRun(state, input.identity);
     if (canonical(state.envelope) !== canonical(before.envelope) || canonical(viewOf(state)) !== canonical(view)
       || canonical(state.runProof) !== canonical(before.runProof)) {
-      throw new ZeroLayerError_ACU('revision-conflict', '终局规划期间推演基线已变化。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Đường cơ sở mô phỏng đã thay đổi trong lúc lập kế hoạch giai đoạn cuối.');
     }
     state.envelope = next;
     state.fields = fields;
@@ -103,17 +103,17 @@ type LogicalFieldInput_ACU = Omit<WorldSimulationFieldCommitInput_ACU, 'anchor'>
 export async function commitZeroLayerSimulationFields_ACU(store: ZeroLayerSimulationStore_ACU,
   input: LogicalFieldInput_ACU): Promise<WorldSimulationFieldCommitReceipt_ACU> {
   store.assertAnchor(input.anchor);
-  if (input.isCurrent?.() === false) throw new ZeroLayerError_ACU('scope-changed', '推演派工已失效。');
+  if (input.isCurrent?.() === false) throw new ZeroLayerError_ACU('scope-changed', 'Điều phối mô phỏng đã mất hiệu lực.');
   const before = store.readState();
   assertRun(before, input.identity);
-  if (input.evidenceRegistry.runId !== input.identity.runId) throw new ZeroLayerError_ACU('revision-conflict', '推演证据不属于当前运行。');
+  if (input.evidenceRegistry.runId !== input.identity.runId) throw new ZeroLayerError_ACU('revision-conflict', 'Bằng chứng mô phỏng không thuộc lần chạy hiện tại.');
   const view = viewOf(before);
   input.assertRunLedger?.(view);
   const parsed = parseWorldSimulationSqlFieldWrites_ACU(input.sql, input.role);
   if (input.allowedModules) parsed.intents = parsed.intents.filter(intent => {
     const module = intent.module === 'chronicle_archive' || intent.module === 'chronicle_overview' ? 'chronicle' : intent.module;
     if (input.allowedModules!.includes(module)) return true;
-    parsed.rejected.push({ path: `${intent.module}#${intent.id}`, reason: '派工无权写入该模块' });
+    parsed.rejected.push({ path: `${intent.module}#${intent.id}`, reason: 'Điều phối không có quyền ghi vào mô-đun này' });
     return false;
   });
   const at = input.updatedAt ?? Date.now();
@@ -141,9 +141,9 @@ export async function commitZeroLayerSimulationFields_ACU(store: ZeroLayerSimula
     }
     for (const batch of plan.batches) revision = sql.applyFieldBatch({ ...batch, expectedRevision: revision,
       advanceRevision: !plan.archiveWrites.length && batch.advanceRevision });
-    if (canonical(sql.readLedger()) !== canonical(plan.ledger)) throw new Error('SQL 账本复算与领域规划不一致');
+    if (canonical(sql.readLedger()) !== canonical(plan.ledger)) throw new Error('Tính lại sổ cái SQL không khớp với kế hoạch miền');
     if (plan.archiveWrites.length && canonical(sql.exportArchiveRecords()) !== canonical(Object.fromEntries(plan.archiveWrites.map(row => [row.archiveRef, row])))) {
-      throw new Error('SQL 归档复算与领域规划不一致');
+      throw new Error('Tính lại lưu trữ SQL không khớp với kế hoạch miền');
     }
     const upserts: WorldSimulationLedgerFieldUpserts_ACU = {};
     for (const batch of plan.batches) {
@@ -156,20 +156,20 @@ export async function commitZeroLayerSimulationFields_ACU(store: ZeroLayerSimula
     const comparable = (row: { status: string; fields: Record<string, { value: unknown; revision: number }> } | null) => row
       ? { status: row.status, fields: Object.fromEntries(Object.entries(row.fields).map(([key, field]) => [key, { value: field.value, revision: field.revision }])) } : null;
     for (const batch of plan.batches) for (const id of new Set([...Object.keys(batch.fieldWrites ?? {}), ...Object.keys(batch.domainUpserts ?? {}), ...(batch.domainRemovedIds ?? []), ...(batch.discardPartialIds ?? [])])) {
-      if (canonical(comparable(sql.readFieldRecord(batch.module, id))) !== canonical(comparable(fields.records[batch.module]?.[id] ?? null))) throw new Error('carrier 栏目与 SQL 复算不一致');
+      if (canonical(comparable(sql.readFieldRecord(batch.module, id))) !== canonical(comparable(fields.records[batch.module]?.[id] ?? null))) throw new Error('Mục carrier không khớp với tính lại SQL');
     }
   } catch (error) {
     return { status: 'rejected', accepted: [], rejected: [...rejected, { path: 'sqlView', reason: error instanceof Error ? error.message : String(error) }],
       partials: partials(view.fields), ledgerRevision: view.ledger.revision };
   } finally { sql.dispose(); }
   const nextView = { ledger: plan.ledger, fields, archive: plan.archive };
-  if (!input.prepareRunProof) throw new ZeroLayerError_ACU('invalid-transition', '逻辑逐栏提交必须联合保存运行证明。');
+  if (!input.prepareRunProof) throw new ZeroLayerError_ACU('invalid-transition', 'Gửi logic từng mục phải lưu kèm bằng chứng chạy.');
   const proof = input.prepareRunProof(nextView, input.declaredEvidenceRefs ?? [], plan.accepted);
   await store.updateState((state, source) => {
     store.assertAnchor(input.anchor, source);
     assertRun(state, input.identity);
     if (input.isCurrent?.() === false || canonical(viewOf(state)) !== canonical(view)
-      || canonical(state.runProof) !== canonical(before.runProof)) throw new ZeroLayerError_ACU('revision-conflict', '推演提交基线已变化。');
+      || canonical(state.runProof) !== canonical(before.runProof)) throw new ZeroLayerError_ACU('revision-conflict', 'Đường cơ sở gửi mô phỏng đã thay đổi.');
     input.assertRunLedger?.(viewOf(state));
     state.envelope!.ledger = plan.ledger;
     state.fields = fields;
@@ -178,7 +178,7 @@ export async function commitZeroLayerSimulationFields_ACU(store: ZeroLayerSimula
   });
   const saved = store.readView();
   if (canonical(saved) !== canonical(nextView) || canonical(store.readState().runProof) !== canonical(proof)) {
-    throw new ZeroLayerError_ACU('persist-unknown', '推演提交回读不一致，禁止继续请求。');
+    throw new ZeroLayerError_ACU('persist-unknown', 'Đọc lại sau khi gửi mô phỏng không nhất quán, cấm tiếp tục yêu cầu.');
   }
   input.confirmRunLedger?.(saved, input.declaredEvidenceRefs ?? [], plan.accepted);
   return { status: 'committed', rejected, partials: partials(saved.fields), ledgerRevision: saved.ledger.revision,

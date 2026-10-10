@@ -20,14 +20,14 @@ describe('compareAgentPromptMessages_ACU', () => {
       { role: 'system', content: '多余的 system 段' },
     ]);
     expect(report).toMatchObject({ baseline: true, messageCount: 4, systemRoleCount: 2 });
-    expect(formatAgentPromptDriftReport_ACU(report)).toContain('system 2 条');
+    expect(formatAgentPromptDriftReport_ACU(report)).toContain('2 system');
   });
 
   it('完全一致的重试序列不误报分歧', () => {
     const messages = [...skeleton, { role: 'user', content: '运行时数据 v1' }];
     const report = compareAgentPromptMessages_ACU(messages, messages.map(message => ({ ...message })));
     expect(report).toMatchObject({ identical: true, sharedMessages: 4 });
-    expect(formatAgentPromptDriftReport_ACU(report)).toContain('完全一致');
+    expect(formatAgentPromptDriftReport_ACU(report)).toContain('Hoàn toàn giống');
   });
 
   it('纯尾部追加报告前缀完整保留与新增条数', () => {
@@ -36,7 +36,7 @@ describe('compareAgentPromptMessages_ACU', () => {
     const report = compareAgentPromptMessages_ACU(previous, current);
     expect(report).toMatchObject({ sharedMessages: 3, appendedMessages: 2 });
     expect(report.sharedChars).toBe(skeleton.reduce((sum, message) => sum + message.content.length, 0));
-    expect(formatAgentPromptDriftReport_ACU(report)).toContain('前缀完整保留');
+    expect(formatAgentPromptDriftReport_ACU(report)).toContain('Tiền tố được giữ nguyên');
   });
 
   it('健康的尾部运行时分歧报出消息序号与字符偏移及摘录', () => {
@@ -54,7 +54,7 @@ describe('compareAgentPromptMessages_ACU', () => {
     const report = compareAgentPromptMessages_ACU(previous, current);
     expect(report).toMatchObject({ divergedMessageIndex: 0, previousRole: 'system', currentRole: 'user' });
     expect(report.divergedCharOffset).toBeUndefined();
-    expect(formatAgentPromptDriftReport_ACU(report)).toContain('第 0 条');
+    expect(formatAgentPromptDriftReport_ACU(report)).toContain('tin thứ 0');
   });
 
   it('超长内容的摘录截断在分歧点前后各 60 字符', () => {
@@ -74,15 +74,15 @@ describe('trackAgentPromptDrift_ACU', () => {
 
   it('按 scope 记忆上次序列并在下次调用时对比', () => {
     const first = trackAgentPromptDrift_ACU('agent-main', skeleton);
-    expect(first).toContain('基线建立');
+    expect(first).toContain('Thiết lập đường cơ sở');
     const second = trackAgentPromptDrift_ACU('agent-main', [...skeleton, { role: 'user', content: '追加' }]);
-    expect(second).toContain('前缀完整保留');
+    expect(second).toContain('Tiền tố được giữ nguyên');
   });
 
   it('不同 scope 互不干扰', () => {
     trackAgentPromptDrift_ACU('agent-main', skeleton);
     const other = trackAgentPromptDrift_ACU('outline', skeleton);
-    expect(other).toContain('基线建立');
+    expect(other).toContain('Thiết lập đường cơ sở');
   });
 
   it('记忆的是深拷贝：外部改写不污染下次对比', () => {
@@ -90,6 +90,6 @@ describe('trackAgentPromptDrift_ACU', () => {
     trackAgentPromptDrift_ACU('agent-main', mutable);
     mutable[0].content = '被外部改写';
     const report = trackAgentPromptDrift_ACU('agent-main', skeleton.map(message => ({ ...message })));
-    expect(report).toContain('完全一致');
+    expect(report).toContain('Hoàn toàn giống');
   });
 });

@@ -150,11 +150,11 @@ describe('useTableTemplatePresets', () => {
     const presets = useTableTemplatePresets();
     const labels = presets.chatPresetItems.value.map(item => item.label);
 
-    expect(labels).toContain('global-A（全局预设）');
-    expect(labels).toContain('global-A（当前聊天快照）');
-    expect(labels).not.toContain('chat-B（当前聊天快照）');
+    expect(labels).toContain('global-A (preset toàn cục)');
+    expect(labels).toContain('global-A (snapshot cuộc trò chuyện hiện tại)');
+    expect(labels).not.toContain('chat-B (snapshot cuộc trò chuyện hiện tại)');
     expect(presets.chatArchiveItems.value.map(item => item.label)).toContain('chat-B（聊天历史快照）');
-    expect(presets.selectedChatPresetLabel.value).toBe('global-A（当前聊天快照）');
+    expect(presets.selectedChatPresetLabel.value).toBe('global-A (snapshot cuộc trò chuyện hiện tại)');
   });
 
   it('默认聊天快照保留空 presetName，不回退旧全局预设名称', async () => {
@@ -166,9 +166,9 @@ describe('useTableTemplatePresets', () => {
     const presets = useTableTemplatePresets();
 
     expect(presets.selectedChatPreset.value).toBe('snapshot:');
-    expect(presets.selectedChatPresetLabel.value).toBe('默认预设（当前聊天快照）');
+    expect(presets.selectedChatPresetLabel.value).toBe('Preset mặc định (snapshot cuộc trò chuyện hiện tại)');
     expect(presets.chatPresetItems.value).toEqual(expect.arrayContaining([
-      expect.objectContaining({ value: 'snapshot:', label: '默认预设（当前聊天快照）' }),
+      expect.objectContaining({ value: 'snapshot:', label: 'Preset mặc định (snapshot cuộc trò chuyện hiện tại)' }),
     ]));
   });
 
@@ -180,7 +180,7 @@ describe('useTableTemplatePresets', () => {
     const presets = useTableTemplatePresets();
 
     expect(presets.chatSnapshotDiffersFromLibrary.value).toBe(false);
-    expect(presets.selectedChatPresetLabel.value).toBe('global-A（当前聊天快照）');
+    expect(presets.selectedChatPresetLabel.value).toBe('global-A (snapshot cuộc trò chuyện hiện tại)');
   });
 
   it('S3-8：快照内容偏离库中同名预设时标签带偏离后缀且 ref 为 true', async () => {
@@ -192,7 +192,7 @@ describe('useTableTemplatePresets', () => {
     const presets = useTableTemplatePresets();
 
     expect(presets.chatSnapshotDiffersFromLibrary.value).toBe(true);
-    expect(presets.selectedChatPresetLabel.value).toBe('global-A（当前聊天快照）（内容已偏离库预设）');
+    expect(presets.selectedChatPresetLabel.value).toBe('global-A (snapshot cuộc trò chuyện hiện tại) (nội dung đã lệch khỏi preset trong thư viện)');
   });
 
   it('S3-8：库中同名预设已删除时 meta 标注且 ref 为 true，标签不带偏离后缀', async () => {
@@ -205,8 +205,8 @@ describe('useTableTemplatePresets', () => {
 
     expect(presets.chatSnapshotDiffersFromLibrary.value).toBe(true);
     const snapshotItem = presets.chatPresetItems.value.find(item => item.value === 'snapshot:global-A');
-    expect(snapshotItem?.label).toBe('global-A（当前聊天快照）');
-    expect(snapshotItem?.meta).toContain('库中已无同名预设');
+    expect(snapshotItem?.label).toBe('global-A (snapshot cuộc trò chuyện hiện tại)');
+    expect(snapshotItem?.meta).toContain('Thư viện không còn preset cùng tên');
   });
 
   it('S3-8：默认预设快照与全局默认快照比较，偏离时同样标记', async () => {
@@ -218,7 +218,7 @@ describe('useTableTemplatePresets', () => {
     const presets = useTableTemplatePresets();
 
     expect(presets.chatSnapshotDiffersFromLibrary.value).toBe(true);
-    expect(presets.selectedChatPresetLabel.value).toBe('默认预设（当前聊天快照）（内容已偏离库预设）');
+    expect(presets.selectedChatPresetLabel.value).toBe('Preset mặc định (snapshot cuộc trò chuyện hiện tại) (nội dung đã lệch khỏi preset trong thư viện)');
   });
 
   it('S3-8：非 chat_override 模式下偏离 ref 恒为 false', async () => {
@@ -234,7 +234,7 @@ describe('useTableTemplatePresets', () => {
     const { useTableTemplatePresets, applyTemplatePresetToCurrent_ACU, setChatEntries } = await importComposable();
     setChatEntries([{ presetName: 'global-A', templateStr: '{"sheet_1":{"name":"本地"}}' }]);
     const presets = useTableTemplatePresets();
-    const globalItem = presets.chatPresetItems.value.find(item => item.label === 'global-A（全局预设）');
+    const globalItem = presets.chatPresetItems.value.find(item => item.label === 'global-A (preset toàn cục)');
 
     await presets.selectChatPreset(globalItem!.value);
 
@@ -261,7 +261,7 @@ describe('useTableTemplatePresets', () => {
     setActiveMode('chat_override');
     presets.refresh();
     expect(presets.selectedChatPreset.value).toBe('snapshot:');
-    expect(presets.selectedChatPresetLabel.value).toBe('默认预设（当前聊天快照）');
+    expect(presets.selectedChatPresetLabel.value).toBe('Preset mặc định (snapshot cuộc trò chuyện hiện tại)');
   });
 
   it('切换当前聊天模板前使用统一恢复 guard，guard 取消时不切换', async () => {
@@ -306,7 +306,7 @@ describe('useTableTemplatePresets', () => {
     const pending = presets.selectChatPreset('chat-A');
     await vi.waitFor(() => expect(dialog.active).toMatchObject({
       kind: 'confirm',
-      title: '确认破坏性模板变更',
+      title: 'Xác nhận thay đổi mẫu có tính phá hủy',
       confirmVariant: 'danger',
     }));
     dialog.submitActive();
@@ -399,15 +399,15 @@ describe('useTableTemplatePresets', () => {
 
     await presets.selectChatPreset('chat-A');
 
-    const expected = '表格状态在提交时已更新；系统重新读取后仍无法完成切换。请刷新当前聊天后重试。';
+    const expected = 'Trạng thái bảng đã được cập nhật khi cam kết; sau khi hệ thống đọc lại vẫn không thể hoàn tất việc chuyển đổi. Vui lòng làm mới cuộc trò chuyện hiện tại rồi thử lại.';
     expect(applyTemplatePresetToCurrent_ACU).toHaveBeenCalledTimes(2);
     expect(presets.message.value).toMatchObject({ kind: 'error', text: expected });
     expect(toast.items.at(-1)).toMatchObject({ kind: 'error', text: expected });
   });
 
   it.each([
-    ['V2 history_indeterminate: sheetKey=sheet_a', '表格历史状态不完整或顺序异常，已拒绝覆盖数据。请先在数据管理中检查并恢复 V2 历史后重试。'],
-    ['V2 reveal_source_missing: sheetKey=sheet_a', '历史表的可信恢复来源不可用，已拒绝写入。请先在数据管理中检查并恢复 V2 历史后重试。'],
+    ['V2 history_indeterminate: sheetKey=sheet_a', 'Trạng thái lịch sử bảng không đầy đủ hoặc thứ tự bất thường, đã từ chối ghi đè dữ liệu. Vui lòng kiểm tra và khôi phục lịch sử V2 trong Quản lý dữ liệu trước rồi thử lại.'],
+    ['V2 reveal_source_missing: sheetKey=sheet_a', 'Nguồn khôi phục đáng tin cậy của bảng lịch sử không khả dụng, đã từ chối ghi. Vui lòng kiểm tra và khôi phục lịch sử V2 trong Quản lý dữ liệu trước rồi thử lại.'],
   ])('历史恢复错误不自动重试，并展示可操作提示', async (error, expected) => {
     const { useTableTemplatePresets, toast, applyTemplatePresetToCurrent_ACU } = await importComposable();
     const presets = useTableTemplatePresets();
@@ -429,11 +429,11 @@ describe('useTableTemplatePresets', () => {
 
     expect(presets.message.value).toMatchObject({
       kind: 'error',
-      text: '全局模板预设切换失败。',
+      text: 'Chuyển preset mẫu toàn cục thất bại.',
     });
     expect(toast.items.at(-1)).toMatchObject({
       kind: 'error',
-      text: '全局模板预设切换失败。',
+      text: 'Chuyển preset mẫu toàn cục thất bại.',
     });
   });
 
@@ -446,11 +446,11 @@ describe('useTableTemplatePresets', () => {
 
     expect(presets.message.value).toMatchObject({
       kind: 'error',
-      text: '无法解析当前模板。',
+      text: 'Không thể phân tích mẫu hiện tại.',
     });
     expect(toast.items.at(-1)).toMatchObject({
       kind: 'error',
-      text: '无法解析当前模板。',
+      text: 'Không thể phân tích mẫu hiện tại.',
     });
   });
 });
@@ -463,13 +463,13 @@ describe('useTableTemplatePresets · runtime 视图', () => {
     const presets = useTableTemplatePresets();
 
     const labels = presets.chatPresetItems.value.map(item => item.label);
-    expect(labels).toContain('当前生效模板（内存）');
-    expect(labels).toContain('global-A（全局预设）');
-    expect(labels).toContain('global-A（当前聊天快照）');
+    expect(labels).toContain('Mẫu đang có hiệu lực (bộ nhớ)');
+    expect(labels).toContain('global-A (preset toàn cục)');
+    expect(labels).toContain('global-A (snapshot cuộc trò chuyện hiện tại)');
     // 默认项 → runtime → 全局预设 → 聊天快照，顺序稳定
-    expect(labels.indexOf('默认预设（全局）')).toBeLessThan(labels.indexOf('当前生效模板（内存）'));
-    expect(labels.indexOf('当前生效模板（内存）')).toBeLessThan(labels.indexOf('global-A（全局预设）'));
-    expect(labels.indexOf('global-A（全局预设）')).toBeLessThan(labels.indexOf('global-A（当前聊天快照）'));
+    expect(labels.indexOf('Preset mặc định (toàn cục)')).toBeLessThan(labels.indexOf('Mẫu đang có hiệu lực (bộ nhớ)'));
+    expect(labels.indexOf('Mẫu đang có hiệu lực (bộ nhớ)')).toBeLessThan(labels.indexOf('global-A (preset toàn cục)'));
+    expect(labels.indexOf('global-A (preset toàn cục)')).toBeLessThan(labels.indexOf('global-A (snapshot cuộc trò chuyện hiện tại)'));
   });
 
   it('运行时内容与库内容一致时 runtimeDiffersFromLibrary 为 false', async () => {
@@ -492,7 +492,7 @@ describe('useTableTemplatePresets · runtime 视图', () => {
     const presets = useTableTemplatePresets();
     expect(presets.runtimeTemplateAvailable.value).toBe(false);
     expect(presets.runtimeTemplateItem.value).toBeNull();
-    expect(presets.chatPresetItems.value.some(item => item.label === '当前生效模板（内存）')).toBe(false);
+    expect(presets.chatPresetItems.value.some(item => item.label === 'Mẫu đang có hiệu lực (bộ nhớ)')).toBe(false);
     expect(() => presets.refresh()).not.toThrow();
   });
 
@@ -506,7 +506,7 @@ describe('useTableTemplatePresets · runtime 视图', () => {
   it('选中 runtime 项时零切换调用（不触发模板切换事务）', async () => {
     const { useTableTemplatePresets, applyTemplatePresetToCurrent_ACU, applyTemplateSnapshotToScope_ACU } = await importComposable();
     const presets = useTableTemplatePresets();
-    const runtimeItem = presets.chatPresetItems.value.find(item => item.label === '当前生效模板（内存）');
+    const runtimeItem = presets.chatPresetItems.value.find(item => item.label === 'Mẫu đang có hiệu lực (bộ nhớ)');
     expect(runtimeItem).toBeDefined();
     await presets.selectChatPreset(runtimeItem!.value);
     expect(applyTemplatePresetToCurrent_ACU).not.toHaveBeenCalled();
@@ -545,7 +545,7 @@ describe('useTableTemplatePresets · runtime 视图', () => {
     const pending = presets.selectGlobalPreset('global:global-B');
     await vi.waitFor(() => expect(dialog.active).toMatchObject({
       kind: 'confirm',
-      title: '确认破坏性模板变更',
+      title: 'Xác nhận thay đổi mẫu có tính phá hủy',
       confirmVariant: 'danger',
     }));
     dialog.submitActive();

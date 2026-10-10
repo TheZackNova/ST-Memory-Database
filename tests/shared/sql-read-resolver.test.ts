@@ -542,7 +542,7 @@ describe('sql read resolver', () => {
     } as any;
 
     expect(() => rebindSheetKeysThroughTableAliases_ACU(['共享名称'], null, tableData))
-      .toThrow(/歧义/);
+      .toThrow(/mơ hồ/);
   });
 
   it('跨快照通过显式表级历史名称将旧 key 重绑定为权威 key', () => {
@@ -604,7 +604,7 @@ describe('sql read resolver', () => {
       ['sheet_old_a', 'sheet_old_b'],
       scheduled,
       target,
-    )).toThrow(/多对一冲突/);
+    )).toThrow(/xung đột nhiều-một/);
   });
 
   it('跨快照别名一对多时 fail closed，不扩大目标授权', () => {
@@ -644,7 +644,7 @@ describe('sql read resolver', () => {
     } as any;
 
     expect(() => rebindSheetKeysThroughTableAliases_ACU(['sheet_old'], scheduled, target))
-      .toThrow(/无法证明/);
+      .toThrow(/không thể chứng minh/);
   });
 
   it('规范显示名相同即迁移历史随机 key，不依赖 DDL 名', () => {

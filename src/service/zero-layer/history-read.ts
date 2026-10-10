@@ -48,7 +48,7 @@ export class ZeroLayerHistoryReader_ACU implements ZeroLayerHistoryApi_ACU {
   }
 
   private assertReadable(): void {
-    if (this.revoking) throw new ReadError('scope-changed', '作用域正在撤销，不能重新取得旧权限。');
+    if (this.revoking) throw new ReadError('scope-changed', 'Phạm vi đang bị thu hồi, không thể lấy lại quyền cũ.');
     this.access?.assert();
   }
 
@@ -67,7 +67,7 @@ export class ZeroLayerHistoryReader_ACU implements ZeroLayerHistoryApi_ACU {
   private requireEnabled(envelope: ZeroLayerEnvelope_ACU | null): ZeroLayerEnvelope_ACU {
     if (!envelope || !envelope.enabled && !this.access) {
       this.invalidate();
-      throw new ReadError('mode-disabled', '当前聊天未启用零层历史读取。');
+      throw new ReadError('mode-disabled', 'Cuộc trò chuyện hiện tại chưa bật đọc lịch sử Tầng 0.');
     }
     return envelope;
   }
@@ -82,16 +82,16 @@ export class ZeroLayerHistoryReader_ACU implements ZeroLayerHistoryApi_ACU {
     const source = await this.store.read();
     assertZeroLayerCarrier_ACU(context);
     if (!source || epoch !== this.epoch || !source.branches.some(b => b.branchId === branchId)) {
-      throw new ReadError('access-denied', '宿主所选分支不可授权。');
+      throw new ReadError('access-denied', 'Nhánh host đã chọn không thể cấp quyền.');
     }
     let revoked = false;
     const assert = () => {
-      if (revoked || epoch !== this.epoch) throw new ReadError('access-denied', '只读授权已撤销。');
+      if (revoked || epoch !== this.epoch) throw new ReadError('access-denied', 'Quyền chỉ đọc đã bị thu hồi.');
       assertZeroLayerCarrier_ACU(context);
       const current = this.store.readSnapshot();
       if (!current || current.sessionId !== source.sessionId || current.activeBranchId !== source.activeBranchId
         || current.enabled !== source.enabled || !current.branches.some(b => b.branchId === branchId)) {
-        throw new ReadError('scope-changed', '宿主授权的载体或活动作用域已变化。');
+        throw new ReadError('scope-changed', 'Vật mang hoặc phạm vi hoạt động mà host cấp quyền đã thay đổi.');
       }
     };
     let releaseGuard = () => {};
@@ -117,14 +117,14 @@ export class ZeroLayerHistoryReader_ACU implements ZeroLayerHistoryApi_ACU {
     const context = captureZeroLayerCarrier_ACU();
     const envelope = await this.store.read();
     assertZeroLayerCarrier_ACU(context);
-    if (epoch !== this.epoch) throw new ReadError('scope-changed', '读取期间作用域已撤销。');
+    if (epoch !== this.epoch) throw new ReadError('scope-changed', 'Phạm vi đã bị thu hồi trong lúc đọc.');
     const confirmed = this.store.readSnapshot();
     if (confirmed?.sessionId !== envelope?.sessionId || confirmed?.activeBranchId !== envelope?.activeBranchId) {
       this.invalidate();
-      throw new ReadError('scope-changed', '异步读取后会话或分支已变化。');
+      throw new ReadError('scope-changed', 'Phiên hoặc nhánh đã thay đổi sau khi đọc bất đồng bộ.');
     }
     if (JSON.stringify(confirmed) !== JSON.stringify(envelope)) {
-      throw new ReadError('snapshot-stale', '异步读取后存档已变化，请重新取得快照。');
+      throw new ReadError('snapshot-stale', 'Bản lưu đã thay đổi sau khi đọc bất đồng bộ, hãy lấy lại snapshot.');
     }
     this.assertReadable();
     const original = this.requireEnabled(envelope);
@@ -180,31 +180,31 @@ export class ZeroLayerHistoryReader_ACU implements ZeroLayerHistoryApi_ACU {
     try {
       const query = validateZeroLayerHistoryQuery_ACU(raw);
       let snapshot = query.snapshotToken ? this.snapshots.get(query.snapshotToken) : undefined;
-      if (query.snapshotToken && !snapshot) throw new ReadError('snapshot-stale', '快照已失效，请重新读取。');
+      if (query.snapshotToken && !snapshot) throw new ReadError('snapshot-stale', 'Snapshot đã mất hiệu lực, hãy đọc lại.');
       if (query.cursor && !snapshot) {
         snapshot = [...this.snapshots.values()].find(item => item.cursors.has(query.cursor!));
       }
       if (query.cursor && !snapshot?.cursors.has(query.cursor)) {
-        throw new ReadError('snapshot-stale', '游标不属于可用快照。');
+        throw new ReadError('snapshot-stale', 'Con trỏ không thuộc snapshot khả dụng.');
       }
       const { envelope, binding } = await this.readCurrent();
-      if (snapshot && snapshot.binding !== binding) throw new ReadError('scope-changed', '快照所属作用域已变化。');
+      if (snapshot && snapshot.binding !== binding) throw new ReadError('scope-changed', 'Phạm vi của snapshot đã thay đổi.');
       snapshot ??= this.remember(envelope, binding);
       if (envelope.revision < snapshot.value.revision
         || !isZeroLayerHistoryRetained_ACU(snapshot.items, this.project(envelope))) {
         this.snapshots.delete(snapshot.value.snapshotToken);
-        throw new ReadError('snapshot-stale', '快照历史已被删除或改写，禁止静默改读最新版。');
+        throw new ReadError('snapshot-stale', 'Lịch sử snapshot đã bị xóa hoặc ghi lại, cấm âm thầm chuyển sang đọc bản mới nhất.');
       }
       if (query.turnId) {
         const item = snapshot.items.find(turn => turn.turnId === query.turnId);
-        if (!item) throw new ReadError('not-found', '该快照内不存在所选回合。');
+        if (!item) throw new ReadError('not-found', 'Snapshot này không có lượt đã chọn.');
         return { ok: true, value: this.page(snapshot, [item], null) };
       }
       const cursor = query.cursor ? snapshot.cursors.get(query.cursor)! : null;
       const direction = query.direction ?? cursor?.direction ?? 'older';
-      if (cursor && cursor.direction !== direction) throw new ReadError('invalid-query', '游标方向与查询不一致。');
+      if (cursor && cursor.direction !== direction) throw new ReadError('invalid-query', 'Hướng con trỏ không khớp với truy vấn.');
       const boundary = cursor ? snapshot.items.findIndex(turn => turn.turnId === cursor.boundary) : -1;
-      if (cursor && boundary < 0) throw new ReadError('snapshot-stale', '游标引用的回合已不可用。');
+      if (cursor && boundary < 0) throw new ReadError('snapshot-stale', 'Lượt mà con trỏ tham chiếu không còn khả dụng.');
       const start = direction === 'newer' ? (cursor ? boundary + 1 : 0)
         : Math.max(0, (cursor ? boundary : snapshot.items.length) - query.limit!);
       const end = direction === 'newer' ? Math.min(snapshot.items.length, start + query.limit!)
@@ -229,7 +229,7 @@ export class ZeroLayerHistoryReader_ACU implements ZeroLayerHistoryApi_ACU {
 
   subscribe(listener: (change: ZeroLayerHistoryChange_ACU) => void): () => void {
     this.assertReadable();
-    if (typeof listener !== 'function') throw new ReadError('invalid-query', '订阅回调必须为函数。');
+    if (typeof listener !== 'function') throw new ReadError('invalid-query', 'Callback đăng ký phải là hàm.');
     const context = captureZeroLayerCarrier_ACU();
     const original = this.requireEnabled(this.store.readSnapshot());
     const envelope = this.access ? this.access.select(original) : original;

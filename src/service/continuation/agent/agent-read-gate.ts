@@ -107,17 +107,17 @@ function buildRejectionReport_ACU(
   historyTokenBudget: number,
   contextTokens: number,
 ): string {
-  const itemLines = items.map((item, index) => `- ${item.label}：实测 ${itemTokens[index]} tokens`);
-  const lines: string[] = ['【读取被门禁打回：内容未注入，不要原样重试】'];
+  const itemLines = items.map((item, index) => `- ${item.label}: đo thực tế ${itemTokens[index]} tokens`);
+  const lines: string[] = ['【Lô đọc bị cổng chặn trả về: nội dung chưa được tiêm, đừng thử lại nguyên như cũ】'];
   if (reason === 'read-batch-too-large') {
-    lines.push(`原因：本次 read/search 工具批次需要 ${batchTokens} tokens，超过单批次上限 ${budget.effectiveMaxReadTokens} tokens。该上限不跨批次累计；缩小本批内容后可在下一轮继续读取。`);
+    lines.push(`Nguyên nhân: lô công cụ read/search lần này cần ${batchTokens} tokens, vượt giới hạn mỗi lô ${budget.effectiveMaxReadTokens} tokens. Giới hạn này không cộng dồn giữa các lô; thu nhỏ nội dung lô này rồi có thể đọc tiếp ở lượt sau.`);
   } else {
     const headroom = Math.max(0, historyTokenBudget - contextTokens);
-    lines.push(`原因：上下文临近总结阈值。当前上下文实测 ${contextTokens} tokens，总结阈值 ${historyTokenBudget} tokens（阈值前余量 ${headroom} tokens）；本批次 ${batchTokens} tokens 大于精读兜底额度 ${budget.effectiveFallbackTokens} tokens。请持续缩小读取范围，直到单批次不超过 ${budget.effectiveFallbackTokens} tokens；届时会放行并由总结机制处理超长上下文。`);
+    lines.push(`Nguyên nhân: ngữ cảnh gần ngưỡng tóm tắt. Ngữ cảnh hiện tại đo thực tế ${contextTokens} tokens, ngưỡng tóm tắt ${historyTokenBudget} tokens (còn dư ${headroom} tokens trước ngưỡng); lô này ${batchTokens} tokens lớn hơn hạn mức đọc kỹ dự phòng ${budget.effectiveFallbackTokens} tokens. Hãy tiếp tục thu hẹp phạm vi đọc cho đến khi mỗi lô không quá ${budget.effectiveFallbackTokens} tokens; khi đó sẽ được cho qua và cơ chế tóm tắt sẽ xử lý ngữ cảnh quá dài.`);
   }
-  lines.push('本批次各目标的实测大小：', ...itemLines);
+  lines.push('Kích thước đo thực tế của từng mục tiêu trong lô này:', ...itemLines);
   const nextLimit = reason === 'near-compaction-overflow' ? budget.effectiveFallbackTokens : budget.effectiveMaxReadTokens;
-  lines.push(`修正协议：先用 search 定位相关剧情，再用更小的目标重试——正文改用更窄的 $STORY_RANGE 区间，表格改按 $TABLE:表名:起始行-结束行 分段读，模块改按 ID 精读（如 $HOOKS_LEDGER:H001），让下一次请求落在 ${nextLimit} tokens 内。`);
+  lines.push(`Quy ước sửa: trước hết dùng search để định vị cốt truyện liên quan, rồi thử lại với mục tiêu nhỏ hơn — chính văn dùng khoảng $STORY_RANGE hẹp hơn, bảng đọc theo từng đoạn $TABLE:tên bảng:hàng_đầu-hàng_cuối, mô-đun đọc kỹ theo ID (như $HOOKS_LEDGER:H001), để yêu cầu lần sau nằm trong ${nextLimit} tokens.`);
   return lines.join('\n');
 }
 

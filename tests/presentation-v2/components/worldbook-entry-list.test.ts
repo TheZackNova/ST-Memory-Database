@@ -90,19 +90,19 @@ describe('WorldbookEntryList', () => {
     const meta = el.querySelector('.acu-disclosure-group__meta');
 
     expect(el.textContent).toContain('CharBook');
-    expect(meta?.textContent).toBe('3/4 条 · Skill 2 · 接管 1');
-    expect(el.textContent).toContain('Agent 接管');
-    expect(el.textContent).toContain('常量');
-    expect(el.textContent).not.toContain('常量原生逻辑');
+    expect(meta?.textContent).toBe('3/4 mục · Skill 2 · Tiếp quản 1');
+    expect(el.textContent).toContain('Agent tiếp quản');
+    expect(el.textContent).toContain('Hằng');
+    expect(el.textContent).not.toContain('HằngLogic gốc');
   });
 
   it('普通世界书选择页隐藏 Agent 控制态徽标和接管计数', () => {
     const { el } = mountGroups(false);
     const meta = el.querySelector('.acu-disclosure-group__meta');
 
-    expect(meta?.textContent).toBe('3/4 条 · Skill 2');
-    expect(el.textContent).not.toContain('Agent 接管');
-    expect(el.textContent).toContain('常量');
+    expect(meta?.textContent).toBe('3/4 mục · Skill 2');
+    expect(el.textContent).not.toContain('Agent tiếp quản');
+    expect(el.textContent).toContain('Hằng');
   });
 
   it('Skill 化复选框使用独立状态并透传 toggle-skillify 事件', async () => {
@@ -110,10 +110,10 @@ describe('WorldbookEntryList', () => {
     const checkboxes = Array.from(el.querySelectorAll<HTMLButtonElement>('.acu-checkbox'));
 
     expect(checkboxes.map(button => button.textContent?.trim())).toEqual([
-      '人物', 'Skill 化',
-      '地点', 'Skill 化',
-      '背景', 'Skill 化',
-      '常驻设定', 'Skill 化',
+      '人物', 'Skill hóa',
+      '地点', 'Skill hóa',
+      '背景', 'Skill hóa',
+      '常驻设定', 'Skill hóa',
     ]);
     expect(checkboxes[1].getAttribute('aria-checked')).toBe('false');
     expect(checkboxes[3].getAttribute('aria-checked')).toBe('true');

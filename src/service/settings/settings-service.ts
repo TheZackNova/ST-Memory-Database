@@ -359,7 +359,7 @@ export function saveSettings_ACU(): SaveSettingsResult_ACU {
           saved: false,
           storageType: 'memory',
           code: 'settings_loading',
-          warning: '设置仍在加载中，本次保存已被阻止以避免覆盖原配置。请稍后重试。',
+          warning: 'Cài đặt vẫn đang tải, lần lưu này đã bị chặn để tránh ghi đè cấu hình gốc. Vui lòng thử lại sau.',
       };
   }
 
@@ -377,7 +377,7 @@ export function saveSettings_ACU(): SaveSettingsResult_ACU {
 
   // 数据层：纯存储持久化
   if (persistSettingsToStorage_ACU(settings_ACU, code) === false) {
-      return { saved: false, storageType: 'memory', code: 'storage_error', error: '设置持久化失败。' };
+      return { saved: false, storageType: 'memory', code: 'storage_error', error: 'Lưu bền cài đặt thất bại.' };
   }
 
   try {
@@ -385,16 +385,16 @@ export function saveSettings_ACU(): SaveSettingsResult_ACU {
       if (store && !store._isTavern) {
           if ((isIndexedDbAvailable_ACU)()) {
               void (initTavernSettingsBridge_ACU)();
-              return { saved: true, storageType: 'indexeddb', code: 'tavern_unavailable', warning: '当前未连接酒馆设置：已保存到 IndexedDB（仅本浏览器可用）。' };
+              return { saved: true, storageType: 'indexeddb', code: 'tavern_unavailable', warning: 'Hiện chưa kết nối cài đặt SillyTavern: đã lưu vào IndexedDB (chỉ dùng được trên trình duyệt này).' };
           } else {
               void (initTavernSettingsBridge_ACU)();
-              return { saved: true, storageType: 'memory', code: 'tavern_unavailable', warning: '⚠️ 当前未连接酒馆设置且 IndexedDB 不可用，本次修改刷新后会丢失。' };
+              return { saved: true, storageType: 'memory', code: 'tavern_unavailable', warning: '⚠️ Hiện chưa kết nối cài đặt SillyTavern và IndexedDB không khả dụng, thay đổi lần này sẽ mất sau khi làm mới.' };
           }
       }
       return { saved: true, storageType: 'tavern' };
   } catch (error) {
       logError_ACU('Failed to save settings:', error);
-      return { saved: false, storageType: 'memory', code: 'storage_error', error: '保存设置时发生浏览器存储错误。' };
+      return { saved: false, storageType: 'memory', code: 'storage_error', error: 'Đã xảy ra lỗi lưu trữ trình duyệt khi lưu cài đặt.' };
   }
 }
 
@@ -766,7 +766,7 @@ export   function loadSettings_ACU() {
               try {
                   vectorConfig.keywordPromptGroup = cloneDefaultValue_ACU(defaultVectorMemoryConfig_ACU.keywordPromptGroup);
                   vectorConfig.keywordPromptForceDefaultVersion = USER_PREFILL_VECTOR_FORCE_DEFAULT_VERSION_ACU;
-                  if (!saveGlobalMeta_ACU()) throw new Error('全局元数据保存失败');
+                  if (!saveGlobalMeta_ACU()) throw new Error('Lưu siêu dữ liệu toàn cục thất bại');
               } catch (error) {
                   vectorConfig.keywordPromptGroup = previousGroup;
                   vectorConfig.keywordPromptForceDefaultVersion = previousVersion;
@@ -781,7 +781,7 @@ export   function loadSettings_ACU() {
               try {
                   applyCreativeIdentityVectorUpgrade_ACU(vectorConfig);
                   vectorConfig.creativeIdentityPromptUpgradeVersion = CREATIVE_IDENTITY_PROMPT_UPGRADE_VERSION_ACU;
-                  if (!saveGlobalMeta_ACU()) throw new Error('全局元数据保存失败');
+                  if (!saveGlobalMeta_ACU()) throw new Error('Lưu siêu dữ liệu toàn cục thất bại');
               } catch (error) {
                   vectorConfig.keywordPromptGroup = previousKeywordGroup;
                   vectorConfig.summaryPromptGroup = previousSummaryGroup;
@@ -1218,7 +1218,7 @@ export function forceApiPromptPostProcessingOnce_ACU(): void {
         for (const config of configs) config.promptPostProcessing = API_PROMPT_POST_PROCESSING_DEFAULT_ACU;
         settings_ACU.apiPostProcessingUpgradeVersion = API_POST_PROCESSING_UPGRADE_VERSION_ACU;
         const saved = saveSettings_ACU();
-        if (!saved.saved) throw new Error(saved.error || saved.warning || '设置未保存');
+        if (!saved.saved) throw new Error(saved.error || saved.warning || 'Cài đặt chưa được lưu');
     } catch (error) {
         for (const item of previous) {
             if (item.had) item.config.promptPostProcessing = item.value;
@@ -1595,7 +1595,7 @@ export function applyCombinedSettingsImport_ACU(combinedData: any): string[] {
             (settings_ACU as Record<string, unknown>)[field] = snapshot[field];
         }
         logError_ACU('[合并配置导入] 保存异常，已回滚全部导入字段。', error);
-        throw new Error('合并配置保存失败，已回滚。');
+        throw new Error('Lưu cấu hình gộp thất bại, đã khôi phục.');
     }
     if (!saveResult.saved) {
         // 回滚全部已修改字段，避免导入失败污染 settings
@@ -1603,7 +1603,7 @@ export function applyCombinedSettingsImport_ACU(combinedData: any): string[] {
             (settings_ACU as Record<string, unknown>)[field] = snapshot[field];
         }
         logError_ACU('[合并配置导入] 保存失败，已回滚全部导入字段。', saveResult.error || saveResult.warning || '');
-        throw new Error(saveResult.warning || saveResult.error || '合并配置保存失败，已回滚。');
+        throw new Error(saveResult.warning || saveResult.error || 'Lưu cấu hình gộp thất bại, đã khôi phục.');
     }
     return modifiedFields;
 }

@@ -8,7 +8,7 @@ import type { ZeroLayerActivationCut_ACU } from './bridge-model';
 export function bridgeSourceFingerprint_ACU(chat: readonly unknown[]): string {
   const source = chat.map(value => {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
-      throw new ZeroLayerError_ACU('migration-conflict', '桥接源包含无效消息。');
+      throw new ZeroLayerError_ACU('migration-conflict', 'Nguồn cầu nối chứa tin nhắn không hợp lệ.');
     }
     const copy = { ...value } as Record<string, unknown>;
     delete copy[ZERO_LAYER_CARRIER_FIELD_ACU];
@@ -33,6 +33,6 @@ export function captureBridgeActivationCut_ACU(context: ZeroLayerCarrierContext_
 
 export function assertBridgeSource_ACU(chat: readonly unknown[], expected: string): void {
   if (bridgeSourceFingerprint_ACU(chat) !== expected) {
-    throw new ZeroLayerError_ACU('migration-conflict', '存量桥接来源已变化，保留旧数据及读取路径。');
+    throw new ZeroLayerError_ACU('migration-conflict', 'Nguồn cầu nối dữ liệu cũ đã thay đổi, giữ lại dữ liệu cũ và đường đọc.');
   }
 }

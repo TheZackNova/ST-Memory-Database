@@ -39,7 +39,7 @@ export async function resyncZeroLayerViewForPage_ACU(): Promise<void> {
 /** 宿主显式授权载体内的游戏 iframe；只读装配不创建或启用存档。 */
 export async function bindZeroLayerGameFrameForPage_ACU(frame: HTMLIFrameElement, origin: string) {
   installZeroLayerBootstrap_ACU();
-  if (!installedSource_ACU) throw new Error('宿主缺少零层生命周期能力。');
+  if (!installedSource_ACU) throw new Error('Host thiếu khả năng vòng đời Tầng 0.');
   const epoch = lifecycleEpoch_ACU;
   await resyncZeroLayerViewForPage_ACU();
   if (epoch !== lifecycleEpoch_ACU) throw new Error('scope-changed');
@@ -62,18 +62,18 @@ function restoreZeroLayerView_ACU(): void {
 }
 
 const INPUT_NOTICES_ACU: Record<string, string> = {
-  'zero-layer-busy': '零层回合仍在处理中；本次输入未发送，已保留在输入框。',
-  'zero-layer-entry-not-supported': '零层只接管普通发送；重新生成、继续、滑动与代拟入口不受支持，原发送未执行。',
-  'zero-layer-input-required': '零层发送需要本轮输入；原发送未执行。',
-  'zero-layer-recovery-required': '当前聊天保留零层存档但未启用：请在数据库面板「零层卡模式」重新启用，或确认退出到普通模式后再发送；输入已保留。',
-  'pending-turn': '零层仍有未闭合的回合或操作。请在数据库面板「零层卡模式」查看：正文已保存的可回读恢复，未保存的可确认放弃；输入已保留。',
+  'zero-layer-busy': 'Lượt Tầng 0 vẫn đang xử lý; lần nhập này chưa được gửi, đã giữ lại trong ô nhập.',
+  'zero-layer-entry-not-supported': 'Tầng 0 chỉ tiếp quản việc gửi thông thường; tạo lại, tiếp tục, vuốt và lối soạn hộ không được hỗ trợ, việc gửi gốc chưa được thực hiện.',
+  'zero-layer-input-required': 'Gửi qua Tầng 0 cần nội dung nhập của lượt này; việc gửi gốc chưa được thực hiện.',
+  'zero-layer-recovery-required': 'Cuộc trò chuyện hiện tại giữ bản lưu Tầng 0 nhưng chưa bật: hãy bật lại "Chế độ thẻ Tầng 0" trong bảng cơ sở dữ liệu, hoặc xác nhận thoát về chế độ thường rồi gửi; nội dung nhập đã được giữ lại.',
+  'pending-turn': 'Tầng 0 vẫn còn lượt hoặc thao tác chưa đóng. Hãy xem "Chế độ thẻ Tầng 0" trong bảng cơ sở dữ liệu: nội dung đã lưu có thể đọc lại để khôi phục, nội dung chưa lưu có thể xác nhận bỏ; nội dung nhập đã được giữ lại.',
 };
 
 function reportZeroLayerInputFailure_ACU(error?: unknown): void {
   const reason = error instanceof ZeroLayerError_ACU ? error.code : error instanceof Error ? error.message : '';
   try {
     if (INPUT_NOTICES_ACU[reason]) showToastr_ACU('warning', INPUT_NOTICES_ACU[reason]);
-    else showToastr_ACU('error', `零层发送未完成${error instanceof ZeroLayerError_ACU ? `：${error.message.replace(/[。.]+$/, '')}` : ''}。输入已保留，请检查状态后显式恢复；不会退回普通发送。`);
+    else showToastr_ACU('error', `Gửi qua Tầng 0 chưa hoàn tất${error instanceof ZeroLayerError_ACU ? `: ${error.message.replace(/[。.]+$/, '')}` : ''}. Nội dung nhập đã được giữ lại, hãy kiểm tra trạng thái rồi khôi phục tường minh; sẽ không quay về gửi thông thường.`);
   } catch { /* 提示失败不重新发送。 */ }
 }
 
@@ -84,7 +84,7 @@ async function syncConfirmedZeroLayerView_ACU(): Promise<void> {
   catch {
     if (epoch !== lifecycleEpoch_ACU) return;
     try {
-      showToastr_ACU('warning', '零层存档已确认，但正文显示未同步。请使用数据重同步，不要重新生成或重载游戏。');
+      showToastr_ACU('warning', 'Bản lưu Tầng 0 đã được xác nhận nhưng phần hiển thị nội dung chưa đồng bộ. Hãy dùng đồng bộ lại dữ liệu, đừng tạo lại hoặc tải lại trò chơi.');
     } catch { /* 通知失败不改变已确认存档。 */ }
   }
 }
@@ -184,11 +184,11 @@ export function installZeroLayerBootstrap_ACU(): void {
 /** 延迟装配避免启动时的 IO/默认值写回；未加载完成不能启动生成。 */
 export async function loadZeroLayerRuntimeForPage_ACU(): Promise<ZeroLayerRuntime_ACU> {
   installZeroLayerBootstrap_ACU();
-  if (!installedSource_ACU) throw new Error('宿主缺少零层 bootstrap 所需的事件或 fetch 能力。');
+  if (!installedSource_ACU) throw new Error('Host thiếu sự kiện hoặc khả năng fetch cần cho bootstrap Tầng 0.');
   const epoch = lifecycleEpoch_ACU;
   loading_ACU ??= import('../../service/zero-layer/runtime').then(module => module.getZeroLayerRuntime_ACU());
   const runtime = await loading_ACU;
-  if (epoch !== lifecycleEpoch_ACU) throw new Error('零层装配期间聊天已切换，请重新读取。');
+  if (epoch !== lifecycleEpoch_ACU) throw new Error('Cuộc trò chuyện đã chuyển trong lúc lắp ráp Tầng 0, hãy đọc lại.');
   runtime.install();
   runtime_ACU = runtime;
   return runtime;
@@ -196,19 +196,19 @@ export async function loadZeroLayerRuntimeForPage_ACU(): Promise<ZeroLayerRuntim
 
 /** 两种页面入口共用显式操作；装配本身不创建或启用存档。 */
 export async function setZeroLayerEnabledForPage_ACU(enabled: boolean, apiPresetName?: string) {
-  if (typeof enabled !== 'boolean') throw new ZeroLayerError_ACU('invalid-transition', '开启意图必须为布尔值。');
+  if (typeof enabled !== 'boolean') throw new ZeroLayerError_ACU('invalid-transition', 'Ý định bật phải là giá trị boolean.');
   if (!enabled) inputGate_ACU?.cancel();
   else {
     const api = requireZeroLayerHostGeneration_ACU();
     if (!api.eventTypes.GENERATION_AFTER_COMMANDS) {
-      throw new ZeroLayerError_ACU('invalid-transition', '宿主缺少入楼前输入分流事件，不能启用零层。');
+      throw new ZeroLayerError_ACU('invalid-transition', 'Host thiếu sự kiện phân luồng đầu vào trước khi vào tầng, không thể bật Tầng 0.');
     }
   }
   const context = captureZeroLayerCarrier_ACU();
   const epoch = lifecycleEpoch_ACU;
   const runtime = await loadZeroLayerRuntimeForPage_ACU();
   assertZeroLayerCarrier_ACU(context);
-  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', '启停准备期间聊天已变化。');
+  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', 'Cuộc trò chuyện đã thay đổi trong lúc chuẩn bị bật/tắt.');
   const envelope = await runtime.setEnabled(enabled, apiPresetName);
   assertZeroLayerCarrier_ACU(context);
   if (enabled) await syncConfirmedZeroLayerView_ACU();
@@ -222,7 +222,7 @@ export async function recoverZeroLayerBridgeForPage_ACU() {
   const epoch = lifecycleEpoch_ACU;
   const runtime = await loadZeroLayerRuntimeForPage_ACU();
   assertZeroLayerCarrier_ACU(context);
-  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', '恢复准备期间聊天已变化。');
+  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', 'Cuộc trò chuyện đã thay đổi trong lúc chuẩn bị khôi phục.');
   const envelope = await runtime.recoverBridge();
   assertZeroLayerCarrier_ACU(context);
   if (envelope.enabled) await syncConfirmedZeroLayerView_ACU();
@@ -236,7 +236,7 @@ export async function changeZeroLayerBranchForPage_ACU(command: ZeroLayerBranchC
   const selection = structuredClone(command);
   const runtime = await loadZeroLayerRuntimeForPage_ACU();
   assertZeroLayerCarrier_ACU(context);
-  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', '分支准备期间聊天已变化。');
+  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', 'Cuộc trò chuyện đã thay đổi trong lúc chuẩn bị tạo nhánh.');
   const envelope = await runtime.changeBranch(selection);
   assertZeroLayerCarrier_ACU(context);
   if (envelope.enabled) await syncConfirmedZeroLayerView_ACU();
@@ -250,7 +250,7 @@ export async function exitZeroLayerForPage_ACU(selection: ZeroLayerExitSelection
   const frozen = structuredClone(selection);
   const runtime = await loadZeroLayerRuntimeForPage_ACU();
   assertZeroLayerCarrier_ACU(context);
-  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', '退出准备期间聊天已变化。');
+  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', 'Cuộc trò chuyện đã thay đổi trong lúc chuẩn bị thoát.');
   return runtime.exitToOrdinary(frozen);
 }
 
@@ -259,18 +259,18 @@ export async function recoverZeroLayerExitForPage_ACU() {
   const epoch = lifecycleEpoch_ACU;
   const runtime = await loadZeroLayerRuntimeForPage_ACU();
   assertZeroLayerCarrier_ACU(context);
-  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', '退出恢复准备期间聊天已变化。');
+  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', 'Cuộc trò chuyện đã thay đổi trong lúc chuẩn bị khôi phục thoát.');
   return runtime.recoverExit();
 }
 
 /** 用户/程序正文共用此入口；必需效果由生产运行时决定，不由公开调用方指定。 */
 export async function submitZeroLayerInputForPage_ACU(input: string) {
-  if (typeof input !== 'string' || !input.trim()) throw new ZeroLayerError_ACU('invalid-transition', '请输入本轮正文。');
+  if (typeof input !== 'string' || !input.trim()) throw new ZeroLayerError_ACU('invalid-transition', 'Hãy nhập nội dung của lượt này.');
   const context = captureZeroLayerCarrier_ACU();
   const epoch = lifecycleEpoch_ACU;
   const runtime = await loadZeroLayerRuntimeForPage_ACU();
   assertZeroLayerCarrier_ACU(context);
-  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', '发送准备期间聊天已变化。');
+  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', 'Cuộc trò chuyện đã thay đổi trong lúc chuẩn bị gửi.');
   // 剧情准备期间宿主尚未进入生成，聊天区只有自有正文槽能提示处理中；被在途操作拒绝的请求不改提示。
   const ownsBusy = !runtime.session.hasActiveTurn();
   if (ownsBusy) stableView_ACU.setBusy(context.key);
@@ -288,7 +288,7 @@ export async function abandonZeroLayerTurnForPage_ACU(turnId: string, attemptId:
   const epoch = lifecycleEpoch_ACU;
   const runtime = await loadZeroLayerRuntimeForPage_ACU();
   assertZeroLayerCarrier_ACU(context);
-  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', '放弃准备期间聊天已变化。');
+  if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', 'Cuộc trò chuyện đã thay đổi trong lúc chuẩn bị bỏ.');
   const envelope = await runtime.abandonTurn(turnId, attemptId);
   assertZeroLayerCarrier_ACU(context);
   return envelope;
@@ -306,14 +306,14 @@ export async function recoverZeroLayerForPage_ACU() {
   const epoch = lifecycleEpoch_ACU;
   const assertCurrent = () => {
     assertZeroLayerCarrier_ACU(context);
-    if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', '恢复期间聊天租约已撤销。');
+    if (epoch !== lifecycleEpoch_ACU) throw new ZeroLayerError_ACU('scope-changed', 'Quyền thuê cuộc trò chuyện đã bị thu hồi trong lúc khôi phục.');
   };
   const runtime = await loadZeroLayerRuntimeForPage_ACU();
   assertCurrent();
-  if (runtime.session.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', '请先停止在途任务，再显式恢复。');
+  if (runtime.session.hasActiveTurn()) throw new ZeroLayerError_ACU('pending-turn', 'Hãy dừng tác vụ đang chạy trước, rồi khôi phục tường minh.');
   let source = await runtime.store.recover();
   assertCurrent();
-  if (!source) throw new ZeroLayerError_ACU('carrier-unavailable', '没有可恢复的零层存档。');
+  if (!source) throw new ZeroLayerError_ACU('carrier-unavailable', 'Không có bản lưu Tầng 0 nào để khôi phục.');
   if (source.exitManifest?.phase === 'prepared') return runtime.recoverExit();
   source = await runtime.recoverBridge();
   assertCurrent();
@@ -325,9 +325,9 @@ export async function recoverZeroLayerForPage_ACU() {
   const turn = source.turns.find(item => item.branchId === source!.activeBranchId
     && !['published', 'failed', 'cancelled'].includes(item.phase));
   if (turn) {
-    if (turn.continuationIdentity) throw new ZeroLayerError_ACU('pending-turn', '此回合属于续写任务，请从续写面板继续恢复。');
+    if (turn.continuationIdentity) throw new ZeroLayerError_ACU('pending-turn', 'Lượt này thuộc tác vụ viết tiếp, hãy tiếp tục khôi phục từ bảng viết tiếp.');
     if (!['response-durable', 'effects-durable'].includes(turn.phase)) {
-      throw new ZeroLayerError_ACU('pending-turn', '正文尚未保存或发送结果未知；本入口不会重新请求模型。核对后可确认放弃该回合再重新发送。');
+      throw new ZeroLayerError_ACU('pending-turn', 'Nội dung chưa được lưu hoặc kết quả gửi chưa rõ; lối này sẽ không yêu cầu lại mô hình. Sau khi đối chiếu có thể xác nhận bỏ lượt này rồi gửi lại.');
     }
     source = await runtime.recoverSettlement(turn.turnId, turn.attemptId);
     assertCurrent();

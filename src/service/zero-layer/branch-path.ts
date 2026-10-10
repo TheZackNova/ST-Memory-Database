@@ -3,7 +3,7 @@ import { checkpointPath_ACU } from './checkpoint-payload';
 
 /** lineage 只声明共享前缀；父链跨越未声明分支时拒绝，不改写任何回合身份。 */
 export function validateBranchPath_ACU(source: ZeroLayerEnvelope_ACU, branch: ZeroLayerBranch_ACU): void {
-  const fail = (): never => { throw new ZeroLayerError_ACU('corrupt-data', '分支共享前缀或 lineage 无效。'); };
+  const fail = (): never => { throw new ZeroLayerError_ACU('corrupt-data', 'Tiền tố chung của nhánh hoặc lineage không hợp lệ.'); };
   const fork = branch.fork;
   const index = source.branches.findIndex(item => item.branchId === branch.branchId);
   const path = checkpointPath_ACU(source, branch.branchId);

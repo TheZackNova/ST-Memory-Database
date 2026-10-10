@@ -81,7 +81,7 @@ export function findParagraphMatch_ACU(
 ): { start: number; end: number; method: string | null } {
   const exactIndex = fullContent.indexOf(originalText);
   if (exactIndex !== -1) {
-    return { start: exactIndex, end: exactIndex + originalText.length, method: '精确匹配' };
+    return { start: exactIndex, end: exactIndex + originalText.length, method: 'Khớp chính xác' };
   }
 
   const cleanOriginal = removePunctuation_ACU(originalText);
@@ -146,7 +146,7 @@ export function findParagraphMatch_ACU(
     return {
       start: mappedResult.start,
       end: mappedResult.end,
-      method: `关键词匹配 (${(bestMatch.score * 100).toFixed(0)}%关键词匹配)`,
+      method: `Khớp từ khóa (${(bestMatch.score * 100).toFixed(0)}% khớp từ khóa)`,
     };
   }
 
@@ -245,7 +245,7 @@ export function applyOptimizations_ACU(originalContent: string, optimizations: a
         failedItems.push({
           index: i + 1,
           original: opt.original.substring(0, 100) + (opt.original.length > 100 ? '...' : ''),
-          plan: opt.plan || opt.reason || '未说明',
+          plan: opt.plan || opt.reason || 'Chưa nêu',
         });
         logDebug_ACU(`[正文优化] 优化项 ${i + 1} 匹配失败，原文片段: "${opt.original.substring(0, 50)}..."`);
       }

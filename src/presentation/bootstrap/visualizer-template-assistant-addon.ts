@@ -41,7 +41,7 @@ function createAssistantButton_ACU(doc: Document) {
     const button = doc.createElement('button');
     button.id = ASSISTANT_BUTTON_ID_ACU;
     button.className = 'acu-btn-secondary';
-    button.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> AI 改表助手';
+    button.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Trợ lý AI chỉnh bảng';
     button.addEventListener('click', () => {
         toggleVisualizerTemplateAssistant_ACU();
     });

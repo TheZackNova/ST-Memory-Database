@@ -112,7 +112,7 @@ export function deleteTemplatePreset_ACU(nameRaw: string) {
 
 export function getTemplatePresetDisplayName_ACU(presetName: string) {
     const normalizedName = normalizeTemplatePresetSelectionValue_ACU(presetName);
-    return normalizedName || '默认预设';
+    return normalizedName || 'Preset mặc định';
 }
 
 export function resolveActiveTemplatePresetName_ACU({ fallbackToGlobal = true, isolationKey = getCurrentIsolationKey_ACU() } = {}) {
@@ -144,7 +144,7 @@ export function getActiveTemplatePresetMeta_ACU({ isolationKey = getCurrentIsola
         displayName: getTemplatePresetDisplayName_ACU(effectivePresetName),
         mode: normalizedMode,
         scope,
-        scopeLabel: scope === 'chat' ? '当前聊天' : '全局',
+        scopeLabel: scope === 'chat' ? 'Cuộc trò chuyện hiện tại' : 'Toàn cục',
     };
 }
 
@@ -251,21 +251,21 @@ export function parseImportedTemplateData_ACU(templateData: any, importOptions?:
         try {
             jsonData = JSON.parse(templateData);
         } catch (parseError) {
-            throw new Error(`JSON解析错误: ${parseError.message}`);
+            throw new Error(`Lỗi phân tích JSON: ${parseError.message}`);
         }
     } else if (typeof templateData === 'object' && templateData !== null) {
         jsonData = JSON.parse(JSON.stringify(templateData));
     } else {
-        throw new Error('无效的模板数据：必须是 JSON 对象或 JSON 字符串');
+        throw new Error('Dữ liệu mẫu không hợp lệ: phải là đối tượng JSON hoặc chuỗi JSON');
     }
 
     if (!jsonData.mate || !jsonData.mate.type || jsonData.mate.type !== 'chatSheets') {
-        throw new Error('缺少 "mate" 对象或 "type" 属性不正确。模板必须包含 `"mate": {"type": "chatSheets", ...}`。');
+        throw new Error('Thiếu đối tượng "mate" hoặc thuộc tính "type" không đúng. Mẫu phải chứa `"mate": {"type": "chatSheets", ...}`.');
     }
 
     const sheetKeys = Object.keys(jsonData).filter(k => k.startsWith('sheet_'));
     if (sheetKeys.length === 0) {
-        throw new Error('模板中未找到任何表格数据 (缺少 "sheet_..." 键)。');
+        throw new Error('Không tìm thấy dữ liệu bảng nào trong mẫu (thiếu khóa "sheet_...").');
     }
 
     // 在结构校验通过后推导数据模式（模板带数据与否此时才可证明）
@@ -274,7 +274,7 @@ export function parseImportedTemplateData_ACU(templateData: any, importOptions?:
     for (const key of sheetKeys) {
         const sheet = jsonData[key];
         if (!sheet.name || !sheet.content || !sheet.sourceData || !Array.isArray(sheet.content)) {
-            throw new Error(`表格 "${key}" 结构不完整，缺少 "name"、"content" 或 "sourceData" 关键属性。`);
+            throw new Error(`Bảng "${key}" có cấu trúc không đầy đủ, thiếu thuộc tính then chốt "name", "content" hoặc "sourceData".`);
         }
     }
 
@@ -323,7 +323,7 @@ export function parseImportedTemplateData_ACU(templateData: any, importOptions?:
     const sanitized = sanitizeChatSheetsObject_ACU(jsonData, { ensureMate: true });
     const snapshot = sanitizeTemplateSnapshotForChat_ACU(sanitized);
     if (!snapshot?.templateStr || !snapshot?.templateObj) {
-        throw new Error('模板结构无效，无法生成模板快照。');
+        throw new Error('Cấu trúc mẫu không hợp lệ, không thể tạo snapshot mẫu.');
     }
 
     const deduplication = normalization.audits
@@ -629,12 +629,12 @@ function rekeyTemplateForPristineChat_ACU(templateData: Record<string, any>): Re
     const sheetEntries = Object.entries(templateData).filter(([key]) => key.startsWith('sheet_'));
     const malformedSheetKey = sheetEntries.find(([, sheet]) => !sheet || typeof sheet !== 'object' || Array.isArray(sheet))?.[0];
     if (malformedSheetKey) {
-        throw new Error(`无法为无数据聊天重新分配稳定表 key：模板表结构无效：${malformedSheetKey}`);
+        throw new Error(`Không thể cấp lại key bảng ổn định cho cuộc trò chuyện không có dữ liệu: cấu trúc bảng mẫu không hợp lệ: ${malformedSheetKey}`);
     }
     const allocation = allocateStableSheetKeys_ACU(sheetEntries.map(([, sheet]: [string, any]) => sheet.name));
     if (allocation.diagnostics.length > 0 || allocation.keys.some(key => !key)) {
-        const details = allocation.diagnostics.map(item => `${item.code}: ${item.originalName || '(空表名)'}`).join('；');
-        throw new Error(`无法为无数据聊天重新分配稳定表 key${details ? `：${details}` : '。'}`);
+        const details = allocation.diagnostics.map(item => `${item.code}: ${item.originalName || '(tên bảng rỗng)'}`).join('; ');
+        throw new Error(`Không thể cấp lại key bảng ổn định cho cuộc trò chuyện không có dữ liệu${details ? `: ${details}` : '.'}`);
     }
 
     const keyMap = new Map<string, string>();
@@ -675,7 +675,7 @@ async function loadConsistentTemplateBaseline_ACU(isolationKey: string, signal?:
     // 结构协调的 snapshot 与提交 revision 必须来自同一逻辑时点。
     // 旧实现先 replay、协调，最后才取 revision；期间发生的写入会让旧计划伪装成新计划。
     for (let attempt = 0; attempt < 2; attempt += 1) {
-        if (signal?.aborted) return { error: '模板提交已取消。' };
+        if (signal?.aborted) return { error: 'Việc gửi mẫu đã bị hủy.' };
         const beforeRevision = captureTableRuntimeRevisionForWriteSet_ACU([{ kind: 'all' }], { isolationKey });
         // 阶段 I：把 signal 交给 replay 本身。长历史冷回放需数秒，此前只能在
         // replay 前后检查取消，期间用户切聊天/取消只能干等；现在可在 frame/entry
@@ -688,18 +688,18 @@ async function loadConsistentTemplateBaseline_ACU(isolationKey: string, signal?:
                 ...(signal ? { signal } : {}),
             });
         } catch (error) {
-            if (error instanceof V2ReplayAbortedError_ACU) return { error: '模板提交已取消。' };
+            if (error instanceof V2ReplayAbortedError_ACU) return { error: 'Việc gửi mẫu đã bị hủy.' };
             throw error;
         }
-        if (signal?.aborted) return { error: '模板提交已取消。' };
+        if (signal?.aborted) return { error: 'Việc gửi mẫu đã bị hủy.' };
         // F2：宽容回放结果不是严格可写历史；模板切换提交无法在该历史上收敛
         //（provisional 收敛依赖 temporary_sheet_anchor repairs 定位锚点，宽容态没有）。
         if (replay?.baseKind === 'compat_tolerant_replay') {
-            return { error: `当前 V2 历史仅可经兼容宽容回放读出（严格回放失败：${replay.legacyToleranceDiagnosis?.strictError || '未知错误'}）；请先在数据管理中完成 V2 恢复收敛，再切换模板。` };
+            return { error: `Lịch sử V2 hiện tại chỉ đọc được qua phát lại khoan dung tương thích (phát lại nghiêm ngặt thất bại: ${replay.legacyToleranceDiagnosis?.strictError || 'Lỗi không xác định'}); hãy hoàn tất hội tụ khôi phục V2 trong Quản lý dữ liệu trước, rồi mới chuyển mẫu.` };
         }
         if (hasStructuralReplayCompatibilityRepairs_ACU(replay?.compatibilityRepairs)) {
             const affectedSheetKeys = [...new Set((replay.compatibilityRepairs || []).map(item => item.sheetKey))];
-            return { error: `当前 V2 历史存在结构性兼容修复（${affectedSheetKeys.join('、') || '未知 Sheet'}）；请先在数据管理中完成 V2 恢复，再切换模板。` };
+            return { error: `Lịch sử V2 hiện tại có sửa chữa tương thích về cấu trúc (${affectedSheetKeys.join(', ') || 'Sheet không xác định'}); hãy hoàn tất khôi phục V2 trong Quản lý dữ liệu trước, rồi mới chuyển mẫu.` };
         }
         // provisional temporary_sheet_anchor 将由 commitCurrentFloorTemplateChanges_ACU
         // 与本次模板变更在同一候选提交内收敛，不能在读取入口提前阻断。
@@ -716,7 +716,7 @@ async function loadConsistentTemplateBaseline_ACU(isolationKey: string, signal?:
             return { baselineData, baseRevision: beforeRevision, lifecycle };
         }
     }
-    return { error: '当前表格状态在读取模板基线时发生变化，请稍后重试。' };
+    return { error: 'Trạng thái bảng hiện tại đã thay đổi khi đọc đường cơ sở mẫu, vui lòng thử lại sau.' };
 }
 
 async function applyChatTemplateSnapshotWithReconciliationInternal_ACU(templateData: any, {
@@ -743,20 +743,20 @@ async function applyChatTemplateSnapshotWithReconciliationInternal_ACU(templateD
     requestId?: string;
 } = {}) {
     const snapshot = sanitizeTemplateSnapshotForChat_ACU(templateData);
-    if (!snapshot?.templateObj) return { saved: false, error: '模板结构无效，无法生成聊天模板提交。' };
+    if (!snapshot?.templateObj) return { saved: false, error: 'Cấu trúc mẫu không hợp lệ, không thể tạo bản gửi mẫu cho cuộc trò chuyện.' };
 
     const entryContext = getChatContextSnapshot_ACU();
     if (!entryContext.firstMessage) {
-        return { saved: false, error: '当前没有可绑定的目标聊天，已取消模板提交。' };
+        return { saved: false, error: 'Hiện không có cuộc trò chuyện đích để gắn, đã hủy việc gửi mẫu.' };
     }
     const chatStorageWait = await waitForActiveChatStorageContext_ACU({ expectedIdentity: entryContext.identity, expectedFirstMessage: entryContext.firstMessage, signal });
-    if (chatStorageWait.status === 'switched') return { saved: false, error: '目标聊天已切换，已取消模板提交。' };
-    if (chatStorageWait.status === 'aborted') return { saved: false, error: '模板提交已取消。' };
-    if (chatStorageWait.status === 'timeout') return { saved: false, error: '当前聊天元数据尚未就绪，请等待聊天加载完成后重试。' };
+    if (chatStorageWait.status === 'switched') return { saved: false, error: 'Cuộc trò chuyện đích đã chuyển, đã hủy việc gửi mẫu.' };
+    if (chatStorageWait.status === 'aborted') return { saved: false, error: 'Việc gửi mẫu đã bị hủy.' };
+    if (chatStorageWait.status === 'timeout') return { saved: false, error: 'Siêu dữ liệu cuộc trò chuyện hiện tại chưa sẵn sàng, hãy chờ cuộc trò chuyện tải xong rồi thử lại.' };
     const targetChatIdentity = chatStorageWait.identity;
     const readyContext = getChatContextSnapshot_ACU();
     if (readyContext.firstMessage !== entryContext.firstMessage || readyContext.identity !== targetChatIdentity) {
-        return { saved: false, error: '目标聊天已切换，已取消模板提交。' };
+        return { saved: false, error: 'Cuộc trò chuyện đích đã chuyển, đã hủy việc gửi mẫu.' };
     }
 
     const isolationKey = getCurrentIsolationKey_ACU();
@@ -782,7 +782,7 @@ async function applyChatTemplateSnapshotWithReconciliationInternal_ACU(templateD
     let baseRevision: string | null = null;
     let lifecycle: TableSheetLifecycleProjectionV2_ACU | null | undefined;
     if (!chatContextMatches_ACU(targetChatIdentity, entryContext.firstMessage)) {
-        return { saved: false, error: '目标聊天已切换，已取消模板提交。' };
+        return { saved: false, error: 'Cuộc trò chuyện đích đã chuyển, đã hủy việc gửi mẫu.' };
     }
     try {
         const baselineSnapshot = await loadConsistentTemplateBaseline_ACU(isolationKey, signal);
@@ -792,13 +792,13 @@ async function applyChatTemplateSnapshotWithReconciliationInternal_ACU(templateD
         lifecycle = baselineSnapshot.lifecycle;
         logDebug_ACU(`[TemplateScope] 模板协调基线已读取: requestId=${requestId}, source=v2_replay, baseRevision=${baseRevision}, isolationKey=${isolationKey}`);
     } catch (error) {
-        return { saved: false, error: `无法读取当前聊天 V2 replay 基线：${error instanceof Error ? error.message : String(error)}` };
+        return { saved: false, error: `Không thể đọc đường cơ sở V2 replay của cuộc trò chuyện hiện tại: ${error instanceof Error ? error.message : String(error)}` };
     }
     if (pristineChat) {
         baselineData = { mate: JSON.parse(JSON.stringify(targetTemplateData.mate || { type: 'chatSheets', version: 1 })) };
     } else if (!baselineData || typeof baselineData !== 'object') {
         if (storageStrategy.mode === 'v2') {
-            return { saved: false, error: '当前聊天 V2 replay 基线不可用，已拒绝基于运行时缓存执行结构性模板切换。请先完成恢复诊断后重试。' };
+            return { saved: false, error: 'Đường cơ sở V2 replay của cuộc trò chuyện hiện tại không khả dụng, đã từ chối chuyển mẫu cấu trúc dựa trên bộ nhớ đệm runtime. Hãy hoàn tất chẩn đoán khôi phục rồi thử lại.' };
         }
         // legacy 迁移分支仍由提交层作最终 fail-closed 判定；此处只保留既有迁移入口，
         // 不允许 V2 聊天把非权威 runtime 缓存当作结构协调基线。
@@ -843,7 +843,7 @@ async function applyChatTemplateSnapshotWithReconciliationInternal_ACU(templateD
             storageMode,
         });
     } catch (error) {
-        return { saved: false, error: `模板协调失败：${error instanceof Error ? error.message : String(error)}` };
+        return { saved: false, error: `Điều phối mẫu thất bại: ${error instanceof Error ? error.message : String(error)}` };
     }
     if (plan.blockers.length > 0) {
         return { saved: false, blockers: plan.blockers, error: plan.blockers.join('；') };
@@ -901,11 +901,11 @@ async function applyChatTemplateSnapshotWithReconciliationInternal_ACU(templateD
                 : null,
         seedRowsFromTemplateObj: effectiveDataMode === 'seed' ? targetTemplateData : null,
     });
-    if (!guideData) return { saved: false, error: '无法为协调后的模板生成聊天指导表。' };
+    if (!guideData) return { saved: false, error: 'Không thể tạo bảng hướng dẫn cuộc trò chuyện cho mẫu sau điều phối.' };
 
-    if (signal?.aborted) return { saved: false, error: '模板提交已取消。' };
+    if (signal?.aborted) return { saved: false, error: 'Việc gửi mẫu đã bị hủy.' };
     if (!chatContextMatches_ACU(targetChatIdentity, entryContext.firstMessage)) {
-        return { saved: false, error: '目标聊天已切换，已取消模板提交。' };
+        return { saved: false, error: 'Cuộc trò chuyện đích đã chuyển, đã hủy việc gửi mẫu.' };
     }
     const hasStructuralChanges = plan.sheetChanges.length > 0 || plan.deletedSheetKeys.length > 0;
     let committed;
@@ -917,7 +917,7 @@ async function applyChatTemplateSnapshotWithReconciliationInternal_ACU(templateD
         // seed 模式保留模板数据作为初始化种子。
         const pristineGuideData = buildChatSheetGuideDataFromTemplateObj_ACU(targetTemplateData, { stripSeedRows: effectiveDataMode !== 'seed' });
         if (!pristineGuideData) {
-            return { saved: false, error: '目标模板不包含任何表，已取消提交。' };
+            return { saved: false, error: 'Mẫu đích không chứa bảng nào, đã hủy việc gửi.' };
         }
         committed = await commitCurrentFloorTemplateScopeOnly_ACU({
             isolationKey,
@@ -983,17 +983,17 @@ async function applyChatTemplateSnapshotWithReconciliationInternal_ACU(templateD
         try {
             await reloadStorageProvider();
             if (didSqliteFallbackAfterReload_ACU('sqlite')) {
-                throw new Error('SQLite 运行时重载后已回退到原生模式。');
+                throw new Error('Sau khi tải lại runtime SQLite đã quay về chế độ gốc.');
             }
         } catch (error) {
-            postCommitWarnings.push(`模板已保存，但 SQLite 运行时重建失败：${error instanceof Error ? error.message : String(error)}`);
+            postCommitWarnings.push(`Mẫu đã lưu, nhưng dựng lại runtime SQLite thất bại: ${error instanceof Error ? error.message : String(error)}`);
             logWarn_ACU('[TemplateScope] 聊天模板提交成功，但 SQLite 运行时重建失败:', error);
         }
     }
     try {
         await refreshMergedDataAndNotify_ACU();
     } catch (error) {
-        postCommitWarnings.push(`模板已保存，但运行时数据刷新失败：${error instanceof Error ? error.message : String(error)}`);
+        postCommitWarnings.push(`Mẫu đã lưu, nhưng làm mới dữ liệu runtime thất bại: ${error instanceof Error ? error.message : String(error)}`);
         logWarn_ACU('[TemplateScope] 聊天模板提交成功，但运行时刷新失败:', error);
     }
     const postCommitWarning = postCommitWarnings.join('；');
@@ -1030,7 +1030,7 @@ export async function applyChatTemplateSnapshotWithReconciliation_ACU(templateDa
     const chatIdentity = getActiveChatStorageIdentity_ACU(chat);
     const scopeKey = `${chatIdentity || 'unresolved-chat'}::${getCurrentIsolationKey_ACU()}::${firstMessage ? 'bound' : 'unbound'}`;
     if (activeChatTemplateReconciliations_ACU.has(scopeKey)) {
-        return { saved: false, error: '当前聊天的模板切换正在进行中，请等待其完成后再试。' };
+        return { saved: false, error: 'Việc chuyển mẫu của cuộc trò chuyện hiện tại đang diễn ra, hãy chờ hoàn tất rồi thử lại.' };
     }
     const operation = applyChatTemplateSnapshotWithReconciliationInternal_ACU(templateData, options);
     activeChatTemplateReconciliations_ACU.set(scopeKey, operation);
@@ -1129,7 +1129,7 @@ export async function followGlobalTemplateForCurrentChat_ACU({
     }
     const globalSnapshot = getGlobalTemplateSnapshotForCurrentProfile_ACU();
     if (!globalSnapshot?.templateStr || !globalSnapshot?.templateObj) {
-        return { saved: false, error: '无法解析当前全局模板，已取消跟随全局。' };
+        return { saved: false, error: 'Không thể phân tích mẫu toàn cục hiện tại, đã hủy việc theo toàn cục.' };
     }
     const result = await applyChatTemplateSnapshotWithReconciliation_ACU(globalSnapshot.templateObj, {
         source,

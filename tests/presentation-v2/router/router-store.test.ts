@@ -68,19 +68,19 @@ describe('router-store · pageRegistry 基线', () => {
 
     expect(r.pageRegistry.map(p => [p.id, p.title, p.group])).toEqual([
 
-      ['dashboard', '仪表盘', 'overview'],
-      ['fill-mode', '填表模式', 'config'],
-      ['form-fill', '填表工作台', 'config'],
+      ['dashboard', 'Bảng điều khiển', 'overview'],
+      ['fill-mode', 'Chế độ điền bảng', 'config'],
+      ['form-fill', 'Bàn điền bảng', 'config'],
       ['agent', 'Agent', 'config'],
       ['api', 'API', 'config'],
-      ['plot', '剧情推进', 'feature'],
-      ['continuation', '智能续写', 'feature'],
-      ['world-simulation', '格林推演', 'feature'],
-      ['import', '外部导入', 'feature'],
-      ['content-replace', '正文替换', 'feature'],
-      ['data-mgmt', '数据管理', 'tool'],
-      ['advanced-tools', '高级工具', 'tool'],
-      ['developer', '开发者选项', 'developer'],
+      ['plot', 'Đẩy cốt truyện', 'feature'],
+      ['continuation', 'Viết tiếp thông minh', 'feature'],
+      ['world-simulation', 'Mô phỏng thế giới', 'feature'],
+      ['import', 'Nhập từ ngoài', 'feature'],
+      ['content-replace', 'Thay thế nội dung', 'feature'],
+      ['data-mgmt', 'Quản lý dữ liệu', 'tool'],
+      ['advanced-tools', 'Công cụ nâng cao', 'tool'],
+      ['developer', 'Tùy chọn nhà phát triển', 'developer'],
     ]);
   });
 });

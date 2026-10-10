@@ -42,7 +42,7 @@ export interface ContentReplacePreset {
   promptGroup: ContentReplacePromptSegment[];
 }
 
-const DEFAULT_CONTENT_REPLACE_PRESET_NAME = '默认预设';
+const DEFAULT_CONTENT_REPLACE_PRESET_NAME = 'Preset mặc định';
 export const CUSTOM_CONTENT_REPLACE_PRESET_VALUE = '__acu_content_replace_custom__';
 
 interface ContentReplaceState {
@@ -200,7 +200,7 @@ function findMatchingPresetName(
 }
 
 function uniquePresetName(existing: ContentReplacePreset[], baseName: string): string {
-  const base = String(baseName || '').trim() || '新正文替换预设';
+  const base = String(baseName || '').trim() || 'Preset thay thế nội dung mới';
   let candidate = base;
   let suffix = 1;
   while (existing.some(p => p.name === candidate) || candidate === DEFAULT_CONTENT_REPLACE_PRESET_NAME) {
@@ -231,26 +231,26 @@ async function readFileText(file: File): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-    reader.onerror = () => reject(reader.error ?? new Error('文件读取失败'));
+    reader.onerror = () => reject(reader.error ?? new Error('Đọc tệp thất bại'));
     reader.readAsText(file, 'UTF-8');
   });
 }
 
 function formatOptimizationResult(result: any): string {
-  if (!result?.success) return `优化失败：${result?.error || '未知错误'}`;
+  if (!result?.success) return `Tối ưu thất bại: ${result?.error || 'Lỗi không xác định'}`;
   const optimizations = Array.isArray(result.optimizations) ? result.optimizations : [];
   const lines = [
-    `优化完成：${optimizations.length} 处建议`,
-    `摘要：${result.summary || '无'}`,
+    `Tối ưu hoàn tất: ${optimizations.length} đề xuất`,
+    `Tóm tắt: ${result.summary || 'Không có'}`,
     '',
   ];
   optimizations.forEach((opt: any, index: number) => {
-    lines.push(`[${index + 1}] ${opt.plan || opt.reason || '未说明'}`);
-    lines.push(`原文：${String(opt.original || '').slice(0, 120)}`);
-    lines.push(`替换：${String(opt.optimized || '').slice(0, 120)}`);
+    lines.push(`[${index + 1}] ${opt.plan || opt.reason || 'Chưa nêu rõ'}`);
+    lines.push(`Bản gốc: ${String(opt.original || '').slice(0, 120)}`);
+    lines.push(`Thay thế: ${String(opt.optimized || '').slice(0, 120)}`);
     lines.push('');
   });
-  lines.push('=== 优化后全文 ===');
+  lines.push('=== Toàn văn sau tối ưu ===');
   lines.push(String(result.optimizedContent || ''));
   return lines.join('\n');
 }
@@ -305,7 +305,7 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
       if (selected) return selected;
       return promptFingerprint(state.promptGroup) === promptFingerprint(defaultPromptGroup())
         ? DEFAULT_CONTENT_REPLACE_PRESET_NAME
-        : '自定义提示词';
+        : 'Prompt tùy chỉnh';
     },
     promptTemplateMode(state): 'default' | 'custom' {
       return promptFingerprint(state.promptGroup) === promptFingerprint(defaultPromptGroup())
@@ -314,8 +314,8 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
     },
     lastOptimizedLabel(state): string {
       return state.lastOptimizedMessageIndex >= 0
-        ? `第 ${state.lastOptimizedMessageIndex + 1} 条消息`
-        : '暂无可重新优化的消息';
+        ? `Tin nhắn thứ ${state.lastOptimizedMessageIndex + 1}`
+        : 'Chưa có tin nhắn nào để tối ưu lại';
     },
   },
   actions: {
@@ -419,11 +419,11 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
     resetPromptGroup(): void {
       this.promptGroup = defaultPromptGroup();
       this.promptDirty = true;
-      setMessage(this, 'warning', '已载入默认正文替换提示词组，保存后生效。');
+      setMessage(this, 'warning', 'Đã nạp nhóm prompt thay thế nội dung mặc định, lưu để áp dụng.');
     },
     savePromptGroup(): void {
       this.saveToSettings();
-      clearMessageAndToast(this, 'success', '正文替换提示词已保存。');
+      clearMessageAndToast(this, 'success', 'Đã lưu prompt thay thế nội dung.');
     },
     savePromptGroupToPreset(name: string): void {
       const normalized = String(name || '').trim();
@@ -433,7 +433,7 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
       }
       const index = this.promptPresets.findIndex(p => p.name === normalized);
       if (index < 0) {
-        setMessage(this, 'warning', '找不到要保存的正文替换预设。');
+        setMessage(this, 'warning', 'Không tìm thấy preset thay thế nội dung cần lưu.');
         return;
       }
       this.promptPresets[index] = {
@@ -443,7 +443,7 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
       this.activePresetHint = normalized;
       this.presetNameDraft = normalized;
       this.saveToSettings();
-      clearMessageAndToast(this, 'success', `预设"${normalized}"已更新。`);
+      clearMessageAndToast(this, 'success', `Đã cập nhật preset "${normalized}".`);
     },
     selectPreset(name: string): void {
       const normalized = String(name || '').trim();
@@ -468,11 +468,11 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
       const selected = this.hasSelectedPreset ? this.selectedPresetName : '';
       const name = String(this.presetNameDraft || selected || '').trim();
       if (!name) {
-        setMessage(this, 'warning', '请先填写预设名称。');
+        setMessage(this, 'warning', 'Vui lòng nhập tên preset trước.');
         return;
       }
       if (name === DEFAULT_CONTENT_REPLACE_PRESET_NAME || name === CUSTOM_CONTENT_REPLACE_PRESET_VALUE) {
-        setMessage(this, 'warning', '「默认预设」是内置预设，请换一个名称保存。');
+        setMessage(this, 'warning', '「Preset mặc định」là preset có sẵn, vui lòng đổi tên khác để lưu.');
         return;
       }
       const nextPreset = { name, promptGroup: normalizePromptGroup(this.promptGroup) };
@@ -482,10 +482,10 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
       this.activePresetHint = name;
       this.presetNameDraft = name;
       this.saveToSettings();
-      clearMessageAndToast(this, 'success', `预设"${name}"已保存。`);
+      clearMessageAndToast(this, 'success', `Đã lưu preset "${name}".`);
     },
     createPresetFromDefault(): void {
-      const name = uniquePresetName(this.promptPresets, '新正文替换预设');
+      const name = uniquePresetName(this.promptPresets, 'Preset thay thế nội dung mới');
       const nextPreset = { name, promptGroup: defaultPromptGroup() };
       this.promptPresets.push(nextPreset);
       this.activePresetHint = name;
@@ -513,16 +513,16 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
       const target = String(newName || '').trim();
       if (!source || !target || source === target) return;
       if (target === DEFAULT_CONTENT_REPLACE_PRESET_NAME || target === CUSTOM_CONTENT_REPLACE_PRESET_VALUE) {
-        setMessage(this, 'warning', '「默认预设」是内置预设，请换一个名称。');
+        setMessage(this, 'warning', '「Preset mặc định」là preset có sẵn, vui lòng đổi tên khác.');
         return;
       }
       const sourceIndex = this.promptPresets.findIndex(p => p.name === source);
       if (sourceIndex < 0) {
-        setMessage(this, 'warning', '找不到要重命名的正文替换预设。');
+        setMessage(this, 'warning', 'Không tìm thấy preset thay thế nội dung cần đổi tên.');
         return;
       }
       if (this.promptPresets.some(p => p.name === target)) {
-        setMessage(this, 'warning', `预设"${target}"已存在，请换一个名称。`);
+        setMessage(this, 'warning', `Preset "${target}" đã tồn tại, vui lòng đổi tên khác.`);
         return;
       }
       this.promptPresets[sourceIndex] = {
@@ -540,14 +540,14 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
     exportPresetByName(name: string): void {
       const preset = this.promptPresets.find(p => p.name === name);
       if (!preset) {
-        setMessage(this, 'warning', '请先选择要导出的预设。');
+        setMessage(this, 'warning', 'Vui lòng chọn preset cần xuất trước.');
         return;
       }
       this.busyAction = 'export-preset';
       try {
         const safeName = preset.name.replace(/[^a-z0-9_\-\u4e00-\u9fa5]/gi, '_');
         downloadJson(`optimization_preset_${safeName}.json`, [preset]);
-        clearMessageAndToast(this, 'success', '正文替换预设 JSON 已导出。');
+        clearMessageAndToast(this, 'success', 'Đã xuất JSON preset thay thế nội dung.');
       } finally {
         this.busyAction = '';
       }
@@ -557,7 +557,7 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
       try {
         const text = await readFileText(file);
         const imported = normalizePresets(JSON.parse(text));
-        if (!imported.length) throw new Error('未找到有效的正文替换预设。');
+        if (!imported.length) throw new Error('Không tìm thấy preset thay thế nội dung hợp lệ.');
         let added = 0;
         let replaced = 0;
         for (const preset of imported) {
@@ -574,10 +574,10 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
         this.presetNameDraft = imported[0].name;
         this.promptGroup = clone(imported[0].promptGroup);
         this.saveToSettings();
-        clearMessageAndToast(this, 'success', `已导入 ${added} 个正文替换预设，覆盖 ${replaced} 个同名预设。`, { muteable: false });
+        clearMessageAndToast(this, 'success', `Đã nhập ${added} preset thay thế nội dung, ghi đè ${replaced} preset trùng tên.`, { muteable: false });
       } catch (e: any) {
         logError_ACU('[ACU-V2] import content replace presets failed', e);
-        setMessage(this, 'error', `导入预设失败：${e?.message || '未知错误'}`);
+        setMessage(this, 'error', `Nhập preset thất bại: ${e?.message || 'Lỗi không xác định'}`);
       } finally {
         this.busyAction = '';
       }
@@ -585,58 +585,58 @@ export const useContentReplaceStore = defineStore('acu-v2-content-replace', {
     async runTest(): Promise<void> {
       const input = this.testInput.trim();
       if (input.length < 10) {
-        setMessage(this, 'warning', '请输入至少 10 个字符的测试文本。');
+        setMessage(this, 'warning', 'Vui lòng nhập văn bản thử nghiệm tối thiểu 10 ký tự.');
         return;
       }
       this.busyAction = 'test';
-      this.testOutput = '正在调用 AI 进行正文替换测试...';
+      this.testOutput = 'Đang gọi AI để thử nghiệm thay thế nội dung...';
       try {
         const result = await performContentOptimization_ACU(input, { currentLoop: 1, userMessage: '' });
         this.testOutput = formatOptimizationResult(result);
         if (result?.success) {
-          clearMessageAndToast(this, 'success', '正文替换测试完成。', { muteable: false });
+          clearMessageAndToast(this, 'success', 'Thử nghiệm thay thế nội dung hoàn tất.', { muteable: false });
         } else {
-          setMessage(this, 'error', '上一次正文替换测试失败，请检查配置或查看运行日志。');
-          useToastStore().error(`正文替换测试失败：${result?.error || '未知错误'}`, { muteable: false });
+          setMessage(this, 'error', 'Lần thử nghiệm thay thế nội dung trước thất bại, vui lòng kiểm tra cấu hình hoặc xem nhật ký chạy.');
+          useToastStore().error(`Thử nghiệm thay thế nội dung thất bại: ${result?.error || 'Lỗi không xác định'}`, { muteable: false });
         }
       } catch (e: any) {
         logError_ACU('[ACU-V2] content replace test failed', e);
-        this.testOutput = `优化出错：${e?.message || '未知错误'}`;
-        setMessage(this, 'error', '上一次正文替换测试失败，请检查配置或查看运行日志。');
-        useToastStore().error(`正文替换测试失败：${e?.message || '未知错误'}`, { muteable: false });
+        this.testOutput = `Lỗi khi tối ưu: ${e?.message || 'Lỗi không xác định'}`;
+        setMessage(this, 'error', 'Lần thử nghiệm thay thế nội dung trước thất bại, vui lòng kiểm tra cấu hình hoặc xem nhật ký chạy.');
+        useToastStore().error(`Thử nghiệm thay thế nội dung thất bại: ${e?.message || 'Lỗi không xác định'}`, { muteable: false });
       } finally {
         this.busyAction = '';
       }
     },
     async reoptimizeLatest(): Promise<void> {
       if (!this.enabled) {
-        setMessage(this, 'warning', '正文替换功能未启用。');
+        setMessage(this, 'warning', 'Chức năng thay thế nội dung chưa được bật.');
         return;
       }
       const messageIndex = getLastOptimizedMessageIndex_ACU();
       this.lastOptimizedMessageIndex = messageIndex;
       if (messageIndex < 0) {
-        setMessage(this, 'warning', '当前还没有已被正文替换过的 AI 回复。');
+        setMessage(this, 'warning', 'Hiện chưa có phản hồi AI nào đã được thay thế nội dung.');
         return;
       }
       this.busyAction = 'reoptimize';
       try {
         const originalContent = getOriginalContent_ACU(messageIndex);
-        if (!originalContent) throw new Error('无法获取上次替换前的原文。');
+        if (!originalContent) throw new Error('Không thể lấy bản gốc trước lần thay thế trước.');
         const result = await performContentOptimization_ACU(originalContent, { currentLoop: 1, userMessage: '' });
-        if (!result?.success) throw new Error(result?.error || '正文替换失败。');
+        if (!result?.success) throw new Error(result?.error || 'Thay thế nội dung thất bại.');
         if (!Array.isArray(result.optimizations) || result.optimizations.length === 0) {
-          clearMessageAndToast(this, 'info', '原文已足够好，无需重新替换。', { muteable: false });
+          clearMessageAndToast(this, 'info', 'Bản gốc đã đủ tốt, không cần thay thế lại.', { muteable: false });
           return;
         }
         const success = await replaceChatMessage_ACU(messageIndex, result.optimizedContent, { originalContent });
-        if (!success) throw new Error('写回聊天消息失败。');
+        if (!success) throw new Error('Ghi lại tin nhắn trò chuyện thất bại.');
         this.refreshFromSettings();
-        clearMessageAndToast(this, 'success', `已重新优化并替换 ${result.optimizations.length} 处内容。`, { muteable: false });
+        clearMessageAndToast(this, 'success', `Đã tối ưu lại và thay thế ${result.optimizations.length} chỗ nội dung.`, { muteable: false });
       } catch (e: any) {
         logError_ACU('[ACU-V2] reoptimize latest failed', e);
-        setMessage(this, 'error', '上一次重新优化失败，请检查配置或查看运行日志。');
-        useToastStore().error(`重新优化失败：${e?.message || '未知错误'}`, { muteable: false });
+        setMessage(this, 'error', 'Lần tối ưu lại trước thất bại, vui lòng kiểm tra cấu hình hoặc xem nhật ký chạy.');
+        useToastStore().error(`Tối ưu lại thất bại: ${e?.message || 'Lỗi không xác định'}`, { muteable: false });
       } finally {
         this.busyAction = '';
       }

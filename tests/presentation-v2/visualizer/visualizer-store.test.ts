@@ -195,7 +195,7 @@ describe('visualizer-store', () => {
       () => store.queueLockChanges([{ sheetKey: 'sheet_a', rows: [{ rowIndex: 0, locked: true }] }]),
     ];
 
-    actions.forEach(action => expect(action).toThrow('数据已持久化但本地刷新尚未完成'));
+    actions.forEach(action => expect(action).toThrow('Dữ liệu đã được lưu bền nhưng làm mới cục bộ chưa hoàn tất. Hãy thử lưu lại để hoàn tất khôi phục, trong lúc này không thể tiếp tục chỉnh sửa.'));
 
     expect(JSON.stringify({
       tempData: store.tempData,
@@ -239,7 +239,7 @@ describe('visualizer-store', () => {
       () => store.queueLockChanges([{ sheetKey: 'sheet_a', rows: [{ rowIndex: 0, locked: true }] }]),
     ];
 
-    actions.forEach(action => expect(action).toThrow('保存正在进行中'));
+    actions.forEach(action => expect(action).toThrow('Đang lưu, trong lúc này không thể tiếp tục chỉnh sửa.'));
 
     expect(JSON.stringify({
       tempData: store.tempData,

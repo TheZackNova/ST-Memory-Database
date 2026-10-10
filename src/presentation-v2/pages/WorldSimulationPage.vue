@@ -1,11 +1,11 @@
 <template>
   <section class="acu-v2-world-simulation-page">
-    <AcuPanel title="Agent 会话" description="像和 coding agent 对话一样使用：随时输入、随时打断。主 Agent 按需派工子代理取证与改写，最终账本经审核后严格写入任务开始时冻结的 assistant 楼层；正文生成完成后也会自动推演一次。">
+    <AcuPanel title="Phiên Agent" description="Dùng như trò chuyện với coding agent: nhập bất cứ lúc nào, ngắt bất cứ lúc nào. Agent chính giao Agent phụ thu thập chứng cứ và viết lại khi cần; sổ cái cuối cùng sau khi được duyệt sẽ được ghi nghiêm ngặt vào tầng assistant đã đóng băng lúc tác vụ bắt đầu; sau khi nội dung tạo xong cũng sẽ tự động mô phỏng một lần.">
       <p v-if="runtime.error.value" class="acu-v2-world-simulation-page__error">
         {{ runtime.error.value }}
-        <AcuButton size="sm" @click="refreshAll">重新读取</AcuButton>
+        <AcuButton size="sm" @click="refreshAll">Đọc lại</AcuButton>
       </p>
-      <p v-else-if="!runtime.ready.value" class="acu-v2-world-simulation-page__meta">正在读取并验证格林推演快照…</p>
+      <p v-else-if="!runtime.ready.value" class="acu-v2-world-simulation-page__meta">Đang đọc và xác minh snapshot Mô phỏng thế giới…</p>
       <WorldSimulationChat
         v-else
         :task="runtime.task.value"
@@ -26,7 +26,7 @@
 
     <!-- 会话独占整宽，资料与设置并列在其下：会话是主操作面，资料与设置是查阅面。 -->
     <AcuPanelGrid class="acu-v2-world-simulation-page__layout">
-      <AcuPanel title="已有资料" description="当前分支的用户要求、账本总览、幕后纪要、错过清单、风声、候选轨迹、场外信号与读取诊断；用户要求可在资料区手动修正，账本只由 Agent 经审核后写入。一键清空只丢任务、会话记录与楼层资料快照，不动正文。">
+      <AcuPanel title="Tài liệu hiện có" description="Yêu cầu người dùng, tổng quan sổ cái, kỷ yếu hậu trường, danh sách bỏ lỡ, tin đồn, quỹ đạo ứng viên, tín hiệu ngoài cảnh và chẩn đoán đọc của nhánh hiện tại; yêu cầu người dùng có thể sửa thủ công trong khu tài liệu, sổ cái chỉ do Agent ghi sau khi được duyệt. Xóa sạch một chạm chỉ bỏ tác vụ, bản ghi phiên và snapshot tài liệu theo tầng, không động tới nội dung.">
         <WorldSimulationMaterialsPanel
           v-if="runtime.ready.value && runtime.snapshot.value"
           :save-requirements="runtime.saveUserRequirements"
@@ -43,15 +43,15 @@
           @refresh="refreshAll"
           @clear="clearData"
         />
-        <p v-else class="acu-v2-world-simulation-page__meta">当前没有可显示的格林推演资料。</p>
+        <p v-else class="acu-v2-world-simulation-page__meta">Hiện không có tài liệu Mô phỏng thế giới để hiển thị.</p>
       </AcuPanel>
 
-      <AcuPanel v-if="settingsDraft" title="推演设置" description="修改后自动保存；任务运行中也可以改，改动会在本轮结束后落盘、下一轮开始时生效。常用项直接可见，其余参数按主题折叠。">
+      <AcuPanel v-if="settingsDraft" title="Cài đặt mô phỏng" description="Tự động lưu sau khi sửa; có thể sửa cả khi tác vụ đang chạy, thay đổi sẽ được ghi xuống sau khi lượt này kết thúc và có hiệu lực từ lượt sau. Mục thường dùng hiển thị sẵn, các tham số còn lại được gập theo chủ đề.">
         <div class="acu-v2-world-simulation-page__settings-grid">
-          <AcuFormRow label="使用工具调用" hint="开启后决策与交付都通过函数调用完成；部分渠道不支持 tools 字段会报错。全局生效，不随对话保存。">
-            <AcuToggle :model-value="runtime.nativeToolEnabled.value" aria-label="使用工具调用" @update:model-value="runtime.setNativeToolEnabled($event)" />
+          <AcuFormRow label="Dùng gọi công cụ" hint="Khi bật, cả quyết định và bàn giao đều hoàn tất qua gọi hàm; một số kênh không hỗ trợ trường tools sẽ báo lỗi. Có hiệu lực toàn cục, không lưu theo hội thoại.">
+            <AcuToggle :model-value="runtime.nativeToolEnabled.value" aria-label="Dùng gọi công cụ" @update:model-value="runtime.setNativeToolEnabled($event)" />
           </AcuFormRow>
-          <AcuFormRow label="API 预设（全局默认）" hint="所有 Agent 默认走这个预设；需要给某个 Agent 单独指定时，展开下方「各 Agent 渠道」。需要工具的 Agent 须使用 Chat Completion 类连接：自定义 API、Chat Completion 酒馆连接预设或 Chat Completion 主连接均可；Text Completion 连接无法返回工具调用。">
+          <AcuFormRow label="Preset API (mặc định toàn cục)" hint="Tất cả Agent mặc định dùng preset này; khi cần chỉ định riêng cho một Agent, hãy mở «Kênh từng Agent» bên dưới. Agent cần công cụ phải dùng kết nối loại Chat Completion: API tùy chỉnh, preset kết nối SillyTavern Chat Completion hoặc kết nối chính Chat Completion đều được; kết nối Text Completion không trả về được lệnh gọi công cụ.">
             <AcuSelect
               :options="apiPresetOptions"
               :model-value="apiPresetValue"
@@ -59,47 +59,47 @@
               @update:model-value="applyApiPreset"
             />
           </AcuFormRow>
-          <AcuFormRow label="会话自动总结阈值（token）" hint="按主 Agent 实际读取的完整上下文统计，超过后把最早轮次浓缩成交接报告；0 为不总结。">
+          <AcuFormRow label="Ngưỡng tự động tóm tắt phiên (token)" hint="Tính theo toàn bộ ngữ cảnh Agent chính thực sự đọc; vượt ngưỡng sẽ cô đọng các lượt sớm nhất thành báo cáo bàn giao; 0 là không tóm tắt.">
             <AcuInput v-model="settingsDraft.agentHistoryTokenBudget" type="number" :min="0" :max="1000000" />
           </AcuFormRow>
-          <AcuFormRow label="单批次读取上限" hint="一次 read/search 工具批次最多可注入多少 token；超过整批打回。填正整数或形如 20% 的百分比（按总结阈值折算）。">
+          <AcuFormRow label="Giới hạn đọc mỗi lô" hint="Một lô công cụ read/search được chèn tối đa bao nhiêu token; vượt quá thì trả lại cả lô. Nhập số nguyên dương hoặc phần trăm dạng 20% (quy đổi theo ngưỡng tóm tắt).">
             <AcuInput v-model="settingsDraft.agentReadTokenBudget" type="text" />
           </AcuFormRow>
-          <AcuFormRow label="临近总结时的精读额度（token）" hint="上下文即将触发总结时，只有不超过此大小的单批次读取会放行。">
+          <AcuFormRow label="Hạn mức đọc kỹ khi sắp tóm tắt (token)" hint="Khi ngữ cảnh sắp kích hoạt tóm tắt, chỉ các lần đọc một lô không vượt quá kích thước này mới được cho qua.">
             <AcuInput v-model="settingsDraft.agentReadFallbackTokens" type="number" :min="0" :max="100000" />
           </AcuFormRow>
         </div>
         <div class="acu-v2-world-simulation-page__toggles">
-          <AcuCheckbox v-model="settingsDraft.autoTriggerEnabled" label="正文生成完成后自动推演（与自动填表同一时机）" />
-          <AcuCheckbox v-model="settingsDraft.webResearch.enabled" label="启用设定研究（外部百科检索）" />
+          <AcuCheckbox v-model="settingsDraft.autoTriggerEnabled" label="Tự động mô phỏng sau khi nội dung tạo xong (cùng thời điểm với tự động điền bảng)" />
+          <AcuCheckbox v-model="settingsDraft.webResearch.enabled" label="Bật nghiên cứu thiết lập (tra cứu bách khoa bên ngoài)" />
         </div>
 
         <div class="acu-v2-world-simulation-page__groups">
           <AcuDisclosureGroup
             class="acu-v2-world-simulation-page__group"
-            label="Agent 运行预算"
+            label="Ngân sách chạy của Agent"
             :meta="budgetGroupMeta"
             :expanded="isGroupExpanded('budget')"
             body-id="acu-world-simulation-group-budget"
             @toggle="toggleGroup('budget')"
           >
             <div class="acu-v2-world-simulation-page__settings-grid">
-              <AcuFormRow label="主 Agent 迭代上限" hint="一次推演内主 Agent 最多做多少次决策（取证/派工/收敛各算一次）。范围 1–100。">
+              <AcuFormRow label="Giới hạn vòng lặp của Agent chính" hint="Số lần ra quyết định tối đa của Agent chính trong một lần mô phỏng (thu thập chứng cứ/giao việc/hội tụ mỗi loại tính một lần). Phạm vi 1–100.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxIterations" type="number" :min="1" :max="100" />
               </AcuFormRow>
-              <AcuFormRow label="派工总数上限" hint="一次推演内最多派出多少个子代理任务，0 为禁止派工。范围 0–100。">
+              <AcuFormRow label="Giới hạn tổng số lần giao việc" hint="Số tác vụ Agent phụ được giao tối đa trong một lần mô phỏng, 0 là cấm giao việc. Phạm vi 0–100.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxDelegations" type="number" :min="0" :max="100" />
               </AcuFormRow>
-              <AcuFormRow label="单代理派工上限" hint="同一个子代理在一次推演内最多被派几次。范围 0–20。">
+              <AcuFormRow label="Giới hạn giao việc mỗi Agent" hint="Cùng một Agent phụ được giao tối đa bao nhiêu lần trong một lần mô phỏng. Phạm vi 0–20.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxSameAgent" type="number" :min="0" :max="20" />
               </AcuFormRow>
-              <AcuFormRow label="并发派工上限" hint="同一波次最多同时运行几个子代理；默认 5。API 限流严格时调小。范围 1–20。">
+              <AcuFormRow label="Giới hạn giao việc đồng thời" hint="Số Agent phụ chạy đồng thời tối đa trong cùng một đợt; mặc định 5. Giảm xuống khi API giới hạn tốc độ nghiêm ngặt. Phạm vi 1–20.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxConcurrent" type="number" :min="1" :max="20" />
               </AcuFormRow>
-              <AcuFormRow label="读取批次上限" hint="主 Agent 一次推演内 read/search 工具批次的次数上限，0 为禁止读取。范围 0–200。">
+              <AcuFormRow label="Giới hạn lô đọc" hint="Số lô công cụ read/search tối đa của Agent chính trong một lần mô phỏng, 0 là cấm đọc. Phạm vi 0–200.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxReads" type="number" :min="0" :max="200" />
               </AcuFormRow>
-              <AcuFormRow label="子代理工具轮上限" hint="子代理首轮之外还允许几轮 read/search 追加读取。范围 0–20。">
+              <AcuFormRow label="Giới hạn vòng công cụ của Agent phụ" hint="Ngoài vòng đầu, Agent phụ còn được phép thêm mấy vòng đọc bổ sung read/search. Phạm vi 0–20.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxExtraReads" type="number" :min="0" :max="20" />
               </AcuFormRow>
             </div>
@@ -107,29 +107,29 @@
 
           <AcuDisclosureGroup
             class="acu-v2-world-simulation-page__group"
-            label="设定研究（网页检索）"
+            label="Nghiên cứu thiết lập (tra cứu web)"
             :meta="webResearchGroupMeta"
             :expanded="isGroupExpanded('webResearch')"
             body-id="acu-world-simulation-group-web-research"
             @toggle="toggleGroup('webResearch')"
           >
-            <p class="acu-v2-world-simulation-page__meta">开启后，主 Agent 在本地证据不足时可直接使用网页检索与百科读取补充公开设定资料；研究结果只作证据，不直接写入世界账本。</p>
+            <p class="acu-v2-world-simulation-page__meta">Khi bật, Agent chính có thể dùng tra cứu web và đọc bách khoa để bổ sung tư liệu thiết lập công khai khi bằng chứng cục bộ không đủ; kết quả nghiên cứu chỉ làm chứng cứ, không ghi trực tiếp vào sổ cái thế giới.</p>
             <div class="acu-v2-world-simulation-page__toggles">
-              <AcuCheckbox v-model="settingsDraft.webResearch.sources.moegirl" label="萌娘百科" />
-              <AcuCheckbox v-model="settingsDraft.webResearch.sources.wikipediaZh" label="中文维基百科" />
-              <AcuCheckbox v-model="settingsDraft.webResearch.sources.wikipediaEn" label="英文维基百科" />
+              <AcuCheckbox v-model="settingsDraft.webResearch.sources.moegirl" label="Moegirl" />
+              <AcuCheckbox v-model="settingsDraft.webResearch.sources.wikipediaZh" label="Wikipedia tiếng Trung" />
+              <AcuCheckbox v-model="settingsDraft.webResearch.sources.wikipediaEn" label="Wikipedia tiếng Anh" />
             </div>
             <div class="acu-v2-world-simulation-page__settings-grid">
-              <AcuFormRow label="搜索引擎" hint="百科查不到时的兜底搜索。DuckDuckGo 免 key；Serper / Tavily 使用酒馆「API 密钥」里已配置的 key；SearXNG 需填实例地址。">
+              <AcuFormRow label="Công cụ tìm kiếm" hint="Tìm kiếm dự phòng khi bách khoa không tra được. DuckDuckGo không cần key; Serper / Tavily dùng key đã cấu hình trong «Khóa API» của SillyTavern; SearXNG cần nhập địa chỉ instance.">
                 <AcuSelect v-model="settingsDraft.webResearch.searchProvider" :options="webSearchProviderOptions" />
               </AcuFormRow>
-              <AcuFormRow v-if="settingsDraft.webResearch.searchProvider === 'searxng'" label="SearXNG 实例地址" hint="形如 https://searx.example.org">
+              <AcuFormRow v-if="settingsDraft.webResearch.searchProvider === 'searxng'" label="Địa chỉ instance SearXNG" hint="Dạng như https://searx.example.org">
                 <AcuInput v-model="settingsDraft.webResearch.searxngBaseUrl" type="text" />
               </AcuFormRow>
-              <AcuFormRow label="单页阅读字数上限" hint="研究子代理可读取的单页正文上限；正文不保存。范围 500–20000。">
+              <AcuFormRow label="Giới hạn số ký tự đọc mỗi trang" hint="Giới hạn nội dung một trang mà Agent phụ nghiên cứu được đọc; nội dung không được lưu. Phạm vi 500–20000.">
                 <AcuInput v-model="settingsDraft.webResearch.pageCharLimit" type="number" :min="500" :max="20000" />
               </AcuFormRow>
-              <AcuFormRow label="域名黑名单" hint="不得抓取的域名，逗号或换行分隔；内网与酒馆自身始终被拦。">
+              <AcuFormRow label="Danh sách đen tên miền" hint="Các tên miền không được thu thập, phân cách bằng dấu phẩy hoặc xuống dòng; mạng nội bộ và chính SillyTavern luôn bị chặn.">
                 <AcuTextarea v-model="settingsDraft.webResearch.blockedDomains" :rows="3" />
               </AcuFormRow>
             </div>
@@ -137,57 +137,57 @@
 
           <AcuDisclosureGroup
             class="acu-v2-world-simulation-page__group"
-            label="世界动态"
+            label="Động thái thế giới"
             :meta="dynamicsGroupMeta"
             :expanded="isGroupExpanded('dynamics')"
             body-id="acu-world-simulation-group-dynamics"
             @toggle="toggleGroup('dynamics')"
           >
-            <p class="acu-v2-world-simulation-page__meta">控制风声时效、时序推进上限、碰撞兑现与过期清扫；改动在下一轮推演生效。</p>
+            <p class="acu-v2-world-simulation-page__meta">Điều khiển thời hiệu tin đồn, giới hạn đẩy thời gian, hiện thực hóa va chạm và quét hết hạn; thay đổi có hiệu lực từ lượt mô phỏng sau.</p>
             <div class="acu-v2-world-simulation-page__settings-grid">
-              <AcuFormRow label="风声等待上限（天）" hint="风声进入待命后，等待玩家命中传播渠道的天数上限。范围 1–3650。">
+              <AcuFormRow label="Giới hạn chờ của tin đồn (ngày)" hint="Số ngày tối đa chờ người chơi chạm tới kênh lan truyền sau khi tin đồn vào trạng thái chờ lệnh. Phạm vi 1–3650.">
                 <AcuInput v-model="settingsDraft.dynamics.rumorTTLDays" type="number" :min="1" :max="3650" />
               </AcuFormRow>
-              <AcuFormRow label="单次时钟推进上限（世界日）" hint="一次提交允许推进的天数；超过则必须附带证据。范围 0–3650。">
+              <AcuFormRow label="Giới hạn đẩy đồng hồ mỗi lần (ngày thế giới)" hint="Số ngày được phép đẩy trong một lần nộp; vượt quá phải kèm chứng cứ. Phạm vi 0–3650.">
                 <AcuInput v-model="settingsDraft.dynamics.maxClockAdvanceDays" type="number" :min="0" :max="3650" />
               </AcuFormRow>
-              <AcuFormRow label="碰撞兑现策略" hint="严格：撞上必须有当场反应，模型没写时由程序补一条最简引导，不拒绝提交。宽松：只记警告。">
+              <AcuFormRow label="Chính sách hiện thực hóa va chạm" hint="Nghiêm ngặt: khi va chạm phải có phản ứng tại chỗ, nếu mô hình không viết thì chương trình bổ sung một chỉ dẫn tối giản, không từ chối nộp. Khoan dung: chỉ ghi cảnh báo.">
                 <AcuSelect v-model="settingsDraft.dynamics.collisionEnforcement" :options="collisionEnforcementOptions" />
               </AcuFormRow>
             </div>
             <div class="acu-v2-world-simulation-page__toggles">
-              <AcuCheckbox v-model="settingsDraft.dynamics.missedSweepEnabled" label="启用过期清扫（关闭后过期伏线不会自动记为错过）" />
+              <AcuCheckbox v-model="settingsDraft.dynamics.missedSweepEnabled" label="Bật quét hết hạn (khi tắt, phục tuyến hết hạn sẽ không tự ghi là bỏ lỡ)" />
             </div>
           </AcuDisclosureGroup>
 
           <AcuDisclosureGroup
             class="acu-v2-world-simulation-page__group"
-            label="场外信号插入正文"
+            label="Chèn tín hiệu ngoài cảnh vào nội dung"
             :meta="projectionGroupMeta"
             :expanded="isGroupExpanded('projection')"
             body-id="acu-world-simulation-group-projection"
             @toggle="toggleGroup('projection')"
           >
-            <p class="acu-v2-world-simulation-page__meta">提交时按这个格式把场外信号写进冻结的 assistant 楼层。$WORLD_SIGNALS 会换成按【此地此刻】【风闻轶事】【世界暗流】分组的信号；插件用来识别和替换这一段的起止注释会自动加在最外层，不用写进格式里。改动在下一次提交时生效。</p>
-            <AcuFormRow label="插入格式" hint="必须恰好包含一次 $WORLD_SIGNALS，最多 4000 字。默认用隐藏容器包住〈与此同时〉，正文渲染时对读者隐藏。插入后会自动重渲染该楼层。">
+            <p class="acu-v2-world-simulation-page__meta">Khi nộp, tín hiệu ngoài cảnh được ghi vào tầng assistant đã đóng băng theo định dạng này. $WORLD_SIGNALS sẽ được thay bằng các tín hiệu chia nhóm theo 【此地此刻】【风闻轶事】【世界暗流】; các chú thích đầu/cuối mà plugin dùng để nhận diện và thay thế đoạn này sẽ tự thêm ở lớp ngoài cùng, không cần viết vào định dạng. Thay đổi có hiệu lực từ lần nộp sau.</p>
+            <AcuFormRow label="Định dạng chèn" hint="Phải chứa đúng một lần $WORLD_SIGNALS, tối đa 4000 ký tự. Mặc định dùng container ẩn bọc quanh 〈与此同时〉, ẩn với người đọc khi hiển thị nội dung. Sau khi chèn, tầng đó sẽ tự dựng lại.">
               <AcuTextarea v-model="settingsDraft.projection.template" :rows="6" />
             </AcuFormRow>
             <div class="acu-v2-world-simulation-page__toggles">
-              <AcuButton size="sm" @click="restoreDefaultProjectionTemplate">恢复默认</AcuButton>
+              <AcuButton size="sm" @click="restoreDefaultProjectionTemplate">Khôi phục mặc định</AcuButton>
             </div>
           </AcuDisclosureGroup>
 
           <AcuDisclosureGroup
             class="acu-v2-world-simulation-page__group"
-            label="工作流"
+            label="Luồng công việc"
             :meta="workflowGroupMeta"
             :expanded="isGroupExpanded('workflow')"
             body-id="acu-world-simulation-group-workflow"
             @toggle="toggleGroup('workflow')"
           >
-            <p class="acu-v2-world-simulation-page__meta">固定工作流批次一并发处理时序、局势刻度与伏线，以及人物谱；批次二按变化处理幕后纪要、风声与场外信号。这里只改纪要热层阈值；提示词仍在下方各角色分组里改。</p>
+            <p class="acu-v2-world-simulation-page__meta">Lô một của luồng công việc cố định xử lý đồng thời thời gian, thang thế cục, phục tuyến và danh sách nhân vật; lô hai xử lý kỷ yếu hậu trường, tin đồn và tín hiệu ngoài cảnh theo thay đổi. Ở đây chỉ sửa ngưỡng tầng nóng của kỷ yếu; prompt vẫn sửa trong các nhóm vai trò bên dưới.</p>
             <div class="acu-v2-world-simulation-page__settings-grid">
-              <AcuFormRow label="纪要热层阈值" hint="热层纪要达到这个条数时，批次二由纪要角色处理归档。范围 1–512。">
+              <AcuFormRow label="Ngưỡng tầng nóng của kỷ yếu" hint="Khi kỷ yếu tầng nóng đạt số mục này, lô hai sẽ do vai trò kỷ yếu xử lý lưu trữ. Phạm vi 1–512.">
                 <AcuInput v-model="settingsDraft.workflow.chroniclerHotThreshold" type="number" :min="1" :max="512" />
               </AcuFormRow>
             </div>
@@ -195,13 +195,13 @@
 
           <AcuDisclosureGroup
             class="acu-v2-world-simulation-page__group"
-            label="各 Agent 渠道"
+            label="Kênh từng Agent"
             :meta="channelGroupMeta"
             :expanded="isGroupExpanded('channels')"
             body-id="acu-world-simulation-group-channels"
             @toggle="toggleGroup('channels')"
           >
-            <p class="acu-v2-world-simulation-page__meta">给不同 Agent 分配不同 API 预设：例如主 Agent 用强模型，审核类子代理用便宜快速的模型。「跟随全局默认」即使用上方的 API 预设。需要工具的 Agent 须使用 Chat Completion 类连接：自定义 API、Chat Completion 酒馆连接预设或 Chat Completion 主连接均可；Text Completion 连接无法返回工具调用。</p>
+            <p class="acu-v2-world-simulation-page__meta">Gán preset API khác nhau cho từng Agent: ví dụ Agent chính dùng mô hình mạnh, Agent phụ duyệt dùng mô hình rẻ và nhanh. «Theo mặc định toàn cục» nghĩa là dùng preset API ở trên. Agent cần công cụ phải dùng kết nối loại Chat Completion: API tùy chỉnh, preset kết nối SillyTavern Chat Completion hoặc kết nối chính Chat Completion đều được; kết nối Text Completion không trả về được lệnh gọi công cụ.</p>
             <div class="acu-v2-world-simulation-page__settings-grid">
               <AcuFormRow v-for="agentName in agentNames" :key="agentName" :label="agentLabel(agentName)">
                 <AcuSelect
@@ -219,10 +219,10 @@
       </AcuPanel>
     </AcuPanelGrid>
 
-    <AcuPanel v-if="settingsDraft" title="伪 Role 提示词" description="仅启用段参与内部调用；占位符会按实际出现按需解析。引擎 seam 段固定顺序与角色、不可删除，其余段可自由增删改。修改后自动保存。">
+    <AcuPanel v-if="settingsDraft" title="Prompt giả Role" description="Chỉ các đoạn được bật mới tham gia lệnh gọi nội bộ; placeholder được phân giải theo nhu cầu khi thực sự xuất hiện. Các đoạn seam của engine có thứ tự và vai trò cố định, không thể xóa; các đoạn còn lại có thể tự do thêm, xóa, sửa. Tự động lưu sau khi sửa.">
       <div class="acu-v2-world-simulation-page__actions acu-v2-world-simulation-page__actions--start">
-        <AcuButton @click="exportPrompts">导出提示词 JSON</AcuButton>
-        <AcuButton @click="promptImportInput?.click()">导入提示词 JSON</AcuButton>
+        <AcuButton @click="exportPrompts">Xuất JSON prompt</AcuButton>
+        <AcuButton @click="promptImportInput?.click()">Nhập JSON prompt</AcuButton>
         <input ref="promptImportInput" type="file" accept=".json,application/json" class="acu-v2-world-simulation-page__file-input" @change="onImportPromptsFile" />
       </div>
       <p v-if="promptIoError" class="acu-v2-world-simulation-page__error">{{ promptIoError }}</p>
@@ -233,7 +233,7 @@
           v-for="agentName in agentNames"
           :key="agentName"
           class="acu-v2-world-simulation-page__group"
-          :label="`${agentLabel(agentName)}（${agentName}）提示词`"
+          :label="`Prompt ${agentLabel(agentName)} (${agentName})`"
           :meta="promptGroupMeta(agentName)"
           :expanded="isGroupExpanded(`prompt:${agentName}`)"
           :body-id="`acu-world-simulation-prompt-${agentName}`"
@@ -250,21 +250,21 @@
             @move="(index, delta) => movePrompt(agentName, index, delta)"
             @update="(index, patch) => updatePrompt(agentName, index, patch)"
           />
-          <div class="acu-v2-world-simulation-page__actions"><AcuButton @click="restorePrompt(agentName)">恢复{{ agentLabel(agentName) }}默认值</AcuButton></div>
+          <div class="acu-v2-world-simulation-page__actions"><AcuButton @click="restorePrompt(agentName)">Khôi phục giá trị mặc định của {{ agentLabel(agentName) }}</AcuButton></div>
         </AcuDisclosureGroup>
 
         <AcuDisclosureGroup
           class="acu-v2-world-simulation-page__group"
-          label="占位符速查"
-          meta="参考"
+          label="Tra nhanh placeholder"
+          meta="Tham khảo"
           :expanded="isGroupExpanded('prompt:reference')"
           body-id="acu-world-simulation-prompt-reference"
           @toggle="toggleGroup('prompt:reference')"
         >
-          <h4 class="acu-v2-world-simulation-page__subheading">引擎 seam 段</h4>
-          <p class="acu-v2-world-simulation-page__meta">默认顺序为身份 system、格式问答、方法与流程问答、运行快照、真实会话历史、user 预填充。格式回答只读，随「使用工具调用」切换；快照模板可编辑，动态资料在此注入。快照与历史卡可上下移动，历史按真实身份展开。</p>
-          <h4 class="acu-v2-world-simulation-page__subheading">格林推演占位符</h4>
-          <p class="acu-v2-world-simulation-page__meta">运行装配占位符：$WORLD_TASK（当前任务）、$WORLD_HISTORY（楼层锚定的 Agent 会话历史）、$WORLD_RUNTIME_CONTEXT（触发种类、指令与基准账本 revision）、$WORLD_AGENT_CATALOG（可派工角色与职责）、$WORLD_TOOL_CATALOG（read/search 地址词汇表）、$WORLD_EVIDENCE（已授权证据条目）、$WORLD_USER_REQUIREMENTS（用户累计要求，默认注入）、$WORLD_USER_GUIDANCE（用户本轮指令，自定义段仍可用）。世界领域占位符：$WORLD_STATE（当前世界账本）、$ANCHOR_MESSAGE（冻结 assistant 楼层正文）、$ANCHOR_IDENTITY（楼层 / swipe / 正文摘要身份）、$WORLD_STAGE_PLAN（本轮阶段计划）、$WORLD_CHRONICLE（宏观编年）、$WORLD_CANDIDATES（本轮候选摘要）、$CURRENT_EVIDENCE_REGISTRY（证据注册表快照）、$PROJECTION_PREVIEW（〈与此同时〉投影预览）。所有动态内容都以转义后的 UNTRUSTED_* 区块注入，只有提示词里实际出现的占位符才会被解析；未知占位符会在保存时被拒绝。</p>
+          <h4 class="acu-v2-world-simulation-page__subheading">Đoạn seam của engine</h4>
+          <p class="acu-v2-world-simulation-page__meta">Thứ tự mặc định: system danh tính, hỏi đáp định dạng, hỏi đáp phương pháp và quy trình, snapshot lúc chạy, lịch sử phiên thực, user điền sẵn. Câu trả lời định dạng chỉ đọc, chuyển theo «Dùng gọi công cụ»; mẫu snapshot có thể sửa, tài liệu động được chèn ở đây. Thẻ snapshot và lịch sử có thể dời lên/xuống, lịch sử được mở ra theo danh tính thực.</p>
+          <h4 class="acu-v2-world-simulation-page__subheading">Placeholder Mô phỏng thế giới</h4>
+          <p class="acu-v2-world-simulation-page__meta">Placeholder lắp ráp lúc chạy: $WORLD_TASK (tác vụ hiện tại), $WORLD_HISTORY (lịch sử phiên Agent neo theo tầng), $WORLD_RUNTIME_CONTEXT (loại kích hoạt, chỉ dẫn và revision sổ cái chuẩn), $WORLD_AGENT_CATALOG (các vai trò có thể giao việc và trách nhiệm), $WORLD_TOOL_CATALOG (bảng từ vựng địa chỉ read/search), $WORLD_EVIDENCE (các mục chứng cứ đã được cấp quyền), $WORLD_USER_REQUIREMENTS (yêu cầu tích lũy của người dùng, chèn mặc định), $WORLD_USER_GUIDANCE (chỉ dẫn của người dùng lượt này, đoạn tùy chỉnh vẫn dùng được). Placeholder miền thế giới: $WORLD_STATE (sổ cái thế giới hiện tại), $ANCHOR_MESSAGE (nội dung tầng assistant đã đóng băng), $ANCHOR_IDENTITY (danh tính tầng / swipe / tóm tắt nội dung), $WORLD_STAGE_PLAN (kế hoạch giai đoạn lượt này), $WORLD_CHRONICLE (biên niên vĩ mô), $WORLD_CANDIDATES (tóm tắt ứng viên lượt này), $CURRENT_EVIDENCE_REGISTRY (snapshot sổ đăng ký chứng cứ), $PROJECTION_PREVIEW (xem trước phép chiếu 〈与此同时〉). Mọi nội dung động đều được chèn dưới dạng khối UNTRUSTED_* đã escape; chỉ placeholder thực sự xuất hiện trong prompt mới được phân giải; placeholder không xác định sẽ bị từ chối khi lưu.</p>
         </AcuDisclosureGroup>
       </div>
       <p v-if="settingsError" class="acu-v2-world-simulation-page__error">{{ settingsError }}</p>
@@ -316,15 +316,15 @@ const roleOptions = [
 ];
 
 const webSearchProviderOptions = [
-  { value: 'duckduckgo', label: 'DuckDuckGo（免 key）' },
-  { value: 'serper', label: 'Serper（Google，需酒馆已配 key）' },
-  { value: 'tavily', label: 'Tavily（需酒馆已配 key）' },
-  { value: 'searxng', label: 'SearXNG（自建/公共实例）' },
+  { value: 'duckduckgo', label: 'DuckDuckGo (không cần key)' },
+  { value: 'serper', label: 'Serper (Google, cần SillyTavern đã cấu hình key)' },
+  { value: 'tavily', label: 'Tavily (cần SillyTavern đã cấu hình key)' },
+  { value: 'searxng', label: 'SearXNG (tự dựng/instance công cộng)' },
 ];
 
 const collisionEnforcementOptions = [
-  { value: 'strict', label: '严格（未兑现则拒绝提交）' },
-  { value: 'relaxed', label: '宽松（仅警告）' },
+  { value: 'strict', label: 'Nghiêm ngặt (chưa hiện thực hóa thì từ chối nộp)' },
+  { value: 'relaxed', label: 'Khoan dung (chỉ cảnh báo)' },
 ];
 
 /** 渠道下拉里「跟随全局默认」的哨兵值：空串已被「跟随当前活动 API」占用。 */
@@ -350,7 +350,7 @@ function applyApiPreset(value: string): void {
 }
 
 const agentChannelOptions = computed(() => [
-  { value: INHERIT_CHANNEL_VALUE, label: '跟随全局默认' },
+  { value: INHERIT_CHANNEL_VALUE, label: 'Theo mặc định toàn cục' },
   ...apiPresetOptions.value,
 ]);
 
@@ -387,34 +387,34 @@ function toggleGroup(key: string): void {
 const budgetGroupMeta = computed(() => {
   const s = settingsDraft.value;
   if (!s) return '';
-  return `迭代 ${s.agentRunBudget.maxIterations} · 派工 ${s.agentRunBudget.maxDelegations} · 并发 ${s.agentRunBudget.maxConcurrent}`;
+  return `Vòng lặp ${s.agentRunBudget.maxIterations} · giao việc ${s.agentRunBudget.maxDelegations} · đồng thời ${s.agentRunBudget.maxConcurrent}`;
 });
 
 const webResearchGroupMeta = computed(() => {
   const web = settingsDraft.value?.webResearch;
   if (!web) return '';
-  if (!web.enabled) return '已关闭';
-  const sources = [web.sources.moegirl && '萌娘', web.sources.wikipediaZh && '中文维基', web.sources.wikipediaEn && '英文维基'].filter(Boolean);
-  return `已开启 · ${sources.length ? sources.join('/') : '无百科来源'} · ${web.searchProvider}`;
+  if (!web.enabled) return 'Đã tắt';
+  const sources = [web.sources.moegirl && 'Moegirl', web.sources.wikipediaZh && 'Wikipedia TQ', web.sources.wikipediaEn && 'Wikipedia Anh'].filter(Boolean);
+  return `Đã bật · ${sources.length ? sources.join('/') : 'Không có nguồn bách khoa'} · ${web.searchProvider}`;
 });
 
 const channelGroupMeta = computed(() => {
   const presets = settingsDraft.value?.agentApiPresets;
   if (!presets) return '';
   const customized = agentNames.filter(name => presets[name] !== undefined).length;
-  return customized ? `${customized} 个单独指定` : '全部跟随默认';
+  return customized ? `${customized} chỉ định riêng` : 'Tất cả theo mặc định';
 });
 
 const dynamicsGroupMeta = computed(() => {
   const dynamics = settingsDraft.value?.dynamics;
   if (!dynamics) return '';
-  return `TTL ${dynamics.rumorTTLDays} · 推进 ${dynamics.maxClockAdvanceDays} · ${dynamics.collisionEnforcement === 'strict' ? '严格' : '宽松'}${dynamics.missedSweepEnabled ? ' · 清扫开' : ' · 清扫关'}`;
+  return `TTL ${dynamics.rumorTTLDays} · đẩy ${dynamics.maxClockAdvanceDays} · ${dynamics.collisionEnforcement === 'strict' ? 'Nghiêm ngặt' : 'Khoan dung'}${dynamics.missedSweepEnabled ? ' · quét bật' : ' · quét tắt'}`;
 });
 
 const projectionGroupMeta = computed(() => {
   const projection = settingsDraft.value?.projection;
   if (!projection) return '';
-  return projection.template === runtime.defaultProjectionTemplate ? '默认格式' : '自定义格式';
+  return projection.template === runtime.defaultProjectionTemplate ? 'Định dạng mặc định' : 'Định dạng tùy chỉnh';
 });
 
 function restoreDefaultProjectionTemplate(): void {
@@ -424,7 +424,7 @@ function restoreDefaultProjectionTemplate(): void {
 const workflowGroupMeta = computed(() => {
   const workflow = settingsDraft.value?.workflow;
   if (!workflow) return '';
-  return `编年热层 ${workflow.chroniclerHotThreshold}`;
+  return `Tầng nóng biên niên ${workflow.chroniclerHotThreshold}`;
 });
 
 function cloneSettings(settings: WorldSimulationSettings_ACU): WorldSimulationSettings_ACU {
@@ -434,11 +434,11 @@ function cloneSettings(settings: WorldSimulationSettings_ACU): WorldSimulationSe
 /** 首次发送（即将创建任务）前的高 RPM 风险确认：5 秒倒计时结束前只能取消。 */
 async function confirmFirstSendRpmWarning(): Promise<boolean> {
   return dialog.confirm({
-    title: '开始格林推演前请确认',
-    message: '本功能单次请求占用的 Token 不多，但 Agent 会连续发起大量请求，需要 API 支持很高的 RPM（每分钟请求数）。开启「自动推演」后每次正文生成完成都会再跑一轮。',
-    dangerMessage: '禁止使用任何公益站，除非它明确表示允许 coding（本功能的请求模式与 coding 类似）。违规使用可能导致账号被封禁。',
-    confirmLabel: '我已了解，开始',
-    cancelLabel: '取消',
+    title: 'Vui lòng xác nhận trước khi bắt đầu Mô phỏng thế giới',
+    message: 'Mỗi yêu cầu của chức năng này tốn không nhiều Token, nhưng Agent sẽ liên tục phát ra rất nhiều yêu cầu, cần API hỗ trợ RPM (số yêu cầu mỗi phút) rất cao. Sau khi bật «Tự động mô phỏng», mỗi lần nội dung tạo xong sẽ chạy thêm một lượt.',
+    dangerMessage: 'Cấm dùng bất kỳ trạm công ích nào, trừ khi nó nói rõ cho phép coding (mô hình yêu cầu của chức năng này tương tự coding). Dùng sai quy định có thể khiến tài khoản bị khóa.',
+    confirmLabel: 'Tôi đã hiểu, bắt đầu',
+    cancelLabel: 'Hủy',
     confirmVariant: 'danger',
     confirmCountdownSeconds: 5,
   });
@@ -464,21 +464,21 @@ async function clearData(): Promise<void> {
 
 function requiredRangeInteger(value: unknown, label: string, minimum: number, maximum: number): number {
   const numeric = typeof value === 'number' ? value : Number(String(value ?? '').trim());
-  if (!Number.isInteger(numeric) || numeric < minimum || numeric > maximum) throw new Error(`${label} 必须是 ${minimum} 到 ${maximum} 之间的整数`);
+  if (!Number.isInteger(numeric) || numeric < minimum || numeric > maximum) throw new Error(`${label} phải là số nguyên từ ${minimum} đến ${maximum}`);
   return numeric;
 }
 
 /** 读取预算接受两种形态：正整数（固定 token 数）或 1%-100% 的百分比串（按总结阈值折算）。 */
 function normalizedReadBudget(value: unknown): number | string {
   const raw = String(value ?? '').trim();
-  if (!raw) throw new Error('单批次读取上限不能为空');
+  if (!raw) throw new Error('Giới hạn đọc mỗi lô không được để trống');
   if (raw.endsWith('%')) {
     const percent = Number.parseInt(raw, 10);
-    if (!Number.isInteger(percent) || percent < 1 || percent > 100 || `${percent}%` !== raw) throw new Error('读取预算百分比必须是 1% 到 100% 之间的整数百分比');
+    if (!Number.isInteger(percent) || percent < 1 || percent > 100 || `${percent}%` !== raw) throw new Error('Phần trăm ngân sách đọc phải là số nguyên phần trăm từ 1% đến 100%');
     return `${percent}%`;
   }
   const fixed = Number(raw);
-  if (!Number.isInteger(fixed) || fixed < 1 || fixed > 1000000) throw new Error('单批次读取上限必须是 1 到 1000000 的整数，或形如 20% 的百分比');
+  if (!Number.isInteger(fixed) || fixed < 1 || fixed > 1000000) throw new Error('Giới hạn đọc mỗi lô phải là số nguyên từ 1 đến 1000000, hoặc phần trăm dạng 20%');
   return fixed;
 }
 
@@ -488,37 +488,37 @@ function presetExists(presetName: string): boolean {
 }
 
 function normalizeSettingsDraft(): WorldSimulationSettings_ACU {
-  if (!settingsDraft.value) throw new Error('格林推演设置尚未加载');
+  if (!settingsDraft.value) throw new Error('Cài đặt Mô phỏng thế giới chưa được tải');
   const source = settingsDraft.value;
   const normalized: WorldSimulationSettings_ACU = {
     ...cloneSettings(source),
-    agentHistoryTokenBudget: requiredRangeInteger(source.agentHistoryTokenBudget, '会话自动总结阈值', 0, 1000000),
+    agentHistoryTokenBudget: requiredRangeInteger(source.agentHistoryTokenBudget, 'Ngưỡng tự động tóm tắt phiên', 0, 1000000),
     agentReadTokenBudget: normalizedReadBudget(source.agentReadTokenBudget),
-    agentReadFallbackTokens: requiredRangeInteger(source.agentReadFallbackTokens, '临近总结时的精读额度', 0, 100000),
+    agentReadFallbackTokens: requiredRangeInteger(source.agentReadFallbackTokens, 'Hạn mức đọc kỹ khi sắp tóm tắt', 0, 100000),
     agentRunBudget: {
-      maxIterations: requiredRangeInteger(source.agentRunBudget.maxIterations, '主 Agent 迭代上限', 1, 100),
-      maxDelegations: requiredRangeInteger(source.agentRunBudget.maxDelegations, '派工总数上限', 0, 100),
-      maxSameAgent: requiredRangeInteger(source.agentRunBudget.maxSameAgent, '单代理派工上限', 0, 20),
-      maxConcurrent: requiredRangeInteger(source.agentRunBudget.maxConcurrent, '并发派工上限', 1, 20),
-      maxReads: requiredRangeInteger(source.agentRunBudget.maxReads, '读取批次上限', 0, 200),
-      maxExtraReads: requiredRangeInteger(source.agentRunBudget.maxExtraReads, '子代理工具轮上限', 0, 20),
+      maxIterations: requiredRangeInteger(source.agentRunBudget.maxIterations, 'Giới hạn vòng lặp của Agent chính', 1, 100),
+      maxDelegations: requiredRangeInteger(source.agentRunBudget.maxDelegations, 'Giới hạn tổng số lần giao việc', 0, 100),
+      maxSameAgent: requiredRangeInteger(source.agentRunBudget.maxSameAgent, 'Giới hạn giao việc mỗi Agent', 0, 20),
+      maxConcurrent: requiredRangeInteger(source.agentRunBudget.maxConcurrent, 'Giới hạn giao việc đồng thời', 1, 20),
+      maxReads: requiredRangeInteger(source.agentRunBudget.maxReads, 'Giới hạn lô đọc', 0, 200),
+      maxExtraReads: requiredRangeInteger(source.agentRunBudget.maxExtraReads, 'Giới hạn vòng công cụ của Agent phụ', 0, 20),
     },
     webResearch: {
       enabled: source.webResearch.enabled,
       sources: { ...source.webResearch.sources },
       searchProvider: source.webResearch.searchProvider,
       searxngBaseUrl: String(source.webResearch.searxngBaseUrl ?? '').trim(),
-      pageCharLimit: requiredRangeInteger(source.webResearch.pageCharLimit, '单页阅读字数上限', 500, 20000),
+      pageCharLimit: requiredRangeInteger(source.webResearch.pageCharLimit, 'Giới hạn số ký tự đọc mỗi trang', 500, 20000),
       blockedDomains: String(source.webResearch.blockedDomains ?? ''),
     },
     dynamics: {
-      rumorTTLDays: requiredRangeInteger(source.dynamics.rumorTTLDays, '风声等待上限', 1, 3650),
-      maxClockAdvanceDays: requiredRangeInteger(source.dynamics.maxClockAdvanceDays, '单次时钟推进上限', 0, 3650),
-      collisionEnforcement: source.dynamics.collisionEnforcement === 'relaxed' ? 'relaxed' : source.dynamics.collisionEnforcement === 'strict' ? 'strict' : (() => { throw new Error('碰撞兑现策略必须是严格或宽松'); })(),
-      missedSweepEnabled: typeof source.dynamics.missedSweepEnabled === 'boolean' ? source.dynamics.missedSweepEnabled : (() => { throw new Error('过期清扫开关无效'); })(),
+      rumorTTLDays: requiredRangeInteger(source.dynamics.rumorTTLDays, 'Giới hạn chờ của tin đồn', 1, 3650),
+      maxClockAdvanceDays: requiredRangeInteger(source.dynamics.maxClockAdvanceDays, 'Giới hạn đẩy đồng hồ mỗi lần', 0, 3650),
+      collisionEnforcement: source.dynamics.collisionEnforcement === 'relaxed' ? 'relaxed' : source.dynamics.collisionEnforcement === 'strict' ? 'strict' : (() => { throw new Error('Chính sách hiện thực hóa va chạm phải là nghiêm ngặt hoặc khoan dung'); })(),
+      missedSweepEnabled: typeof source.dynamics.missedSweepEnabled === 'boolean' ? source.dynamics.missedSweepEnabled : (() => { throw new Error('Công tắc quét hết hạn không hợp lệ'); })(),
     },
     workflow: {
-      chroniclerHotThreshold: requiredRangeInteger(source.workflow?.chroniclerHotThreshold, '编年热层阈值', 1, 512),
+      chroniclerHotThreshold: requiredRangeInteger(source.workflow?.chroniclerHotThreshold, 'Ngưỡng tầng nóng biên niên', 1, 512),
     },
     projection: {
       template: (() => {
@@ -530,19 +530,19 @@ function normalizeSettingsDraft(): WorldSimulationSettings_ACU {
     },
   };
   if (normalized.webResearch.enabled && normalized.webResearch.searchProvider === 'searxng' && !normalized.webResearch.searxngBaseUrl) {
-    throw new Error('搜索引擎选择 SearXNG 时必须填写实例地址');
+    throw new Error('Khi chọn công cụ tìm kiếm SearXNG phải nhập địa chỉ instance');
   }
   if (normalized.apiPresetMode === 'fixed') {
     const presetName = normalized.fixedApiPresetName.trim();
-    if (!presetName) throw new Error('固定 API 预设名称不能为空');
-    if (!presetExists(presetName)) throw new Error(`API 预设 "${presetName}" 不存在，请重新选择`);
+    if (!presetName) throw new Error('Tên preset API cố định không được để trống');
+    if (!presetExists(presetName)) throw new Error(`Preset API "${presetName}" không tồn tại, vui lòng chọn lại`);
   }
   for (const agentName of agentNames) {
     const choice = normalized.agentApiPresets[agentName];
     if (!choice || choice.mode !== 'fixed') continue;
     const presetName = choice.presetName.trim();
-    if (!presetName) throw new Error(`${agentLabel(agentName)} 的固定渠道必须选择预设`);
-    if (!presetExists(presetName)) throw new Error(`${agentLabel(agentName)} 渠道的 API 预设 "${presetName}" 不存在，请重新选择`);
+    if (!presetName) throw new Error(`Kênh cố định của ${agentLabel(agentName)} phải chọn preset`);
+    if (!presetExists(presetName)) throw new Error(`Preset API "${presetName}" của kênh ${agentLabel(agentName)} không tồn tại, vui lòng chọn lại`);
   }
   return normalized;
 }
@@ -574,7 +574,7 @@ async function saveSettingsNow(): Promise<void> {
     apiStore.refreshFromSettings();
     candidate = normalizeSettingsDraft();
   } catch (error) {
-    settingsError.value = error instanceof Error ? error.message : '格林推演设置无效';
+    settingsError.value = error instanceof Error ? error.message : 'Cài đặt Mô phỏng thế giới không hợp lệ';
     return;
   }
   const outcome = await runtime.saveSettings(candidate);
@@ -583,7 +583,7 @@ async function saveSettingsNow(): Promise<void> {
     settingsNotice.value = '';
   } else if (outcome === 'busy') {
     // Agent 正在运行，改动不能丢：告知用户并排队等本轮结束后落盘。
-    settingsNotice.value = '设置已修改：格林推演正在运行，将在本轮结束后自动保存并于下一轮生效。';
+    settingsNotice.value = 'Đã sửa cài đặt: Mô phỏng thế giới đang chạy, sẽ tự động lưu sau khi lượt này kết thúc và có hiệu lực từ lượt sau.';
     scheduleSettingsSave();
   }
 }
@@ -593,7 +593,7 @@ function promptGroupMeta(agentName: WorldSimulationAgentName_ACU): string {
   const prompts = settingsDraft.value?.agentPrompts[agentName];
   if (!prompts) return '';
   const enabled = prompts.filter(segment => segment.enabled !== false).length;
-  return `${enabled}/${prompts.length} 段启用`;
+  return `${enabled}/${prompts.length} đoạn được bật`;
 }
 
 function promptList(agentName: WorldSimulationAgentName_ACU): WorldSimulationPromptSegment_ACU[] | null {
@@ -603,7 +603,7 @@ function promptList(agentName: WorldSimulationAgentName_ACU): WorldSimulationPro
 function addPrompt(agentName: WorldSimulationAgentName_ACU, position: 'top' | 'bottom' = 'bottom'): void {
   const prompts = promptList(agentName);
   if (!prompts) return;
-  const segment: WorldSimulationPromptSegment_ACU = { role: 'user', content: '请填写提示词内容。', enabled: true, deletable: true, pinned: false };
+  const segment: WorldSimulationPromptSegment_ACU = { role: 'user', content: 'Vui lòng nhập nội dung prompt.', enabled: true, deletable: true, pinned: false };
   if (position === 'top') prompts.unshift(segment);
   else prompts.push(segment);
 }
@@ -663,9 +663,9 @@ function exportPrompts(): void {
     anchor.click();
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
-    promptIoNotice.value = '提示词 JSON 已导出。';
+    promptIoNotice.value = 'Đã xuất JSON prompt.';
   } catch (error) {
-    promptIoError.value = error instanceof Error ? error.message : '提示词导出失败。';
+    promptIoError.value = error instanceof Error ? error.message : 'Xuất prompt thất bại.';
   }
 }
 
@@ -681,9 +681,9 @@ async function onImportPromptsFile(event: Event): Promise<void> {
   try {
     settingsDraft.value.agentPrompts = runtime.parsePromptBundle(await file.text());
     saveSettingsImmediately();
-    promptIoNotice.value = '提示词 JSON 已导入并保存。';
+    promptIoNotice.value = 'Đã nhập và lưu JSON prompt.';
   } catch (error) {
-    promptIoError.value = error instanceof Error ? error.message : '提示词 JSON 读取失败。';
+    promptIoError.value = error instanceof Error ? error.message : 'Đọc JSON prompt thất bại.';
   }
 }
 

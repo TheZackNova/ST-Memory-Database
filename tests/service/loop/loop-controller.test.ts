@@ -95,19 +95,19 @@ describe('validateLoopStartParams_ACU', () => {
   });
   it('无提示词返回错误信息', () => {
     mockSettings.plotSettings.loopSettings.quickReplyContent = [];
-    expect(validateLoopStartParams_ACU()).toContain('提示词');
+    expect(validateLoopStartParams_ACU()).toContain('prompt');
   });
   it('提示词为 null 返回错误信息', () => {
     mockSettings.plotSettings.loopSettings.quickReplyContent = null;
-    expect(validateLoopStartParams_ACU()).toContain('提示词');
+    expect(validateLoopStartParams_ACU()).toContain('prompt');
   });
   it('倒计时为 0 返回错误信息', () => {
     mockSettings.plotSettings.loopSettings.loopTotalDuration = 0;
-    expect(validateLoopStartParams_ACU()).toContain('倒计时');
+    expect(validateLoopStartParams_ACU()).toContain('đếm ngược');
   });
   it('倒计时为负数返回错误信息', () => {
     mockSettings.plotSettings.loopSettings.loopTotalDuration = -1;
-    expect(validateLoopStartParams_ACU()).toContain('倒计时');
+    expect(validateLoopStartParams_ACU()).toContain('đếm ngược');
   });
 });
 

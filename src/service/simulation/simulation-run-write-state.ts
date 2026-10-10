@@ -28,7 +28,7 @@ export interface WorldSimulationRunWriteProof_ACU {
 
 function invalidProof_ACU(path: string): never {
   throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-    'WORLD_SIMULATION_SNAPSHOT_INVALID', 'load', `${path} 运行写入证明损坏`, false, { path }));
+    'WORLD_SIMULATION_SNAPSHOT_INVALID', 'load', `${path} bằng chứng ghi của lần chạy bị hỏng`, false, { path }));
 }
 
 export function validateWorldSimulationRunWriteProof_ACU(raw: unknown): WorldSimulationRunWriteProof_ACU {

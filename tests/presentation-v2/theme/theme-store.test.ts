@@ -327,7 +327,7 @@ describe('theme-store', () => {
       kind: 'acu-theme',
       version: 1,
       theme: { name: '旧主题' },
-    }))).toThrow('主题文件缺少 v2 主题所需的颜色模式或 token。');
+    }))).toThrow('Tệp chủ đề thiếu chế độ màu hoặc token cần thiết cho chủ đề v2.');
 
     expect(() => store.importCustomThemeFromJsonText(JSON.stringify({
       kind: 'acu-v2-theme',
@@ -337,7 +337,7 @@ describe('theme-store', () => {
         colorScheme: 'dark',
         tokens: { bg0: '#000' },
       },
-    }))).toThrow('主题文件缺少 v2 主题所需的颜色模式或 token。');
+    }))).toThrow('Tệp chủ đề thiếu chế độ màu hoặc token cần thiết cho chủ đề v2.');
 
     expect(() => store.importCustomThemeFromJsonText(JSON.stringify({
       kind: 'acu-v2-theme',
@@ -350,7 +350,7 @@ describe('theme-store', () => {
           bg0: '#000; } body { color: red',
         },
       },
-    }))).toThrow('主题文件缺少 v2 主题所需的颜色模式或 token。');
+    }))).toThrow('Tệp chủ đề thiếu chế độ màu hoặc token cần thiết cho chủ đề v2.');
   });
 
   it('深色使用灰蓝底色与冷薄荷 accent', async () => {

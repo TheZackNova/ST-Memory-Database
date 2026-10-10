@@ -126,30 +126,30 @@ const PEEK_IMAGES: Record<DeskPetPeekImage_ACU, string> = {
 const BUILTIN_IMAGES: Record<DeskPetImageKey_ACU, string> = { ...POSE_IMAGES, ...PEEK_IMAGES };
 
 const POSE_LABELS: Record<Pose, string> = {
-  idle: "发呆中",
-  blink: "发呆中",
-  "look-left": "东张西望",
-  "look-right": "东张西望",
-  "walk-a": "散步中",
-  "walk-b": "散步中",
-  roll: "打滚中",
-  "eat-a": "偷吃零食",
-  "eat-b": "偷吃零食",
-  yawn: "打哈欠",
-  snore: "打呼噜",
-  "sit-snore": "坐地上打呼噜",
-  working: "干活中",
-  struggle: "被拎起来了",
-  shy: "害羞",
-  tickle: "怕痒",
-  angry: "生气了",
-  happy: "被摸得很舒服",
-  dizzy: "被晃晕了",
-  surprised: "吓一跳",
-  wave: "打招呼",
-  huff: "气得直哈气",
-  pound: "锤屏幕",
-  knockdown: "把自己震倒了",
+  idle: "Đang thẫn thờ",
+  blink: "Đang thẫn thờ",
+  "look-left": "Nhìn quanh",
+  "look-right": "Nhìn quanh",
+  "walk-a": "Đang đi dạo",
+  "walk-b": "Đang đi dạo",
+  roll: "Đang lăn lộn",
+  "eat-a": "Ăn vụng đồ ăn vặt",
+  "eat-b": "Ăn vụng đồ ăn vặt",
+  yawn: "Ngáp",
+  snore: "Ngáy",
+  "sit-snore": "Ngồi dưới đất ngáy",
+  working: "Đang làm việc",
+  struggle: "Bị nhấc lên rồi",
+  shy: "Ngại ngùng",
+  tickle: "Nhột",
+  angry: "Giận rồi",
+  happy: "Được vuốt rất dễ chịu",
+  dizzy: "Bị lắc đến choáng",
+  surprised: "Giật mình",
+  wave: "Chào hỏi",
+  huff: "Tức đến phì phì",
+  pound: "Đập màn hình",
+  knockdown: "Tự đập mình ngã",
 };
 
 const props = defineProps<{
@@ -335,9 +335,9 @@ const rootClass = computed(() => ({
   "is-still": !motion.value.enabled,
 }));
 
-const ariaLabel = computed(() => `桌宠：${showPeek.value ? "躲在边上偷看" : POSE_LABELS[pose.value]}`);
+const ariaLabel = computed(() => `Thú cưng màn hình: ${showPeek.value ? "Nấp bên cạnh nhìn lén" : POSE_LABELS[pose.value]}`);
 const titleText = computed(() =>
-  showPeek.value ? "躲在边上偷看（悬停或点一下就探出来）" : `${POSE_LABELS[pose.value]}（可拖动，点一下有反应）`,
+  showPeek.value ? "Nấp bên cạnh nhìn lén (rê chuột hoặc chạm một cái là thò ra)" : `${POSE_LABELS[pose.value]} (có thể kéo, chạm một cái sẽ phản ứng)`,
 );
 
 function readViewport(): { width: number; height: number } {

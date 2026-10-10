@@ -72,8 +72,8 @@ describe('world catalog injection', () => {
     expect(state).not.toContain('arc-mine');
     expect(chronicle).toContain('chronicle:');
     expect(chronicle).toContain('"archiveRef":"arc-mine"');
-    expect(tools).toContain('未命中条目，用 search');
-    expect(tools).toContain('worldbook:entry:书名:uid');
+    expect(tools).toContain('chưa được kích hoạt, hãy dùng search');
+    expect(tools).toContain('worldbook:entry:tên sách:uid');
   });
 
   it('子代理切片含模块在用目录、归档概览与 similar hints', () => {
@@ -138,7 +138,7 @@ describe('world catalog injection', () => {
     ledger.seeds = [{ ...seed('seed-gate', '城门盘查'), catalyst: '守门人离岗', actorIds: ['actor-guard'], location: { region: '江南府', place: '城门' } }];
     ledger.actors = [{ ...actor('actor-guard', '守门人'), goals: ['查明失窃', '保住差事'], interests: ['赌坊'] }];
     const catalog = buildInUseWorldCatalog_ACU(ledger);
-    expect(catalog.seeds[0].summary).toBe('active lv10 hidden；@江南府·城门；催化：守门人离岗；时限第20日；人物：actor-guard');
-    expect(catalog.actors[0].summary).toBe('alive public；@北岭；目标：查明失窃、保住差事；关切：赌坊');
+    expect(catalog.seeds[0].summary).toBe('active lv10 hidden; @江南府·城门; Xúc tác: 守门人离岗; Hạn chót ngày 20; Nhân vật: actor-guard');
+    expect(catalog.actors[0].summary).toBe('alive public; @北岭; Mục tiêu: 查明失窃, 保住差事; Quan tâm: 赌坊');
   });
 });

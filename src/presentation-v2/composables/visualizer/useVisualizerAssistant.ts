@@ -60,11 +60,11 @@ function createTurnId(prefix: string): string {
 }
 
 function joinKeys(keys: unknown): string {
-  return asList(keys).map(item => String(item)).filter(Boolean).join(', ') || '字段已修改';
+  return asList(keys).map(item => String(item)).filter(Boolean).join(', ') || 'Trường đã được sửa';
 }
 
 function joinChanges(changes: unknown): string {
-  return asList(changes).map(item => String(item)).filter(Boolean).join('；') || '已修改';
+  return asList(changes).map(item => String(item)).filter(Boolean).join('; ') || 'Đã sửa';
 }
 
 function resolveEffectiveTableApiPreset(visualizer = useVisualizerStore()): string {
@@ -106,9 +106,9 @@ export function buildVisualizerAssistantDiffGroups(
   };
 
   pushSheetPatch(diff.patchedContentSheets, item => `${item.name || item.sheetKey}: ${joinChanges(item.changes)}`);
-  pushSheetPatch(diff.patchedSourceDataSheets, item => `${item.name || item.sheetKey}: 提示词字段 ${joinKeys(item.keys)}`);
-  pushSheetPatch(diff.patchedUpdateConfigSheets, item => `${item.name || item.sheetKey}: 更新参数 ${joinKeys(item.keys)}`);
-  pushSheetPatch(diff.patchedExportConfigSheets, item => `${item.name || item.sheetKey}: 世界书配置 ${joinKeys(item.keys)}`);
+  pushSheetPatch(diff.patchedSourceDataSheets, item => `${item.name || item.sheetKey}: Trường prompt ${joinKeys(item.keys)}`);
+  pushSheetPatch(diff.patchedUpdateConfigSheets, item => `${item.name || item.sheetKey}: Tham số cập nhật ${joinKeys(item.keys)}`);
+  pushSheetPatch(diff.patchedExportConfigSheets, item => `${item.name || item.sheetKey}: Cấu hình sổ thế giới ${joinKeys(item.keys)}`);
   pushSheetPatch(diff.patchedSchemaSheets, item => `${item.name || item.sheetKey}: ${joinChanges(item.changes)}`);
   pushSheetPatch(diff.renamedSheets, item => `${item.beforeName || item.sheetKey} -> ${item.afterName || item.sheetKey}`);
 
@@ -125,17 +125,17 @@ export function buildVisualizerAssistantDiffGroups(
     lockItems.push(`${item.name || item.sheetKey}: ${joinChanges(item.changes)}`);
   });
   if (diff.globalInjectionChanged) {
-    globalItems.push('全局注入配置已修改。');
+    globalItems.push('Đã sửa cấu hình chèn toàn cục.');
   }
 
   const groups: VisualizerAssistantDiffGroup[] = [
-    { key: 'current', title: '当前锚点表内容 / 结构 / 参数', tone: 'normal', items: currentItems },
-    { key: 'other', title: '其他表修改', tone: otherItems.length ? 'warning' : 'normal', items: otherItems },
-    { key: 'added', title: '新增表', tone: addedItems.length ? 'warning' : 'normal', items: addedItems },
-    { key: 'deleted', title: '删除表', tone: deletedItems.length ? 'warning' : 'normal', items: deletedItems },
-    { key: 'order', title: '表排序', tone: orderItems.length ? 'warning' : 'normal', items: orderItems },
-    { key: 'global', title: '全局注入配置', tone: globalItems.length ? 'warning' : 'normal', items: globalItems },
-    { key: 'locks', title: '锁变化', tone: lockItems.length ? 'warning' : 'normal', items: lockItems },
+    { key: 'current', title: 'Nội dung / cấu trúc / tham số bảng neo hiện tại', tone: 'normal', items: currentItems },
+    { key: 'other', title: 'Sửa đổi bảng khác', tone: otherItems.length ? 'warning' : 'normal', items: otherItems },
+    { key: 'added', title: 'Bảng mới thêm', tone: addedItems.length ? 'warning' : 'normal', items: addedItems },
+    { key: 'deleted', title: 'Bảng đã xóa', tone: deletedItems.length ? 'warning' : 'normal', items: deletedItems },
+    { key: 'order', title: 'Thứ tự bảng', tone: orderItems.length ? 'warning' : 'normal', items: orderItems },
+    { key: 'global', title: 'Cấu hình chèn toàn cục', tone: globalItems.length ? 'warning' : 'normal', items: globalItems },
+    { key: 'locks', title: 'Thay đổi khóa', tone: lockItems.length ? 'warning' : 'normal', items: lockItems },
   ];
   return groups.filter(group => group.items.length > 0);
 }
@@ -168,8 +168,8 @@ export function buildVisualizerAssistantHighRiskItems(
     const beforeCount = Number(finding?.beforeRowCount ?? -1);
     const afterCount = Number(finding?.afterRowCount ?? -1);
     const label = sheetKey
-      ? `row_id 集合缩减：${sheetKey} 的行由 ${beforeCount} 缩减到 ${afterCount}（AI 未显式请求删行，请确认是否允许）`
-      : `row_id 集合缩减：${beforeCount} → ${afterCount}（AI 未显式请求删行，请确认是否允许）`;
+      ? `Tập row_id bị thu hẹp: số hàng của ${sheetKey} giảm từ ${beforeCount} xuống ${afterCount} (AI không yêu cầu xóa hàng rõ ràng, vui lòng xác nhận có cho phép không)`
+      : `Tập row_id bị thu hẹp: ${beforeCount} → ${afterCount} (AI không yêu cầu xóa hàng rõ ràng, vui lòng xác nhận có cho phép không)`;
     add('v3_row_id_set_reduction', label, `v3-rowid:${index}:${sheetKey}`);
   });
 
@@ -177,20 +177,20 @@ export function buildVisualizerAssistantHighRiskItems(
     asList(patches).forEach(item => {
       const sheetKey = String(item?.sheetKey || '').trim();
       if (!sheetKey || sheetKey === currentKey) return;
-      add('cross_sheet_change', `跨表变更：${render(item)}`, `cross:${kind}:${sheetKey}:${render(item)}`);
+      add('cross_sheet_change', `Thay đổi liên bảng: ${render(item)}`, `cross:${kind}:${sheetKey}:${render(item)}`);
     });
   };
 
-  addCrossSheetPatch(diff?.patchedContentSheets, 'content', item => `${item.name || item.sheetKey} 的数据内容`);
-  addCrossSheetPatch(diff?.patchedSourceDataSheets, 'source', item => `${item.name || item.sheetKey} 的提示词字段`);
-  addCrossSheetPatch(diff?.patchedUpdateConfigSheets, 'update', item => `${item.name || item.sheetKey} 的更新参数`);
-  addCrossSheetPatch(diff?.patchedExportConfigSheets, 'export', item => `${item.name || item.sheetKey} 的世界书配置`);
-  addCrossSheetPatch(diff?.patchedSchemaSheets, 'schema', item => `${item.name || item.sheetKey} 的结构`);
-  addCrossSheetPatch(diff?.patchedLockSheets, 'locks', item => `${item.name || item.sheetKey} 的锁设置`);
-  addCrossSheetPatch(diff?.renamedSheets, 'rename', item => `${item.beforeName || item.sheetKey} 重命名为 ${item.afterName || item.sheetKey}`);
+  addCrossSheetPatch(diff?.patchedContentSheets, 'content', item => `Nội dung dữ liệu của ${item.name || item.sheetKey}`);
+  addCrossSheetPatch(diff?.patchedSourceDataSheets, 'source', item => `Trường prompt của ${item.name || item.sheetKey}`);
+  addCrossSheetPatch(diff?.patchedUpdateConfigSheets, 'update', item => `Tham số cập nhật của ${item.name || item.sheetKey}`);
+  addCrossSheetPatch(diff?.patchedExportConfigSheets, 'export', item => `Cấu hình sổ thế giới của ${item.name || item.sheetKey}`);
+  addCrossSheetPatch(diff?.patchedSchemaSheets, 'schema', item => `Cấu trúc của ${item.name || item.sheetKey}`);
+  addCrossSheetPatch(diff?.patchedLockSheets, 'locks', item => `Cài đặt khóa của ${item.name || item.sheetKey}`);
+  addCrossSheetPatch(diff?.renamedSheets, 'rename', item => `${item.beforeName || item.sheetKey} đổi tên thành ${item.afterName || item.sheetKey}`);
 
   asList(diff?.movedSheets).forEach(item => {
-    add('cross_sheet_change', `跨表变更：调整表排序 ${item.name || item.sheetKey}`, `cross:move:${item.sheetKey}:${item.fromIndex}:${item.toIndex}`);
+    add('cross_sheet_change', `Thay đổi liên bảng: điều chỉnh thứ tự bảng ${item.name || item.sheetKey}`, `cross:move:${item.sheetKey}:${item.fromIndex}:${item.toIndex}`);
   });
 
   return items;
@@ -208,7 +208,7 @@ function buildPriorTurns(turns: VisualizerAssistantTurn[], currentSheetKey: stri
         || undefined;
       const failureMessage = turn.result.session?.lastFailure?.message;
       const user = failureMessage
-        ? `${turn.userRequest}\n\n（上一轮输出未通过本地校验：${failureMessage}）`
+        ? `${turn.userRequest}\n\n(Đầu ra vòng trước không qua kiểm tra cục bộ: ${failureMessage})`
         : turn.userRequest;
       return {
         user,
@@ -317,7 +317,7 @@ export function useVisualizerAssistant() {
   const riskConfirmations = computed(() => visualizer.assistantRiskConfirmations);
 
   const apiPresetOptions = computed(() => [
-    { value: '', label: '当前配置' },
+    { value: '', label: 'Cấu hình hiện tại' },
     ...(Array.isArray(settings_ACU.apiPresets) ? settings_ACU.apiPresets : [])
       .map((preset: any) => String(preset?.name || '').trim())
       .filter(Boolean)
@@ -328,7 +328,7 @@ export function useVisualizerAssistant() {
     const key = getResultAnchorSheetKey(latestResult.value) || visualizer.currentSheetKey;
     const sheet = key && visualizer.tempData ? visualizer.tempData[key] : null;
     const name = String(sheet?.name || '').trim();
-    if (!key) return '当前未选中表';
+    if (!key) return 'Hiện chưa chọn bảng';
     return `${name || key} (${key})`;
   });
 
@@ -379,12 +379,12 @@ export function useVisualizerAssistant() {
     const session = latestResult.value?.session;
     if (!session) return '';
     const stopReasonLabel: Record<string, string> = {
-      empty_operations: 'AI 未生成任何修改（可继续重试）',
-      repair_retry_capped: '修复重试已达上限',
-      environment_failure: 'SQLite 引擎不可用',
+      empty_operations: 'AI không tạo ra sửa đổi nào (có thể tiếp tục thử lại)',
+      repair_retry_capped: 'Số lần thử sửa đã đạt giới hạn',
+      environment_failure: 'Công cụ SQLite không khả dụng',
     };
     const repairPart =
-      session.repairRetriesUsed > 0 ? ` · 修复 ${session.repairRetriesUsed} 次` : '';
+      session.repairRetriesUsed > 0 ? ` · sửa ${session.repairRetriesUsed} lần` : '';
     return `${stopReasonLabel[session.stopReason] || session.stopReason}${repairPart}`;
   });
 
@@ -415,11 +415,11 @@ export function useVisualizerAssistant() {
   function savePrompt(): boolean {
     const result = setTemplateAssistantPrompt_ACU(promptSegments.value);
     if (!result.ok) {
-      toastStore.error(result.message || '提示词保存失败。', { muteable: false });
+      toastStore.error(result.message || 'Lưu prompt thất bại.', { muteable: false });
       return false;
     }
     promptDirty.value = false;
-    toastStore.success('提示词已保存，下一次会话生效。', { muteable: false });
+    toastStore.success('Đã lưu prompt, có hiệu lực từ phiên tiếp theo.', { muteable: false });
     return true;
   }
 
@@ -458,17 +458,17 @@ export function useVisualizerAssistant() {
       .text()
       .then((text) => JSON.parse(text))
       .then((parsed) => {
-        if (!Array.isArray(parsed)) throw new Error('提示词 JSON 必须是数组。');
+        if (!Array.isArray(parsed)) throw new Error('JSON prompt phải là mảng.');
         promptSegments.value = parsed.map((seg: any) => ({
           role: String(seg?.role || 'SYSTEM'),
           content: String(seg?.content ?? ''),
           deletable: seg?.deletable !== false,
         }));
         promptDirty.value = true;
-        toastStore.success('提示词 JSON 已载入，保存后生效。', { muteable: false });
+        toastStore.success('Đã nạp JSON prompt, lưu để áp dụng.', { muteable: false });
       })
       .catch((error: any) => {
-        toastStore.error(error?.message || '提示词 JSON 读取失败。', { muteable: false });
+        toastStore.error(error?.message || 'Đọc JSON prompt thất bại.', { muteable: false });
       });
   }
 
@@ -485,7 +485,7 @@ export function useVisualizerAssistant() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      toastStore.error(error?.message || '提示词导出失败。', { muteable: false });
+      toastStore.error(error?.message || 'Xuất prompt thất bại.', { muteable: false });
     }
   }
 
@@ -519,9 +519,9 @@ export function useVisualizerAssistant() {
   async function runWithRepairFeedback(feedbackText: string): Promise<boolean> {
     const feedback = String(feedbackText || '').trim();
     const baseRequest = String(userRequest.value || '').trim();
-    const combined = feedback ? [baseRequest, feedback].filter(Boolean).join('\n\n补充要求：') : baseRequest;
+    const combined = feedback ? [baseRequest, feedback].filter(Boolean).join('\n\nYêu cầu bổ sung: ') : baseRequest;
     if (!combined.trim()) {
-      visualizer.assistantErrorMessage = '请输入改表需求。';
+      visualizer.assistantErrorMessage = 'Vui lòng nhập yêu cầu sửa bảng.';
       return false;
     }
     userRequest.value = combined.trim();
@@ -546,11 +546,11 @@ export function useVisualizerAssistant() {
   async function run(): Promise<boolean> {
     const request = String(userRequest.value || '').trim();
     if (!request) {
-      visualizer.assistantErrorMessage = '请输入改表需求。';
+      visualizer.assistantErrorMessage = 'Vui lòng nhập yêu cầu sửa bảng.';
       return false;
     }
     if (!visualizer.tempData || !visualizer.currentSheetKey) {
-      visualizer.assistantErrorMessage = '请先选中一张表后再使用 AI 改表助手。';
+      visualizer.assistantErrorMessage = 'Vui lòng chọn một bảng trước khi dùng trợ lý AI sửa bảng.';
       return false;
     }
 
@@ -590,7 +590,7 @@ export function useVisualizerAssistant() {
         },
       });
       if (requestSheetKey !== visualizer.currentSheetKey) {
-        visualizer.assistantErrorMessage = '当前选中表已变化，请重新生成 AI 草稿。';
+        visualizer.assistantErrorMessage = 'Bảng đang chọn đã thay đổi, vui lòng tạo lại bản nháp AI.';
         appendErrorTurn(
           visualizer.assistantErrorMessage,
           requestSheetKey,
@@ -619,7 +619,7 @@ export function useVisualizerAssistant() {
         appendErrorTurn(error.message, requestSheetKey, (error as any)?.failureRawText);
         toastStore.warning(error.message, { muteable: false });
       } else {
-        const message = error instanceof Error ? error.message : 'AI 改表助手执行失败。';
+        const message = error instanceof Error ? error.message : 'Trợ lý AI sửa bảng thực thi thất bại.';
         visualizer.assistantErrorMessage = message;
         appendErrorTurn(message, requestSheetKey, (error as any)?.failureRawText);
         logWarn_ACU('[ACU-V2 Visualizer Assistant] run failed:', error);
@@ -634,7 +634,7 @@ export function useVisualizerAssistant() {
   /** 删除一条会话记录。运行中禁止删除，避免与 in-flight 会话写入竞争。 */
   function deleteTurn(turnId: string): boolean {
     if (isRunning.value) {
-      toastStore.warning('会话运行中，暂不能删除记录。', { muteable: false });
+      toastStore.warning('Phiên đang chạy, tạm thời không thể xóa bản ghi.', { muteable: false });
       return false;
     }
     visualizer.removeAssistantTurn(turnId);
@@ -647,7 +647,7 @@ export function useVisualizerAssistant() {
    */
   async function regenerateFromUserTurn(turn: VisualizerAssistantTurn): Promise<boolean> {
     if (isRunning.value) {
-      toastStore.warning('会话运行中，暂不能重新生成。', { muteable: false });
+      toastStore.warning('Phiên đang chạy, tạm thời không thể tạo lại.', { muteable: false });
       return false;
     }
     if (turn.type !== 'user') return false;
@@ -709,23 +709,23 @@ export function useVisualizerAssistant() {
     }
     if (visualizer.currentSheetKey) visualizer.mode = 'data';
     visualizer.setDirty(true);
-    toastStore.success('AI 草稿已应用到编辑器，保存前不会写回聊天。', { muteable: false });
+    toastStore.success('Đã áp dụng bản nháp AI vào trình chỉnh sửa, sẽ không ghi lại vào cuộc trò chuyện trước khi lưu.', { muteable: false });
     return true;
   }
 
   function getTurnApplyBlockReason(turn: VisualizerAssistantTurn): string {
-    if (isRunning.value) return '会话运行中，暂不能应用。';
-    if (visualizer.isSaving) return '保存进行中，暂不能应用。';
-    if (!getTurnApplyPayload(turn)) return '这张卡片没有可应用的变更。';
-    if (!isTurnAllHighRiskConfirmed(turn)) return '请先确认该卡片列出的所有高风险项。';
+    if (isRunning.value) return 'Phiên đang chạy, tạm thời không thể áp dụng.';
+    if (visualizer.isSaving) return 'Đang lưu, tạm thời không thể áp dụng.';
+    if (!getTurnApplyPayload(turn)) return 'Thẻ này không có thay đổi nào có thể áp dụng.';
+    if (!isTurnAllHighRiskConfirmed(turn)) return 'Vui lòng xác nhận tất cả mục rủi ro cao được liệt kê trên thẻ này trước.';
     const payload = getTurnApplyPayload(turn);
     if (payload && payload.anchorSheetKey && payload.anchorSheetKey !== visualizer.currentSheetKey) {
-      return '这份草稿属于其他锚点表，请切回原表或重新生成。';
+      return 'Bản nháp này thuộc bảng neo khác, vui lòng chuyển về bảng gốc hoặc tạo lại.';
     }
-    if (payload && !payload.baselineFingerprint) return '缺少基线指纹，无法校验当前结构，请重新生成。';
+    if (payload && !payload.baselineFingerprint) return 'Thiếu dấu vân tay mốc cơ sở, không thể kiểm tra cấu trúc hiện tại, vui lòng tạo lại.';
     const currentFingerprint = buildTemplateAssistantFingerprint_ACU(visualizer.tempData || {});
     if (payload && payload.baselineFingerprint !== currentFingerprint) {
-      return '当前结构已变化，该草稿已失效，请重新生成。';
+      return 'Cấu trúc hiện tại đã thay đổi, bản nháp này đã mất hiệu lực, vui lòng tạo lại.';
     }
     return '';
   }
@@ -750,7 +750,7 @@ export function useVisualizerAssistant() {
     }
     const payload = getTurnApplyPayload(turn);
     if (!payload) {
-      toastStore.warning('这张卡片没有可应用的变更。', { muteable: false });
+      toastStore.warning('Thẻ này không có thay đổi nào có thể áp dụng.', { muteable: false });
       return false;
     }
     return applyCompileResultToVisualizer(payload);
@@ -779,8 +779,8 @@ export function useVisualizerAssistant() {
   function getTurnSummary(turn: VisualizerAssistantTurn): string {
     if (turn.type === 'user') return turn.userRequest;
     if (turn.type === 'error') return turn.errorMessage;
-    if (turn.type === 'round') return turn.roundData.draft.summary || '无摘要';
-    return turn.result.draft.summary || '无摘要';
+    if (turn.type === 'round') return turn.roundData.draft.summary || 'Không có tóm tắt';
+    return turn.result.draft.summary || 'Không có tóm tắt';
   }
 
   /** 对 final turn 生成会话摘要（读 turn.result.session，而非 latestResult）。 */
@@ -789,12 +789,12 @@ export function useVisualizerAssistant() {
     const session = turn.result.session;
     if (!session) return '';
     const stopReasonLabel: Record<string, string> = {
-      empty_operations: 'AI 未生成任何修改（可继续重试）',
-      repair_retry_capped: '修复重试已达上限',
-      environment_failure: 'SQLite 引擎不可用',
+      empty_operations: 'AI không tạo ra sửa đổi nào (có thể tiếp tục thử lại)',
+      repair_retry_capped: 'Số lần thử sửa đã đạt giới hạn',
+      environment_failure: 'Công cụ SQLite không khả dụng',
     };
     const repairPart =
-      session.repairRetriesUsed > 0 ? ` · 修复 ${session.repairRetriesUsed} 次` : '';
+      session.repairRetriesUsed > 0 ? ` · sửa ${session.repairRetriesUsed} lần` : '';
     return `${stopReasonLabel[session.stopReason] || session.stopReason}${repairPart}`;
   }
 
@@ -826,7 +826,7 @@ export function useVisualizerAssistant() {
       guardController.invalidate();
       if (isRunning.value) {
         visualizer.assistantIsRunning = false;
-        visualizer.assistantErrorMessage = '会话已失效（结构变化或切表）。';
+        visualizer.assistantErrorMessage = 'Phiên đã mất hiệu lực (cấu trúc thay đổi hoặc đổi bảng).';
       }
       syncApiPresetFromCurrentSheet();
     },

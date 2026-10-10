@@ -38,9 +38,9 @@ function ensureOverlayStyle_ACU(): void {
 export function showRemoteMemoryArchiveProgressOverlay_ACU(
     options: ShowRemoteMemoryArchiveProgressOptions_ACU = {},
 ): void {
-    const title = String(options.title || '远记忆归档进行中').trim() || '远记忆归档进行中';
-    const message = String(options.message || '正在准备执行远记忆归档...').trim() || '正在准备执行远记忆归档...';
-    const cancelLabel = String(options.cancelLabel || '终止归档').trim() || '终止归档';
+    const title = String(options.title || 'Đang lưu trữ ký ức xa').trim() || 'Đang lưu trữ ký ức xa';
+    const message = String(options.message || 'Đang chuẩn bị lưu trữ ký ức xa...').trim() || 'Đang chuẩn bị lưu trữ ký ức xa...';
+    const cancelLabel = String(options.cancelLabel || 'Dừng lưu trữ').trim() || 'Dừng lưu trữ';
 
     hideRemoteMemoryArchiveProgressOverlay_ACU();
     ensureOverlayStyle_ACU();
@@ -129,7 +129,7 @@ export function markRemoteMemoryArchiveCancelling_ACU(message?: string, cancelLa
     const $cancel = jQuery_API_ACU(`#${REMOTE_MEMORY_ARCHIVE_CANCEL_ID_ACU}`);
     if ($cancel.length) {
         $cancel.prop('disabled', true);
-        $cancel.text(String(cancelLabel || '正在终止...').trim() || '正在终止...');
+        $cancel.text(String(cancelLabel || 'Đang dừng...').trim() || 'Đang dừng...');
         $cancel.css({
             opacity: '0.72',
             cursor: 'not-allowed',

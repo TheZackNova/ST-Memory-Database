@@ -39,15 +39,15 @@ export function getLastHostCapabilities_ACU(): HostCapabilityMap_ACU | null {
 
 /** 生成人类可读的能力诊断文本（缺失项排前） */
 export function formatHostCapabilities_ACU(capabilities: HostCapabilityMap_ACU | null): string {
-    if (!capabilities) return '（能力表尚未生成）';
+    if (!capabilities) return '(Bảng năng lực chưa được tạo)';
     const missing = Object.entries(capabilities).filter(([, backend]) => backend === 'missing').map(([name]) => name);
     const resolved = Object.entries(capabilities)
         .filter(([, backend]) => backend !== 'missing')
         .map(([name, backend]) => `${name}=${backend}`);
     const parts: string[] = [];
-    if (missing.length > 0) parts.push(`缺失: ${missing.join(', ')}`);
-    if (resolved.length > 0) parts.push(`已解析: ${resolved.join(', ')}`);
-    return parts.join('；') || '（空能力表）';
+    if (missing.length > 0) parts.push(`Thiếu: ${missing.join(', ')}`);
+    if (resolved.length > 0) parts.push(`Đã phân giải: ${resolved.join(', ')}`);
+    return parts.join('; ') || '(Bảng năng lực rỗng)';
 }
 
 function hasFn_ACU(obj: any, name: string): boolean {

@@ -171,7 +171,7 @@ describe('cancelContentOptimization_ACU', () => {
   it('取消优化', () => {
     const result = cancelContentOptimization_ACU();
     expect(result.cancelled).toBe(true);
-    expect(result.reason).toContain('终止');
+    expect(result.reason).toContain('chấm dứt');
   });
 
   it('自定义取消原因', () => {

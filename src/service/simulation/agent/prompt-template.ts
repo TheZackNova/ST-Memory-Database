@@ -18,35 +18,35 @@ function fail_ACU(message: string, details?: Record<string, unknown>, phase: Wor
 }
 
 export function validateWorldSimulationPromptSegments_ACU(value: unknown, agentName: WorldSimulationAgentName_ACU, phase: WorldSimulationErrorPhase_ACU = 'load'): WorldSimulationPromptSegment_ACU[] {
-  if (!Array.isArray(value) || !value.length) fail_ACU('提示词必须是非空数组', { agentName }, phase);
+  if (!Array.isArray(value) || !value.length) fail_ACU('Prompt phải là mảng không rỗng', { agentName }, phase);
   const result = value.map((item, index) => {
-    if (!item || typeof item !== 'object' || Array.isArray(item)) fail_ACU('提示词段必须是对象', { agentName, index }, phase);
+    if (!item || typeof item !== 'object' || Array.isArray(item)) fail_ACU('Đoạn prompt phải là đối tượng', { agentName, index }, phase);
     const raw = item as Record<string, unknown>;
-    if (Object.keys(raw).some(key => !['role', 'content', 'snapshotTemplate', 'enabled', 'deletable', 'pinned'].includes(key))) fail_ACU('提示词段包含未知字段', { agentName, index }, phase);
+    if (Object.keys(raw).some(key => !['role', 'content', 'snapshotTemplate', 'enabled', 'deletable', 'pinned'].includes(key))) fail_ACU('Đoạn prompt chứa trường không xác định', { agentName, index }, phase);
     if (typeof raw.content !== 'string' || !raw.content.trim() || (!['system', 'user', 'assistant'].includes(String(raw.role))
-      && !(raw.role === 'history' && isAgentHistorySlot_ACU(raw as { content: string })))) fail_ACU('提示词段角色或内容非法', { agentName, index }, phase);
-    if (typeof raw.enabled !== 'boolean' || typeof raw.deletable !== 'boolean' || typeof raw.pinned !== 'boolean') fail_ACU('提示词段开关非法', { agentName, index }, phase);
+      && !(raw.role === 'history' && isAgentHistorySlot_ACU(raw as { content: string })))) fail_ACU('Vai trò hoặc nội dung của đoạn prompt không hợp lệ', { agentName, index }, phase);
+    if (typeof raw.enabled !== 'boolean' || typeof raw.deletable !== 'boolean' || typeof raw.pinned !== 'boolean') fail_ACU('Công tắc của đoạn prompt không hợp lệ', { agentName, index }, phase);
     if (raw.snapshotTemplate !== undefined && (typeof raw.snapshotTemplate !== 'string'
       || !isAgentSnapshotSlot_ACU(raw as { content: string })
-      || /\$(?:HISTORY_ANCHOR|RUNTIME_SNAPSHOT)\b/.test(raw.snapshotTemplate))) fail_ACU('快照模板必须属于快照卡，且不能嵌套历史或快照插入点', { agentName, index }, phase);
+      || /\$(?:HISTORY_ANCHOR|RUNTIME_SNAPSHOT)\b/.test(raw.snapshotTemplate))) fail_ACU('Mẫu snapshot phải thuộc thẻ snapshot và không được lồng điểm chèn lịch sử hoặc snapshot', { agentName, index }, phase);
     return { role: raw.role as string, content: raw.content, ...(raw.snapshotTemplate === undefined ? {} : { snapshotTemplate: raw.snapshotTemplate as string }), enabled: raw.enabled, deletable: raw.deletable, pinned: raw.pinned };
 
   });
   const guidance = result.filter(segment => (segment.snapshotTemplate ?? segment.content).includes('$WORLD_USER_REQUIREMENTS') || (segment.snapshotTemplate ?? segment.content).includes('$WORLD_USER_GUIDANCE'));
   const editableSnapshot = result.some(segment => isAgentSnapshotSlot_ACU(segment) && segment.snapshotTemplate !== undefined);
   if (guidance.length > 1 || (!editableSnapshot && guidance.length !== 1)
-    || guidance.some(segment => !segment.enabled || (!isAgentSnapshotSlot_ACU(segment) && (!segment.deletable || segment.pinned)))) fail_ACU('用户要求/guidance 必须位于唯一启用的可编辑模板中', { agentName }, phase);
+    || guidance.some(segment => !segment.enabled || (!isAgentSnapshotSlot_ACU(segment) && (!segment.deletable || segment.pinned)))) fail_ACU('Yêu cầu của người dùng/guidance phải nằm trong mẫu có thể chỉnh sửa duy nhất đang bật', { agentName }, phase);
   for (const segment of result) for (const text of [segment.content, segment.snapshotTemplate ?? '']) {
-    for (const token of text.match(PLACEHOLDER_PATTERN_ACU) ?? []) if (!(WORLD_SIMULATION_PROMPT_PLACEHOLDERS_ACU as readonly string[]).includes(token)) fail_ACU('提示词包含未知占位符', { agentName, token }, phase);
+    for (const token of text.match(PLACEHOLDER_PATTERN_ACU) ?? []) if (!(WORLD_SIMULATION_PROMPT_PLACEHOLDERS_ACU as readonly string[]).includes(token)) fail_ACU('Prompt chứa placeholder không xác định', { agentName, token }, phase);
   }
   return result;
 }
 
 export function validateWorldSimulationAgentPrompts_ACU(value: unknown, phase: WorldSimulationErrorPhase_ACU = 'load'): WorldSimulationAgentPrompts_ACU {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) fail_ACU('agentPrompts 必须是对象', undefined, phase);
+  if (!value || typeof value !== 'object' || Array.isArray(value)) fail_ACU('agentPrompts phải là đối tượng', undefined, phase);
   const raw = value as Record<string, unknown>;
   const retired = new Set<string>(WORLD_SIMULATION_RETIRED_AGENT_NAMES_ACU);
-  if (Object.keys(raw).some(key => !(WORLD_SIMULATION_AGENT_NAMES_ACU as readonly string[]).includes(key) && !retired.has(key))) fail_ACU('agentPrompts 包含未知角色', undefined, phase);
+  if (Object.keys(raw).some(key => !(WORLD_SIMULATION_AGENT_NAMES_ACU as readonly string[]).includes(key) && !retired.has(key))) fail_ACU('agentPrompts chứa vai trò không xác định', undefined, phase);
   const result = {} as WorldSimulationAgentPrompts_ACU;
   for (const name of WORLD_SIMULATION_AGENT_NAMES_ACU) {
     if (raw[name] === undefined) {
@@ -82,14 +82,14 @@ export async function renderWorldSimulationPrompt_ACU(
   for (const token of used) {
     if (token === '$HISTORY_ANCHOR') { values.set(token, AGENT_HISTORY_SENTINEL_ACU); continue; }
     if (token === '$RUNTIME_SNAPSHOT') { values.set(token, AGENT_SNAPSHOT_SENTINEL_ACU); continue; }
-    if (!Object.prototype.hasOwnProperty.call(resolvers, token) || typeof resolvers[token] !== 'function') fail_ACU('缺少已使用占位符的授权 resolver', { agentName, token });
+    if (!Object.prototype.hasOwnProperty.call(resolvers, token) || typeof resolvers[token] !== 'function') fail_ACU('Thiếu resolver được ủy quyền cho placeholder đã dùng', { agentName, token });
     values.set(token, untrustedBlock_ACU(token, String(await resolvers[token]!())));
   }
   const messages = enabled.map(segment => ({
     role: segment.role,
     content: segment.content.replace(PLACEHOLDER_PATTERN_ACU, token => values.get(token as WorldSimulationPromptPlaceholder_ACU) ?? token),
   }));
-  if (messages.some(message => (message.content.match(PLACEHOLDER_PATTERN_ACU) ?? []).length > 0)) fail_ACU('渲染后仍有残留占位符', { agentName });
+  if (messages.some(message => (message.content.match(PLACEHOLDER_PATTERN_ACU) ?? []).length > 0)) fail_ACU('Sau khi render vẫn còn placeholder sót lại', { agentName });
   return { messages, usedPlaceholders: [...used] };
 }
 
@@ -103,7 +103,7 @@ export function exportWorldSimulationPrompts_ACU(prompts: unknown): string {
 
 export function importWorldSimulationPrompts_ACU(serialized: string): WorldSimulationAgentPrompts_ACU {
   let parsed: unknown;
-  try { parsed = JSON.parse(serialized); } catch { fail_ACU('提示词导入 JSON 非法'); }
+  try { parsed = JSON.parse(serialized); } catch { fail_ACU('JSON nhập prompt không hợp lệ'); }
   return validateWorldSimulationAgentPrompts_ACU(parsed);
 }
 

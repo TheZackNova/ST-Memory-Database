@@ -25,11 +25,11 @@ export function validateLoopStartParams_ACU(): string | null {
     const loopDuration = (loopSettings.loopTotalDuration || 0) * 60 * 1000;
 
     if (!loopSettings.quickReplyContent || !Array.isArray(loopSettings.quickReplyContent) || loopSettings.quickReplyContent.length === 0) {
-        return '请先添加至少一个循环提示词';
+        return 'Hãy thêm ít nhất một prompt vòng lặp trước';
     }
 
     if (loopDuration <= 0) {
-        return '请设置有效的总倒计时 (大于0分钟)';
+        return 'Hãy đặt tổng thời gian đếm ngược hợp lệ (lớn hơn 0 phút)';
     }
 
     return null;

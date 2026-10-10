@@ -42,7 +42,7 @@ describe('mixed-storage-snapshot-transfer', () => {
     const source = decision();
     source.legacyAudit.sourceData = JSON.parse('{"sheet_0":{"__proto__":{"polluted":true}}}');
 
-    expect(() => buildMixedStorageSnapshotTransfer_ACU(source)).toThrow('危险键');
+    expect(() => buildMixedStorageSnapshotTransfer_ACU(source)).toThrow('khóa nguy hiểm');
   });
 
   it('以消毒后的 scope、决策 id 和时间戳生成可下载文件名，并绑定相同关联信息', () => {

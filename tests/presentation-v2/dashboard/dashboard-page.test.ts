@@ -310,7 +310,7 @@ describe("DashboardPage", () => {
     expect(rows[0].skip).toBe(2);
     expect(rows[0].hasTrackedUpdate).toBe(false);
     expect(rows[0].hasAnyData).toBe(false);
-    expect(rows[0].lastUpdatedLabel).toBe("未初始");
+    expect(rows[0].lastUpdatedLabel).toBe("Chưa khởi tạo");
   });
 
   it("runtime 为 null 时模板回退以 stripSeedRows 读取全局模板", async () => {
@@ -333,8 +333,8 @@ describe("DashboardPage", () => {
 
     expect(source).toContain("dashboardCopy.panels.healthTitle");
     expect(source).toContain("dashboardCopy.panels.togglesTitle");
-    expect(copySource).toContain('healthTitle: "运行概览"');
-    expect(copySource).toContain('togglesTitle: "开关"');
+    expect(copySource).toContain('healthTitle: "Tổng quan hoạt động"');
+    expect(copySource).toContain('togglesTitle: "Công tắc"');
     expect(source).not.toContain("ConfigStatusPanel");
     expect(source).not.toContain(
       "grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);",
@@ -353,7 +353,7 @@ describe("DashboardPage", () => {
     expect(text).not.toContain("配置状态");
     expect(text).not.toContain("当前使用 table-fast");
     expect(text).not.toContain("默认预设（全局）");
-    expect(text).not.toContain("存储模式原生SQL");
+    expect(text).not.toContain("Chế độ lưu trữGốcSQL");
     expect(
       page!.querySelector(".acu-v2-dashboard-page__setup-item"),
     ).toBeNull();
@@ -362,20 +362,20 @@ describe("DashboardPage", () => {
     ).toBeNull();
     expect(text).not.toContain("下一次");
     expect(text).not.toContain("事件记录");
-    expect(text).toContain("运行概览");
+    expect(text).toContain("Tổng quan hoạt động");
     expect(text).toContain("API");
-    expect(text).toContain("表格更新");
-    expect(text).toContain("SQL 模式");
-    expect(text).toContain("交火向量");
-    expect(text).toContain("运行日志");
+    expect(text).toContain("Cập nhật bảng");
+    expect(text).toContain("Chế độ SQL");
+    expect(text).toContain("Vector giao hỏa");
+    expect(text).toContain("Nhật ký chạy");
 
     const vectorHealth = Array.from(
       page!.querySelectorAll<HTMLElement>(
         ".acu-v2-dashboard-page__health-item",
       ),
-    ).find((item) => (item.textContent || "").includes("交火向量"));
+    ).find((item) => (item.textContent || "").includes("Vector giao hỏa"));
     expect(vectorHealth).toBeDefined();
-    expect(vectorHealth!.textContent || "").toContain("未启用");
+    expect(vectorHealth!.textContent || "").toContain("Chưa bật");
     expect(
       vectorHealth!.classList.contains(
         "acu-v2-dashboard-page__health-item--info",
@@ -384,14 +384,14 @@ describe("DashboardPage", () => {
     expect(vectorHealth!.querySelector(".acu-badge--neutral")).not.toBeNull();
 
     // 基础设置默认呈现
-    expect(text).toContain("基础设置");
+    expect(text).toContain("Cài đặt cơ bản");
     expect(text).not.toContain("功能开关");
-    expect(text).toContain("高级设置");
-    expect(text).toContain("自动更新");
-    expect(text).toContain("静默模式");
-    expect(text).toContain("桌面宠物");
-    expect(text).toContain("开启流式输出");
-    expect(text).toContain("0TK 占用模式");
+    expect(text).toContain("Cài đặt nâng cao");
+    expect(text).toContain("Cập nhật tự động");
+    expect(text).toContain("Chế độ im lặng");
+    expect(text).toContain("Thú cưng màn hình");
+    expect(text).toContain("Bật xuất streaming");
+    expect(text).toContain("Chế độ chiếm 0TK");
 
     const visibleToggleKeys = Array.from(
       document.querySelectorAll<HTMLButtonElement>(
@@ -414,12 +414,12 @@ describe("DashboardPage", () => {
     ).toBeNull();
     expect(text).not.toContain("启用条件模板功能");
     expect(text).not.toContain("交火模式默认关闭");
-    expect(text).not.toContain("启用开发者选项");
+    expect(text).not.toContain("Bật tùy chọn nhà phát triển");
     expect(text).not.toContain("启用SQL存储");
     // 旧存储模式 radio 不再由配置状态面板承载
     expect(text).not.toContain("决定表格数据如何持久化");
     expect(
-      document.querySelector('div[role="radiogroup"][aria-label="存储模式"]'),
+      document.querySelector('div[role="radiogroup"][aria-label="Chế độ lưu trữ"]'),
     ).toBeNull();
     expect(text).not.toContain("SQLite");
 
@@ -449,16 +449,16 @@ describe("DashboardPage", () => {
       ),
     );
     const tableHealth = healthItems.find((item) =>
-      (item.textContent || "").includes("表格更新"),
+      (item.textContent || "").includes("Cập nhật bảng"),
     );
     const sqlHealth = healthItems.find((item) =>
-      (item.textContent || "").includes("SQL 模式"),
+      (item.textContent || "").includes("Chế độ SQL"),
     );
 
     expect(tableHealth).toBeDefined();
     expect(sqlHealth).toBeDefined();
     for (const item of [tableHealth!, sqlHealth!]) {
-      expect(item.textContent || "").toContain("未加载聊天");
+      expect(item.textContent || "").toContain("Chưa nạp cuộc trò chuyện");
       expect(
         item.classList.contains("acu-v2-dashboard-page__health-item--info"),
       ).toBe(true);
@@ -468,9 +468,9 @@ describe("DashboardPage", () => {
       expect(item.querySelector(".acu-badge--neutral")).not.toBeNull();
       expect(item.querySelector("button")).toBeNull();
     }
-    expect(tableHealth!.textContent || "").toContain("无法读取对应数据库表格");
+    expect(tableHealth!.textContent || "").toContain("không thể đọc bảng cơ sở dữ liệu tương ứng");
     expect(sqlHealth!.textContent || "").toContain(
-      "无法检查当前聊天的表格模板是否适配",
+      "tạm thời không thể kiểm tra mẫu bảng của cuộc trò chuyện hiện tại có phù hợp hay không",
     );
 
     mount.__resetAcuV2MountForTests();
@@ -485,13 +485,13 @@ describe("DashboardPage", () => {
       document.querySelectorAll<HTMLElement>(
         ".acu-v2-dashboard-page__health-item",
       ),
-    ).find((item) => (item.textContent || "").includes("SQL 模式"));
+    ).find((item) => (item.textContent || "").includes("Chế độ SQL"));
 
     expect(sqlHealth).toBeDefined();
-    expect(sqlHealth!.textContent || "").toContain("模板适配");
-    expect(sqlHealth!.textContent || "").toContain("当前存储模式是 SQLite");
+    expect(sqlHealth!.textContent || "").toContain("Mẫu phù hợp");
+    expect(sqlHealth!.textContent || "").toContain("Chế độ lưu trữ hiện tại là SQLite");
     expect(sqlHealth!.textContent || "").toContain(
-      "当前 2 张表都是适配 SQL 的表格模板",
+      "2 bảng hiện tại đều là mẫu bảng phù hợp với SQL",
     );
     expect(sqlHealth!.querySelector("button")).toBeNull();
 
@@ -509,18 +509,18 @@ describe("DashboardPage", () => {
       document.querySelectorAll<HTMLElement>(
         ".acu-v2-dashboard-page__health-item",
       ),
-    ).find((item) => (item.textContent || "").includes("SQL 模式"));
+    ).find((item) => (item.textContent || "").includes("Chế độ SQL"));
 
     expect(sqlHealth).toBeDefined();
-    expect(sqlHealth!.textContent || "").toContain("模板未适配");
-    expect(sqlHealth!.textContent || "").toContain("当前存储模式是 SQLite");
+    expect(sqlHealth!.textContent || "").toContain("Mẫu chưa phù hợp");
+    expect(sqlHealth!.textContent || "").toContain("Chế độ lưu trữ hiện tại là SQLite");
     expect(sqlHealth!.textContent || "").toContain("事件记录");
-    expect(sqlHealth!.textContent || "").toContain("补齐 SQL 表结构信息");
-    expect(sqlHealth!.textContent || "").toContain("查看表格模板");
+    expect(sqlHealth!.textContent || "").toContain("bổ sung thông tin cấu trúc bảng SQL");
+    expect(sqlHealth!.textContent || "").toContain("Xem mẫu bảng");
 
     const action = Array.from(
       sqlHealth!.querySelectorAll<HTMLButtonElement>("button"),
-    ).find((button) => (button.textContent || "").includes("查看表格模板"));
+    ).find((button) => (button.textContent || "").includes("Xem mẫu bảng"));
     expect(action).toBeDefined();
 
     mount.__resetAcuV2MountForTests();
@@ -534,13 +534,13 @@ describe("DashboardPage", () => {
       document.querySelectorAll<HTMLElement>(
         ".acu-v2-dashboard-page__health-item",
       ),
-    ).find((item) => (item.textContent || "").includes("SQL 模式"));
+    ).find((item) => (item.textContent || "").includes("Chế độ SQL"));
 
     expect(sqlHealth).toBeDefined();
-    expect(sqlHealth!.textContent || "").toContain("原生 JSON");
-    expect(sqlHealth!.textContent || "").toContain("当前存储模式是原生 JSON");
-    expect(sqlHealth!.textContent || "").toContain("不会影响原生 JSON 模式运行");
-    expect(sqlHealth!.textContent || "").not.toContain("开发者检查");
+    expect(sqlHealth!.textContent || "").toContain("JSON gốc");
+    expect(sqlHealth!.textContent || "").toContain("Chế độ lưu trữ hiện tại là JSON gốc");
+    expect(sqlHealth!.textContent || "").toContain("không ảnh hưởng đến việc chạy chế độ JSON gốc");
+    expect(sqlHealth!.textContent || "").not.toContain("kiểm tra của nhà phát triển");
     expect(
       sqlHealth!.classList.contains("acu-v2-dashboard-page__health-item--info"),
     ).toBe(true);
@@ -563,12 +563,12 @@ describe("DashboardPage", () => {
       document.querySelectorAll<HTMLElement>(
         ".acu-v2-dashboard-page__health-item",
       ),
-    ).find((item) => (item.textContent || "").includes("SQL 模式"));
+    ).find((item) => (item.textContent || "").includes("Chế độ SQL"));
 
     expect(sqlHealth).toBeDefined();
-    expect(sqlHealth!.textContent || "").toContain("开发者提示");
-    expect(sqlHealth!.textContent || "").toContain("开发者检查发现");
-    expect(sqlHealth!.textContent || "").toContain("选择“SQLite”");
+    expect(sqlHealth!.textContent || "").toContain("Gợi ý cho nhà phát triển");
+    expect(sqlHealth!.textContent || "").toContain("kiểm tra của nhà phát triển phát hiện");
+    expect(sqlHealth!.textContent || "").toContain("chọn \"SQLite\"");
     expect(
       sqlHealth!.classList.contains("acu-v2-dashboard-page__health-item--info"),
     ).toBe(true);
@@ -590,15 +590,15 @@ describe("DashboardPage", () => {
     );
     expect(healthItems.length).toBeGreaterThanOrEqual(4);
     expect(healthItems[0].textContent || "").toContain("API");
-    expect(healthItems[0].textContent || "").toContain("未配置");
+    expect(healthItems[0].textContent || "").toContain("Chưa cấu hình");
     expect(healthItems[0].textContent || "").toContain(
-      "API 页当前没有可用预设",
+      "Trang API hiện không có preset khả dụng",
     );
-    expect(healthItems[0].textContent || "").toContain("缺少端点、模型");
+    expect(healthItems[0].textContent || "").toContain("Thiếu Endpoint, Mô hình");
 
     const action = Array.from(
       healthItems[0].querySelectorAll<HTMLButtonElement>("button"),
-    ).find((button) => (button.textContent || "").includes("配置 API"));
+    ).find((button) => (button.textContent || "").includes("Cấu hình API"));
     expect(action).toBeDefined();
     action!.click();
     await Promise.resolve();
@@ -622,8 +622,8 @@ describe("DashboardPage", () => {
       ),
     );
     const apiText = healthItems[0].textContent || "";
-    expect(apiText).toContain('API 页当前预设 "table-fast" 已配置');
-    expect(apiText).toContain("使用酒馆主 API");
+    expect(apiText).toContain('Preset hiện tại "table-fast" ở trang API đã được cấu hình');
+    expect(apiText).toContain("dùng API chính của SillyTavern");
     expect(
       healthItems[0].querySelector(".acu-v2-dashboard-page__health-meta"),
     ).toBeNull();
@@ -646,12 +646,12 @@ describe("DashboardPage", () => {
     const page = document.querySelector(
       ".acu-v2-dashboard-page",
     ) as HTMLElement;
-    expect(page.textContent || "").toContain("最近日志指向 API 配置或连接问题");
-    expect(page.textContent || "").toContain("查看运行日志");
+    expect(page.textContent || "").toContain("Nhật ký gần đây chỉ ra vấn đề về cấu hình hoặc kết nối API");
+    expect(page.textContent || "").toContain("Xem nhật ký chạy");
 
     const logAction = Array.from(
       page.querySelectorAll<HTMLButtonElement>("button"),
-    ).find((button) => (button.textContent || "").includes("查看运行日志"));
+    ).find((button) => (button.textContent || "").includes("Xem nhật ký chạy"));
     expect(logAction).toBeDefined();
     logAction!.click();
     await Promise.resolve();
@@ -672,7 +672,7 @@ describe("DashboardPage", () => {
 
     let pageText =
       document.querySelector(".acu-v2-dashboard-page")?.textContent || "";
-    expect(pageText).toContain("本次前端会话没有记录到 Error 级别日志。");
+    expect(pageText).toContain("Phiên giao diện lần này không ghi nhận nhật ký cấp Error.");
     expect(pageText).not.toContain("Warn");
 
     normal.mount.__resetAcuV2MountForTests();
@@ -687,8 +687,8 @@ describe("DashboardPage", () => {
 
     pageText =
       document.querySelector(".acu-v2-dashboard-page")?.textContent || "";
-    expect(pageText).toContain("开发者模式下可见");
-    expect(pageText).toContain("条 Warn");
+    expect(pageText).toContain("ở chế độ nhà phát triển có thể thấy");
+    expect(pageText).toContain("dòng Warn");
 
     developer.mount.__resetAcuV2MountForTests();
   });
@@ -698,15 +698,15 @@ describe("DashboardPage", () => {
 
     const text =
       document.querySelector(".acu-v2-dashboard-page")?.textContent || "";
-    expect(text).toContain("交火向量");
-    expect(text).toContain("配置不完整");
-    expect(text).toContain("缺少“向量化URL”");
-    expect(text).toContain("缺少“向量化模型名”");
+    expect(text).toContain("Vector giao hỏa");
+    expect(text).toContain("Cấu hình chưa đầy đủ");
+    expect(text).toContain("Thiếu \"URL vector hóa\"");
+    expect(text).toContain("Thiếu \"Tên mô hình vector hóa\"");
     expect(text).not.toContain("embeddingEndpoint");
     expect(text).not.toContain("embeddingModel");
     expect(text).not.toContain(`服务${"地址"}`);
     expect(text).not.toContain(`模型${"名称"}`);
-    expect(text).toContain("前往填表模式");
+    expect(text).toContain("Đến chế độ điền bảng");
 
     mount.__resetAcuV2MountForTests();
   });
@@ -740,12 +740,12 @@ describe("DashboardPage", () => {
   it("切换到高级设置后显示高级开关、存储模式选择与开发者总开关", async () => {
     const { mount } = await mountDashboardPage();
 
-    // 找到 segmented control 的"高级设置"按钮
+    // 找到 segmented control 的"Cài đặt nâng cao"按钮
     const segmentedButtons = Array.from(
       document.querySelectorAll('button[role="radio"]'),
     ) as HTMLButtonElement[];
     const advancedBtn = segmentedButtons.find(
-      (b) => (b.textContent || "").trim() === "高级设置",
+      (b) => (b.textContent || "").trim() === "Cài đặt nâng cao",
     );
     expect(advancedBtn).toBeDefined();
     advancedBtn!.click();
@@ -754,19 +754,19 @@ describe("DashboardPage", () => {
     const text =
       document.querySelector(".acu-v2-dashboard-page")?.textContent || "";
     expect(document.querySelector('button[data-acu-toggle-key="plotEnabled"]')).toBeNull();
-    expect(text).toContain("智能续写");
-    expect(text).toContain("格林推演");
-    expect(text).toContain("外部导入");
+    expect(text).toContain("Viết tiếp thông minh");
+    expect(text).toContain("Mô phỏng thế giới");
+    expect(text).toContain("Nhập từ bên ngoài");
     expect(document.querySelector('button[data-acu-toggle-key="summaryVectorIndexModeEnabled"]')).toBeNull();
-    expect(text).toContain("存储模式");
-    expect(text).toContain("原生 JSON");
+    expect(text).toContain("Chế độ lưu trữ");
+    expect(text).toContain("JSON gốc");
     expect(text).toContain("SQLite");
-    expect(text).toContain("兼容性最佳");
-    expect(text).toContain("启用开发者选项");
+    expect(text).toContain("Tương thích tốt nhất");
+    expect(text).toContain("Bật tùy chọn nhà phát triển");
     expect(text).not.toContain("启用SQL存储");
     expect(text).not.toContain("启用条件模板功能");
-    expect(text).not.toContain("0TK 占用模式");
-    expect(text).toContain("选择表格数据的保存方式");
+    expect(text).not.toContain("Chế độ chiếm 0TK");
+    expect(text).toContain("Chọn cách lưu dữ liệu bảng");
 
     const visibleToggleKeys = Array.from(
       document.querySelectorAll<HTMLButtonElement>(
@@ -782,7 +782,7 @@ describe("DashboardPage", () => {
     ]);
 
     const storageGroup = document.querySelector(
-      'div[role="radiogroup"][aria-label="存储模式"]',
+      'div[role="radiogroup"][aria-label="Chế độ lưu trữ"]',
     );
     expect(storageGroup).not.toBeNull();
     expect(storageGroup!.closest(".acu-dashboard-storage-mode")).not.toBeNull();
@@ -801,8 +801,8 @@ describe("DashboardPage", () => {
     expect(
       cards[1].classList.contains("acu-dashboard-storage-mode__card--active"),
     ).toBe(false);
-    expect(text.indexOf("启用开发者选项")).toBeLessThan(
-      text.indexOf("存储模式原生SQL"),
+    expect(text.indexOf("Bật tùy chọn nhà phát triển")).toBeLessThan(
+      text.indexOf("Chế độ lưu trữGốcSQL"),
     );
 
     mount.__resetAcuV2MountForTests();
@@ -833,7 +833,7 @@ describe("DashboardPage", () => {
       document.querySelectorAll('button[role="radio"]'),
     ) as HTMLButtonElement[];
     const advancedBtn = segmentedButtons.find(
-      (b) => (b.textContent || "").trim() === "高级设置",
+      (b) => (b.textContent || "").trim() === "Cài đặt nâng cao",
     );
     advancedBtn!.click();
     await new Promise((r) => setTimeout(r, 0));
@@ -843,12 +843,12 @@ describe("DashboardPage", () => {
     ) as HTMLElement;
     const storageButtons = Array.from(
       page.querySelectorAll<HTMLButtonElement>(
-        'div[role="radiogroup"][aria-label="存储模式"] button[role="radio"]',
+        'div[role="radiogroup"][aria-label="Chế độ lưu trữ"] button[role="radio"]',
       ),
     );
     expect(
       storageButtons.map((button) => (button.textContent || "").trim()),
-    ).toEqual(["原生", "SQL"]);
+    ).toEqual(["Gốc", "SQL"]);
     expect(
       storageButtons.map((button) => button.getAttribute("aria-checked")),
     ).toEqual(["true", "false"]);
@@ -869,8 +869,8 @@ describe("DashboardPage", () => {
       ),
     ).toEqual([false, true]);
     expect(saveSettings).toHaveBeenCalled();
-    expect(page.textContent || "").not.toContain("已切换到 SQLite 模式。");
-    expect(document.body.textContent || "").toContain("已切换到 SQLite 模式。");
+    expect(page.textContent || "").not.toContain("Đã chuyển sang chế độ SQLite.");
+    expect(document.body.textContent || "").toContain("Đã chuyển sang chế độ SQLite.");
 
     mount.__resetAcuV2MountForTests();
   });
@@ -886,7 +886,7 @@ describe("DashboardPage", () => {
     hub.notify_ACU('info', '正在核对第三批纪要', { title: '纪要召回' });
     await tick();
     const body = () => document.querySelector('.acu-notice-bubble__text')?.textContent || '';
-    expect(body()).toMatch(/^正在.+…$/);
+    expect(body()).toMatch(/^Đang .+…$/);
     expect(body()).not.toBe('正在核对第三批纪要');
     toggle().click();
     await tick();
@@ -906,7 +906,7 @@ describe("DashboardPage", () => {
     toggle().click();
     await tick();
     expect(settings.deskPetShowRealWork).toBe(false);
-    expect(body()).toMatch(/^正在.+…$/);
+    expect(body()).toMatch(/^Đang .+…$/);
     toggle().click();
     await tick();
     expect(body()).toBe('正在核对第三批纪要');
@@ -914,7 +914,7 @@ describe("DashboardPage", () => {
     await tick();
     toggle().click();
     await tick();
-    expect(body()).toMatch(/^正在.+…$/);
+    expect(body()).toMatch(/^Đang .+…$/);
 
     const errorText = '纪要读取失败：连接中断';
     hub.notify_ACU('error', errorText, { title: '纪要召回失败' });
@@ -963,7 +963,7 @@ describe("DashboardPage", () => {
     await tick();
     expect(settings.deskPetShowRealWork).toBe(false);
     expect(saveSettings).toHaveBeenCalledTimes(savesBeforeRealWorkToggle + 1);
-    expect(body()).toMatch(/^正在.+…$/);
+    expect(body()).toMatch(/^Đang .+…$/);
     toggle().click();
     await tick();
     expect(settings.deskPetShowRealWork).toBe(true);
@@ -986,21 +986,21 @@ describe("DashboardPage", () => {
     const segmentedButtons = Array.from(
       document.querySelectorAll('button[role="radio"]'),
     ) as HTMLButtonElement[];
-    segmentedButtons.find((b) => (b.textContent || "").trim() === "高级设置")!.click();
+    segmentedButtons.find((b) => (b.textContent || "").trim() === "Cài đặt nâng cao")!.click();
     await new Promise((r) => setTimeout(r, 0));
 
     const storageButtons = Array.from(
       document.querySelectorAll<HTMLButtonElement>(
-        'div[role="radiogroup"][aria-label="存储模式"] button[role="radio"]',
+        'div[role="radiogroup"][aria-label="Chế độ lưu trữ"] button[role="radio"]',
       ),
     );
     storageButtons[1].click();
     await new Promise((r) => setTimeout(r, 0));
-    expect(document.querySelector(".acu-notice-bubble")?.textContent || "").toContain("已切换到 SQLite 模式。");
+    expect(document.querySelector(".acu-notice-bubble")?.textContent || "").toContain("Đã chuyển sang chế độ SQLite.");
 
     document.querySelector<HTMLButtonElement>(".acu-v2-app__close")!.click();
     await new Promise((r) => setTimeout(r, 0));
-    expect(document.querySelector(".acu-notice-bubble")?.textContent || "").toContain("已切换到 SQLite 模式。");
+    expect(document.querySelector(".acu-notice-bubble")?.textContent || "").toContain("Đã chuyển sang chế độ SQLite.");
 
     mount.__resetAcuV2MountForTests();
   });
@@ -1013,18 +1013,18 @@ describe("DashboardPage", () => {
     const segmentedButtons = Array.from(
       document.querySelectorAll('button[role="radio"]'),
     ) as HTMLButtonElement[];
-    segmentedButtons.find((b) => (b.textContent || "").trim() === "高级设置")!.click();
+    segmentedButtons.find((b) => (b.textContent || "").trim() === "Cài đặt nâng cao")!.click();
     await new Promise((r) => setTimeout(r, 0));
 
     const storageButtons = Array.from(
       document.querySelectorAll<HTMLButtonElement>(
-        'div[role="radiogroup"][aria-label="存储模式"] button[role="radio"]',
+        'div[role="radiogroup"][aria-label="Chế độ lưu trữ"] button[role="radio"]',
       ),
     );
     storageButtons[1].click();
     await new Promise((r) => setTimeout(r, 0));
 
-    expect(document.body.textContent || "").toContain("存储模式切换失败，详情见运行日志");
+    expect(document.body.textContent || "").toContain("Chuyển chế độ lưu trữ thất bại, xem chi tiết trong nhật ký chạy");
     const { getAllLogs } = await import("../../../src/shared/log-buffer");
     expect(getAllLogs().some((entry) => entry.message.includes("switch failed"))).toBe(true);
 
@@ -1038,7 +1038,7 @@ describe("DashboardPage", () => {
       document.querySelectorAll('button[role="radio"]'),
     ) as HTMLButtonElement[];
     const advancedBtn = segmentedButtons.find(
-      (b) => (b.textContent || "").trim() === "高级设置",
+      (b) => (b.textContent || "").trim() === "Cài đặt nâng cao",
     );
     expect(advancedBtn).toBeDefined();
     advancedBtn!.click();
@@ -1046,24 +1046,24 @@ describe("DashboardPage", () => {
 
     let text =
       document.querySelector(".acu-v2-dashboard-page")?.textContent || "";
-    expect(text).not.toContain("剧情推进");
-    expect(text).toContain("智能续写");
-    expect(text).toContain("格林推演");
-    expect(text).toContain("外部导入");
-    expect(text).toContain("正文替换");
+    expect(text).not.toContain("Đẩy cốt truyện");
+    expect(text).toContain("Viết tiếp thông minh");
+    expect(text).toContain("Mô phỏng thế giới");
+    expect(text).toContain("Nhập từ bên ngoài");
+    expect(text).toContain("Thay thế nội dung");
 
     expect(
       document.querySelector(".acu-v2-sidebar")?.textContent || "",
-    ).toContain("剧情推进");
+    ).toContain("Đẩy cốt truyện");
     expect(
       document.querySelector(".acu-v2-sidebar")?.textContent || "",
-    ).toContain("智能续写");
+    ).toContain("Viết tiếp thông minh");
     expect(
       document.querySelector(".acu-v2-sidebar")?.textContent || "",
-    ).not.toContain("格林推演");
+    ).not.toContain("Mô phỏng thế giới");
     expect(
       document.querySelector(".acu-v2-sidebar")?.textContent || "",
-    ).toContain("外部导入");
+    ).toContain("Nhập từ ngoài");
     expect(
       document.querySelector(".acu-v2-sidebar")?.textContent || "",
     ).not.toContain("交火模式");
@@ -1092,9 +1092,9 @@ describe("DashboardPage", () => {
     expect(settings.worldSimulationPageEnabled).toBe(true);
     expect(settings.externalImportPageEnabled).toBe(false);
     text = document.querySelector(".acu-v2-sidebar")?.textContent || "";
-    expect(text).not.toContain("智能续写");
-    expect(text).toContain("格林推演");
-    expect(text).not.toContain("外部导入");
+    expect(text).not.toContain("Viết tiếp thông minh");
+    expect(text).toContain("Mô phỏng thế giới");
+    expect(text).not.toContain("Nhập từ ngoài");
     expect(worldSimulationToggle.getAttribute("aria-checked")).toBe("true");
     expect(saveSettings).toHaveBeenCalled();
 
@@ -1105,9 +1105,9 @@ describe("DashboardPage", () => {
     expect(saveSettings).toHaveBeenCalledTimes(savesBeforeDisablingWorldSimulation + 1);
     expect(worldSimulationToggle.getAttribute("aria-checked")).toBe("false");
     text = document.querySelector(".acu-v2-sidebar")?.textContent || "";
-    expect(text).toContain("功能");
-    expect(text).toContain("剧情推进");
-    expect(text).not.toContain("格林推演");
+    expect(text).toContain("Chức năng");
+    expect(text).toContain("Đẩy cốt truyện");
+    expect(text).not.toContain("Mô phỏng thế giới");
 
     mount.__resetAcuV2MountForTests();
   });
@@ -1121,7 +1121,7 @@ describe("DashboardPage", () => {
       document.querySelectorAll('button[role="radio"]'),
     ) as HTMLButtonElement[];
     const advancedBtn = segmentedButtons.find(
-      (b) => (b.textContent || "").trim() === "高级设置",
+      (b) => (b.textContent || "").trim() === "Cài đặt nâng cao",
     );
     advancedBtn!.click();
     await new Promise((r) => setTimeout(r, 0));
@@ -1129,10 +1129,10 @@ describe("DashboardPage", () => {
     const text =
       document.querySelector(".acu-v2-dashboard-page")?.textContent || "";
     expect(text).not.toContain("功能开关");
-    expect(text).toContain("正文替换");
+    expect(text).toContain("Thay thế nội dung");
     expect(
       document.querySelector(".acu-v2-sidebar")?.textContent || "",
-    ).not.toContain("正文替换");
+    ).not.toContain("Thay thế nội dung");
     expect(settings.contentOptimizationSettings.enabled).toBe(false);
 
     const visibleToggleKeys = Array.from(
@@ -1161,7 +1161,7 @@ describe("DashboardPage", () => {
     expect(toggle.getAttribute("aria-checked")).toBe("true");
     expect(
       document.querySelector(".acu-v2-sidebar")?.textContent || "",
-    ).toContain("正文替换");
+    ).toContain("Thay thế nội dung");
 
     mount.__resetAcuV2MountForTests();
   });
@@ -1192,7 +1192,7 @@ describe("DashboardPage", () => {
       document.querySelectorAll('button[role="radio"]'),
     ) as HTMLButtonElement[];
     const advancedBtn = segmentedButtons.find(
-      (b) => (b.textContent || "").trim() === "高级设置",
+      (b) => (b.textContent || "").trim() === "Cài đặt nâng cao",
     );
     advancedBtn!.click();
     await new Promise((r) => setTimeout(r, 0));
@@ -1260,17 +1260,17 @@ describe('零层面板入口反馈', () => {
   it('关闭时解释禁用原因，选择预设并启用后可发送，失败保留草稿', async () => {
     const { root, status, nextTick } = await mountPanel();
     const toggle = Array.from(root.querySelectorAll<HTMLButtonElement>('button[role="switch"]'))
-      .find(button => button.textContent?.includes('当前聊天启用零层'))!;
+      .find(button => button.textContent?.includes('Bật Tầng 0 cho cuộc trò chuyện này'))!;
     const send = Array.from(root.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent === '发送逻辑回合')!;
+      .find(button => button.textContent === 'Gửi lượt logic')!;
     const input = root.querySelector<HTMLInputElement>('.acu-input-shell--text input')!;
     input.value = '开始';
     input.dispatchEvent(new Event('input', { bubbles: true }));
     await nextTick();
     expect(toggle.disabled).toBe(true);
-    expect(toggle.title).toContain('请先选择');
+    expect(toggle.title).toContain('Hãy chọn');
     expect(send.disabled).toBe(true);
-    expect(root.querySelector('#acu-zero-layer-send-hint')?.textContent).toContain('尚未启用');
+    expect(root.querySelector('#acu-zero-layer-send-hint')?.textContent).toContain('chưa bật Tầng 0');
     send.click();
     expect(status.submit).not.toHaveBeenCalled();
 
@@ -1294,7 +1294,7 @@ describe('零层面板入口反馈', () => {
     await vi.waitFor(() => expect(input.value).toBe(''));
     await nextTick();
     expect(send.disabled).toBe(true);
-    expect(send.title).toBe('请输入本轮行动。');
+    expect(send.title).toBe('Vui lòng nhập hành động của lượt này.');
   });
 
   it('读取失败时保留未知状态，操作期间禁止重复发送并展示具体错误', async () => {
@@ -1305,13 +1305,13 @@ describe('零层面板入口反馈', () => {
     await nextTick();
     const toggle = root.querySelector<HTMLButtonElement>('button[role="switch"]')!;
     const send = Array.from(root.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent === '发送逻辑回合')!;
+      .find(button => button.textContent === 'Gửi lượt logic')!;
     expect(toggle.disabled).toBe(true);
     expect(send.title).toBe('存档读取失败，请只读刷新。');
     expect(root.querySelector('[role="alert"]')?.textContent).toBe('正文 API 连接失败');
     status.working.value = true;
     await nextTick();
     expect(send.disabled).toBe(true);
-    expect(send.title).toContain('零层操作进行中');
+    expect(send.title).toContain('Thao tác Tầng 0 đang chạy');
   });
 });

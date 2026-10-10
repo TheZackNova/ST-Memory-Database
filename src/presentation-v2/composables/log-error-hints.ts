@@ -24,19 +24,19 @@ interface HintRule {
   steps: string[];
 }
 
-const RETRY_LATER = '稍等片刻后重试一次，很多问题是服务商偶发抖动。';
-const SEE_PREVIOUS_LOG = '查看紧邻的上一条日志，通常会给出更具体的原因（HTTP 状态码、解析失败的内容等）。';
-const EXPORT_LOGS = '如果反复出现，点日志面板的「导出」把日志连同复现步骤反馈给作者。';
+const RETRY_LATER = 'Chờ một lát rồi thử lại; nhiều sự cố chỉ là chập chờn tạm thời của nhà cung cấp.';
+const SEE_PREVIOUS_LOG = 'Xem nhật ký ngay trước đó, thường sẽ cho biết nguyên nhân cụ thể hơn (mã trạng thái HTTP, nội dung phân tích thất bại, v.v.).';
+const EXPORT_LOGS = 'Nếu lỗi lặp lại, bấm「Xuất」ở bảng nhật ký để gửi nhật ký kèm các bước tái hiện cho tác giả.';
 
 const RULES: HintRule[] = [
   // ─── 主动中止 ───
   {
     id: 'aborted',
-    test: /request aborted|aborterror|the user aborted|已中止|已取消|用户取消|用户中止|abort signal|signal is aborted/,
-    summary: '请求被主动中止（通常是你点了停止、切换了聊天，或关闭了面板）。',
+    test: /request aborted|aborterror|the user aborted|已中止|已取消|用户取消|用户中止|abort signal|signal is aborted|đã bị hủy|đã hủy|bị người dùng (?:hủy|dừng)|người dùng đã (?:hủy|dừng)/,
+    summary: 'Yêu cầu bị chủ động hủy (thường do bạn bấm dừng, đổi cuộc trò chuyện hoặc đóng bảng điều khiển).',
     steps: [
-      '如果是你主动停止的，这条记录可以忽略。',
-      '如果没有手动停止却出现中止，检查网络是否在请求途中断开，然后重试。',
+      'Nếu bạn tự dừng thì có thể bỏ qua bản ghi này.',
+      'Nếu không dừng thủ công mà vẫn bị hủy, hãy kiểm tra mạng có bị ngắt giữa chừng không rồi thử lại.',
     ],
   },
 
@@ -44,11 +44,11 @@ const RULES: HintRule[] = [
   {
     id: 'storage-quota',
     test: /quotaexceeded|exceeded the quota|storage.*full|out of storage|存储空间不足|localstorage/,
-    summary: '浏览器本地存储空间不足，设置或缓存写不进去。',
+    summary: 'Bộ nhớ cục bộ của trình duyệt đã đầy, không ghi được cài đặt hoặc bộ nhớ đệm.',
     steps: [
-      '到「数据管理」页清理不再需要的历史数据或导入缓存。',
-      '清理浏览器里其他站点 / 扩展占用的存储空间。',
-      '隐私 / 无痕模式下存储会被限制，请改用普通窗口。',
+      'Vào trang「Quản lý dữ liệu」để dọn dữ liệu lịch sử hoặc bộ nhớ đệm nhập không còn cần.',
+      'Dọn dung lượng lưu trữ do các trang / tiện ích khác chiếm trong trình duyệt.',
+      'Ở chế độ riêng tư / ẩn danh, bộ nhớ bị giới hạn, hãy dùng cửa sổ thường.',
     ],
   },
 
@@ -56,52 +56,52 @@ const RULES: HintRule[] = [
   {
     id: 'startup',
     test: /等待 ?sillytavern|core apis not available|getcontext\(\)|not ready after|jquery|#extensionsmenu|failed to initialize\. core|插件启动|插件无法启动|host doc|failed to load one or more critical apis/,
-    summary: '插件初始化失败：没有等到酒馆核心接口就绪。',
+    summary: 'Khởi tạo tiện ích thất bại: chưa chờ được API lõi của SillyTavern sẵn sàng.',
     steps: [
-      '刷新页面（Ctrl+F5）。',
-      '确认酒馆版本不过旧，并在扩展管理里启用了本插件。',
-      '同时安装了很多扩展时加载会变慢，稍等加载完成再打开插件；仍失败请检查浏览器控制台里其他扩展的报错。',
+      'Làm mới trang (Ctrl+F5).',
+      'Xác nhận SillyTavern không quá cũ và đã bật tiện ích này trong trình quản lý tiện ích mở rộng.',
+      'Cài nhiều tiện ích sẽ tải chậm, hãy chờ tải xong rồi mới mở tiện ích; nếu vẫn lỗi, kiểm tra lỗi của các tiện ích khác trong console trình duyệt.',
     ],
   },
   {
     id: 'ui-not-ready',
     test: /ui元素未初始化|cannot find .*dom|popup dom|ui surface is not registered|界面未初始化/,
-    summary: '界面还没加载完成就触发了操作。',
+    summary: 'Giao diện chưa tải xong đã kích hoạt thao tác.',
     steps: [
-      '关闭并重新打开插件面板。',
-      '仍出现时刷新页面。',
+      'Đóng rồi mở lại bảng điều khiển của tiện ích.',
+      'Nếu vẫn xảy ra thì làm mới trang.',
     ],
   },
 
   // ─── 酒馆侧 API 配置 ───
   {
     id: 'tavern-profile',
-    test: /未选择酒馆连接预设|无法找到id为|没有配置api|没有选择预设|连接预设.*(不存在|无效|失败)|connection profile/,
-    summary: '所选的酒馆「连接预设」不可用：被删除、改名，或里面没有配置 API。',
+    test: /未选择酒馆连接预设|无法找到id为|没有配置api|没有选择预设|连接预设.*(不存在|无效|失败)|connection profile|chưa chọn preset kết nối|không tìm thấy preset kết nối|chưa cấu hình api|preset kết nối.*(?:không tồn tại|không hợp lệ|thất bại|không phải)/,
+    summary: '「Preset kết nối」của SillyTavern đã chọn không dùng được: bị xóa, đổi tên hoặc chưa cấu hình API bên trong.',
     steps: [
-      '打开酒馆左上角「API 连接」→「连接配置」，确认该预设存在且已经绑定 API 与预设。',
-      '回到本插件「API」页重新选择一次连接预设并保存。',
-      '也可以改用「自定义 API」，直接填写地址、密钥和模型。',
+      'Mở「Kết nối API」→「Cấu hình kết nối」ở góc trên bên trái SillyTavern, xác nhận preset tồn tại và đã gắn API cùng preset.',
+      'Quay lại trang「API」của tiện ích, chọn lại preset kết nối một lần rồi lưu.',
+      'Hoặc chuyển sang「API tùy chỉnh」và nhập trực tiếp địa chỉ, khóa và mô hình.',
     ],
   },
   {
     id: 'tavern-helper-missing',
-    test: /tavernhelper\.generateraw|未检测到酒馆助手|主api生成不可用|connectionmanagerrequestservice 不可用|请检查酒馆版本|js-slash-runner/,
-    summary: '缺少「酒馆助手（TavernHelper）」扩展，或酒馆版本过旧，无法调用酒馆主 API。',
+    test: /tavernhelper\.generateraw|未检测到酒馆助手|主api生成不可用|connectionmanagerrequestservice 不可用|请检查酒馆版本|js-slash-runner|không phát hiện tavern ?helper|không thể tạo bằng api chính|connectionmanagerrequestservice không khả dụng|kiểm tra phiên bản sillytavern/,
+    summary: 'Thiếu tiện ích「Trợ lý SillyTavern (TavernHelper)」, hoặc SillyTavern quá cũ nên không gọi được API chính.',
     steps: [
-      '在酒馆扩展管理里安装并启用「酒馆助手（JS-Slash-Runner）」。',
-      '把酒馆更新到最新版本后刷新页面。',
-      '临时方案：到「API」页改用「自定义 API」，不依赖酒馆主 API。',
+      'Cài và bật「Trợ lý SillyTavern (JS-Slash-Runner)」trong trình quản lý tiện ích mở rộng.',
+      'Cập nhật SillyTavern lên bản mới nhất rồi làm mới trang.',
+      'Giải pháp tạm: vào trang「API」chuyển sang「API tùy chỉnh」, không phụ thuộc API chính của SillyTavern.',
     ],
   },
   {
     id: 'api-config-incomplete',
-    test: /url或模型未配置|缺少 ?embedding ?endpoint|缺少 ?embedding ?model|rerank endpoint 为空|rerank model 为空|api.*(未配置|未填写)|endpoint.*(为空|missing)|未配置api/,
-    summary: 'API 配置不完整：接口地址、密钥或模型名有一项没填。',
+    test: /url或模型未配置|缺少 ?embedding ?endpoint|缺少 ?embedding ?model|rerank endpoint 为空|rerank model 为空|api.*(未配置|未填写)|endpoint.*(为空|missing)|未配置api|thiếu ?embedding ?endpoint|thiếu ?embedding ?model|rerank endpoint rỗng|rerank model rỗng|api.*(?:chưa được cấu hình|chưa cấu hình|chưa điền)|endpoint.*(?:rỗng|trống)/,
+    summary: 'Cấu hình API chưa đầy đủ: thiếu địa chỉ giao diện, khóa hoặc tên mô hình.',
     steps: [
-      '到「API」页补全该预设的接口地址、API Key 和模型名，然后保存预设。',
-      '向量相关报错请到「填表工作台」的「Embedding / Rerank」面板检查 Embedding / Rerank 的地址与模型。',
-      '确认对应功能（填表 / 剧情推进 / 续写）选择的是这个已补全的预设。',
+      'Vào trang「API」bổ sung địa chỉ giao diện, API Key và tên mô hình cho preset đó rồi lưu preset.',
+      'Với lỗi liên quan vector, hãy kiểm tra địa chỉ và mô hình Embedding / Rerank trong bảng「Embedding / Rerank」của「Bàn điền bảng」.',
+      'Xác nhận các chức năng tương ứng (điền bảng / đẩy cốt truyện / viết tiếp) đang chọn đúng preset đã bổ sung đầy đủ này.',
     ],
   },
   // 交火 rerank 回退：runtime 会把网关的具体原因（HTTP 状态 / 网络失败）包在这条消息里，
@@ -109,12 +109,12 @@ const RULES: HintRule[] = [
   {
     id: 'vector-rerank-fallback',
     test: /rerank 调用失败|rerank 响应没有任何可用的评分/,
-    summary: 'Rerank 重排序没有生效，本轮交火已回退为仅按 Embedding 相似度排序。',
+    summary: 'Rerank không có hiệu lực, lượt giao hỏa này đã quay về chỉ sắp xếp theo độ tương đồng Embedding.',
     steps: [
-      '到「填表工作台」的「Embedding / Rerank」面板核对 Rerank 的接口地址（要填到 /rerank 这一级的完整地址）、API Key 与模型名。',
-      '报错含「网络失败 / Failed to fetch」时多半是服务商不允许浏览器跨域直连，换用支持 CORS 的 rerank 服务或反向代理地址。',
-      '报错含「没有任何可用的评分」时说明返回格式不是 results[].index / relevance_score，换一个兼容 Jina / Cohere 格式的服务商。',
-      '不想用重排序就把 Rerank 地址与模型都清空，日志就不会再出现这条报错。',
+      'Kiểm tra địa chỉ giao diện Rerank (phải điền địa chỉ đầy đủ đến cấp /rerank), API Key và tên mô hình trong bảng「Embedding / Rerank」của「Bàn điền bảng」.',
+      'Khi lỗi có「Network failure / Failed to fetch」thường là nhà cung cấp không cho trình duyệt kết nối trực tiếp liên miền; hãy dùng dịch vụ rerank hỗ trợ CORS hoặc địa chỉ reverse proxy.',
+      'Khi lỗi có「không có điểm số khả dụng」nghĩa là định dạng trả về không phải results[].index / relevance_score; hãy đổi sang nhà cung cấp tương thích định dạng Jina / Cohere.',
+      'Nếu không muốn dùng rerank, hãy xóa trống cả địa chỉ và mô hình Rerank, nhật ký sẽ không còn báo lỗi này.',
     ],
   },
 
@@ -122,72 +122,72 @@ const RULES: HintRule[] = [
   {
     id: 'http-401',
     test: /\b401\b|unauthorized|invalid[ _-]?api[ _-]?key|incorrect api key|invalid x-api-key|authentication[ _-]?error|invalid_api_key|no auth credentials|令牌无效|密钥无效|api key 无效/,
-    summary: 'API 拒绝了请求：密钥无效、填错或已过期（401）。',
+    summary: 'API từ chối yêu cầu: khóa không hợp lệ, nhập sai hoặc đã hết hạn (401).',
     steps: [
-      '到「API」页打开当前使用的预设，检查 API Key 是否完整、有没有多余空格。',
-      '确认这个 Key 对应的服务商与接口地址一致（比如 OpenAI 的 Key 不能填到 Claude 地址）。',
-      '如果是中转站，登录站点确认 Key 仍然有效、余额充足。',
+      'Vào trang「API」, mở preset đang dùng, kiểm tra API Key có đầy đủ và không thừa khoảng trắng.',
+      'Xác nhận nhà cung cấp của Key khớp với địa chỉ giao diện (ví dụ Key của OpenAI không thể điền vào địa chỉ Claude).',
+      'Nếu dùng trạm trung chuyển, đăng nhập trang đó để xác nhận Key còn hiệu lực và số dư đủ.',
     ],
   },
   {
     id: 'http-403',
     test: /\b403\b|forbidden|permission[ _-]?denied|not allowed to|access denied|无权访问|权限不足/,
-    summary: '服务商拒绝访问（403）：Key 没有权限，或请求来源被限制。',
+    summary: 'Nhà cung cấp từ chối truy cập (403): Key không có quyền, hoặc nguồn yêu cầu bị hạn chế.',
     steps: [
-      '确认该 Key 有权使用所选模型（部分模型需要单独开通）。',
-      '一些服务商会拒绝来自浏览器的直连请求：把该 API 预设改为走「酒馆连接预设」由酒馆后端转发。',
-      '如果是中转站，联系站方确认账号是否被限制。',
+      'Xác nhận Key có quyền dùng mô hình đã chọn (một số mô hình cần kích hoạt riêng).',
+      'Một số nhà cung cấp từ chối yêu cầu kết nối trực tiếp từ trình duyệt: hãy đổi preset API đó sang dùng「Preset kết nối SillyTavern」để backend SillyTavern chuyển tiếp.',
+      'Nếu dùng trạm trung chuyển, liên hệ chủ trạm để xác nhận tài khoản có bị hạn chế không.',
     ],
   },
   {
     id: 'http-404',
     test: /\b404\b|not[ _]found.*(model|endpoint|route)|model.*(not found|does not exist|not exist)|no such model|unknown model|invalid model|模型不存在|找不到模型/,
-    summary: '接口地址或模型名不存在（404）。',
+    summary: 'Địa chỉ giao diện hoặc tên mô hình không tồn tại (404).',
     steps: [
-      '到「API」页检查接口地址是否完整，不同服务商对结尾是否带 /v1 要求不同，按服务商文档填写。',
-      '点击「拉取模型列表」重新选择模型，避免手写模型名拼错。',
-      '确认服务商仍然提供该模型，旧模型可能已下线。',
+      'Vào trang「API」kiểm tra địa chỉ giao diện có đầy đủ không; mỗi nhà cung cấp yêu cầu khác nhau về việc có đuôi /v1 hay không, hãy điền theo tài liệu của họ.',
+      'Bấm「Lấy danh sách mô hình」để chọn lại mô hình, tránh gõ sai tên mô hình.',
+      'Xác nhận nhà cung cấp vẫn cung cấp mô hình đó, mô hình cũ có thể đã ngừng hoạt động.',
     ],
   },
   {
     id: 'http-429',
     test: /\b429\b|rate[ _-]?limit|too many requests|\bquota\b|insufficient (balance|funds)|exceeded your current|resource[ _-]?exhausted|请求过于频繁|限流|额度不足|余额不足|欠费|配额/,
-    summary: '请求过于频繁被限流，或账户额度 / 余额已用完（429）。',
+    summary: 'Yêu cầu quá dày bị giới hạn tốc độ, hoặc hạn mức / số dư tài khoản đã hết (429).',
     steps: [
-      '先等 1–2 分钟再重试；短时间内连续重试只会让限流更久。',
-      '登录服务商后台确认余额与额度是否充足。',
-      '在对应功能的设置里调大「重试延迟」/「轮次延迟」，或调小并发数、批处理大小。',
-      '智能续写会连续发起大量请求，请使用支持高 RPM 的 API，不要用公益站。',
+      'Chờ 1–2 phút rồi thử lại; thử lại liên tục trong thời gian ngắn chỉ khiến bị giới hạn lâu hơn.',
+      'Đăng nhập trang quản trị của nhà cung cấp để xác nhận số dư và hạn mức còn đủ.',
+      'Trong cài đặt của chức năng tương ứng, tăng「Độ trễ thử lại」/「Độ trễ giữa các vòng」, hoặc giảm số luồng đồng thời và kích thước lô.',
+      'Viết tiếp thông minh sẽ gửi liên tục nhiều yêu cầu, hãy dùng API hỗ trợ RPM cao, đừng dùng trạm công cộng.',
     ],
   },
   {
     id: 'http-5xx',
-    test: /\b(500|502|503|504|529)\b|bad gateway|service unavailable|gateway time-?out|internal server error|overloaded|server error|服务器错误|服务不可用|上游.*(错误|超时)/,
-    summary: '服务商服务器出错或过载（5xx），不是本地配置问题。',
+    test: /\b(500|502|503|504|529)\b|bad gateway|service unavailable|gateway time-?out|internal server error|overloaded|server error|服务器错误|服务不可用|上游.*(错误|超时)|lỗi từ upstream/,
+    summary: 'Máy chủ của nhà cung cấp bị lỗi hoặc quá tải (5xx), không phải vấn đề cấu hình cục bộ.',
     steps: [
       RETRY_LATER,
-      '持续出现时换一个模型或换一条 API 渠道。',
-      '如果用的是中转站，查看站方公告确认是否在维护。',
+      'Nếu lỗi kéo dài, hãy đổi mô hình hoặc đổi kênh API.',
+      'Nếu dùng trạm trung chuyển, xem thông báo của trạm để xác nhận có đang bảo trì không.',
     ],
   },
   {
     id: 'context-length',
-    test: /context[ _-]?length|maximum context|context window|too many tokens|tokens? (exceed|limit|too long)|prompt is too long|input is too long|max_tokens.*(exceed|invalid)|超出.*(上下文|长度)|上下文.*(超限|过长)|token.*超/,
-    summary: '发送给模型的内容太长，超出了模型的上下文上限。',
+    test: /context[ _-]?length|maximum context|context window|too many tokens|tokens? (exceed|limit|too long)|prompt is too long|input is too long|max_tokens.*(exceed|invalid)|超出.*(上下文|长度)|上下文.*(超限|过长)|token.*超|vượt.*(?:ngữ cảnh|độ dài)|ngữ cảnh.*(?:vượt|quá dài)|token.*vượt/,
+    summary: 'Nội dung gửi cho mô hình quá dài, vượt giới hạn ngữ cảnh của mô hình.',
     steps: [
-      '填表：到「填表规则」把「批处理大小」/「上下文楼层数」调小一些。',
-      '智能续写：调小「正文可读窗口楼数」「会话自动总结阈值」与各项读取预算。',
-      '换用上下文更大的模型，或精简过长的自定义提示词与世界书条目。',
+      'Điền bảng: vào「Quy tắc điền bảng」giảm「Kích thước lô」/「Số tầng ngữ cảnh」.',
+      'Viết tiếp thông minh: giảm「Số tầng cửa sổ đọc nội dung」「Ngưỡng tự động tóm tắt phiên」và các ngân sách đọc.',
+      'Dùng mô hình có ngữ cảnh lớn hơn, hoặc rút gọn prompt tùy chỉnh và các mục sổ thế giới quá dài.',
     ],
   },
   {
     id: 'http-400',
     test: /\b400\b|bad request|invalid_request_error|unsupported parameter|invalid parameter|unrecognized request argument|unknown parameter|参数错误|请求参数无效/,
-    summary: '服务商认为请求内容有问题（400）：通常是模型名或某个参数不被支持。',
+    summary: 'Nhà cung cấp cho rằng nội dung yêu cầu có vấn đề (400): thường là tên mô hình hoặc một tham số không được hỗ trợ.',
     steps: [
-      '到「API」页确认模型名拼写正确，最好通过「拉取模型列表」选择。',
-      '如果调整过 temperature / top_p 等高级参数或开启了「严格 JSON」，先恢复默认再试。',
-      '换一个模型试试：部分模型不支持 system 角色或某些字段。',
+      'Vào trang「API」xác nhận tên mô hình viết đúng, tốt nhất chọn qua「Lấy danh sách mô hình」.',
+      'Nếu đã chỉnh các tham số nâng cao như temperature / top_p hoặc bật「JSON nghiêm ngặt」, hãy khôi phục mặc định rồi thử lại.',
+      'Thử đổi mô hình: một số mô hình không hỗ trợ vai trò system hoặc một số trường.',
     ],
   },
 
@@ -195,20 +195,20 @@ const RULES: HintRule[] = [
   {
     id: 'network-cors',
     test: /\bcors\b|cross-origin|access-control-allow-origin|preflight/,
-    summary: '浏览器跨域被拦截（CORS）：该服务商不允许网页直接调用。',
+    summary: 'Trình duyệt chặn liên miền (CORS): nhà cung cấp này không cho trang web gọi trực tiếp.',
     steps: [
-      '把该 API 预设改为走「酒馆连接预设」，由酒馆后端代为转发。',
-      '或者使用支持浏览器直连的中转服务。',
+      'Đổi preset API đó sang dùng「Preset kết nối SillyTavern」để backend SillyTavern chuyển tiếp thay.',
+      'Hoặc dùng dịch vụ trung chuyển hỗ trợ kết nối trực tiếp từ trình duyệt.',
     ],
   },
   {
     id: 'network',
-    test: /failed to fetch|networkerror|network error|net::err|econnrefused|econnreset|enotfound|etimedout|getaddrinfo|socket hang up|fetch failed|timed? ?out|timeout|无法连接|连接被拒绝|网络错误|请求超时|超时/,
-    summary: '网络连不上目标服务，或者等待响应超时。',
+    test: /failed to fetch|networkerror|network error|net::err|econnrefused|econnreset|enotfound|etimedout|getaddrinfo|socket hang up|fetch failed|timed? ?out|timeout|无法连接|连接被拒绝|网络错误|请求超时|超时|hết thời gian/,
+    summary: 'Không kết nối được tới dịch vụ đích, hoặc chờ phản hồi bị quá thời gian.',
     steps: [
-      '检查本机网络、代理 / VPN 是否正常；把接口地址复制到浏览器地址栏，确认能打开。',
-      '超时多半是模型响应太慢：稍后重试，或换用响应更快的模型。',
-      '酒馆若部署在远程服务器，确认服务器本身能访问该 API 地址。',
+      'Kiểm tra mạng máy, proxy / VPN có bình thường không; sao chép địa chỉ giao diện vào thanh địa chỉ trình duyệt xem có mở được không.',
+      'Quá thời gian thường do mô hình phản hồi quá chậm: thử lại sau, hoặc dùng mô hình phản hồi nhanh hơn.',
+      'Nếu SillyTavern triển khai trên máy chủ từ xa, xác nhận bản thân máy chủ truy cập được địa chỉ API đó.',
     ],
   },
 
@@ -216,11 +216,11 @@ const RULES: HintRule[] = [
   {
     id: 'content-filter',
     test: /content[ _-]?filter|content_policy|safety (setting|filter|system)|blocked by|flagged|prohibited_content|recitation|内容审查|违规内容|敏感内容|安全策略/,
-    summary: '内容被服务商的安全审查拦截，模型拒绝或截断了输出。',
+    summary: 'Nội dung bị kiểm duyệt an toàn của nhà cung cấp chặn, mô hình từ chối hoặc cắt bớt đầu ra.',
     steps: [
-      '换用审查宽松的模型或渠道，官方渠道对成人 / 暴力内容通常很严格。',
-      '调整提示词或世界书里触发审查的表述。',
-      '如果是填表被拦截，可先手动填表跳过这一层。',
+      'Dùng mô hình hoặc kênh kiểm duyệt lỏng hơn; kênh chính thức thường rất nghiêm với nội dung người lớn / bạo lực.',
+      'Điều chỉnh cách diễn đạt trong prompt hoặc sổ thế giới gây kích hoạt kiểm duyệt.',
+      'Nếu điền bảng bị chặn, có thể điền bảng thủ công để bỏ qua bước này.',
     ],
   },
 
@@ -228,11 +228,11 @@ const RULES: HintRule[] = [
   {
     id: 'template-vars',
     test: /\[条件模板\]|\[db\.(expr|rand|calc|max|min)\]|\[orm\]|模板变量|evaluatecondexpression|表达式执行失败|随机数生成失败/,
-    summary: '世界书 / 提示词里的模板变量表达式（{{db.xxx}} 或条件模板）解析失败。',
+    summary: 'Biểu thức biến mẫu ({{db.xxx}} hoặc mẫu điều kiện) trong sổ thế giới / prompt phân tích thất bại.',
     steps: [
-      '打开对应的世界书条目或提示词，检查日志里给出的表达式写法：括号、引号是否配对，表名列名是否正确。',
-      '对照插件自带的语法参考（syntax-reference）核对函数名与参数。',
-      '先把表达式替换成一个最简单的例子确认能跑通，再逐步加复杂度。',
+      'Mở mục sổ thế giới hoặc prompt tương ứng, kiểm tra cách viết biểu thức nêu trong nhật ký: ngoặc, dấu nháy có khớp cặp không, tên bảng tên cột có đúng không.',
+      'Đối chiếu tên hàm và tham số với tài liệu cú pháp (syntax-reference) đi kèm tiện ích.',
+      'Thay biểu thức bằng một ví dụ đơn giản nhất để xác nhận chạy được, rồi tăng dần độ phức tạp.',
     ],
   },
 
@@ -241,22 +241,22 @@ const RULES: HintRule[] = [
   // 但根因不是这次 SQL，而是聊天历史只能宽容回放；「重试让模型重新生成」修不好它。
   {
     id: 'v2-write-guard',
-    test: /写入时基底与回放基底不一致|不可严格回放的历史/,
-    summary: '本次表格增量与聊天历史回放状态不一致，插件在写入前拦住了它（历史没有被写坏）。',
+    test: /写入时基底与回放基底不一致|不可严格回放的历史|không thể phát lại nghiêm ngặt|không khớp trạng thái phát lại lịch sử/,
+    summary: 'Phần tăng thêm của bảng lần này không khớp với trạng thái phát lại lịch sử trò chuyện, tiện ích đã chặn trước khi ghi (lịch sử không bị hỏng).',
     steps: [
-      '这通常是模型重复填行：它生成的 INSERT 在按楼层回放时与已有行的 row_id 冲突。填表 / 追平会把这条错误反馈给模型自动重试，一般无需处理。',
-      '如果同一楼层反复失败，说明模型看到的表内容与该楼层的历史状态不一致（多见于手动追平早期楼层）；换一个追平起点或缩小选表范围再试。',
+      'Thường do mô hình điền trùng hàng: câu INSERT nó sinh ra xung đột row_id với hàng đã có khi phát lại theo tầng. Điền bảng / bắt kịp sẽ phản hồi lỗi này cho mô hình tự thử lại, thường không cần xử lý.',
+      'Nếu cùng một tầng liên tục thất bại, nghĩa là nội dung bảng mô hình thấy không khớp với trạng thái lịch sử của tầng đó (hay gặp khi bắt kịp thủ công các tầng đầu); hãy đổi điểm bắt đầu bắt kịp hoặc thu hẹp phạm vi chọn bảng rồi thử lại.',
       EXPORT_LOGS,
     ],
   },
   {
     id: 'v2-compat-readonly',
-    test: /兼容宽容回放读出|仅可经兼容|compat_tolerant_replay|v2 恢复收敛|固化为过渡根|兼容过渡根/,
-    summary: '聊天里的表格历史只能以兼容（宽容）模式读出：某条历史增量在严格回放时失败（常见是重复插入同一 row_id）。读取仍然正常，但写入、追平和模板提交会被拒绝。',
+    test: /兼容宽容回放读出|仅可经兼容|compat_tolerant_replay|v2 恢复收敛|固化为过渡根|兼容过渡根|khoan dung tương thích|tương thích khoan dung|hội tụ khôi phục|gốc chuyển tiếp|chuyển tiếp tương thích/,
+    summary: 'Lịch sử bảng trong cuộc trò chuyện chỉ đọc được ở chế độ tương thích (khoan dung): một phần tăng thêm lịch sử thất bại khi phát lại nghiêm ngặt (thường do chèn trùng cùng một row_id). Việc đọc vẫn bình thường, nhưng ghi, bắt kịp và gửi mẫu sẽ bị từ chối.',
     steps: [
-      '这不是本次 AI 输出的问题，重试生成不会修复历史，所以插件不会自动重试。',
-      '到「数据管理」→「诊断 V2 数据恢复」，点「固化兼容回放为过渡根」：把当前兼容读取结果写成严格可回放的根，之后写入与追平恢复正常（含 sheetKey 身份归并时需要额外确认）。',
-      '固化不会改写任何原始 storage frame；如需人工核对，先用「导出已保存的原始 frame 备份」。',
+      'Đây không phải vấn đề của đầu ra AI lần này, thử sinh lại không sửa được lịch sử nên tiện ích không tự động thử lại.',
+      'Vào「Quản lý dữ liệu」→「Chẩn đoán khôi phục dữ liệu V2」, bấm「Cố định phát lại tương thích thành gốc chuyển tiếp」: ghi kết quả đọc tương thích hiện tại thành gốc có thể phát lại nghiêm ngặt, sau đó ghi và bắt kịp trở lại bình thường (khi gộp danh tính sheetKey cần xác nhận thêm).',
+      'Việc cố định không ghi đè bất kỳ storage frame gốc nào; nếu cần đối chiếu thủ công, hãy dùng「Xuất bản sao lưu frame gốc đã lưu」trước.',
     ],
   },
 
@@ -264,126 +264,126 @@ const RULES: HintRule[] = [
   {
     id: 'column-not-found',
     test: /column .* not found|no such column|column mapping is unavailable|absent from canonical headers|cannot find .* column|column index .* out of bounds|找不到.*列|列.*不存在|列名.*无效/,
-    summary: '找不到指定的列：列名与当前表头不一致。',
+    summary: 'Không tìm thấy cột được chỉ định: tên cột không khớp với tiêu đề bảng hiện tại.',
     steps: [
-      '到「高级工具」→ SQL 控制台点「查看表结构」，核对准确的列名。',
-      '提示词或模板中的列名要与表格表头完全一致（包含空格、括号）。',
-      '如果刚改过模板，打开表格编辑器重新保存一次，让结构同步到数据库。',
+      'Vào「Công cụ nâng cao」→ Bảng điều khiển SQL, bấm「Xem cấu trúc bảng」để đối chiếu tên cột chính xác.',
+      'Tên cột trong prompt hoặc mẫu phải khớp hoàn toàn với tiêu đề bảng (bao gồm khoảng trắng, dấu ngoặc).',
+      'Nếu vừa sửa mẫu, hãy mở trình chỉnh sửa bảng và lưu lại một lần để đồng bộ cấu trúc vào cơ sở dữ liệu.',
     ],
   },
   {
     id: 'sqlite-ddl-exec',
-    test: /ddl.*(执行|apply|run|fail|失败|error)|执行.*ddl|apply.*ddl|建表失败|创建表失败|alter table.*(失败|fail)|drop table.*(失败|fail)|完整 candidate sqlite hydrate 失败|candidate.*hydrate 失败/,
-    summary: 'SQLite 建表 / 改表（DDL）执行失败，模板结构无法在 SQLite 中落成。',
+    test: /ddl.*(执行|apply|run|fail|失败|error)|执行.*ddl|apply.*ddl|建表失败|创建表失败|alter table.*(失败|fail)|drop table.*(失败|fail)|完整 candidate sqlite hydrate 失败|candidate.*hydrate 失败|ddl.*(?:thất bại|không thể thực thi)|không thể chèn row_id vào ddl|sqlite hydrate.*thất bại|hydrate.*candidate.*thất bại/,
+    summary: 'Tạo bảng / sửa bảng (DDL) của SQLite thất bại, cấu trúc mẫu không thể hiện thực trong SQLite.',
     steps: [
-      '通常是模板中存在重复列名、约束冲突或与历史物理表不兼容。',
-      '到「数据管理」页查看模板与历史表结构，或使用结构校准 / 恢复工具重建。',
-      '如果刚切换模板，先刷新页面再重试；仍失败请导出日志反馈。',
+      'Thường do mẫu có tên cột trùng, xung đột ràng buộc hoặc không tương thích với bảng vật lý lịch sử.',
+      'Vào trang「Quản lý dữ liệu」xem mẫu và cấu trúc bảng lịch sử, hoặc dùng công cụ hiệu chuẩn / khôi phục cấu trúc để dựng lại.',
+      'Nếu vừa đổi mẫu, hãy làm mới trang rồi thử lại; nếu vẫn lỗi, xuất nhật ký để phản hồi.',
     ],
   },
   {
     id: 'table-not-found',
-    test: /table "[^"]*" not found|no such table|has no content|表格?\s*[「"“]?[^\s」"”]{0,40}[」"”]?\s*(不存在|未找到)|找不到表|表不存在/,
-    summary: '找不到指定的表格（或表格是空的）。',
+    test: /table "[^"]*" not found|no such table|has no content|表格?\s*[「"“]?[^\s」"”]{0,40}[」"”]?\s*(不存在|未找到)|找不到表|表不存在|không tìm thấy bảng|bảng\s*[「\"“]?[^\s」\"”]{0,40}[」\"”]?\s*(?:không tồn tại|không tìm thấy)/,
+    summary: 'Không tìm thấy bảng được chỉ định (hoặc bảng trống).',
     steps: [
-      '检查表名是否拼写正确；中文表名和英文表名不能混用。',
-      '确认当前聊天已经加载了表格模板（在「填表规则」页能看到表格列表）。',
-      '到「高级工具」→ SQL 控制台点「查看所有表」，用列出的表名重试。',
+      'Kiểm tra tên bảng viết đúng chưa; tên bảng tiếng Trung và tiếng Anh không dùng lẫn.',
+      'Xác nhận cuộc trò chuyện hiện tại đã nạp mẫu bảng (trang「Quy tắc điền bảng」hiển thị danh sách bảng).',
+      'Vào「Công cụ nâng cao」→ Bảng điều khiển SQL, bấm「Xem tất cả bảng」và thử lại với tên bảng được liệt kê.',
     ],
   },
   {
     id: 'row-out-of-bounds',
-    test: /row index .* out of bounds|row_id not found|cannot (modify|delete) header row|行号.*越界|行.*不存在|找不到.*行/,
-    summary: '行号越界，或找不到对应的行。',
+    test: /row index .* out of bounds|row_id not found|cannot (modify|delete) header row|行号.*越界|行.*不存在|找不到.*行|hàng .* không tồn tại|không tìm thấy.*hàng/,
+    summary: 'Số hàng vượt giới hạn, hoặc không tìm thấy hàng tương ứng.',
     steps: [
-      '行号从 1 开始计数，0 是表头不能修改或删除。',
-      '打开表格编辑器确认目标行确实存在。',
-      '如果是 AI 生成的编辑指令，多为模型幻觉，重试即可。',
+      'Số hàng đếm từ 1, 0 là hàng tiêu đề, không thể sửa hoặc xóa.',
+      'Mở trình chỉnh sửa bảng để xác nhận hàng mục tiêu có thật sự tồn tại.',
+      'Nếu là lệnh chỉnh sửa do AI sinh ra, phần lớn là mô hình bịa, thử lại là được.',
     ],
   },
 
   // ─── SQLite ───
   {
     id: 'sqlite-init',
-    test: /sql\.js|wasm|sqlite.*(初始化|init|加载|load).*(失败|fail|异常)|sqlite runtime unavailable|fallback 到原生|回退.*原生|sqlite mode expected|exported no table data|sqlite provider|sqlite 不可用/,
-    summary: 'SQLite 引擎加载失败，已自动回退到原生（JSON）存储模式。',
+    test: /sql\.js|wasm|sqlite.*(初始化|init|加载|load).*(失败|fail|异常)|sqlite runtime unavailable|fallback 到原生|回退.*原生|sqlite mode expected|exported no table data|sqlite provider|sqlite 不可用|khởi tạo lại runtime sqlite|(?:khởi tạo|tải).*sqlite.*thất bại|lùi về chế độ gốc|quay về chế độ gốc|sqlite.*không khả dụng|chuyển chế độ sqlite thất bại|tải lại sqlite runtime chưa hoàn tất/,
+    summary: 'Công cụ SQLite tải thất bại, đã tự động quay về chế độ lưu trữ gốc (JSON).',
     steps: [
-      '刷新酒馆页面（Ctrl+F5）后重试。',
-      '检查浏览器的广告拦截 / 安全插件是否拦截了 .wasm 文件下载。',
-      '重新安装本插件以确保文件完整。回退期间表格仍可用，只是 SQL 相关功能受限。',
+      'Làm mới trang SillyTavern (Ctrl+F5) rồi thử lại.',
+      'Kiểm tra trình chặn quảng cáo / tiện ích bảo mật của trình duyệt có chặn tải tệp .wasm không.',
+      'Cài lại tiện ích này để đảm bảo tệp đầy đủ. Trong thời gian quay về chế độ gốc bảng vẫn dùng được, chỉ các chức năng liên quan SQL bị hạn chế.',
     ],
   },
   {
     id: 'schema-mismatch',
-    test: /schema_missing|未在 sqlite runtime 中创建|未在 sqlite 运行时|缺列|缺少列|runtime 中不存在|结构不一致|schema 不一致|表结构.*(不一致|缺失|不匹配)|hydrate 失败.*(schema|列)|schema.*(fail|mismatch|不一致)/,
-    summary: '表格结构（列 / 物理表）与 SQLite 实际建表结果不一致，属于数据或模板结构问题，不是引擎加载失败。',
+    test: /schema_missing|未在 sqlite runtime 中创建|未在 sqlite 运行时|缺列|缺少列|runtime 中不存在|结构不一致|schema 不一致|表结构.*(不一致|缺失|不匹配)|hydrate 失败.*(schema|列)|schema.*(fail|mismatch|不一致)|chưa được tạo trong sqlite runtime|schema.*không khớp|không khớp.*schema|cấu trúc.*(?:không khớp|không nhất quán)|thiếu cột/,
+    summary: 'Cấu trúc bảng (cột / bảng vật lý) không khớp với kết quả tạo bảng thực tế của SQLite, đây là vấn đề dữ liệu hoặc cấu trúc mẫu, không phải lỗi tải công cụ.',
     steps: [
-      '这不是 wasm / 引擎下载问题，不需要检查下载拦截。',
-      '到「数据管理」页运行诊断 / 恢复工具，让插件按当前模板重建或校准运行时结构。',
-      '如果刚切换过模板，先刷新页面并重新加载当前聊天；仍失败请导出日志反馈。',
+      'Đây không phải vấn đề tải wasm / công cụ, không cần kiểm tra việc chặn tải.',
+      'Vào trang「Quản lý dữ liệu」chạy công cụ chẩn đoán / khôi phục để tiện ích dựng lại hoặc hiệu chuẩn cấu trúc runtime theo mẫu hiện tại.',
+      'Nếu vừa đổi mẫu, hãy làm mới trang và nạp lại cuộc trò chuyện hiện tại; nếu vẫn lỗi, xuất nhật ký để phản hồi.',
     ],
   },
   {
     id: 'identity-conflict',
-    test: /表身份.*(失败|冲突|歧义)|身份冲突|identity conflict|多对一冲突|同时指向|同名.*(冲突|重复)|物理表名冲突|sheetkey.*(冲突|歧义)|表名.*(冲突|歧义)|schema 身份/,
-    summary: '表格身份存在冲突或歧义：同一规范表名 / 别名对应了多个表，或新旧 sheetKey 没有正确归并。',
+    test: /表身份.*(失败|冲突|歧义)|身份冲突|identity conflict|多对一冲突|同时指向|同名.*(冲突|重复)|物理表名冲突|sheetkey.*(冲突|歧义)|表名.*(冲突|歧义)|schema 身份|danh tính bảng.*(?:thất bại|xung đột|mơ hồ)|danh tính.*xung đột|xung đột danh tính|nhiều-một|(?:cùng lúc|đồng thời|cùng) trỏ tới|tên bảng.*(?:xung đột|mơ hồ)|xung đột tên bảng|sheetkey.*(?:xung đột|mơ hồ)/,
+    summary: 'Danh tính bảng bị xung đột hoặc mơ hồ: cùng một tên bảng chuẩn / bí danh tương ứng nhiều bảng, hoặc sheetKey cũ và mới chưa được gộp đúng.',
     steps: [
-      '这通常是模板切换后旧 key 与新 key 并存导致。',
-      '到「数据管理」页使用诊断 / 恢复工具，优先选择能保留两边数据的保真恢复。',
-      '不要手工删除历史表；导出日志并附上模板切换步骤，便于定位身份映射。',
+      'Thường do sau khi đổi mẫu, key cũ và key mới cùng tồn tại.',
+      'Vào trang「Quản lý dữ liệu」dùng công cụ chẩn đoán / khôi phục, ưu tiên chọn khôi phục bảo toàn giữ được dữ liệu cả hai bên.',
+      'Đừng tự xóa bảng lịch sử; hãy xuất nhật ký kèm các bước đổi mẫu để dễ định vị ánh xạ danh tính.',
     ],
   },
   {
     id: 'sql-constraint',
     test: /unique constraint|constraint failed|not null constraint|foreign key constraint|datatype mismatch|主键冲突|唯一约束/,
-    summary: 'SQL 写入违反了表约束（重复主键 / 空值 / 类型不匹配）。',
+    summary: 'Ghi SQL vi phạm ràng buộc bảng (trùng khóa chính / giá trị rỗng / sai kiểu).',
     steps: [
-      '插入的行与已有行 row_id 重复：改用 UPDATE，或让系统自动分配 row_id。',
-      '如果是 AI 生成的语句，重试一次让模型重新生成。',
-      '手写 SQL 时确认列类型与填入值一致。',
+      'Hàng chèn vào trùng row_id với hàng đã có: hãy dùng UPDATE, hoặc để hệ thống tự cấp row_id.',
+      'Nếu là câu lệnh do AI sinh, thử lại một lần để mô hình sinh lại.',
+      'Khi tự viết SQL, hãy xác nhận kiểu cột khớp với giá trị điền vào.',
     ],
   },
   {
     id: 'sql-syntax',
-    test: /syntax error|near "|sql.*(执行失败|failed|error)|sqlite_error|execute failed|批量执行失败|快照 sql/,
-    summary: 'SQL 语句执行失败：语法有误，或引用了不存在的表 / 列。',
+    test: /syntax error|near "|sql.*(执行失败|failed|error)|sqlite_error|execute failed|批量执行失败|快照 sql|thực thi (?:staging )?sql thất bại|sql.*thất bại|lỗi thực thi sql|câu lệnh thứ.*thất bại|ghi sqlite thất bại/,
+    summary: 'Thực thi câu lệnh SQL thất bại: sai cú pháp, hoặc tham chiếu bảng / cột không tồn tại.',
     steps: [
-      '如果是你在 SQL 控制台手写的语句，检查拼写、引号是否配对、语句末尾的分号。',
-      '如果是 AI 生成的语句，多为模型输出错误，重试即可。',
-      '用「查看所有表」「查看表结构」核对表名与列名。',
+      'Nếu là câu lệnh bạn tự viết trong bảng điều khiển SQL, kiểm tra chính tả, dấu nháy có khớp cặp không và dấu chấm phẩy cuối câu.',
+      'Nếu là câu lệnh do AI sinh, phần lớn là mô hình xuất sai, thử lại là được.',
+      'Dùng「Xem tất cả bảng」「Xem cấu trúc bảng」để đối chiếu tên bảng và tên cột.',
     ],
   },
 
   // ─── 表格数据状态 ───
   {
     id: 'table-data-not-loaded',
-    test: /tabledata is not loaded|currentjsontabledata_acu is (null|not (loaded|available))|chat history is empty|表格数据.*(未加载|不可用)|聊天记录为空|获取聊天记录失败|save aborted/,
-    summary: '表格数据尚未加载，或当前聊天里还没有消息。',
+    test: /tabledata is not loaded|currentjsontabledata_acu is (null|not (loaded|available))|chat history is empty|表格数据.*(未加载|不可用)|聊天记录为空|获取聊天记录失败|save aborted|(?:lịch sử trò chuyện|bản ghi cuộc trò chuyện(?: hiện tại)?)(?: đang)? trống|dữ liệu bảng.*(?:chưa được nạp|chưa được tải|không khả dụng)|csdl chưa được tải/,
+    summary: 'Dữ liệu bảng chưa được nạp, hoặc cuộc trò chuyện hiện tại chưa có tin nhắn.',
     steps: [
-      '确认当前聊天里至少有一条 AI 回复；全新的聊天需要先发一条消息。',
-      '切换一次聊天或刷新页面，让表格重新加载。',
-      '如果反复出现，到「数据管理」页检查当前聊天的表格状态。',
+      'Xác nhận cuộc trò chuyện hiện tại có ít nhất một phản hồi của AI; cuộc trò chuyện mới cần gửi một tin nhắn trước.',
+      'Chuyển cuộc trò chuyện một lần hoặc làm mới trang để bảng được nạp lại.',
+      'Nếu lặp lại, vào trang「Quản lý dữ liệu」kiểm tra trạng thái bảng của cuộc trò chuyện hiện tại.',
     ],
   },
   {
     id: 'table-persist-model',
     test: /table persistence requires|direct unsafe writes/,
-    summary: '有脚本尝试绕过安全写入通道直接改表，被插件拒绝。',
+    summary: 'Có script cố bỏ qua kênh ghi an toàn để sửa bảng trực tiếp, đã bị tiện ích từ chối.',
     steps: [
-      '这通常来自第三方脚本或旧版角色卡脚本；本插件数据未受影响。',
-      '请脚本作者改用本插件公开的表格 API（updateCell / updateRow / executeSql 等）。',
+      'Thường đến từ script bên thứ ba hoặc script thẻ nhân vật phiên bản cũ; dữ liệu của tiện ích này không bị ảnh hưởng.',
+      'Hãy nhờ tác giả script chuyển sang dùng API bảng mà tiện ích này công khai (updateCell / updateRow / executeSql, v.v.).',
     ],
   },
 
   // ─── 设置持久化 ───
   {
     id: 'settings-persist',
-    test: /failed to (save|persist|load).*settings|settings.*(save|load|persist).*fail|保存.*(设置|预设|配置|阈值|次数|频率|大小|并发|楼层|保留数).*失败|设置.*(保存|读取).*失败|failed to load or parse settings/,
-    summary: '设置保存或读取失败。',
+    test: /failed to (save|persist|load).*settings|settings.*(save|load|persist).*fail|保存.*(设置|预设|配置|阈值|次数|频率|大小|并发|楼层|保留数).*失败|设置.*(保存|读取).*失败|failed to load or parse settings|lưu.*(?:cài đặt|preset|cấu hình|ngưỡng|số lần|tần suất|kích thước|đồng thời|tầng).*thất bại|cài đặt.*(?:lưu|đọc).*thất bại/,
+    summary: 'Lưu hoặc đọc cài đặt thất bại.',
     steps: [
-      '刷新页面后重新修改并保存一次。',
-      '如果读取失败已回落到默认值，到「数据管理」页用之前导出的配置恢复。',
-      '检查浏览器存储是否已满或被隐私设置限制。',
+      'Làm mới trang, sửa và lưu lại một lần.',
+      'Nếu đọc thất bại và đã quay về giá trị mặc định, vào trang「Quản lý dữ liệu」khôi phục bằng cấu hình đã xuất trước đó.',
+      'Kiểm tra bộ nhớ trình duyệt có đầy hoặc bị giới hạn bởi cài đặt riêng tư không.',
     ],
   },
 
@@ -391,77 +391,77 @@ const RULES: HintRule[] = [
   {
     id: 'json-import',
     // 第二组限定「文件导入」语境：TemplateAssistant 这类 AI 草稿解析失败不算导入问题。
-    test: haystack => /json|parse|解析|unexpected token|unexpected end/.test(haystack)
-      && /导入|import|\[模板|模板文件|template (file|json)|预设|preset|主题|theme|合并配置/.test(haystack),
-    summary: '导入的文件不是合法 JSON，或结构与本插件要求的不一致。',
+    test: haystack => /json|parse|解析|phân tích|unexpected token|unexpected end/.test(haystack)
+      && /导入|import|\[模板|模板文件|template (file|json)|预设|preset|主题|theme|合并配置|json đã nhập|nhập tệp|\[mẫu|tệp mẫu|tệp giao diện|cấu hình gộp/.test(haystack),
+    summary: 'Tệp nhập không phải JSON hợp lệ, hoặc cấu trúc không khớp với yêu cầu của tiện ích.',
     steps: [
-      '确认导入的是本插件「导出」功能生成的 JSON 文件，而不是别的插件或手改过的文件。',
-      '用记事本打开文件，检查是否被截断、开头结尾的大括号是否完整。',
-      '如果是从聊天 / 网页复制的内容，先粘贴到编辑器里检查再另存为 .json。',
+      'Xác nhận bạn nhập tệp JSON do chức năng「Xuất」của tiện ích này tạo ra, không phải của tiện ích khác hoặc tệp đã sửa tay.',
+      'Mở tệp bằng Notepad, kiểm tra có bị cắt cụt không, dấu ngoặc nhọn đầu cuối có đầy đủ không.',
+      'Nếu nội dung sao chép từ cuộc trò chuyện / trang web, hãy dán vào trình soạn thảo kiểm tra trước rồi lưu thành .json.',
     ],
   },
   {
     id: 'json-ai-output',
-    test: /json.*(解析|parse|sanitiz)|parse.*json|unexpected token|unexpected end of json|is not valid json|sanitization|loose row object|failed to parse (command|or apply)|解析\/应用失败|解析失败|解析出错|解析异常/,
-    summary: 'AI 输出的 JSON / 指令格式不正确，插件解析不了。',
+    test: /json.*(解析|parse|sanitiz)|parse.*json|unexpected token|unexpected end of json|is not valid json|sanitization|loose row object|failed to parse (command|or apply)|解析\/应用失败|解析失败|解析出错|解析异常|json.*phân tích|phân tích json|phân tích.*thất bại|lỗi phân tích|không thể phân tích/,
+    summary: 'JSON / định dạng lệnh do AI xuất không đúng, tiện ích không phân tích được.',
     steps: [
-      '这通常是模型偶发抖动，直接重试一次。',
-      '频繁出现时换用指令遵循更好的模型（更大参数、或官方渠道）。',
-      '填表可到「填表规则」开启「严格 JSON」或降低 temperature；检查自定义提示词是否要求了额外的输出格式。',
+      'Thường là mô hình chập chờn ngẫu nhiên, thử lại ngay một lần.',
+      'Nếu xảy ra thường xuyên, hãy dùng mô hình tuân thủ chỉ dẫn tốt hơn (tham số lớn hơn, hoặc kênh chính thức).',
+      'Với điền bảng, có thể vào「Quy tắc điền bảng」bật「JSON nghiêm ngặt」hoặc hạ temperature; kiểm tra prompt tùy chỉnh có yêu cầu định dạng đầu ra bổ sung không.',
     ],
   },
   {
     id: 'empty-response',
-    test: /未返回预期的文本响应|返回无效响应|unknown response format|failed to parse response|empty response|响应为空|返回为空|空响应|返回内容为空|已返回 null/,
-    summary: 'AI 返回了空内容或无法识别的格式。',
+    test: /未返回预期的文本响应|返回无效响应|unknown response format|failed to parse response|empty response|响应为空|返回为空|空响应|返回内容为空|已返回 null|trả về rỗng|phản hồi rỗng|đầu ra.*rỗng/,
+    summary: 'AI trả về nội dung rỗng hoặc định dạng không nhận diện được.',
     steps: [
       RETRY_LATER,
-      '可能触发了服务商的内容审查（部分模型被拦截时会静默返回空），换个模型或调整内容再试。',
-      '如果开启了流式输出，到「API」页关闭该预设的流式后再试。',
+      'Có thể đã kích hoạt kiểm duyệt nội dung của nhà cung cấp (một số mô hình bị chặn sẽ âm thầm trả rỗng), hãy đổi mô hình hoặc chỉnh nội dung rồi thử lại.',
+      'Nếu đã bật xuất luồng, vào trang「API」tắt luồng của preset đó rồi thử lại.',
     ],
   },
 
   // ─── 向量 / 存储 / 检查点 ───
   {
     id: 'vector',
-    test: /\bembedding\b|\brerank\b|向量|\bvector\b/,
-    summary: '交火模式（向量索引）相关操作失败。',
+    test: /\bembedding\b|\brerank\b|向量|\bvector\b|chỉ mục vector/,
+    summary: 'Thao tác liên quan chế độ giao hỏa (chỉ mục vector) thất bại.',
     steps: [
-      '到「填表工作台」的「Embedding / Rerank」面板检查 Embedding / Rerank 的接口地址、密钥和模型名，确认服务商支持该接口。',
+      'Kiểm tra địa chỉ giao diện, khóa và tên mô hình Embedding / Rerank trong bảng「Embedding / Rerank」của「Bàn điền bảng」, xác nhận nhà cung cấp hỗ trợ giao diện đó.',
       SEE_PREVIOUS_LOG,
-      '可先在填表模式页切到经典表格模式或LLM模型逻辑召回模式，不影响填表等基础功能。',
+      'Có thể chuyển sang chế độ bảng cổ điển hoặc chế độ truy hồi logic mô hình LLM ở trang chế độ điền bảng, không ảnh hưởng các chức năng cơ bản như điền bảng.',
     ],
   },
   {
     id: 'storage-mode-switch',
-    test: /存储模式.*(切换|回滚)|storage mode (switch|rollback)/,
-    summary: '存储模式切换失败，已尝试回滚到切换前的状态。',
+    test: /存储模式.*(切换|回滚)|storage mode (switch|rollback)|chuyển chế độ lưu trữ|chế độ lưu trữ.*(?:chuyển|lùi|khôi phục)/,
+    summary: 'Chuyển chế độ lưu trữ thất bại, đã thử khôi phục về trạng thái trước khi chuyển.',
     steps: [
-      '确认当前没有正在进行的填表或续写任务，等它们结束后再切换。',
-      '刷新页面后再试一次。',
-      '切换前建议先到「数据管理」页导出一份数据备份。',
+      'Xác nhận hiện không có tác vụ điền bảng hoặc viết tiếp đang chạy, chờ chúng kết thúc rồi mới chuyển.',
+      'Làm mới trang rồi thử lại một lần.',
+      'Trước khi chuyển nên vào trang「Quản lý dữ liệu」xuất một bản sao lưu dữ liệu.',
     ],
   },
   {
     id: 'checkpoint-replay',
-    test: /checkpoint|v2 replay|replay|snapshot hydrate|数据库重建|回放|增量更新流程失败|merge base|compaction|staging|provisional|临时根/,
-    summary: '表格历史回放 / 检查点处理失败，当前显示的数据可能不是最新。',
+    test: /checkpoint|v2 replay|replay|snapshot hydrate|数据库重建|回放|增量更新流程失败|merge base|compaction|staging|provisional|临时根|phát lại|gốc tạm|gốc chuyển tiếp/,
+    summary: 'Phát lại lịch sử bảng / xử lý checkpoint thất bại, dữ liệu đang hiển thị có thể không phải mới nhất.',
     steps: [
-      '先刷新页面，或切出去再切回这个聊天，让插件重新加载。',
-      '到「数据管理」页导出一份数据备份，避免后续操作覆盖。',
-      '使用「数据管理」里的诊断 / 恢复工具修复；仍不行请导出日志反馈。',
+      'Làm mới trang trước, hoặc chuyển sang cuộc trò chuyện khác rồi quay lại để tiện ích nạp lại.',
+      'Vào trang「Quản lý dữ liệu」xuất một bản sao lưu dữ liệu để tránh thao tác sau ghi đè.',
+      'Dùng công cụ chẩn đoán / khôi phục trong「Quản lý dữ liệu」để sửa; nếu vẫn không được, hãy xuất nhật ký để phản hồi.',
     ],
   },
 
   // ─── 世界书 ───
   {
     id: 'worldbook',
-    test: /world ?book|lorebook|世界书|worldbook/,
-    summary: '世界书读取或写入失败。',
+    test: /world ?book|lorebook|世界书|worldbook|sổ thế giới/,
+    summary: 'Đọc hoặc ghi sổ thế giới thất bại.',
     steps: [
-      '确认当前角色已绑定世界书，且目标世界书没有被删除或重命名。',
-      '打开酒馆自带的世界书面板，确认该世界书能正常打开。',
-      '如果刚改过绑定，到对应功能页重新选择一次目标世界书。',
+      'Xác nhận nhân vật hiện tại đã gắn sổ thế giới, và sổ thế giới đích không bị xóa hay đổi tên.',
+      'Mở bảng sổ thế giới có sẵn của SillyTavern, xác nhận sổ thế giới đó mở bình thường.',
+      'Nếu vừa đổi liên kết, vào trang chức năng tương ứng chọn lại sổ thế giới đích một lần.',
     ],
   },
 
@@ -469,110 +469,110 @@ const RULES: HintRule[] = [
   {
     id: 'deprecated-api',
     test: /已弃用|deprecated/,
-    summary: '有其他脚本调用了本插件已弃用的接口。',
+    summary: 'Có script khác gọi giao diện đã bị tiện ích này ngừng hỗ trợ.',
     steps: [
-      '不影响本插件正常运行，可以忽略。',
-      '如果是你自己写的脚本，按日志提示改用新接口；如果是角色卡或第三方扩展，联系其作者更新。',
+      'Không ảnh hưởng hoạt động bình thường của tiện ích, có thể bỏ qua.',
+      'Nếu là script bạn tự viết, hãy đổi sang giao diện mới theo gợi ý nhật ký; nếu là thẻ nhân vật hoặc tiện ích bên thứ ba, hãy liên hệ tác giả cập nhật.',
     ],
   },
   {
     id: 'invalid-params',
     test: /must be (an? )?(array|object|non-empty|integer)|is required\.?|invalid (params|input|rowindex|preset name|context settings)|received invalid input|参数无效|参数不合法/,
-    summary: '外部脚本调用本插件接口时传入的参数不合法。',
+    summary: 'Tham số khi script bên ngoài gọi giao diện của tiện ích không hợp lệ.',
     steps: [
-      '这类调用通常来自角色卡脚本或其他扩展，本插件数据不受影响。',
-      '如果是你写的脚本，按提示修正参数类型（例如 rowIndex 必须是从 1 开始的整数）。',
-      '否则联系脚本作者处理。',
+      'Loại lệnh gọi này thường đến từ script thẻ nhân vật hoặc tiện ích khác, dữ liệu của tiện ích này không bị ảnh hưởng.',
+      'Nếu là script bạn viết, hãy sửa kiểu tham số theo gợi ý (ví dụ rowIndex phải là số nguyên bắt đầu từ 1).',
+      'Nếu không, hãy liên hệ tác giả script xử lý.',
     ],
   },
   {
     id: 'preset-not-found',
-    test: /preset .* not found|预设.*(不存在|未找到|找不到)|无法找到.*预设|找不到.*预设/,
-    summary: '找不到指定名称的预设。',
+    test: /preset .* not found|预设.*(不存在|未找到|找不到)|无法找到.*预设|找不到.*预设|không tìm thấy.*preset|preset.*(?:không tồn tại|không còn tồn tại|không tìm thấy)/,
+    summary: 'Không tìm thấy preset có tên được chỉ định.',
     steps: [
-      '检查预设名是否拼写正确，注意大小写和空格。',
-      '到对应功能页（API / 填表规则 / 剧情推进）确认该预设仍然存在，可能已被删除或改名。',
-      '重新选择一次预设并保存。',
+      'Kiểm tra tên preset viết đúng chưa, chú ý chữ hoa chữ thường và khoảng trắng.',
+      'Vào trang chức năng tương ứng (API / Quy tắc điền bảng / Đẩy cốt truyện) xác nhận preset còn tồn tại, có thể đã bị xóa hoặc đổi tên.',
+      'Chọn lại preset một lần và lưu.',
     ],
   },
   {
     id: 'callback',
     test: /callback/,
-    summary: '第三方脚本注册到本插件的回调函数执行出错。',
+    summary: 'Hàm callback mà script bên thứ ba đăng ký vào tiện ích này chạy bị lỗi.',
     steps: [
-      '错误来自其他脚本内部，不影响本插件的填表结果。',
-      '联系该脚本 / 角色卡作者排查。',
+      'Lỗi đến từ bên trong script khác, không ảnh hưởng kết quả điền bảng của tiện ích này.',
+      'Liên hệ tác giả script / thẻ nhân vật đó để kiểm tra.',
     ],
   },
 
   // ─── 按功能模块兜底 ───
   {
     id: 'template',
-    test: /模板|template/,
-    summary: '表格模板处理失败。',
+    test: /模板|template|\bmẫu\b/,
+    summary: 'Xử lý mẫu bảng thất bại.',
     steps: [
-      '确认导入的是本插件导出的模板 JSON，且每张表都有表头行。',
-      '到「填表规则」页重新选择模板，或恢复默认模板后再导入自定义模板。',
+      'Xác nhận bạn nhập JSON mẫu do tiện ích này xuất, và mỗi bảng đều có hàng tiêu đề.',
+      'Vào trang「Quy tắc điền bảng」chọn lại mẫu, hoặc khôi phục mẫu mặc định rồi mới nhập mẫu tùy chỉnh.',
       SEE_PREVIOUS_LOG,
     ],
   },
   {
     id: 'content-optimization',
-    test: /正文优化|正文替换|content replace|reoptimize|重新优化/,
-    summary: '正文替换 / 重新优化执行失败。',
+    test: /正文优化|正文替换|content replace|reoptimize|重新优化|tối ưu nội dung|thay thế nội dung/,
+    summary: 'Thay thế nội dung / tối ưu lại thực thi thất bại.',
     steps: [
       SEE_PREVIOUS_LOG,
-      '到「正文替换」页确认规则与所选 API 预设是否正常。',
-      '可先临时关闭该功能验证问题是否消失。',
+      'Vào trang「Thay thế nội dung」xác nhận quy tắc và preset API đã chọn có bình thường không.',
+      'Có thể tạm tắt chức năng này để kiểm tra vấn đề có biến mất không.',
     ],
   },
   {
     id: 'plot',
-    test: /剧情推进|plot/,
-    summary: '剧情推进任务执行失败。',
+    test: /剧情推进|plot|đẩy cốt truyện/,
+    summary: 'Tác vụ đẩy cốt truyện thực thi thất bại.',
     steps: [
-      '到「剧情推进」页检查所选 API 预设与世界书配置。',
-      '如果刚编辑过任务提示词，检查占位符（$ 开头）是否拼写正确。',
+      'Vào trang「Đẩy cốt truyện」kiểm tra preset API đã chọn và cấu hình sổ thế giới.',
+      'Nếu vừa sửa prompt tác vụ, kiểm tra placeholder (bắt đầu bằng $) viết đúng chưa.',
       SEE_PREVIOUS_LOG,
     ],
   },
   {
     id: 'import',
-    test: /外部导入|import|导入/,
-    summary: '外部导入流程失败。',
+    test: /外部导入|import|导入|nhập từ ngoài|nhập (?:tệp|mẫu|txt)/,
+    summary: 'Quy trình nhập từ ngoài thất bại.',
     steps: [
-      '确认导入文件为 UTF-8 编码，且分块大小设置不要过大。',
-      '导入前确认已选择目标世界书。',
-      '到「外部导入」页先「清空导入缓存」再重试。',
+      'Xác nhận tệp nhập mã hóa UTF-8, và kích thước khối không đặt quá lớn.',
+      'Trước khi nhập, xác nhận đã chọn sổ thế giới đích.',
+      'Vào trang「Nhập từ ngoài」bấm「Xóa bộ nhớ đệm nhập」trước rồi thử lại.',
     ],
   },
   {
     id: 'fill',
-    test: /manual (refill|update)|重填|填表|update process|\bbatch\b|merge|合并|fillfirstlayer|数据加载|triggerupdate|manualupdate/,
-    summary: '填表 / 数据合并流程失败。',
+    test: /manual (refill|update)|重填|填表|update process|\bbatch\b|merge|合并|fillfirstlayer|数据加载|triggerupdate|manualupdate|điền bảng|điền lại|bắt kịp/,
+    summary: 'Quy trình điền bảng / gộp dữ liệu thất bại.',
     steps: [
       SEE_PREVIOUS_LOG,
-      '到「填表规则」把批处理大小调小后重试。',
-      '可到「填表工作台」使用手动填表 / 重填。',
+      'Vào「Quy tắc điền bảng」giảm kích thước lô rồi thử lại.',
+      'Có thể vào「Bàn điền bảng」dùng điền bảng thủ công / điền lại.',
     ],
   },
   {
     id: 'continuation',
-    test: /continuation|续写|agent/,
-    summary: 'Agent / 智能续写相关操作出错。',
+    test: /continuation|续写|agent|viết tiếp/,
+    summary: 'Thao tác liên quan Agent / viết tiếp thông minh bị lỗi.',
     steps: [
-      '智能续写：查看「智能续写」页会话流里的错误提示，并展开「各 Agent 渠道」确认每个渠道的 API 预设仍然存在。',
-      '如果是超预算 / 超时，调大对应的预算或延迟；实在卡住可「一键清空」后重新开始任务。',
-      'Agent 世界书：到「Agent」页确认接管模式与目标世界书配置。',
+      'Viết tiếp thông minh: xem thông báo lỗi trong luồng phiên ở trang「Viết tiếp thông minh」, và mở rộng「Các kênh Agent」để xác nhận preset API của từng kênh vẫn tồn tại.',
+      'Nếu vượt ngân sách / quá thời gian, hãy tăng ngân sách hoặc độ trễ tương ứng; nếu thật sự kẹt, có thể「Xóa trống một chạm」rồi bắt đầu lại tác vụ.',
+      'Sổ thế giới Agent: vào trang「Agent」xác nhận chế độ tiếp quản và cấu hình sổ thế giới đích.',
     ],
   },
   {
     id: 'export',
-    test: /导出|export/,
-    summary: '导出失败。',
+    test: /导出|export|xuất (?:tệp|mẫu|nhật ký|dữ liệu)/,
+    summary: 'Xuất thất bại.',
     steps: [
-      '检查浏览器是否拦截了文件下载（地址栏右侧通常有提示）。',
-      '刷新页面后重试；仍失败请导出日志反馈。',
+      'Kiểm tra trình duyệt có chặn tải tệp không (thường có thông báo ở bên phải thanh địa chỉ).',
+      'Làm mới trang rồi thử lại; nếu vẫn lỗi, xuất nhật ký để phản hồi.',
     ],
   },
 
@@ -580,10 +580,10 @@ const RULES: HintRule[] = [
   {
     id: 'generic',
     test: () => true,
-    summary: '插件内部操作失败。',
+    summary: 'Tác vụ nội bộ của tiện ích thất bại.',
     steps: [
-      '先重试一次；如果和 API 相关，稍等片刻再试。',
-      '刷新页面后再做一次同样的操作。',
+      'Thử lại một lần; nếu liên quan API, chờ một lát rồi thử.',
+      'Làm mới trang rồi thực hiện lại cùng thao tác.',
       EXPORT_LOGS,
     ],
   },

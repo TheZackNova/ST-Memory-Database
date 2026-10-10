@@ -153,7 +153,7 @@ describe('SyncBridge', () => {
     it('引擎未初始化时抛出错误', () => {
       engine.dispose();
       const data = makeTableData({ sheet_0: makeSheet() });
-      expect(() => bridge.loadFromTableData(data)).toThrow('未初始化');
+      expect(() => bridge.loadFromTableData(data)).toThrow('chưa được khởi tạo');
     });
 
     it('加载快照时保留 NOT NULL 字段中的空字符串', () => {
@@ -321,7 +321,7 @@ describe('SyncBridge', () => {
       });
 
       expect(() => bridge.loadFromTableData(makeTableData({ sheet_invalid: invalidSheet }), { strict: true }))
-        .toThrow('SQLite 写入失败：第 3 条语句失败（INSERT INTO shouyueshubiao）：CHECK constraint failed');
+        .toThrow('Ghi SQLite thất bại: câu lệnh thứ 3 thất bại (INSERT INTO shouyueshubiao): CHECK constraint failed');
       try {
         bridge.loadFromTableData(makeTableData({ sheet_invalid: invalidSheet }), { strict: true });
       } catch (error: any) {
@@ -447,7 +447,7 @@ describe('SyncBridge', () => {
       });
       const data = makeTableData({ sheet_unsafe: sheet });
 
-      expect(() => bridge.loadFromTableData(data, { strict: true, allowRuntimeDdlFallback: true })).toThrow('没有对应的 DDL 列');
+      expect(() => bridge.loadFromTableData(data, { strict: true, allowRuntimeDdlFallback: true })).toThrow('không có cột DDL tương ứng');
       expect(engine.getTableNames()).not.toContain(getRuntimeTableName(data, 'sheet_unsafe'));
     });
 
@@ -456,7 +456,7 @@ describe('SyncBridge', () => {
         sourceData: { note: '', initNode: '', deleteNode: '', updateNode: '', insertNode: '', ddl: 'CREATE TABLE broken ( INVALID SYNTAX;' },
       });
 
-      expect(() => bridge.loadFromTableData(makeTableData({ sheet_broken: sheet }), { strict: true })).toThrow('显式 DDL 缺少可用的 row_id INTEGER PRIMARY KEY 结构');
+      expect(() => bridge.loadFromTableData(makeTableData({ sheet_broken: sheet }), { strict: true })).toThrow('DDL tường minh thiếu cấu trúc row_id INTEGER PRIMARY KEY khả dụng');
       expect(engine.getTableNames()).not.toContain('sheet_broken');
     });
 
@@ -599,7 +599,7 @@ describe('SyncBridge', () => {
 
     it('引擎未初始化时抛出错误', () => {
       engine.dispose();
-      expect(() => bridge.exportToTableData(makeMate())).toThrow('未初始化');
+      expect(() => bridge.exportToTableData(makeMate())).toThrow('chưa được khởi tạo');
     });
 
     it('strict 模式下用户表缺失元数据时 fail closed', () => {
@@ -607,7 +607,7 @@ describe('SyncBridge', () => {
       engine.run('CREATE TABLE orphan_table (row_id INTEGER PRIMARY KEY, value TEXT);');
 
       expect(() => bridge.exportToTableData(makeMate(), { strict: true }))
-        .toThrow('缺少可识别的元数据');
+        .toThrow('thiếu metadata có thể nhận diện');
     });
 
     it('strict 模式下单表导出失败时向上抛出', () => {

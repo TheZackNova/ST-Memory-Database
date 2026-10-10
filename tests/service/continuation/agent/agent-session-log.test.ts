@@ -50,7 +50,7 @@ describe('Agent 会话日志', () => {
     logAgentSession_ACU({ kind: 'main_action', title: '长内容', detail: '长'.repeat(3000) });
     const last = readAgentSessionLog_ACU().at(-1)!;
     expect(last.detail.length).toBeLessThan(2100);
-    expect(last.detail).toContain('已截断');
+    expect(last.detail).toContain('đã cắt bớt');
   });
   it('write_sql 的 detail 上限单独放宽，其它 kind 仍按 2000 截断', () => {
     beginAgentSessionRun_ACU('运行');
@@ -58,13 +58,13 @@ describe('Agent 会话日志', () => {
     logAgentSession_ACU({ kind: 'write_sql', title: '提交 SQL', detail: 'S'.repeat(5000) });
     const sqlEntry = readAgentSessionLog_ACU().at(-1)!;
     expect(sqlEntry.detail).toHaveLength(5000);
-    expect(sqlEntry.detail).not.toContain('已截断');
+    expect(sqlEntry.detail).not.toContain('đã cắt bớt');
     // 超过放宽后的上限仍然截断，不允许无界增长。
     logAgentSession_ACU({ kind: 'write_sql', title: '提交 SQL', detail: 'S'.repeat(7000) });
-    expect(readAgentSessionLog_ACU().at(-1)!.detail).toContain('已截断');
+    expect(readAgentSessionLog_ACU().at(-1)!.detail).toContain('đã cắt bớt');
     // 其它 kind 不受影响。
     logAgentSession_ACU({ kind: 'main_action', title: '长内容', detail: '长'.repeat(3000) });
-    expect(readAgentSessionLog_ACU().at(-1)!.detail).toContain('已截断');
+    expect(readAgentSessionLog_ACU().at(-1)!.detail).toContain('đã cắt bớt');
     // 原地更新按条目自身 kind 判定上限，不会把已写入的 SQL 原文再截短。
     const id = logAgentSession_ACU({ kind: 'write_sql', title: '提交 SQL', detail: 'x' });
     updateAgentSession_ACU(id, { detail: 'S'.repeat(5000) });
@@ -133,7 +133,7 @@ describe('续写生成旁路诊断', () => {
     const before = JSON.stringify(readAgentSessionLog_ACU());
     debug.step('host_resolved');
     expect(JSON.stringify(readAgentSessionLog_ACU())).toBe(before);
-    const entries = readAgentSessionLog_ACU().filter(entry => entry.title.includes('续写 DEBUG'));
+    const entries = readAgentSessionLog_ACU().filter(entry => entry.title.includes('Viết tiếp DEBUG'));
     expect(entries).toHaveLength(1);
     expect(entries[0]).toMatchObject({ kind: 'handoff', status: 'failed', ok: false });
     expect(entries[0].detail).toContain('page_ready');
@@ -153,7 +153,7 @@ describe('续写生成旁路诊断', () => {
       debug.step('after_commands', { seq: 7 });
       vi.advanceTimersByTime(CONTINUATION_DEBUG_WAIT_MS_ACU);
       expect(readAgentSessionLog_ACU().at(-1)).toMatchObject({ status: 'running', ok: true });
-      expect(readAgentSessionLog_ACU().at(-1)!.title).toContain('仍在等待：到达 GENERATION_AFTER_COMMANDS');
+      expect(readAgentSessionLog_ACU().at(-1)!.title).toContain('Vẫn đang chờ: Đã đến GENERATION_AFTER_COMMANDS');
       expect(isAgentSessionRunning_ACU()).toBe(true);
       debug.watch(() => true);
       debug.finish('confirmed');

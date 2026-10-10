@@ -4,7 +4,7 @@
 
 import type { WorldSimulationPromptSegment_ACU } from '../model';
 import { agentSnapshotTemplate_ACU } from '../../../shared/agent-prompt-layout';
-import { renderAgentWorldbookTriggeredInjection_ACU, type AgentWorldbookEntryView_ACU } from '../../continuation/agent/agent-worldbook-read';
+import { renderAgentWorldbookEntries_ACU, renderAgentWorldbookHitBodies_ACU, renderAgentWorldbookTriggeredInjection_ACU, type AgentWorldbookEntryView_ACU } from '../../continuation/agent/agent-worldbook-read';
 import { getWorldSimulationAgentAccessProfile_ACU, type WorldSimulationAgentName_ACU } from './agent-catalog';
 import { buildV34WorldSimulationAgentPrompt_ACU, buildV20WorldSimulationAgentPrompt_ACU, worldSimulationSeamMarker_ACU, type WorldSimulationPromptPlaceholder_ACU } from './agent-defaults';
 
@@ -224,11 +224,11 @@ export function renderWorldSimulationDirectorReads_ACU(transcript: readonly { ro
     return text.includes('"kind":"read"') || text.includes('"kind":"search"') || text.includes('worldbook:entry:');
   }).map(item => item.content);
   if (!chunks.length) return '';
-  return ['【主会话已调阅】', '下面是主会话本轮已经读到的全文。不要再对同一地址调用 read。', ...chunks].join('\n\n');
+  return ['【Phiên chính đã đọc】', 'Dưới đây là toàn văn phiên chính đã đọc được trong lượt này. Không gọi read lại cho cùng một địa chỉ.', ...chunks].join('\n\n');
 }
 
 export const WORLD_SIMULATION_WORLDBOOK_UNAVAILABLE_ACU =
-  '【世界书快照读取失败】本轮未取得宿主世界书快照；不能将缺失条目视作世界书为空，也不能据此推断设定不存在。需要世界书证据时标记缺口，不得虚构。';
+  '【Đọc snapshot Sổ thế giới thất bại】Lượt này không lấy được snapshot Sổ thế giới từ host; không được coi mục bị thiếu là Sổ thế giới trống, cũng không được suy ra rằng thiết lập không tồn tại. Khi cần bằng chứng từ Sổ thế giới, hãy đánh dấu chỗ thiếu, không được bịa đặt.';
 
 /** Source-bound spans of the fixed worldbook injection, measured in UTF-16 code units. */
 export interface WorldSimulationFixedWorldbook_ACU {
@@ -244,14 +244,18 @@ export function bindWorldSimulationFixedWorldbook_ACU(
   // The fixed renderer owns the note and the no-hit text; no unmatched prefix/suffix may
   // masquerade as part of the bound source. Do not trim any entry content.
   const note = renderAgentWorldbookTriggeredInjection_ACU({ available: true, entries: [] }, '');
-  const prefix = note.slice(0, note.length - '当前没有已启用的世界书条目。'.length);
+  // Văn bản trạng thái rỗng / không trúng do bộ render cố định sở hữu; suy ra từ chính nó, không khớp theo chuỗi cứng.
+  const emptyText = renderAgentWorldbookHitBodies_ACU({ available: true, entries: [] }, '');
+  const noHitText = renderAgentWorldbookHitBodies_ACU({ available: true, entries: [{ bookName: '', uid: '', title: '', keys: ['\u0000never-matches'], constant: false, content: '', tokens: 0 }] }, '');
+  const prefix = note.slice(0, note.length - emptyText.length);
   if (hits.length && !text.startsWith(prefix)) throw new Error('WORLD_SIMULATION_WORLDBOOK_SOURCE_UNVERIFIED');
   let cursor = hits.length ? prefix.length : 0;
   // The renderer groups hits by book; entries from different books can interleave in the source.
   const byBook = new Map<string, AgentWorldbookEntryView_ACU[]>();
   for (const hit of hits) byBook.set(hit.bookName, [...(byBook.get(hit.bookName) ?? []), hit]);
   for (const bookHits of byBook.values()) for (const hit of bookHits) {
-    const frame = `### ${hit.title}（${hit.bookName}#${hit.uid}）\n${hit.content}`;
+    // Khung của từng mục do bộ render cố định sở hữu; lấy trực tiếp từ nó thay vì tự dựng dấu ngoặc.
+    const frame = renderAgentWorldbookEntries_ACU({ available: true, entries: [hit] }, hit.bookName, [hit.uid]);
     const separator = sections.length ? '\n\n' : '';
     const start = cursor + separator.length;
     if (text.slice(cursor, start) !== separator || text.slice(start, start + frame.length) !== frame) {
@@ -263,7 +267,7 @@ export function bindWorldSimulationFixedWorldbook_ACU(
     cursor = bodyStart + hit.content.length;
   }
   if (hits.length && cursor !== text.length) throw new Error('WORLD_SIMULATION_WORLDBOOK_SOURCE_UNVERIFIED');
-  if (!hits.length && text && text !== note && text !== `${prefix}本轮没有命中世界书条目。`
+  if (!hits.length && text && text !== note && text !== `${prefix}${noHitText}`
     && text !== WORLD_SIMULATION_WORLDBOOK_UNAVAILABLE_ACU) throw new Error('WORLD_SIMULATION_WORLDBOOK_SOURCE_UNVERIFIED');
   return { text, sections };
 }

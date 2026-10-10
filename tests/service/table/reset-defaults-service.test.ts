@@ -161,7 +161,7 @@ describe('reset-defaults-service', () => {
 
     expect(result.success).toBe(false);
     expect(result.failures.find(f => f.step === 'chat_persist')?.compensated).toBe(false);
-    expect(result.warnings.some(w => w.includes('聊天保存失败'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('Lưu cuộc trò chuyện thất bại'))).toBe(true);
   });
 
   it('已提交后派生刷新失败不伪造整体未变', async () => {

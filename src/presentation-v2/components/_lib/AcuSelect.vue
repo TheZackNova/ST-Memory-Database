@@ -15,7 +15,7 @@
           {{ entry.opt.label }}
         </li>
       </template>
-      <li v-if="!options.length" class="acu-select__empty">无可选项</li>
+      <li v-if="!options.length" class="acu-select__empty">Không có lựa chọn</li>
     </ul>
   </div>
 </template>
@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<{
   disabled?: boolean;
   size?: 'sm' | 'md';
 }>(), {
-  placeholder: '请选择',
+  placeholder: 'Vui lòng chọn',
   disabled: false,
   size: 'md',
 });

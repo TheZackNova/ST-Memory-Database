@@ -87,7 +87,7 @@ export async function resetAllDefaults_ACU(options: ResetDefaultsCleanupOptions 
       success: false,
       skipped: true,
       completedSteps: [],
-      failures: [{ step: 'selection', error: '未选择需要恢复或清理的项目。', compensated: false }],
+      failures: [{ step: 'selection', error: 'Chưa chọn mục cần khôi phục hoặc dọn dẹp.', compensated: false }],
       warnings: [],
     };
   }
@@ -113,9 +113,9 @@ export async function resetAllDefaults_ACU(options: ResetDefaultsCleanupOptions 
   try {
     if (cleanup.restoreTemplateAndPrompts) {
       templateSnapshot = getDefaultTemplateSnapshot_ACU();
-      if (!templateSnapshot?.templateStr) throw new Error('无法解析默认模板。');
+      if (!templateSnapshot?.templateStr) throw new Error('Không thể phân tích mẫu mặc định.');
       const promptReset = resetAllPromptsToDefault_ACU(undefined, { save: false });
-      if (!promptReset.ok) throw new Error(promptReset.message || '恢复默认提示词失败。');
+      if (!promptReset.ok) throw new Error(promptReset.message || 'Khôi phục prompt mặc định thất bại.');
       completedSteps.push('prompts');
     }
 
@@ -157,9 +157,9 @@ export async function resetAllDefaults_ACU(options: ResetDefaultsCleanupOptions 
         save: false,
         persistChatScope: false,
       });
-      if (!applied) throw new Error('默认模板应用失败。');
+      if (!applied) throw new Error('Áp dụng mẫu mặc định thất bại.');
       if (typeof applied === 'object' && 'saved' in applied && applied.saved === false) {
-        throw new Error((applied as any).error || '默认模板应用失败（当前聊天协调提交被拒绝）。');
+        throw new Error((applied as any).error || 'Áp dụng mẫu mặc định thất bại (lần commit điều phối của cuộc trò chuyện hiện tại bị từ chối).');
       }
       persistedOutsideSettings = true;
       completedSteps.push('template');
@@ -173,7 +173,7 @@ export async function resetAllDefaults_ACU(options: ResetDefaultsCleanupOptions 
         if (settingsSnapshot && !persistedOutsideSettings) restoreSettingsFields_ACU(settingsSnapshot);
         failures.push({
           step: 'settings_persist',
-          error: saveResult.warning || saveResult.error || '设置保存失败。',
+          error: saveResult.warning || saveResult.error || 'Lưu cài đặt thất bại.',
           compensated: !persistedOutsideSettings,
         });
       } else {
@@ -193,7 +193,7 @@ export async function resetAllDefaults_ACU(options: ResetDefaultsCleanupOptions 
           error: errorMessage(error),
           compensated: false,
         });
-        warnings.push('聊天保存失败：内存中的清理变更已生效，可能随下一次聊天保存落盘。');
+        warnings.push('Lưu cuộc trò chuyện thất bại: các thay đổi dọn dẹp trong bộ nhớ đã có hiệu lực, có thể được ghi xuống đĩa cùng lần lưu cuộc trò chuyện tiếp theo.');
       }
     }
 
@@ -209,7 +209,7 @@ export async function resetAllDefaults_ACU(options: ResetDefaultsCleanupOptions 
           error: errorMessage(error),
           compensated: false,
         });
-        warnings.push('表格合并视图刷新失败：核心恢复已完成，界面可能未同步最新数据。');
+        warnings.push('Làm mới chế độ xem bảng đã gộp thất bại: khôi phục lõi đã hoàn tất, giao diện có thể chưa đồng bộ dữ liệu mới nhất.');
       }
     }
 
@@ -223,8 +223,8 @@ export async function resetAllDefaults_ACU(options: ResetDefaultsCleanupOptions 
   } catch (error) {
     if (settingsSnapshot) restoreSettingsFields_ACU(settingsSnapshot);
     const compensated = settingsSnapshot !== null && !persistedOutsideSettings;
-    if (chatDirty && !persistedOutsideSettings && !warnings.some(w => w.includes('聊天保存失败'))) {
-      warnings.push('恢复失败时聊天清理变更尚未保存，可能随下一次聊天保存落盘。');
+    if (chatDirty && !persistedOutsideSettings && !warnings.some(w => w.includes('Lưu cuộc trò chuyện thất bại'))) {
+      warnings.push('Khi khôi phục thất bại, các thay đổi dọn dẹp cuộc trò chuyện chưa được lưu, có thể được ghi xuống đĩa cùng lần lưu cuộc trò chuyện tiếp theo.');
     }
     return {
       success: false,

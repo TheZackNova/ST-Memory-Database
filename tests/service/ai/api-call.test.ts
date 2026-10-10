@@ -126,7 +126,7 @@ describe('requireResolvedApiPreset_ACU', () => {
       requireResolvedApiPreset_ACU('ghost', { resolved: false });
     } catch (error) {
       expect(error).toMatchObject({ name: 'ApiPresetUnresolvedError_ACU', presetName: 'ghost', code: 'API_PRESET_UNRESOLVED' });
-      expect(String(error)).toContain('请在设置中重新选择');
+      expect(String(error)).toContain('hãy chọn lại trong Cài đặt');
     }
   });
 
@@ -416,7 +416,7 @@ describe('原生工具实际宿主请求体', () => {
     const preset = { apiMode: 'custom' as const, apiConfig: { sendViaTavern: true, max_tokens: 4096, useMainApi: true }, tavernProfile: '' };
     await expect(callAIChatTurn_ACU([{ role: 'user', content: '测试' }], preset, undefined, undefined, {
       tools: agentNativeTools_ACU(['read']),
-    })).rejects.toThrow('酒馆主 API 无法保证原生工具调用及回执');
+    })).rejects.toThrow('API chính của SillyTavern không thể đảm bảo gọi công cụ gốc và biên nhận');
     expect(mockGenerateRaw).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -424,7 +424,7 @@ describe('原生工具实际宿主请求体', () => {
   it('主 API 本次无工具定义但历史已有工具回执时同样拒发', async () => {
     const preset = { apiMode: 'custom' as const, apiConfig: { sendViaTavern: true, max_tokens: 4096, useMainApi: true }, tavernProfile: '' };
     await expect(callAIChatTurn_ACU([{ role: 'tool', tool_call_id: 'read-1', content: '完整正文' }], preset))
-      .rejects.toThrow('酒馆主 API 无法保证原生工具调用及回执');
+      .rejects.toThrow('API chính của SillyTavern không thể đảm bảo gọi công cụ gốc và biên nhận');
     expect(mockGenerateRaw).not.toHaveBeenCalled();
   });
 
@@ -442,7 +442,7 @@ describe('原生工具实际宿主请求体', () => {
     const preset = { apiMode: 'tavern' as const, apiConfig: { sendViaTavern: true, max_tokens: 4096 }, tavernProfile: 'default' };
     await expect(callAIChatTurn_ACU([{ role: 'user', content: '测试' }], preset, undefined, undefined, {
       tools: agentNativeTools_ACU(['read']),
-    })).rejects.toThrow('酒馆连接管理器不支持原生工具调用及回执');
+    })).rejects.toThrow('Trình quản lý kết nối của SillyTavern không hỗ trợ gọi công cụ gốc và biên nhận');
     expect(mockSendConnectionManager).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -451,7 +451,7 @@ describe('原生工具实际宿主请求体', () => {
     const preset = { apiMode: 'tavern' as const, apiConfig: { sendViaTavern: true, max_tokens: 4096 }, tavernProfile: 'default' };
     await expect(callAIChatTurn_ACU([{
       role: 'assistant', content: '', tool_calls: [{ id: 'read-1', type: 'function', function: { name: 'read', arguments: '{"reads":["$HOOKS_LEDGER"]}' } }],
-    }], preset)).rejects.toThrow('酒馆连接管理器不支持原生工具调用及回执');
+    }], preset)).rejects.toThrow('Trình quản lý kết nối của SillyTavern không hỗ trợ gọi công cụ gốc và biên nhận');
     expect(mockSendConnectionManager).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -1124,9 +1124,9 @@ describe('callAIWithResolvedPreset_ACU', () => {
     expect(mockTriggerSlash.mock.calls.map(call => call[0]).filter(command => command.startsWith('/profile await=true'))).toHaveLength(0);
 
     await expect(callAIWithResolvedPreset_ACU([{ role: 'user', content: 'profile request' }], { ...resolved, tavernProfile: 'ghost-profile' }))
-      .rejects.toThrow('无法找到 ID 为 "ghost-profile" 的连接预设');
+      .rejects.toThrow('Không tìm thấy preset kết nối có ID "ghost-profile"');
     await expect(callAIWithResolvedPreset_ACU([{ role: 'user', content: 'profile request' }], { ...resolved, tavernProfile: '' }))
-      .rejects.toThrow('未选择连接预设');
+      .rejects.toThrow('chưa chọn preset kết nối');
   });
 
   it('uses generateRaw only when the supplied resolved configuration selects the main API', async () => {

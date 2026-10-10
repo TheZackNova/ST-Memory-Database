@@ -134,7 +134,7 @@ export async function collectSummarySheetRowIdTimelineV2_ACU(
 ): Promise<SummarySheetRowIdTimelineV2_ACU> {
   const sheetKey = normalizeSheetKey_ACU(options.sheetKey);
   if (!sheetKey.startsWith('sheet_')) {
-    return emptyTimeline_ACU('replay_failed', null, `sheetKey 非法：${sheetKey || '<empty>'}`);
+    return emptyTimeline_ACU('replay_failed', null, `sheetKey không hợp lệ: ${sheetKey || '<empty>'}`);
   }
 
   const isolationKey = toChatIsolationSlotKey_ACU(options.isolationKey, getCurrentIsolationKey_ACU());
@@ -180,7 +180,7 @@ export async function collectSummarySheetRowIdTimelineV2_ACU(
       ...emptyTimeline_ACU(
         'replay_failed',
         base.messageIndex,
-        `V2 replay 失败：${error?.message || String(error || '未知错误')}`,
+        `V2 replay thất bại: ${error?.message || String(error || 'Lỗi không xác định')}`,
       ),
       rowIdsAtCheckpoint: checkpointInspect.rowIds,
       duplicates,
@@ -190,7 +190,7 @@ export async function collectSummarySheetRowIdTimelineV2_ACU(
 
   if (!replay) {
     return {
-      ...emptyTimeline_ACU('replay_failed', base.messageIndex, 'V2 replay 未返回结果。'),
+      ...emptyTimeline_ACU('replay_failed', base.messageIndex, 'V2 replay không trả về kết quả.'),
       rowIdsAtCheckpoint: checkpointInspect.rowIds,
       duplicates,
       emptyRowIdCount: checkpointInspect.emptyRowIdCount,

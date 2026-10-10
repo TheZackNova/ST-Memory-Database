@@ -471,25 +471,25 @@ export function salvageAgentModuleSnapshot_ACU(raw: unknown): { snapshot: AgentM
   if (!isRecord_ACU(raw)) return null;
   const problems: string[] = [];
   if (raw.schemaVersion !== AGENT_MODULE_SCHEMA_VERSION_V1_ACU && raw.schemaVersion !== AGENT_MODULE_SCHEMA_VERSION_V2_ACU && raw.schemaVersion !== AGENT_MODULE_SCHEMA_VERSION_ACU) {
-    problems.push(`schemaVersion=${String(raw.schemaVersion)} 与当前 ${AGENT_MODULE_SCHEMA_VERSION_ACU} 不一致`);
+    problems.push(`schemaVersion=${String(raw.schemaVersion)} không khớp với hiện tại ${AGENT_MODULE_SCHEMA_VERSION_ACU}`);
   }
   const revisions = isRecord_ACU(raw.revisions) ? raw.revisions : {};
   const pick = <T>(list: unknown, validate: (item: unknown) => T | null, label: string): T[] => {
-    if (!Array.isArray(list)) { if (list !== undefined) problems.push(`${label} 不是数组`); return []; }
+    if (!Array.isArray(list)) { if (list !== undefined) problems.push(`${label} không phải mảng`); return []; }
     const kept: T[] = [];
-    list.forEach((item, index) => { const entry = validate(item); if (entry) kept.push(entry); else problems.push(`${label}[${index}] 结构非法，已丢弃`); });
+    list.forEach((item, index) => { const entry = validate(item); if (entry) kept.push(entry); else problems.push(`${label}[${index}] có cấu trúc không hợp lệ, đã bỏ`); });
     return kept;
   };
   const settledThroughIndex = readIndex_ACU(raw.settledThroughIndex);
-  if (settledThroughIndex < 0) problems.push(`settledThroughIndex=${String(raw.settledThroughIndex)} 非法，按 0 处理`);
+  if (settledThroughIndex < 0) problems.push(`settledThroughIndex=${String(raw.settledThroughIndex)} không hợp lệ, xử lý như 0`);
   const updatedAt = typeof raw.updatedAt === 'number' && raw.updatedAt >= 0 ? raw.updatedAt : 0;
   const legacy = raw.schemaVersion !== AGENT_MODULE_SCHEMA_VERSION_ACU;
   const pendingPresent = Object.prototype.hasOwnProperty.call(raw, 'pendingFixes');
   const pendingFixes = validatePendingFixes_ACU(raw.pendingFixes, pendingPresent, legacy, updatedAt);
-  if (!pendingFixes) problems.push('pendingFixes 结构非法，已按空数组读取');
+  if (!pendingFixes) problems.push('pendingFixes có cấu trúc không hợp lệ, đã đọc như mảng rỗng');
   const completionPresent = Object.prototype.hasOwnProperty.call(raw, 'materialCompletion');
   const materialCompletion = validateMaterialCompletion_ACU(raw.materialCompletion, completionPresent, legacy, updatedAt);
-  if (!materialCompletion) problems.push('materialCompletion 结构非法，已按 legacy_unknown 读取');
+  if (!materialCompletion) problems.push('materialCompletion có cấu trúc không hợp lệ, đã đọc như legacy_unknown');
   const snapshot: AgentModuleSnapshot_ACU = {
     schemaVersion: AGENT_MODULE_SCHEMA_VERSION_ACU,
     settledThroughIndex: Math.max(0, settledThroughIndex),
@@ -605,7 +605,7 @@ export function readAgentModuleFieldSnapshot_ACU(chat?: any[]): AgentModuleField
 export async function writeAgentModuleSnapshot_ACU(chat: any[], targetIndex: number, snapshot: AgentModuleSnapshot_ACU): Promise<void> {
   const message = Array.isArray(chat) ? chat[targetIndex] : null;
   if (!message || typeof message !== 'object') {
-    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Agent 资料快照的目标楼层不可用', false, { targetIndex }));
+    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Tầng đích của snapshot tư liệu Agent không khả dụng', false, { targetIndex }));
   }
   const plan = planAgentModuleSnapshotWrite_ACU(
     chat,
@@ -628,7 +628,7 @@ export async function writeAgentModuleSnapshot_ACU(chat: any[], targetIndex: num
       if (assignment.existed) container[AGENT_MODULE_FIELD_ACU] = assignment.previous;
       else delete container[AGENT_MODULE_FIELD_ACU];
     }
-    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Agent 资料快照写盘失败，已还原楼层字段', false, { targetIndex, message: error instanceof Error ? error.message : String(error) }));
+    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Ghi snapshot tư liệu Agent xuống lưu trữ thất bại, đã khôi phục các trường của tầng', false, { targetIndex, message: error instanceof Error ? error.message : String(error) }));
   }
 }
 
@@ -640,7 +640,7 @@ export async function writeAgentModuleSnapshot_ACU(chat: any[], targetIndex: num
 export async function writeAgentModuleFields_ACU(chat: any[], targetIndex: number, fieldUpserts: AgentModuleFieldUpserts_ACU): Promise<boolean> {
   const message = Array.isArray(chat) ? chat[targetIndex] : null;
   if (!message || typeof message !== 'object') {
-    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Agent 逐栏写入的目标楼层不可用', false, { targetIndex }));
+    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Tầng đích của việc ghi theo cột của Agent không khả dụng', false, { targetIndex }));
   }
   const plan = planAgentModuleFieldWrite_ACU(chat, targetIndex, fieldUpserts, agentModuleFrameDeps_ACU());
   if (!plan.changed) return false;
@@ -658,7 +658,7 @@ export async function writeAgentModuleFields_ACU(chat: any[], targetIndex: numbe
       if (assignment.existed) container[AGENT_MODULE_FIELD_ACU] = assignment.previous;
       else delete container[AGENT_MODULE_FIELD_ACU];
     }
-    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Agent 逐栏写入写盘失败，已还原楼层字段', false, { targetIndex, message: error instanceof Error ? error.message : String(error) }));
+    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Ghi theo cột của Agent xuống lưu trữ thất bại, đã khôi phục các trường của tầng', false, { targetIndex, message: error instanceof Error ? error.message : String(error) }));
   }
 }
 
@@ -709,10 +709,10 @@ export async function writeAgentModuleCommitDelta_ACU(
       chat[index] === entry.message && readMessageSwipeId_ACU(entry.message) === entry.swipeId && (excluded.has(index) || (
         Object.prototype.hasOwnProperty.call(entry.message, AGENT_MODULE_FIELD_ACU) === entry.existed
         && asJson((entry.message as Record<string, unknown>)[AGENT_MODULE_FIELD_ACU]) === entry.content)));
-  if (!baselineIntact() || isCurrent?.() === false) return { status: 'persist_failed', reason: '资料基线或派工租约在规划期间已变化', recovery: 'unavailable' };
+  if (!baselineIntact() || isCurrent?.() === false) return { status: 'persist_failed', reason: 'Đường cơ sở tư liệu hoặc hợp đồng giao việc đã thay đổi trong lúc hoạch định', recovery: 'unavailable' };
   const plan = planAgentModuleCommitDelta_ACU(chat, targetIndex, changes, agentModuleFrameDeps_ACU(), findLatestTableFullCheckpointIndex_ACU(chat), updatedAt);
   if (!plan.changed || getChatArray_ACU() !== chat || targetIndex !== chat.length - 1) {
-    return { status: 'persist_failed', reason: '提交目标或聊天身份已变化' };
+    return { status: 'persist_failed', reason: 'Đích nộp hoặc danh tính cuộc trò chuyện đã thay đổi' };
   }
   const target = chat[targetIndex];
   const first = chat[0];
@@ -755,7 +755,7 @@ export async function writeAgentModuleCommitDelta_ACU(
   }
   if (!intact() || !untouched() || isCurrent?.() === false) {
     restore();
-    return { status: 'persist_failed', reason: '保存前聊天、资料基线或派工租约已变化', recovery: 'unavailable' };
+    return { status: 'persist_failed', reason: 'Cuộc trò chuyện, đường cơ sở tư liệu hoặc hợp đồng giao việc đã thay đổi trước khi lưu', recovery: 'unavailable' };
   }
   try { await saveChatToHostStrict_ACU(); }
   catch (error) {
@@ -766,7 +766,7 @@ export async function writeAgentModuleCommitDelta_ACU(
   } catch (error) {
     return { status: 'readback_failed', reason: error instanceof Error ? error.message : String(error), recovery: await recover() };
   }
-  return { status: 'readback_failed', reason: '宿主保存后聊天身份、资料字段或折叠结果不一致', recovery: await recover() };
+  return { status: 'readback_failed', reason: 'Sau khi máy chủ lưu, danh tính cuộc trò chuyện, các trường tư liệu hoặc kết quả gộp không nhất quán', recovery: await recover() };
 }
 
 /**
@@ -787,8 +787,8 @@ export async function replaceAgentModuleSnapshotByUser_ACU(raw: unknown, chat?: 
 ): Promise<AgentModuleSnapshot_ACU> {
   const messages = Array.isArray(chat) ? chat : getChatArray_ACU();
   const targetIndex = messages.length - 1;
-  if (targetIndex < 0) rejectSnapshotEdit_ACU('当前聊天没有可承载资料快照的楼层');
-  if (!isRecord_ACU(raw)) rejectSnapshotEdit_ACU('资料快照必须是 JSON 对象');
+  if (targetIndex < 0) rejectSnapshotEdit_ACU('Cuộc trò chuyện hiện tại không có tầng nào để chứa snapshot tư liệu');
+  if (!isRecord_ACU(raw)) rejectSnapshotEdit_ACU('Snapshot tư liệu phải là đối tượng JSON');
   const current = (storage?.readModuleSnapshot ?? readAgentModuleSnapshot_ACU)(messages);
   const merged = {
     ...current,
@@ -809,20 +809,20 @@ export async function replaceAgentModuleSnapshotByUser_ACU(raw: unknown, chat?: 
     },
   };
   const validated = validateAgentModuleSnapshot_ACU(merged);
-  if (!validated) rejectSnapshotEdit_ACU('资料快照结构非法：hooks / infoGap / constraints 必须是数组；storyArc / chronology 一旦提供必须整体结构合法（chronology 每条需要非空 id/anchor/elapsed/transition、合法 precision、非空非负整数 evidenceIndexes 与非负 updatedIndex，retire 需给理由）');
+  if (!validated) rejectSnapshotEdit_ACU('Cấu trúc snapshot tư liệu không hợp lệ: hooks / infoGap / constraints phải là mảng; storyArc / chronology một khi được cung cấp thì toàn bộ cấu trúc phải hợp lệ (mỗi mục chronology cần id/anchor/elapsed/transition không rỗng, precision hợp lệ, evidenceIndexes là số nguyên không âm không rỗng và updatedIndex không âm, retire cần nêu lý do)');
   const checks: Array<[string, unknown, readonly unknown[]]> = [
-    ['伏笔账本 hooks', merged.hooks, validated.hooks],
-    ['信息差 infoGap', merged.infoGap, validated.infoGap],
-    ['长期约束 constraints', merged.constraints, validated.constraints],
-    ['故事总纲 storyArc', merged.storyArc, validated.storyArc],
-    ['故事年代学账本 chronology', merged.chronology, validated.chronology],
-    ['百科资料库 webRefs', merged.webRefs, validated.webRefs],
-    ['用户要求 userRequirements', merged.userRequirements, validated.userRequirements],
+    ['Sổ phục bút hooks', merged.hooks, validated.hooks],
+    ['Chênh lệch thông tin infoGap', merged.infoGap, validated.infoGap],
+    ['Ràng buộc dài hạn constraints', merged.constraints, validated.constraints],
+    ['Tổng cương câu chuyện storyArc', merged.storyArc, validated.storyArc],
+    ['Sổ niên đại học câu chuyện chronology', merged.chronology, validated.chronology],
+    ['Kho tư liệu bách khoa webRefs', merged.webRefs, validated.webRefs],
+    ['Yêu cầu người dùng userRequirements', merged.userRequirements, validated.userRequirements],
   ];
   for (const [label, input, accepted] of checks) {
     const inputLength = Array.isArray(input) ? input.length : 0;
     if (inputLength !== accepted.length) {
-      rejectSnapshotEdit_ACU(`${label} 中有 ${inputLength - accepted.length} 条记录不符合结构要求（id 与关键文本字段不能为空），整份编辑未保存`, { label, inputLength, acceptedLength: accepted.length });
+      rejectSnapshotEdit_ACU(`${label} có ${inputLength - accepted.length} bản ghi không đạt yêu cầu cấu trúc (id và các trường văn bản chính không được rỗng), toàn bộ chỉnh sửa chưa được lưu`, { label, inputLength, acceptedLength: accepted.length });
     }
   }
   await (storage?.writeModuleSnapshot ?? writeAgentModuleSnapshot_ACU)(messages, targetIndex, validated);
@@ -849,7 +849,7 @@ export async function clearAgentModuleField_ACU(chat?: any[]): Promise<boolean> 
 
 function truncateAgentBlock_ACU(text: string): string {
   if (text.length <= AGENT_BLOCK_CHAR_LIMIT_ACU) return text;
-  return `${text.slice(0, AGENT_BLOCK_CHAR_LIMIT_ACU)}\n（本资料块超出 ${AGENT_BLOCK_CHAR_LIMIT_ACU} 字上限，已截断；未展示部分不代表不存在）`;
+  return `${text.slice(0, AGENT_BLOCK_CHAR_LIMIT_ACU)}\n(Khối tư liệu này vượt giới hạn ${AGENT_BLOCK_CHAR_LIMIT_ACU} chữ, đã cắt bớt; phần chưa hiển thị không có nghĩa là không tồn tại)`;
 }
 
 function compareHooks_ACU(left: AgentHookEntry_ACU, right: AgentHookEntry_ACU): number {
@@ -864,18 +864,18 @@ function compareHooks_ACU(left: AgentHookEntry_ACU, right: AgentHookEntry_ACU): 
  */
 export function renderAgentHooksLedger_ACU(snapshot: AgentModuleSnapshot_ACU): string {
   // 修订号必须放在首行：材料超长被截断时也不会丢失并发校验依据。
-  const head = `当前修订号=${snapshot.revisions.hooks}`;
+  const head = `Số hiệu chỉnh hiện tại=${snapshot.revisions.hooks}`;
   const active = snapshot.hooks.filter(hook => !hook.retired);
-  if (!active.length) return `${head}\n当前没有活跃伏笔。`;
+  if (!active.length) return `${head}\nHiện không có phục bút đang hoạt động.`;
   const sorted = [...active].sort(compareHooks_ACU);
   const shown = sorted.slice(0, AGENT_HOT_HOOK_LIMIT_ACU);
   const lines = shown.map(hook => [
-    `- [${hook.id}] 重要度=${hook.importance} 状态=${hook.status} 埋设楼层=${hook.plantedIndex} 最近变动楼层=${hook.updatedIndex}`,
-    `  内容：${hook.summary}`,
-    hook.plannedPayoff ? `  计划回收：${hook.plannedPayoff}` : '',
+    `- [${hook.id}] mức quan trọng=${hook.importance} trạng thái=${hook.status} tầng gieo=${hook.plantedIndex} tầng thay đổi gần nhất=${hook.updatedIndex}`,
+    `  Nội dung: ${hook.summary}`,
+    hook.plannedPayoff ? `  Dự kiến thu hồi: ${hook.plannedPayoff}` : '',
   ].filter(Boolean).join('\n'));
   const hidden = sorted.length - shown.length;
-  const tail = hidden > 0 ? `\n另有 ${hidden} 条活跃伏笔未进入本次热上下文，需要时请派工读取完整账本。` : '';
+  const tail = hidden > 0 ? `\nCòn ${hidden} phục bút đang hoạt động chưa vào ngữ cảnh nóng lần này, khi cần hãy giao việc để đọc toàn bộ sổ.` : '';
   return truncateAgentBlock_ACU(`${head}\n${lines.join('\n')}${tail}`);
 }
 
@@ -885,14 +885,14 @@ export function renderAgentHooksLedger_ACU(snapshot: AgentModuleSnapshot_ACU): s
  * @returns 自然语言文本，包含客观事实、读者已知、各角色知晓与揭示状态
  */
 export function renderAgentInfoGap_ACU(snapshot: AgentModuleSnapshot_ACU): string {
-  const head = `当前修订号=${snapshot.revisions.infoGap}`;
+  const head = `Số hiệu chỉnh hiện tại=${snapshot.revisions.infoGap}`;
   const active = snapshot.infoGap.filter(entry => !entry.retired);
-  if (!active.length) return `${head}\n当前没有登记的信息差条目。`;
+  if (!active.length) return `${head}\nHiện không có mục chênh lệch thông tin nào được đăng ký.`;
   const lines = active.map(entry => [
-    `- [${entry.id}] ${entry.topic}（揭示状态=${entry.revealStatus}${entry.revealIndex === null ? '' : `，揭示楼层=${entry.revealIndex}`}）`,
-    `  客观事实：${entry.objectiveFact || '（未登记）'}`,
-    `  读者已知：${entry.readerKnown || '（未登记）'}`,
-    entry.characterKnowledge.length ? `  角色知晓：${entry.characterKnowledge.map(item => `${item.name}=${item.knows}`).join('；')}` : '',
+    `- [${entry.id}] ${entry.topic} (trạng thái tiết lộ=${entry.revealStatus}${entry.revealIndex === null ? '' : `, tầng tiết lộ=${entry.revealIndex}`})`,
+    `  Sự thật khách quan: ${entry.objectiveFact || '(chưa đăng ký)'}`,
+    `  Độc giả đã biết: ${entry.readerKnown || '(chưa đăng ký)'}`,
+    entry.characterKnowledge.length ? `  Nhân vật biết: ${entry.characterKnowledge.map(item => `${item.name}=${item.knows}`).join('; ')}` : '',
   ].filter(Boolean).join('\n'));
   return truncateAgentBlock_ACU(`${head}\n${lines.join('\n')}`);
 }
@@ -903,9 +903,9 @@ export function renderAgentInfoGap_ACU(snapshot: AgentModuleSnapshot_ACU): strin
  * @returns 自然语言文本，每条包含约束内容与登记理由
  */
 export function renderAgentConstraints_ACU(snapshot: AgentModuleSnapshot_ACU): string {
-  const head = `当前修订号=${snapshot.revisions.constraints}`;
-  if (!snapshot.constraints.length) return `${head}\n当前没有登记的长期约束。`;
-  const lines = snapshot.constraints.map(item => `- [${item.id}] ${item.text}${item.reason ? `（理由：${item.reason}）` : ''}`);
+  const head = `Số hiệu chỉnh hiện tại=${snapshot.revisions.constraints}`;
+  if (!snapshot.constraints.length) return `${head}\nHiện không có ràng buộc dài hạn nào được đăng ký.`;
+  const lines = snapshot.constraints.map(item => `- [${item.id}] ${item.text}${item.reason ? ` (lý do: ${item.reason})` : ''}`);
   return truncateAgentBlock_ACU(`${head}\n${lines.join('\n')}`);
 }
 
@@ -918,22 +918,22 @@ function compareStoryArc_ACU(left: AgentStoryArcEntry_ACU, right: AgentStoryArcE
 }
 
 function renderStoryArcEntry_ACU(entry: AgentStoryArcEntry_ACU): string {
-  const head = entry.scope === 'story' ? '全书方向' : '卷台阶';
+  const head = entry.scope === 'story' ? 'Hướng đi toàn truyện' : 'Bậc thang tập';
   return [
-    `- [${entry.id}] ${head}「${entry.title}」状态=${entry.status}${entry.stageNumbers.length ? ` 已承载阶段=${entry.stageNumbers.join('、')}` : ' 尚未由任何阶段承载'}${entry.retired ? ' 已废止' : ''}`,
-    entry.narrativeRole ? `  结构职责：${entry.narrativeRole}` : '',
-    entry.targetStageRange ? `  阶段容量：${entry.targetStageRange.min}–${entry.targetStageRange.max} 个阶段` : '',
-    entry.targetTimeSpan ? `  故事时间目标：${entry.targetTimeSpan}` : '',
-    entry.direction ? `  方向：${entry.direction}` : '',
-    entry.escalation ? `  升级目标：${entry.escalation}` : '',
-    entry.progressCeiling ? `  主线进度上限：${entry.progressCeiling}` : '',
-    entry.sustainingThreads?.length ? `  持续经营线：${entry.sustainingThreads.join('；')}` : '',
-    entry.payoffTargets?.length ? `  兑现目标：${entry.payoffTargets.join('；')}` : '',
-    entry.withheld ? `  禁止提前翻的底牌：${entry.withheld}` : '',
-    entry.completionStageNumber === null ? '' : `  完成依据：第 ${entry.completionStageNumber} 阶段；卷末状态=${entry.completionState || '（未登记）'}`,
-    entry.completionRationale ? `  容量偏离说明：${entry.completionRationale}` : '',
-    entry.continuationRationale ? `  续卷依据：${entry.continuationRationale}` : '',
-    entry.retired && entry.retiredReason ? `  废止原因：${entry.retiredReason}` : '',
+    `- [${entry.id}] ${head} "${entry.title}" trạng thái=${entry.status}${entry.stageNumbers.length ? ` giai đoạn đã đảm nhận=${entry.stageNumbers.join(', ')}` : ' chưa có giai đoạn nào đảm nhận'}${entry.retired ? ' đã bãi bỏ' : ''}`,
+    entry.narrativeRole ? `  Chức trách cấu trúc: ${entry.narrativeRole}` : '',
+    entry.targetStageRange ? `  Dung lượng giai đoạn: ${entry.targetStageRange.min}–${entry.targetStageRange.max} giai đoạn` : '',
+    entry.targetTimeSpan ? `  Mục tiêu thời gian truyện: ${entry.targetTimeSpan}` : '',
+    entry.direction ? `  Hướng: ${entry.direction}` : '',
+    entry.escalation ? `  Mục tiêu leo thang: ${entry.escalation}` : '',
+    entry.progressCeiling ? `  Trần tiến độ mạch chính: ${entry.progressCeiling}` : '',
+    entry.sustainingThreads?.length ? `  Tuyến duy trì: ${entry.sustainingThreads.join('; ')}` : '',
+    entry.payoffTargets?.length ? `  Mục tiêu thu hồi: ${entry.payoffTargets.join('; ')}` : '',
+    entry.withheld ? `  Bài tẩy cấm lật sớm: ${entry.withheld}` : '',
+    entry.completionStageNumber === null ? '' : `  Căn cứ hoàn thành: giai đoạn ${entry.completionStageNumber}; trạng thái cuối tập=${entry.completionState || '(chưa đăng ký)'}`,
+    entry.completionRationale ? `  Giải thích lệch dung lượng: ${entry.completionRationale}` : '',
+    entry.continuationRationale ? `  Căn cứ nối tập: ${entry.continuationRationale}` : '',
+    entry.retired && entry.retiredReason ? `  Lý do bãi bỏ: ${entry.retiredReason}` : '',
   ].filter(Boolean).join('\n');
 }
 
@@ -980,28 +980,28 @@ export function renderAgentActiveVolumePlanningContext_ACU(snapshot: AgentModule
   const volumes = snapshot.storyArc.filter(entry => entry.scope === 'volume' && !entry.retired);
   const active = volumes.filter(entry => entry.status === 'active');
   const completed = new Set(completedStageNumbers);
-  if (!volumes.length) return '【活动卷规划上下文】\n当前没有卷台阶；必须由 arc-architect 建立总纲后才能创建阶段大纲。';
+  if (!volumes.length) return '【活动卷规划上下文】\nHiện không có bậc thang tập; phải do arc-architect lập tổng cương thì mới có thể tạo dàn ý giai đoạn.';
   if (!active.length) {
-    return '【活动卷规划上下文】\n所有既有卷均已完成。用户继续写作时，arc-architect 必须先根据最后一卷的结果、代价、关系变化或未解决问题在末尾追加一个 active 卷，再由 outline-architect 创建下一阶段大纲。';
+    return '【活动卷规划上下文】\nTất cả các tập hiện có đều đã hoàn thành. Khi người dùng tiếp tục viết, arc-architect phải trước hết dựa trên kết quả, cái giá, thay đổi quan hệ hoặc vấn đề chưa giải quyết của tập cuối để thêm một tập active vào cuối, rồi outline-architect mới tạo dàn ý giai đoạn kế tiếp.';
   }
-  if (active.length > 1) return `【活动卷规划上下文】\n总纲状态无效：当前存在 ${active.length} 个 active 卷（${active.map(entry => entry.id).join('、')}），必须先由 arc-architect 修复。`;
+  if (active.length > 1) return `【活动卷规划上下文】\nTrạng thái tổng cương không hợp lệ: hiện có ${active.length} tập active (${active.map(entry => entry.id).join(', ')}), phải do arc-architect sửa trước.`;
   const volume = active[0];
   const completedCarriers = volume.stageNumbers.filter(stageNumber => completed.has(stageNumber));
   const pendingCarriers = volume.stageNumbers.filter(stageNumber => !completed.has(stageNumber));
   return [
     '【活动卷规划上下文】',
-    `当前 active 卷：[${volume.id}]「${volume.title}」`,
-    `卷级结构职责：${volume.narrativeRole ?? '旧快照未标注'}`,
-    `目标阶段容量：${volume.targetStageRange ? `${volume.targetStageRange.min}–${volume.targetStageRange.max} 个阶段` : '旧快照未标注'}`,
-    `目标故事时间：${volume.targetTimeSpan || '旧快照未标注'}`,
-    `已承载阶段：${volume.stageNumbers.length ? volume.stageNumbers.join('、') : '（尚无）'}`,
-    `真实完成进度：${completedCarriers.length ? `已完成阶段 ${completedCarriers.join('、')}` : '尚未有已完成阶段'}${pendingCarriers.length ? `；已登记但尚未完成阶段 ${pendingCarriers.join('、')}` : ''}`,
-    `本阶段只承担本卷尚未完成的一段：${volume.direction}`,
-    `卷级收束条件：${volume.escalation}`,
-    `主线进度上限：${volume.progressCeiling || '旧快照未标注'}`,
-    `持续经营线：${volume.sustainingThreads?.length ? volume.sustainingThreads.join('；') : '旧快照未标注'}`,
-    `兑现目标：${volume.payoffTargets?.length ? volume.payoffTargets.join('；') : '旧快照未标注'}`,
-    `禁止提前释放：${volume.withheld || '（无额外底牌）'}`,
+    `Tập active hiện tại: [${volume.id}] "${volume.title}"`,
+    `Chức trách cấu trúc cấp tập: ${volume.narrativeRole ?? 'snapshot cũ chưa đánh dấu'}`,
+    `Dung lượng giai đoạn mục tiêu: ${volume.targetStageRange ? `${volume.targetStageRange.min}–${volume.targetStageRange.max} giai đoạn` : 'snapshot cũ chưa đánh dấu'}`,
+    `Thời gian truyện mục tiêu: ${volume.targetTimeSpan || 'snapshot cũ chưa đánh dấu'}`,
+    `Giai đoạn đã đảm nhận: ${volume.stageNumbers.length ? volume.stageNumbers.join(', ') : '(chưa có)'}`,
+    `Tiến độ hoàn thành thực: ${completedCarriers.length ? `giai đoạn đã hoàn thành ${completedCarriers.join(', ')}` : 'chưa có giai đoạn nào hoàn thành'}${pendingCarriers.length ? `; giai đoạn đã đăng ký nhưng chưa hoàn thành ${pendingCarriers.join(', ')}` : ''}`,
+    `Giai đoạn này chỉ đảm nhận đoạn chưa hoàn thành của tập này: ${volume.direction}`,
+    `Điều kiện khép tập: ${volume.escalation}`,
+    `Trần tiến độ mạch chính: ${volume.progressCeiling || 'snapshot cũ chưa đánh dấu'}`,
+    `Tuyến duy trì: ${volume.sustainingThreads?.length ? volume.sustainingThreads.join('; ') : 'snapshot cũ chưa đánh dấu'}`,
+    `Mục tiêu thu hồi: ${volume.payoffTargets?.length ? volume.payoffTargets.join('; ') : 'snapshot cũ chưa đánh dấu'}`,
+    `Cấm giải phóng sớm: ${volume.withheld || '(không có bài tẩy bổ sung)'}`,
   ].join('\n');
 }
 
@@ -1012,34 +1012,34 @@ export function renderAgentActiveVolumePlanningContext_ACU(snapshot: AgentModule
  * @returns 自然语言文本；总纲为空时明确指出由 open_round 固定工作流建立
  */
 export function renderAgentStoryArc_ACU(snapshot: AgentModuleSnapshot_ACU, completedStageNumbers: readonly number[] = []): string {
-  const head = `当前修订号=${snapshot.revisions.storyArc}`;
+  const head = `Số hiệu chỉnh hiện tại=${snapshot.revisions.storyArc}`;
   const active = snapshot.storyArc.filter(entry => !entry.retired);
-  if (!active.length) return `${head}\n当前还没有故事总纲。可 delegate arc-architect 建立全书方向与卷台阶，或用 open_round 固定工作流先建立总纲；已有总纲可由主会话用 correct_materials 修正或委派维护。`;
+  if (!active.length) return `${head}\nHiện chưa có tổng cương câu chuyện. Có thể delegate arc-architect để lập hướng đi toàn truyện và bậc thang tập, hoặc dùng quy trình cố định open_round để lập tổng cương trước; tổng cương đã có có thể do phiên chính sửa bằng correct_materials hoặc giao bảo trì.`;
   const sorted = [...active].sort(compareStoryArc_ACU);
   return truncateAgentBlock_ACU(`${head}\n${sorted.map(renderStoryArcEntry_ACU).join('\n')}\n\n${renderAgentActiveVolumePlanningContext_ACU(snapshot, completedStageNumbers)}`);
 }
 
 function renderHookFull_ACU(hook: AgentHookEntry_ACU): string {
   return [
-    `- [${hook.id}] 重要度=${hook.importance} 状态=${hook.status} 埋设楼层=${hook.plantedIndex} 最近变动楼层=${hook.updatedIndex}${hook.retired ? ' 已退休' : ''}`,
-    `  内容：${hook.summary}`,
-    hook.plannedPayoff ? `  计划回收：${hook.plannedPayoff}` : '',
-    hook.retired && hook.retiredReason ? `  退休原因：${hook.retiredReason}` : '',
+    `- [${hook.id}] mức quan trọng=${hook.importance} trạng thái=${hook.status} tầng gieo=${hook.plantedIndex} tầng thay đổi gần nhất=${hook.updatedIndex}${hook.retired ? ' đã cho nghỉ' : ''}`,
+    `  Nội dung: ${hook.summary}`,
+    hook.plannedPayoff ? `  Dự kiến thu hồi: ${hook.plannedPayoff}` : '',
+    hook.retired && hook.retiredReason ? `  Lý do cho nghỉ: ${hook.retiredReason}` : '',
   ].filter(Boolean).join('\n');
 }
 
 function renderInfoGapFull_ACU(entry: AgentInfoGapEntry_ACU): string {
   return [
-    `- [${entry.id}] ${entry.topic}（揭示状态=${entry.revealStatus}${entry.revealIndex === null ? '' : `，揭示楼层=${entry.revealIndex}`}${entry.retired ? '，已退休' : ''}）`,
-    `  客观事实：${entry.objectiveFact || '（未登记）'}`,
-    `  读者已知：${entry.readerKnown || '（未登记）'}`,
-    entry.characterKnowledge.length ? `  角色知晓：${entry.characterKnowledge.map(item => `${item.name}=${item.knows}`).join('；')}` : '',
-    entry.retired && entry.retiredReason ? `  退休原因：${entry.retiredReason}` : '',
+    `- [${entry.id}] ${entry.topic} (trạng thái tiết lộ=${entry.revealStatus}${entry.revealIndex === null ? '' : `, tầng tiết lộ=${entry.revealIndex}`}${entry.retired ? ', đã cho nghỉ' : ''})`,
+    `  Sự thật khách quan: ${entry.objectiveFact || '(chưa đăng ký)'}`,
+    `  Độc giả đã biết: ${entry.readerKnown || '(chưa đăng ký)'}`,
+    entry.characterKnowledge.length ? `  Nhân vật biết: ${entry.characterKnowledge.map(item => `${item.name}=${item.knows}`).join('; ')}` : '',
+    entry.retired && entry.retiredReason ? `  Lý do cho nghỉ: ${entry.retiredReason}` : '',
   ].filter(Boolean).join('\n');
 }
 
 function renderConstraintFull_ACU(item: AgentConstraintEntry_ACU): string {
-  return `- [${item.id}] ${item.text}${item.reason ? `（理由：${item.reason}）` : ''}（登记楼层=${item.createdIndex}）`;
+  return `- [${item.id}] ${item.text}${item.reason ? ` (lý do: ${item.reason})` : ''} (tầng đăng ký=${item.createdIndex})`;
 }
 
 interface AgentModuleReadSpec_ACU<Entry extends { id: string }> {
@@ -1055,22 +1055,22 @@ interface RetirableEntry_ACU {
 }
 
 function renderModuleEntries_ACU<Entry extends RetirableEntry_ACU>(spec: AgentModuleReadSpec_ACU<Entry>, ids?: readonly string[]): string {
-  const head = `当前修订号=${spec.revision}`;
+  const head = `Số hiệu chỉnh hiện tại=${spec.revision}`;
   if (!ids || !ids.length) {
     // 全量读默认只列活跃条目；退休条目可被搜索命中并按 ID 精读，避免全量视图被历史噪音撑大。
     const active = spec.entries.filter(entry => entry.retired !== true);
     const retiredCount = spec.entries.length - active.length;
-    if (!active.length) return `${head}\n${spec.label}当前没有活跃条目。${retiredCount ? `另有 ${retiredCount} 条已退休条目，可用 search 命中后按 ID 精读。` : ''}`;
-    const tail = retiredCount ? `\n另有 ${retiredCount} 条已退休条目未列出，可用 search 命中后按 ID 精读。` : '';
-    return `${head}\n${spec.label}活跃条目 ${active.length} 条：\n${active.map(spec.render).join('\n')}${tail}`;
+    if (!active.length) return `${head}\n${spec.label}: hiện không có mục đang hoạt động.${retiredCount ? ` Còn ${retiredCount} mục đã cho nghỉ, có thể dùng search để khớp rồi đọc kỹ theo ID.` : ''}`;
+    const tail = retiredCount ? `\nCòn ${retiredCount} mục đã cho nghỉ chưa liệt kê, có thể dùng search để khớp rồi đọc kỹ theo ID.` : '';
+    return `${head}\n${spec.label}: ${active.length} mục đang hoạt động:\n${active.map(spec.render).join('\n')}${tail}`;
   }
   const wanted = ids.map(id => id.trim()).filter(Boolean);
   const found = spec.entries.filter(entry => wanted.includes(entry.id));
   const missing = wanted.filter(id => !spec.entries.some(entry => entry.id === id));
   const lines: string[] = [head];
   if (found.length) lines.push(...found.map(spec.render));
-  if (missing.length) lines.push(`以下 ID 不存在于${spec.label}：${missing.join('、')}。可先读全量或 search 确认可用 ID。`);
-  if (!found.length && !missing.length) lines.push('未指定有效 ID。');
+  if (missing.length) lines.push(`Các ID sau không tồn tại trong ${spec.label}: ${missing.join(', ')}. Có thể đọc toàn bộ trước hoặc dùng search để xác nhận ID khả dụng.`);
+  if (!found.length && !missing.length) lines.push('Chưa chỉ định ID hợp lệ.');
   return lines.join('\n');
 }
 
@@ -1078,40 +1078,40 @@ function renderModuleEntries_ACU<Entry extends RetirableEntry_ACU>(spec: AgentMo
  * 按 ID 精读伏笔账本（含退休条目）；不传 ID 则输出全部活跃条目，支撑 `$HOOKS_LEDGER` / `$HOOKS_LEDGER:ID1,ID2`。
  */
 export function renderAgentHooksByIds_ACU(snapshot: AgentModuleSnapshot_ACU, ids?: readonly string[]): string {
-  return renderModuleEntries_ACU({ label: '伏笔账本', revision: snapshot.revisions.hooks, entries: snapshot.hooks, render: renderHookFull_ACU }, ids);
+  return renderModuleEntries_ACU({ label: 'Sổ phục bút', revision: snapshot.revisions.hooks, entries: snapshot.hooks, render: renderHookFull_ACU }, ids);
 }
 
 /**
  * 按 ID 精读信息差时间线（含退休条目）；不传 ID 则输出全部活跃条目，支撑 `$INFO_GAP` / `$INFO_GAP:ID1,ID2`。
  */
 export function renderAgentInfoGapByIds_ACU(snapshot: AgentModuleSnapshot_ACU, ids?: readonly string[]): string {
-  return renderModuleEntries_ACU({ label: '信息差时间线', revision: snapshot.revisions.infoGap, entries: snapshot.infoGap, render: renderInfoGapFull_ACU }, ids);
+  return renderModuleEntries_ACU({ label: 'Dòng thời gian chênh lệch thông tin', revision: snapshot.revisions.infoGap, entries: snapshot.infoGap, render: renderInfoGapFull_ACU }, ids);
 }
 
 /**
  * 按 ID 精读长期约束；不传 ID 则输出全量，支撑 `$CONSTRAINTS` / `$CONSTRAINTS:ID1,ID2`。
  */
 export function renderAgentConstraintsByIds_ACU(snapshot: AgentModuleSnapshot_ACU, ids?: readonly string[]): string {
-  return renderModuleEntries_ACU({ label: '长期约束清单', revision: snapshot.revisions.constraints, entries: snapshot.constraints, render: renderConstraintFull_ACU }, ids);
+  return renderModuleEntries_ACU({ label: 'Danh sách ràng buộc dài hạn', revision: snapshot.revisions.constraints, entries: snapshot.constraints, render: renderConstraintFull_ACU }, ids);
 }
 
 /**
  * 按 ID 精读故事总纲（含已废止条目）；不传 ID 则输出全部活跃条目，支撑 `$STORY_ARC` / `$STORY_ARC:ID1,ID2`。
  */
 export function renderAgentStoryArcByIds_ACU(snapshot: AgentModuleSnapshot_ACU, ids?: readonly string[], completedStageNumbers: readonly number[] = []): string {
-  const entries = renderModuleEntries_ACU({ label: '故事总纲', revision: snapshot.revisions.storyArc, entries: snapshot.storyArc, render: renderStoryArcEntry_ACU }, ids);
+  const entries = renderModuleEntries_ACU({ label: 'Tổng cương câu chuyện', revision: snapshot.revisions.storyArc, entries: snapshot.storyArc, render: renderStoryArcEntry_ACU }, ids);
   return ids?.length ? entries : `${entries}\n\n${renderAgentActiveVolumePlanningContext_ACU(snapshot, completedStageNumbers)}`;
 }
 
-const CHRONOLOGY_PRECISION_LABELS_ACU: Record<string, string> = { exact: '精确', approximate: '近似', unknown: '未知' };
+const CHRONOLOGY_PRECISION_LABELS_ACU: Record<string, string> = { exact: 'chính xác', approximate: 'gần đúng', unknown: 'chưa rõ' };
 
 function renderChronologyEntry_ACU(entry: AgentChronologyEntry_ACU): string {
   return [
-    `- [${entry.id}] 时间锚：${entry.anchor}（精度=${CHRONOLOGY_PRECISION_LABELS_ACU[entry.precision] ?? entry.precision}${entry.retired ? '，已作废' : ''}）`,
-    `  累计经过：${entry.elapsed}`,
-    `  时间转换：${entry.transition}`,
-    `  证据楼层：${entry.evidenceIndexes.join('、')}（结算楼层=${entry.updatedIndex}）`,
-    entry.retired && entry.retiredReason ? `  作废原因：${entry.retiredReason}` : '',
+    `- [${entry.id}] Mốc thời gian: ${entry.anchor} (độ chính xác=${CHRONOLOGY_PRECISION_LABELS_ACU[entry.precision] ?? entry.precision}${entry.retired ? ', đã vô hiệu' : ''})`,
+    `  Đã trôi qua tích lũy: ${entry.elapsed}`,
+    `  Chuyển đổi thời gian: ${entry.transition}`,
+    `  Tầng bằng chứng: ${entry.evidenceIndexes.join(', ')} (tầng quyết toán=${entry.updatedIndex})`,
+    entry.retired && entry.retiredReason ? `  Lý do vô hiệu: ${entry.retiredReason}` : '',
   ].filter(Boolean).join('\n');
 }
 
@@ -1126,15 +1126,15 @@ function sortChronology_ACU(entries: readonly AgentChronologyEntry_ACU[]): Agent
  * @returns 自然语言文本；空账本时明确说明时间事实只能由维护代理依据真实正文结算
  */
 export function renderAgentChronology_ACU(snapshot: AgentModuleSnapshot_ACU): string {
-  const head = `当前修订号=${snapshot.revisions.chronology}`;
+  const head = `Số hiệu chỉnh hiện tại=${snapshot.revisions.chronology}`;
   const active = sortChronology_ACU(snapshot.chronology.filter(entry => !entry.retired));
   const retiredCount = snapshot.chronology.length - active.length;
-  const retiredNote = retiredCount ? `\n另有 ${retiredCount} 条已作废记录未列出，可用 search 命中后按 ID 精读。` : '';
-  if (!active.length) return `${head}\n当前没有已结算的故事时间记录。时间事实只能由结算维护代理依据真实正文登记；大纲里的时间字段是计划，不是事实。${retiredNote}`;
+  const retiredNote = retiredCount ? `\nCòn ${retiredCount} bản ghi đã vô hiệu chưa liệt kê, có thể dùng search để khớp rồi đọc kỹ theo ID.` : '';
+  if (!active.length) return `${head}\nHiện không có bản ghi thời gian truyện nào đã quyết toán. Sự thật thời gian chỉ có thể do agent bảo trì quyết toán đăng ký dựa trên chính văn thật; trường thời gian trong dàn ý là kế hoạch, không phải sự thật.${retiredNote}`;
   const latest = active[active.length - 1];
   return truncateAgentBlock_ACU([
     head,
-    `当前时间锚：${latest.anchor}（精度=${CHRONOLOGY_PRECISION_LABELS_ACU[latest.precision] ?? latest.precision}）；自故事起点累计经过：${latest.elapsed}。`,
+    `Mốc thời gian hiện tại: ${latest.anchor} (độ chính xác=${CHRONOLOGY_PRECISION_LABELS_ACU[latest.precision] ?? latest.precision}); đã trôi qua tích lũy từ điểm khởi đầu truyện: ${latest.elapsed}.`,
     ...active.map(renderChronologyEntry_ACU),
   ].join('\n') + retiredNote);
 }
@@ -1143,21 +1143,21 @@ export function renderAgentChronology_ACU(snapshot: AgentModuleSnapshot_ACU): st
  * 按 ID 精读故事年代学账本（含已作废条目）；不传 ID 则输出全部活跃条目，支撑 `$CHRONOLOGY` / `$CHRONOLOGY:ID1,ID2`。
  */
 export function renderAgentChronologyByIds_ACU(snapshot: AgentModuleSnapshot_ACU, ids?: readonly string[]): string {
-  return renderModuleEntries_ACU({ label: '故事年代学账本', revision: snapshot.revisions.chronology, entries: sortChronology_ACU(snapshot.chronology), render: renderChronologyEntry_ACU }, ids);
+  return renderModuleEntries_ACU({ label: 'Sổ niên đại học câu chuyện', revision: snapshot.revisions.chronology, entries: sortChronology_ACU(snapshot.chronology), render: renderChronologyEntry_ACU }, ids);
 }
 
 export const WEB_REF_SOURCE_LABELS_ACU: Record<AgentWebRefEntry_ACU['source'], string> = {
-  moegirl: '萌娘百科',
-  wikipedia_zh: '中文维基',
-  wikipedia_en: '英文维基',
-  baidu: '百度百科',
-  web: '网页',
+  moegirl: 'Moegirl Wiki',
+  wikipedia_zh: 'Wikipedia tiếng Trung',
+  wikipedia_en: 'Wikipedia tiếng Anh',
+  baidu: 'Baidu Baike',
+  web: 'trang web',
 };
 
 const WEB_REF_STATUS_LABELS_ACU: Record<AgentWebRefEntry_ACU['sourceStatus'], string> = {
-  ok: '正常',
-  unavailable: '来源不可用',
-  blocked: '被拦截',
+  ok: 'bình thường',
+  unavailable: 'nguồn không khả dụng',
+  blocked: 'bị chặn',
 };
 
 /** 唯一会进入预览上下文的资料形态：名称 + 一句话简介。 */
@@ -1165,21 +1165,21 @@ function renderWebRefPreview_ACU(entry: AgentWebRefEntry_ACU): string {
   const flags = [
     entry.tags.length ? entry.tags.join('/') : '',
     entry.sourceStatus !== 'ok' ? WEB_REF_STATUS_LABELS_ACU[entry.sourceStatus] : '',
-    entry.retired ? '已退休' : '',
+    entry.retired ? 'đã cho nghỉ' : '',
   ].filter(Boolean);
-  return `- [${entry.id}]「${entry.title}」${entry.brief || '（无简介）'}${flags.length ? `（${flags.join('；')}）` : ''}`;
+  return `- [${entry.id}] "${entry.title}" ${entry.brief || '(không có giới thiệu)'}${flags.length ? ` (${flags.join('; ')})` : ''}`;
 }
 
 /** 按 ID 查询时才给自由格式详情与来源；网页原文不会被保存。 */
 function renderWebRefFull_ACU(entry: AgentWebRefEntry_ACU): string {
   return [
-    `- [${entry.id}]「${entry.title}」来源=${WEB_REF_SOURCE_LABELS_ACU[entry.source]} 状态=${WEB_REF_STATUS_LABELS_ACU[entry.sourceStatus]}${entry.retired ? ' 已退休' : ''}`,
-    `  简介：${entry.brief || '（无）'}`,
-    `  链接：${entry.url}`,
-    entry.query ? `  检索词：${entry.query}` : '',
-    entry.tags.length ? `  标签：${entry.tags.join('、')}` : '',
-    entry.summary ? `  详情：\n${entry.summary}` : '  详情：（未写）',
-    entry.retired && entry.retiredReason ? `  退休原因：${entry.retiredReason}` : '',
+    `- [${entry.id}] "${entry.title}" nguồn=${WEB_REF_SOURCE_LABELS_ACU[entry.source]} trạng thái=${WEB_REF_STATUS_LABELS_ACU[entry.sourceStatus]}${entry.retired ? ' đã cho nghỉ' : ''}`,
+    `  Giới thiệu: ${entry.brief || '(không có)'}`,
+    `  Liên kết: ${entry.url}`,
+    entry.query ? `  Từ khóa tra cứu: ${entry.query}` : '',
+    entry.tags.length ? `  Nhãn: ${entry.tags.join(', ')}` : '',
+    entry.summary ? `  Chi tiết:\n${entry.summary}` : '  Chi tiết: (chưa viết)',
+    entry.retired && entry.retiredReason ? `  Lý do cho nghỉ: ${entry.retiredReason}` : '',
   ].filter(Boolean).join('\n');
 }
 
@@ -1188,11 +1188,11 @@ export function renderAgentWebRefsCatalog_ACU(snapshot: AgentModuleSnapshot_ACU,
   const active = snapshot.webRefs.filter(entry => !entry.retired);
   if (!active.length) {
     return enabled
-      ? '百科资料库为空。开场检索尚未产出条目，或来源均不可达；需要原作/公开设定时派工 web-researcher。'
-      : '百科资料库为空（网页检索功能未启用）。';
+      ? 'Kho tư liệu bách khoa đang trống. Tra cứu mở đầu chưa tạo ra mục nào, hoặc các nguồn đều không truy cập được; khi cần thiết lập gốc/công khai thì giao web-researcher.'
+      : 'Kho tư liệu bách khoa đang trống (chức năng tra cứu web chưa bật).';
   }
   return truncateAgentBlock_ACU([
-    `百科资料库 ${active.length} 条（外部参考资料，非本故事已发生事实；与世界书或正文冲突时以后者为准）。下面只是名称与一句话简介，详情用 read $WEB_REFS:ID 精读：`,
+    `Kho tư liệu bách khoa ${active.length} mục (tư liệu tham khảo bên ngoài, không phải sự thật đã xảy ra trong câu chuyện này; khi mâu thuẫn với sổ thế giới hoặc chính văn thì lấy sổ thế giới/chính văn làm chuẩn). Dưới đây chỉ là tên và giới thiệu một câu, chi tiết thì đọc kỹ bằng read $WEB_REFS:ID:`,
     ...active.map(renderWebRefPreview_ACU),
   ].join('\n'));
 }
@@ -1200,12 +1200,12 @@ export function renderAgentWebRefsCatalog_ACU(snapshot: AgentModuleSnapshot_ACU,
 /** 不传 ID 也只返回预览；按 ID 才返回详情。 */
 export function renderAgentWebRefsByIds_ACU(snapshot: AgentModuleSnapshot_ACU, ids?: readonly string[]): string {
   if (!ids || !ids.length) {
-    const head = `当前修订号=${snapshot.revisions.webRefs}`;
+    const head = `Số hiệu chỉnh hiện tại=${snapshot.revisions.webRefs}`;
     const active = snapshot.webRefs.filter(entry => !entry.retired);
     const retiredCount = snapshot.webRefs.length - active.length;
-    const tail = retiredCount ? `\n另有 ${retiredCount} 条已退休条目未列出，可用 search 命中后按 ID 精读。` : '';
-    if (!active.length) return `${head}\n百科资料库当前没有活跃条目。${tail}`;
-    return `${head}\n百科资料库活跃条目 ${active.length} 条（预览：名称 + 一句话简介；详情用 $WEB_REFS:ID 精读）：\n${active.map(renderWebRefPreview_ACU).join('\n')}${tail}`;
+    const tail = retiredCount ? `\nCòn ${retiredCount} mục đã cho nghỉ chưa liệt kê, có thể dùng search để khớp rồi đọc kỹ theo ID.` : '';
+    if (!active.length) return `${head}\nKho tư liệu bách khoa hiện không có mục đang hoạt động.${tail}`;
+    return `${head}\nKho tư liệu bách khoa có ${active.length} mục đang hoạt động (xem trước: tên + giới thiệu một câu; chi tiết thì đọc kỹ bằng $WEB_REFS:ID):\n${active.map(renderWebRefPreview_ACU).join('\n')}${tail}`;
   }
-  return renderModuleEntries_ACU({ label: '百科资料库', revision: snapshot.revisions.webRefs, entries: snapshot.webRefs, render: renderWebRefFull_ACU }, ids);
+  return renderModuleEntries_ACU({ label: 'Kho tư liệu bách khoa', revision: snapshot.revisions.webRefs, entries: snapshot.webRefs, render: renderWebRefFull_ACU }, ids);
 }

@@ -64,8 +64,8 @@ describe('summary vector index UI recovery', () => {
     await processSummaryVectorIndexBeforeGenerationWithUI_ACU({ userInput: '继续', source: 'test' });
 
     expect(h.rebuild).toHaveBeenCalledTimes(1);
-    expect(h.beginTask).toHaveBeenCalledWith('交火索引', { detail: '正在重建交火索引快照...' });
-    expect(h.toast).toHaveBeenCalledWith('success', '交火索引快照重建完成：6 行，3 个 chunks。', expect.any(Object));
+    expect(h.beginTask).toHaveBeenCalledWith('Chỉ mục giao hỏa', { detail: 'Đang dựng lại snapshot chỉ mục giao hỏa...' });
+    expect(h.toast).toHaveBeenCalledWith('success', 'Dựng lại snapshot chỉ mục giao hỏa hoàn tất: 6 hàng, 3 chunk.', expect.any(Object));
     expect(h.taskEnd).toHaveBeenCalledTimes(2);
   });
 
@@ -82,7 +82,7 @@ describe('summary vector index UI recovery', () => {
 
     pending.reject(new Error('rebuild failed'));
     await expect(operation).resolves.toMatchObject({ reason: 'legacy_vector_scheme_rebuild_required' });
-    expect(h.toast).toHaveBeenCalledWith('error', '交火索引快照重建失败：rebuild failed');
+    expect(h.toast).toHaveBeenCalledWith('error', 'Dựng lại snapshot chỉ mục giao hỏa thất bại: rebuild failed');
     expect(h.taskEnd).toHaveBeenCalledTimes(2);
   });
 
@@ -148,7 +148,7 @@ describe('summary vector index UI recovery', () => {
     expect(h.process).toHaveBeenCalledTimes(2);
     expect(h.process.mock.calls[1][0]).toMatchObject({ userInput: '继续', source: 'test', bypassDedupe: true });
     expect(result).toMatchObject({ success: true, injectedCount: 42 });
-    expect(h.toast).toHaveBeenCalledWith('success', expect.stringContaining('已重建并完成召回'), '交火召回完成', expect.any(Object));
+    expect(h.toast).toHaveBeenCalledWith('success', expect.stringContaining('Đã dựng lại chỉ mục giao hỏa và hoàn tất truy hồi'), 'Truy hồi giao hỏa hoàn tất', expect.any(Object));
   });
 
   it('自愈重建失败或被跳过时不补跑召回，沿用首轮结果', async () => {
@@ -206,10 +206,10 @@ describe('rebuildOutdatedSummaryVectorIndexInBackground_ACU', () => {
 
     expect(triggered).toBe(true);
     expect(h.rebuild).toHaveBeenCalledTimes(1);
-    expect(h.beginTask).toHaveBeenCalledWith('交火索引', { detail: expect.stringContaining('概览 + 纪要正文') });
-    expect(h.beginTask.mock.calls[0][1].detail).toContain('（2 行）');
+    expect(h.beginTask).toHaveBeenCalledWith('Chỉ mục giao hỏa', { detail: expect.stringContaining('tổng quan + nội dung kỷ yếu') });
+    expect(h.beginTask.mock.calls[0][1].detail).toContain('(2 hàng)');
     expect(h.taskEnd).toHaveBeenCalledTimes(1);
-    expect(h.toast).toHaveBeenCalledWith('success', expect.stringContaining('120 行'), '交火索引升级完成', expect.any(Object));
+    expect(h.toast).toHaveBeenCalledWith('success', expect.stringContaining('120 hàng'), 'Nâng cấp chỉ mục giao hỏa hoàn tất', expect.any(Object));
   });
 
   it('索引已是新格式时不重建', async () => {

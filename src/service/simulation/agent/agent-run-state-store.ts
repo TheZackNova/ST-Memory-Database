@@ -41,22 +41,22 @@ function reject_ACU(message: string, details?: Record<string, unknown>): never {
 }
 
 function nonNegativeInteger_ACU(value: unknown, path: string): number {
-  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) reject_ACU(`${path} 必须是非负整数`, { path, actual: value });
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) reject_ACU(`${path} phải là số nguyên không âm`, { path, actual: value });
   return value;
 }
 
 function text_ACU(value: unknown, path: string): string {
-  if (typeof value !== 'string' || !value.trim()) reject_ACU(`${path} 必须是非空字符串`, { path });
+  if (typeof value !== 'string' || !value.trim()) reject_ACU(`${path} phải là chuỗi không rỗng`, { path });
   return value;
 }
 
 function textOrEmpty_ACU(value: unknown, path: string): string {
-  if (typeof value !== 'string') reject_ACU(`${path} 必须是字符串`, { path });
+  if (typeof value !== 'string') reject_ACU(`${path} phải là chuỗi`, { path });
   return value;
 }
 
 function numberRecord_ACU(value:unknown, path: string): Record<string, number> {
-  if (!record_ACU(value)) reject_ACU(`${path} 必须是对象`, { path });
+  if (!record_ACU(value)) reject_ACU(`${path} phải là đối tượng`, { path });
   for (const [key, item] of Object.entries(value)) {
     nonNegativeInteger_ACU(item, `${path}.${key}`);
   }
@@ -64,15 +64,15 @@ function numberRecord_ACU(value:unknown, path: string): Record<string, number> {
 }
 
 function outcomes_ACU(value: unknown, path: string): WorldSimulationRunResumeState_ACU['outcomes'] {
-  if (!Array.isArray(value)) reject_ACU(`${path} 必须是数组`, { path });
+  if (!Array.isArray(value)) reject_ACU(`${path} phải là mảng`, { path });
   return value.map((item, index): WorldSimulationRunResumeState_ACU['outcomes'][number] => {
-    if (!record_ACU(item)) reject_ACU(`${path}[${index}] 必须是对象`, { path: `${path}[${index}]` });
+    if (!record_ACU(item)) reject_ACU(`${path}[${index}] phải là đối tượng`, { path: `${path}[${index}]` });
     const allowed = new Set(['agentName', 'status', 'summary', 'fingerprint']);
     for (const key of ['agentName', 'status', 'summary', 'fingerprint']) {
-      if (!Object.prototype.hasOwnProperty.call(item, key)) reject_ACU(`${path}[${index}].${key} 缺失`, { path: `${path}[${index}].${key}` });
+      if (!Object.prototype.hasOwnProperty.call(item, key)) reject_ACU(`${path}[${index}].${key} bị thiếu`, { path: `${path}[${index}].${key}` });
     }
     for (const key of Object.keys(item)) {
-      if (!allowed.has(key)) reject_ACU(`${path}[${index}].${key} 是未知字段`, { path: `${path}[${index}].${key}` });
+      if (!allowed.has(key)) reject_ACU(`${path}[${index}].${key} là trường không xác định`, { path: `${path}[${index}].${key}` });
     }
     return {
       agentName: text_ACU(item.agentName, `${path}[${index}].agentName`),
@@ -84,23 +84,23 @@ function outcomes_ACU(value: unknown, path: string): WorldSimulationRunResumeSta
 }
 
 function enum_ACU<T extends string>(value: unknown, allowed: readonly T[], path: string): T {
-  if (typeof value !== 'string' || !allowed.includes(value as T)) reject_ACU(`${path} 枚举非法`, { path, actual: value });
+  if (typeof value !== 'string' || !allowed.includes(value as T)) reject_ACU(`${path} có giá trị enum không hợp lệ`, { path, actual: value });
   return value as T;
 }
 
 function candidates_ACU(value: unknown, path: string): WorldSimulationCandidate_ACU[] {
-  if (!Array.isArray(value)) reject_ACU(`${path} 必须是数组`, { path });
+  if (!Array.isArray(value)) reject_ACU(`${path} phải là mảng`, { path });
   return value.map((item, index): WorldSimulationCandidate_ACU => {
-    if (!record_ACU(item)) reject_ACU(`${path}[${index}] 必须是对象`, { path: `${path}[${index}]` });
+    if (!record_ACU(item)) reject_ACU(`${path}[${index}] phải là đối tượng`, { path: `${path}[${index}]` });
     const allowed = new Set(['candidateId', 'agentName', 'patch', 'summary', 'evidenceRefs', 'uncertainties', 'writableModules']);
     for (const key of ['candidateId', 'agentName', 'patch', 'summary', 'evidenceRefs', 'uncertainties', 'writableModules']) {
-      if (!Object.prototype.hasOwnProperty.call(item, key)) reject_ACU(`${path}[${index}].${key} 缺失`, { path: `${path}[${index}].${key}` });
+      if (!Object.prototype.hasOwnProperty.call(item, key)) reject_ACU(`${path}[${index}].${key} bị thiếu`, { path: `${path}[${index}].${key}` });
     }
     for (const key of Object.keys(item)) {
-      if (!allowed.has(key)) reject_ACU(`${path}[${index}].${key} 是未知字段`, { path: `${path}[${index}].${key}` });
+      if (!allowed.has(key)) reject_ACU(`${path}[${index}].${key} là trường không xác định`, { path: `${path}[${index}].${key}` });
     }
     if (!record_ACU(item.patch)) {
-      reject_ACU(`${path}[${index}].patch 必须是对象`, { path: `${path}[${index}].patch` });
+      reject_ACU(`${path}[${index}].patch phải là đối tượng`, { path: `${path}[${index}].patch` });
     }
     return {
       candidateId: text_ACU(item.candidateId, `${path}[${index}].candidateId`),
@@ -115,15 +115,15 @@ function candidates_ACU(value: unknown, path: string): WorldSimulationCandidate_
 }
 
 function subagentOutcomes_ACU(value: unknown, path: string): WorldSimulationSubagentOutcome_ACU[] {
-  if (!Array.isArray(value)) reject_ACU(`${path} 必须是数组`, { path });
+  if (!Array.isArray(value)) reject_ACU(`${path} phải là mảng`, { path });
   return value.map((item, index): WorldSimulationSubagentOutcome_ACU => {
-    if (!record_ACU(item)) reject_ACU(`${path}[${index}] 必须是对象`, { path: `${path}[${index}]` });
+    if (!record_ACU(item)) reject_ACU(`${path}[${index}] phải là đối tượng`, { path: `${path}[${index}]` });
     const allowed = new Set(['agentName', 'status', 'summary', 'candidate', 'evidenceRefs', 'uncertainties', 'reasonCode', 'unresolved', 'completion', 'moduleCompletion', 'unresolvedIssues', 'acceptedKeys']);
     for (const key of ['agentName', 'status', 'summary', 'evidenceRefs', 'uncertainties']) {
-      if (!Object.prototype.hasOwnProperty.call(item, key)) reject_ACU(`${path}[${index}].${key} 缺失`, { path: `${path}[${index}].${key}` });
+      if (!Object.prototype.hasOwnProperty.call(item, key)) reject_ACU(`${path}[${index}].${key} bị thiếu`, { path: `${path}[${index}].${key}` });
     }
     for(const key of Object.keys(item)) {
-      if (!allowed.has(key)) reject_ACU(`${path}[${index}].${key} 是未知字段`, { path: `${path}[${index}].${key}` });
+      if (!allowed.has(key)) reject_ACU(`${path}[${index}].${key} là trường không xác định`, { path: `${path}[${index}].${key}` });
     }
     return {
       agentName: text_ACU(item.agentName, `${path}[${index}].agentName`),
@@ -151,7 +151,7 @@ function completionState_ACU(value: unknown, path: string): NonNullable<WorldSim
 }
 
 function moduleCompletion_ACU(value: unknown, path: string): NonNullable<WorldSimulationSubagentOutcome_ACU['moduleCompletion']> {
-  if (!record_ACU(value)) reject_ACU(`${path} 必须是对象`, { path });
+  if (!record_ACU(value)) reject_ACU(`${path} phải là đối tượng`, { path });
   const result: NonNullable<WorldSimulationSubagentOutcome_ACU['moduleCompletion']> = {};
   for (const [module, state] of Object.entries(value)) {
     result[enum_ACU(module, WORLD_SIMULATION_LEDGER_MODULES_ACU, `${path}.${module}`)] = completionState_ACU(state, `${path}.${module}`);
@@ -160,12 +160,12 @@ function moduleCompletion_ACU(value: unknown, path: string): NonNullable<WorldSi
 }
 
 function subagentIssues_ACU(value: unknown, path: string): NonNullable<WorldSimulationSubagentOutcome_ACU['unresolvedIssues']> {
-  if (!Array.isArray(value)) reject_ACU(`${path} 必须是数组`, { path });
+  if (!Array.isArray(value)) reject_ACU(`${path} phải là mảng`, { path });
   return value.map((issue, index) => {
     const at = `${path}[${index}]`;
-    if (!record_ACU(issue)) reject_ACU(`${at} 必须是对象`, { path: at });
+    if (!record_ACU(issue)) reject_ACU(`${at} phải là đối tượng`, { path: at });
     for (const key of Object.keys(issue)) {
-      if (!['module', 'source', 'path', 'message', 'id'].includes(key)) reject_ACU(`${at}.${key} 是未知字段`, { path: `${at}.${key}` });
+      if (!['module', 'source', 'path', 'message', 'id'].includes(key)) reject_ACU(`${at}.${key} là trường không xác định`, { path: `${at}.${key}` });
     }
     return {
       module: enum_ACU(issue.module, WORLD_SIMULATION_LEDGER_MODULES_ACU, `${at}.module`),
@@ -178,35 +178,35 @@ function subagentIssues_ACU(value: unknown, path: string): NonNullable<WorldSimu
 }
 
 function textArray_ACU(value: unknown, path: string): string[] {
-  if (!Array.isArray(value) || value.some(item => typeof item !== 'string' || !item.trim())) reject_ACU(`${path} 必须是非空字符串数组`, { path });
+  if (!Array.isArray(value) || value.some(item => typeof item !== 'string' || !item.trim())) reject_ACU(`${path} phải là mảng chuỗi không rỗng`, { path });
   return [...value] as string[];
 }
 
 function evidenceSnapshot_ACU(value: unknown, path: string): WorldSimulationEvidenceRegistrySnapshot_ACU {
-  if (!record_ACU(value)) reject_ACU(`${path} 必须是对象`, { path });
+  if (!record_ACU(value)) reject_ACU(`${path} phải là đối tượng`, { path });
   const allowed = new Set(['runId', 'entries']);
   for (const key of ['runId', 'entries']) {
-    if (!Object.prototype.hasOwnProperty.call(value, key)) reject_ACU(`${path}.${key} 缺失`, { path: `${path}.${key}` });
+    if (!Object.prototype.hasOwnProperty.call(value, key)) reject_ACU(`${path}.${key} bị thiếu`, { path: `${path}.${key}` });
   }
   for (const key of Object.keys(value)) {
-    if (!allowed.has(key)) reject_ACU(`${path}.${key} 是未知字段`, { path: `${path}.${key}` });
+    if (!allowed.has(key)) reject_ACU(`${path}.${key} là trường không xác định`, { path: `${path}.${key}` });
   }
-  if (!Array.isArray(value.entries)) reject_ACU(`${path}.entries 必须是数组`, { path: `${path}.entries` });
+  if (!Array.isArray(value.entries)) reject_ACU(`${path}.entries phải là mảng`, { path: `${path}.entries` });
   const operations = ['initial', 'read', 'search', 'directory'] as const;
   const statuses = ['ok', 'empty', 'failed', 'truncated', 'dependency_unavailable'] as const;
   return {
     runId: text_ACU(value.runId, `${path}.runId`),
     entries: value.entries.map((entry, index) => {
-      if (!record_ACU(entry)) reject_ACU(`${path}.entries[${index}] 必须是对象`, { path: `${path}.entries[${index}]` });
+      if (!record_ACU(entry)) reject_ACU(`${path}.entries[${index}] phải là đối tượng`, { path: `${path}.entries[${index}]` });
       const entryAllowed = new Set(['evidenceRef', 'operation', 'address', 'status', 'summary', 'exact']);
       for (const key of ['operation', 'address', 'status', 'summary', 'exact']) {
-        if (!Object.prototype.hasOwnProperty.call(entry, key)) reject_ACU(`${path}.entries[${index}].${key} 缺失`, { path: `${path}.entries[${index}].${key}` });
+        if (!Object.prototype.hasOwnProperty.call(entry, key)) reject_ACU(`${path}.entries[${index}].${key} bị thiếu`, { path: `${path}.entries[${index}].${key}` });
       }
       for (const key of Object.keys(entry)) {
-        if (!entryAllowed.has(key)) reject_ACU(`${path}.entries[${index}].${key} 是未知字段`, { path: `${path}.entries[${index}].${key}` });
+        if (!entryAllowed.has(key)) reject_ACU(`${path}.entries[${index}].${key} là trường không xác định`, { path: `${path}.entries[${index}].${key}` });
       }
       const evidenceRef = entry.evidenceRef === undefined || entry.evidenceRef === null ? undefined : text_ACU(entry.evidenceRef, `${path}.entries[${index}].evidenceRef`);
-      if (typeof entry.exact !== 'boolean') reject_ACU(`${path}.entries[${index}].exact 必须是布尔值`, { path: `${path}.entries[${index}].exact` });
+      if (typeof entry.exact !== 'boolean') reject_ACU(`${path}.entries[${index}].exact phải là giá trị boolean`, { path: `${path}.entries[${index}].exact` });
       return {
         ...(evidenceRef === undefined ? {} : { evidenceRef }),
         operation: enum_ACU(entry.operation, operations, `${path}.entries[${index}].operation`),
@@ -220,22 +220,22 @@ function evidenceSnapshot_ACU(value: unknown, path: string): WorldSimulationEvid
 }
 
 function state_ACU(raw: unknown, path: string): WorldSimulationRunResumeState_ACU {
-  if (!record_ACU(raw)) reject_ACU(`${path} 必须是对象`, { path });
+  if (!record_ACU(raw)) reject_ACU(`${path} phải là đối tượng`, { path });
   const allowed = new Set(['taskId', 'cursorKey', 'nextIteration', 'delegationsUsed', 'perAgent', 'outcomes', 'candidateFingerprint', 'candidateSummary', 'reviewerFeedback', 'candidates', 'subagentOutcomes', 'evidenceSnapshot', 'transcript', 'budgetExhausted', 'handoffSummary']);
   // transcript 为新增可选字段：旧楼层记录没有它，属合法存量；新记录带它时须逐条校验。
   if (raw.transcript !== undefined) {
-    if (!Array.isArray(raw.transcript)) reject_ACU(`${path}.transcript 必须是数组`, { path: `${path}.transcript` });
+    if (!Array.isArray(raw.transcript)) reject_ACU(`${path}.transcript phải là mảng`, { path: `${path}.transcript` });
     raw.transcript.forEach((item, index) => {
       if (!record_ACU(item) || (item.role !== 'assistant' && item.role !== 'user' && item.role !== 'tool') || typeof item.content !== 'string') {
-        reject_ACU(`${path}.transcript[${index}] 必须是 { role: 'assistant'|'user'|'tool', content: string }`, { path: `${path}.transcript[${index}]` });
+        reject_ACU(`${path}.transcript[${index}] phải là { role: 'assistant'|'user'|'tool', content: string }`, { path: `${path}.transcript[${index}]` });
       }
     });
   }
   for (const key of ['taskId', 'cursorKey', 'nextIteration', 'delegationsUsed', 'perAgent', 'outcomes', 'candidateFingerprint', 'candidateSummary', 'reviewerFeedback']) {
-    if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU(`${path}.${key} 缺失`, { path: `${path}.${key}` });
+    if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU(`${path}.${key} bị thiếu`, { path: `${path}.${key}` });
   }
   for (const key of Object.keys(raw)) {
-    if (!allowed.has(key)) reject_ACU(`${path}.${key} 是未知字段`, { path: `${path}.${key}` });
+    if (!allowed.has(key)) reject_ACU(`${path}.${key} là trường không xác định`, { path: `${path}.${key}` });
   }
   return {
     taskId: text_ACU(raw.taskId, `${path}.taskId`),
@@ -251,26 +251,26 @@ function state_ACU(raw: unknown, path: string): WorldSimulationRunResumeState_AC
     ...(raw.subagentOutcomes === undefined ? {} : { subagentOutcomes: subagentOutcomes_ACU(raw.subagentOutcomes, `${path}.subagentOutcomes`) }),
     ...(raw.evidenceSnapshot === undefined ? {} : { evidenceSnapshot: evidenceSnapshot_ACU(raw.evidenceSnapshot, `${path}.evidenceSnapshot`) }),
     ...(raw.transcript === undefined ? {} : { transcript: (raw.transcript as Array<{ role: string; content: string }>).map(item => ({ role: item.role, content: item.content })) }),
-    ...(raw.budgetExhausted === undefined ? {} : { budgetExhausted: raw.budgetExhausted === true ? true : (typeof raw.budgetExhausted === 'boolean' ? false : reject_ACU(`${path}.budgetExhausted 必须是布尔值`, { path: `${path}.budgetExhausted`, actual: raw.budgetExhausted })) }),
-    ...(raw.handoffSummary === undefined ? {} : { handoffSummary: typeof raw.handoffSummary === 'string' ? raw.handoffSummary : reject_ACU(`${path}.handoffSummary 必须是字符串`, { path: `${path}.handoffSummary` }) }),
+    ...(raw.budgetExhausted === undefined ? {} : { budgetExhausted: raw.budgetExhausted === true ? true : (typeof raw.budgetExhausted === 'boolean' ? false : reject_ACU(`${path}.budgetExhausted phải là giá trị boolean`, { path: `${path}.budgetExhausted`, actual: raw.budgetExhausted })) }),
+    ...(raw.handoffSummary === undefined ? {} : { handoffSummary: typeof raw.handoffSummary === 'string' ? raw.handoffSummary : reject_ACU(`${path}.handoffSummary phải là chuỗi`, { path: `${path}.handoffSummary` }) }),
   };
 }
 
 export function validateWorldSimulationRunStateRecord_ACU(raw: unknown): WorldSimulationRunStateRecord_ACU {
-  if (!record_ACU(raw)) reject_ACU('格林推演 run 恢复状态必须是对象');
+  if (!record_ACU(raw)) reject_ACU('Trạng thái khôi phục run của mô phỏng thế giới phải là đối tượng');
   const allowed = new Set(['schemaVersion', 'taskId', 'cursorKey', 'updatedAt', 'state']);
   for (const key of ['schemaVersion', 'taskId', 'cursorKey', 'updatedAt', 'state']) {
-    if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU(`run 恢复状态缺少字段：${key}`, { path: key });
+    if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU(`Trạng thái khôi phục run thiếu trường: ${key}`, { path: key });
   }
   for (const key of Object.keys(raw)) {
-    if (!allowed.has(key)) reject_ACU(`run 恢复状态存在未知字段：${key}`, { path: key });
+    if (!allowed.has(key)) reject_ACU(`Trạng thái khôi phục run có trường không xác định: ${key}`, { path: key });
   }
-  if (raw.schemaVersion !== WORLD_SIMULATION_RUN_STATE_SCHEMA_VERSION_ACU) reject_ACU('run 恢复状态 schemaVersion 非法');
+  if (raw.schemaVersion !== WORLD_SIMULATION_RUN_STATE_SCHEMA_VERSION_ACU) reject_ACU('schemaVersion của trạng thái khôi phục run không hợp lệ');
   const taskId = text_ACU(raw.taskId, 'taskId');
   const cursorKey = text_ACU(raw.cursorKey, 'cursorKey');
   const updatedAt = nonNegativeInteger_ACU(raw.updatedAt, 'updatedAt');
   const state = state_ACU(raw.state, 'state');
-  if (state.taskId !== taskId || state.cursorKey !== cursorKey) reject_ACU('run 恢复状态身份与外层不一致', { taskId, cursorKey });
+  if (state.taskId !== taskId || state.cursorKey !== cursorKey) reject_ACU('Danh tính trạng thái khôi phục run không khớp với lớp ngoài', { taskId, cursorKey });
   return { schemaVersion: WORLD_SIMULATION_RUN_STATE_SCHEMA_VERSION_ACU, taskId, cursorKey, updatedAt, state };
 }
 

@@ -14,92 +14,92 @@ export interface FillModeIntro {
 
 export const FILL_MODE_INTROS: Record<FillMode_ACU, FillModeIntro> = {
   classic: {
-    label: '经典表格模式',
-    summary: '沿用稳定的经典填表流程，把纪要交给大总结逐步归纳，是新安装的默认模式。',
-    pros: '快速无感，不需要额外配置，也不会增加请求次数。',
-    cons: '大总结可能会压缩部分细节。',
+    label: 'Chế độ bảng cổ điển',
+    summary: 'Dùng lại quy trình điền bảng cổ điển ổn định, giao kỷ yếu cho tổng kết lớn để tóm lược dần, là chế độ mặc định khi cài mới.',
+    pros: 'Nhanh và không cảm nhận được, không cần cấu hình thêm, cũng không tăng số lượt yêu cầu.',
+    cons: 'Tổng kết lớn có thể nén bớt một số chi tiết.',
   },
   vector: {
-    label: '向量表格模式',
-    summary: '用 embedding 与 rerank 直接选出与当前情节相关的纪要，并把选中的纪要条目切为蓝灯注入；纪要索引保持完整目录。不生成关键词、不做混合召回，也不触发剧情推进。',
-    pros: '快速无感，不额外增加正文生成前的 LLM 调用。',
-    cons: '需要单独配置向量参数；向量的语义匹配不如 LLM 召回的逻辑匹配精准。',
+    label: 'Chế độ bảng vector',
+    summary: 'Dùng embedding và rerank để chọn trực tiếp các kỷ yếu liên quan đến tình tiết hiện tại, rồi cắt các mục kỷ yếu đã chọn thành đèn xanh dương để chèn vào; chỉ mục kỷ yếu giữ nguyên danh mục đầy đủ. Không tạo từ khóa, không truy hồi hỗn hợp, cũng không kích hoạt đẩy cốt truyện.',
+    pros: 'Nhanh và không cảm nhận được, không tăng thêm lượt gọi LLM trước khi tạo nội dung chính.',
+    cons: 'Cần cấu hình riêng tham số vector; khớp ngữ nghĩa của vector không chính xác bằng khớp logic của truy hồi LLM.',
   },
   llm: {
-    label: 'LLM模型逻辑召回模式',
-    summary: '由 LLM 先读纪要概览与目录，再按信息缺口精读具体纪要区间。',
-    pros: '无可比拟的精准。',
-    cons: '需要在每次正文生成前额外调用一次 LLM 进行记忆分析。',
+    label: 'Chế độ truy hồi logic bằng mô hình LLM',
+    summary: 'LLM đọc trước tổng quan và danh mục kỷ yếu, rồi đọc kỹ các đoạn kỷ yếu cụ thể theo khoảng trống thông tin.',
+    pros: 'Chính xác vô song.',
+    cons: 'Cần gọi thêm một lần LLM để phân tích trí nhớ trước mỗi lần tạo nội dung chính.',
   },
   crossfire: {
-    label: '交火模式',
-    summary: '关键词生成、向量与 BM25 混合召回、rerank 精排，再交给 LLM 做逻辑分析的完整流程。',
-    pros: '完全结合向量模式与 LLM 召回的优点。',
-    cons: '需要配置向量参数，并且保留正文生成前的额外 LLM 调用。',
+    label: 'Chế độ giao hỏa',
+    summary: 'Quy trình đầy đủ: tạo từ khóa, truy hồi hỗn hợp vector và BM25, rerank sắp xếp tinh, rồi giao cho LLM phân tích logic.',
+    pros: 'Kết hợp trọn vẹn ưu điểm của chế độ vector và truy hồi LLM.',
+    cons: 'Cần cấu hình tham số vector, và vẫn giữ lượt gọi LLM bổ sung trước khi tạo nội dung chính.',
   },
 };
 
 export const fillModeCopy = {
-  pageTitle: '填表模式',
+  pageTitle: 'Chế độ điền bảng',
   nav: {
-    mode: '填表模式',
-    plot: '剧情推进',
+    mode: 'Chế độ điền bảng',
+    plot: 'Đẩy cốt truyện',
   },
   reject: {
-    title: '无法切换填表模式',
+    title: 'Không thể chuyển chế độ điền bảng',
     message(reason: string, currentLabel: string, error?: string): string {
       if (reason === 'classic_locked') {
-        return `当前对话使用「${currentLabel}」，纪要表会持续累积，切回经典表格模式会超出经典模式的纪要窗口，因此不能切回。需要经典表格模式时请新开对话，可先点击五角星把经典表格模式设为新对话的偏好模式。`;
+        return `Hội thoại hiện tại đang dùng「${currentLabel}」, bảng 纪要表 sẽ tiếp tục tích lũy, chuyển về chế độ bảng cổ điển sẽ vượt quá cửa sổ kỷ yếu của chế độ cổ điển nên không thể chuyển về. Khi cần chế độ bảng cổ điển, hãy mở hội thoại mới, có thể bấm ngôi sao trước để đặt chế độ bảng cổ điển làm chế độ ưu tiên cho hội thoại mới.`;
       }
       if (reason === 'record_invalid') {
-        return '当前对话的填表模式记录无法识别，为避免纪要表超出经典模式的纪要窗口，已拒绝切回经典表格模式。';
+        return 'Không nhận diện được bản ghi chế độ điền bảng của hội thoại hiện tại; để tránh bảng 纪要表 vượt quá cửa sổ kỷ yếu của chế độ cổ điển, đã từ chối chuyển về chế độ bảng cổ điển.';
       }
       if (reason === 'no_active_chat') {
-        return '当前没有打开的对话，无法切换对话的填表模式。点击五角星可以设置新对话的偏好模式。';
+        return 'Hiện không có hội thoại nào đang mở nên không thể chuyển chế độ điền bảng. Bấm ngôi sao để đặt chế độ ưu tiên cho hội thoại mới.';
       }
       if (reason === 'classic_enable_failed') {
-        return `无法启用经典表格模式，当前对话仍使用「${currentLabel}」。${error ? `原因：${error}` : ''}`;
+        return `Không thể bật chế độ bảng cổ điển, hội thoại hiện tại vẫn dùng「${currentLabel}」.${error ? ` Nguyên nhân: ${error}` : ''}`;
       }
       if (reason === 'classic_disable_failed') {
-        return `无法退出经典表格模式，当前对话仍使用经典表格模式。${error ? `原因：${error}` : ''}`;
+        return `Không thể thoát chế độ bảng cổ điển, hội thoại hiện tại vẫn dùng chế độ bảng cổ điển.${error ? ` Nguyên nhân: ${error}` : ''}`;
       }
-      return `填表模式保存失败，当前对话仍使用「${currentLabel}」。${error ? `原因：${error}` : ''}`;
+      return `Lưu chế độ điền bảng thất bại, hội thoại hiện tại vẫn dùng「${currentLabel}」.${error ? ` Nguyên nhân: ${error}` : ''}`;
     },
   },
   leaveClassic: {
-    title: '退出经典表格模式',
-    confirmLabel: '确认切换',
+    title: 'Thoát chế độ bảng cổ điển',
+    confirmLabel: 'Xác nhận chuyển',
     message(targetLabel: string): string {
-      return `即将把当前对话切换为「${targetLabel}」。切换后会删除大总结表，已被大总结归纳的纪要恢复可见，纪要表恢复原导出方式。切换后当前对话不能再切回经典表格模式。`;
+      return `Sắp chuyển hội thoại hiện tại sang「${targetLabel}」. Sau khi chuyển sẽ xóa bảng tổng kết lớn, các kỷ yếu đã được tổng kết lớn tóm lược sẽ hiển thị lại, bảng 纪要表 khôi phục cách xuất ban đầu. Sau khi chuyển, hội thoại hiện tại không thể chuyển lại chế độ bảng cổ điển.`;
     },
   },
   templateChanged: {
-    title: '表格模板已修改',
-    confirmLabel: '恢复模板并切换',
-    message: '启用经典表格模式后，当前对话的表格模板被修改过。继续切换会恢复为启用经典表格模式前的模板，覆盖这些修改。',
+    title: 'Mẫu bảng đã bị sửa',
+    confirmLabel: 'Khôi phục mẫu và chuyển',
+    message: 'Sau khi bật chế độ bảng cổ điển, mẫu bảng của hội thoại hiện tại đã bị sửa. Tiếp tục chuyển sẽ khôi phục về mẫu trước khi bật chế độ bảng cổ điển, ghi đè các thay đổi này.',
   },
   panels: {
     mode: {
-      title: '填表模式',
-      description: '选择当前对话如何为正文生成召回记忆。模式按对话记录；每种模式的参数独立保存，切换模式不会覆盖其它模式，也不会改变功能档位。',
-      selectHint: '五角星设为新对话偏好模式。经典表格模式可切换为其它模式，其它模式不能切回经典。',
-      preferActiveTitle: '新对话偏好模式',
-      preferInactiveTitle: '设为新对话偏好模式',
-      nativeToolLabel: '填表使用工具调用',
+      title: 'Chế độ điền bảng',
+      description: 'Chọn cách hội thoại hiện tại truy hồi trí nhớ để tạo nội dung chính. Chế độ được ghi theo hội thoại; tham số của mỗi chế độ được lưu độc lập, chuyển chế độ không ghi đè chế độ khác, cũng không đổi cấp độ chức năng.',
+      selectHint: 'Ngôi sao đặt làm chế độ ưu tiên cho hội thoại mới. Chế độ bảng cổ điển có thể chuyển sang chế độ khác, các chế độ khác không thể chuyển về cổ điển.',
+      preferActiveTitle: 'Chế độ ưu tiên cho hội thoại mới',
+      preferInactiveTitle: 'Đặt làm chế độ ưu tiên cho hội thoại mới',
+      nativeToolLabel: 'Điền bảng bằng gọi công cụ',
       nativeToolHint:
-        '默认关闭，四种模式通用。开启后填表改走 table_edit / table_sql 原生工具提交，默认提示词同步切换；部分渠道不支持工具调用，收到 tools 字段会直接报错。',
+        'Mặc định tắt, dùng chung cho cả bốn chế độ. Khi bật, điền bảng sẽ gửi qua công cụ gốc table_edit / table_sql, prompt mặc định cũng chuyển theo; một số kênh không hỗ trợ gọi công cụ, nhận trường tools sẽ báo lỗi ngay.',
     },
     plot: {
-      title: '剧情推进',
-      description: 'LLM模型逻辑召回模式与交火模式依赖剧情推进在正文生成前分析记忆。关闭后这两种模式只保留表格召回，不再执行剧情规划。',
-      enableLabel: '启用剧情推进',
-      enableHint: '关闭后不再在正文生成前额外调用 LLM；当前模式的其余召回行为不变。',
-      disguiseDisabledLabel: '解除发送伪装',
-      disguiseDisabledHint: '默认关闭。开启后原文留在输入框等待剧情 AI 返回，不显示临时楼层或生成中外观；成功后写入最终提示词，由酒馆继续本次发送。',
+      title: 'Đẩy cốt truyện',
+      description: 'Chế độ truy hồi logic bằng mô hình LLM và chế độ giao hỏa dựa vào đẩy cốt truyện để phân tích trí nhớ trước khi tạo nội dung chính. Khi tắt, hai chế độ này chỉ giữ truy hồi bảng, không lập kế hoạch cốt truyện nữa.',
+      enableLabel: 'Bật đẩy cốt truyện',
+      enableHint: 'Khi tắt sẽ không gọi thêm LLM trước khi tạo nội dung chính; các hành vi truy hồi khác của chế độ hiện tại không đổi.',
+      disguiseDisabledLabel: 'Bỏ ngụy trang khi gửi',
+      disguiseDisabledHint: 'Mặc định tắt. Khi bật, văn bản gốc ở lại trong ô nhập chờ AI cốt truyện trả về, không hiển thị tầng tạm hay giao diện đang tạo; sau khi thành công sẽ ghi vào prompt cuối cùng và SillyTavern tiếp tục lần gửi này.',
     },
     worldbook: {
-      title: '剧情推进世界书',
-      description: '选择剧情推进分析时读取的世界书条目。',
+      title: 'Sổ thế giới đẩy cốt truyện',
+      description: 'Chọn các mục sổ thế giới được đọc khi đẩy cốt truyện phân tích.',
     },
   },
 };

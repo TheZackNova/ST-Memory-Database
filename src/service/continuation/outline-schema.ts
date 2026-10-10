@@ -108,15 +108,15 @@ export const STAGE_TEMPO_DOWNTIME_FLOOR_ACU: Readonly<Record<StageTempo_ACU, num
 };
 
 const STAGE_TEMPO_LABELS_ACU: Readonly<Record<StageTempo_ACU, string>> = {
-  buildup: '铺垫型',
-  mixed: '起伏型',
-  surge: '高压型',
-  aftermath: '余波型',
+  buildup: 'kiểu dọn nền',
+  mixed: 'kiểu nhấp nhô',
+  surge: 'kiểu áp lực cao',
+  aftermath: 'kiểu dư chấn',
 };
 
 /** 渲染形态名称，错误信息与提示词共用同一口径。 */
 export function describeStageTempo_ACU(tempo: StageTempo_ACU): string {
-  return `${tempo}（${STAGE_TEMPO_LABELS_ACU[tempo]}）`;
+  return `${tempo} (${STAGE_TEMPO_LABELS_ACU[tempo]})`;
 }
 
 function fail_ACU(code: ContinuationErrorCode_ACU, phase: ContinuationErrorPhase_ACU, message: string, details?: Record<string, unknown>): never {
@@ -130,22 +130,22 @@ function isRecord_ACU(value: unknown): value is Record<string, unknown> {
 function assertExactKeys_ACU(value: Record<string, unknown>, keys: readonly string[], path: string, optionalKeys: readonly string[] = []): void {
   for (const key of keys) {
     if (!Object.prototype.hasOwnProperty.call(value, key)) {
-      fail_ACU('CONTINUATION_OUTLINE_FIELD_MISSING', 'outline_validate', `缺少必填字段：${path}.${key}`, { path: `${path}.${key}` });
+      fail_ACU('CONTINUATION_OUTLINE_FIELD_MISSING', 'outline_validate', `Thiếu trường bắt buộc: ${path}.${key}`, { path: `${path}.${key}` });
     }
   }
   for (const key of Object.keys(value)) {
     if (!keys.includes(key) && !optionalKeys.includes(key)) {
-      fail_ACU('CONTINUATION_OUTLINE_UNKNOWN_FIELD', 'outline_validate', `存在未知字段：${path}.${key}`, { path: `${path}.${key}` });
+      fail_ACU('CONTINUATION_OUTLINE_UNKNOWN_FIELD', 'outline_validate', `Có trường không xác định: ${path}.${key}`, { path: `${path}.${key}` });
     }
   }
 }
 
 function requireText_ACU(value: unknown, path: string): string {
   if (typeof value !== 'string') {
-    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `字段必须是字符串：${path}`, { path });
+    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `Trường phải là chuỗi: ${path}`, { path });
   }
   if (value.trim().length === 0) {
-    fail_ACU('CONTINUATION_OUTLINE_STRING_EMPTY', 'outline_validate', `字段不能为空：${path}`, { path });
+    fail_ACU('CONTINUATION_OUTLINE_STRING_EMPTY', 'outline_validate', `Trường không được rỗng: ${path}`, { path });
   }
   return value;
 }
@@ -167,10 +167,10 @@ function goalHead_ACU(goal: unknown): string {
 
 function requirePositiveInteger_ACU(value: unknown, path: string): number {
   if (typeof value !== 'number' || !Number.isInteger(value)) {
-    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `字段必须是整数：${path}`, { path });
+    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `Trường phải là số nguyên: ${path}`, { path });
   }
   if (value <= 0) {
-    fail_ACU('CONTINUATION_OUTLINE_SUGGESTED_TURNS_INVALID', 'outline_validate', `字段必须为正整数：${path}`, { path });
+    fail_ACU('CONTINUATION_OUTLINE_SUGGESTED_TURNS_INVALID', 'outline_validate', `Trường phải là số nguyên dương: ${path}`, { path });
   }
   return value;
 }
@@ -195,7 +195,7 @@ function resolveSoftEnum_ACU<T extends string>(
   // 非严格（持久化 / 已完成前缀）路径：缺失静默回填；写了非法值仍然是数据损坏，必须报。
   if (!strict) {
     if (missing && fallback !== null) return { value: fallback, inferred: true };
-    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `${label}必须是 ${values.join(' / ')} 之一：${path}`, { path, actual: value });
+    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `${label} phải là một trong ${values.join(' / ')}: ${path}`, { path, actual: value });
   }
   if (state.policy === 'reject' || fallback === null) {
     if (state.policy === 'collect' && fallback === null) {
@@ -203,7 +203,7 @@ function resolveSoftEnum_ACU<T extends string>(
       state.missing.push({ field, ...position, actual: value, defaulted: false });
       return { value: values[0], inferred: true };
     }
-    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `${label}必须是 ${values.join(' / ')} 之一：${path}`, { path, actual: value });
+    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `${label} phải là một trong ${values.join(' / ')}: ${path}`, { path, actual: value });
   }
   if (state.policy === 'collect') state.missing.push({ field, ...position, actual: value, defaulted: true });
   return { value: fallback, inferred: true };
@@ -218,21 +218,21 @@ function reconcileTurnSemantics_ACU(state: ValidationState_ACU, strict: boolean,
   const inferred = new Set(turn.inferred ?? []);
   const defaults = TURN_SOFT_DEFAULTS_ACU[turn.pacing];
   if (turn.pacing === 'setup' && turn.function === 'conflict') {
-    if (strict && state.policy === 'collect') state.missing.push({ field: 'function', nodeIndex: position.nodeIndex, turnIndex: position.turnIndex, goalHead: position.goalHead, actual: 'conflict（setup 轮不能承担 conflict 功能）', defaulted: true });
-    else if (strict && state.policy === 'reject') fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `setup 轮不能承担 conflict 功能：nodes[${position.nodeIndex}].turns[${position.turnIndex}]`, { rule: 'setup_conflict' });
+    if (strict && state.policy === 'collect') state.missing.push({ field: 'function', nodeIndex: position.nodeIndex, turnIndex: position.turnIndex, goalHead: position.goalHead, actual: 'conflict (lượt setup không thể đảm nhận chức năng conflict)', defaulted: true });
+    else if (strict && state.policy === 'reject') fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `Lượt setup không thể đảm nhận chức năng conflict: nodes[${position.nodeIndex}].turns[${position.turnIndex}]`, { rule: 'setup_conflict' });
     turn.function = defaults.function;
     inferred.add('function');
   }
   if ((turn.pacing === 'setup' || turn.pacing === 'cooldown') && turn.mainlineDelta === 'milestone' && !(turn.function === 'payoff' && role === 'payoff')) {
-    if (strict && state.policy === 'collect') state.missing.push({ field: 'mainlineDelta', nodeIndex: position.nodeIndex, turnIndex: position.turnIndex, goalHead: position.goalHead, actual: 'milestone（低压轮不能推进 milestone，除非 payoff 阶段以 payoff 功能兑现）', defaulted: true });
-    else if (strict && state.policy === 'reject') fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `低压轮不能推进 milestone：nodes[${position.nodeIndex}].turns[${position.turnIndex}]`, { rule: 'downtime_milestone' });
+    if (strict && state.policy === 'collect') state.missing.push({ field: 'mainlineDelta', nodeIndex: position.nodeIndex, turnIndex: position.turnIndex, goalHead: position.goalHead, actual: 'milestone (lượt áp lực thấp không thể đẩy milestone, trừ khi giai đoạn payoff thu hồi bằng chức năng payoff)', defaulted: true });
+    else if (strict && state.policy === 'reject') fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `Lượt áp lực thấp không thể đẩy milestone: nodes[${position.nodeIndex}].turns[${position.turnIndex}]`, { rule: 'downtime_milestone' });
     turn.mainlineDelta = 'micro';
     inferred.add('mainlineDelta');
   }
   if (strict && LONG_TIME_ADVANCES_ACU.includes(turn.timeAdvance!) && !turn.timeAnchor) {
     // anchor 是自然语言，没有可机械补的默认值；严格生成时索要，其余路径放行。
     if (state.policy === 'collect') state.missing.push({ field: 'timeAnchor', nodeIndex: position.nodeIndex, turnIndex: position.turnIndex, goalHead: position.goalHead, actual: undefined, defaulted: true });
-    else if (state.policy === 'reject') fail_ACU('CONTINUATION_OUTLINE_FIELD_MISSING', 'outline_validate', `较大时间跨度必须提供 timeAnchor：nodes[${position.nodeIndex}].turns[${position.turnIndex}].timeAnchor`, { rule: 'long_time_anchor' });
+    else if (state.policy === 'reject') fail_ACU('CONTINUATION_OUTLINE_FIELD_MISSING', 'outline_validate', `Khoảng thời gian lớn phải cung cấp timeAnchor: nodes[${position.nodeIndex}].turns[${position.turnIndex}].timeAnchor`, { rule: 'long_time_anchor' });
   }
   if (inferred.size) turn.inferred = [...inferred] as StageTurn_ACU['inferred'];
   else delete turn.inferred;
@@ -241,23 +241,23 @@ function reconcileTurnSemantics_ACU(state: ValidationState_ACU, strict: boolean,
 function validateInferred_ACU(value: unknown, path: string): StageTurn_ACU['inferred'] {
   if (value === undefined) return undefined;
   if (!Array.isArray(value) || value.some(item => !isEnumValue_ACU(item, STAGE_TURN_SOFT_FIELDS_ACU))) {
-    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `inferred 必须是 ${STAGE_TURN_SOFT_FIELDS_ACU.join(' / ')} 的数组：${path}`, { path });
+    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `inferred phải là mảng của ${STAGE_TURN_SOFT_FIELDS_ACU.join(' / ')}: ${path}`, { path });
   }
   return value.length ? [...new Set(value as StageTurn_ACU['inferred'])] : undefined;
 }
 
 function validateTurn_ACU(raw: unknown, path: string, strict: boolean, role: StageRole_ACU, state: ValidationState_ACU, nodeIndex: number, turnIndex: number): StageTurn_ACU {
   if (!isRecord_ACU(raw)) {
-    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `字段必须是对象：${path}`, { path });
+    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `Trường phải là đối tượng: ${path}`, { path });
   }
   assertExactKeys_ACU(raw, TURN_KEYS_ACU, path, TURN_OPTIONAL_KEYS_ACU);
   const goal = requireText_ACU(raw.goal, `${path}.goal`);
   const position = { nodeIndex, turnIndex, goalHead: goalHead_ACU(goal) };
-  const pacing = resolveSoftEnum_ACU(state, strict, raw.pacing, STAGE_TURN_PACINGS_ACU, 'pacing', '节奏档', `${path}.pacing`, strict ? null : DEFAULT_TURN_PACING_ACU, position);
+  const pacing = resolveSoftEnum_ACU(state, strict, raw.pacing, STAGE_TURN_PACINGS_ACU, 'pacing', 'mức nhịp', `${path}.pacing`, strict ? null : DEFAULT_TURN_PACING_ACU, position);
   const defaults = TURN_SOFT_DEFAULTS_ACU[pacing.value];
-  const fn = resolveSoftEnum_ACU(state, strict, raw.function, STAGE_TURN_FUNCTIONS_ACU, 'function', '叙事功能', `${path}.function`, defaults.function, position);
-  const mainline = resolveSoftEnum_ACU(state, strict, raw.mainlineDelta, STAGE_TURN_MAINLINE_DELTAS_ACU, 'mainlineDelta', '主线增量', `${path}.mainlineDelta`, defaults.mainlineDelta, position);
-  const time = resolveSoftEnum_ACU(state, strict, raw.timeAdvance, STAGE_TURN_TIME_ADVANCES_ACU, 'timeAdvance', '时间跨度', `${path}.timeAdvance`, defaults.timeAdvance, position);
+  const fn = resolveSoftEnum_ACU(state, strict, raw.function, STAGE_TURN_FUNCTIONS_ACU, 'function', 'chức năng tự sự', `${path}.function`, defaults.function, position);
+  const mainline = resolveSoftEnum_ACU(state, strict, raw.mainlineDelta, STAGE_TURN_MAINLINE_DELTAS_ACU, 'mainlineDelta', 'gia tăng mạch chính', `${path}.mainlineDelta`, defaults.mainlineDelta, position);
+  const time = resolveSoftEnum_ACU(state, strict, raw.timeAdvance, STAGE_TURN_TIME_ADVANCES_ACU, 'timeAdvance', 'khoảng thời gian', `${path}.timeAdvance`, defaults.timeAdvance, position);
   const persistedInferred = validateInferred_ACU(raw.inferred, `${path}.inferred`) ?? [];
   const inferred = new Set<StageTurnSoftField_ACU>(persistedInferred);
   if (fn.inferred) inferred.add('function'); else inferred.delete('function');
@@ -289,11 +289,11 @@ function validateNode_ACU(
 ): StageNode_ACU {
   const path = `nodes[${index}]`;
   if (!isRecord_ACU(raw)) {
-    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `字段必须是对象：${path}`, { path });
+    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `Trường phải là đối tượng: ${path}`, { path });
   }
   assertExactKeys_ACU(raw, NODE_KEYS_ACU, path);
   if (!Array.isArray(raw.turns)) {
-    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `字段必须是数组：${path}.turns`, { path: `${path}.turns` });
+    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', `Trường phải là mảng: ${path}.turns`, { path: `${path}.turns` });
   }
   const suggestedTurns = requirePositiveInteger_ACU(raw.suggestedTurns, `${path}.suggestedTurns`);
   const turns = raw.turns.map((turn, turnIndex) => validateTurn_ACU(
@@ -306,11 +306,11 @@ function validateNode_ACU(
     turnIndex,
   ));
   if (turns.length !== suggestedTurns) {
-    fail_ACU('CONTINUATION_OUTLINE_NODE_TURN_COUNT_MISMATCH', 'outline_validate', `节点轮次数与 suggestedTurns 不一致：${path}`, { path, expected: suggestedTurns, actual: turns.length });
+    fail_ACU('CONTINUATION_OUTLINE_NODE_TURN_COUNT_MISMATCH', 'outline_validate', `Số lượt của nút không khớp với suggestedTurns: ${path}`, { path, expected: suggestedTurns, actual: turns.length });
   }
   for (const turn of turns) {
     if (turnIds.has(turn.id)) {
-      fail_ACU('CONTINUATION_OUTLINE_TURN_ID_DUPLICATE', 'outline_validate', `轮次 ID 重复：${turn.id}`, { id: turn.id });
+      fail_ACU('CONTINUATION_OUTLINE_TURN_ID_DUPLICATE', 'outline_validate', `ID lượt bị trùng: ${turn.id}`, { id: turn.id });
     }
     turnIds.add(turn.id);
   }
@@ -324,13 +324,13 @@ export function resolveContinuationTurnRange_ACU(stageSize: unknown, customTurnM
     return { ...CONTINUATION_TURN_RANGES_ACU[stageSize] };
   }
   if (stageSize !== 'custom') {
-    fail_ACU('CONTINUATION_STAGE_SIZE_INVALID', 'outline_validate', '阶段规模必须是 short、standard、long 或 custom', { valueType: typeof stageSize });
+    fail_ACU('CONTINUATION_STAGE_SIZE_INVALID', 'outline_validate', 'Quy mô giai đoạn phải là short, standard, long hoặc custom', { valueType: typeof stageSize });
   }
   if (typeof customTurnMin !== 'number' || !Number.isInteger(customTurnMin) || typeof customTurnMax !== 'number' || !Number.isInteger(customTurnMax)) {
-    fail_ACU('CONTINUATION_CUSTOM_RANGE_INVALID', 'outline_validate', '自定义轮数范围必须由两个整数构成');
+    fail_ACU('CONTINUATION_CUSTOM_RANGE_INVALID', 'outline_validate', 'Phạm vi số lượt tùy chỉnh phải gồm hai số nguyên');
   }
   if (customTurnMin < 1 || customTurnMax > 50 || customTurnMin > customTurnMax) {
-    fail_ACU('CONTINUATION_CUSTOM_RANGE_INVALID', 'outline_validate', '自定义轮数范围必须在 1 到 50 之间且最小值不得大于最大值', { min: customTurnMin, max: customTurnMax });
+    fail_ACU('CONTINUATION_CUSTOM_RANGE_INVALID', 'outline_validate', 'Phạm vi số lượt tùy chỉnh phải nằm trong khoảng 1 đến 50 và giá trị nhỏ nhất không được lớn hơn giá trị lớn nhất', { min: customTurnMin, max: customTurnMax });
   }
   return { min: customTurnMin, max: customTurnMax };
 }
@@ -344,35 +344,35 @@ function defaultStageRoleForTempo_ACU(tempo: StageTempo_ACU): StageRole_ACU {
 
 function validateStageOutlineWithState_ACU(raw: unknown, range: ContinuationTurnRange_ACU, state: ValidationState_ACU): StageOutline_ACU {
   if (!isRecord_ACU(raw)) {
-    fail_ACU('CONTINUATION_OUTLINE_NOT_OBJECT', 'outline_validate', '阶段大纲必须是单一 JSON 对象');
+    fail_ACU('CONTINUATION_OUTLINE_NOT_OBJECT', 'outline_validate', 'Dàn ý giai đoạn phải là một đối tượng JSON duy nhất');
   }
   assertExactKeys_ACU(raw, OUTLINE_KEYS_ACU, 'outline', OUTLINE_OPTIONAL_KEYS_ACU);
   if (raw.schemaVersion !== CONTINUATION_SCHEMA_VERSION_ACU) {
-    fail_ACU('CONTINUATION_OUTLINE_SCHEMA_VERSION_INVALID', 'outline_validate', '阶段大纲 schemaVersion 必须为 1', { actual: raw.schemaVersion });
+    fail_ACU('CONTINUATION_OUTLINE_SCHEMA_VERSION_INVALID', 'outline_validate', 'schemaVersion của dàn ý giai đoạn phải là 1', { actual: raw.schemaVersion });
   }
   if (typeof raw.totalTurns !== 'number' || !Number.isInteger(raw.totalTurns)) {
-    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', 'totalTurns 必须是整数', { path: 'outline.totalTurns' });
+    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', 'totalTurns phải là số nguyên', { path: 'outline.totalTurns' });
   }
   if (raw.totalTurns < range.min || raw.totalTurns > range.max) {
-    fail_ACU('CONTINUATION_OUTLINE_TOTAL_TURNS_OUT_OF_RANGE', 'outline_validate', 'totalTurns 超出当前阶段规模范围', { min: range.min, max: range.max, actual: raw.totalTurns });
+    fail_ACU('CONTINUATION_OUTLINE_TOTAL_TURNS_OUT_OF_RANGE', 'outline_validate', 'totalTurns vượt phạm vi quy mô của giai đoạn hiện tại', { min: range.min, max: range.max, actual: raw.totalTurns });
   }
   if (!Array.isArray(raw.nodes)) {
-    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', 'nodes 必须是数组', { path: 'outline.nodes' });
+    fail_ACU('CONTINUATION_OUTLINE_FIELD_TYPE_INVALID', 'outline_validate', 'nodes phải là mảng', { path: 'outline.nodes' });
   }
   if (raw.nodes.length === 0) {
-    fail_ACU('CONTINUATION_OUTLINE_NODES_EMPTY', 'outline_validate', 'nodes 不能为空');
+    fail_ACU('CONTINUATION_OUTLINE_NODES_EMPTY', 'outline_validate', 'nodes không được rỗng');
   }
   const strictStage = state.mode !== 'persisted';
   const stagePosition: { nodeIndex: number | null; turnIndex: number | null; goalHead: string } = { nodeIndex: null, turnIndex: null, goalHead: '' };
-  const tempo = resolveSoftEnum_ACU(state, strictStage, raw.tempo, STAGE_TEMPOS_ACU, 'tempo', '阶段节奏形态', 'outline.tempo', strictStage ? null : DEFAULT_STAGE_TEMPO_ACU, stagePosition);
-  const role = resolveSoftEnum_ACU(state, strictStage, raw.role, STAGE_ROLES_ACU, 'role', '阶段结构角色', 'outline.role', defaultStageRoleForTempo_ACU(tempo.value), stagePosition);
+  const tempo = resolveSoftEnum_ACU(state, strictStage, raw.tempo, STAGE_TEMPOS_ACU, 'tempo', 'hình thái nhịp giai đoạn', 'outline.tempo', strictStage ? null : DEFAULT_STAGE_TEMPO_ACU, stagePosition);
+  const role = resolveSoftEnum_ACU(state, strictStage, raw.role, STAGE_ROLES_ACU, 'role', 'vai trò cấu trúc giai đoạn', 'outline.role', defaultStageRoleForTempo_ACU(tempo.value), stagePosition);
   const nodeIds = new Set<string>();
   const turnIds = new Set<string>();
   let turnOffset = 0;
   const nodes = raw.nodes.map((node, index) => {
     const validated = validateNode_ACU(node, index, turnIds, role.value, state, turnOffset);
     if (nodeIds.has(validated.id)) {
-      fail_ACU('CONTINUATION_OUTLINE_NODE_ID_DUPLICATE', 'outline_validate', `节点 ID 重复：${validated.id}`, { id: validated.id });
+      fail_ACU('CONTINUATION_OUTLINE_NODE_ID_DUPLICATE', 'outline_validate', `ID nút bị trùng: ${validated.id}`, { id: validated.id });
     }
     nodeIds.add(validated.id);
     turnOffset += validated.turns.length;
@@ -380,7 +380,7 @@ function validateStageOutlineWithState_ACU(raw: unknown, range: ContinuationTurn
   });
   const summedTurns = nodes.reduce((sum, node) => sum + node.suggestedTurns, 0);
   if (summedTurns !== raw.totalTurns) {
-    fail_ACU('CONTINUATION_OUTLINE_TOTAL_TURNS_MISMATCH', 'outline_validate', '节点 suggestedTurns 总和必须等于 totalTurns', { expected: raw.totalTurns, actual: summedTurns });
+    fail_ACU('CONTINUATION_OUTLINE_TOTAL_TURNS_MISMATCH', 'outline_validate', 'Tổng suggestedTurns của các nút phải bằng totalTurns', { expected: raw.totalTurns, actual: summedTurns });
   }
   return {
     schemaVersion: CONTINUATION_SCHEMA_VERSION_ACU,
@@ -463,7 +463,7 @@ function isPressureTurn_ACU(pacing: StageTurnPacing_ACU): boolean {
 }
 
 function describePacingLabels_ACU(turns: readonly StageTurn_ACU[], offset: number): string {
-  return turns.map((turn, index) => `第${offset + index + 1}轮=${turn.pacing}`).join('、');
+  return turns.map((turn, index) => `lượt ${offset + index + 1}=${turn.pacing}`).join(', ');
 }
 
 /** 从轮次序列尾部往前数连续高压轮数。跨阶段继承计数用它。 */
@@ -534,7 +534,7 @@ export function validateStageOutlinePacing_ACU(turns: readonly StageTurn_ACU[], 
     fail_ACU(
       'CONTINUATION_OUTLINE_PACING_INVALID',
       'outline_validate',
-      `不能连续两个高压型阶段：上一阶段已经是 ${describeStageTempo_ACU('surge')}，读者刚经历完一整段没有喘息的高压，再来一段同样强度的只会钝化。本阶段的 <stage_tempo> 请改成 aftermath（先把上一段的代价落地）或 mixed（松紧交替推进）。`,
+      `Không được có hai giai đoạn áp lực cao liên tiếp: giai đoạn trước đã là ${describeStageTempo_ACU('surge')}, độc giả vừa trải qua cả một đoạn áp lực cao không có chỗ thở, thêm một đoạn cùng cường độ chỉ làm chai cảm giác. <stage_tempo> của giai đoạn này hãy đổi thành aftermath (trước hết để cái giá của đoạn trước được đặt xuống) hoặc mixed (nhịp lỏng chặt xen kẽ).`,
       { rule: 'consecutive_surge_stages', tempo, previousTempo },
     );
   }
@@ -552,7 +552,7 @@ export function validateStageOutlinePacing_ACU(turns: readonly StageTurn_ACU[], 
       fail_ACU(
         'CONTINUATION_OUTLINE_PACING_INVALID',
         'outline_validate',
-        `低压轮不足：本阶段形态是 ${describeStageTempo_ACU(tempo)}，本次规划的 ${scope.length} 轮里至少要有 ${required} 轮标为 setup 或 cooldown，实际只有 ${actual} 轮。请把其中 ${required - actual} 轮改成铺垫日常或余波消化——写关系推进、生活场景、情绪落地，不要再安排新的外部危机。这些低压轮放在哪里由你决定，可以连着放，不需要均匀分散。如果这一段剧情本来就该一路高压，那就把 <stage_tempo> 改成 surge（但上一阶段不能也是 surge）。当前各轮节奏：${labels}`,
+        `Lượt áp lực thấp không đủ: hình thái của giai đoạn này là ${describeStageTempo_ACU(tempo)}, trong ${scope.length} lượt hoạch định lần này phải có ít nhất ${required} lượt được đánh dấu setup hoặc cooldown, thực tế chỉ có ${actual} lượt. Hãy đổi ${required - actual} lượt trong số đó thành lượt đời thường dọn nền hoặc tiêu hóa dư chấn — viết về tiến triển quan hệ, cảnh sinh hoạt, cảm xúc lắng xuống, đừng sắp xếp thêm khủng hoảng bên ngoài mới. Đặt các lượt áp lực thấp này ở đâu là do bạn quyết định, có thể đặt liền nhau, không cần rải đều. Nếu đoạn cốt truyện này vốn nên áp lực cao suốt thì hãy đổi <stage_tempo> thành surge (nhưng giai đoạn trước không được cũng là surge). Nhịp các lượt hiện tại: ${labels}`,
         { rule: 'downtime_floor', tempo, scopeTurns: scope.length, required, actual, floor, skippedTurns: skip, labels },
       );
     }
@@ -567,11 +567,11 @@ export function validateStageOutlinePacing_ACU(turns: readonly StageTurn_ACU[], 
     if (streak > limit) {
       const turnNumber = skip + index + 1;
       const inherited = Math.max(0, Math.trunc(options.leadingPressureStreak));
-      const inheritedNote = inherited > 0 ? `（其中 ${inherited} 轮来自前面已经写完的剧情）` : '';
+      const inheritedNote = inherited > 0 ? `(trong đó ${inherited} lượt đến từ cốt truyện đã viết xong ở trước)` : '';
       fail_ACU(
         'CONTINUATION_OUTLINE_PACING_INVALID',
         'outline_validate',
-        `连续高压轮超限：到第 ${turnNumber} 轮为止已经连续 ${streak} 轮都是 pressure 或 turn${inheritedNote}，上限是 ${limit} 轮。请在第 ${turnNumber} 轮之前安排一轮 setup 或 cooldown 让读者喘口气。这不是要求你每隔几轮就插一轮日常——只是这一段已经绷得太久了。当前各轮节奏：${labels}`,
+        `Vượt giới hạn lượt áp lực cao liên tiếp: tính đến lượt ${turnNumber} đã có ${streak} lượt liên tiếp đều là pressure hoặc turn${inheritedNote}, giới hạn là ${limit} lượt. Hãy sắp xếp một lượt setup hoặc cooldown trước lượt ${turnNumber} để độc giả được thở. Điều này không có nghĩa là cứ vài lượt lại chèn một lượt đời thường — chỉ là đoạn này đã căng quá lâu. Nhịp các lượt hiện tại: ${labels}`,
         { rule: 'pressure_streak', turnNumber, streak, limit, leadingPressureStreak: inherited, skippedTurns: skip, labels },
       );
     }
@@ -584,30 +584,30 @@ export function validateStageOutlinePacing_ACU(turns: readonly StageTurn_ACU[], 
  */
 function validateReplannedWithPolicy_ACU(raw: unknown, range: ContinuationTurnRange_ACU, constraints: ContinuationReplanConstraints_ACU, policy: OutlineSoftFieldPolicy_ACU): StageOutlineValidation_ACU {
   if (!Number.isInteger(constraints.completedTurns) || constraints.completedTurns < 0 || !Number.isInteger(constraints.expectedRemainingTurns) || constraints.expectedRemainingTurns < 0) {
-    fail_ACU('CONTINUATION_REPLAN_CONTEXT_INVALID', 'replan', '重新规划约束必须包含非负整数');
+    fail_ACU('CONTINUATION_REPLAN_CONTEXT_INVALID', 'replan', 'Ràng buộc hoạch định lại phải chứa số nguyên không âm');
   }
   const normalizedPrevious = validatePersistedStageOutline_ACU(constraints.previousOutline, range);
   const previousTurns = flattenTurns_ACU(normalizedPrevious);
   if (constraints.completedTurns > previousTurns.length) {
-    fail_ACU('CONTINUATION_REPLAN_CONTEXT_INVALID', 'replan', '已完成轮数超过旧 revision 的轮次总数', { completedTurns: constraints.completedTurns, totalTurns: previousTurns.length });
+    fail_ACU('CONTINUATION_REPLAN_CONTEXT_INVALID', 'replan', 'Số lượt đã hoàn thành vượt tổng số lượt của revision cũ', { completedTurns: constraints.completedTurns, totalTurns: previousTurns.length });
   }
   const validation = runValidation_ACU(raw, range, 'replanned', policy, constraints.completedTurns);
   const outline = validation.outline;
   const candidateTurns = flattenTurns_ACU(outline);
   const completedPrefix = previousTurns.slice(0, constraints.completedTurns);
   if (candidateTurns.length < completedPrefix.length) {
-    fail_ACU('CONTINUATION_REPLAN_COMPLETED_PREFIX_CHANGED', 'replan', '重新规划结果缺少已完成轮次');
+    fail_ACU('CONTINUATION_REPLAN_COMPLETED_PREFIX_CHANGED', 'replan', 'Kết quả hoạch định lại thiếu các lượt đã hoàn thành');
   }
   for (let index = 0; index < completedPrefix.length; index += 1) {
     const expected = completedPrefix[index];
     const actual = candidateTurns[index];
     if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-      fail_ACU('CONTINUATION_REPLAN_COMPLETED_PREFIX_CHANGED', 'replan', '重新规划不得修改已完成轮次及其节奏、功能或时间元数据', { index, expectedId: expected.id, actualId: actual.id });
+      fail_ACU('CONTINUATION_REPLAN_COMPLETED_PREFIX_CHANGED', 'replan', 'Hoạch định lại không được sửa các lượt đã hoàn thành cùng nhịp, chức năng hoặc siêu dữ liệu thời gian của chúng', { index, expectedId: expected.id, actualId: actual.id });
     }
   }
   const remainingTurns = candidateTurns.length - completedPrefix.length;
   if (remainingTurns !== constraints.expectedRemainingTurns) {
-    fail_ACU('CONTINUATION_REPLAN_REMAINING_TURNS_MISMATCH', 'replan', '重新规划结果的剩余轮数不符合额度', { expected: constraints.expectedRemainingTurns, actual: remainingTurns });
+    fail_ACU('CONTINUATION_REPLAN_REMAINING_TURNS_MISMATCH', 'replan', 'Số lượt còn lại trong kết quả hoạch định lại không phù hợp hạn mức', { expected: constraints.expectedRemainingTurns, actual: remainingTurns });
   }
   return validation;
 }

@@ -38,13 +38,13 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
     
     // 检查是否启用
     if (!config.enabled) {
-      showToastr_ACU('warning', '正文优化功能未启用');
+      showToastr_ACU('warning', 'Chức năng tối ưu nội dung chưa được bật');
       return false;
     }
     
     const chat = getChatArray_ACU();
     if (!chat || !chat[messageIndex]) {
-      showToastr_ACU('error', '消息不存在');
+      showToastr_ACU('error', 'Tin nhắn không tồn tại');
       return false;
     }
     
@@ -52,7 +52,7 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
     
     // 跳过用户消息
     if (message.is_user) {
-      showToastr_ACU('warning', '无法优化用户消息');
+      showToastr_ACU('warning', 'Không thể tối ưu tin nhắn của người dùng');
       return false;
     }
     
@@ -60,16 +60,16 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
     const originalContent = getOriginalContent_ACU(messageIndex) || message.mes;
     
     if (!originalContent) {
-      showToastr_ACU('error', '无法获取消息内容');
+      showToastr_ACU('error', 'Không thể lấy nội dung tin nhắn');
       return false;
     }
     
     logDebug_ACU(`[重新优化] 开始重新优化消息 ${messageIndex}，内容长度: ${originalContent.length}`);
     
     if (config.seamlessMode) {
-      showOptimizationOverlay_ACU('正在重新优化正文...');
+      showOptimizationOverlay_ACU('Đang tối ưu lại nội dung...');
     } else {
-      showOptimizationProgressToast_ACU('正在进行正文优化（重新优化）...');
+      showOptimizationProgressToast_ACU('Đang tối ưu nội dung (tối ưu lại)...');
     }
     
     try {
@@ -87,12 +87,12 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
       }
 
       if (!result.success) {
-        showToastr_ACU('error', `重新优化失败: ${result.error || '未知错误'}`);
+        showToastr_ACU('error', `Tối ưu lại thất bại: ${result.error || 'Lỗi không xác định'}`);
         return false;
       }
       
       if (!result.optimizations || result.optimizations.length === 0) {
-        showToastr_ACU('info', '原文已足够好，无需优化');
+        showToastr_ACU('info', 'Nguyên văn đã đủ tốt, không cần tối ưu');
         return true;
       }
       
@@ -107,7 +107,7 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
         return false;
       }
       logError_ACU('[重新优化] 执行出错:', error);
-      showToastr_ACU('error', `重新优化失败: ${error.message}`);
+      showToastr_ACU('error', `Tối ưu lại thất bại: ${error.message}`);
       return false;
     } finally {
       hideOptimizationOverlay_ACU();
@@ -143,7 +143,7 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
         font-family: "Noto Serif SC", "Source Han Serif CN", "Songti SC", "STSong", "SimSun", serif;
         box-sizing: border-box;
       ">
-        <h3 style="margin: 0 0 8px 0; color: var(--acu-accent, #7d4940); font-size: 1.1em; letter-spacing: 1px;">🔄 重新优化结果</h3>
+        <h3 style="margin: 0 0 8px 0; color: var(--acu-accent, #7d4940); font-size: 1.1em; letter-spacing: 1px;">🔄 Kết quả tối ưu lại</h3>
         <p style="margin: 0 0 12px 0; color: var(--acu-text-dim, #8a8075);">${result.summary}</p>
         <div class="optimization-list" style="margin-bottom: 16px; max-height: 400px; overflow-y: auto;">
           ${result.optimizations.map((opt: any, i: number) => `
@@ -155,13 +155,13 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
               border-left: 2px solid var(--acu-border, #36332e);
             ">
               <div style="color: var(--acu-text-dim, #8a8075); margin-bottom: 8px; text-decoration: line-through; opacity: 0.7;">
-                <strong>原文：</strong>${escapeHtml_ACU(opt.original.substring(0, 200))}${opt.original.length > 200 ? '...' : ''}
+                <strong>Nguyên văn:</strong>${escapeHtml_ACU(opt.original.substring(0, 200))}${opt.original.length > 200 ? '...' : ''}
               </div>
               <div style="color: var(--acu-text, #c1b9ad); font-size: 12px; margin-bottom: 8px; padding: 8px; background: rgba(125, 73, 64, 0.1); border-radius: 1px; border-left: 2px solid var(--acu-accent, #7d4940);">
-                <strong>修改方案：</strong>${escapeHtml_ACU(opt.plan || opt.reason || '未说明')}
+                <strong>Phương án sửa:</strong>${escapeHtml_ACU(opt.plan || opt.reason || 'Chưa nêu rõ')}
               </div>
               <div style="color: #6a8a6a;">
-                <strong>优化：</strong>${escapeHtml_ACU(opt.optimized.substring(0, 200))}${opt.optimized.length > 200 ? '...' : ''}
+                <strong>Tối ưu:</strong>${escapeHtml_ACU(opt.optimized.substring(0, 200))}${opt.optimized.length > 200 ? '...' : ''}
               </div>
             </div>
           `).join('')}
@@ -177,7 +177,7 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
             min-width: 80px;
             flex-shrink: 0;
             font-family: inherit;
-          ">取消</button>
+          ">Hủy</button>
           <button id="acu-opt-reoptimize" style="
             padding: 8px 16px;
             border: 1px solid var(--acu-accent, #7d4940);
@@ -188,7 +188,7 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
             min-width: 100px;
             flex-shrink: 0;
             font-family: inherit;
-          ">🔄 再次优化</button>
+          ">🔄 Tối ưu lại</button>
           <button id="acu-opt-apply" style="
             padding: 8px 16px;
             border: none;
@@ -200,7 +200,7 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
             min-width: 100px;
             flex-shrink: 0;
             font-family: inherit;
-          ">应用优化</button>
+          ">Áp dụng tối ưu</button>
         </div>
       </div>
       <div id="acu-opt-backdrop" style="
@@ -220,7 +220,7 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
     
     // 绑定再次优化事件
     jQuery_API_ACU('#acu-opt-reoptimize').on('click', async function() {
-      jQuery_API_ACU(this).prop('disabled', true).text('优化中...');
+      jQuery_API_ACU(this).prop('disabled', true).text('Đang tối ưu...');
       
       // 关闭当前对话框
       jQuery_API_ACU('.acu-optimization-dialog, #acu-opt-backdrop').remove();
@@ -231,16 +231,16 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
     
     // 绑定应用事件
     jQuery_API_ACU('#acu-opt-apply').on('click', async function() {
-      jQuery_API_ACU(this).prop('disabled', true).text('应用中...');
+      jQuery_API_ACU(this).prop('disabled', true).text('Đang áp dụng...');
       
       const success = await replaceChatMessage_ACU(messageIndex, result.optimizedContent, { originalContent: getOriginalContent_ACU(messageIndex) || originalContent });
       
       if (success) {
         jQuery_API_ACU('.acu-optimization-dialog, #acu-opt-backdrop').remove();
-        showToastr_ACU('success', '优化已应用');
+        showToastr_ACU('success', 'Đã áp dụng tối ưu');
       } else {
-        jQuery_API_ACU(this).prop('disabled', false).text('应用优化');
-        showToastr_ACU('error', '应用失败');
+        jQuery_API_ACU(this).prop('disabled', false).text('Áp dụng tối ưu');
+        showToastr_ACU('error', 'Áp dụng thất bại');
       }
     });
   }
@@ -309,9 +309,9 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
     logDebug_ACU(`[正文优化] 开始优化消息 ${messageIndex}，原始长度 ${content.length}，处理后长度 ${processedContent.length}，循环次数: ${loopCount}`);
     
     if (config.seamlessMode) {
-      showOptimizationOverlay_ACU(loopCount > 1 ? `正在优化正文 (1/${loopCount})...` : '正在优化正文...');
+      showOptimizationOverlay_ACU(loopCount > 1 ? `Đang tối ưu nội dung (1/${loopCount})...` : 'Đang tối ưu nội dung...');
     } else {
-      showOptimizationProgressToast_ACU(loopCount > 1 ? `正在进行正文优化 (1/${loopCount})...` : '正在进行正文优化...');
+      showOptimizationProgressToast_ACU(loopCount > 1 ? `Đang tối ưu nội dung (1/${loopCount})...` : 'Đang tối ưu nội dung...');
     }
     
     try {
@@ -326,9 +326,9 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
           logDebug_ACU(`[正文优化] 执行第 ${loop}/${loopCount} 轮优化`);
           
           if (config.seamlessMode && loopCount > 1) {
-            showOptimizationOverlay_ACU(`正在优化正文 (${loop}/${loopCount})...`);
+            showOptimizationOverlay_ACU(`Đang tối ưu nội dung (${loop}/${loopCount})...`);
           } else if (!config.seamlessMode) {
-            showOptimizationProgressToast_ACU(`正在进行正文优化 (${loop}/${loopCount})...`);
+            showOptimizationProgressToast_ACU(`Đang tối ưu nội dung (${loop}/${loopCount})...`);
           }
           
           const result = await performContentOptimization_ACU(currentContent, {
@@ -391,11 +391,11 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
         if (config.showDiff && !config.seamlessMode) {
           showOptimizationDiff_ACU(messageIndex, {
             optimizations: totalOptimizations,
-            summary: `共 ${loopCount} 轮优化，累计 ${totalOptimizations.length} 处改进`,
+            summary: `Tổng ${loopCount} vòng tối ưu, cộng dồn ${totalOptimizations.length} chỗ cải thiện`,
             optimizedContent: finalOptimizedContent
           });
         } else {
-          showToastr_ACU('success', `正文优化完成，共 ${loopCount} 轮优化，累计 ${totalOptimizations.length} 处改进`);
+          showToastr_ACU('success', `Tối ưu nội dung hoàn tất, tổng ${loopCount} vòng tối ưu, cộng dồn ${totalOptimizations.length} chỗ cải thiện`);
         }
         
         return true;
@@ -450,7 +450,7 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
       logDebug_ACU(`[正文优化-手动确认] 第 ${currentLoop} 轮优化失败:`, result.error);
       // 如果是第一轮就失败，显示错误
       if (currentLoop === 1) {
-        showToastr_ACU('error', `正文优化失败: ${result.error}`);
+        showToastr_ACU('error', `Tối ưu nội dung thất bại: ${result.error}`);
         return false;
       }
       // 后续轮次失败时结束优化流程。
@@ -467,9 +467,9 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
       } else {
         // 所有优化轮次完成。
         if (totalOptimizations.length > 0) {
-          showToastr_ACU('success', `正文优化完成，共 ${totalLoops} 轮优化，累计 ${totalOptimizations.length} 处改进`);
+          showToastr_ACU('success', `Tối ưu nội dung hoàn tất, tổng ${totalLoops} vòng tối ưu, cộng dồn ${totalOptimizations.length} chỗ cải thiện`);
         } else {
-          showToastr_ACU('info', '正文无需优化');
+          showToastr_ACU('info', 'Nội dung không cần tối ưu');
         }
         return true;
       }
@@ -482,7 +482,7 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
     return new Promise((resolve) => {
       showOptimizationDiffDialogForLoop_ACU(messageIndex, {
         optimizations: result.optimizations,
-        summary: `第 ${currentLoop}/${totalLoops} 轮优化，本轮 ${result.optimizations.length} 处改进`,
+        summary: `Vòng tối ưu ${currentLoop}/${totalLoops}, vòng này có ${result.optimizations.length} chỗ cải thiện`,
         optimizedContent: result.optimizedContent,
         currentLoop: currentLoop,
         totalLoops: totalLoops,
@@ -505,7 +505,7 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
           } else {
             // 所有轮次完成，应用最终结果。
             await replaceChatMessage_ACU(messageIndex, result.optimizedContent);
-            showToastr_ACU('success', `正文优化完成，共 ${totalLoops} 轮优化，累计 ${newTotalOptimizations.length} 处改进`);
+            showToastr_ACU('success', `Tối ưu nội dung hoàn tất, tổng ${totalLoops} vòng tối ưu, cộng dồn ${newTotalOptimizations.length} chỗ cải thiện`);
             resolve(true);
           }
         } else if (action === 'skip') {
@@ -524,9 +524,9 @@ import { showOptimizationDiffDialogForLoop_ACU, showOptimizationDiff_ACU } from 
           } else {
             // 最后一轮跳过
             if (totalOptimizations.length > 0) {
-              showToastr_ACU('success', `正文优化完成，共 ${totalLoops} 轮优化，累计 ${totalOptimizations.length} 处改进`);
+              showToastr_ACU('success', `Tối ưu nội dung hoàn tất, tổng ${totalLoops} vòng tối ưu, cộng dồn ${totalOptimizations.length} chỗ cải thiện`);
             } else {
-              showToastr_ACU('info', '正文优化已跳过');
+              showToastr_ACU('info', 'Đã bỏ qua tối ưu nội dung');
             }
             resolve(true);
           }

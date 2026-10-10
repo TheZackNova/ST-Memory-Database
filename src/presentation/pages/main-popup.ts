@@ -45,13 +45,13 @@ function generateThemeSelectorHTMLForChrome(): string {
         <select id="${SCRIPT_ID_PREFIX_ACU}-chrome-theme-select" style="padding: 2px 6px !important; border-radius: 6px !important; border: 1px solid var(--acu-panel-border, #e0e4ea) !important; background: var(--acu-panel-bg, #f5f7fa) !important; color: var(--acu-panel-text, #1a2332) !important; font-size: 11px !important; cursor: pointer !important; max-width: 120px !important; height: 26px !important; font-family: inherit !important;">
             ${options}
         </select>
-        <button id="${SCRIPT_ID_PREFIX_ACU}-chrome-theme-delete" style="width: 26px; height: 26px; padding: 0; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--acu-panel-text-mute, #8896a8); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;${BUILTIN_THEME_IDS.has(currentId) ? ' opacity: 0.3; pointer-events: none;' : ''}" title="${BUILTIN_THEME_IDS.has(currentId) ? '内置主题不可删除' : '删除当前自定义主题'}">
+        <button id="${SCRIPT_ID_PREFIX_ACU}-chrome-theme-delete" style="width: 26px; height: 26px; padding: 0; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--acu-panel-text-mute, #8896a8); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;${BUILTIN_THEME_IDS.has(currentId) ? ' opacity: 0.3; pointer-events: none;' : ''}" title="${BUILTIN_THEME_IDS.has(currentId) ? 'Không thể xóa giao diện có sẵn' : 'Xóa giao diện tùy chỉnh hiện tại'}">
             <i class="fa-solid fa-trash" style="font-size: 10px;"></i>
         </button>
-        <button id="${SCRIPT_ID_PREFIX_ACU}-chrome-theme-import" style="width: 26px; height: 26px; padding: 0; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--acu-panel-text-mute, #8896a8); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;" title="导入自定义主题">
+        <button id="${SCRIPT_ID_PREFIX_ACU}-chrome-theme-import" style="width: 26px; height: 26px; padding: 0; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--acu-panel-text-mute, #8896a8); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;" title="Nhập giao diện tùy chỉnh">
             <i class="fa-solid fa-upload" style="font-size: 11px;"></i>
         </button>
-        <button id="${SCRIPT_ID_PREFIX_ACU}-chrome-theme-export" style="width: 26px; height: 26px; padding: 0; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--acu-panel-text-mute, #8896a8); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;" title="导出当前主题模板（完整可编辑版）">
+        <button id="${SCRIPT_ID_PREFIX_ACU}-chrome-theme-export" style="width: 26px; height: 26px; padding: 0; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--acu-panel-text-mute, #8896a8); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;" title="Xuất mẫu giao diện hiện tại (bản đầy đủ có thể chỉnh sửa)">
             <i class="fa-solid fa-download" style="font-size: 11px;"></i>
         </button>
     </div>`;
@@ -59,10 +59,10 @@ function generateThemeSelectorHTMLForChrome(): string {
 
   export async function openAutoCardPopup_ACU() {
     if (!coreApisAreReady_ACU) {
-      showToastr_ACU('error', '核心API未就绪。');
+      showToastr_ACU('error', 'API lõi chưa sẵn sàng.');
       return;
     }
-    showToastr_ACU('info', '正在准备数据库更新工具...', { timeOut: 1000 });
+    showToastr_ACU('info', 'Đang chuẩn bị công cụ cập nhật cơ sở dữ liệu...', { timeOut: 1000 });
     // The state is managed by background event listeners. The popup should only display the current state.
     // Calling reset here could cause race conditions or incorrect state wipes.
     loadSettingsAndRefreshUI_ACU(); // Load latest settings into UI
@@ -78,25 +78,25 @@ function generateThemeSelectorHTMLForChrome(): string {
                 <style id="acu-theme-override">${prebuiltThemeCSS}</style>
 
                 <div class="acu-header">
-                    <h2 id="updater-main-title-acu">当前聊天：${escapeHtml_ACU(
-                          currentChatFileIdentifier_ACU || '未知',
+                    <h2 id="updater-main-title-acu">Cuộc trò chuyện hiện tại: ${escapeHtml_ACU(
+                          currentChatFileIdentifier_ACU || 'Không rõ',
                         )}</h2>
                 </div>
 
                 <div class="acu-layout">
                     <!-- 导航（分组分页） -->
-                    <div class="acu-tabs-nav" aria-label="数据库工具导航">
-                        <div class="acu-nav-section-title">概览</div>
-                    <button class="acu-tab-button active" data-tab="dashboard">仪表盘</button>
-                        <div class="acu-nav-section-title">配置</div>
-                    <button class="acu-tab-button" data-tab="update">更新</button>
+                    <div class="acu-tabs-nav" aria-label="Điều hướng công cụ cơ sở dữ liệu">
+                        <div class="acu-nav-section-title">Tổng quan</div>
+                    <button class="acu-tab-button active" data-tab="dashboard">Bảng điều khiển</button>
+                        <div class="acu-nav-section-title">Cấu hình</div>
+                    <button class="acu-tab-button" data-tab="update">Cập nhật</button>
                     <button class="acu-tab-button" data-tab="api">API</button>
-                    <button class="acu-tab-button" data-tab="table">表格</button>
-                        <div class="acu-nav-section-title">功能</div>
-                    <button class="acu-tab-button" data-tab="corefunc">核心功能</button>
-                    <button class="acu-tab-button" data-tab="datamgmt">数据管理</button>
-                        <div class="acu-nav-section-title">工具</div>
-                    <button class="acu-tab-button" data-tab="advanced">高级工具</button>
+                    <button class="acu-tab-button" data-tab="table">Bảng</button>
+                        <div class="acu-nav-section-title">Chức năng</div>
+                    <button class="acu-tab-button" data-tab="corefunc">Chức năng cốt lõi</button>
+                    <button class="acu-tab-button" data-tab="datamgmt">Quản lý dữ liệu</button>
+                        <div class="acu-nav-section-title">Công cụ</div>
+                    <button class="acu-tab-button" data-tab="advanced">Công cụ nâng cao</button>
                 </div>
 
                     <div class="acu-main">
@@ -109,7 +109,7 @@ function generateThemeSelectorHTMLForChrome(): string {
                 ${generateDataMgmtTabHTML()}
                 ${generateAdvancedTabHTML()}
 
-                <p id="${SCRIPT_ID_PREFIX_ACU}-status-message" class="notes">准备就绪</p>
+                <p id="${SCRIPT_ID_PREFIX_ACU}-status-message" class="notes">Sẵn sàng</p>
                     </div>
                 </div>
             </div>`;
@@ -141,7 +141,7 @@ function generateThemeSelectorHTMLForChrome(): string {
         
         if (!curDlgCnt || curDlgCnt.length === 0) {
           logError_ACU('Cannot find ACU popup DOM in window');
-          showToastr_ACU('error', 'UI初始化失败');
+          showToastr_ACU('error', 'Khởi tạo UI thất bại');
           return;
         }
         _set_$popupInstance_ACU(curDlgCnt);
@@ -168,7 +168,7 @@ function generateThemeSelectorHTMLForChrome(): string {
         // 事件绑定（已拆分到 popup-bindings.ts）
         await bindPopupEvents_ACU();
 
-      showToastr_ACU('success', '数据库更新工具已加载。');
+      showToastr_ACU('success', 'Đã tải công cụ cập nhật cơ sở dữ liệu.');
       }
     });
 

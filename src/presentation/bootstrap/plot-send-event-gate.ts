@@ -19,7 +19,7 @@ export function installPlotSendEventGate_ACU(source: PlotEventSource_ACU, eventT
       redirects_ACU.delete(params);
       // 下一任务才启动重生成，确保宿主已从本次 await 退出，不再读取输入框。
       if (resume) setTimeout(resume, 0);
-      const error = new Error('发送前处理已接管本次生成。');
+      const error = new Error('Xử lý trước khi gửi đã tiếp quản lần tạo này.');
       error.name = 'AbortError';
       throw error;
     })();

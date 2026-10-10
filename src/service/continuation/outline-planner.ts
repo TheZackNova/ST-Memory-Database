@@ -88,7 +88,7 @@ export async function runOutlineWorldbookTools_ACU(calls: readonly AgentToolCall
       for (const raw of call.reads) {
         const key = String(raw ?? '').trim();
         if (!key.startsWith('$WORLDBOOK:')) {
-          sections.push(`${key || '(空地址)'} 不能读。大纲只从已启用目录选择 $WORLDBOOK:书名:uid，或用 search 的 worldbook 域检索。`);
+          sections.push(`${key || '(địa chỉ rỗng)'} không thể đọc. Dàn ý chỉ chọn $WORLDBOOK:tên_sách:uid từ danh mục đã bật, hoặc tìm bằng miền worldbook của search.`);
           continue;
         }
         sections.push(`### ${key}\n${resolveAgentReadToken_ACU(key, context).text}`);
@@ -96,12 +96,12 @@ export async function runOutlineWorldbookTools_ACU(calls: readonly AgentToolCall
       continue;
     }
     if (!call.scope.includes('worldbook')) {
-      sections.push('大纲的 search 只能使用 scope ["worldbook"]。');
+      sections.push('search của dàn ý chỉ được dùng scope ["worldbook"].');
       continue;
     }
     sections.push(runAgentSearch_ACU({ ...call, scope: ['worldbook'] }, context));
   }
-  return sections.join('\n\n') || '没有可执行的世界书查阅。';
+  return sections.join('\n\n') || 'Không có thao tác tra cứu sổ thế giới nào khả thi.';
 }
 
 const defaultDependencies_ACU: ContinuationOutlinePlannerDependencies_ACU = {
@@ -112,7 +112,7 @@ const defaultDependencies_ACU: ContinuationOutlinePlannerDependencies_ACU = {
 
 function toPlannerError_ACU(error: unknown): ContinuationError_ACU {
   if (error instanceof ContinuationValidationError_ACU) return error.error;
-  return createContinuationError_ACU('CONTINUATION_INTERNAL_AI_REQUEST_FAILED', 'outline_call', '阶段大纲内部 AI 调用失败', true);
+  return createContinuationError_ACU('CONTINUATION_INTERNAL_AI_REQUEST_FAILED', 'outline_call', 'Lệnh gọi AI nội bộ của dàn ý giai đoạn thất bại', true);
 }
 
 function compactValidationError_ACU(error: ContinuationError_ACU): string {
@@ -121,7 +121,7 @@ function compactValidationError_ACU(error: ContinuationError_ACU): string {
   const base = `${error.code}@${error.phase}: ${error.message}`;
   if (!error.details || !Object.keys(error.details).length) return base;
   try {
-    return `${base}（${JSON.stringify(error.details)}）`;
+    return `${base} (${JSON.stringify(error.details)})`;
   } catch {
     return base;
   }
@@ -135,15 +135,15 @@ function compactValidationError_ACU(error: ContinuationError_ACU): string {
  * @returns 给大纲 AI 的范围说明；剩余额度不足时如实说明真实约束
  */
 export function renderContinuationTurnRange_ACU(range: { min: number; max: number }, constraints?: ContinuationReplanConstraints_ACU): string {
-  const total = `本阶段总轮数（全部 <turn> 的数量）必须在 ${range.min} 到 ${range.max} 之间。`;
+  const total = `Tổng số lượt của giai đoạn này (số lượng toàn bộ <turn>) phải nằm trong khoảng ${range.min} đến ${range.max}. `;
   if (!constraints || constraints.completedTurns <= 0) return total;
   const completed = constraints.completedTurns;
   const remainingMin = Math.max(1, range.min - completed);
   const remainingMax = range.max - completed;
   if (remainingMax < remainingMin) {
-    return `${total}已完成 ${completed} 轮不可改动，剩余轮数额度不足（最多还能规划 ${Math.max(0, remainingMax)} 轮），当前阶段无法在范围内继续扩展。`;
+    return `${total}${completed} lượt đã hoàn thành không thể thay đổi, hạn mức số lượt còn lại không đủ (tối đa chỉ còn có thể hoạch định ${Math.max(0, remainingMax)} lượt), giai đoạn hiện tại không thể mở rộng thêm trong phạm vi.`;
   }
-  return `${total}其中已完成 ${completed} 轮不可改动；你只规划剩余轮次，剩余的 <turn> 数量必须在 ${remainingMin} 到 ${remainingMax} 之间（拼接后总轮数才会落在范围内）。`;
+  return `${total}Trong đó ${completed} lượt đã hoàn thành không thể thay đổi; bạn chỉ hoạch định các lượt còn lại, số <turn> còn lại phải nằm trong khoảng ${remainingMin} đến ${remainingMax} (nối lại thì tổng số lượt mới nằm trong phạm vi).`;
 }
 
 /** 正文模型单轮的稳定产出量。阶段容量锚按它换算，与大纲提示词里写的单轮承载量口径一致。 */
@@ -163,9 +163,9 @@ export function renderContinuationStageWordBudget_ACU(range: { min: number; max:
   const lowWords = planningMin * CONTINUATION_TURN_WORD_ESTIMATE_ACU;
   const highWords = planningMax * CONTINUATION_TURN_WORD_ESTIMATE_ACU;
   const scope = completed > 0
-    ? `本次你要规划 ${planningMin} 到 ${planningMax} 轮剩余轮次`
-    : `本阶段有 ${planningMin} 到 ${planningMax} 轮`;
-  return `${scope}，正文模型每轮只写 800-1200 字（按 ${CONTINUATION_TURN_WORD_ESTIMATE_ACU} 字估算），也就是说这些轮次加起来一共只有大约 ${lowWords} 到 ${highWords} 字的篇幅。`;
+    ? `Lần này bạn cần hoạch định ${planningMin} đến ${planningMax} lượt còn lại`
+    : `Giai đoạn này có ${planningMin} đến ${planningMax} lượt`;
+  return `${scope}, mô hình chính văn mỗi lượt chỉ viết 800-1200 chữ (ước tính ${CONTINUATION_TURN_WORD_ESTIMATE_ACU} chữ), nghĩa là các lượt này cộng lại chỉ có độ dài khoảng ${lowWords} đến ${highWords} chữ.`;
 }
 
 /**
@@ -180,33 +180,33 @@ export function renderContinuationPacingContext_ACU(context: StageOutlinePacingC
   const streak = Math.max(0, Math.trunc(context.leadingPressureStreak));
   const lines: string[] = [];
   lines.push(context.previousTempo === null
-    ? '这是本次续写任务的第一个阶段，前面没有任何已写剧情。'
-    : `上一阶段的节奏形态是 ${describeStageTempo_ACU(context.previousTempo)}。`);
+    ? 'Đây là giai đoạn đầu tiên của tác vụ viết tiếp này, phía trước chưa có cốt truyện nào đã viết.'
+    : `Hình thái nhịp của giai đoạn trước là ${describeStageTempo_ACU(context.previousTempo)}.`);
   lines.push(streak > 0
-    ? `截至目前，故事已经连续 ${streak} 轮没有出现低压轮（setup / cooldown）。`
-    : '截至目前，最近写完的一轮是低压轮，读者刚喘过一口气。');
+    ? `Tính đến hiện tại, câu chuyện đã ${streak} lượt liên tiếp không xuất hiện lượt áp lực thấp (setup / cooldown).`
+    : 'Tính đến hiện tại, lượt vừa viết xong gần nhất là lượt áp lực thấp, độc giả vừa mới được thở.');
   if (context.previousTempo === 'surge') {
-    lines.push('因为上一阶段是高压型，本阶段的 <stage_tempo> 只能选 aftermath 或 mixed，不能再选 surge——这是上一段整段高压的代价。');
+    lines.push('Vì giai đoạn trước thuộc loại áp lực cao, <stage_tempo> của giai đoạn này chỉ được chọn aftermath hoặc mixed, không được chọn surge nữa — đây là cái giá của cả đoạn áp lực cao trước đó.');
   } else {
-    lines.push('本阶段的 <stage_tempo> 四档都可以选，选哪一档取决于总纲里本卷台阶推进到了哪一步。');
+    lines.push('Cả bốn mức của <stage_tempo> trong giai đoạn này đều có thể chọn, chọn mức nào tùy thuộc vào việc bậc thang tập này trong tổng cương đã tiến tới bước nào.');
   }
   if (limit > 0) {
     const remaining = Math.max(0, limit - streak);
     lines.push(streak >= limit
-      ? `连续高压轮上限是 ${limit} 轮，已经用满：除非本阶段选 surge，否则本阶段第一轮必须是 setup 或 cooldown。`
-      : `连续高压轮上限是 ${limit} 轮（surge 阶段豁免这条），本阶段开头最多还能接着写 ${remaining} 轮高压。`);
+      ? `Giới hạn lượt áp lực cao liên tiếp là ${limit} lượt, đã dùng hết: trừ khi giai đoạn này chọn surge, nếu không lượt đầu tiên của giai đoạn này phải là setup hoặc cooldown.`
+      : `Giới hạn lượt áp lực cao liên tiếp là ${limit} lượt (giai đoạn surge được miễn điều này), phần đầu giai đoạn này tối đa còn có thể viết tiếp ${remaining} lượt áp lực cao.`);
   }
   return lines.join('\n');
 }
 
 const MISSING_FIELD_LABELS_ACU: Record<OutlineMissingField_ACU['field'], string> = {
-  pacing: 'pacing（setup / pressure / turn / cooldown）',
-  function: 'function（daily_bond / daily_world / recovery / preparation / training / economy / side_thread / conflict / reveal / payoff / transition）',
-  mainlineDelta: 'mainline（hold / micro / step / milestone）',
-  timeAdvance: 'time（continuous / same_day / overnight / days / weeks / months / years）',
-  timeAnchor: 'anchor（time 为 weeks / months / years 时的相对时间锚，如「入城后的第七天」）',
-  tempo: 'tempo（buildup / mixed / surge / aftermath）',
-  role: 'role（setup / development / escalation / turn / payoff / aftermath）',
+  pacing: 'pacing (setup / pressure / turn / cooldown)',
+  function: 'function (daily_bond / daily_world / recovery / preparation / training / economy / side_thread / conflict / reveal / payoff / transition)',
+  mainlineDelta: 'mainline (hold / micro / step / milestone)',
+  timeAdvance: 'time (continuous / same_day / overnight / days / weeks / months / years)',
+  timeAnchor: 'anchor (mốc thời gian tương đối khi time là weeks / months / years, như "ngày thứ bảy sau khi vào thành")',
+  tempo: 'tempo (buildup / mixed / surge / aftermath)',
+  role: 'role (setup / development / escalation / turn / payoff / aftermath)',
 };
 
 const FIX_ATTRIBUTE_NAMES_ACU: Record<OutlineMissingField_ACU['field'], string> = {
@@ -236,24 +236,24 @@ export function renderOutlineRepairRequest_ACU(missing: readonly OutlineMissingF
     bucket.fields.push(item);
     grouped.set(key, bucket);
   }
-  const lines: string[] = ['你上一份大纲的结构已被接受，只有下列标记缺失或不是合法枚举值。只需补这些标记，不要重发整份大纲，不要改动任何 goal 正文：'];
+  const lines: string[] = ['Cấu trúc dàn ý lần trước của bạn đã được chấp nhận, chỉ có các dấu hiệu sau bị thiếu hoặc không phải giá trị enum hợp lệ. Chỉ cần bổ sung các dấu hiệu này, đừng gửi lại cả dàn ý, đừng sửa bất kỳ nội dung goal nào:'];
   const examples: string[] = [];
   for (const bucket of grouped.values()) {
     const fieldText = bucket.fields.map(item => {
       const label = MISSING_FIELD_LABELS_ACU[item.field];
-      return item.actual === undefined ? `缺 ${label}` : `${label} 写成了「${String(item.actual)}」`;
-    }).join('；');
+      return item.actual === undefined ? `thiếu ${label}` : `${label} bị viết thành "${String(item.actual)}"`;
+    }).join('; ');
     if (bucket.node === null) {
-      lines.push(`- 阶段级：${fieldText}`);
+      lines.push(`- Cấp giai đoạn: ${fieldText}`);
       examples.push(`<fix stage ${bucket.fields.map(item => `${FIX_ATTRIBUTE_NAMES_ACU[item.field]}="…"`).join(' ')}/>`);
     } else {
-      lines.push(`- 节点${bucket.node} 第${bucket.turn}轮（「${bucket.goalHead}」）：${fieldText}`);
+      lines.push(`- Nút ${bucket.node} lượt ${bucket.turn} ("${bucket.goalHead}"): ${fieldText}`);
       examples.push(`<fix node="${bucket.node}" turn="${bucket.turn}" ${bucket.fields.map(item => `${FIX_ATTRIBUTE_NAMES_ACU[item.field]}="…"`).join(' ')}/>`);
     }
   }
-  lines.push('回复格式，每条一行，只填标准枚举值：');
+  lines.push('Định dạng trả lời, mỗi mục một dòng, chỉ điền giá trị enum chuẩn:');
   lines.push(...[...new Set(examples)]);
-  lines.push('例：<fix node="1" turn="2" function="daily_bond" time="overnight"/>');
+  lines.push('Ví dụ: <fix node="1" turn="2" function="daily_bond" time="overnight"/>');
   return lines.join('\n');
 }
 
@@ -263,12 +263,12 @@ export function renderOutlineRepairRequest_ACU(missing: readonly OutlineMissingF
  */
 export function renderOutlineRetryRequest_ACU(error: ContinuationError_ACU): string {
   return [
-    '上次输出未通过校验，请按下列错误修正后重新输出完整标签（只输出标签，不要 <think>、不要 JSON）。',
+    'Đầu ra lần trước không qua kiểm tra, hãy sửa theo các lỗi sau rồi xuất lại thẻ hoàn chỉnh (chỉ xuất thẻ, không <think>, không JSON).',
     compactValidationError_ACU(error),
-    '每个 <turn> 的写法示例：',
-    '<turn pacing="setup" function="daily_bond" mainline="hold" time="overnight">两人在灶前分工做晚饭，她第一次把咸淡交给他决定</turn>',
-    '<turn pacing="pressure" function="conflict" mainline="step" time="continuous">守卫在城门盘查信物，主角被迫交出一半银两换取放行</turn>',
-    '阶段级标签示例：<stage_tempo>mixed</stage_tempo> <stage_role>development</stage_role>',
+    'Ví dụ cách viết mỗi <turn>:',
+    '<turn pacing="setup" function="daily_bond" mainline="hold" time="overnight">Hai người chia việc nấu bữa tối trước bếp, lần đầu tiên cô giao việc nêm nếm cho anh quyết định</turn>',
+    '<turn pacing="pressure" function="conflict" mainline="step" time="continuous">Lính gác kiểm tra tín vật ở cổng thành, nhân vật chính buộc phải giao một nửa số bạc để được cho qua</turn>',
+    'Ví dụ thẻ cấp giai đoạn: <stage_tempo>mixed</stage_tempo> <stage_role>development</stage_role>',
   ].join('\n');
 }
 
@@ -279,7 +279,7 @@ function missingFieldError_ACU(missing: readonly OutlineMissingField_ACU[]): Con
   return new ContinuationValidationError_ACU(createContinuationError_ACU(
     'CONTINUATION_OUTLINE_FIELD_MISSING',
     'outline_validate',
-    `${MISSING_FIELD_LABELS_ACU[first.field]} 缺失或非法且无法安全补全：${where}${first.actual === undefined ? '' : `（写成了「${String(first.actual)}」）`}。每个 <turn> 都必须带合法的 pacing，阶段必须带合法的 <stage_tempo>`,
+    `${MISSING_FIELD_LABELS_ACU[first.field]} thiếu hoặc không hợp lệ và không thể bổ sung an toàn: ${where}${first.actual === undefined ? '' : ` (bị viết thành "${String(first.actual)}")`}. Mỗi <turn> đều phải kèm pacing hợp lệ, giai đoạn phải kèm <stage_tempo> hợp lệ`,
     false,
     { path: `${where}.${first.field}`, actual: first.actual, hardMissing: hard.length },
   ));
@@ -334,7 +334,7 @@ export class ContinuationOutlinePlanner_ACU {
       const identity = request.createInternalRequestIdentity(attempt);
       const isCurrent = request.isInternalRequestCurrent;
       if (!isCurrent(identity)) {
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'outline_call', '阶段大纲内部请求已失效', false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'outline_call', 'Yêu cầu nội bộ của dàn ý giai đoạn đã hết hiệu lực', false));
       }
       const prepared = hasSnapshot
         ? assembleAgentPrompt_ACU(rendered.messages, [...(request.history ?? []), ...messages.slice(rendered.messages.length)],
@@ -348,7 +348,7 @@ export class ContinuationOutlinePlanner_ACU {
       });
       const raw = typeof rawValue === 'string' || rawValue == null ? rawValue : rawValue.content;
       if (!isCurrent(identity)) {
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'outline_call', '阶段大纲内部结果已失效', false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'outline_call', 'Kết quả nội bộ của dàn ý giai đoạn đã hết hiệu lực', false));
       }
       return String(raw ?? '');
     };
@@ -363,7 +363,7 @@ export class ContinuationOutlinePlanner_ACU {
         const enumExample = /<stage_(?:tempo|role)>\s*(?:本阶段节奏形态|阶段结构职责)，取值只能是/.test(raw);
         if (copied || enumExample) throw new ContinuationValidationError_ACU(createContinuationError_ACU(
           'CONTINUATION_OUTLINE_JSON_INVALID', 'outline_parse',
-          `大纲照抄了格式说明${copied ? `「${copied}」` : '里的枚举说明'}；请用具体剧情替换示例文本，枚举标签只填一个标准值。范例：<stage_title>入城与试探</stage_title> <stage_tempo>mixed</stage_tempo> <node_title>城门盘查</node_title>。`, true));
+          `Dàn ý đã chép nguyên phần giải thích định dạng${copied ? ` "${copied}"` : ' (giải thích enum)'}; hãy thay văn bản mẫu bằng cốt truyện cụ thể, thẻ enum chỉ điền một giá trị chuẩn. Ví dụ: <stage_title>Vào thành và dò xét</stage_title> <stage_tempo>mixed</stage_tempo> <node_title>Kiểm tra ở cổng thành</node_title>.`, true));
       }
       return buildStageOutlineFromTags_ACU(parsed, request.allocateId, constraints ? {
       title: constraints.previousOutline.title,
@@ -391,7 +391,7 @@ export class ContinuationOutlinePlanner_ACU {
           const calls = parseAgentSubagentToolCalls_ACU(lastRaw, '');
           if (!calls?.length) break;
           transcript.push(
-            { role: 'assistant', content: lastRaw.trim() || '(空输出)' },
+            { role: 'assistant', content: lastRaw.trim() || '(đầu ra rỗng)' },
             { role: 'user', content: await runWorldbookTools(calls) },
           );
           lastRaw = await callModel(attempt, [...rendered.messages, ...transcript]);
@@ -400,12 +400,12 @@ export class ContinuationOutlinePlanner_ACU {
         let { validation, prefixNodeCount } = validateDraft(planned);
         // 增量修补：结构已经合法、只差标记时，不整份重来，只向模型索要缺项。
         // 修补轮对话独立于外层 transcript：修好即丢弃，整份重来时模型不需要再看这段。
-        const repairTranscript: Array<{ role: string; content: string }> = [{ role: 'assistant', content: lastRaw.trim() || '(空输出)' }];
+        const repairTranscript: Array<{ role: string; content: string }> = [{ role: 'assistant', content: lastRaw.trim() || '(đầu ra rỗng)' }];
         for (let round = 0; round < CONTINUATION_OUTLINE_REPAIR_ROUNDS_ACU && validation.missing.length; round += 1) {
           repairTranscript.push({ role: 'user', content: renderOutlineRepairRequest_ACU(validation.missing, prefixNodeCount) });
           repairRounds += 1;
           const reply = await callModel(attempt, [...rendered.messages, ...transcript, ...repairTranscript]);
-          repairTranscript.push({ role: 'assistant', content: reply.trim() || '(空输出)' });
+          repairTranscript.push({ role: 'assistant', content: reply.trim() || '(đầu ra rỗng)' });
           const fixes = parseOutlineFixes_ACU(reply);
           if (fixes.length) {
             planned = applyOutlineFixes_ACU(planned, fixes);
@@ -418,7 +418,7 @@ export class ContinuationOutlinePlanner_ACU {
           }
           if (hasFormatExample && planned.nodes.some(node => node.turns.some(turn => turn.timeAnchor?.trim() === '…'))) {
             throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_OUTLINE_JSON_INVALID', 'outline_parse',
-              '修补时不能照抄 anchor="…"；请填写可定位的相对时间锚，例如 anchor="入城后三周"。', true));
+              'Khi vá không được chép nguyên anchor="…"; hãy điền mốc thời gian tương đối có thể định vị, ví dụ anchor="ba tuần sau khi vào thành".', true));
           }
           ({ validation, prefixNodeCount } = validateDraft(planned));
         }
@@ -455,7 +455,7 @@ export class ContinuationOutlinePlanner_ACU {
           continue;
         }
         if (attempt < retries) {
-          transcript.push({ role: 'assistant', content: lastRaw.trim() || '(空输出)' });
+          transcript.push({ role: 'assistant', content: lastRaw.trim() || '(đầu ra rỗng)' });
           transcript.push({ role: 'user', content: renderOutlineRetryRequest_ACU(lastError) });
         }
       }
@@ -464,7 +464,7 @@ export class ContinuationOutlinePlanner_ACU {
     throw new ContinuationValidationError_ACU(createContinuationError_ACU(
       'CONTINUATION_OUTLINE_RETRY_EXHAUSTED',
       lastError?.phase ?? 'outline_call',
-      '阶段大纲生成重试次数已耗尽',
+      'Số lần thử lại tạo dàn ý giai đoạn đã cạn',
       false,
       { attempts: retries + 1, lastErrorCode: lastError?.code ?? 'CONTINUATION_INTERNAL_AI_REQUEST_FAILED' },
     ));
@@ -478,7 +478,7 @@ export function createPlannedStageRevision_ACU(outline: StageOutline_ACU, revisi
 /** Revalidates a user-edited preview before it becomes eligible for execution. */
 export function acceptPlannedStageRevision_ACU(revision: StageRevision_ACU, settings: ContinuationSettings_ACU, replanConstraints?: ContinuationReplanConstraints_ACU): StageRevision_ACU {
   if (revision.frozen) {
-    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_REVISION_FROZEN', 'replan', '已冻结的阶段 revision 不可编辑', false));
+    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_REVISION_FROZEN', 'replan', 'revision giai đoạn đã đóng băng không thể sửa', false));
   }
   const range = resolveContinuationTurnRange_ACU(settings.stageSize, settings.customTurnMin ?? undefined, settings.customTurnMax ?? undefined);
   // 用户手改的预览：结构必须合法，语义标记缺失按 pacing 补默认并标记 inferred，不因少写一个属性而存不下。

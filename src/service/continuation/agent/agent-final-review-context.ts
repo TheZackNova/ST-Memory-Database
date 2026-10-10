@@ -49,13 +49,13 @@ export function buildAgentFinalReviewEvidence_ACU(input: AgentFinalReviewEvidenc
   const worldbookSeeds = extractAgentFinalReviewWorldbookSeeds_ACU(seedSource);
   const worldbookEvidence = context.worldbook?.available
     ? renderAgentWorldbookTriggeredInjection_ACU(context.worldbook, seedSource)
-    : '世界书当前不可用；涉及人物、能力、地点、组织、种族、社会规则或世界常识的结论必须标注未验证。不要臆测或把读取失败当作空世界书。';
+    : 'Sổ thế giới hiện không khả dụng; các kết luận liên quan đến nhân vật, năng lực, địa điểm, tổ chức, chủng tộc, quy tắc xã hội hoặc kiến thức thế giới phải đánh dấu là chưa xác minh. Đừng suy đoán hay coi việc đọc thất bại là sổ thế giới rỗng.';
   const supplementalMaterials = [
-    `### 本轮用户输入\n${input.currentUserInput || '（本轮没有额外用户输入）'}`,
-    `### 长期约束\n${constraints}`,
-    `### 故事年代学账本（已发生正文结算出的时间事实；大纲时间字段只是计划）\n${chronology}`,
-    `### 本轮策划结果摘要\n${input.planningSummary || '（未提供策划结果摘要）'}`,
-    `### 世界书检索种子\n${worldbookSeeds.length ? worldbookSeeds.join('、') : '（未提取到有效检索种子）'}`,
+    `### Đầu vào của người dùng lượt này\n${input.currentUserInput || '(lượt này không có đầu vào bổ sung của người dùng)'}`,
+    `### Ràng buộc dài hạn\n${constraints}`,
+    `### Sổ niên đại học câu chuyện (sự thật thời gian được quyết toán từ chính văn đã xảy ra; trường thời gian trong dàn ý chỉ là kế hoạch)\n${chronology}`,
+    `### Tóm tắt kết quả hoạch định lượt này\n${input.planningSummary || '(chưa cung cấp tóm tắt kết quả hoạch định)'}`,
+    `### Hạt giống tra cứu sổ thế giới\n${worldbookSeeds.length ? worldbookSeeds.join(', ') : '(chưa trích được hạt giống tra cứu hợp lệ)'}`,
   ].join('\n\n');
   return {
     hooksLedger,
@@ -65,17 +65,17 @@ export function buildAgentFinalReviewEvidence_ACU(input: AgentFinalReviewEvidenc
     worldbookSeeds,
     fixedReadKeys: unique_ACU(['$USER_INTENT', '$USER_REQUIREMENTS', '$OUTLINE_WINDOW', '$STORY_ARC', '$STORY_TAIL', '$HOOKS_LEDGER', '$INFO_GAP', '$ACTIVE_CONSTRAINTS', '$CHRONOLOGY']),
     gateItems: [
-      { label: '用户初始要求', text: context.originInstruction || '（用户未提供初始要求）' },
-      { label: '用户累计要求', text: resolveAgentReadToken_ACU('$USER_REQUIREMENTS', context).text },
-      { label: '本轮用户输入', text: input.currentUserInput || '（本轮没有额外用户输入）' },
-      { label: '候选写作指导', text: input.candidateInstruction },
-      { label: '完整当前阶段大纲', text: outline },
-      { label: '故事总纲', text: storyArc },
-      { label: '最近正文', text: tail },
-      { label: '伏笔账本', text: hooksLedger },
-      { label: '信息差时间线', text: infoGap },
-      { label: '长期约束、故事年代学账本、策划摘要、检索种子与世界书目录', text: supplementalMaterials },
-      { label: '本轮语境命中的世界书条目预览', text: worldbookEvidence },
+      { label: 'Yêu cầu ban đầu của người dùng', text: context.originInstruction || '(Người dùng chưa cung cấp yêu cầu ban đầu)' },
+      { label: 'Yêu cầu tích lũy của người dùng', text: resolveAgentReadToken_ACU('$USER_REQUIREMENTS', context).text },
+      { label: 'Đầu vào của người dùng lượt này', text: input.currentUserInput || '(lượt này không có đầu vào bổ sung của người dùng)' },
+      { label: 'Chỉ dẫn viết ứng viên', text: input.candidateInstruction },
+      { label: 'Toàn bộ dàn ý giai đoạn hiện tại', text: outline },
+      { label: 'Tổng cương câu chuyện', text: storyArc },
+      { label: 'Chính văn gần nhất', text: tail },
+      { label: 'Sổ phục bút', text: hooksLedger },
+      { label: 'Dòng thời gian chênh lệch thông tin', text: infoGap },
+      { label: 'Ràng buộc dài hạn, sổ niên đại học câu chuyện, tóm tắt hoạch định, hạt giống tra cứu và danh mục sổ thế giới', text: supplementalMaterials },
+      { label: 'Xem trước các mục sổ thế giới khớp ngữ cảnh lượt này', text: worldbookEvidence },
     ],
   };
 }

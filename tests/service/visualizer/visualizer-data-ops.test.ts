@@ -156,7 +156,7 @@ describe('visualizer-data-ops V2 replay save', () => {
 
     const result = await applyVisualizerPendingDataOps_ACU(draft);
 
-    expect(result).toEqual({ success: false, changed: false, error: expect.stringContaining('正安全整数上限') });
+    expect(result).toEqual({ success: false, changed: false, error: expect.stringContaining('giới hạn số nguyên an toàn dương') });
     expect(mocks.persist).not.toHaveBeenCalled();
   });
 
@@ -255,12 +255,12 @@ describe('visualizer-data-ops V2 replay save', () => {
 
     const first = await applyVisualizerPendingDataOps_ACU(draft);
 
-    expect(first).toEqual({ success: false, changed: false, error: '数据已持久化，但本地运行时刷新失败：reload replay failed' });
+    expect(first).toEqual({ success: false, changed: false, error: 'Dữ liệu đã được lưu bền, nhưng làm mới runtime cục bộ thất bại: reload replay failed' });
     expect(draft.pendingDataOps.committed).toEqual(expect.objectContaining({
       afterData: expect.objectContaining({ sheet_a: expect.any(Object) }),
     }));
     expect(mocks.persist).toHaveBeenCalledTimes(1);
-    expect(() => assertVisualizerDataOpsEditable_ACU(draft)).toThrow('数据已持久化但本地刷新尚未完成');
+    expect(() => assertVisualizerDataOpsEditable_ACU(draft)).toThrow('Dữ liệu đã được lưu bền nhưng làm mới cục bộ chưa hoàn tất');
 
     mocks.replay.mockResolvedValueOnce({ baseKind: 'full_checkpoint', data: draft.pendingDataOps.committed.afterData });
     const second = await applyVisualizerPendingDataOps_ACU(draft);

@@ -1,37 +1,37 @@
 export const dataMgmtCopy = {
   panels: {
     isolation: {
-      title: "数据隔离（已退役）",
+      title: "Cách ly dữ liệu (đã ngừng dùng)",
       description:
-        "标签隔离已停用。留空即默认数据槽（空串仍是合法槽位键）。请勿再为新功能依赖隔离码或用空标识当“无数据”。存量标识码仅作兼容读取。",
+        "Cách ly theo nhãn đã bị vô hiệu hóa. Để trống nghĩa là dùng ô dữ liệu mặc định (chuỗi rỗng vẫn là khóa ô hợp lệ). Đừng dựa vào mã cách ly cho tính năng mới, cũng đừng dùng định danh rỗng để biểu thị \"không có dữ liệu\". Các mã định danh cũ chỉ được đọc để tương thích.",
     },
     backup: {
-      title: "备份与恢复",
+      title: "Sao lưu và khôi phục",
       description:
-        "控制当前配置备份导入与导出。合并导入覆盖提示词与模板，不直接改写已有楼层。模板覆盖会使用当前聊天生效的模板改写最新 AI 楼层。特殊导出：导出包含聊天填表数据的表格模板，非纯表格数据，可在「表格模板」模块导入。Checkpoint 则用于完整备份和恢复当前聊天当前标识的表格、模板与指导表。表格数据按 AI 楼层共享：同一楼层的所有 swipe 分支共享同一份表格历史，swipe 切换不会改变表格状态。需注意：若没有恢复默认模板或切换无数据表格模板，进行其他聊天时可能出现数据污染。",
+        "Điều khiển việc nhập/xuất bản sao lưu cấu hình hiện tại. Nhập gộp sẽ ghi đè prompt và mẫu, không trực tiếp sửa các tầng đã có. Ghi đè mẫu sẽ dùng mẫu đang có hiệu lực của cuộc trò chuyện hiện tại để ghi lại tầng AI mới nhất. Xuất đặc biệt: xuất mẫu bảng kèm dữ liệu điền bảng của cuộc trò chuyện, không phải dữ liệu bảng thuần, có thể nhập ở mô-đun \"Mẫu bảng\". Checkpoint dùng để sao lưu và khôi phục đầy đủ bảng, mẫu và bảng hướng dẫn của định danh hiện tại trong cuộc trò chuyện hiện tại. Dữ liệu bảng được chia sẻ theo tầng AI: mọi nhánh swipe của cùng một tầng dùng chung một lịch sử bảng, chuyển swipe không làm đổi trạng thái bảng. Lưu ý: nếu không khôi phục mẫu mặc định hoặc chuyển sang mẫu bảng không có dữ liệu, khi sang cuộc trò chuyện khác có thể bị lẫn dữ liệu.",
       sqliteRuntime: {
-        title: "SQLite 运行时诊断",
+        title: "Chẩn đoán runtime SQLite",
         description:
-          "仅显示当前聊天内存运行时的脱敏健康快照。重新初始化只重建内存数据库，不会修改聊天、Checkpoint、模板或世界书。",
-        reloadLabel: "重新初始化当前聊天 SQLite 运行时",
-        reloadSuccess: "当前聊天 SQLite 内存运行时已重新初始化。",
-        reloadDegraded: "SQLite 内存运行时重初始化后降级为 native；请查看脱敏状态快照。",
-        reloadFailed: "SQLite 内存运行时重新初始化失败；请查看脱敏状态快照。",
+          "Chỉ hiển thị ảnh chụp tình trạng đã ẩn thông tin nhạy cảm của runtime trong bộ nhớ của cuộc trò chuyện hiện tại. Khởi tạo lại chỉ dựng lại cơ sở dữ liệu trong bộ nhớ, không sửa cuộc trò chuyện, Checkpoint, mẫu hay sổ thế giới.",
+        reloadLabel: "Khởi tạo lại runtime SQLite của cuộc trò chuyện hiện tại",
+        reloadSuccess: "Đã khởi tạo lại runtime SQLite trong bộ nhớ của cuộc trò chuyện hiện tại.",
+        reloadDegraded: "Sau khi khởi tạo lại, runtime SQLite trong bộ nhớ đã hạ cấp về native; hãy xem ảnh chụp trạng thái đã ẩn thông tin.",
+        reloadFailed: "Khởi tạo lại runtime SQLite trong bộ nhớ thất bại; hãy xem ảnh chụp trạng thái đã ẩn thông tin.",
         healthSnapshot: {
-          status: "状态",
-          expectedMode: "期望模式",
-          activeMode: "实际模式",
-          source: "加载来源",
-          loadToken: "加载序号",
-          failureCode: "失败代码",
-          unavailable: "无",
+          status: "Trạng thái",
+          expectedMode: "Chế độ mong đợi",
+          activeMode: "Chế độ thực tế",
+          source: "Nguồn tải",
+          loadToken: "Số thứ tự tải",
+          failureCode: "Mã lỗi",
+          unavailable: "Không có",
         },
       },
     },
     cleanup: {
-      title: "删除与清理",
+      title: "Xóa và dọn dẹp",
       description:
-        "此处用于清理当前聊天楼层里的插件本地数据，或把数据库模板、提示词与当前聊天快照缓存恢复到默认状态；不会影响聊天正文。自动保留策略只会在自动更新结束后清理旧楼层；本地数据删除按钮会立即按 AI 楼层范围删除。",
+        "Dùng để dọn dữ liệu cục bộ của plugin trong các tầng của cuộc trò chuyện hiện tại, hoặc khôi phục mẫu cơ sở dữ liệu, prompt và bộ nhớ đệm snapshot của cuộc trò chuyện hiện tại về mặc định; không ảnh hưởng đến nội dung chính của cuộc trò chuyện. Chính sách giữ lại tự động chỉ dọn các tầng cũ sau khi cập nhật tự động kết thúc; nút xóa dữ liệu cục bộ sẽ xóa ngay theo phạm vi tầng AI.",
     },
   },
 };

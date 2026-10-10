@@ -1,19 +1,19 @@
 <template>
   <div class="acu-v2-wb-entry-toolbar">
     <template v-if="showEntrySelectionControls">
-      <AcuButton @click="$emit('select-all')">全选</AcuButton>
-      <AcuButton @click="$emit('deselect-all')">全不选</AcuButton>
+      <AcuButton @click="$emit('select-all')">Chọn tất cả</AcuButton>
+      <AcuButton @click="$emit('deselect-all')">Bỏ chọn tất cả</AcuButton>
     </template>
     <template v-if="showSkillifyControls">
-      <AcuButton @click="$emit('skillify-select-all')">Skill 全选</AcuButton>
-      <AcuButton @click="$emit('skillify-deselect-all')">Skill 全不选</AcuButton>
-      <AcuButton variant="primary" @click="$emit('skillify-selected')">对所选 Skill 化</AcuButton>
+      <AcuButton @click="$emit('skillify-select-all')">Chọn tất cả Skill</AcuButton>
+      <AcuButton @click="$emit('skillify-deselect-all')">Bỏ chọn tất cả Skill</AcuButton>
+      <AcuButton variant="primary" @click="$emit('skillify-selected')">Skill hóa mục đã chọn</AcuButton>
     </template>
     <AcuFormRow class="acu-v2-wb-entry-toolbar__filter">
       <AcuInput
         :model-value="filter"
         type="text"
-        placeholder="搜索条目..."
+        placeholder="Tìm mục..."
         @update:model-value="$emit('update:filter', String($event))"
       />
     </AcuFormRow>

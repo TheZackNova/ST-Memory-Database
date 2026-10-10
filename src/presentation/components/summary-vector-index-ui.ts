@@ -22,9 +22,9 @@ const SUMMARY_VECTOR_REBUILD_REQUIRED_REASONS_ACU = new Set([
   'embedding_identity_changed_rebuild_required',
 ]);
 
-const SUMMARY_VECTOR_SCHEME_REBUILD_CONFIRM_ACU = '向量方案已优化，需要重建';
-const SUMMARY_VECTOR_INDEX_FEATURE_ACU = '交火索引';
-const SUMMARY_VECTOR_RECALL_FEATURE_ACU = '交火召回';
+const SUMMARY_VECTOR_SCHEME_REBUILD_CONFIRM_ACU = 'Phương án vector đã được tối ưu, cần dựng lại';
+const SUMMARY_VECTOR_INDEX_FEATURE_ACU = 'Chỉ mục giao hỏa';
+const SUMMARY_VECTOR_RECALL_FEATURE_ACU = 'Truy hồi giao hỏa';
 
 function shouldShowSummaryVectorResultToast_ACU(result: SummaryVectorIndexRuntimeResult_ACU): boolean {
   if (!result || result.skipped) return false;
@@ -39,11 +39,11 @@ function notifySummaryVectorRecallFailure_ACU(result: SummaryVectorIndexRuntimeR
   const reason = String(result?.reason || 'unknown');
   const detail = String(result?.error || '').trim();
   const isVectorTable = result?.mode === 'vector';
-  const title = isVectorTable ? '向量表格记忆召回失败' : '交火记忆召回失败';
-  const recovery = isVectorTable ? '已撤回本轮纪要蓝灯' : '已恢复纪要索引全量概览';
+  const title = isVectorTable ? 'Truy hồi ký ức bảng vector thất bại' : 'Truy hồi ký ức giao hỏa thất bại';
+  const recovery = isVectorTable ? 'Đã thu hồi đèn xanh dương của kỷ yếu lượt này' : 'Đã khôi phục tổng quan đầy đủ của chỉ mục kỷ yếu';
   const text = detail
-    ? `${title}（${reason}）：${detail}。${recovery}。请检查 Embedding / Rerank 接口、额度与模型配置。`
-    : `${title}（${reason}）。${recovery}。请检查 Embedding / Rerank 接口、额度与模型配置。`;
+    ? `${title} (${reason}): ${detail}. ${recovery}. Hãy kiểm tra giao diện Embedding / Rerank, hạn mức và cấu hình mô hình.`
+    : `${title} (${reason}). ${recovery}. Hãy kiểm tra giao diện Embedding / Rerank, hạn mức và cấu hình mô hình.`;
   try {
     useToastStore().error(text, { muteable: false });
     return;
@@ -55,9 +55,9 @@ function notifySummaryVectorRecallFailure_ACU(result: SummaryVectorIndexRuntimeR
 function showSummaryVectorRecallSuccessToast_ACU(result: SummaryVectorIndexRuntimeResult_ACU, rebuilt = false): void {
   const count = result.injectedCount || 0;
   const text = result.mode === 'vector'
-    ? `${rebuilt ? '向量索引已重建并完成召回' : '向量记忆召回完成'}，已将 ${count} 条纪要切为蓝灯。`
-    : `${rebuilt ? '交火索引已重建并完成召回' : '交火记忆召回完成'}，已覆盖纪要索引 ${count} 条。`;
-  showToastr_ACU('success', text, result.mode === 'vector' ? '向量召回完成' : '交火召回完成', {
+    ? `${rebuilt ? 'Đã dựng lại chỉ mục vector và hoàn tất truy hồi' : 'Truy hồi ký ức vector hoàn tất'}, đã chuyển ${count} kỷ yếu thành đèn xanh dương.`
+    : `${rebuilt ? 'Đã dựng lại chỉ mục giao hỏa và hoàn tất truy hồi' : 'Truy hồi ký ức giao hỏa hoàn tất'}, đã ghi đè ${count} mục chỉ mục kỷ yếu.`;
+  showToastr_ACU('success', text, result.mode === 'vector' ? 'Truy hồi vector hoàn tất' : 'Truy hồi giao hỏa hoàn tất', {
     acuToastCategory: ACU_TOAST_CATEGORY_ACU.PLAN_OK,
   });
 }
@@ -72,26 +72,26 @@ export async function rebuildCurrentSummaryVectorIndexWithUI_ACU(
 ): Promise<SummaryVectorIndexArchiveResult_ACU> {
   const assertActive = () => { options.signal?.throwIfAborted(); options.assertActive?.(); };
   assertActive();
-  const task = beginNoticeTask_ACU(SUMMARY_VECTOR_INDEX_FEATURE_ACU, { detail: '正在重建交火索引快照...' });
+  const task = beginNoticeTask_ACU(SUMMARY_VECTOR_INDEX_FEATURE_ACU, { detail: 'Đang dựng lại snapshot chỉ mục giao hỏa...' });
   try {
     const result = await rebuildCurrentSummaryVectorIndexNow_ACU(options);
     assertActive();
     if (result.success && !result.skipped) {
       showToastr_ACU(
         'success',
-        `交火索引快照重建完成：${result.indexedRowCount || 0} 行，${result.chunkCount || 0} 个 chunks。`,
+        `Dựng lại snapshot chỉ mục giao hỏa hoàn tất: ${result.indexedRowCount || 0} hàng, ${result.chunkCount || 0} chunk.`,
         { acuToastCategory: ACU_TOAST_CATEGORY_ACU.PLAN_OK },
       );
       return result;
     }
     const reason = result.errors?.length
-      ? result.errors.join('；')
-      : (result.reason || '无可重建内容');
-    showToastr_ACU(result.success ? 'info' : 'error', `交火索引快照未完成：${reason}`);
+      ? result.errors.join('; ')
+      : (result.reason || 'Không có nội dung để dựng lại');
+    showToastr_ACU(result.success ? 'info' : 'error', `Snapshot chỉ mục giao hỏa chưa hoàn tất: ${reason}`);
     return result;
   } catch (error: any) {
     assertActive();
-    showToastr_ACU('error', `交火索引快照重建失败：${error?.message || '未知错误'}`);
+    showToastr_ACU('error', `Dựng lại snapshot chỉ mục giao hỏa thất bại: ${error?.message || 'Lỗi không xác định'}`);
     throw error;
   } finally {
     task.end();
@@ -121,12 +121,12 @@ export async function rebuildOutdatedSummaryVectorIndexInBackground_ACU(): Promi
   backgroundSourceTextRebuildInFlight_ACU = true;
   const rowCount = Array.isArray(state.rows) ? state.rows.filter(row => row?.status !== 'removed').length : 0;
   const task = beginNoticeTask_ACU(SUMMARY_VECTOR_INDEX_FEATURE_ACU, {
-    detail: `交火索引源文本已升级为"概览 + 纪要正文"，正在后台重建当前聊天的索引（${rowCount} 行）…`,
+    detail: `Văn bản nguồn của chỉ mục giao hỏa đã nâng cấp thành "tổng quan + nội dung kỷ yếu", đang dựng lại chỉ mục của cuộc trò chuyện hiện tại ở nền (${rowCount} hàng)…`,
   });
   try {
     const result = await rebuildCurrentSummaryVectorIndexNow_ACU();
     if (result.success && !result.skipped) {
-      showToastr_ACU('success', `交火索引已按新源文本重建：${result.indexedRowCount || 0} 行，${result.chunkCount || 0} 个 chunks。`, '交火索引升级完成', {
+      showToastr_ACU('success', `Chỉ mục giao hỏa đã được dựng lại theo văn bản nguồn mới: ${result.indexedRowCount || 0} hàng, ${result.chunkCount || 0} chunk.`, 'Nâng cấp chỉ mục giao hỏa hoàn tất', {
         acuToastCategory: ACU_TOAST_CATEGORY_ACU.PLAN_OK,
       });
     } else {
@@ -152,7 +152,7 @@ export async function processSummaryVectorIndexBeforeGenerationWithUI_ACU(
   const assertActive = () => { options.signal?.throwIfAborted(); options.assertActive?.(); };
   assertActive();
   const task = beginNoticeTask_ACU(SUMMARY_VECTOR_RECALL_FEATURE_ACU, {
-    detail: '正在召回交火记忆并重排纪要索引，请稍后...',
+    detail: 'Đang truy hồi ký ức giao hỏa và sắp xếp lại chỉ mục kỷ yếu, vui lòng chờ...',
   });
 
   let result: SummaryVectorIndexRuntimeResult_ACU;

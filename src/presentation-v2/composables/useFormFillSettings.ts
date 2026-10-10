@@ -104,59 +104,59 @@ export interface FormFillSettingsState {
 const NUMBER_FIELD_META: Array<Omit<FormFillNumberField, "value">> = [
   {
     key: "autoUpdateThreshold",
-    label: "填表上下文层数",
+    label: "Số tầng ngữ cảnh điền bảng",
     min: 0,
     step: 1,
-    hint: "自动填表触发时最多处理最近 N 层 AI 回复。",
+    hint: "Khi tự động điền bảng được kích hoạt, tối đa xử lý N tầng phản hồi AI gần nhất.",
   },
   {
     key: "autoUpdateFrequency",
-    label: "自动填表频率",
+    label: "Tần suất tự động điền bảng",
     min: 1,
     step: 1,
-    hint: "每N层AI回复更新一次。",
+    hint: "Cứ mỗi N tầng phản hồi AI thì cập nhật một lần.",
   },
   {
     key: "updateBatchSize",
-    label: "批处理层数",
+    label: "Số tầng mỗi lô",
     min: 1,
     step: 1,
-    hint: "每次填表合并处理 N 层 AI 回复。",
+    hint: "Mỗi lần điền bảng gộp xử lý N tầng phản hồi AI.",
   },
   {
     key: "maxConcurrentGroups",
-    label: "最大并发数",
+    label: "Số luồng đồng thời tối đa",
     min: 1,
     step: 1,
-    hint: "同时处理的表格组数，默认为1。",
+    hint: "Số nhóm bảng xử lý đồng thời, mặc định là 1.",
   },
   {
     key: "skipUpdateFloors",
-    label: "跳过最新回复数",
+    label: "Số phản hồi mới nhất bỏ qua",
     min: 0,
     step: 1,
-    hint: "忽略最新N层回复，避免未稳定内容写入。",
+    hint: "Bỏ qua N tầng phản hồi mới nhất, tránh ghi nội dung chưa ổn định.",
   },
   {
     key: "retainRecentLayers",
-    label: "保留数据层数",
+    label: "Số tầng dữ liệu giữ lại",
     min: 0,
     step: 1,
-    hint: "清理超出保留范围的数据，影响文件大小和楼层回溯，不影响聊天记录与数据呈现。",
+    hint: "Dọn dữ liệu vượt phạm vi giữ lại, ảnh hưởng dung lượng tệp và việc truy ngược tầng, không ảnh hưởng lịch sử trò chuyện và hiển thị dữ liệu.",
   },
   {
     key: "autoUpdateTokenThreshold",
-    label: "AI 回复最小长度",
+    label: "Độ dài tối thiểu của phản hồi AI",
     min: 0,
     step: 1,
-    hint: "低于此值跳过自动填表。",
+    hint: "Thấp hơn giá trị này sẽ bỏ qua tự động điền bảng.",
   },
   {
     key: "tableMaxRetries",
-    label: "填表最大重试",
+    label: "Số lần thử lại tối đa khi điền bảng",
     min: 1,
     step: 1,
-    hint: "失败时重试次数上限。",
+    hint: "Giới hạn số lần thử lại khi thất bại.",
   },
 ];
 
@@ -381,7 +381,7 @@ export function useFormFillSettings(): FormFillSettingsState {
   function setTableApiPreset(value: string): void {
     const result = setFeatureApiPreset_ACU("table", String(value || ""));
     if (!result.ok) {
-      message.value = { kind: "error", text: result.message || "API 预设更新失败。", scope: "settings" };
+      message.value = { kind: "error", text: result.message || "Cập nhật preset API thất bại.", scope: "settings" };
       return;
     }
     tableApiPreset.value = String(value || "");
@@ -392,7 +392,7 @@ export function useFormFillSettings(): FormFillSettingsState {
     const normalized = normalizeNumber(key, rawValue);
     const result = setUpdateNumberFields_ACU({ [key]: normalized });
     if (!result.ok) {
-      message.value = { kind: "error", text: result.message || "设置保存失败。", scope: "settings" };
+      message.value = { kind: "error", text: result.message || "Lưu cài đặt thất bại.", scope: "settings" };
       return;
     }
     values.value = { ...values.value, [key]: normalized };
@@ -411,7 +411,7 @@ export function useFormFillSettings(): FormFillSettingsState {
     }
     const result = setUpdateNumberFields_ACU(normalizedPatch);
     if (!result.ok) {
-      message.value = { kind: "error", text: result.message || "设置保存失败。", scope: "settings" };
+      message.value = { kind: "error", text: result.message || "Lưu cài đặt thất bại.", scope: "settings" };
       return;
     }
     values.value = nextValues;
@@ -463,7 +463,7 @@ export function useFormFillSettings(): FormFillSettingsState {
       normalizeRules(extractRules.value, "", "extract"),
     );
     if (!result.ok) {
-      message.value = { kind: "error", text: result.message || "规则保存失败。", scope: "settings" };
+      message.value = { kind: "error", text: result.message || "Lưu quy tắc thất bại.", scope: "settings" };
       return;
     }
     message.value = null;
@@ -476,7 +476,7 @@ export function useFormFillSettings(): FormFillSettingsState {
       normalizeRules(excludeRules.value, "", "exclude"),
     );
     if (!result.ok) {
-      message.value = { kind: "error", text: result.message || "规则保存失败。", scope: "settings" };
+      message.value = { kind: "error", text: result.message || "Lưu quy tắc thất bại.", scope: "settings" };
       return;
     }
     message.value = null;
@@ -559,19 +559,19 @@ export function useFormFillSettings(): FormFillSettingsState {
       const saveResult = saveSettings_ACU();
       if (!saveResult.saved) {
         settings_ACU[field] = snapshot;
-        message.value = { kind: "error", text: saveResult.warning || saveResult.error || "提示词保存失败。", scope: "prompt" };
+        message.value = { kind: "error", text: saveResult.warning || saveResult.error || "Lưu prompt thất bại.", scope: "prompt" };
         return;
       }
       result = { ok: true, code: "ok", changed: true, saveResult };
     }
     if (!result.ok) {
-      message.value = { kind: "error", text: result.message || "提示词保存失败。", scope: "prompt" };
+      message.value = { kind: "error", text: result.message || "Lưu prompt thất bại.", scope: "prompt" };
       return;
     }
     promptSegments.value = prepared;
     promptDirty.value = false;
     message.value = null;
-    toast.success("提示词已保存");
+    toast.success("Đã lưu prompt");
   }
 
   function resetPrompt(): void {
@@ -579,7 +579,7 @@ export function useFormFillSettings(): FormFillSettingsState {
     promptDirty.value = true;
     message.value = {
       kind: "warning",
-      text: "已载入当前存储模式默认提示词，保存后生效。",
+      text: "Đã nạp prompt mặc định của chế độ lưu trữ hiện tại, lưu để áp dụng.",
       scope: "prompt",
     };
   }
@@ -587,15 +587,15 @@ export function useFormFillSettings(): FormFillSettingsState {
   async function importPromptFile(file: File): Promise<void> {
     try {
       const parsed = JSON.parse(await file.text());
-      if (!Array.isArray(parsed)) throw new Error("提示词 JSON 必须是数组。");
+      if (!Array.isArray(parsed)) throw new Error("JSON prompt phải là mảng.");
       promptSegments.value = normalizePromptSegments(parsed);
       promptDirty.value = true;
       message.value = null;
-      toast.success("提示词 JSON 已载入，保存后生效");
+      toast.success("Đã nạp JSON prompt, lưu để áp dụng");
     } catch (error: any) {
       message.value = {
         kind: "error",
-        text: error?.message || "提示词 JSON 读取失败。",
+        text: error?.message || "Đọc JSON prompt thất bại.",
         scope: "prompt",
       };
     }
@@ -618,11 +618,11 @@ export function useFormFillSettings(): FormFillSettingsState {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       message.value = null;
-      toast.success("提示词 JSON 已导出");
+      toast.success("Đã xuất JSON prompt");
     } catch (error: any) {
       message.value = {
         kind: "error",
-        text: error?.message || "提示词导出失败。",
+        text: error?.message || "Xuất prompt thất bại.",
         scope: "prompt",
       };
     }

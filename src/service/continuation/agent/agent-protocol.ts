@@ -67,22 +67,22 @@ function readTextList_ACU(value: unknown): string[] {
 }
 
 function parseAgentReadFence_ACU(value: unknown): AgentReadFence_ACU {
-  if (!isRecord_ACU(value)) failProtocol_ACU('read.requestedFence 必须是对象');
+  if (!isRecord_ACU(value)) failProtocol_ACU('read.requestedFence phải là đối tượng');
   if (Object.keys(value).some(key => key !== 'lower' && key !== 'upper')) {
-    failProtocol_ACU('read.requestedFence 只允许 lower / upper');
+    failProtocol_ACU('read.requestedFence chỉ cho phép lower / upper');
   }
   const readBoundary_ACU = (key: 'lower' | 'upper'): string | number | undefined => {
     if (!Object.prototype.hasOwnProperty.call(value, key)) return undefined;
     const boundary = value[key];
     if (typeof boundary === 'number' && Number.isSafeInteger(boundary)) return boundary;
     if (typeof boundary === 'string' && boundary.trim()) return boundary.trim();
-    failProtocol_ACU(`read.requestedFence.${key} 必须是非空字符串或安全整数`);
+    failProtocol_ACU(`read.requestedFence.${key} phải là chuỗi không rỗng hoặc số nguyên an toàn`);
   };
   const lower = readBoundary_ACU('lower');
   const upper = readBoundary_ACU('upper');
-  if (lower === undefined && upper === undefined) failProtocol_ACU('read.requestedFence 至少需要 lower 或 upper');
+  if (lower === undefined && upper === undefined) failProtocol_ACU('read.requestedFence cần ít nhất lower hoặc upper');
   if (typeof lower === 'number' && typeof upper === 'number' && lower > upper) {
-    failProtocol_ACU('read.requestedFence 的 lower 不能大于 upper');
+    failProtocol_ACU('lower của read.requestedFence không được lớn hơn upper');
   }
   return {
     ...(lower === undefined ? {} : { lower }),
@@ -177,7 +177,7 @@ function parseObjectsFrom_ACU(candidate: string): Record<string, unknown>[] {
  */
 export function parseAgentJsonPayload_ACU(raw: string | null | undefined, prefill = '', requiredKeys: readonly string[] = []): Record<string, unknown> {
   const text = normalizeModelText_ACU(raw);
-  if (!text.trim()) failProtocol_ACU('内部 AI 返回为空');
+  if (!text.trim()) failProtocol_ACU('AI nội bộ trả về rỗng');
   // 剥掉围栏后以 { 开头视为完整重输，原文优先；否则视为续写预填充，拼接候选优先。
   const looksComplete = stripMarkdownFences_ACU(text).startsWith('{');
   const candidates = looksComplete || !prefill ? [text, `${prefill}${text}`] : [`${prefill}${text}`, text];
@@ -190,7 +190,7 @@ export function parseAgentJsonPayload_ACU(raw: string | null | undefined, prefil
   }
   // 没有对象命中判别键时退回首个可解析对象，让上层契约校验给出准确的字段级报错。
   if (firstParsed) return firstParsed;
-  failProtocol_ACU(`返回内容不包含可解析的 JSON 对象。模型返回片段：${text.trim().slice(0, 300)}`);
+  failProtocol_ACU(`Nội dung trả về không chứa đối tượng JSON có thể phân tích. Đoạn mô hình trả về: ${text.trim().slice(0, 300)}`);
 }
 
 export interface AgentJsonPayloadDraft_ACU {
@@ -208,7 +208,7 @@ export interface AgentJsonPayloadDraft_ACU {
  */
 export function parseAgentJsonPayloadDraft_ACU(raw: string | null | undefined, prefill = '', requiredKeys: readonly string[] = []): AgentJsonPayloadDraft_ACU {
   const text = normalizeModelText_ACU(raw);
-  if (!text.trim()) failProtocol_ACU('内部 AI 返回为空');
+  if (!text.trim()) failProtocol_ACU('AI nội bộ trả về rỗng');
   const looksComplete = stripMarkdownFences_ACU(text).startsWith('{');
   const candidates = looksComplete || !prefill ? [text, `${prefill}${text}`] : [`${prefill}${text}`, text];
   let firstParsed: Record<string, unknown> | null = null;
@@ -234,17 +234,17 @@ export function parseAgentJsonPayloadDraft_ACU(raw: string | null | undefined, p
     }
   }
   if (firstParsed) return { payload: firstParsed, truncated: false };
-  failProtocol_ACU(`返回内容不包含可解析的 JSON 对象。模型返回片段：${text.trim().slice(0, 300)}`);
+  failProtocol_ACU(`Nội dung trả về không chứa đối tượng JSON có thể phân tích. Đoạn mô hình trả về: ${text.trim().slice(0, 300)}`);
 }
 
 function parseDelegations_ACU(value: unknown): AgentDelegation_ACU[] {
-  if (!Array.isArray(value) || !value.length) failProtocol_ACU('delegate 动作必须提供非空的 delegations 数组');
+  if (!Array.isArray(value) || !value.length) failProtocol_ACU('Hành động delegate phải cung cấp mảng delegations không rỗng');
   return value.map((raw, index) => {
-    if (!isRecord_ACU(raw)) failProtocol_ACU(`delegations[${index}] 必须是对象`);
+    if (!isRecord_ACU(raw)) failProtocol_ACU(`delegations[${index}] phải là đối tượng`);
     const agentName = readText_ACU(raw.agentName);
     const prompt = readText_ACU(raw.prompt);
-    if (!agentName) failProtocol_ACU(`delegations[${index}].agentName 不能为空`);
-    if (!prompt) failProtocol_ACU(`delegations[${index}].prompt 不能为空`);
+    if (!agentName) failProtocol_ACU(`delegations[${index}].agentName không được rỗng`);
+    if (!prompt) failProtocol_ACU(`delegations[${index}].prompt không được rỗng`);
     // 旧协议的 writes 字段静默忽略：写入范围由子代理职责固定决定，不再由主 Agent 授权。
     return { agentName, prompt, reads: readTextList_ACU(raw.reads) };
   });
@@ -265,7 +265,7 @@ function parseSearchScope_ACU(value: unknown): AgentSearchScope_ACU[] {
     const scope = readText_ACU(raw);
     if (!scope) continue;
     if (!(AGENT_SEARCH_SCOPES_ACU as readonly string[]).includes(scope)) {
-      failProtocol_ACU(`search 的 scope 只能是 ${AGENT_SEARCH_SCOPES_ACU.join(' / ')}，实际收到：${scope}`);
+      failProtocol_ACU(`scope của search chỉ được là ${AGENT_SEARCH_SCOPES_ACU.join(' / ')}, thực nhận: ${scope}`);
     }
     if (!scopes.includes(scope as AgentSearchScope_ACU)) scopes.push(scope as AgentSearchScope_ACU);
   }
@@ -281,8 +281,8 @@ export function parseAgentToolCall_ACU(payload: Record<string, unknown>): AgentT
   const action = readText_ACU(payload.action);
   if (action === 'read') {
     const reads = readTextList_ACU(payload.reads);
-    if (!reads.length) failProtocol_ACU('read 动作必须提供非空的 reads 数组（资料地址列表）');
-    if (reads.length > READ_ADDRESS_LIMIT_ACU) failProtocol_ACU(`一次 read 最多 ${READ_ADDRESS_LIMIT_ACU} 个地址；请拆成多次或先用 search 缩小范围`);
+    if (!reads.length) failProtocol_ACU('Hành động read phải cung cấp mảng reads không rỗng (danh sách địa chỉ tư liệu)');
+    if (reads.length > READ_ADDRESS_LIMIT_ACU) failProtocol_ACU(`Một lần read tối đa ${READ_ADDRESS_LIMIT_ACU} địa chỉ; hãy tách thành nhiều lần hoặc dùng search để thu hẹp phạm vi trước`);
     const requestedFence = payload.requestedFence === undefined ? undefined : parseAgentReadFence_ACU(payload.requestedFence);
     return {
       kind: 'read',
@@ -292,17 +292,17 @@ export function parseAgentToolCall_ACU(payload: Record<string, unknown>): AgentT
   }
   if (action === 'search') {
     const query = readText_ACU(payload.query);
-    if (!query) failProtocol_ACU('search 动作必须提供非空 query');
+    if (!query) failProtocol_ACU('Hành động search phải cung cấp query không rỗng');
     let maxResults = AGENT_SEARCH_DEFAULT_MAX_RESULTS_ACU;
     if (payload.maxResults !== undefined) {
       if (typeof payload.maxResults !== 'number' || !Number.isInteger(payload.maxResults) || payload.maxResults < 1) {
-        failProtocol_ACU('search 的 maxResults 必须是正整数');
+        failProtocol_ACU('maxResults của search phải là số nguyên dương');
       }
       maxResults = Math.min(payload.maxResults, AGENT_SEARCH_MAX_RESULTS_CAP_ACU);
     }
     return { kind: 'search', query, scope: parseSearchScope_ACU(payload.scope), isRegex: payload.isRegex === true, maxResults };
   }
-  failProtocol_ACU(`工具动作必须是 read / search，实际收到：${action || '(空)'}`);
+  failProtocol_ACU(`Hành động công cụ phải là read / search, thực nhận: ${action || '(rỗng)'}`);
 }
 
 /** 一次输出里最多接受的工具调用数（与 JSON 扫描上限一致）。 */
@@ -315,14 +315,14 @@ interface ParsedActionObjects_ACU {
 /** 按 parseAgentJsonPayload 的候选优先级提取全部带 action 键的顶层对象。 */
 function collectActionObjects_ACU(raw: string | null | undefined, prefill: string): ParsedActionObjects_ACU {
   const text = normalizeModelText_ACU(raw);
-  if (!text.trim()) failProtocol_ACU('内部 AI 返回为空（或只有推理文字，没有任何动作 JSON）');
+  if (!text.trim()) failProtocol_ACU('AI nội bộ trả về rỗng (hoặc chỉ có chữ suy luận, không có JSON hành động nào)');
   const looksComplete = stripMarkdownFences_ACU(text).startsWith('{');
   const candidates = looksComplete || !prefill ? [text, `${prefill}${text}`] : [`${prefill}${text}`, text];
   for (const candidate of candidates) {
     const records = parseObjectsFrom_ACU(candidate).filter(parsed => 'action' in parsed);
     if (records.length) return { records };
   }
-  failProtocol_ACU(`返回内容不包含带 action 字段的 JSON 对象。模型返回片段：${text.trim().slice(0, 300)}`);
+  failProtocol_ACU(`Nội dung trả về không chứa đối tượng JSON có trường action. Đoạn mô hình trả về: ${text.trim().slice(0, 300)}`);
 }
 
 /**
@@ -379,9 +379,9 @@ export function parseAgentWritableToolCalls_ACU(raw: string | null | undefined, 
     return records.slice(0, AGENT_TOOL_BATCH_LIMIT_ACU).map(record => {
       const action = readText_ACU(record.action);
       if (action === 'write_sql') {
-        if (Object.keys(record).some(key => key !== 'action' && key !== 'sql')) failProtocol_ACU('write_sql 只允许 action 和 sql');
+        if (Object.keys(record).some(key => key !== 'action' && key !== 'sql')) failProtocol_ACU('write_sql chỉ cho phép action và sql');
         const sql = readText_ACU(record.sql);
-        if (!sql) failProtocol_ACU('write_sql 必须提供非空 sql 字符串');
+        if (!sql) failProtocol_ACU('write_sql phải cung cấp chuỗi sql không rỗng');
         return { kind: 'write_sql' as const, sql };
       }
       if (allowWeb && isWebToolAction_ACU(action)) return parseAgentWebToolCall_ACU(record);
@@ -401,7 +401,7 @@ const ENCYCLOPEDIA_SOURCE_ALIASES_ACU: Record<string, Exclude<AgentWebRefSource_
 function parseEncyclopediaSource_ACU(value: unknown, path: string): Exclude<AgentWebRefSource_ACU, 'web'> {
   const raw = readText_ACU(value);
   const source = ENCYCLOPEDIA_SOURCE_ALIASES_ACU[raw] ?? ENCYCLOPEDIA_SOURCE_ALIASES_ACU[raw.toLowerCase()];
-  if (!source) failProtocol_ACU(`${path} 必须是 moegirl / wikipedia_zh / wikipedia_en / baidu 之一，实际收到：${raw || '(空)'}`);
+  if (!source) failProtocol_ACU(`${path} phải là một trong moegirl / wikipedia_zh / wikipedia_en / baidu, thực nhận: ${raw || '(rỗng)'}`);
   return source;
 }
 
@@ -413,27 +413,27 @@ export function parseAgentWebToolCall_ACU(payload: Record<string, unknown>): Age
   const action = readText_ACU(payload.action);
   if (action === 'encyclopedia_search') {
     const query = readText_ACU(payload.query);
-    if (!query) failProtocol_ACU('encyclopedia_search 必须提供非空 query');
+    if (!query) failProtocol_ACU('encyclopedia_search phải cung cấp query không rỗng');
     const rawSources = payload.sources === undefined || payload.sources === null ? [] : (Array.isArray(payload.sources) ? payload.sources : [payload.sources]);
     const sources = [...new Set(rawSources.map((item, index) => parseEncyclopediaSource_ACU(item, `encyclopedia_search.sources[${index}]`)))];
     return { kind: 'encyclopedia_search', query, sources };
   }
   if (action === 'encyclopedia_read') {
     const title = readText_ACU(payload.title);
-    if (!title) failProtocol_ACU('encyclopedia_read 必须提供非空 title（词条标题，从 encyclopedia_search 的候选里复制）');
+    if (!title) failProtocol_ACU('encyclopedia_read phải cung cấp title không rỗng (tiêu đề mục từ, sao chép từ ứng viên của encyclopedia_search)');
     return { kind: 'encyclopedia_read', source: parseEncyclopediaSource_ACU(payload.source, 'encyclopedia_read.source'), title };
   }
   if (action === 'web_search') {
     const query = readText_ACU(payload.query);
-    if (!query) failProtocol_ACU('web_search 必须提供非空 query');
+    if (!query) failProtocol_ACU('web_search phải cung cấp query không rỗng');
     return { kind: 'web_search', query };
   }
   if (action === 'web_read') {
     const url = readText_ACU(payload.url);
-    if (!url) failProtocol_ACU('web_read 必须提供非空 url');
+    if (!url) failProtocol_ACU('web_read phải cung cấp url không rỗng');
     return { kind: 'web_read', url };
   }
-  failProtocol_ACU(`出网工具动作必须是 ${AGENT_WEB_TOOL_ACTIONS_ACU.join(' / ')}，实际收到：${action || '(空)'}`);
+  failProtocol_ACU(`Hành động công cụ ra mạng phải là ${AGENT_WEB_TOOL_ACTIONS_ACU.join(' / ')}, thực nhận: ${action || '(rỗng)'}`);
 }
 
 function isWebToolAction_ACU(action: string): boolean {
@@ -527,15 +527,15 @@ export function parseAgentResearcherOutput_ACU(payload: Record<string, unknown>)
   if (list === undefined || list === null) {
     return { summary, expectedRevision, items: [], patches: [] };
   }
-  if (!Array.isArray(list)) failProtocol_ACU('delta.webRefs 必须是数组');
+  if (!Array.isArray(list)) failProtocol_ACU('delta.webRefs phải là mảng');
   const items: AgentResearcherDraftItem_ACU[] = [];
   const patches: AgentWebRefPatch_ACU[] = [];
   list.forEach((raw, index) => {
-    if (!isRecord_ACU(raw)) failProtocol_ACU(`delta.webRefs[${index}] 必须是对象`);
+    if (!isRecord_ACU(raw)) failProtocol_ACU(`delta.webRefs[${index}] phải là đối tượng`);
     const actionText = readText_ACU(raw.action) || 'upsert';
     if (actionText === 'patch') {
       const id = readText_ACU(raw.id);
-      if (!id) failProtocol_ACU(`delta.webRefs[${index}] 的 patch 需要 id`);
+      if (!id) failProtocol_ACU(`patch của delta.webRefs[${index}] cần id`);
       const patch: AgentWebRefPatch_ACU = { id };
       const pageRef = readText_ACU(raw.pageRef ?? raw.page ?? raw.ref);
       if (pageRef) patch.pageRef = pageRef;
@@ -546,24 +546,24 @@ export function parseAgentResearcherOutput_ACU(payload: Record<string, unknown>)
       if (raw.tags !== undefined) patch.tags = readTextList_ACU(raw.tags);
       const detailRaw = raw.detail ?? raw.summary ?? raw.body;
       if (detailRaw !== undefined) patch.summary = typeof detailRaw === 'string' ? detailRaw.trim() : (detailRaw && typeof detailRaw === 'object' ? JSON.stringify(detailRaw, null, 1) : '');
-      if (Object.keys(patch).length === 1) failProtocol_ACU(`delta.webRefs[${index}] 的 patch 至少要带一个要修改的字段`);
+      if (Object.keys(patch).length === 1) failProtocol_ACU(`patch của delta.webRefs[${index}] phải kèm ít nhất một trường cần sửa`);
       patches.push(patch);
       return;
     }
-    if (actionText !== 'upsert' && actionText !== 'retire') failProtocol_ACU(`delta.webRefs[${index}].action 必须是 upsert / patch / retire`);
+    if (actionText !== 'upsert' && actionText !== 'retire') failProtocol_ACU(`delta.webRefs[${index}].action phải là upsert / patch / retire`);
     const action = actionText as 'upsert' | 'retire';
     const id = readText_ACU(raw.id);
     if (action === 'retire') {
-      if (!id) failProtocol_ACU(`delta.webRefs[${index}] retire 需要 id`);
+      if (!id) failProtocol_ACU(`retire của delta.webRefs[${index}] cần id`);
       items.push({ action, id, pageRef: '', title: '', tags: [], brief: '', summary: '', reason: readText_ACU(raw.reason) });
       return;
     }
     const pageRef = readText_ACU(raw.pageRef ?? raw.page ?? raw.ref);
-    if (!pageRef) failProtocol_ACU(`delta.webRefs[${index}] upsert 必须带 pageRef（工具结果里的页面句柄，如 P1）；不允许手写 url 或原文`);
+    if (!pageRef) failProtocol_ACU(`upsert của delta.webRefs[${index}] phải kèm pageRef (handle trang trong kết quả công cụ, như P1); không cho phép tự viết url hoặc nguyên văn`);
     const title = readText_ACU(raw.name ?? raw.title);
-    if (!title) failProtocol_ACU(`delta.webRefs[${index}]（pageRef=${pageRef}）的 name 不能为空：写这条资料对应的实体名称（角色 / 物品 / 法术 / 事件…）`);
+    if (!title) failProtocol_ACU(`name của delta.webRefs[${index}] (pageRef=${pageRef}) không được rỗng: hãy ghi tên thực thể ứng với tư liệu này (nhân vật / vật phẩm / phép thuật / sự kiện...)`);
     const brief = readText_ACU(raw.brief ?? raw.intro ?? raw.oneLine);
-    if (!brief) failProtocol_ACU(`delta.webRefs[${index}]「${title}」的 brief 不能为空：一句话说清它是什么`);
+    if (!brief) failProtocol_ACU(`brief của delta.webRefs[${index}] "${title}" không được rỗng: nói rõ nó là gì trong một câu`);
     const detailRaw = raw.detail ?? raw.summary ?? raw.body;
     const detail = typeof detailRaw === 'string' ? detailRaw.trim() : (detailRaw && typeof detailRaw === 'object' ? JSON.stringify(detailRaw, null, 1) : '');
     items.push({ action, id, pageRef, title, tags: readTextList_ACU(raw.tags), brief, summary: detail, reason: '' });
@@ -587,12 +587,12 @@ export function parseAgentMainAction_ACU(payload: Record<string, unknown>, allow
   const action = readText_ACU(payload.action);
   const thought = readText_ACU(payload.thought);
   if (action === 'delegate') {
-    if (!allowDelegate) failProtocol_ACU('本轮为预算最后一轮，已禁用 delegate，必须输出 finalize 或 block');
+    if (!allowDelegate) failProtocol_ACU('Lượt này là lượt cuối của ngân sách, delegate đã bị tắt, phải xuất finalize hoặc block');
     return { kind: 'delegate', thought, delegations: parseDelegations_ACU(payload.delegations) };
   }
   if (action === 'open_round') {
     const focus = readText_ACU(payload.focus).trim();
-    if (!focus) failProtocol_ACU('open_round 动作必须提供非空 focus');
+    if (!focus) failProtocol_ACU('Hành động open_round phải cung cấp focus không rỗng');
     return {
       kind: 'open_round',
       thought,
@@ -603,24 +603,24 @@ export function parseAgentMainAction_ACU(payload: Record<string, unknown>, allow
   }
   if (action === 'adjust_progress') {
     const allowed = ['action', 'thought', 'reason', 'stageId', 'revision', 'nextTurnId', 'completeStage'];
-    if (Object.keys(payload).some(key => !allowed.includes(key))) failProtocol_ACU('adjust_progress 含未声明的参数');
+    if (Object.keys(payload).some(key => !allowed.includes(key))) failProtocol_ACU('adjust_progress chứa tham số chưa khai báo');
     const reason = readText_ACU(payload.reason).trim();
     const stageId = readText_ACU(payload.stageId).trim();
     const revision = payload.revision;
     const nextTurnId = payload.nextTurnId;
     const completeStage = payload.completeStage;
-    if (!reason || !stageId) failProtocol_ACU('adjust_progress 必须提供非空 reason 与 stageId');
-    if (typeof revision !== 'number' || !Number.isInteger(revision) || revision < 1) failProtocol_ACU('revision 必须是正整数');
-    if (nextTurnId !== undefined && (typeof nextTurnId !== 'string' || !nextTurnId.trim())) failProtocol_ACU('nextTurnId 必须是非空轮次 ID');
-    if (completeStage !== undefined && typeof completeStage !== 'boolean') failProtocol_ACU('completeStage 必须是布尔值');
-    if ((nextTurnId !== undefined) === (completeStage !== undefined)) failProtocol_ACU('nextTurnId 与 completeStage 必须且只能给一项');
+    if (!reason || !stageId) failProtocol_ACU('adjust_progress phải cung cấp reason và stageId không rỗng');
+    if (typeof revision !== 'number' || !Number.isInteger(revision) || revision < 1) failProtocol_ACU('revision phải là số nguyên dương');
+    if (nextTurnId !== undefined && (typeof nextTurnId !== 'string' || !nextTurnId.trim())) failProtocol_ACU('nextTurnId phải là ID lượt không rỗng');
+    if (completeStage !== undefined && typeof completeStage !== 'boolean') failProtocol_ACU('completeStage phải là giá trị boolean');
+    if ((nextTurnId !== undefined) === (completeStage !== undefined)) failProtocol_ACU('nextTurnId và completeStage phải và chỉ được cho một trong hai');
     return { kind: 'adjust_progress', thought, reason, stageId, revision: revision as number,
       ...(typeof nextTurnId === 'string' ? { nextTurnId: nextTurnId.trim() } : { completeStage: completeStage as boolean }),
     };
   }
   if (action === 'correct_materials') {
     const allowed = ['action', 'thought', 'reason', 'sql', 'settlementStartIndex', 'userMessageId'];
-    if (Object.keys(payload).some(key => !allowed.includes(key))) failProtocol_ACU('correct_materials 含未声明的参数');
+    if (Object.keys(payload).some(key => !allowed.includes(key))) failProtocol_ACU('correct_materials chứa tham số chưa khai báo');
     const reason = readText_ACU(payload.reason).trim();
     const sql = readText_ACU(payload.sql).trim();
     const start = payload.settlementStartIndex;
@@ -629,14 +629,14 @@ export function parseAgentMainAction_ACU(payload: Record<string, unknown>, allow
       const state = (value: unknown): string => value === undefined ? 'missing'
         : value === null ? 'null' : typeof value !== 'string' ? `type:${typeof value}`
           : value.trim() ? 'nonempty' : 'empty';
-      failProtocol_ACU(`correct_materials 必须提供 reason 与 sql 或 settlementStartIndex；实际字段状态：reason=${state(payload.reason)}，sql=${state(payload.sql)}，settlementStartIndex=${start === undefined ? 'missing' : typeof start}。`
-        + 'reason 与 sql 必须是动作顶层的非空字符串；思考文字不算参数。'
-        + '没有业务纠正时使用 open_round，不用空 SQL 或虚构追溯起点。');
+      failProtocol_ACU(`correct_materials phải cung cấp reason cùng sql hoặc settlementStartIndex; trạng thái trường thực tế: reason=${state(payload.reason)}, sql=${state(payload.sql)}, settlementStartIndex=${start === undefined ? 'missing' : typeof start}. `
+        + 'reason và sql phải là chuỗi không rỗng ở cấp cao nhất của hành động; chữ suy nghĩ không được tính là tham số. '
+        + 'Khi không có chỉnh sửa nghiệp vụ thì dùng open_round, không dùng SQL rỗng hay điểm truy ngược hư cấu.');
     }
-    if (payload.sql !== undefined && (typeof payload.sql !== 'string' || !sql)) failProtocol_ACU('sql 必须是非空字符串');
-    if (start !== undefined && (typeof start !== 'number' || !Number.isInteger(start) || start < 0)) failProtocol_ACU('settlementStartIndex 必须是非负整数');
-    if (start !== undefined && (typeof user !== 'number' || !Number.isInteger(user) || user < 1)) failProtocol_ACU('改变追溯起点必须引用真实用户消息 userMessageId');
-    if (start === undefined && user !== undefined) failProtocol_ACU('userMessageId 只能随 settlementStartIndex 提供');
+    if (payload.sql !== undefined && (typeof payload.sql !== 'string' || !sql)) failProtocol_ACU('sql phải là chuỗi không rỗng');
+    if (start !== undefined && (typeof start !== 'number' || !Number.isInteger(start) || start < 0)) failProtocol_ACU('settlementStartIndex phải là số nguyên không âm');
+    if (start !== undefined && (typeof user !== 'number' || !Number.isInteger(user) || user < 1)) failProtocol_ACU('Thay đổi điểm truy ngược phải trích dẫn userMessageId của tin nhắn người dùng thật');
+    if (start === undefined && user !== undefined) failProtocol_ACU('userMessageId chỉ được cung cấp cùng settlementStartIndex');
     return { kind: 'correct_materials', thought, reason,
       ...(sql ? { sql } : {}),
       ...(start !== undefined ? { settlementStartIndex: start as number, userMessageId: user as number } : {}),
@@ -644,7 +644,7 @@ export function parseAgentMainAction_ACU(payload: Record<string, unknown>, allow
   }
   if (action === 'finalize') {
     const instruction = readText_ACU(payload.instruction);
-    if (!instruction) failProtocol_ACU('finalize 动作必须提供非空 instruction');
+    if (!instruction) failProtocol_ACU('Hành động finalize phải cung cấp instruction không rỗng');
     const rawConstraints = payload.constraints;
     let constraints: { add: string[]; retire: string[] } | null = null;
     if (isRecord_ACU(rawConstraints)) {
@@ -657,18 +657,18 @@ export function parseAgentMainAction_ACU(payload: Record<string, unknown>, allow
   }
   if (action === 'block') {
     const reason = readText_ACU(payload.reason);
-    if (!reason) failProtocol_ACU('block 动作必须提供 reason');
+    if (!reason) failProtocol_ACU('Hành động block phải cung cấp reason');
     return { kind: 'block', thought, reason, unresolved: readTextList_ACU(payload.unresolved) };
   }
   if (action === 'read' || action === 'search') {
     return { kind: 'tools', thought, calls: [parseAgentToolCall_ACU(payload)] };
   }
-  failProtocol_ACU(`action 必须是 read / search / delegate / open_round / correct_materials / adjust_progress / finalize / block 之一；总纲修改可用 correct_materials 或 delegate arc-architect，阶段大纲修改单独 delegate outline-architect，实际收到：${action || '(空)'}`);
+  failProtocol_ACU(`action phải là một trong read / search / delegate / open_round / correct_materials / adjust_progress / finalize / block; sửa tổng cương có thể dùng correct_materials hoặc delegate arc-architect, sửa dàn ý giai đoạn thì delegate riêng outline-architect, thực nhận: ${action || '(rỗng)'}`);
 }
 
 export function parseAgentComposerOutput_ACU(payload: Record<string, unknown>): AgentComposerOutput_ACU {
   const instruction = readText_ACU(payload.instruction).trim();
-  if (!instruction) failProtocol_ACU('instruction-composer 必须提供非空 instruction');
+  if (!instruction) failProtocol_ACU('instruction-composer phải cung cấp instruction không rỗng');
   const rawConstraints = payload.constraints;
   let constraints: { add: string[]; retire: string[] } | null = null;
   if (isRecord_ACU(rawConstraints)) {
@@ -690,27 +690,27 @@ function parseCharacterKnowledge_ACU(value: unknown): AgentInfoGapDeltaItem_ACU[
 
 function parseHookPatch_ACU(raw: Record<string, unknown>, index: number): AgentHookPatch_ACU {
   const id = readText_ACU(raw.id);
-  if (!id) failProtocol_ACU(`delta.hooks[${index}] 的 patch 需要 id`);
+  if (!id) failProtocol_ACU(`patch của delta.hooks[${index}] cần id`);
   const patch: AgentHookPatch_ACU = { id };
   if (typeof raw.summary === 'string' && raw.summary.trim()) patch.summary = raw.summary.trim();
   const status = readText_ACU(raw.status);
   if (status) {
-    if (!(AGENT_HOOK_STATUSES_ACU as readonly string[]).includes(status)) failProtocol_ACU(`delta.hooks[${index}] 的 patch.status 非法：${status}`, { field: 'status' });
+    if (!(AGENT_HOOK_STATUSES_ACU as readonly string[]).includes(status)) failProtocol_ACU(`patch.status của delta.hooks[${index}] không hợp lệ: ${status}`, { field: 'status' });
     patch.status = status as AgentHookPatch_ACU['status'];
   }
   const importance = readText_ACU(raw.importance);
   if (importance) {
-    if (!(AGENT_HOOK_IMPORTANCES_ACU as readonly string[]).includes(importance)) failProtocol_ACU(`delta.hooks[${index}] 的 patch.importance 非法：${importance}`, { field: 'importance' });
+    if (!(AGENT_HOOK_IMPORTANCES_ACU as readonly string[]).includes(importance)) failProtocol_ACU(`patch.importance của delta.hooks[${index}] không hợp lệ: ${importance}`, { field: 'importance' });
     patch.importance = importance as AgentHookPatch_ACU['importance'];
   }
   if (typeof raw.plannedPayoff === 'string') patch.plannedPayoff = raw.plannedPayoff.trim();
-  if (Object.keys(patch).length === 1) failProtocol_ACU(`delta.hooks[${index}] 的 patch 至少要带一个要修改的字段`, { rejectionKind: 'empty_patch' });
+  if (Object.keys(patch).length === 1) failProtocol_ACU(`patch của delta.hooks[${index}] phải kèm ít nhất một trường cần sửa`, { rejectionKind: 'empty_patch' });
   return patch;
 }
 
 function parseInfoGapPatch_ACU(raw: Record<string, unknown>, index: number): AgentInfoGapPatch_ACU {
   const id = readText_ACU(raw.id);
-  if (!id) failProtocol_ACU(`delta.infoGap[${index}] 的 patch 需要 id`);
+  if (!id) failProtocol_ACU(`patch của delta.infoGap[${index}] cần id`);
   const patch: AgentInfoGapPatch_ACU = { id };
   if (typeof raw.topic === 'string' && raw.topic.trim()) patch.topic = raw.topic.trim();
   if (typeof raw.objectiveFact === 'string') patch.objectiveFact = raw.objectiveFact.trim();
@@ -718,15 +718,15 @@ function parseInfoGapPatch_ACU(raw: Record<string, unknown>, index: number): Age
   if (Array.isArray(raw.characterKnowledge)) patch.characterKnowledge = parseCharacterKnowledge_ACU(raw.characterKnowledge);
   const revealStatus = readText_ACU(raw.revealStatus);
   if (revealStatus) {
-    if (!(AGENT_REVEAL_STATUSES_ACU as readonly string[]).includes(revealStatus)) failProtocol_ACU(`delta.infoGap[${index}] 的 patch.revealStatus 非法：${revealStatus}`, { field: 'revealStatus' });
+    if (!(AGENT_REVEAL_STATUSES_ACU as readonly string[]).includes(revealStatus)) failProtocol_ACU(`patch.revealStatus của delta.infoGap[${index}] không hợp lệ: ${revealStatus}`, { field: 'revealStatus' });
     patch.revealStatus = revealStatus as AgentInfoGapPatch_ACU['revealStatus'];
   }
   if (Object.prototype.hasOwnProperty.call(raw, 'revealIndex')) {
     if (raw.revealIndex === null) patch.revealIndex = null;
     else if (typeof raw.revealIndex === 'number' && Number.isInteger(raw.revealIndex) && raw.revealIndex >= 0) patch.revealIndex = raw.revealIndex;
-    else failProtocol_ACU(`delta.infoGap[${index}] 的 patch.revealIndex 必须是非负整数或 null`, { field: 'revealIndex' });
+    else failProtocol_ACU(`patch.revealIndex của delta.infoGap[${index}] phải là số nguyên không âm hoặc null`, { field: 'revealIndex' });
   }
-  if (Object.keys(patch).length === 1) failProtocol_ACU(`delta.infoGap[${index}] 的 patch 至少要带一个要修改的字段`, { rejectionKind: 'empty_patch' });
+  if (Object.keys(patch).length === 1) failProtocol_ACU(`patch của delta.infoGap[${index}] phải kèm ít nhất một trường cần sửa`, { rejectionKind: 'empty_patch' });
   return patch;
 }
 
@@ -763,14 +763,14 @@ function collectItem_ACU(sink: RejectionSink_ACU, module: AgentContractRejection
 
 function parseHookItems_ACU(value: unknown, rejected?: RejectionSink_ACU): { items: AgentHookDeltaItem_ACU[]; patches: AgentHookPatch_ACU[] } {
   if (value === undefined || value === null) return { items: [], patches: [] };
-  if (!Array.isArray(value)) failProtocol_ACU('delta.hooks 必须是数组');
+  if (!Array.isArray(value)) failProtocol_ACU('delta.hooks phải là mảng');
   const items: AgentHookDeltaItem_ACU[] = [];
   const patches: AgentHookPatch_ACU[] = [];
   value.forEach((raw, index) => collectItem_ACU(rejected, 'hooks', index, raw, () => {
-    if (!isRecord_ACU(raw)) failProtocol_ACU(`delta.hooks[${index}] 必须是对象`);
+    if (!isRecord_ACU(raw)) failProtocol_ACU(`delta.hooks[${index}] phải là đối tượng`);
     const action = readText_ACU(raw.action);
     if (action === 'patch') { patches.push(parseHookPatch_ACU(raw, index)); return; }
-    if (action !== 'upsert' && action !== 'retire') failProtocol_ACU(`delta.hooks[${index}].action 必须是 upsert / patch / retire`);
+    if (action !== 'upsert' && action !== 'retire') failProtocol_ACU(`delta.hooks[${index}].action phải là upsert / patch / retire`);
     const status = readText_ACU(raw.status);
     const importance = readText_ACU(raw.importance);
     items.push({
@@ -789,14 +789,14 @@ function parseHookItems_ACU(value: unknown, rejected?: RejectionSink_ACU): { ite
 
 function parseInfoGapItems_ACU(value: unknown, rejected?: RejectionSink_ACU): { items: AgentInfoGapDeltaItem_ACU[]; patches: AgentInfoGapPatch_ACU[] } {
   if (value === undefined || value === null) return { items: [], patches: [] };
-  if (!Array.isArray(value)) failProtocol_ACU('delta.infoGap 必须是数组');
+  if (!Array.isArray(value)) failProtocol_ACU('delta.infoGap phải là mảng');
   const items: AgentInfoGapDeltaItem_ACU[] = [];
   const patches: AgentInfoGapPatch_ACU[] = [];
   value.forEach((raw, index) => collectItem_ACU(rejected, 'infoGap', index, raw, () => {
-    if (!isRecord_ACU(raw)) failProtocol_ACU(`delta.infoGap[${index}] 必须是对象`);
+    if (!isRecord_ACU(raw)) failProtocol_ACU(`delta.infoGap[${index}] phải là đối tượng`);
     const action = readText_ACU(raw.action);
     if (action === 'patch') { patches.push(parseInfoGapPatch_ACU(raw, index)); return; }
-    if (action !== 'upsert' && action !== 'retire') failProtocol_ACU(`delta.infoGap[${index}].action 必须是 upsert / patch / retire`);
+    if (action !== 'upsert' && action !== 'retire') failProtocol_ACU(`delta.infoGap[${index}].action phải là upsert / patch / retire`);
     const revealStatus = readText_ACU(raw.revealStatus);
     items.push({
       action,
@@ -814,27 +814,27 @@ function parseInfoGapItems_ACU(value: unknown, rejected?: RejectionSink_ACU): { 
 }
 
 function parseStageNumbers_ACU(value: unknown, path: string): number[] {
-  if (!Array.isArray(value)) failProtocol_ACU(`${path} 必须是阶段编号数组`);
+  if (!Array.isArray(value)) failProtocol_ACU(`${path} phải là mảng số hiệu giai đoạn`);
   return value.map(item => {
-    if (typeof item !== 'number' || !Number.isInteger(item) || item < 1) failProtocol_ACU(`${path} 的元素必须是从 1 起的整数阶段编号，实际收到：${JSON.stringify(item)}`);
+    if (typeof item !== 'number' || !Number.isInteger(item) || item < 1) failProtocol_ACU(`phần tử của ${path} phải là số hiệu giai đoạn nguyên bắt đầu từ 1, thực nhận: ${JSON.stringify(item)}`);
     return item;
   });
 }
 
 function parseTargetStageRange_ACU(value: unknown, path: string): { min: number; max: number } {
-  if (!isRecord_ACU(value)) failProtocol_ACU(`${path} 必须是包含 min / max 的对象`);
+  if (!isRecord_ACU(value)) failProtocol_ACU(`${path} phải là đối tượng chứa min / max`);
   const { min, max } = value;
   if (!Number.isInteger(min) || (min as number) < 1 || !Number.isInteger(max) || (max as number) < 1) {
-    failProtocol_ACU(`${path}.min / max 必须是从 1 起的整数`);
+    failProtocol_ACU(`${path}.min / max phải là số nguyên bắt đầu từ 1`);
   }
-  if ((min as number) > (max as number)) failProtocol_ACU(`${path}.min 不能大于 max`);
+  if ((min as number) > (max as number)) failProtocol_ACU(`${path}.min không được lớn hơn max`);
   return { min: min as number, max: max as number };
 }
 
 function parseStoryArcTextList_ACU(value: unknown, path: string): string[] {
-  if (!Array.isArray(value)) failProtocol_ACU(`${path} 必须是字符串数组`);
+  if (!Array.isArray(value)) failProtocol_ACU(`${path} phải là mảng chuỗi`);
   return value.map((item, index) => {
-    if (typeof item !== 'string' || !item.trim()) failProtocol_ACU(`${path}[${index}] 必须是非空字符串`);
+    if (typeof item !== 'string' || !item.trim()) failProtocol_ACU(`${path}[${index}] phải là chuỗi không rỗng`);
     return item.trim();
   });
 }
@@ -842,14 +842,14 @@ function parseStoryArcTextList_ACU(value: unknown, path: string): string[] {
 function parseNarrativeRole_ACU(value: unknown, path: string): AgentStoryArcPatch_ACU['narrativeRole'] {
   const role = readText_ACU(value);
   if (!(AGENT_VOLUME_NARRATIVE_ROLES_ACU as readonly string[]).includes(role)) {
-    failProtocol_ACU(`${path} 必须是 ${AGENT_VOLUME_NARRATIVE_ROLES_ACU.join(' / ')}，实际收到：${role || '(空)'}`);
+    failProtocol_ACU(`${path} phải là ${AGENT_VOLUME_NARRATIVE_ROLES_ACU.join(' / ')}, thực nhận: ${role || '(rỗng)'}`);
   }
   return role as AgentStoryArcPatch_ACU['narrativeRole'];
 }
 
 function parseStoryArcPatch_ACU(raw: Record<string, unknown>, index: number): AgentStoryArcPatch_ACU {
   const id = readText_ACU(raw.id);
-  if (!id) failProtocol_ACU(`delta.storyArc[${index}] 的 patch 需要 id`);
+  if (!id) failProtocol_ACU(`patch của delta.storyArc[${index}] cần id`);
   const patch: AgentStoryArcPatch_ACU = { id };
   if (typeof raw.title === 'string' && raw.title.trim()) patch.title = raw.title.trim();
   if (typeof raw.direction === 'string' && raw.direction.trim()) patch.direction = raw.direction.trim();
@@ -857,14 +857,14 @@ function parseStoryArcPatch_ACU(raw: Record<string, unknown>, index: number): Ag
   if (typeof raw.withheld === 'string') patch.withheld = raw.withheld.trim();
   const status = readText_ACU(raw.status);
   if (status) {
-    if (!(AGENT_STORY_ARC_STATUSES_ACU as readonly string[]).includes(status)) failProtocol_ACU(`delta.storyArc[${index}] 的 patch.status 非法：${status}，只能是 ${AGENT_STORY_ARC_STATUSES_ACU.join(' / ')}`, { field: 'status' });
+    if (!(AGENT_STORY_ARC_STATUSES_ACU as readonly string[]).includes(status)) failProtocol_ACU(`patch.status của delta.storyArc[${index}] không hợp lệ: ${status}, chỉ được là ${AGENT_STORY_ARC_STATUSES_ACU.join(' / ')}`, { field: 'status' });
     patch.status = status as AgentStoryArcPatch_ACU['status'];
   }
   if (Object.prototype.hasOwnProperty.call(raw, 'stageNumbers')) patch.stageNumbers = parseStageNumbers_ACU(raw.stageNumbers, `delta.storyArc[${index}].stageNumbers`);
   if (Object.prototype.hasOwnProperty.call(raw, 'completionStageNumber')) {
     const value = raw.completionStageNumber;
     if (value !== null && (!Number.isInteger(value) || (value as number) < 1)) {
-      failProtocol_ACU(`delta.storyArc[${index}].completionStageNumber 必须是从 1 起的整数或 null`);
+      failProtocol_ACU(`delta.storyArc[${index}].completionStageNumber phải là số nguyên bắt đầu từ 1 hoặc null`);
     }
     patch.completionStageNumber = value as number | null;
   }
@@ -874,34 +874,34 @@ function parseStoryArcPatch_ACU(raw: Record<string, unknown>, index: number): Ag
   if (Object.prototype.hasOwnProperty.call(raw, 'targetStageRange')) patch.targetStageRange = parseTargetStageRange_ACU(raw.targetStageRange, `delta.storyArc[${index}].targetStageRange`);
   for (const key of ['targetTimeSpan', 'progressCeiling', 'completionRationale'] as const) {
     if (Object.prototype.hasOwnProperty.call(raw, key)) {
-      if (typeof raw[key] !== 'string') failProtocol_ACU(`delta.storyArc[${index}].${key} 必须是字符串`);
+      if (typeof raw[key] !== 'string') failProtocol_ACU(`delta.storyArc[${index}].${key} phải là chuỗi`);
       patch[key] = raw[key].trim();
     }
   }
   if (Object.prototype.hasOwnProperty.call(raw, 'sustainingThreads')) patch.sustainingThreads = parseStoryArcTextList_ACU(raw.sustainingThreads, `delta.storyArc[${index}].sustainingThreads`);
   if (Object.prototype.hasOwnProperty.call(raw, 'payoffTargets')) patch.payoffTargets = parseStoryArcTextList_ACU(raw.payoffTargets, `delta.storyArc[${index}].payoffTargets`);
-  if (Object.keys(patch).length === 1) failProtocol_ACU(`delta.storyArc[${index}] 的 patch 至少要带一个要修改的字段`, { rejectionKind: 'empty_patch' });
+  if (Object.keys(patch).length === 1) failProtocol_ACU(`patch của delta.storyArc[${index}] phải kèm ít nhất một trường cần sửa`, { rejectionKind: 'empty_patch' });
   return patch;
 }
 
 function parseStoryArcItems_ACU(value: unknown, rejected?: RejectionSink_ACU): { items: AgentStoryArcDeltaItem_ACU[]; patches: AgentStoryArcPatch_ACU[] } {
   if (value === undefined || value === null) return { items: [], patches: [] };
-  if (!Array.isArray(value)) failProtocol_ACU('delta.storyArc 必须是数组');
+  if (!Array.isArray(value)) failProtocol_ACU('delta.storyArc phải là mảng');
   const items: AgentStoryArcDeltaItem_ACU[] = [];
   const patches: AgentStoryArcPatch_ACU[] = [];
   value.forEach((raw, index) => collectItem_ACU(rejected, 'storyArc', index, raw, () => {
-    if (!isRecord_ACU(raw)) failProtocol_ACU(`delta.storyArc[${index}] 必须是对象`);
+    if (!isRecord_ACU(raw)) failProtocol_ACU(`delta.storyArc[${index}] phải là đối tượng`);
     const action = readText_ACU(raw.action);
     if (action === 'patch') { patches.push(parseStoryArcPatch_ACU(raw, index)); return; }
-    if (action !== 'upsert' && action !== 'retire') failProtocol_ACU(`delta.storyArc[${index}].action 必须是 upsert / patch / retire`);
+    if (action !== 'upsert' && action !== 'retire') failProtocol_ACU(`delta.storyArc[${index}].action phải là upsert / patch / retire`);
     const scope = readText_ACU(raw.scope);
     // scope 决定这条是全书方向还是卷台阶，写错会让唯一性约束落在错误的层级上，不能静默回落。
     if (action === 'upsert' && !(AGENT_STORY_ARC_SCOPES_ACU as readonly string[]).includes(scope)) {
-      failProtocol_ACU(`delta.storyArc[${index}].scope 必须是 ${AGENT_STORY_ARC_SCOPES_ACU.join(' / ')}，实际收到：${scope || '(空)'}`);
+      failProtocol_ACU(`delta.storyArc[${index}].scope phải là ${AGENT_STORY_ARC_SCOPES_ACU.join(' / ')}, thực nhận: ${scope || '(rỗng)'}`);
     }
     const status = readText_ACU(raw.status);
     if (action === 'upsert' && status && !(AGENT_STORY_ARC_STATUSES_ACU as readonly string[]).includes(status)) {
-      failProtocol_ACU(`delta.storyArc[${index}].status 必须是 ${AGENT_STORY_ARC_STATUSES_ACU.join(' / ')}，实际收到：${status}`);
+      failProtocol_ACU(`delta.storyArc[${index}].status phải là ${AGENT_STORY_ARC_STATUSES_ACU.join(' / ')}, thực nhận: ${status}`);
     }
     items.push({
       action,
@@ -914,7 +914,7 @@ function parseStoryArcItems_ACU(value: unknown, rejected?: RejectionSink_ACU): {
       status: (status || 'planned') as AgentStoryArcDeltaItem_ACU['status'],
       statusProvided: !!status,
       stageNumbers: raw.stageNumbers === undefined ? [] : parseStageNumbers_ACU(raw.stageNumbers, `delta.storyArc[${index}].stageNumbers`),
-      completionStageNumber: raw.completionStageNumber === undefined || raw.completionStageNumber === null ? null : (typeof raw.completionStageNumber === 'number' && Number.isInteger(raw.completionStageNumber) && raw.completionStageNumber >= 1 ? raw.completionStageNumber : failProtocol_ACU(`delta.storyArc[${index}].completionStageNumber 必须是从 1 起的整数或 null`)),
+      completionStageNumber: raw.completionStageNumber === undefined || raw.completionStageNumber === null ? null : (typeof raw.completionStageNumber === 'number' && Number.isInteger(raw.completionStageNumber) && raw.completionStageNumber >= 1 ? raw.completionStageNumber : failProtocol_ACU(`delta.storyArc[${index}].completionStageNumber phải là số nguyên bắt đầu từ 1 hoặc null`)),
       completionState: readText_ACU(raw.completionState),
       continuationRationale: readText_ACU(raw.continuationRationale),
       narrativeRole: raw.narrativeRole === undefined ? undefined : parseNarrativeRole_ACU(raw.narrativeRole, `delta.storyArc[${index}].narrativeRole`),
@@ -923,19 +923,19 @@ function parseStoryArcItems_ACU(value: unknown, rejected?: RejectionSink_ACU): {
         ? undefined
         : (typeof raw.targetTimeSpan === 'string'
           ? raw.targetTimeSpan.trim()
-          : failProtocol_ACU(`delta.storyArc[${index}].targetTimeSpan 必须是字符串`)),
+          : failProtocol_ACU(`delta.storyArc[${index}].targetTimeSpan phải là chuỗi`)),
       progressCeiling: raw.progressCeiling === undefined
         ? undefined
         : (typeof raw.progressCeiling === 'string'
           ? raw.progressCeiling.trim()
-          : failProtocol_ACU(`delta.storyArc[${index}].progressCeiling 必须是字符串`)),
+          : failProtocol_ACU(`delta.storyArc[${index}].progressCeiling phải là chuỗi`)),
       sustainingThreads: raw.sustainingThreads === undefined ? undefined : parseStoryArcTextList_ACU(raw.sustainingThreads, `delta.storyArc[${index}].sustainingThreads`),
       payoffTargets: raw.payoffTargets === undefined ? undefined : parseStoryArcTextList_ACU(raw.payoffTargets, `delta.storyArc[${index}].payoffTargets`),
       completionRationale: raw.completionRationale === undefined
         ? undefined
         : (typeof raw.completionRationale === 'string'
           ? raw.completionRationale.trim()
-          : failProtocol_ACU(`delta.storyArc[${index}].completionRationale 必须是字符串`)),
+          : failProtocol_ACU(`delta.storyArc[${index}].completionRationale phải là chuỗi`)),
       reason: readText_ACU(raw.reason),
     });
   }));
@@ -944,11 +944,11 @@ function parseStoryArcItems_ACU(value: unknown, rejected?: RejectionSink_ACU): {
 
 function parseChronologyEvidenceIndexes_ACU(value: unknown, path: string): number[] {
   if (!Array.isArray(value) || !value.length) {
-    failProtocol_ACU(`${path} 必须是非空数组：每条时间事实都要引用真实正文楼层`);
+    failProtocol_ACU(`${path} phải là mảng không rỗng: mỗi sự thật thời gian đều phải trích dẫn tầng chính văn thật`);
   }
   const evidenceIndexes = value.map(item => {
     if (typeof item !== 'number' || !Number.isInteger(item) || item < 0) {
-      failProtocol_ACU(`${path} 的元素必须是非负整数楼层号，实际收到：${JSON.stringify(item)}`);
+      failProtocol_ACU(`phần tử của ${path} phải là số tầng nguyên không âm, thực nhận: ${JSON.stringify(item)}`);
     }
     return item;
   });
@@ -958,7 +958,7 @@ function parseChronologyEvidenceIndexes_ACU(value: unknown, path: string): numbe
 /** 年代学栏级修补：只带要改的字段，至少一栏；precision 与证据的合法性与 upsert 同一标准。 */
 function parseChronologyPatch_ACU(raw: Record<string, unknown>, index: number): AgentChronologyPatch_ACU {
   const id = readText_ACU(raw.id);
-  if (!id) failProtocol_ACU(`delta.chronology[${index}] 的 patch 需要 id`);
+  if (!id) failProtocol_ACU(`patch của delta.chronology[${index}] cần id`);
   const patch: AgentChronologyPatch_ACU = { id };
   if (typeof raw.anchor === 'string' && raw.anchor.trim()) patch.anchor = raw.anchor.trim();
   if (typeof raw.elapsed === 'string' && raw.elapsed.trim()) patch.elapsed = raw.elapsed.trim();
@@ -966,12 +966,12 @@ function parseChronologyPatch_ACU(raw: Record<string, unknown>, index: number): 
   const precision = readText_ACU(raw.precision);
   if (precision) {
     if (!(AGENT_CHRONOLOGY_PRECISIONS_ACU as readonly string[]).includes(precision)) {
-      failProtocol_ACU(`delta.chronology[${index}] 的 patch.precision 必须是 ${AGENT_CHRONOLOGY_PRECISIONS_ACU.join(' / ')}，实际收到：${precision}`, { field: 'precision' });
+      failProtocol_ACU(`patch.precision của delta.chronology[${index}] phải là ${AGENT_CHRONOLOGY_PRECISIONS_ACU.join(' / ')}, thực nhận: ${precision}`, { field: 'precision' });
     }
     patch.precision = precision as AgentChronologyPatch_ACU['precision'];
   }
-  if (raw.evidenceIndexes !== undefined) patch.evidenceIndexes = parseChronologyEvidenceIndexes_ACU(raw.evidenceIndexes, `delta.chronology[${index}] 的 patch.evidenceIndexes`);
-  if (Object.keys(patch).length === 1) failProtocol_ACU(`delta.chronology[${index}] 的 patch 至少要带一个要修改的字段`, { rejectionKind: 'empty_patch' });
+  if (raw.evidenceIndexes !== undefined) patch.evidenceIndexes = parseChronologyEvidenceIndexes_ACU(raw.evidenceIndexes, `patch.evidenceIndexes của delta.chronology[${index}]`);
+  if (Object.keys(patch).length === 1) failProtocol_ACU(`patch của delta.chronology[${index}] phải kèm ít nhất một trường cần sửa`, { rejectionKind: 'empty_patch' });
   return patch;
 }
 
@@ -982,16 +982,16 @@ function parseChronologyPatch_ACU(raw: Record<string, unknown>, index: number): 
  */
 function parseChronologyItems_ACU(value: unknown, rejected?: RejectionSink_ACU): { items: AgentChronologyDeltaItem_ACU[]; patches: AgentChronologyPatch_ACU[] } {
   if (value === undefined || value === null) return { items: [], patches: [] };
-  if (!Array.isArray(value)) failProtocol_ACU('delta.chronology 必须是数组');
+  if (!Array.isArray(value)) failProtocol_ACU('delta.chronology phải là mảng');
   const items: AgentChronologyDeltaItem_ACU[] = [];
   const patches: AgentChronologyPatch_ACU[] = [];
   value.forEach((raw, index) => collectItem_ACU(rejected, 'chronology', index, raw, () => {
-    if (!isRecord_ACU(raw)) failProtocol_ACU(`delta.chronology[${index}] 必须是对象`);
+    if (!isRecord_ACU(raw)) failProtocol_ACU(`delta.chronology[${index}] phải là đối tượng`);
     const action = readText_ACU(raw.action);
     if (action === 'patch') { patches.push(parseChronologyPatch_ACU(raw, index)); return; }
-    if (action !== 'upsert' && action !== 'retire') failProtocol_ACU(`delta.chronology[${index}].action 必须是 upsert / patch / retire，实际收到：${action || '(空)'}`);
+    if (action !== 'upsert' && action !== 'retire') failProtocol_ACU(`delta.chronology[${index}].action phải là upsert / patch / retire, thực nhận: ${action || '(rỗng)'}`);
     const id = readText_ACU(raw.id);
-    if (!id) failProtocol_ACU(`delta.chronology[${index}] 需要非空 id`);
+    if (!id) failProtocol_ACU(`delta.chronology[${index}] cần id không rỗng`);
     if (action === 'retire') {
       items.push({ action, id, anchor: readText_ACU(raw.anchor), elapsed: readText_ACU(raw.elapsed), precision: 'unknown' as const, transition: readText_ACU(raw.transition), evidenceIndexes: [] as number[], reason: readText_ACU(raw.reason) });
       return;
@@ -999,12 +999,12 @@ function parseChronologyItems_ACU(value: unknown, rejected?: RejectionSink_ACU):
     const anchor = readText_ACU(raw.anchor);
     const elapsed = readText_ACU(raw.elapsed);
     const transition = readText_ACU(raw.transition);
-    if (!anchor) failProtocol_ACU(`delta.chronology[${index}].anchor 不能为空：必须给出可用于正文定位的相对时间锚`);
-    if (!elapsed) failProtocol_ACU(`delta.chronology[${index}].elapsed 不能为空：无法可靠量化时明确写「未知」或「约……」`);
-    if (!transition) failProtocol_ACU(`delta.chronology[${index}].transition 不能为空：写清从上一锚点到本锚点实际发生的时间转换`);
+    if (!anchor) failProtocol_ACU(`delta.chronology[${index}].anchor không được rỗng: phải đưa ra mốc thời gian tương đối dùng để định vị trong chính văn`);
+    if (!elapsed) failProtocol_ACU(`delta.chronology[${index}].elapsed không được rỗng: khi không thể định lượng đáng tin cậy thì ghi rõ "chưa rõ" hoặc "khoảng ..."`);
+    if (!transition) failProtocol_ACU(`delta.chronology[${index}].transition không được rỗng: hãy ghi rõ chuyển đổi thời gian thực sự xảy ra từ mốc trước đến mốc này`);
     const precision = readText_ACU(raw.precision);
     if (!(AGENT_CHRONOLOGY_PRECISIONS_ACU as readonly string[]).includes(precision)) {
-      failProtocol_ACU(`delta.chronology[${index}].precision 必须是 ${AGENT_CHRONOLOGY_PRECISIONS_ACU.join(' / ')}，实际收到：${precision || '(空)'}`);
+      failProtocol_ACU(`delta.chronology[${index}].precision phải là ${AGENT_CHRONOLOGY_PRECISIONS_ACU.join(' / ')}, thực nhận: ${precision || '(rỗng)'}`);
     }
     const evidenceIndexes = parseChronologyEvidenceIndexes_ACU(raw.evidenceIndexes, `delta.chronology[${index}].evidenceIndexes`);
     items.push({
@@ -1055,9 +1055,9 @@ const CONTINUATION_SQL_COLUMNS_ACU: Readonly<Record<string, ReadonlySet<string>>
 
 function validateContinuationSqlColumns_ACU(table: string, values: Record<string, RestrictedSqlValue_ACU>, path: string): void {
   const allowed = CONTINUATION_SQL_COLUMNS_ACU[table];
-  if (!allowed) failProtocol_ACU(`SQL 表不在续写写入白名单：${table}`);
+  if (!allowed) failProtocol_ACU(`Bảng SQL không nằm trong danh sách trắng ghi của viết tiếp: ${table}`);
   for (const column of Object.keys(values)) {
-    if (!allowed.has(column)) failProtocol_ACU(`SQL 字段不在白名单：${path}.${column}`);
+    if (!allowed.has(column)) failProtocol_ACU(`Trường SQL không nằm trong danh sách trắng: ${path}.${column}`);
   }
 }
 
@@ -1074,7 +1074,7 @@ function normalizeContinuationSqlStatement_ACU(statement: RestrictedSqlStatement
     const result: Record<string, RestrictedSqlValue_ACU> = {};
     for (const [column, value] of Object.entries(values)) {
       const key = canonicalSqlColumn_ACU(statement.table, column);
-      if (Object.prototype.hasOwnProperty.call(result, key)) failProtocol_ACU(`SQL 同一栏目不能通过不同别名重复写入：${statement.table}.${key}`);
+      if (Object.prototype.hasOwnProperty.call(result, key)) failProtocol_ACU(`Cùng một cột SQL không được ghi lặp qua các bí danh khác nhau: ${statement.table}.${key}`);
       result[key] = value;
     }
     return result;
@@ -1100,7 +1100,7 @@ function sqlRecord_ACU(values: Record<string, RestrictedSqlValue_ACU>, omitted: 
 
 function requireSqlText_ACU(value: RestrictedSqlValue_ACU | undefined, field: string): string {
   const text = typeof value === 'string' ? value.trim() : '';
-  if (!text) failProtocol_ACU(`SQL ${field} 必须是非空字符串`);
+  if (!text) failProtocol_ACU(`SQL ${field} phải là chuỗi không rỗng`);
   return text;
 }
 
@@ -1109,42 +1109,42 @@ function continuationSqlDelta_ACU(statements: readonly RestrictedSqlStatement_AC
   const revisions = delta.expectedRevisions as Record<string, number>;
   for (const rawStatement of statements) {
     const statement = normalizeContinuationSqlStatement_ACU(rawStatement);
-    if (role === 'maintainer' && statement.table !== 'hooks' && statement.table !== 'info_gap' && statement.table !== 'story_arc' && statement.table !== 'chronology' && statement.table !== 'constraint_proposals') failProtocol_ACU(`维护类角色无权写入 ${statement.table}`);
-    if (role === 'researcher' && statement.table !== 'web_refs') failProtocol_ACU(`web-researcher 只允许写入 web_refs，实际收到：${statement.table}`);
+    if (role === 'maintainer' && statement.table !== 'hooks' && statement.table !== 'info_gap' && statement.table !== 'story_arc' && statement.table !== 'chronology' && statement.table !== 'constraint_proposals') failProtocol_ACU(`Vai trò loại bảo trì không có quyền ghi ${statement.table}`);
+    if (role === 'researcher' && statement.table !== 'web_refs') failProtocol_ACU(`web-researcher chỉ được ghi web_refs, thực nhận: ${statement.table}`);
     if (statement.kind !== 'delete') {
       validateContinuationSqlColumns_ACU(statement.table, statement.values, `${statement.table}.SET`);
       if (statement.kind === 'update' && Object.keys(statement.values).some(key => ['id', 'reason', 'expected_revision'].includes(key))) {
-        failProtocol_ACU(`UPDATE ${statement.table} 的 SET不允许 id、reason 或 expected_revision`);
+        failProtocol_ACU(`SET của UPDATE ${statement.table} không cho phép id, reason hoặc expected_revision`);
       }
     }
     if (statement.kind !== 'insert') {
       const allowedWhere = new Set(['id', 'expected_revision', 'reason']);
       for (const column of Object.keys(statement.where)) {
-        if (!allowedWhere.has(column)) failProtocol_ACU(`SQL WHERE 字段不在白名单：${statement.table}.${column}`);
+        if (!allowedWhere.has(column)) failProtocol_ACU(`Trường WHERE của SQL không nằm trong danh sách trắng: ${statement.table}.${column}`);
       }
       const requiredWhere = statement.kind === 'update' ? ['id', 'expected_revision'] : ['id', 'reason', 'expected_revision'];
       for (const column of requiredWhere) {
-        if (!Object.prototype.hasOwnProperty.call(statement.where, column)) failProtocol_ACU(`SQL ${statement.table}.WHERE 缺少 ${column}`);
+        if (!Object.prototype.hasOwnProperty.call(statement.where, column)) failProtocol_ACU(`SQL ${statement.table}.WHERE thiếu ${column}`);
       }
       for (const column of Object.keys(statement.where)) {
-        if (!requiredWhere.includes(column)) failProtocol_ACU(`SQL ${statement.table}.WHERE 不允许 ${column}`);
+        if (!requiredWhere.includes(column)) failProtocol_ACU(`SQL ${statement.table}.WHERE không cho phép ${column}`);
       }
     }
     if (statement.table === 'constraint_proposals') {
-      if (statement.kind !== 'insert') failProtocol_ACU('constraint_proposals 只允许 INSERT');
-      if (Object.keys(statement.values).some(key => key !== 'text')) failProtocol_ACU('constraint_proposals 只允许 text 字段');
+      if (statement.kind !== 'insert') failProtocol_ACU('constraint_proposals chỉ cho phép INSERT');
+      if (Object.keys(statement.values).some(key => key !== 'text')) failProtocol_ACU('constraint_proposals chỉ cho phép trường text');
       const list = (delta.constraintProposals ??= []) as unknown[];
       list.push(requireSqlText_ACU(statement.values.text, 'constraint_proposals.text'));
       continue;
     }
     const module = CONTINUATION_SQL_TABLE_MODULE_ACU[statement.table as keyof typeof CONTINUATION_SQL_TABLE_MODULE_ACU];
-    if (!module) failProtocol_ACU(`SQL 表不在续写写入白名单：${statement.table}`);
+    if (!module) failProtocol_ACU(`Bảng SQL không nằm trong danh sách trắng ghi của viết tiếp: ${statement.table}`);
     const list = (delta[module] ??= []) as Array<Record<string, unknown>>;
     const revisionValue = statement.kind === 'insert' ? statement.values.expected_revision : statement.where.expected_revision;
     if (revisionValue !== undefined) {
-      if (!Number.isInteger(revisionValue) || Number(revisionValue) < 0) failProtocol_ACU(`SQL ${statement.table}.expected_revision 必须是非负整数`);
+      if (!Number.isInteger(revisionValue) || Number(revisionValue) < 0) failProtocol_ACU(`SQL ${statement.table}.expected_revision phải là số nguyên không âm`);
       const revision = Number(revisionValue);
-      if (revisions[module] !== undefined && revisions[module] !== revision) failProtocol_ACU(`SQL ${statement.table} 的 expected_revision 不一致`);
+      if (revisions[module] !== undefined && revisions[module] !== revision) failProtocol_ACU(`expected_revision của SQL ${statement.table} không nhất quán`);
       revisions[module] = revision;
     }
     if (statement.kind === 'insert') {
@@ -1212,7 +1212,7 @@ const FIELD_SQL_ROLE_TABLES_ACU: Readonly<Partial<Record<AgentModuleWriterRole_A
 /** 一次性解析语法；语句/栏目错误归入拒绝清单，合法栏保留供提交入口独立领域校验。 */
 export function parseAgentModuleSqlFieldWrites_ACU(sql: string, role: AgentModuleWriterRole_ACU): AgentModuleSqlFieldParseResult_ACU {
   const parsed = parseRestrictedSqlDmlTolerant_ACU(sql);
-  if (!parsed.statements.length && !parsed.rejected.length) failProtocol_ACU('受限 SQL 不允许空写集');
+  if (!parsed.statements.length && !parsed.rejected.length) failProtocol_ACU('SQL giới hạn không cho phép tập ghi rỗng');
   const allowed = FIELD_SQL_ROLE_TABLES_ACU[role] ?? [];
   const result: AgentModuleSqlFieldParseResult_ACU = { intents: [], rejected: parsed.rejected.map(item => {
     const target = item.repairTarget;
@@ -1226,7 +1226,7 @@ export function parseAgentModuleSqlFieldWrites_ACU(sql: string, role: AgentModul
     const identifiable = module && field && ['id', 'summary', 'topic', 'title', 'anchor'].includes(field)
       && typeof target?.value === 'string' && !!target.value.trim() && fields.length > 0;
     return {
-      path: `sql[${item.index}]`, reason: `受限 SQL 解析失败，该语句未写入：${item.reason}`,
+      path: `sql[${item.index}]`, reason: `SQL giới hạn phân tích thất bại, câu lệnh này chưa được ghi: ${item.reason}`,
       ...(identifiable ? { repairTarget: { module, column: field, value: target!.value, fields } } : {}),
     };
   }), constraintProposals: [] };
@@ -1241,37 +1241,37 @@ export function parseAgentModuleSqlFieldWrites_ACU(sql: string, role: AgentModul
     const path = `sql[${index}].${statement.table}`;
     const rejectionStart = result.rejected.length;
     const reject = (field: string, reason: string) => result.rejected.push({ path: `${path}${field ? `.${field}` : ''}`, reason });
-    if (!allowed.includes(statement.table)) { reject('', `角色 ${role} 无权写入 ${statement.table}`); return; }
+    if (!allowed.includes(statement.table)) { reject('', `Vai trò ${role} không có quyền ghi ${statement.table}`); return; }
     if (statement.table === 'constraint_proposals') {
       if (statement.kind !== 'insert' || Object.keys(statement.values).some(key => key !== 'text')
         || typeof statement.values.text !== 'string' || !statement.values.text.trim()) {
-        reject('', 'constraint_proposals 只允许 INSERT 非空 text');
+        reject('', 'constraint_proposals chỉ cho phép INSERT text không rỗng');
       } else result.constraintProposals.push(statement.values.text.trim());
       return;
     }
     const module = CONTINUATION_SQL_TABLE_MODULE_ACU[statement.table as keyof typeof CONTINUATION_SQL_TABLE_MODULE_ACU];
     const columns = FIELD_SQL_COLUMNS_ACU[statement.table];
-    if (!module || !columns) { reject('', 'SQL 表不在逐栏写入白名单'); return; }
+    if (!module || !columns) { reject('', 'Bảng SQL không nằm trong danh sách trắng ghi theo cột'); return; }
     const values = statement.kind === 'delete' ? {} : statement.values;
     const where = statement.kind === 'insert' ? statement.values : statement.where;
     const expectedWhere = statement.kind === 'insert' ? null : statement.kind === 'delete' ? ['id', 'expected_revision', 'reason'] : ['id', 'expected_revision'];
-    if (expectedWhere && Object.keys(where).some(key => !expectedWhere.includes(key))) { reject('WHERE', 'WHERE 含白名单外条件'); return; }
+    if (expectedWhere && Object.keys(where).some(key => !expectedWhere.includes(key))) { reject('WHERE', 'WHERE chứa điều kiện ngoài danh sách trắng'); return; }
     const id = where.id;
-    if ((typeof id !== 'string' || !id.trim()) && statement.kind !== 'insert') { reject('id', '必须指定非空 ID'); return; }
+    if ((typeof id !== 'string' || !id.trim()) && statement.kind !== 'insert') { reject('id', 'Phải chỉ định ID không rỗng'); return; }
     const revision = where.expected_revision;
-    if (revision !== undefined && (typeof revision !== 'number' || !Number.isInteger(revision) || revision < 0)) { reject('expected_revision', '必须是非负整数'); return; }
+    if (revision !== undefined && (typeof revision !== 'number' || !Number.isInteger(revision) || revision < 0)) { reject('expected_revision', 'Phải là số nguyên không âm'); return; }
     if (statement.kind === 'delete') {
       const reason = where.reason;
-      if (typeof reason !== 'string' || !reason.trim()) { reject('reason', '退役理由必须是非空字符串'); return; }
+      if (typeof reason !== 'string' || !reason.trim()) { reject('reason', 'Lý do cho nghỉ phải là chuỗi không rỗng'); return; }
       result.intents.push({ kind: 'delete', module, id: String(id).trim(), fields: {}, ...(typeof revision === 'number' ? { expectedRevision: revision } : {}), reason: reason.trim() });
       return;
     }
     const fields: Record<string, unknown> = {};
     let pageRef: string | undefined;
     for (const [column, raw] of Object.entries(values)) {
-      if (column === 'reason') { reject(column, 'reason 只允许在 DELETE 的 WHERE 中用于退役'); continue; }
+      if (column === 'reason') { reject(column, 'reason chỉ được dùng trong WHERE của DELETE để cho nghỉ'); continue; }
       if (column === 'id' || column === 'expected_revision') {
-        if (statement.kind === 'update') reject(column, 'UPDATE 的 SET 不得指定 id 或 expected_revision');
+        if (statement.kind === 'update') reject(column, 'SET của UPDATE không được chỉ định id hoặc expected_revision');
         continue;
       }
       const field = columns[column];
@@ -1279,16 +1279,16 @@ export function parseAgentModuleSqlFieldWrites_ACU(sql: string, role: AgentModul
         result.rejected.push({
           path: typeof id === 'string' && id.trim() && !/[.#:]/.test(id.trim())
             ? `${module}#${id.trim()}.${column}` : `${path}.${column}`,
-          reason: `栏目不在逐栏写入白名单；${statement.table} 可写 SQL 列：${Object.keys(columns).join(', ')}`,
+          reason: `Cột không nằm trong danh sách trắng ghi theo cột; các cột SQL ghi được của ${statement.table}: ${Object.keys(columns).join(', ')}`,
         }); continue;
       }
       if (field === 'pageRef') {
-        if (typeof raw !== 'string' || !raw.trim()) reject(column, 'page_ref 必须是本次抓取的非空页面句柄');
+        if (typeof raw !== 'string' || !raw.trim()) reject(column, 'page_ref phải là handle trang không rỗng của lần tải này');
         else pageRef = raw.trim();
       } else fields[field] = sqlProtocolValue_ACU(raw);
     }
     if (!Object.keys(fields).length && !pageRef) {
-      reject('', '没有可提交的栏目');
+      reject('', 'Không có cột nào có thể nộp');
       // 只识别维护模块的已知系统字段；未知列、混合写入或非法 WHERE 仍保留拒绝。
       const systemOnly = statement.kind === 'update' && ['hooks', 'info_gap', 'chronology'].includes(statement.table)
         && Object.keys(values).length > 0
@@ -1323,30 +1323,30 @@ export function parseAgentModuleSqlFieldWrites_ACU(sql: string, role: AgentModul
 
 function normalizeMaintainerSqlPayload_ACU(payload: Record<string, unknown>): Record<string, unknown> {
   if (payload.sql === undefined) return payload;
-  if (typeof payload.sql !== 'string') failProtocol_ACU('维护类输出的 sql 必须是字符串');
-  if (payload.delta !== undefined) failProtocol_ACU('维护类输出不能同时包含 sql 与 delta');
+  if (typeof payload.sql !== 'string') failProtocol_ACU('sql trong đầu ra loại bảo trì phải là chuỗi');
+  if (payload.delta !== undefined) failProtocol_ACU('Đầu ra loại bảo trì không được chứa đồng thời sql và delta');
   for (const field of ['storyArc', 'volumes', 'story_arc', 'expectedRevisions']) {
-    if (Object.prototype.hasOwnProperty.call(payload, field)) failProtocol_ACU(`维护类输出不能同时包含 sql 与 JSON 写集字段 ${field}`);
+    if (Object.prototype.hasOwnProperty.call(payload, field)) failProtocol_ACU(`Đầu ra loại bảo trì không được chứa đồng thời sql và trường tập ghi JSON ${field}`);
   }
   try {
     const statements = parseRestrictedSqlDml_ACU(payload.sql);
-    if (!statements.length) failProtocol_ACU('受限 SQL 不允许空写集');
+    if (!statements.length) failProtocol_ACU('SQL giới hạn không cho phép tập ghi rỗng');
     return { ...payload, delta: continuationSqlDelta_ACU(statements, 'maintainer') };
   } catch (error) {
-    failProtocol_ACU(`受限 SQL 解析失败：${error instanceof Error ? error.message : String(error)}`);
+    failProtocol_ACU(`SQL giới hạn phân tích thất bại: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
 function normalizeResearcherSqlPayload_ACU(payload: Record<string, unknown>): Record<string, unknown> {
   if (payload.sql === undefined) return payload;
-  if (typeof payload.sql !== 'string') failProtocol_ACU('web-researcher 输出的 sql 必须是字符串');
-  if (payload.delta !== undefined) failProtocol_ACU('web-researcher 输出不能同时包含 sql 与 delta');
+  if (typeof payload.sql !== 'string') failProtocol_ACU('sql trong đầu ra của web-researcher phải là chuỗi');
+  if (payload.delta !== undefined) failProtocol_ACU('Đầu ra của web-researcher không được chứa đồng thời sql và delta');
   try {
     const statements = parseRestrictedSqlDml_ACU(payload.sql);
-    if (!statements.length) failProtocol_ACU('受限 SQL 不允许空写集');
+    if (!statements.length) failProtocol_ACU('SQL giới hạn không cho phép tập ghi rỗng');
     return { ...payload, delta: continuationSqlDelta_ACU(statements, 'researcher') };
   } catch (error) {
-    failProtocol_ACU(`受限 SQL 解析失败：${error instanceof Error ? error.message : String(error)}`);
+    failProtocol_ACU(`SQL giới hạn phân tích thất bại: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -1464,28 +1464,28 @@ export function mergeAgentMaintainerOutputs_ACU(base: AgentMaintainerOutput_ACU,
 export function renderAgentContractContinuationRequest_ACU(accepted: AgentMaintainerOutput_ACU, rejected: readonly AgentContractRejection_ACU[], truncated: boolean, toolMode: AgentToolMode_ACU): string {
   const acceptedIds: string[] = [];
   for (const [label, list] of [
-    ['伏笔', [...accepted.delta.hooks, ...accepted.delta.hookPatches]],
-    ['信息差', [...accepted.delta.infoGap, ...accepted.delta.infoGapPatches]],
-    ['总纲', [...accepted.delta.storyArc, ...accepted.delta.storyArcPatches]],
-    ['年代学', [...accepted.delta.chronology, ...accepted.delta.chronologyPatches]],
+    ['Phục bút', [...accepted.delta.hooks, ...accepted.delta.hookPatches]],
+    ['Chênh lệch thông tin', [...accepted.delta.infoGap, ...accepted.delta.infoGapPatches]],
+    ['Tổng cương', [...accepted.delta.storyArc, ...accepted.delta.storyArcPatches]],
+    ['Niên đại học', [...accepted.delta.chronology, ...accepted.delta.chronologyPatches]],
   ] as const) {
     const ids = list.map(item => item.id).filter(Boolean);
-    if (ids.length) acceptedIds.push(`${label}：${ids.join('、')}`);
+    if (ids.length) acceptedIds.push(`${label}: ${ids.join(', ')}`);
   }
   const lines: string[] = [];
   if (truncated) {
-    lines.push('你上一次的交付载荷中途被截断。截断前完整的条目已经收下，不要重发它们；请从被截断的那一条开始，只交付剩余条目。');
+    lines.push('Tải giao lần trước của bạn bị cắt giữa chừng. Các mục đầy đủ trước chỗ cắt đã được nhận, đừng gửi lại; hãy bắt đầu từ mục bị cắt và chỉ giao các mục còn lại.');
   } else {
-    lines.push('你上一次的输出大部分已收下，只有下列条目不符合契约，请只重发这些条目（修正后），其余不要重发。');
+    lines.push('Phần lớn đầu ra lần trước của bạn đã được nhận, chỉ các mục sau không đúng hợp đồng, hãy chỉ gửi lại các mục này (sau khi sửa), phần còn lại đừng gửi lại.');
   }
-  if (acceptedIds.length) lines.push(`已收下的条目：${acceptedIds.join('；')}。`);
+  if (acceptedIds.length) lines.push(`Các mục đã nhận: ${acceptedIds.join('; ')}.`);
   if (rejected.length) {
-    lines.push('需要修正的条目：');
-    for (const item of rejected) lines.push(`- ${item.module}[${item.index}]${item.id ? `（id=${item.id}）` : ''}：${item.reason}`);
+    lines.push('Các mục cần sửa:');
+    for (const item of rejected) lines.push(`- ${item.module}[${item.index}]${item.id ? ` (id=${item.id})` : ''}: ${item.reason}`);
   }
   lines.push(toolMode === 'tools'
-    ? '请单独调用 submit，只修正上面点名的交付条目，参数遵守原交付契约，不带 sql；不要重发已收下的条目。实际资料写入仍须单独调用 write_sql，不能与交付同回复。'
-    : '请单独输出符合原交付契约的 JSON 对象，只修正上面点名的交付条目，不带 sql；不要重发已收下的条目。实际资料写入仍须单独输出 {"action":"write_sql","sql":"全部语句"}，不能与交付同回复。');
+    ? 'Hãy gọi riêng submit, chỉ sửa các mục giao được nêu tên ở trên, tham số tuân theo hợp đồng giao ban đầu, không kèm sql; đừng gửi lại các mục đã nhận. Việc ghi tư liệu thực tế vẫn phải gọi riêng write_sql, không được chung một lần trả lời với việc giao.'
+    : 'Hãy xuất riêng đối tượng JSON đúng hợp đồng giao ban đầu, chỉ sửa các mục giao được nêu tên ở trên, không kèm sql; đừng gửi lại các mục đã nhận. Việc ghi tư liệu thực tế vẫn phải xuất riêng {"action":"write_sql","sql":"toàn bộ câu lệnh"}, không được chung một lần trả lời với việc giao.');
   return lines.join('\n');
 }
 
@@ -1496,7 +1496,7 @@ export function renderAgentContractContinuationRequest_ACU(accepted: AgentMainta
  */
 export function parseAgentPlannerOutput_ACU(payload: Record<string, unknown>): AgentPlannerOutput_ACU {
   const recommendation = readText_ACU(payload.recommendation);
-  if (!recommendation) failProtocol_ACU('策划子代理必须给出 recommendation；资料不足且仍有读取额度时，用已授权的 read 补齐具体缺口，否则基于已确认资料给出保守建议并说明缺口');
+  if (!recommendation) failProtocol_ACU('Agent phụ hoạch định phải đưa ra recommendation; khi thiếu tư liệu mà vẫn còn hạn mức đọc thì dùng read đã được cấp quyền để bổ sung chỗ thiếu cụ thể, nếu không thì đưa ra đề xuất thận trọng dựa trên tư liệu đã xác nhận và nêu rõ chỗ thiếu');
   return {
     summary: readText_ACU(payload.summary),
     recommendation,
@@ -1513,7 +1513,7 @@ export function parseAgentPlannerOutput_ACU(payload: Record<string, unknown>): A
 export function parseAgentReviewerOutput_ACU(payload: Record<string, unknown>): AgentReviewerOutput_ACU {
   const verdict = readText_ACU(payload.verdict);
   if (!(AGENT_REVIEW_VERDICTS_ACU as readonly string[]).includes(verdict)) {
-    failProtocol_ACU(`审查子代理的 verdict 必须是 pass / revise / block，实际收到：${verdict || '(空)'}；资料不足时应先输出 read / search 工具调用`);
+    failProtocol_ACU(`verdict của agent phụ kiểm duyệt phải là pass / revise / block, thực nhận: ${verdict || '(rỗng)'}; khi thiếu tư liệu nên xuất lệnh gọi công cụ read / search trước`);
   }
   return {
     verdict: verdict as AgentReviewerOutput_ACU['verdict'],
@@ -1526,7 +1526,7 @@ export function parseAgentReviewerOutput_ACU(payload: Record<string, unknown>): 
 export function parseAgentFinalReviewerOutput_ACU(payload: Record<string, unknown>): AgentFinalReviewerOutput_ACU {
   const verdict = readText_ACU(payload.verdict);
   if (!(AGENT_REVIEW_VERDICTS_ACU as readonly string[]).includes(verdict)) {
-    failProtocol_ACU(`最终审查的 verdict 必须是 pass / revise / block，实际收到：${verdict || '(空)'}；资料不足时应先输出 read / search 工具调用`);
+    failProtocol_ACU(`verdict của chung thẩm cuối phải là pass / revise / block, thực nhận: ${verdict || '(rỗng)'}; khi thiếu tư liệu nên xuất lệnh gọi công cụ read / search trước`);
   }
   return {
     verdict: verdict as AgentFinalReviewerOutput_ACU['verdict'],

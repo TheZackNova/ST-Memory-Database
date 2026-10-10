@@ -163,20 +163,20 @@ function assertPersistableRowIdentities_ACU(
     if (!Array.isArray(content) || content.length === 0) continue;
     const headers = content[0];
     if (!Array.isArray(headers) || String(headers[0] ?? '') !== 'row_id') {
-      throw new Error(`[TableUpdateCommit] ${reason}: sheetKey=${sheetKey} 缺少 row_id 首列表头。`);
+      throw new Error(`[TableUpdateCommit] ${reason}: sheetKey=${sheetKey} thiếu tiêu đề cột đầu row_id.`);
     }
     const rowIds = new Set<string>();
     for (let rowIndex = 1; rowIndex < content.length; rowIndex += 1) {
       const row = content[rowIndex];
       if (!Array.isArray(row)) {
-        throw new Error(`[TableUpdateCommit] ${reason}: sheetKey=${sheetKey}, rowIndex=${rowIndex} 不是数组行。`);
+        throw new Error(`[TableUpdateCommit] ${reason}: sheetKey=${sheetKey}, rowIndex=${rowIndex} không phải hàng dạng mảng.`);
       }
       const rowId = String(row[0] ?? '').trim();
       if (!rowId) {
-        throw new Error(`[TableUpdateCommit] ${reason}: sheetKey=${sheetKey}, rowIndex=${rowIndex} 的 row_id 为空。`);
+        throw new Error(`[TableUpdateCommit] ${reason}: sheetKey=${sheetKey}, rowIndex=${rowIndex} có row_id rỗng.`);
       }
       if (rowIds.has(rowId)) {
-        throw new Error(`[TableUpdateCommit] ${reason}: sheetKey=${sheetKey}, rowIndex=${rowIndex} 的 row_id 重复：${rowId}。`);
+        throw new Error(`[TableUpdateCommit] ${reason}: sheetKey=${sheetKey}, rowIndex=${rowIndex} có row_id trùng: ${rowId}. `);
       }
       rowIds.add(rowId);
     }
@@ -236,7 +236,7 @@ function assertNoActiveFillForExternalMutation_ACU(options: RunTableUpdateCommit
   if (!EXTERNAL_MUTATION_SOURCES_ACU.has(options.source)) return;
   if (!isAutoUpdatingCard_ACU) return;
   throw new TableUpdateCommitError_ACU(
-    `[TableUpdateCommit] ${options.reason}: AI 填表正在进行中，已拒绝外部表格写入（source=${options.source}），请等待填表完成后重试。`,
+    `[TableUpdateCommit] ${options.reason}: AI đang điền bảng, đã từ chối ghi bảng từ bên ngoài (source=${options.source}), hãy chờ điền bảng hoàn tất rồi thử lại.`,
     'precondition',
   );
 }
@@ -250,7 +250,7 @@ function assertExpectedCommitScope_ACU(options: RunTableUpdateCommitOptions_ACU,
   const expectedIsolationKey = String(options.isolationKey ?? currentIsolationKey);
   if (currentChatKey !== expectedChatKey || currentIsolationKey !== expectedIsolationKey) {
     throw new TableUpdateCommitError_ACU(
-      `[TableUpdateCommit] ${options.reason}: ${phase} 检测到聊天或隔离标识已切换，已拒绝提交。请在当前聊天重新执行填表。`,
+      `[TableUpdateCommit] ${options.reason}: ${phase} phát hiện cuộc trò chuyện hoặc định danh cô lập đã chuyển, đã từ chối commit. Hãy điền bảng lại trong cuộc trò chuyện hiện tại.`,
       'precondition',
     );
   }
@@ -263,7 +263,7 @@ export async function runTableUpdateCommit_ACU<T>(
   let requiresRuntimeReload = false;
   try {
     assertNoActiveFillForExternalMutation_ACU(options);
-    assertExpectedCommitScope_ACU(options, '提交前');
+    assertExpectedCommitScope_ACU(options, 'trước khi commit');
     const commitMode = options.commitMode ?? 'persist_v2';
     if (commitMode === 'stage_only') {
       // stage-only：不进入聊天写入路径。跳过 bridge gate 与 legacy 迁移——迁移可能写聊天帧，
@@ -280,12 +280,12 @@ export async function runTableUpdateCommit_ACU<T>(
       }, async (transactionContext, workingData) => {
         let commitRevisionWriteSet = options.revisionWriteSet;
         return transactionContext.runCommit(async () => {
-          assertExpectedCommitScope_ACU(options, 'stage 应用前');
+          assertExpectedCommitScope_ACU(options, 'trước khi áp dụng stage');
           const applied = await apply({ transactionContext, workingData });
           if (!applied.success || !applied.tableData) {
             throw new TableUpdateCommitError_ACU(applied.error || `${options.reason}: stage apply failed`, applied.errorCategory || 'infrastructure');
           }
-          assertExpectedCommitScope_ACU(options, 'stage 发布前');
+          assertExpectedCommitScope_ACU(options, 'trước khi phát hành stage');
           commitRevisionWriteSet = applied.persist?.revisionWriteSet ?? options.revisionWriteSet;
           _set_currentJsonTableData_ACU(cloneTableData_ACU(applied.tableData));
           return {
@@ -318,16 +318,16 @@ export async function runTableUpdateCommit_ACU<T>(
     if (!migration.success) {
       return {
         success: false,
-        error: migration.error || '旧存储迁移失败，已阻止本次写入。',
+        error: migration.error || 'Di chuyển kho cũ thất bại, đã chặn lần ghi này.',
         errorCategory: 'infrastructure',
       };
     }
     if (migration.migrated) {
       await reloadStorageProvider();
     }
-    assertExpectedCommitScope_ACU(options, '迁移后');
+    assertExpectedCommitScope_ACU(options, 'sau khi di chuyển');
     await flushRuntimeOnlyPendingBeforeCommit_ACU(options);
-    assertExpectedCommitScope_ACU(options, '未落盘变更写回后');
+    assertExpectedCommitScope_ACU(options, 'sau khi ghi lại thay đổi chưa lưu');
 
     return await runTableWriteTransaction_ACU({
       source: options.source,
@@ -343,10 +343,10 @@ export async function runTableUpdateCommit_ACU<T>(
       return transactionContext.runCommit(async () => {
         let rollbackBeforePersist: (() => void | Promise<void>) | undefined;
         try {
-          assertExpectedCommitScope_ACU(options, '应用前');
+          assertExpectedCommitScope_ACU(options, 'trước khi áp dụng');
           requiresRuntimeReload = Boolean(options.signal || options.targetSnapshot);
           const applied = await apply({ transactionContext, workingData });
-          assertExpectedCommitScope_ACU(options, '应用后');
+          assertExpectedCommitScope_ACU(options, 'sau khi áp dụng');
           if (!applied.success || !applied.tableData) {
             throw new TableUpdateCommitError_ACU(applied.error || `${options.reason}: update apply failed`, applied.errorCategory || 'infrastructure');
           }
@@ -365,7 +365,7 @@ export async function runTableUpdateCommit_ACU<T>(
             rollbackBeforePersist = staged.rollback;
           }
           if (!options.skipChatSave) {
-            assertExpectedCommitScope_ACU(options, '持久化前');
+            assertExpectedCommitScope_ACU(options, 'trước khi lưu bền');
             assertPersistableRowIdentities_ACU(applied.tableData, options.reason, targetSheetKeys);
             const saveResult = await persistTablesToChatMessage_ACU({
               targetMessageIndex: persistOptions.targetMessageIndex ?? options.targetMessageIndex,
@@ -458,7 +458,7 @@ export async function runSqliteRuntimeMutationCommit_ACU<T>(
 ): Promise<RunTableUpdateCommitResult_ACU<T>> {
   return runTableUpdateCommit_ACU(options, async ({ workingData }) => {
     const provider = await ensureStorageProviderReady_ACU();
-    assertExpectedCommitScope_ACU(options, 'SQL 应用前');
+    assertExpectedCommitScope_ACU(options, 'trước khi áp dụng SQL');
     const runtimeData = (workingData || currentJsonTableData_ACU) as TableDataObject_ACU | null;
     const runtimeSql = runtimeData
       ? rebindSqlMutationIdentifiers_ACU([options.sql], runtimeData)[0]

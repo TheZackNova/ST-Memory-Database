@@ -15,7 +15,7 @@
         class="acu-v2-plot-drawer__create-btn"
         @click="$emit('open-create')"
       >
-        <i class="fa-solid fa-plus"></i> 从默认新建
+        <i class="fa-solid fa-plus"></i> Tạo mới từ mặc định
       </AcuButton>
 
       <ul v-if="presetMeta.length" class="acu-v2-manage-list">
@@ -36,9 +36,9 @@
               variant="caption"
               class="acu-v2-manage-item__meta"
             >
-              共 {{ meta.taskCount }} 个任务
+              Tổng {{ meta.taskCount }} tác vụ
               <template v-if="meta.name === defaultPresetName">
-                · 全局默认</template
+                · Mặc định toàn cục</template
               >
             </AcuText>
           </div>
@@ -49,39 +49,39 @@
                   ? 'fa-solid fa-star'
                   : 'fa-regular fa-star'
               "
-              title="设为全局默认"
+              title="Đặt làm mặc định toàn cục"
               :variant="meta.name === defaultPresetName ? 'accent' : 'default'"
               @click="$emit('set-default', meta.name)"
             />
             <AcuIconButton
               icon="fa-solid fa-upload"
-              title="导出 JSON"
+              title="Xuất JSON"
               @click="$emit('export', meta.name)"
             />
             <AcuIconButton
               icon="fa-solid fa-pen"
-              title="编辑"
+              title="Sửa"
               @click="$emit('open-edit', meta.name)"
             />
             <AcuIconButton
               icon="fa-solid fa-trash-can"
               variant="danger"
-              title="删除"
+              title="Xóa"
               @click="$emit('delete', meta.name)"
             />
           </div>
         </li>
       </ul>
       <AcuText v-else variant="empty" class="acu-v2-plot-drawer__empty"
-        >暂无预设，点击上方按钮从默认新建或导入。</AcuText
+        >Chưa có preset, bấm nút phía trên để tạo mới từ mặc định hoặc nhập.</AcuText
       >
     </template>
 
     <!-- CREATE / EDIT -->
     <form v-else class="acu-v2-form" @submit.prevent="$emit('save')">
       <fieldset class="acu-v2-form__section">
-        <legend>基础信息</legend>
-        <AcuFormRow label="预设名称">
+        <legend>Thông tin cơ bản</legend>
+        <AcuFormRow label="Tên preset">
           <AcuInput
             type="text"
             :model-value="draftMeta.name"
@@ -92,25 +92,25 @@
       </fieldset>
 
       <fieldset class="acu-v2-form__section">
-        <legend>标签筛选</legend>
+        <legend>Lọc theo thẻ</legend>
         <AcuText variant="hint" class="acu-v2-form__hint">
-          专属于当前预设，随预设保存。按标签提取内容，提升推进准确性。提取仅保留指定范围，排除移除指定范围。
+          Chỉ thuộc preset hiện tại, được lưu theo preset. Trích nội dung theo thẻ để tăng độ chính xác khi đẩy. Trích xuất chỉ giữ phạm vi chỉ định, loại trừ sẽ gỡ phạm vi chỉ định.
         </AcuText>
         <div class="acu-v2-plot-drawer__rules">
           <AcuRulePairList
-            label="提取规则"
+            label="Quy tắc trích xuất"
             :model-value="contextRules.extractRules"
-            start-placeholder="提取开始边界"
-            end-placeholder="提取结束边界"
-            add-label="添加提取规则"
+            start-placeholder="Biên bắt đầu trích xuất"
+            end-placeholder="Biên kết thúc trích xuất"
+            add-label="Thêm quy tắc trích xuất"
             @update:model-value="$emit('update-context-extract-rules', $event)"
           />
           <AcuRulePairList
-            label="排除规则"
+            label="Quy tắc loại trừ"
             :model-value="contextRules.excludeRules"
-            start-placeholder="排除开始边界"
-            end-placeholder="排除结束边界"
-            add-label="添加排除规则"
+            start-placeholder="Biên bắt đầu loại trừ"
+            end-placeholder="Biên kết thúc loại trừ"
+            add-label="Thêm quy tắc loại trừ"
             @update:model-value="$emit('update-context-exclude-rules', $event)"
           />
         </div>
@@ -148,11 +148,11 @@
       />
 
       <fieldset class="acu-v2-form__section">
-        <legend>最终注入指令</legend>
+        <legend>Chỉ dẫn chèn cuối cùng</legend>
         <AcuTextarea
           :model-value="taskEditing.finalDirective.value"
           :rows="3"
-          placeholder="该指令不会发给规划 AI；只在主 AI 生成时注入"
+          placeholder="Chỉ dẫn này không gửi cho AI lập kế hoạch; chỉ được chèn khi AI chính tạo nội dung"
           @update:model-value="taskEditing.finalDirective.value = $event"
         />
       </fieldset>
@@ -162,8 +162,8 @@
       }}</AcuText>
 
       <footer class="acu-v2-plot-drawer__actions">
-        <AcuButton @click="$emit('back')">关闭</AcuButton>
-        <AcuButton variant="primary" native-type="submit">保存预设</AcuButton>
+        <AcuButton @click="$emit('back')">Đóng</AcuButton>
+        <AcuButton variant="primary" native-type="submit">Lưu preset</AcuButton>
       </footer>
     </form>
   </AcuDrawer>

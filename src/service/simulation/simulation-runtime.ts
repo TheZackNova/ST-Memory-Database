@@ -134,7 +134,7 @@ async function invokeWorldSimulationAgentOnce_ACU(
     });
     if (response.content.trim() || response.toolCalls.length) return response;
     throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-      'WORLD_SIMULATION_AGENT_PROTOCOL_INVALID', 'agent_loop', '格林推演 Agent 返回空响应', false, { role },
+      'WORLD_SIMULATION_AGENT_PROTOCOL_INVALID', 'agent_loop', 'Agent mô phỏng thế giới trả về phản hồi rỗng', false, { role },
     ));
   } finally {
     settleWorldSimulationInternalAiRequest_ACU(requestId);
@@ -243,7 +243,7 @@ function createProductionOrchestrator_ACU(logicalStore?: ZeroLayerSimulationStor
         logicalStore.assertAnchor(anchor);
         await appendZeroLayerSimulationSessionEvent_ACU(logicalStore, anchor, { ...identity,
           eventKey: `run-completed-${outcome}`, idempotent: true,
-          event: { kind: 'run_completed', title: outcome === 'commit' ? '格林推演已提交' : '格林推演无变化', detail: summary, agentName: 'world-director' } });
+          event: { kind: 'run_completed', title: outcome === 'commit' ? 'Mô phỏng thế giới đã nộp' : 'Mô phỏng thế giới không thay đổi', detail: summary, agentName: 'world-director' } });
         return;
       }
       assertWorldSimulationHostRun_ACU(identity);
@@ -253,20 +253,20 @@ function createProductionOrchestrator_ACU(logicalStore?: ZeroLayerSimulationStor
         anchor: currentAnchor, runId: identity.runId, taskId: identity.taskId,
         stageId: identity.stageId, stageRevision: identity.stageRevision,
         eventKey: `run-completed-${outcome}`,
-        event: { kind: 'run_completed', title: outcome === 'commit' ? '格林推演已提交' : '格林推演无变化', detail: summary, agentName: 'world-director' },
+        event: { kind: 'run_completed', title: outcome === 'commit' ? 'Mô phỏng thế giới đã nộp' : 'Mô phỏng thế giới không thay đổi', detail: summary, agentName: 'world-director' },
       }, chat);
     },
     appendUserMessage: async ({ identity, anchor, text, idempotent }) => {
       if (logicalStore) {
         logicalStore.assertAnchor(anchor);
-        logWorldSimulationSession_ACU(identity.chatIdentity, { kind: 'user_message', title: '你的消息', detail: text });
+        logWorldSimulationSession_ACU(identity.chatIdentity, { kind: 'user_message', title: 'Tin nhắn của bạn', detail: text });
         await appendZeroLayerSimulationUserInstruction_ACU(logicalStore, anchor, { ...identity, text, idempotent });
         return;
       }
       assertWorldSimulationHostRun_ACU(identity);
       const hostAnchor = requireWorldSimulationHostAnchor_ACU(anchor);
       // 与智能续写 recordUserMessage 同语义：用户指令先写会话流（实时显示），再持久化到楼层锚定会话。
-      logWorldSimulationSession_ACU(identity.chatIdentity, { kind: 'user_message', title: '你的消息', detail: text });
+      logWorldSimulationSession_ACU(identity.chatIdentity, { kind: 'user_message', title: 'Tin nhắn của bạn', detail: text });
       await appendWorldSimulationUserInstruction_ACU({
         anchor: hostAnchor,
         runId: identity.runId,
@@ -287,7 +287,7 @@ function createProductionOrchestrator_ACU(logicalStore?: ZeroLayerSimulationStor
         operation: 'initial',
         address: 'anchor:message',
         status: 'ok',
-        summary: '冻结 assistant 锚点正文',
+        summary: 'Đóng băng chính văn neo assistant',
         exact: true,
       });
       const baseContext = buildPromptContext_ACU({
@@ -344,7 +344,7 @@ function createProductionOrchestrator_ACU(logicalStore?: ZeroLayerSimulationStor
           logicalStore.assertAnchor(currentAnchor);
           const state = logicalStore.readState();
           if (state.envelope?.task?.activeRun?.runId !== identity.runId) {
-            throw new ZeroLayerError_ACU('scope-changed', '推演请求运行租约已失效。');
+            throw new ZeroLayerError_ACU('scope-changed', 'Hợp đồng chạy của yêu cầu mô phỏng đã hết hiệu lực.');
           }
           return projectWorldSimulationConversationSegments_ACU(state.conversation.segments);
         });
@@ -446,10 +446,10 @@ export interface WorldSimulationUiSnapshot_ACU {
 
 /** 非模型终局 stopReason 的中文文案；模型给出的 blocked 摘要不在表内，原样展示。 */
 export const WORLD_SIMULATION_STOP_REASON_LABELS_ACU: Record<string, string> = {
-  [WORLD_SIMULATION_STOP_REASON_MANUAL_ACU]: '用户手动停止',
-  [WORLD_SIMULATION_STOP_REASON_INTERRUPTED_ACU]: '运行被中断（页面重载或事件丢失），可直接恢复',
-  [WORLD_SIMULATION_STOP_REASON_SUPERSEDED_ACU]: '已被更新楼层的推演取代',
-  cancelled: '已取消',
+  [WORLD_SIMULATION_STOP_REASON_MANUAL_ACU]: 'Người dùng dừng thủ công',
+  [WORLD_SIMULATION_STOP_REASON_INTERRUPTED_ACU]: 'Lần chạy bị gián đoạn (tải lại trang hoặc mất sự kiện), có thể khôi phục trực tiếp',
+  [WORLD_SIMULATION_STOP_REASON_SUPERSEDED_ACU]: 'Đã bị mô phỏng của tầng mới hơn thay thế',
+  cancelled: 'Đã hủy',
 };
 
 /** 格林推演写在各楼层上的非权威分桶字段：会话 segment、材料快照、账本状态快照、run 恢复状态。 */
@@ -463,7 +463,7 @@ const WORLD_SIMULATION_FLOOR_FIELDS_ACU = [
   WORLD_SIMULATION_CHRONICLE_ARCHIVE_FIELD_ACU,
 ] as const;
 
-const RESUME_KEYWORD_ACU = /^(继续|开始|恢复(?:任务)?|resume|continue)$/i;
+const RESUME_KEYWORD_ACU = /^(继续|开始|恢复(?:任务)?|resume|continue|tiếp tục|bắt đầu|khôi phục)$/i;
 
 export class WorldSimulationRuntime_ACU {
   private readonly orchestrator: WorldSimulationOrchestrator_ACU;
@@ -475,10 +475,10 @@ export class WorldSimulationRuntime_ACU {
   ) { this.orchestrator = orchestrator ?? createProductionOrchestrator_ACU(logicalStore); }
 
   private assertScope_ACU(): void {
-    if (this.disposed) throw new ZeroLayerError_ACU('scope-changed', '推演运行时作用域已失效。');
+    if (this.disposed) throw new ZeroLayerError_ACU('scope-changed', 'Phạm vi runtime mô phỏng đã hết hiệu lực.');
     if (this.logicalStore) this.logicalStore.readSource();
     else if (readEnabledSimulationCarrier_ACU(this.getChat())) {
-      throw new ZeroLayerError_ACU('scope-changed', '逻辑模式不能使用普通推演运行时。');
+      throw new ZeroLayerError_ACU('scope-changed', 'Chế độ logic không thể dùng runtime mô phỏng thông thường.');
     }
   }
   private getChatIdentity_ACU(): string {
@@ -581,7 +581,7 @@ export class WorldSimulationRuntime_ACU {
       logWarn_ACU(`格林推演自动触发跳过：锚点解析失败（${resolved.reason}）`);
       return null;
     }
-    const outcome = await this.orchestrator.start({ triggerKind: 'assistant_completed', anchor: resolved.anchor, instruction: '根据最新 assistant 正文推进世界状态' });
+    const outcome = await this.orchestrator.start({ triggerKind: 'assistant_completed', anchor: resolved.anchor, instruction: 'Đẩy tiến trạng thái thế giới dựa trên chính văn assistant mới nhất' });
     if (outcome.status === 'skipped') logDebug_ACU(`格林推演自动触发跳过：orchestrator skipped（${outcome.reason}）`);
     return outcome;
   }
@@ -592,12 +592,12 @@ export class WorldSimulationRuntime_ACU {
     this.assertScope_ACU();
     const store: ZeroLayerSimulationStore_ACU | undefined = this.logicalStore;
     if (!store || envelope.sessionId !== store.sessionId || envelope.activeBranchId !== store.branchId) {
-      throw new ZeroLayerError_ACU('scope-changed', '逻辑正文与推演运行时不属于同一作用域。');
+      throw new ZeroLayerError_ACU('scope-changed', 'Chính văn logic và runtime mô phỏng không thuộc cùng một phạm vi.');
     }
     const readTurn = () => {
-      if (signal.aborted) throw new ZeroLayerError_ACU('scope-changed', '逻辑正文结算已中止。');
+      if (signal.aborted) throw new ZeroLayerError_ACU('scope-changed', 'Việc quyết toán chính văn logic đã bị hủy.');
       const turn = store.readSource().turns.find(item => item.turnId === turnId && item.attemptId === attemptId);
-      if (!turn || turn.branchId !== store.branchId) throw new ZeroLayerError_ACU('revision-conflict', '逻辑正文结算身份已变化。');
+      if (!turn || turn.branchId !== store.branchId) throw new ZeroLayerError_ACU('revision-conflict', 'Danh tính quyết toán chính văn logic đã thay đổi.');
       return turn;
     };
     const turn = readTurn();
@@ -611,7 +611,7 @@ export class WorldSimulationRuntime_ACU {
     const run = existing?.task?.activeRun;
     if (run && run.kind === 'logical' && run.logicalRef.turnId === turnId) {
       if (this.orchestrator.isInFlight(run.chatIdentity)) {
-        throw new ZeroLayerError_ACU('effects-pending', '该逻辑正文的推演仍在执行。');
+        throw new ZeroLayerError_ACU('effects-pending', 'Mô phỏng của chính văn logic này vẫn đang thực thi.');
       }
     } else if (settings_ACU.worldSimulationPageEnabled !== true || existing?.settings.autoTriggerEnabled === false) {
       await store.skipAutomatic(anchor);
@@ -624,11 +624,11 @@ export class WorldSimulationRuntime_ACU {
       readTurn();
       const outcome = run && run.kind === 'logical' && run.logicalRef.turnId === turnId
         ? await this.orchestrator.resume({ anchor })
-        : await this.orchestrator.start({ triggerKind: 'assistant_completed', anchor, instruction: '根据本轮已保存的正文推进世界状态' });
+        : await this.orchestrator.start({ triggerKind: 'assistant_completed', anchor, instruction: 'Đẩy tiến trạng thái thế giới dựa trên chính văn đã lưu của lượt này' });
       const saved = readTurn();
       if (!saved.effectReceipts.some(receipt => receipt.kind === 'simulation')) {
         throw new ZeroLayerError_ACU('effects-pending', outcome.status === 'failed' ? outcome.error.message
-          : '逻辑正文推演尚未取得持久结果，请恢复结算。');
+          : 'Mô phỏng chính văn logic chưa có kết quả bền vững, hãy khôi phục quyết toán.');
       }
       validateZeroLayerSimulationReceipt_ACU(saved, store.sessionId);
     } finally {
@@ -700,12 +700,12 @@ export class WorldSimulationRuntime_ACU {
     const chatIdentity = this.getChatIdentity_ACU();
     if (!chatIdentity) {
       throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-        'WORLD_SIMULATION_CHAT_UNAVAILABLE', 'persist', '当前聊天不可用，无法保存格林推演设置', false,
+        'WORLD_SIMULATION_CHAT_UNAVAILABLE', 'persist', 'Cuộc trò chuyện hiện tại không khả dụng, không thể lưu cài đặt mô phỏng thế giới', false,
       ));
     }
     if (this.orchestrator.isInFlight(chatIdentity)) {
       throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-        'WORLD_SIMULATION_REVISION_CONFLICT', 'persist', '格林推演正在运行，设置将在本轮结束后自动保存', true,
+        'WORLD_SIMULATION_REVISION_CONFLICT', 'persist', 'Mô phỏng thế giới đang chạy, cài đặt sẽ tự động lưu sau khi lượt này kết thúc', true,
       ));
     }
     await this.getStore_ACU().updateAtomically(envelope => ({
@@ -736,18 +736,18 @@ export class WorldSimulationRuntime_ACU {
     const chatIdentity = this.getChatIdentity_ACU();
     if (!chatIdentity) {
       throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-        'WORLD_SIMULATION_CHAT_UNAVAILABLE', 'persist', '当前聊天不可用，无法清空格林推演数据', false,
+        'WORLD_SIMULATION_CHAT_UNAVAILABLE', 'persist', 'Cuộc trò chuyện hiện tại không khả dụng, không thể xóa dữ liệu mô phỏng thế giới', false,
       ));
     }
     if (this.orchestrator.isInFlight(chatIdentity)) {
       throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-        'WORLD_SIMULATION_REVISION_CONFLICT', 'persist', '格林推演正在运行，请先停止再清空', false,
+        'WORLD_SIMULATION_REVISION_CONFLICT', 'persist', 'Mô phỏng thế giới đang chạy, hãy dừng trước rồi mới xóa', false,
       ));
     }
     if (this.logicalStore) {
       const pending = this.logicalStore.readSource().turns.some(turn => turn.branchId === this.logicalStore!.branchId
         && turn.phase === 'response-durable' && !turn.effectReceipts.some(receipt => receipt.kind === 'simulation'));
-      if (pending) throw new ZeroLayerError_ACU('effects-pending', '逻辑正文推演尚未确认，请先完成结算再清空。');
+      if (pending) throw new ZeroLayerError_ACU('effects-pending', 'Mô phỏng chính văn logic chưa được xác nhận, hãy hoàn tất quyết toán rồi mới xóa.');
       await this.logicalStore.updateState(state => {
         const settings = state.envelope?.settings;
         const previousRevision = state.envelope?.ledger.revision ?? 0;
@@ -792,7 +792,7 @@ export class WorldSimulationRuntime_ACU {
       } catch (error) {
         for (const snapshot of snapshots) snapshot.message[snapshot.key] = snapshot.value;
         throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-          'WORLD_SIMULATION_PERSIST_FAILED', 'persist', '清空楼层格林推演字段保存失败，已还原', false,
+          'WORLD_SIMULATION_PERSIST_FAILED', 'persist', 'Lưu thất bại khi xóa trường mô phỏng thế giới của tầng, đã khôi phục', false,
           { message: error instanceof Error ? error.message : String(error) },
         ));
       }

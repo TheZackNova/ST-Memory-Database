@@ -117,7 +117,7 @@ function findLegacyRowBearingSheetsMissingFromMerged_ACU(
   for (const [sheetKey, canonicalName] of legacyRowBearingSheets) {
     if (mergedKeys.has(sheetKey)) continue;
     if (canonicalName && mergedNames.has(canonicalName)) continue;
-    missing.push(`${canonicalName || '(无名)'}(${sheetKey})`);
+    missing.push(`${canonicalName || '(không tên)'}(${sheetKey})`);
   }
   return missing;
 }
@@ -563,12 +563,12 @@ export async function migrateLegacyStorageToV2OnLoad_ACU(
     : collectLegacyRowBearingSheets_ACU(chat, options.isolationKey, options.isolationConfig);
   const missingSheets = findLegacyRowBearingSheetsMissingFromMerged_ACU(options.data, legacyRowBearingSheets);
   if (missingSheets.length > 0) {
-    const error = `合并结果缺失旧存储中带真实行数据的表：${missingSheets.join('、')}；为防止破坏性迁移丢失原始数据，已拒绝迁移。`;
+    const error = `Kết quả gộp thiếu các bảng có dữ liệu hàng thật trong kho cũ: ${missingSheets.join(', ')}; để tránh di chuyển phá hủy làm mất dữ liệu gốc, đã từ chối di chuyển.`;
     logWarn_ACU(`[V2 Migration] ${error}`);
     return { migrated: false, error };
   }
   if (countRealDataRows_ACU(options.data) === 0 && legacyRowBearingSheets.size > 0) {
-    const error = '合并结果不含任何数据行，但聊天旧存储中存在真实行数据；为防止破坏性迁移丢失原始数据，已拒绝迁移。';
+    const error = 'Kết quả gộp không chứa hàng dữ liệu nào, nhưng kho cũ của cuộc trò chuyện có dữ liệu hàng thật; để tránh di chuyển phá hủy làm mất dữ liệu gốc, đã từ chối di chuyển.';
     logWarn_ACU(`[V2 Migration] ${error}`);
     return { migrated: false, error };
   }
@@ -865,7 +865,7 @@ export async function migrateLegacyStorageToV2OnLoad_ACU(
       return {
         migrated: false,
         mixedDecision,
-        error: 'legacy 重建已保存但后置 replay 校验失败：请重新加载当前聊天并核对数据（迁移备份已保留）',
+        error: 'Đã lưu bản dựng lại legacy nhưng kiểm tra replay sau đó thất bại: hãy tải lại cuộc trò chuyện hiện tại và đối chiếu dữ liệu (bản sao lưu di chuyển đã được giữ lại)',
       };
     }
   }

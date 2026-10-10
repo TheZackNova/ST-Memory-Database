@@ -65,37 +65,37 @@ export function validateProvisionalBridge_ACU(
   bridge: unknown,
 ): { valid: boolean; error?: string } {
   if (!bridge || typeof bridge !== 'object' || Array.isArray(bridge)) {
-    return { valid: false, error: 'provisional bridge 必须是对象。' };
+    return { valid: false, error: 'provisional bridge phải là đối tượng.' };
   }
   const candidate = bridge as Partial<ManualCatchUpProvisionalBridgeV1_ACU>;
-  if (candidate.version !== 1) return { valid: false, error: 'provisional bridge version 必须为 1。' };
+  if (candidate.version !== 1) return { valid: false, error: 'provisional bridge version phải là 1.' };
   if (candidate.kind !== 'manual_catch_up_provisional_bridge') {
-    return { valid: false, error: 'provisional bridge kind 无效。' };
+    return { valid: false, error: 'provisional bridge kind không hợp lệ.' };
   }
   if (typeof candidate.runId !== 'string' || candidate.runId.length === 0) {
-    return { valid: false, error: 'provisional bridge 缺少 runId。' };
+    return { valid: false, error: 'provisional bridge thiếu runId.' };
   }
   if (typeof candidate.isolationKey !== 'string') {
-    return { valid: false, error: 'provisional bridge 缺少 isolationKey。' };
+    return { valid: false, error: 'provisional bridge thiếu isolationKey.' };
   }
   if (!Array.isArray(candidate.selectedSheetKeys) || candidate.selectedSheetKeys.length === 0) {
-    return { valid: false, error: 'provisional bridge 缺少 selectedSheetKeys。' };
+    return { valid: false, error: 'provisional bridge thiếu selectedSheetKeys.' };
   }
   if (!Number.isInteger(candidate.originalFullCheckpointIndex) || (candidate.originalFullCheckpointIndex ?? 0) < 0) {
-    return { valid: false, error: 'provisional bridge 缺少 originalFullCheckpointIndex。' };
+    return { valid: false, error: 'provisional bridge thiếu originalFullCheckpointIndex.' };
   }
   if (!Number.isInteger(candidate.provisionalRootIndex) || (candidate.provisionalRootIndex ?? 0) < 0) {
-    return { valid: false, error: 'provisional bridge 缺少 provisionalRootIndex。' };
+    return { valid: false, error: 'provisional bridge thiếu provisionalRootIndex.' };
   }
   if (typeof candidate.originalFullFrameFingerprint !== 'string' || candidate.originalFullFrameFingerprint.length === 0) {
-    return { valid: false, error: 'provisional bridge 缺少 originalFullFrameFingerprint。' };
+    return { valid: false, error: 'provisional bridge thiếu originalFullFrameFingerprint.' };
   }
   if (!candidate.originalFullFrame || typeof candidate.originalFullFrame !== 'object') {
-    return { valid: false, error: 'provisional bridge 缺少 originalFullFrame 恢复备份。' };
+    return { valid: false, error: 'provisional bridge thiếu bản sao lưu khôi phục originalFullFrame.' };
   }
   const phases = ['preparing', 'provisional_active', 'bridging', 'finalized', 'rollback_required'] as const;
   if (!phases.includes(candidate.phase as any)) {
-    return { valid: false, error: `provisional bridge phase 无效：${String(candidate.phase)}` };
+    return { valid: false, error: `provisional bridge phase không hợp lệ: ${String(candidate.phase)}` };
   }
   return { valid: true };
 }
@@ -214,12 +214,12 @@ export function advanceProvisionalBridgeCommitProgress_ACU(
   | { ok: true; status: 'already_committed' }
   | { ok: false; code: 'bridge_missing' | 'phase_invalid' | 'boundary_reached' | 'root_missing'; error: string } {
   const bridge = readActiveProvisionalBridge_ACU(chat, isolationKey);
-  if (!bridge) return { ok: false, code: 'bridge_missing', error: '未找到 active provisional bridge session，无法推进提交进度。' };
+  if (!bridge) return { ok: false, code: 'bridge_missing', error: 'Không tìm thấy active provisional bridge session, không thể đẩy tiến độ commit.' };
   if (bridge.phase !== 'provisional_active') {
-    return { ok: false, code: 'phase_invalid', error: `provisional bridge 当前 phase=${bridge.phase}，不允许推进提交进度。` };
+    return { ok: false, code: 'phase_invalid', error: `phase hiện tại của provisional bridge=${bridge.phase}, không cho phép đẩy tiến độ commit.` };
   }
   if (saveTargetIndex >= bridge.originalFullCheckpointIndex) {
-    return { ok: false, code: 'boundary_reached', error: `bucket 目标 ${saveTargetIndex} 已到达原 full 边界，应先 finalize 而不是推进 provisional 进度。` };
+    return { ok: false, code: 'boundary_reached', error: `Đích bucket ${saveTargetIndex} đã chạm biên full ban đầu, cần finalize trước thay vì đẩy tiến độ provisional.` };
   }
   if (saveTargetIndex <= bridge.lastCommittedTargetIndex) {
     // 重试同一 bucket：进度已包含该目标，幂等放行（不重复推进）。
@@ -232,7 +232,7 @@ export function advanceProvisionalBridgeCommitProgress_ACU(
   };
   const rootMessage = chat[bridge.provisionalRootIndex];
   if (!rootMessage) {
-    return { ok: false, code: 'root_missing', error: `provisional root 楼层 ${bridge.provisionalRootIndex} 不存在，无法推进提交进度。` };
+    return { ok: false, code: 'root_missing', error: `Tầng provisional root ${bridge.provisionalRootIndex} không tồn tại, không thể đẩy tiến độ commit.` };
   }
   writeProvisionalBridgeToMessage_ACU(rootMessage, isolationKey, nextBridge);
   const container = readIsolatedDataContainer_ACU(rootMessage) || {};
@@ -272,28 +272,28 @@ export function assertBridgeScopeMatchesLiveChat_ACU(
   chat: any[],
 ): { ok: true; error?: never } | { ok: false; error: string } {
   if (!Array.isArray(chat) || chat.length === 0) {
-    return { ok: false, error: 'provisional bridge 恢复需要非空聊天。' };
+    return { ok: false, error: 'Khôi phục provisional bridge cần cuộc trò chuyện không rỗng.' };
   }
   if (getActiveChatStorageIdentity_ACU(chat) !== bridge.chatKey) {
-    return { ok: false, error: '当前聊天与 provisional bridge 的 chatKey 不匹配，拒绝自动恢复。' };
+    return { ok: false, error: 'Cuộc trò chuyện hiện tại không khớp chatKey của provisional bridge, từ chối khôi phục tự động.' };
   }
   if (getCurrentIsolationKey_ACU() !== bridge.isolationKey) {
-    return { ok: false, error: '当前隔离键与 provisional bridge 不匹配，拒绝自动恢复。' };
+    return { ok: false, error: 'Khóa cô lập hiện tại không khớp provisional bridge, từ chối khôi phục tự động.' };
   }
   const originalMessage = chat[bridge.originalFullCheckpointIndex];
   if (!originalMessage){
-    return { ok: false, error: `provisional bridge 原 full 楼层 ${bridge.originalFullCheckpointIndex} 不存在，拒绝自动恢复。` };
+    return { ok: false, error: `Tầng full ban đầu ${bridge.originalFullCheckpointIndex} của provisional bridge không tồn tại, từ chối khôi phục tự động.` };
   }
   const originalTagData = readIsolatedTagData_ACU(originalMessage, bridge.isolationKey) as any;
   if (!isV2TagData_ACU(originalTagData)) {
-    return { ok: false, error: 'provisional bridge 原 full 楼层缺少 V2 标签数据，拒绝自动恢复。' };
+    return { ok: false, error: 'Tầng full ban đầu của provisional bridge thiếu dữ liệu nhãn V2, từ chối khôi phục tự động.' };
   }
   // provisional 根拓扑校验：临时根楼层必须仍是本 bridge 的 provisional full。
   // 根楼层不存在、已被改写为非 provisional full、或 headRevision 不匹配本 runId，
   // 都说明 bridge 拓扑已被外部篡改，fail-closed。
   const provisionalMessage = chat[bridge.provisionalRootIndex];
   if (!provisionalMessage) {
-    return { ok: false, error: `provisional bridge 临时根楼层 ${bridge.provisionalRootIndex} 不存在，拒绝自动恢复。` };
+    return { ok: false, error: `Tầng gốc tạm ${bridge.provisionalRootIndex} của provisional bridge không tồn tại, từ chối khôi phục tự động.` };
   }
   const provisionalTagData = readIsolatedTagData_ACU(provisionalMessage, bridge.isolationKey) as any;
   const provisionalFrame = isV2TagData_ACU(provisionalTagData)
@@ -302,11 +302,11 @@ export function assertBridgeScopeMatchesLiveChat_ACU(
   if (!provisionalFrame || provisionalFrame.checkpoint?.kind !== 'full'
     || !String(provisionalFrame.headRevision ?? '').startsWith('provisional:')
     || !String(provisionalFrame.headRevision ?? '').includes(bridge.runId)) {
-    return { ok: false, error: 'provisional bridge 临时根拓扑不匹配（缺少 provisional full 或 headRevision 非本 run），拒绝自动恢复。' };
+    return { ok: false, error: 'Topo gốc tạm của provisional bridge không khớp (thiếu provisional full hoặc headRevision không thuộc run này), từ chối khôi phục tự động.' };
   }
   // 原 full 楼层不得同时存在第二个 full（provisional 建立后原 full 已移到 recoveryBackup）。
   if (originalTagData.storageFrame?.checkpoint?.kind === 'full') {
-    return { ok: false, error: 'provisional bridge 原 full 楼层仍存在 replay full，拓扑冲突，拒绝自动恢复。' };
+    return { ok: false, error: 'Tầng full ban đầu của provisional bridge vẫn còn replay full, xung đột topo, từ chối khôi phục tự động.' };
   }
 
   // 原 full 可能处于两种持久化形态：
@@ -316,11 +316,11 @@ export function assertBridgeScopeMatchesLiveChat_ACU(
     ? originalTagData.storageFrame
     : originalTagData.recoveryBackup?.storageFrame;
   if (!candidateFrame || candidateFrame.checkpoint?.kind !== 'full') {
-    return { ok: false, error: 'provisional bridge 原 full 楼层既无 replay full 也无 recoveryBackup，拒绝自动恢复。' };
+    return { ok: false, error: 'Tầng full ban đầu của provisional bridge không có replay full cũng không có recoveryBackup, từ chối khôi phục tự động.' };
   }
   const fingerprint = getOriginalFullFrameFingerprint_ACU(candidateFrame);
   if (fingerprint !== bridge.originalFullFrameFingerprint) {
-    return { ok: false, error: '原 full frame 指纹不匹配，可能已被外部修改；拒绝自动 finalize。' };
+    return { ok: false, error: 'Dấu vân tay full frame ban đầu không khớp, có thể đã bị sửa từ bên ngoài; từ chối finalize tự động.' };
   }
   return { ok: true };
 }
@@ -349,19 +349,19 @@ export function authorizeManualCatchUpBucketWrite_ACU(
 ): { ok: true; error?: never } | { ok: false; error: string } {
   if (!bridge) return { ok: true };
   if (bridge.phase !== 'provisional_active') {
-    return { ok: false, error: `provisional bridge 当前 phase=${bridge.phase}，不允许普通 bucket 写入。` };
+    return { ok: false, error: `phase hiện tại của provisional bridge=${bridge.phase}, không cho phép ghi bucket thông thường.` };
   }
   if (bridge.chatKey !== chatKey) {
-    return { ok: false, error: 'provisional bridge 与当前聊天不匹配，拒绝写入。' };
+    return { ok: false, error: 'provisional bridge không khớp cuộc trò chuyện hiện tại, từ chối ghi.' };
   }
   if (bridge.isolationKey !== isolationKey) {
-    return { ok: false, error: 'provisional bridge 与当前隔离键不匹配，拒绝写入。' };
+    return { ok: false, error: 'provisional bridge không khớp khóa cô lập hiện tại, từ chối ghi.' };
   }
   if (!runId || bridge.runId !== runId) {
-    return { ok: false, error: 'provisional bridge 拒绝未携带匹配 runId 的写入。' };
+    return { ok: false, error: 'provisional bridge từ chối lần ghi không mang runId khớp.' };
   }
   if (saveTargetIndex >= bridge.originalFullCheckpointIndex) {
-    return { ok: false, error: `bucket 目标 ${saveTargetIndex} 已到达原 full 边界，必须先执行 bridge finalize。` };
+    return { ok: false, error: `Đích bucket ${saveTargetIndex} đã chạm biên full ban đầu, phải thực hiện bridge finalize trước.` };
   }
   return { ok: true };
 }
@@ -413,46 +413,46 @@ export async function establishProvisionalBridge_ACU(
   }, async () => {
     const chat = getChatArray_ACU();
     if (!Array.isArray(chat) || chat.length === 0) {
-      return { ok: false, error: '聊天记录为空，无法建立 provisional bridge。' };
+      return { ok: false, error: 'Lịch sử trò chuyện trống, không thể thiết lập provisional bridge.' };
     }
     if (getActiveChatStorageIdentity_ACU(chat) !== chatKey) {
-      return { ok: false, error: '当前聊天与请求 chatKey 不匹配，拒绝建立 provisional bridge。' };
+      return { ok: false, error: 'Cuộc trò chuyện hiện tại không khớp chatKey được yêu cầu, từ chối thiết lập provisional bridge.' };
     }
     if (getCurrentIsolationKey_ACU() !== isolationKey) {
-      return { ok: false, error: '当前隔离键与请求不匹配，拒绝建立 provisional bridge。' };
+      return { ok: false, error: 'Khóa cô lập hiện tại không khớp yêu cầu, từ chối thiết lập provisional bridge.' };
     }
     if (hasActiveProvisionalBridgeAnywhere_ACU(chat)) {
-      return { ok: false, error: '已存在 active provisional bridge session，拒绝建立第二个临时根。', diagnosticCode: 'provisional_bridge_conflict' };
+      return { ok: false, error: 'Đã tồn tại active provisional bridge session, từ chối thiết lập gốc tạm thứ hai.', diagnosticCode: 'provisional_bridge_conflict' };
     }
     if (!Array.isArray(selectedSheetKeys) || selectedSheetKeys.length === 0) {
-      return { ok: false, error: 'provisional bridge 需要至少一个 selected sheet。' };
+      return { ok: false, error: 'provisional bridge cần ít nhất một selected sheet.' };
     }
 
     const { all: allOriginalFulls, latest: original } = findOriginalFullCheckpoint_ACU(chat, isolationKey);
     if (!original) {
-      return { ok: false, error: '未找到正式 full checkpoint，无法建立 provisional bridge。' };
+      return { ok: false, error: 'Không tìm thấy full checkpoint chính thức, không thể thiết lập provisional bridge.' };
     }
     // 唯一正式 full 承诺（本文件顶部不变量 §3.2）：存在多个 full 时拒绝建立，
     // 绝不把任一 full 当作唯一根，避免 provisional 基线与冗余 full 竞争回放根。
     if (allOriginalFulls.length !== 1) {
       return {
         ok: false,
-        error: `存在 ${allOriginalFulls.length} 个 full checkpoint（${allOriginalFulls.map(item => item.messageIndex).join('、')}），provisional bridge 只允许基于唯一正式 full 建立。`,
+        error: `Có ${allOriginalFulls.length} full checkpoint (${allOriginalFulls.map(item => item.messageIndex).join(', ')}), provisional bridge chỉ cho phép thiết lập dựa trên full chính thức duy nhất.`,
         diagnosticCode: 'provisional_bridge_multiple_full_checkpoints',
       };
     }
     if (original.messageIndex !== originalFullCheckpointIndex) {
-      return { ok: false, error: `原 full checkpoint 楼层与请求不一致：expected=${originalFullCheckpointIndex}, actual=${original.messageIndex}。` };
+      return { ok: false, error: `Tầng full checkpoint ban đầu không khớp yêu cầu: expected=${originalFullCheckpointIndex}, actual=${original.messageIndex}. ` };
     }
     if (!Number.isInteger(rangeStartMessageIndex) || rangeStartMessageIndex < 0 || rangeStartMessageIndex >= originalFullCheckpointIndex) {
-      return { ok: false, error: `追平起始楼层必须早于原 full 边界：rangeStart=${rangeStartMessageIndex}, originalFull=${originalFullCheckpointIndex}。` };
+      return { ok: false, error: `Tầng bắt đầu bắt kịp phải sớm hơn biên full ban đầu: rangeStart=${rangeStartMessageIndex}, originalFull=${originalFullCheckpointIndex}. ` };
     }
 
     const originalFrame = JSON.parse(JSON.stringify(original.frame)) as TableStorageFrameV2_ACU;
     const originalFingerprint = getOriginalFullFrameFingerprint_ACU(originalFrame);
     const checkpoint = originalFrame.checkpoint;
     if (!checkpoint || checkpoint.kind !== 'full') {
-      return { ok: false, error: '原 full frame 缺少 checkpoint，无法建立 provisional bridge。' };
+      return { ok: false, error: 'full frame ban đầu thiếu checkpoint, không thể thiết lập provisional bridge.' };
     }
 
     // 2. 仅允许 selected sheets 的第一缺口位于该 checkpoint 之前。
@@ -473,7 +473,7 @@ export async function establishProvisionalBridge_ACU(
         // 声称存在 checkpoint 前已完成历史但系统无法从持久化证据重建 start-1 状态。
         return {
           ok: false,
-          error: `selected sheet ${sheetKey} 在原 full 之前存在已完成历史（lastCompletedAiFloor=${baseline.lastCompletedAiFloor}），但系统无法从持久化重建 start-1 基线；已 blocked，避免用未来状态倒灌过去。`,
+          error: `selected sheet ${sheetKey} có lịch sử đã hoàn tất trước full ban đầu (lastCompletedAiFloor=${baseline.lastCompletedAiFloor}), nhưng hệ thống không thể dựng lại baseline start-1 từ dữ liệu lưu bền; đã blocked để tránh dùng trạng thái tương lai ghi ngược vào quá khứ.`,
           diagnosticCode: 'provisional_baseline_unreconstructable',
         };
       }
@@ -482,7 +482,7 @@ export async function establishProvisionalBridge_ACU(
         ? templateSheet
         : checkpoint.data?.[sheetKey];
       if (!sourceSheet || typeof sourceSheet !== 'object') {
-        return { ok: false, error: `selected sheet ${sheetKey} 缺少模板/原 full 数据，无法构造 provisional 基线。` };
+        return { ok: false, error: `selected sheet ${sheetKey} thiếu dữ liệu mẫu/full ban đầu, không thể dựng baseline provisional.` };
       }
       const cloned = JSON.parse(JSON.stringify(sourceSheet));
       if (headerOnly && Array.isArray(cloned.content) && cloned.content.length > 1) {
@@ -502,7 +502,7 @@ export async function establishProvisionalBridge_ACU(
       context: { messageIndex: rangeStartMessageIndex, aiFloor: 1, isolationKey, reason: 'manual' },
     });
     if (!provisionalCheckpointResult.checkpoint) {
-      return { ok: false, error: `无法构建 provisional full checkpoint：${provisionalCheckpointResult.error}` };
+      return { ok: false, error: `Không thể dựng provisional full checkpoint: ${provisionalCheckpointResult.error}` };
     }
 
     // 4. 在原 full 位置暂存：完整备份原 full frame，并从原位置移除 replay full。
@@ -510,7 +510,7 @@ export async function establishProvisionalBridge_ACU(
     const candidateChat = JSON.parse(JSON.stringify(chat)) as any[];
     const provisionalMessage = candidateChat[rangeStartMessageIndex];
     if (!provisionalMessage || provisionalMessage.is_user) {
-      return { ok: false, error: `追平起始楼层 ${rangeStartMessageIndex} 不是有效 AI 楼层。` };
+      return { ok: false, error: `Tầng bắt đầu bắt kịp ${rangeStartMessageIndex} không phải tầng AI hợp lệ.` };
     }
     const provisionalContainer = readIsolatedDataContainer_ACU(provisionalMessage) || {};
     const provisionalTagData = isV2TagData_ACU(provisionalContainer[isolationKey])
@@ -565,10 +565,10 @@ export async function establishProvisionalBridge_ACU(
       );
       for (const [boundary, replay] of boundaryStates) {
         if (!replay || replay.baseKind !== 'full_checkpoint') {
-          return { ok: false, error: `provisional bridge 候选 replay 未建立正式基底：boundary=${boundary}。`, diagnosticCode: 'bridge_replay_mismatch' };
+          return { ok: false, error: `provisional bridge replay ứng viên chưa thiết lập nền chính thức: boundary=${boundary}. `, diagnosticCode: 'bridge_replay_mismatch' };
         }
         if (replay.requiresCheckpointConvergence || replay.compatibilityRepairs?.length) {
-          return { ok: false, error: `provisional bridge 候选 replay 依赖兼容修复：boundary=${boundary}。`, diagnosticCode: 'bridge_replay_mismatch' };
+          return { ok: false, error: `provisional bridge replay ứng viên phụ thuộc sửa chữa tương thích: boundary=${boundary}. `, diagnosticCode: 'bridge_replay_mismatch' };
         }
         // 非目标表必须与原 full 数据一致。
         for (const [sheetKey, sheetValue] of Object.entries(checkpoint.data || {})) {
@@ -576,12 +576,12 @@ export async function establishProvisionalBridge_ACU(
           const replaySheet = replay.data?.[sheetKey] as { content?: unknown } | undefined;
           const originalSheet = sheetValue as { content?: unknown } | undefined;
           if (JSON.stringify(replaySheet?.content) !== JSON.stringify(originalSheet?.content)) {
-            return { ok: false, error: `provisional bridge 候选 replay 非目标表不一致：${sheetKey}。`, diagnosticCode: 'bridge_replay_mismatch' };
+            return { ok: false, error: `provisional bridge replay ứng viên không nhất quán ở bảng không phải đích: ${sheetKey}. `, diagnosticCode: 'bridge_replay_mismatch' };
           }
         }
       }
     } catch (error: any) {
-      return { ok: false, error: `provisional bridge 候选 replay 验证异常：${error?.message || String(error)}`, diagnosticCode: 'bridge_replay_mismatch' };
+      return { ok: false, error: `provisional bridge xác minh replay ứng viên gặp lỗi: ${error?.message || String(error)}`, diagnosticCode: 'bridge_replay_mismatch' };
     }
 
     // 6. strict save，失败完整回滚。
@@ -598,7 +598,7 @@ export async function establishProvisionalBridge_ACU(
     } catch (error: any) {
       chat.length = 0;
       chat.push(...before);
-      return { ok: false, error: `provisional bridge 建立严格保存失败：${error?.message || String(error)}` };
+      return { ok: false, error: `Lưu nghiêm ngặt khi thiết lập provisional bridge thất bại: ${error?.message || String(error)}` };
     }
     logDebug_ACU(`[ManualCatchUpBridge] 已建立 provisional full checkpoint：runId=${runId}, root=${rangeStartMessageIndex}, originalFull=${originalFullCheckpointIndex}, sheets=${selectedSheetKeys.join('、')}。`);
     return {
@@ -652,10 +652,10 @@ export async function finalizeProvisionalBridge_ACU(
     const chat = getChatArray_ACU();
     const bridge = readActiveProvisionalBridge_ACU(chat, isolationKey);
     if (!bridge) {
-      return { ok: false, error: '未找到 active provisional bridge session，无法 finalize。' };
+      return { ok: false, error: 'Không tìm thấy active provisional bridge session, không thể finalize.' };
     }
     if (bridge.runId !== runId) {
-      return { ok: false, error: `provisional bridge runId 不匹配：expected=${bridge.runId}, actual=${runId}；拒绝汇合。`, diagnosticCode: 'provisional_bridge_conflict' };
+      return { ok: false, error: `runId của provisional bridge không khớp: expected=${bridge.runId}, actual=${runId}; từ chối hợp nhất.`, diagnosticCode: 'provisional_bridge_conflict' };
     }
     const scopeCheck = assertBridgeScopeMatchesLiveChat_ACU(bridge, chat);
     if (!scopeCheck.ok) {
@@ -663,10 +663,10 @@ export async function finalizeProvisionalBridge_ACU(
       return { ok: false, error, diagnosticCode: 'provisional_recovery_required' };
     }
     if (bridge.phase !== 'provisional_active') {
-      return { ok: false, error: `provisional bridge phase=${bridge.phase} 不允许 finalize。`, diagnosticCode: 'provisional_bridge_conflict' };
+      return { ok: false, error: `provisional bridge phase=${bridge.phase} không cho phép finalize.`, diagnosticCode: 'provisional_bridge_conflict' };
     }
     if (options.nextSaveTargetIndex < bridge.originalFullCheckpointIndex) {
-      return { ok: false, error: `nextSaveTargetIndex=${options.nextSaveTargetIndex} 尚未到达原 full 边界，不能 finalize。` };
+      return { ok: false, error: `nextSaveTargetIndex=${options.nextSaveTargetIndex} chưa chạm biên full ban đầu, không thể finalize.` };
     }
 
     // 1. bounded replay provisional 时间线到原 full 边界前一层，提取 selected sheets 累计快照。
@@ -679,19 +679,19 @@ export async function finalizeProvisionalBridge_ACU(
         compatibilityMode: 'disabled',
       });
     } catch (error: any) {
-      return { ok: false, error: `bridge finalize 前 provisional replay 失败：${error?.message || String(error)}`, diagnosticCode: 'bridge_replay_mismatch' };
+      return { ok: false, error: `provisional replay trước bridge finalize thất bại: ${error?.message || String(error)}`, diagnosticCode: 'bridge_replay_mismatch' };
     }
     if (!replay || replay.baseKind !== 'full_checkpoint' || !replay.data) {
-      return { ok: false, error: 'bridge finalize 前 provisional replay 未建立正式基底。', diagnosticCode: 'bridge_replay_mismatch' };
+      return { ok: false, error: 'provisional replay trước bridge finalize chưa thiết lập nền chính thức.', diagnosticCode: 'bridge_replay_mismatch' };
     }
     if (replay.requiresCheckpointConvergence || replay.compatibilityRepairs?.length) {
-      return { ok: false, error: 'bridge finalize 前 provisional replay 依赖兼容修复，不能汇合。', diagnosticCode: 'bridge_replay_mismatch' };
+      return { ok: false, error: 'provisional replay trước bridge finalize phụ thuộc sửa chữa tương thích, không thể hợp nhất.', diagnosticCode: 'bridge_replay_mismatch' };
     }
     const provisionalSnapshotByKey: Record<string, any> = {};
     for (const sheetKey of bridge.selectedSheetKeys) {
       const sheetData = replay.data[sheetKey];
       if (!sheetData || typeof sheetData !== 'object') {
-        return { ok: false, error: `bridge finalize 前 provisional replay 缺少 selected sheet：${sheetKey}。`, diagnosticCode: 'bridge_replay_mismatch' };
+        return { ok: false, error: `provisional replay trước bridge finalize thiếu selected sheet: ${sheetKey}. `, diagnosticCode: 'bridge_replay_mismatch' };
       }
       provisionalSnapshotByKey[sheetKey] = JSON.parse(JSON.stringify(sheetData));
     }
@@ -700,7 +700,7 @@ export async function finalizeProvisionalBridge_ACU(
     const candidateChat = JSON.parse(JSON.stringify(chat)) as any[];
     const originalMessage = candidateChat[bridge.originalFullCheckpointIndex];
     if (!originalMessage) {
-      return { ok: false, error: `原 full checkpoint 楼层 ${bridge.originalFullCheckpointIndex} 不存在，无法恢复原根。` };
+      return { ok: false, error: `Tầng full checkpoint ban đầu ${bridge.originalFullCheckpointIndex} không tồn tại, không thể khôi phục gốc ban đầu.` };
     }
     const originalContainer = readIsolatedDataContainer_ACU(originalMessage) || {};
     const originalTagData = isV2TagData_ACU(originalContainer[isolationKey])
@@ -725,7 +725,7 @@ export async function finalizeProvisionalBridge_ACU(
         context: { messageIndex: bridge.originalFullCheckpointIndex, isolationKey, reason: 'manual' },
       });
       if (!sheetCheckpointResult.checkpoint) {
-        return { ok: false, error: `bridge finalize 无法构建 selected sheet rebase：${sheetKey}：${sheetCheckpointResult.error}`, diagnosticCode: 'bridge_replay_mismatch' };
+        return { ok: false, error: `bridge finalize không thể dựng rebase của selected sheet: ${sheetKey}: ${sheetCheckpointResult.error}`, diagnosticCode: 'bridge_replay_mismatch' };
       }
       perSheetCheckpoints[sheetKey] = {
         ...sheetCheckpointResult.checkpoint,
@@ -769,17 +769,17 @@ export async function finalizeProvisionalBridge_ACU(
       );
       for (const [boundary, verifyReplay] of boundaryStates) {
         if (!verifyReplay || verifyReplay.baseKind !== 'full_checkpoint' || !verifyReplay.data) {
-          return { ok: false, error: `bridge finalize 候选 replay 未建立正式基底：boundary=${boundary}。`, diagnosticCode: 'bridge_replay_mismatch' };
+          return { ok: false, error: `replay ứng viên của bridge finalize chưa thiết lập nền chính thức: boundary=${boundary}. `, diagnosticCode: 'bridge_replay_mismatch' };
         }
         if (verifyReplay.requiresCheckpointConvergence || verifyReplay.compatibilityRepairs?.length) {
-          return { ok: false, error: `bridge finalize 候选 replay 依赖兼容修复：boundary=${boundary}。`, diagnosticCode: 'bridge_replay_mismatch' };
+          return { ok: false, error: `replay ứng viên của bridge finalize phụ thuộc sửa chữa tương thích: boundary=${boundary}. `, diagnosticCode: 'bridge_replay_mismatch' };
         }
         // selected sheets 必须等于 provisional 累计快照。
         for (const sheetKey of bridge.selectedSheetKeys) {
           const verifySheet = verifyReplay.data?.[sheetKey] as { content?: unknown } | undefined;
           const snapshotSheet = provisionalSnapshotByKey[sheetKey] as { content?: unknown } | undefined;
           if (JSON.stringify(verifySheet?.content) !== JSON.stringify(snapshotSheet?.content)) {
-            return { ok: false, error: `bridge finalize 后 selected sheet 回放不一致：${sheetKey}。`, diagnosticCode: 'bridge_replay_mismatch' };
+            return { ok: false, error: `Sau bridge finalize, phát lại selected sheet không nhất quán: ${sheetKey}. `, diagnosticCode: 'bridge_replay_mismatch' };
           }
         }
         // 非目标表必须等于原正式根语义。
@@ -789,12 +789,12 @@ export async function finalizeProvisionalBridge_ACU(
           const verifySheet = verifyReplay.data?.[sheetKey] as { content?: unknown } | undefined;
           const originalSheet = sheetValue as { content?: unknown } | undefined;
           if (JSON.stringify(verifySheet?.content) !== JSON.stringify(originalSheet?.content)) {
-            return { ok: false, error: `bridge finalize 后非目标表回放不一致：${sheetKey}。`, diagnosticCode: 'bridge_replay_mismatch' };
+            return { ok: false, error: `Sau bridge finalize, phát lại bảng không phải đích không nhất quán: ${sheetKey}. `, diagnosticCode: 'bridge_replay_mismatch' };
           }
         }
       }
     } catch (error: any) {
-      return { ok: false, error: `bridge finalize 候选 replay 验证异常：${error?.message || String(error)}`, diagnosticCode: 'bridge_replay_mismatch' };
+      return { ok: false, error: `xác minh replay ứng viên của bridge finalize gặp lỗi: ${error?.message || String(error)}`, diagnosticCode: 'bridge_replay_mismatch' };
     }
 
     // 6. strict save，失败原位回滚。
@@ -811,7 +811,7 @@ export async function finalizeProvisionalBridge_ACU(
     } catch (error: any) {
       chat.length = 0;
       chat.push(...before);
-      return { ok: false, error: `bridge finalize 严格保存失败：${error?.message ||String(error)}`, diagnosticCode: 'bridge_finalize_failed' };
+      return { ok: false, error: `Lưu nghiêm ngặt bridge finalize thất bại: ${error?.message ||String(error)}`, diagnosticCode: 'bridge_finalize_failed' };
     }
     logDebug_ACU(`[ManualCatchUpBridge] 已原子汇合：runId=${runId}, originalFull=${bridge.originalFullCheckpointIndex}, sheets=${bridge.selectedSheetKeys.join('、')}, cleanup=${cleanupEvidence.length}。`);
     scheduleSummaryVectorMirrorFlushAfterPersist_ACU({
@@ -855,10 +855,10 @@ export async function rollbackProvisionalBridge_ACU(
     const bridge = readActiveProvisionalBridge_ACU(chat, isolationKey);
     if (!bridge) return { ok: true };
     if (bridge.runId !== runId) {
-      return { ok: false, error: `provisional bridge runId 不匹配：expected=${bridge.runId}, actual=${runId}。` };
+      return { ok: false, error: `runId của provisional bridge không khớp: expected=${bridge.runId}, actual=${runId}. ` };
     }
     if (bridge.lastCommittedTargetIndex >= 0) {
-      return { ok: false, error: `provisional bridge 已有 ${bridge.lastCommittedTargetIndex + 1} 个已提交 bucket，禁止回滚；请先 finalize。` };
+      return { ok: false, error: `provisional bridge đã có ${bridge.lastCommittedTargetIndex + 1} bucket đã commit, cấm hoàn tác; hãy finalize trước.` };
     }
     const scopeCheck = assertBridgeScopeMatchesLiveChat_ACU(bridge, chat);
     if (!scopeCheck.ok) {
@@ -868,7 +868,7 @@ export async function rollbackProvisionalBridge_ACU(
     const candidateChat = JSON.parse(JSON.stringify(chat)) as any[];
     // 恢复原 full frame。
     const originalMessage = candidateChat[bridge.originalFullCheckpointIndex];
-    if (!originalMessage) return { ok: false, error: 'rollback 未找到原 full 楼层。' };
+    if (!originalMessage) return { ok: false, error: 'rollback không tìm thấy tầng full ban đầu.' };
     const originalContainer = readIsolatedDataContainer_ACU(originalMessage) || {};
     const originalTagData = isV2TagData_ACU(originalContainer[isolationKey])
       ? JSON.parse(JSON.stringify(originalContainer[isolationKey]))
@@ -899,7 +899,7 @@ export async function rollbackProvisionalBridge_ACU(
     } catch (error: any) {
       chat.length = 0;
       chat.push(...before);
-      return { ok: false, error: `provisional bridge rollback 严格保存失败：${error?.message || String(error)}` };
+      return { ok: false, error: `Lưu nghiêm ngặt rollback provisional bridge thất bại: ${error?.message || String(error)}` };
     }
     logDebug_ACU(`[ManualCatchUpBridge] 已回滚 provisional bridge：runId=${runId}。`);
     return { ok: true };
@@ -944,7 +944,7 @@ export async function ensureNoActiveProvisionalBridgeForCurrentScope_ACU(
   if (hasActiveProvisionalBridgeAnywhere_ACU(chat)) {
     return {
       ok: false,
-      error: '检测到其他隔离键存在 active provisional bridge session；当前作用域无法安全恢复，已阻止写入。请切换回原会话完成汇合/回滚后再操作。',
+      error: 'Phát hiện khóa cô lập khác có active provisional bridge session; phạm vi hiện tại không thể khôi phục an toàn, đã chặn ghi. Hãy chuyển về phiên ban đầu để hoàn tất hợp nhất/hoàn tác rồi mới thao tác.',
       recoveryRequired: true,
     };
   }
@@ -978,7 +978,7 @@ export async function recoverProvisionalBridgeSession_ACU(
 
   const validation = validateProvisionalBridge_ACU(bridge);
   if (!validation.valid) {
-    return { ok: false, error: `provisional bridge 结构非法，无法自动恢复：${validation.error}`, recoveryRequired: true };
+    return { ok: false, error: `Cấu trúc provisional bridge không hợp lệ, không thể khôi phục tự động: ${validation.error}`, recoveryRequired: true };
   }
   const scopeCheck = assertBridgeScopeMatchesLiveChat_ACU(bridge, chat);
   if (!scopeCheck.ok) {

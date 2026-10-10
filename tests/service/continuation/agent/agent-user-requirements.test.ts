@@ -27,7 +27,7 @@ describe('续写用户要求资料区', () => {
 
   it('渲染空清单时回退 originInstruction；两者都空时给占位句', () => {
     const empty = buildEmptyAgentModuleSnapshot_ACU();
-    expect(renderAgentUserRequirements_ACU(empty, '')).toBe('（用户尚未提出任务要求）');
+    expect(renderAgentUserRequirements_ACU(empty, '')).toBe('(Người dùng chưa nêu yêu cầu cho tác vụ)');
     expect(renderAgentUserRequirements_ACU(empty, '  推进禁区  ')).toBe('- 推进禁区');
     const filled = applyAgentUserRequirementsReplace_ACU(empty, ['不要揭底牌', '用第一人称']);
     expect(filled.revisions.userRequirements).toBe(1);

@@ -78,7 +78,7 @@ function isTaskAbortedError_ACU(error: unknown): boolean {
       if (options.unmaskedCompatibility !== true && runtimeResult?.failedResults?.length && runtimeResult.finalMessage) {
         return {
           success: false, blocked: true, errorType: 'partial_failure',
-          errorMessage: '剧情任务未全部通过验收，正文发送已停止。',
+          errorMessage: 'Không phải tất cả tác vụ cốt truyện đều qua nghiệm thu, đã dừng gửi nội dung chính.',
         };
       }
       if (!runtimeResult?.finalMessage) {
@@ -87,7 +87,7 @@ function isTaskAbortedError_ACU(error: unknown): boolean {
             success: false,
             apiRetriesExhausted: true,
             errorType: 'api_retries_exhausted',
-            errorMessage: runtimeResult.errorMessage || '剧情任务 API 调用失败且已耗尽重试次数。',
+            errorMessage: runtimeResult.errorMessage || 'Gọi API của tác vụ cốt truyện thất bại và đã hết số lần thử lại.',
           };
         }
         if (runtimeResult?.abortedByStageFailure) {
@@ -95,7 +95,7 @@ function isTaskAbortedError_ACU(error: unknown): boolean {
             success: false,
             blocked: true,
             errorType: 'stage_failure',
-            errorMessage: runtimeResult.errorMessage || `剧情任务阶段 ${runtimeResult.failedStage ?? '?'} 执行失败，后续阶段已停止。`,
+            errorMessage: runtimeResult.errorMessage || `Giai đoạn ${runtimeResult.failedStage ?? '?'} của tác vụ cốt truyện thực thi thất bại, các giai đoạn sau đã dừng.`,
             failedStage: runtimeResult.failedStage,
             enabledTaskCount: runtimeResult.enabledTaskCount,
             successCount: runtimeResult.successfulResults?.length ?? 0,
@@ -106,14 +106,14 @@ function isTaskAbortedError_ACU(error: unknown): boolean {
             success: false,
             blocked: true,
             errorType: 'all_failed',
-            errorMessage: `共 ${runtimeResult.enabledTaskCount} 个剧情任务均未返回有效结果，正文发送已停止。`,
+            errorMessage: `Cả ${runtimeResult.enabledTaskCount} tác vụ cốt truyện đều không trả về kết quả hợp lệ, đã dừng gửi nội dung chính.`,
             enabledTaskCount: runtimeResult.enabledTaskCount,
           };
         } else {
           return {
             success: false,
             errorType: 'no_tasks',
-            errorMessage: '当前没有可执行的剧情任务。',
+            errorMessage: 'Hiện không có tác vụ cốt truyện nào có thể thực thi.',
             enabledTaskCount: 0,
           };
         }
@@ -149,7 +149,7 @@ function isTaskAbortedError_ACU(error: unknown): boolean {
           success: false,
           blocked: true,
           errorType: 'worldbook_preflight_failure',
-          errorMessage: '剧情推进的世界书预检失败，请检查绑定/选择的世界书。',
+          errorMessage: 'Kiểm tra trước Sổ thế giới của đẩy cốt truyện thất bại, hãy kiểm tra Sổ thế giới đã liên kết/chọn.',
         };
       }
       logError_ACU('[剧情推进] 在核心优化逻辑中发生错误:', {
@@ -163,7 +163,7 @@ function isTaskAbortedError_ACU(error: unknown): boolean {
         success: false,
         blocked: true,
         errorType: 'exception',
-        errorMessage: '剧情规划大师在处理时发生错误。',
+        errorMessage: 'Bậc thầy lập kế hoạch cốt truyện gặp lỗi khi xử lý.',
       };
     } finally {
         planningGuard_ACU.inProgress = false;

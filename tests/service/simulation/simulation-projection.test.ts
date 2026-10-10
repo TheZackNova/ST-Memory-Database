@@ -21,7 +21,7 @@ describe('world simulation projection format', () => {
       '<!-- qrf-world-simulation-projection:v2:start -->',
       '<div hidden class="qrf-world-simulation-projection" style="display:none">',
       '<与此同时>',
-      '【此地此刻】\n- 掌柜压低声音\n【世界暗流】\n- 远处钟声响起',
+      '【Nơi đây lúc này】\n- 掌柜压低声音\n【Dòng ngầm thế giới】\n- 远处钟声响起',
       '</与此同时>',
       '</div>',
       '<!-- qrf-world-simulation-projection:v2:end -->',
@@ -30,15 +30,15 @@ describe('world simulation projection format', () => {
 
   it('自定义格式替换 $WORLD_SIGNALS，起止标记仍在最外层，可被剥离与替换', () => {
     const projection = buildWorldSimulationProjection_ACU(ledger(), '<details><summary>与此同时</summary>\n$WORLD_SIGNALS\n</details>')!;
-    expect(projection).toBe('<!-- qrf-world-simulation-projection:v2:start -->\n<details><summary>与此同时</summary>\n【此地此刻】\n- 掌柜压低声音\n【世界暗流】\n- 远处钟声响起\n</details>\n<!-- qrf-world-simulation-projection:v2:end -->');
+    expect(projection).toBe('<!-- qrf-world-simulation-projection:v2:start -->\n<details><summary>与此同时</summary>\n【Nơi đây lúc này】\n- 掌柜压低声音\n【Dòng ngầm thế giới】\n- 远处钟声响起\n</details>\n<!-- qrf-world-simulation-projection:v2:end -->');
     expect(applyWorldSimulationProjection_ACU(applyWorldSimulationProjection_ACU('正文', projection), null)).toBe('正文');
   });
 
   it('不合法的格式校验报错，生成时回落到默认格式', () => {
     expect(worldSimulationProjectionTemplateError_ACU(DEFAULT_WORLD_SIMULATION_PROJECTION_TEMPLATE_ACU)).toBeNull();
     expect(worldSimulationProjectionTemplateError_ACU('没有占位符')).toContain('$WORLD_SIGNALS');
-    expect(worldSimulationProjectionTemplateError_ACU('$WORLD_SIGNALS $WORLD_SIGNALS')).toContain('恰好包含一次');
-    expect(worldSimulationProjectionTemplateError_ACU('<!-- qrf-world-simulation-projection:v2:end -->$WORLD_SIGNALS')).toContain('起止标记');
+    expect(worldSimulationProjectionTemplateError_ACU('$WORLD_SIGNALS $WORLD_SIGNALS')).toContain('đúng một lần');
+    expect(worldSimulationProjectionTemplateError_ACU('<!-- qrf-world-simulation-projection:v2:end -->$WORLD_SIGNALS')).toContain('bắt đầu/kết thúc');
     expect(buildWorldSimulationProjection_ACU(ledger(), '没有占位符')).toBe(buildWorldSimulationProjection_ACU(ledger()));
   });
 
@@ -62,8 +62,8 @@ describe('world simulation projection', () => {
     const first = applyWorldSimulationProjection_ACU(`正文\n\n${userBlock}`, projection);
     expect(first).toContain(userBlock);
     expect(first).toContain('远处钟声响起');
-    expect(first).toContain('【世界暗流】');
-    expect(first).not.toContain('【此地此刻】');
+    expect(first).toContain('【Dòng ngầm thế giới】');
+    expect(first).not.toContain('【Nơi đây lúc này】');
     ledger.guidance.signals = [{ text: '新的信号', voice: 'ambient' }];
     const replaced = applyWorldSimulationProjection_ACU(first, buildWorldSimulationProjection_ACU(ledger));
     expect(replaced).toContain(userBlock);
@@ -93,16 +93,16 @@ describe('world simulation projection', () => {
     ];
     const projection = buildWorldSimulationProjection_ACU(ledger)!;
     expect(projection).toContain('qrf-world-simulation-projection:v2:start');
-    expect(projection.indexOf('【此地此刻】')).toBeLessThan(projection.indexOf('【风闻轶事】'));
-    expect(projection.indexOf('【风闻轶事】')).toBeLessThan(projection.indexOf('【世界暗流】'));
+    expect(projection.indexOf('【Nơi đây lúc này】')).toBeLessThan(projection.indexOf('【Phong văn dật sự】'));
+    expect(projection.indexOf('【Phong văn dật sự】')).toBeLessThan(projection.indexOf('【Dòng ngầm thế giới】'));
     expect(projection).toContain('- 矿难当面');
     expect(projection).toContain('- 客栈传闻');
     expect(projection).toContain('- 远处钟声');
     ledger.guidance.signals = [{ text: '矿难当面', voice: 'encounter' }];
     const encounterOnly = buildWorldSimulationProjection_ACU(ledger)!;
-    expect(encounterOnly).toContain('【此地此刻】');
-    expect(encounterOnly).not.toContain('【风闻轶事】');
-    expect(encounterOnly).not.toContain('【世界暗流】');
+    expect(encounterOnly).toContain('【Nơi đây lúc này】');
+    expect(encounterOnly).not.toContain('【Phong văn dật sự】');
+    expect(encounterOnly).not.toContain('【Dòng ngầm thế giới】');
   });
 
   it('同时清理 v1 与 v2 块', () => {

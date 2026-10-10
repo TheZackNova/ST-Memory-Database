@@ -19,12 +19,12 @@
           <AcuIconButton
             v-if="showBack"
             icon="fa-solid fa-arrow-left"
-            title="返回"
+            title="Quay lại"
             @click="requestBack"
           />
           <h3>{{ title }}</h3>
         </div>
-        <AcuIconButton icon="fa-solid fa-xmark" aria-label="关闭" title="关闭" @click="requestClose" />
+        <AcuIconButton icon="fa-solid fa-xmark" aria-label="Đóng" title="Đóng" @click="requestClose" />
       </header>
       <div class="acu-v2-drawer__body">
         <slot />

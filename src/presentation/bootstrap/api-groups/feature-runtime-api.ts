@@ -15,7 +15,7 @@ const clone_ACU = <T>(value: T): T => (value === null || value === undefined ? v
 
 /** 补丁只合并顶层键；嵌套对象（如 dynamics、projection）整体替换，再交给原有校验。 */
 function mergeSettings_ACU<T extends object>(current: T, patch: unknown): T {
-  if (!patch || typeof patch !== 'object' || Array.isArray(patch)) throw new TypeError('设置补丁必须是对象');
+  if (!patch || typeof patch !== 'object' || Array.isArray(patch)) throw new TypeError('Bản vá cài đặt phải là một đối tượng');
   return { ...structuredClone(current), ...structuredClone(patch as Partial<T>) };
 }
 
@@ -42,9 +42,9 @@ function readFeatureToggles_ACU(): Record<FeatureToggleKey_ACU, boolean> {
 
 function setFeatureToggle_ACU(key: string, value: unknown): Record<FeatureToggleKey_ACU, boolean> {
   if (!Object.prototype.hasOwnProperty.call(FEATURE_TOGGLE_DEFAULTS_ACU, key)) {
-    throw new RangeError(`不支持的功能开关：${key}；可用：${Object.keys(FEATURE_TOGGLE_DEFAULTS_ACU).join('、')}`);
+    throw new RangeError(`Công tắc chức năng không được hỗ trợ: ${key}; khả dụng: ${Object.keys(FEATURE_TOGGLE_DEFAULTS_ACU).join(', ')}`);
   }
-  if (typeof value !== 'boolean') throw new TypeError('功能开关的值必须是 true 或 false');
+  if (typeof value !== 'boolean') throw new TypeError('Giá trị của công tắc chức năng phải là true hoặc false');
   if (key === 'autoUpdateEnabled') {
     setAutoUpdateEnabled_ACU(value);
   } else {
@@ -63,7 +63,7 @@ function createWorldSimulationApi_ACU() {
     getSettings: settings,
     async updateSettings(patch: Partial<WorldSimulationSettings_ACU>): Promise<WorldSimulationSettings_ACU | null> {
       const current = envelope()?.settings;
-      if (!current) throw new Error('当前聊天还没有格林推演资料，请先打开格林推演页完成初始化');
+      if (!current) throw new Error('Cuộc trò chuyện hiện tại chưa có dữ liệu mô phỏng thế giới, hãy mở trang mô phỏng thế giới để khởi tạo trước');
       await runtime().saveSettings(mergeSettings_ACU(current, patch));
       return settings();
     },
@@ -85,7 +85,7 @@ function createContinuationApi_ACU() {
     getSettings: settings,
     async updateSettings(patch: Partial<ContinuationSettings_ACU>): Promise<ContinuationSettings_ACU> {
       const current = runtime().read()?.settings;
-      if (!current) throw new Error('当前聊天还没有智能续写资料，请先打开智能续写页完成初始化');
+      if (!current) throw new Error('Cuộc trò chuyện hiện tại chưa có dữ liệu viết tiếp thông minh, hãy mở trang viết tiếp thông minh để khởi tạo trước');
       const saved = await runtime().orchestrator.replaceSettings({ settings: mergeSettings_ACU(current, patch) });
       return clone_ACU(saved.settings);
     },

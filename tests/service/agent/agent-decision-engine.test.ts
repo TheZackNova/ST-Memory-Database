@@ -169,10 +169,10 @@ describe('runAgentDecisionForPlot_ACU', () => {
     expect(result.effectiveTasks).toHaveLength(1);
     expect(result.effectiveTasks[0].id).toBe('selectable_task');
     const messages = mockCallAIWithPreset.mock.calls[0][0];
-    expect(messages[0].content).toContain('P=【最近上下文 AI层 1】');
+    expect(messages[0].content).toContain('P=【Ngữ cảnh gần nhất tầng AI 1】');
     expect(messages[0].content).toContain('用户: 第二层用户输入');
-    expect(messages[0].content).toContain('剧情推进记录: 第二层剧情规划');
-    expect(messages[0].content).toContain('R=【最近上下文 AI层 1】');
+    expect(messages[0].content).toContain('Bản ghi đẩy cốt truyện: 第二层剧情规划');
+    expect(messages[0].content).toContain('R=【Ngữ cảnh gần nhất tầng AI 1】');
     expect(messages[0].content).toContain('角色: 第二层AI回复');
     expect(messages[0].content).not.toContain('第一层用户输入');
     expect(messages[0].content).not.toContain('第一层AI回复');
@@ -183,12 +183,12 @@ describe('runAgentDecisionForPlot_ACU', () => {
     expect(messages[0].content).toContain('"index": 1');
     expect(messages[0].content).toContain('"tk": 167');
     expect(messages[0].content).toContain('"tokenEstimate": 167');
-    expect(messages[0].content).toContain('预计消耗 167 Token');
+    expect(messages[0].content).toContain('Dự kiến tiêu tốn 167 Token');
     expect(messages[0].content).toContain('"description": "陈默人物 Skill 描述"');
     expect(messages[0].content).toContain('"triggerWhen": "陈默触发条件"');
     expect(messages[0].content).toContain('"unit": "Token"');
     expect(messages[0].content).toContain('"max": 80000');
-    expect(messages[0].content).toContain('相关条目足够时尽可能超过 min');
+    expect(messages[0].content).toContain('khi có đủ mục liên quan thì cố gắng vượt min');
     expect(messages[0].content).not.toContain('陈默人物档案');
     expect(messages[0].content).not.toContain('ACU_SKILL_META_START');
     expect(messages[0].content).not.toContain('"keys"');
@@ -221,7 +221,7 @@ describe('runAgentDecisionForPlot_ACU', () => {
     expect(result.finalGenerationGreenlights).toEqual([{ bookName: '剧情书', uid: 12, reason: '最终生成' }]);
     const promptText = mockCallAIWithPreset.mock.calls[0][0].map((message: any) => String(message.content || '')).join('\n');
     expect(promptText).toContain('陈默人物档案');
-    expect(promptText).toContain('关键词：陈默');
+    expect(promptText).toContain('Từ khóa: 陈默');
   });
 
   it('uses snapshot entries with empty Skill metadata as fallback decision candidates', async () => {
@@ -248,7 +248,7 @@ describe('runAgentDecisionForPlot_ACU', () => {
     expect(result.finalGenerationGreenlights).toEqual([{ bookName: '剧情书', uid: 12, reason: '最终生成' }]);
     const promptText = mockCallAIWithPreset.mock.calls[0][0].map((message: any) => String(message.content || '')).join('\n');
     expect(promptText).toContain('陈默人物档案');
-    expect(promptText).toContain('关键词：陈默');
+    expect(promptText).toContain('Từ khóa: 陈默');
     expect(promptText).not.toContain('ACU_SKILL_META_START');
     expect(mockCallAIWithPreset).toHaveBeenCalledTimes(1);
   });
@@ -277,7 +277,7 @@ describe('runAgentDecisionForPlot_ACU', () => {
     expect(result.finalGenerationGreenlights).toEqual([{ bookName: '剧情书', uid: 12, reason: '最终生成' }]);
     const promptText = mockCallAIWithPreset.mock.calls[0][0].map((message: any) => String(message.content || '')).join('\n');
     expect(promptText).toContain('陈默人物档案');
-    expect(promptText).toContain('关键词：陈默');
+    expect(promptText).toContain('Từ khóa: 陈默');
     expect(promptText).not.toContain('ACU_AGENT_WORLDBOOK_TAKEOVER_META');
     expect(promptText).not.toContain('agent_worldbook_takeover');
     expect(promptText).not.toContain('"version":1');
@@ -320,10 +320,10 @@ describe('runAgentDecisionForPlot_ACU', () => {
 
     expect(result.active).toBe(true);
     const messages = mockCallAIWithPreset.mock.calls[0][0];
-    expect(messages[0].content).toContain('P=【最近上下文 AI层 1】');
+    expect(messages[0].content).toContain('P=【Ngữ cảnh gần nhất tầng AI 1】');
     expect(messages[0].content).toContain('用户: 第二层用户输入');
-    expect(messages[0].content).toContain('剧情推进记录: 【main】\n第二层任务剧情规划');
-    expect(messages[0].content).toContain('R=【最近上下文 AI层 1】');
+    expect(messages[0].content).toContain('Bản ghi đẩy cốt truyện: 【main】\n第二层任务剧情规划');
+    expect(messages[0].content).toContain('R=【Ngữ cảnh gần nhất tầng AI 1】');
     expect(messages[0].content).not.toContain('第一层剧情规划');
     expect(messages[0].content).not.toContain('第一层用户输入');
   });
@@ -363,10 +363,10 @@ describe('runAgentDecisionForPlot_ACU', () => {
 
     expect(result.active).toBe(true);
     const messages = mockCallAIWithPreset.mock.calls[0][0];
-    expect(messages[0].content).toContain('【最近上下文 AI层 1】');
+    expect(messages[0].content).toContain('【Ngữ cảnh gần nhất tầng AI 1】');
     expect(messages[0].content).not.toContain('第二层用户输入');
     expect(messages[0].content).toContain('第二层AI回复');
-    expect(messages[0].content).toContain('【最近上下文 AI层 2】');
+    expect(messages[0].content).toContain('【Ngữ cảnh gần nhất tầng AI 2】');
     expect(messages[0].content).toContain('第三层用户输入');
     expect(messages[0].content).toContain('第三层AI回复');
     expect(messages[0].content).not.toContain('第一层用户输入');

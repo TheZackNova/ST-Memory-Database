@@ -51,10 +51,10 @@ describe('useTemplateRecoveryGuard', () => {
     await Promise.resolve();
     const dialog = useDialogStore();
 
-    expect(dialog.active?.title).toBe('当前聊天历史恢复失败');
-    expect(dialog.active?.message).toContain('已保留当前标识本地数据');
+    expect(dialog.active?.title).toBe('Khôi phục lịch sử cuộc trò chuyện hiện tại thất bại');
+    expect(dialog.active?.message).toContain('đã giữ lại dữ liệu cục bộ của mã hiện tại');
     expect(dialog.active?.message).toContain('CHECK constraint failed');
-    expect(dialog.active?.confirmLabel).toBe('知道了');
+    expect(dialog.active?.confirmLabel).toBe('Đã hiểu');
 
     dialog.submitActive();
     await expect(pending).resolves.toEqual({ success: false, dataWasReset: false });
@@ -77,10 +77,10 @@ describe('useTemplateRecoveryGuard', () => {
     await Promise.resolve();
     const dialog = useDialogStore();
 
-    expect(dialog.active?.title).toBe('当前 V2 历史需要恢复收敛');
-    expect(dialog.active?.message).toContain('数据管理中诊断并完成恢复收敛');
+    expect(dialog.active?.title).toBe('Lịch sử V2 hiện tại cần hội tụ khôi phục');
+    expect(dialog.active?.message).toContain('chẩn đoán và hoàn tất hội tụ khôi phục');
     expect(dialog.active?.message).toContain('sheet_global');
-    expect(dialog.active?.dangerMessage).toContain('不会保存或切换模板');
+    expect(dialog.active?.dangerMessage).toContain('sẽ không lưu hay chuyển mẫu');
 
     dialog.submitActive();
     await expect(pending).resolves.toEqual({ success: false, dataWasReset: false });

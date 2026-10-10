@@ -32,7 +32,7 @@ export function sameWorldSimulationTargetRef_ACU(left: WorldSimulationCompletedA
 export function requireWorldSimulationHostAnchor_ACU(anchor: WorldSimulationTargetAnchor_ACU): WorldSimulationAnchorIdentity_ACU {
   if ('logicalRef' in anchor || ('kind' in anchor && anchor.kind !== undefined && anchor.kind !== 'host')) {
     throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-      'WORLD_SIMULATION_ANCHOR_INVALID', 'anchor', '宿主楼层入口不接受逻辑锚点', false));
+      'WORLD_SIMULATION_ANCHOR_INVALID', 'anchor', 'Cổng tầng của host không chấp nhận neo logic', false));
   }
   return anchor as WorldSimulationAnchorIdentity_ACU;
 }
@@ -40,7 +40,7 @@ export function requireWorldSimulationHostAnchor_ACU(anchor: WorldSimulationTarg
 export function assertWorldSimulationHostRun_ACU(run: WorldSimulationRunIdentity_ACU): asserts run is WorldSimulationHostRunIdentity_ACU {
   if ('logicalRef' in run || (run.kind !== undefined && run.kind !== 'host')) {
     throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-      'WORLD_SIMULATION_ANCHOR_INVALID', 'anchor', '宿主推演入口不接受逻辑运行身份', false));
+      'WORLD_SIMULATION_ANCHOR_INVALID', 'anchor', 'Cổng mô phỏng của host không chấp nhận danh tính chạy logic', false));
   }
 }
 
@@ -51,6 +51,6 @@ export function assertWorldSimulationHostEnvelope_ACU(envelope: WorldSimulationE
   if (completed?.kind === 'logical' || (completed && 'logicalRef' in completed)
     || envelope.ledger.pendingFixes.some(item => item.anchor && 'logicalRef' in item.anchor)) {
     throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-      'WORLD_SIMULATION_ANCHOR_INVALID', 'anchor', '宿主推演存储不接受逻辑状态', false));
+      'WORLD_SIMULATION_ANCHOR_INVALID', 'anchor', 'Kho lưu trữ mô phỏng của host không chấp nhận trạng thái logic', false));
   }
 }

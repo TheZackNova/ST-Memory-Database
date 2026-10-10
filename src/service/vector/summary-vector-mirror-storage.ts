@@ -49,7 +49,7 @@ function encodeVectorToF32B64_ACU(vector: number[]): string {
     for (let index = 0; index < vector.length; index += 1) {
         const numeric = Number(vector[index]);
         if (!Number.isFinite(numeric)) {
-            throw new Error(`镜像向量包含非有限数值，拒绝编码: index=${index}`);
+            throw new Error(`Vector bản sao chứa giá trị không hữu hạn, từ chối mã hóa: index=${index}`);
         }
         view.setFloat32(index * 4, numeric, true);
     }
@@ -57,7 +57,7 @@ function encodeVectorToF32B64_ACU(vector: number[]): string {
     for (let offset = 0; offset < bytes.length; offset += 1) {
         binary += String.fromCharCode(bytes[offset]);
     }
-    if (typeof globalThis.btoa !== 'function') throw new Error('当前环境缺少 btoa，无法编码镜像向量。');
+    if (typeof globalThis.btoa !== 'function') throw new Error('Môi trường hiện tại thiếu btoa, không thể mã hóa vector bản sao.');
     return globalThis.btoa(binary);
 }
 
@@ -66,10 +66,10 @@ export function encodeSummaryVectorMirrorVector_ACU(vector: number[]): string {
 }
 
 export function decodeSummaryVectorMirrorVector_ACU(encoded: string): Float32Array {
-    if (typeof globalThis.atob !== 'function') throw new Error('当前环境缺少 atob，无法解码镜像向量。');
+    if (typeof globalThis.atob !== 'function') throw new Error('Môi trường hiện tại thiếu atob, không thể giải mã vector bản sao.');
     const binary = globalThis.atob(String(encoded || ''));
     if (binary.length % 4 !== 0) {
-        throw new Error(`镜像向量 f32b64 字节长度非法: bytes=${binary.length}`);
+        throw new Error(`Độ dài byte f32b64 của vector bản sao không hợp lệ: bytes=${binary.length}`);
     }
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i) & 0xff;
@@ -120,7 +120,7 @@ export async function persistSummaryVectorMirrorPackPrepared_ACU(
     const existing = await readVectorIndexJsonFile_ACU<SummaryVectorIndexContentPackBlob_ACU>(path);
     if (existing.ok && existing.data) {
         if (existing.data.schema !== SUMMARY_VECTOR_INDEX_CONTENT_PACK_SCHEMA_ACU || String(existing.data.packKey || '') !== packHash) {
-            throw new Error(`镜像 pack 路径冲突：path=${path} 已存在但内容与 packHash=${packHash} 不一致。`);
+            throw new Error(`Xung đột đường dẫn pack bản sao: path=${path} đã tồn tại nhưng nội dung không khớp packHash=${packHash}.`);
         }
         const json = JSON.stringify(existing.data);
         const file: SummaryVectorIndexExternalFileRef_ACU = {
@@ -150,7 +150,7 @@ export async function persistSummaryVectorMirrorPackPrepared_ACU(
         status: 'ready',
     });
     if (!uploaded.ok || !uploaded.ref) {
-        throw new Error(uploaded.error || `镜像 pack 上传失败: ${path}`);
+        throw new Error(uploaded.error || `Tải lên pack bản sao thất bại: ${path}`);
     }
     uploaded.ref.scope = scope;
     uploaded.ref.publicationState = 'prepared';
@@ -192,7 +192,7 @@ export async function persistSummaryVectorMirrorManifestPrepared_ACU(params: {
         status: 'ready',
     });
     if (!uploaded.ok || !uploaded.ref) {
-        throw new Error(uploaded.error || `镜像 checkpoint manifest 上传失败: ${path}`);
+        throw new Error(uploaded.error || `Tải lên checkpoint manifest bản sao thất bại: ${path}`);
     }
     uploaded.ref.scope = scope;
     uploaded.ref.publicationState = 'prepared';

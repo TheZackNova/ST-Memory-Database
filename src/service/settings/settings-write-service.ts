@@ -73,7 +73,7 @@ export function withSettingsWrite_ACU(
       ok: false,
       code: 'invalid_input',
       changed: false,
-      message: options.message || '设置写入失败：输入无效。',
+      message: options.message || 'Ghi cài đặt thất bại: đầu vào không hợp lệ.',
     };
   }
   const saveResult = saveSettings_ACU();
@@ -84,7 +84,7 @@ export function withSettingsWrite_ACU(
       code: saveResult.code === 'settings_loading' ? 'settings_loading' : 'save_failed',
       changed: mutated,
       saveResult,
-      message: saveResult.warning || saveResult.error || '保存失败，已回滚。',
+      message: saveResult.warning || saveResult.error || 'Lưu thất bại, đã khôi phục.',
     };
   }
   return { ok: true, code: 'ok', changed: mutated, saveResult };
@@ -95,7 +95,7 @@ export function withSettingsWrite_ACU(
 /** 切换 storageMode + 重置填表提示词（与 provider 切换解耦；provider 失败由调用方回滚） */
 export function setStorageMode_ACU(mode: 'native' | 'sqlite'): SettingsWriteResult_ACU {
   if (mode !== 'native' && mode !== 'sqlite') {
-    return { ok: false, code: 'invalid_input', changed: false, message: '存储模式无效。' };
+    return { ok: false, code: 'invalid_input', changed: false, message: 'Chế độ lưu trữ không hợp lệ.' };
   }
   if (getCurrentStorageMode() === mode) {
     return { ok: true, code: 'ok', changed: false };
@@ -159,7 +159,7 @@ export function setUpdateNumberFields_ACU(
   for (const key of keys) {
     const normalized = normalizeUpdateNumber_ACU(key, patch[key]);
     if (normalized === null) {
-      return { ok: false, code: 'invalid_input', changed: false, message: `字段 ${key} 数值无效。` };
+      return { ok: false, code: 'invalid_input', changed: false, message: `Giá trị của trường ${key} không hợp lệ.` };
     }
     normalizedMap[key] = normalized;
   }
@@ -270,7 +270,7 @@ export function resetAllPromptsToDefault_ACU(
   options: { save?: boolean } = {},
 ): SettingsWriteResult_ACU {
   if (mode !== 'native' && mode !== 'sqlite') {
-    return { ok: false, code: 'invalid_input', changed: false, message: '存储模式无效。' };
+    return { ok: false, code: 'invalid_input', changed: false, message: 'Chế độ lưu trữ không hợp lệ.' };
   }
   const applyDefaults = () => {
     settings_ACU.charCardPrompt = currentTableFillDefaultPrompt_ACU(mode);
@@ -283,7 +283,7 @@ export function resetAllPromptsToDefault_ACU(
       applyDefaults();
       return { ok: true, code: 'ok', changed: true };
     } catch (e) {
-      return { ok: false, code: 'invalid_input', changed: false, message: '恢复默认提示词失败：输入无效。' };
+      return { ok: false, code: 'invalid_input', changed: false, message: 'Khôi phục prompt mặc định thất bại: đầu vào không hợp lệ.' };
     }
   }
   return withSettingsWrite_ACU(['charCardPrompt', 'mergeSummaryPrompt'], applyDefaults);
@@ -299,7 +299,7 @@ export function setMergeSummaryPrompt_ACU(prompt: unknown): SettingsWriteResult_
 
 export function resetMergeSummaryPrompt_ACU(mode: 'native' | 'sqlite' = getCurrentStorageMode()): SettingsWriteResult_ACU {
   if (mode !== 'native' && mode !== 'sqlite') {
-    return { ok: false, code: 'invalid_input', changed: false, message: '存储模式无效。' };
+    return { ok: false, code: 'invalid_input', changed: false, message: 'Chế độ lưu trữ không hợp lệ.' };
   }
   return withSettingsWrite_ACU(['mergeSummaryPrompt'], () => {
     settings_ACU.mergeSummaryPrompt = JSON.parse(JSON.stringify(

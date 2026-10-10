@@ -76,12 +76,12 @@
               {{ action.label }}
             </AcuButton>
             <AcuButton @click="dialog.cancelActive">
-              {{ renderedDialog.cancelLabel || "取消" }}
+              {{ renderedDialog.cancelLabel || "Hủy" }}
             </AcuButton>
           </template>
           <template v-else>
             <AcuButton v-if="renderedDialog.kind !== 'alert'" @click="dialog.cancelActive">
-              {{ renderedDialog.cancelLabel || "取消" }}
+              {{ renderedDialog.cancelLabel || "Hủy" }}
             </AcuButton>
             <AcuButton
               :variant="renderedDialog.confirmVariant || 'primary'"
@@ -89,8 +89,8 @@
               @click="dialog.submitActive()"
             >
               {{ dialog.confirmCountdownRemaining > 0
-                ? `${renderedDialog.confirmLabel || "确认"}（${dialog.confirmCountdownRemaining}s）`
-                : (renderedDialog.confirmLabel || "确认") }}
+                ? `${renderedDialog.confirmLabel || "Xác nhận"}（${dialog.confirmCountdownRemaining}s）`
+                : (renderedDialog.confirmLabel || "Xác nhận") }}
             </AcuButton>
           </template>
         </footer>

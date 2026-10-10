@@ -78,7 +78,7 @@ function splitLines_ACU(text: string): string[] {
 function collectStoryLines_ACU(context: AgentResolveContext_ACU): AgentSearchLine_ACU[] {
   return listAgentStoryWindowFloors_ACU(context).flatMap(floor =>
     splitLines_ACU(floor.text).map((line, lineIndex) => ({
-      label: `楼层${floor.index} 第${lineIndex + 1}行`,
+      label: `Tầng ${floor.index} dòng ${lineIndex + 1}`,
       address: `$STORY_RANGE:${floor.index}-${floor.index}`,
       text: line,
     })));
@@ -97,7 +97,7 @@ function collectTableLines_ACU(context: AgentResolveContext_ACU): AgentSearchLin
       if (!Array.isArray(row)) return;
       const rowNumber = rowIndex + 1;
       lines.push({
-        label: `${name} 第${rowNumber}行`,
+        label: `${name} hàng ${rowNumber}`,
         address: `$TABLE:${name}:${rowNumber}-${rowNumber}`,
         text: row.map(cell => String(cell ?? '').trim()).join(' | '),
       });
@@ -111,7 +111,7 @@ function collectModuleLines_ACU(context: AgentResolveContext_ACU): AgentSearchLi
   const lines: AgentSearchLine_ACU[] = [];
   for (const entry of snapshot.storyArc) {
     lines.push({
-      label: `故事总纲 [${entry.id}]${entry.retired ? '（已废止）' : ''}`,
+      label: `Tổng cương câu chuyện [${entry.id}]${entry.retired ? ' (đã bãi bỏ)' : ''}`,
       address: `$STORY_ARC:${entry.id}`,
       text: [
         entry.title,
@@ -131,40 +131,40 @@ function collectModuleLines_ACU(context: AgentResolveContext_ACU): AgentSearchLi
   }
   for (const hook of snapshot.hooks) {
     lines.push({
-      label: `伏笔账本 [${hook.id}]${hook.retired ? '（已退休）' : ''}`,
+      label: `Sổ phục bút [${hook.id}]${hook.retired ? ' (đã cho nghỉ)' : ''}`,
       address: `$HOOKS_LEDGER:${hook.id}`,
       text: [hook.summary, hook.plannedPayoff, hook.retiredReason].filter(Boolean).join('｜'),
     });
   }
   for (const entry of snapshot.infoGap) {
     lines.push({
-      label: `信息差 [${entry.id}]${entry.retired ? '（已退休）' : ''}`,
+      label: `Chênh lệch thông tin [${entry.id}]${entry.retired ? ' (đã cho nghỉ)' : ''}`,
       address: `$INFO_GAP:${entry.id}`,
       text: [entry.topic, entry.objectiveFact, entry.readerKnown, ...entry.characterKnowledge.map(item => `${item.name}=${item.knows}`)].filter(Boolean).join('｜'),
     });
   }
   for (const constraint of snapshot.constraints) {
     lines.push({
-      label: `长期约束 [${constraint.id}]`,
+      label: `Ràng buộc dài hạn [${constraint.id}]`,
       address: `$ACTIVE_CONSTRAINTS:${constraint.id}`,
       text: [constraint.text, constraint.reason].filter(Boolean).join('｜'),
     });
   }
   for (const entry of snapshot.webRefs) {
-    const head = `百科资料库 [${entry.id}]${entry.retired ? '（已退休）' : ''}`;
+    const head = `Kho tư liệu bách khoa [${entry.id}]${entry.retired ? ' (đã cho nghỉ)' : ''}`;
     const address = `$WEB_REFS:${entry.id}`;
-    lines.push({ label: `${head}（名称/简介/标签/详情）`, address, text: [entry.title, entry.brief, ...entry.tags, entry.summary].filter(Boolean).join('｜') });
+    lines.push({ label: `${head} (tên/giới thiệu/nhãn/chi tiết)`, address, text: [entry.title, entry.brief, ...entry.tags, entry.summary].filter(Boolean).join('｜') });
   }
   for (const entry of snapshot.chronology) {
     lines.push({
-      label: `故事年代学 [${entry.id}]${entry.retired ? '（已作废）' : ''}`,
+      label: `Niên đại học câu chuyện [${entry.id}]${entry.retired ? ' (đã vô hiệu)' : ''}`,
       address: `$CHRONOLOGY:${entry.id}`,
       text: [
         entry.anchor,
         entry.elapsed,
         `precision=${entry.precision}`,
         entry.transition,
-        entry.evidenceIndexes.length ? `证据楼层=${entry.evidenceIndexes.join('、')}` : '',
+        entry.evidenceIndexes.length ? `tầng bằng chứng=${entry.evidenceIndexes.join(', ')}` : '',
         entry.retiredReason,
       ].filter(Boolean).join('｜'),
     });
@@ -176,16 +176,16 @@ function collectOutlineLines_ACU(context: AgentResolveContext_ACU): AgentSearchL
   const revision = context.execution.revision;
   if (!revision) return [];
   const lines: AgentSearchLine_ACU[] = [{
-    label: '大纲 阶段标题',
+    label: 'Dàn ý, tiêu đề giai đoạn',
     address: '$OUTLINE_WINDOW',
-    text: `${revision.outline.title}｜${revision.outline.goal}｜tempo=${revision.outline.tempo}｜role=${revision.outline.role ?? '未标注'}｜timeSpan=${revision.outline.timeSpanGoal ?? '未设定'}`,
+    text: `${revision.outline.title}｜${revision.outline.goal}｜tempo=${revision.outline.tempo}｜role=${revision.outline.role ?? 'chưa đánh dấu'}｜timeSpan=${revision.outline.timeSpanGoal ?? 'chưa đặt'}`,
   }];
   for (const node of revision.outline.nodes) {
-    lines.push({ label: `大纲 节点[${node.id}]`, address: '$OUTLINE_WINDOW', text: `${node.title}｜${node.goal}` });
+    lines.push({ label: `Dàn ý, nút [${node.id}]`, address: '$OUTLINE_WINDOW', text: `${node.title}｜${node.goal}` });
     for (const turn of node.turns) {
-      const metadata = `pacing=${turn.pacing}｜function=${turn.function ?? '未标注'}｜mainline=${turn.mainlineDelta ?? '未标注'}｜time=${turn.timeAdvance ?? '未标注'}${turn.timeAnchor ? `｜anchor=${turn.timeAnchor}` : ''}`;
+      const metadata = `pacing=${turn.pacing}｜function=${turn.function ?? 'chưa đánh dấu'}｜mainline=${turn.mainlineDelta ?? 'chưa đánh dấu'}｜time=${turn.timeAdvance ?? 'chưa đánh dấu'}${turn.timeAnchor ? `｜anchor=${turn.timeAnchor}` : ''}`;
       // 搜索器匹配 text 而不是 label；元数据必须进入正文，不能只做不可检索的展示装饰。
-      lines.push({ label: `大纲 轮次[${turn.id}]`, address: '$OUTLINE_WINDOW', text: `${metadata}｜${turn.goal}` });
+      lines.push({ label: `Dàn ý, lượt [${turn.id}]`, address: '$OUTLINE_WINDOW', text: `${metadata}｜${turn.goal}` });
     }
   }
   return lines;
@@ -196,10 +196,10 @@ function collectWorldbookLines_ACU(context: AgentResolveContext_ACU): AgentSearc
   const lines: AgentSearchLine_ACU[] = [];
   for (const entry of worldbook.entries) {
     const address = `$WORLDBOOK:${entry.bookName}:${entry.uid}`;
-    const head = `世界书「${entry.bookName}」条目 ${entry.title}`;
-    lines.push({ label: `${head}（标题/关键词）`, address, text: `${entry.title}｜${entry.keys.join('、')}` });
+    const head = `Sổ thế giới "${entry.bookName}" mục ${entry.title}`;
+    lines.push({ label: `${head} (tiêu đề/từ khóa)`, address, text: `${entry.title}｜${entry.keys.join(', ')}` });
     splitLines_ACU(entry.content).forEach((line, lineIndex) => {
-      lines.push({ label: `${head} 第${lineIndex + 1}行`, address, text: line });
+      lines.push({ label: `${head} dòng ${lineIndex + 1}`, address, text: line });
     });
   }
   return lines;
@@ -214,11 +214,11 @@ const SCOPE_COLLECTORS_ACU: Record<AgentSearchScope_ACU, (context: AgentResolveC
 };
 
 const SCOPE_LABELS_ACU: Record<AgentSearchScope_ACU, string> = {
-  story: '正文',
-  tables: '表格',
-  modules: '资料模块',
-  outline: '大纲',
-  worldbook: '世界书',
+  story: 'chính văn',
+  tables: 'bảng',
+  modules: 'mô-đun tư liệu',
+  outline: 'dàn ý',
+  worldbook: 'sổ thế giới',
 };
 
 /**
@@ -229,13 +229,13 @@ const SCOPE_LABELS_ACU: Record<AgentSearchScope_ACU, string> = {
  */
 export function runAgentSearch_ACU(call: AgentSearchCall_ACU, context: AgentResolveContext_ACU): string {
   if (call.isRegex && call.query.length > SEARCH_REGEX_MAX_LENGTH_ACU) {
-    return `搜索正则过长（${call.query.length} > ${SEARCH_REGEX_MAX_LENGTH_ACU} 字符），已拒绝执行。请精简正则，或拆分为多次搜索。`;
+    return `Regex tìm kiếm quá dài (${call.query.length} > ${SEARCH_REGEX_MAX_LENGTH_ACU} ký tự), đã từ chối thực thi. Hãy rút gọn regex, hoặc tách thành nhiều lần tìm.`;
   }
   let regex: RegExp;
   try {
     regex = call.isRegex ? new RegExp(call.query, 'i') : new RegExp(escapeRegex_ACU(call.query), 'i');
   } catch (error) {
-    return `搜索正则「${call.query}」编译失败：${error instanceof Error ? error.message : String(error)}。请修正正则，或去掉 isRegex 按字面关键词搜索。`;
+    return `Regex tìm kiếm "${call.query}" biên dịch thất bại: ${error instanceof Error ? error.message : String(error)}. Hãy sửa regex, hoặc bỏ isRegex để tìm theo từ khóa nguyên văn.`;
   }
 
   const hits: AgentSearchHit_ACU[] = [];
@@ -261,13 +261,13 @@ export function runAgentSearch_ACU(call: AgentSearchCall_ACU, context: AgentReso
     }
   }
 
-  const scopeText = call.scope.map(scope => SCOPE_LABELS_ACU[scope]).join('、');
+  const scopeText = call.scope.map(scope => SCOPE_LABELS_ACU[scope]).join(', ');
   if (!hits.length) {
-    return `搜索「${call.query}」在 ${scopeText} 域内没有命中。可尝试：换更短的关键词、扩大 scope、或改用正则（isRegex: true）。注意正文只能搜到可读窗口内的楼层，更早剧情的脉络请查看事件概览或用 $TABLE:纪要表:行区间 精读。`;
+    return `Tìm "${call.query}" trong miền ${scopeText} không có kết quả khớp. Có thể thử: dùng từ khóa ngắn hơn, mở rộng scope, hoặc chuyển sang regex (isRegex: true). Lưu ý chính văn chỉ tìm được các tầng trong cửa sổ đọc được, mạch cốt truyện sớm hơn hãy xem tổng quan sự kiện hoặc dùng $TABLE:纪要表:khoảng hàng để đọc kỹ.`;
   }
-  const lines = hits.map(hit => `- [${SCOPE_LABELS_ACU[hit.scope]}] ${hit.label}：${hit.snippet}｜读取地址 ${hit.address}`);
+  const lines = hits.map(hit => `- [${SCOPE_LABELS_ACU[hit.scope]}] ${hit.label}: ${hit.snippet}｜địa chỉ đọc ${hit.address}`);
   const tail = truncated
-    ? `\n（结果已截断：达到条数上限 ${call.maxResults} 或总量预算。请用更精确的关键词缩小范围，或分域搜索。）`
+    ? `\n(Kết quả đã bị cắt: đạt giới hạn số mục ${call.maxResults} hoặc ngân sách tổng. Hãy dùng từ khóa chính xác hơn để thu hẹp phạm vi, hoặc tìm theo từng miền.)`
     : '';
-  return `搜索「${call.query}」命中 ${hits.length} 处（域：${scopeText}）。命中行右侧附读取地址，可直接复制进 read：\n${lines.join('\n')}${tail}`;
+  return `Tìm "${call.query}" khớp ${hits.length} chỗ (miền: ${scopeText}). Bên phải dòng khớp có kèm địa chỉ đọc, có thể sao chép thẳng vào read:\n${lines.join('\n')}${tail}`;
 }

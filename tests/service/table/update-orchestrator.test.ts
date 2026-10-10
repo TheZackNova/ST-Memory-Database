@@ -775,7 +775,7 @@ describe('buildBatchMergeBase_ACU', () => {
       expect(showUiSurfaceToast_ACU).toHaveBeenCalledTimes(1);
       expect(showUiSurfaceToast_ACU).toHaveBeenCalledWith(expect.objectContaining({
         kind: 'info',
-        text: expect.stringContaining('空白模板结构'),
+        text: expect.stringContaining('cấu trúc mẫu trống'),
       }));
 
       nowSpy.mockReturnValue(baseNow + 30_001);
@@ -1760,7 +1760,7 @@ describe('executeCardUpdateCore_ACU', () => {
     );
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('无法准备AI输入');
+    expect(result.error).toContain('Không thể chuẩn bị đầu vào AI');
   });
 
   it('AI 响应无 tableEdit 标签时重试并最终失败', async () => {
@@ -1774,7 +1774,7 @@ describe('executeCardUpdateCore_ACU', () => {
     );
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('1 次尝试后仍失败');
+    expect(result.error).toContain('sau 1 lần thử');
   });
 
   it('AI 回复过短时重试并最终失败', async () => {
@@ -2135,7 +2135,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     mockIsAutoUpdating = true;
     const result = await orchestrateManualUpdate_ACU(['sheet_0'], mockProcessBatch, mockRefreshData);
     expect(result.success).toBe(false);
-    expect(result.error).toContain('正在进行中');
+    expect(result.error).toContain('đang được cập nhật');
   });
 
   it('API 未就绪时返回错误', async () => {
@@ -2158,7 +2158,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     mockCurrentJsonTableData = null;
     const result = await orchestrateManualUpdate_ACU(['sheet_0'], mockProcessBatch, mockRefreshData);
     expect(result.success).toBe(false);
-    expect(result.error).toContain('数据库未加载');
+    expect(result.error).toContain('CSDL chưa được tải');
   });
 
   it('聊天记录为空时返回错误', async () => {
@@ -2167,7 +2167,7 @@ describe('orchestrateManualUpdate_ACU', () => {
 
     const result = await orchestrateManualUpdate_ACU(['sheet_0'], mockProcessBatch, mockRefreshData);
     expect(result.success).toBe(false);
-    expect(result.error).toContain('聊天记录为空');
+    expect(result.error).toContain('Lịch sử trò chuyện trống');
   });
 
   it('无 AI 回复时返回错误', async () => {
@@ -2179,7 +2179,7 @@ describe('orchestrateManualUpdate_ACU', () => {
 
     const result = await orchestrateManualUpdate_ACU(['sheet_0'], mockProcessBatch, mockRefreshData);
     expect(result.success).toBe(false);
-    expect(result.error).toContain('尚未检测到AI回复');
+    expect(result.error).toContain('Chưa phát hiện phản hồi AI');
   });
 
   it('未选择表格时返回错误', async () => {
@@ -2191,7 +2191,7 @@ describe('orchestrateManualUpdate_ACU', () => {
 
     const result = await orchestrateManualUpdate_ACU([], mockProcessBatch, mockRefreshData);
     expect(result.success).toBe(false);
-    expect(result.error).toContain('未选择');
+    expect(result.error).toContain('Chưa chọn');
   });
 
   it('正常流程：processBatch 成功，返回 success', async () => {
@@ -2238,7 +2238,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     const result = await orchestrateManualUpdate_ACU(['sheet_0'], processBatch, mockRefreshData);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('锚点预检');
+    expect(result.error).toContain('kiểm tra trước neo');
     // 阻断前必须先尝试自动收敛（默认 mock 无恢复计划）
     expect(mockPrepareV2Recovery).toHaveBeenCalledTimes(1);
     expect(mockCommitPreparedV2Recovery).not.toHaveBeenCalled();
@@ -2319,7 +2319,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     const result = await orchestrateManualUpdate_ACU(['sheet_0'], processBatch, mockRefreshData);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('锚点预检');
+    expect(result.error).toContain('kiểm tra trước neo');
     expect(mockPrepareV2Recovery).toHaveBeenCalledTimes(1);
     expect(processBatch).not.toHaveBeenCalled();
   });
@@ -2356,7 +2356,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     const result = await orchestrateManualUpdate_ACU(['sheet_0'], processBatch, mockRefreshData);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('锚点预检');
+    expect(result.error).toContain('kiểm tra trước neo');
     expect(mockCommitPreparedV2Recovery).not.toHaveBeenCalled();
     expect(processBatch).not.toHaveBeenCalled();
   });
@@ -2445,7 +2445,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     );
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('表格运行时在确认期间发生变化');
+    expect(result.error).toContain('Runtime bảng đã thay đổi trong lúc xác nhận');
     expect(mockClearManualRefillSheetDataInRange).not.toHaveBeenCalled();
     expect(mockReloadStorageProvider).not.toHaveBeenCalled();
     expect(processBatch).not.toHaveBeenCalled();
@@ -2484,7 +2484,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     );
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('表格运行时在确认期间发生变化');
+    expect(result.error).toContain('Runtime bảng đã thay đổi trong lúc xác nhận');
     expect(mockClearManualRefillSheetDataInRange).not.toHaveBeenCalled();
     expect(mockReloadStorageProvider).not.toHaveBeenCalled();
     expect(processBatch).not.toHaveBeenCalled();
@@ -2513,7 +2513,7 @@ describe('orchestrateManualUpdate_ACU', () => {
 
     // 显式传入快照但为空 → 视为保护已启用且校验失败，不得静默降级为 legacy
     expect(result.success).toBe(false);
-    expect(result.error).toContain('表格运行时在确认期间发生变化');
+    expect(result.error).toContain('Runtime bảng đã thay đổi trong lúc xác nhận');
     expect(mockClearManualRefillSheetDataInRange).not.toHaveBeenCalled();
   });
 
@@ -2540,7 +2540,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     );
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('表格运行时在确认期间发生变化');
+    expect(result.error).toContain('Runtime bảng đã thay đổi trong lúc xác nhận');
     expect(mockClearManualRefillSheetDataInRange).not.toHaveBeenCalled();
     expect(processBatch).not.toHaveBeenCalled();
   });
@@ -2646,7 +2646,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     // 清理已发生且 reload 期间 runtime 变化：必须走 failManualRefillSession，
     // 不回滚、保留删除，按已提交事实刷新对齐（不能裸返回造成净损失假象）。
     expect(result.success).toBe(false);
-    expect(result.error).toContain('表格运行时在确认期间发生变化');
+    expect(result.error).toContain('Runtime bảng đã thay đổi trong lúc xác nhận');
     expect(processBatch).not.toHaveBeenCalled();
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
     expect(mockRefreshData).toHaveBeenCalled();
@@ -2690,7 +2690,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     // 破坏性清理已发生、chunk 前复检发现 runtime 变化：失败返回且不回滚
     // （清理不可逆、保留删除），按已提交事实刷新对齐，不得把 stale target 带入 AI 调用。
     expect(result.success).toBe(false);
-    expect(result.error).toContain('表格运行时在确认期间发生变化');
+    expect(result.error).toContain('Runtime bảng đã thay đổi trong lúc xác nhận');
     expect(processBatch).not.toHaveBeenCalled();
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
     expect(mockRefreshData).toHaveBeenCalled();
@@ -2742,7 +2742,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     // 循环内复检必须阻断后续 chunk；已提交 bucket 保留（不回滚丢弃用户成果），
     // 也不得把确认前的 stale target 带入第二个 chunk 的 AI 调用。
     expect(result.success).toBe(false);
-    expect(result.error).toContain('表格运行时在确认期间发生变化');
+    expect(result.error).toContain('Runtime bảng đã thay đổi trong lúc xác nhận');
     // 首 chunk 已提交（持久化发生过）
     expect(mockPersistTablesToChatMessage).toHaveBeenCalled();
     // 补强：stale target（sheet_1）绝不能进入 AI。首 chunk 已执行（至少一次 AI 调用，
@@ -2786,7 +2786,7 @@ describe('orchestrateManualUpdate_ACU', () => {
 
     // 普通路径：复检位于 checkpoint await 之后、AI 调用之前，runtime 变化必须 fail-closed
     expect(result.success).toBe(false);
-    expect(result.error).toContain('表格运行时在确认期间发生变化');
+    expect(result.error).toContain('Runtime bảng đã thay đổi trong lúc xác nhận');
     expect(mockCallCustomOpenAI).not.toHaveBeenCalled();
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
   });
@@ -3104,7 +3104,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     vi.mocked(isSummaryOrOutlineTable_ACU).mockImplementation(() => false);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('无法精确识别操作 data_replace 影响的纪要表历史 row_id');
+    expect(result.error).toContain('không thể xác định chính xác row_id lịch sử của 纪要表 bị thao tác data_replace ảnh hưởng');
     expect(mockClearManualRefillSheetDataInRange).not.toHaveBeenCalled();
     expect(mockSnapshotSummaryVectorMirrorExcludingRowsNow).not.toHaveBeenCalled();
   });
@@ -3147,7 +3147,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     vi.mocked(isSummaryOrOutlineTable_ACU).mockImplementation(() => false);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('无法确认纪要表 sheet_0 的历史 row_id');
+    expect(result.error).toContain('không thể xác nhận row_id lịch sử của bảng 纪要表 sheet_0');
     expect(mockClearManualRefillSheetDataInRange).not.toHaveBeenCalled();
     expect(mockSnapshotSummaryVectorMirrorExcludingRowsNow).not.toHaveBeenCalled();
   });
@@ -3576,8 +3576,8 @@ describe('orchestrateManualUpdate_ACU', () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('原 full checkpoint 位置发生变化');
-    expect(result.error).toContain('清理前 #4');
+    expect(result.error).toContain('vị trí full checkpoint ban đầu đã thay đổi');
+    expect(result.error).toContain('trước dọn dẹp #4');
     // 零 token：在 AI 调用前停止；不进入边界汇合；清理已发生 → 按已提交事实刷新对齐。
     expect(mockCallCustomOpenAI).not.toHaveBeenCalled();
     expect(mockCommitStagedSheetsAtFullBoundaryAtomic).not.toHaveBeenCalled();
@@ -3680,7 +3680,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('缺少本次目标表');
+    expect(result.error).toContain('thiếu các bảng đích lần này');
     expect(result.error).toContain('sheet_1');
     const aiTargetKeys = mockCallCustomOpenAI.mock.calls.map(call => (call[2] as { targetSheetKeys?: string[] } | undefined)?.targetSheetKeys || []);
     expect(aiTargetKeys.length).toBeGreaterThan(0);
@@ -3911,7 +3911,7 @@ describe('orchestrateManualUpdate_ACU', () => {
 
     const result = await orchestrateManualUpdate_ACU(['sheet_0'], vi.fn().mockResolvedValue({ success: true }), mockRefreshData);
     expect(result.success).toBe(false);
-    expect(result.error).toContain('尝试后仍失败');
+    expect(result.error).toContain('lần thử');
   });
 
   it('自动合并触发成功时返回 autoMergeTriggered', async () => {
@@ -4141,8 +4141,8 @@ describe('orchestrateManualUpdate_ACU', () => {
     expect(vi.mocked(logDebug_ACU).mock.calls.some(call => String(call[0]).includes('分组计划：选中 3 张表，生成 3 个组，最大并发组数 2'))).toBe(true);
     expect(vi.mocked(logDebug_ACU).mock.calls.some(call => String(call[0]).includes('并发处理第 1/2 批，当前 2 组'))).toBe(true);
     expect(vi.mocked(logDebug_ACU).mock.calls.some(call => String(call[0]).includes('并发处理第 2/2 批，当前 1 组'))).toBe(true);
-    expect(onProgress).toHaveBeenCalledWith(expect.objectContaining({ phase: 'preparing', message: '并发处理第 1/2 批，当前 2 组。' }));
-    expect(onProgress).toHaveBeenCalledWith(expect.objectContaining({ phase: 'preparing', message: '并发处理第 2/2 批，当前 1 组。' }));
+    expect(onProgress).toHaveBeenCalledWith(expect.objectContaining({ phase: 'preparing', message: 'Xử lý đồng thời lô thứ 1/2, hiện có 2 nhóm.' }));
+    expect(onProgress).toHaveBeenCalledWith(expect.objectContaining({ phase: 'preparing', message: 'Xử lý đồng thời lô thứ 2/2, hiện có 1 nhóm.' }));
   });
 
   it('手动分组 chunk 建立边界 checkpoint 前先同步聊天再判断是否需要滚动', async () => {
@@ -4337,8 +4337,8 @@ describe('executeCardUpdateCore_ACU — SQL 错误反馈重试', () => {
       }
       if (callCount === 2) {
         expect(dynamicContent.tableDataText).toContain('SQL_ERROR_FEEDBACK');
-        expect(dynamicContent.tableDataText).toContain('无法识别的目标表「invalid_table」');
-        expect(dynamicContent.tableDataText).toContain('SQL执行错误，请修正后重新输出');
+        expect(dynamicContent.tableDataText).toContain('bảng đích không nhận ra “invalid_table”');
+        expect(dynamicContent.tableDataText).toContain('Lỗi thực thi SQL, hãy sửa rồi xuất lại');
         return '<tableEdit>DELETE FROM test WHERE row_id = 1;</tableEdit>';
       }
       return '<tableEdit>ok</tableEdit>';
@@ -4434,7 +4434,7 @@ describe('executeCardUpdateCore_ACU — SQL 错误反馈重试', () => {
     expect(callCount).toBe(3);
 
     // 第二次调用时应包含第一次的错误信息
-    expect(capturedTableDataTexts[1]).toContain('无法识别的目标表「missing」');
+    expect(capturedTableDataTexts[1]).toContain('bảng đích không nhận ra “missing”');
     // 第三次调用时应包含第二次的错误信息（替换了第一次的）
     expect(capturedTableDataTexts[2]).toContain('missing_col');
     // 第三次不应包含第一次的错误信息（被替换了）
@@ -5004,7 +5004,7 @@ describe('collectGroupFillResponse_ACU', () => {
     const result = await collectGroupFillResponse_ACU(job);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('1 次尝试后仍失败');
+    expect(result.error).toContain('sau 1 lần thử');
     expect(mockCallCustomOpenAI).toHaveBeenCalledTimes(1);
     expect(mockParseAndApplyTableEdits).not.toHaveBeenCalled();
     expect(mockSaveIndependentTable).not.toHaveBeenCalled();
@@ -5084,7 +5084,7 @@ describe('collectGroupFillResponse_ACU', () => {
       const result = await resultPromise;
 
       expect(result).toMatchObject({ success: false, attempt: 2, errorCategory: 'model' });
-      expect(result.error).toContain('2 次尝试后仍失败');
+      expect(result.error).toContain('sau 2 lần thử');
       expect(mockCallCustomOpenAI).toHaveBeenCalledTimes(2);
     } finally {
       vi.useRealTimers();
@@ -5127,7 +5127,7 @@ describe('collectGroupFillResponse_ACU', () => {
         .mockResolvedValueOnce('<tableEdit>CREATE TABLE leaked (id INTEGER);</tableEdit>')
         .mockImplementationOnce(async (dynamicContent: any) => {
           expect(dynamicContent.tableDataText).toContain('SQL_ERROR_FEEDBACK');
-          expect(dynamicContent.tableDataText).toContain('SQLite 填表仅允许 INSERT、REPLACE、UPDATE、DELETE');
+          expect(dynamicContent.tableDataText).toContain('Điền bảng SQLite chỉ cho phép các câu lệnh thay đổi dữ liệu INSERT, REPLACE, UPDATE, DELETE');
           return "<tableEdit>UPDATE inventory SET item_name = '药水' WHERE row_id = 1;</tableEdit>";
         });
 
@@ -5199,7 +5199,7 @@ describe('collectGroupFillResponse_ACU', () => {
     const result = await collectGroupFillResponse_ACU(job);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('隐藏物理列');
+    expect(result.error).toContain('cột vật lý ẩn');
     expect(mockCallCustomOpenAI).toHaveBeenCalledTimes(1);
     vi.mocked(isSqliteMode).mockReturnValue(false);
   });
@@ -5233,7 +5233,7 @@ describe('collectGroupFillResponse_ACU', () => {
     const result = await collectGroupFillResponse_ACU(job);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('SQLite 填表仅允许 INSERT、REPLACE、UPDATE、DELETE 数据变更语句');
+    expect(result.error).toContain('Điền bảng SQLite chỉ cho phép các câu lệnh thay đổi dữ liệu INSERT, REPLACE, UPDATE, DELETE');
     expect(mockCallCustomOpenAI).toHaveBeenCalledTimes(1);
     vi.mocked(isSqliteMode).mockReturnValue(false);
   });
@@ -5275,7 +5275,7 @@ describe('collectGroupFillResponse_ACU', () => {
     const result = await collectGroupFillResponse_ACU(job);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('无法准备AI输入');
+    expect(result.error).toContain('Không thể chuẩn bị đầu vào AI');
     expect(mockCallCustomOpenAI).not.toHaveBeenCalled();
   });
 });
@@ -5791,7 +5791,7 @@ describe('applyUnifiedGroupFillResponses_ACU', () => {
     const result = await applyUnifiedGroupFillResponses_ACU(responses as any, baseSnapshot, { saveTargetIndex: 3, updateMode: 'auto_standard', isImportMode: false });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('禁止混合 SQL/非 SQL');
+    expect(result.error).toContain('cấm trộn đầu ra SQL/không phải SQL');
     expect(result.error).toContain('groupId=2');
     expect(result.error).not.toContain('group b');
     expect(mockApplySqlEditsToTableDataSnapshot).not.toHaveBeenCalled();
@@ -5816,7 +5816,7 @@ describe('applyUnifiedGroupFillResponses_ACU', () => {
     const result = await applyUnifiedGroupFillResponses_ACU(responses as any, baseSnapshot, { saveTargetIndex: 3, updateMode: 'auto_standard', isImportMode: false });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('groupId=1,batch=1,targets=1 SQL 执行失败');
+    expect(result.error).toContain('groupId=1,batch=1,targets=1 Thực thi SQL thất bại');
     expect(result.error).toContain('missing_col');
     expect(result.error).not.toContain('group a');
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
@@ -5949,8 +5949,8 @@ describe('applyUnifiedGroupFillResponses_ACU', () => {
 
     expect(result.success).toBe(false);
     expect(result.errorCategory).toBe('model');
-    expect(result.error).toContain('已全部丢弃');
-    expect(result.error).toContain('允许写入表：sheet_0');
+    expect(result.error).toContain('đã loại bỏ toàn bộ');
+    expect(result.error).toContain('Bảng được phép ghi: sheet_0');
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
     vi.mocked(isSqliteMode).mockReturnValue(false);
   });
@@ -5976,8 +5976,8 @@ describe('applyUnifiedGroupFillResponses_ACU', () => {
     const result = await applyUnifiedGroupFillResponses_ACU(responses as any, baseSnapshot, { saveTargetIndex: 3, updateMode: 'auto_standard', isImportMode: false });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('越权修改了非目标表 (sheet_1)');
-    expect(result.error).toContain('允许写入表：sheet_0');
+    expect(result.error).toContain('đã sửa vượt quyền bảng không phải đích (sheet_1)');
+    expect(result.error).toContain('Bảng được phép ghi: sheet_0');
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
     vi.mocked(isSqliteMode).mockReturnValue(false);
   });
@@ -6007,8 +6007,8 @@ describe('applyUnifiedGroupFillResponses_ACU', () => {
       const result = await applyUnifiedGroupFillResponses_ACU(responses as any, baseSnapshot, { saveTargetIndex: 3, updateMode: 'auto_standard', isImportMode: false });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('越权修改了非目标表 (sheet_1)');
-      expect(result.error).toContain('允许写入表：sheet_0');
+      expect(result.error).toContain('đã sửa vượt quyền bảng không phải đích (sheet_1)');
+      expect(result.error).toContain('Bảng được phép ghi: sheet_0');
       expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
     } finally {
       mockResolveTemplateScope.mockReturnValue(null as any);
@@ -6135,7 +6135,7 @@ describe('applyUnifiedGroupFillResponses_ACU', () => {
 
     // 休眠表不在列 registry（targetSheetKeys 过滤）：rebind fail-closed，不静默放行。
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/quest_log|未知|无法识别|失败/);
+    expect(result.error).toMatch(/quest_log|未知|无法识别|失败|thất bại/);
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
     vi.mocked(isSqliteMode).mockReturnValue(false);
   });
@@ -6160,7 +6160,7 @@ describe('applyUnifiedGroupFillResponses_ACU', () => {
     const result = await applyUnifiedGroupFillResponses_ACU(responses as any, baseSnapshot, { saveTargetIndex: 3, updateMode: 'auto_standard', isImportMode: false });
 
     expect(result.success).toBe(false);
-    expect(result.error).not.toContain('已全部丢弃');
+    expect(result.error).not.toContain('đã loại bỏ toàn bộ');
     expect(result.error).toMatch(/unknown_table|未知|无法识别/);
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
     vi.mocked(isSqliteMode).mockReturnValue(false);
@@ -6192,7 +6192,7 @@ describe('applyUnifiedGroupFillResponses_ACU', () => {
 
     expect(result.success).toBe(false);
     expect(result.errorCategory).toBe('precondition');
-    expect(result.error).toContain('歧义表名');
+    expect(result.error).toContain('tên bảng mơ hồ');
     expect(result.error).toContain('global_state');
     // 不落盘：不产生数据变更、不写 V2 增量、不回灌 Prompt。
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
@@ -6221,8 +6221,8 @@ describe('applyUnifiedGroupFillResponses_ACU', () => {
     const result = await applyUnifiedGroupFillResponses_ACU(responses as any, baseSnapshot, { saveTargetIndex: 3, updateMode: 'auto_standard', isImportMode: false });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('越权修改');
-    expect(result.error).toContain('允许写入表：sheet_0');
+    expect(result.error).toContain('sửa vượt quyền');
+    expect(result.error).toContain('Bảng được phép ghi: sheet_0');
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
     expect(mockEnqueueSummaryVectorIndexFlush).not.toHaveBeenCalled();
     expect(mockUpdateReadableLorebookEntry).not.toHaveBeenCalled();
@@ -6881,7 +6881,7 @@ describe('processGroupedRuntimeChunk_ACU', () => {
     ], 'manual_independent');
 
     expect(result).toEqual(expect.objectContaining({ success: false, failedGroups: ['ambiguous-inventory'] }));
-    expect(result.error).toContain('身份重绑定存在歧义');
+    expect(result.error).toContain('Gán lại danh tính bảng có điểm mơ hồ');
     expect(mockPrepareAIInput).not.toHaveBeenCalled();
     expect(mockCallCustomOpenAI).not.toHaveBeenCalled();
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
@@ -7292,7 +7292,7 @@ describe('processGroupedRuntimeChunk_ACU', () => {
     expect(result.failedGroups).toEqual([]);
     expect(mockCallCustomOpenAI).toHaveBeenCalledTimes(3);
     expect(capturedTableDataTexts[2]).toContain('UNIFIED_GROUP_ERROR_FEEDBACK');
-    expect(capturedTableDataTexts[2]).toContain('未返回 SQL tableEdit');
+    expect(capturedTableDataTexts[2]).toContain('không trả về SQL tableEdit');
     expect(mockPersistTablesToChatMessage).toHaveBeenCalledTimes(1);
     expect(mockParseAndApplyTableEditsToData).not.toHaveBeenCalled();
     vi.mocked(isSqliteMode).mockReturnValue(false);
@@ -7377,7 +7377,7 @@ describe('processGroupedRuntimeChunk_ACU', () => {
 
     expect(result.success).toBe(false);
     expect(result.failedGroups).toEqual(expect.arrayContaining(['group_a', 'group_b']));
-    expect(result.error).toContain('统一提交在 2 次尝试后仍失败');
+    expect(result.error).toContain('Commit thống nhất vẫn thất bại sau 2 lần thử');
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
     expect(mockCallCustomOpenAI).toHaveBeenCalledTimes(4);
   });
@@ -7521,7 +7521,7 @@ describe('processGroupedRuntimeChunk_ACU', () => {
     const result = await orchestrateManualUpdate_ACU(['sheet_0'], vi.fn().mockResolvedValue({ success: true }), refreshData);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('填表在 1 次尝试后仍失败');
+    expect(result.error).toContain('Điền bảng vẫn thất bại sau 1 lần thử');
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();
     expect(refreshData).toHaveBeenCalled();
   });
@@ -7581,7 +7581,7 @@ describe('processGroupedRuntimeChunk_ACU', () => {
     ], 'manual_independent');
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('写目标早于 V2 回放根');
+    expect(result.error).toContain('Đích ghi sớm hơn gốc phát lại V2');
     // 准入在 AI 调用之前拦截：零 token 消耗路径成立。
     expect(mockCallCustomOpenAI).not.toHaveBeenCalled();
     expect(mockPrepareAIInput).not.toHaveBeenCalled();
@@ -7775,7 +7775,7 @@ describe('orchestrateManualCatchUp_ACU', () => {
     const result = await prepareManualCatchUpPlan_ACU(['sheet_0']);
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe('未找到可追平的已选表格。');
+    expect(result.error).toBe('Không tìm thấy bảng đã chọn có thể bắt kịp.');
   });
 
   it('确认后 runtime 表集合变化时，在锚点预检/AI/持久化前阻断并返回 blocked 诊断', async () => {
@@ -7922,7 +7922,7 @@ describe('orchestrateManualCatchUp_ACU', () => {
       // settle 失败后仍写 failed 终态（记录失败事实），所以 terminal progress 已保存。
       terminalProgressSaved: true,
     }));
-    expect(result.error).toContain('跨根 staging 汇合失败');
+    expect(result.error).toContain('Hợp nhất staging xuyên gốc thất bại');
     expect(mockPersistTablesToChatMessage).toHaveBeenCalledTimes(1);
   });
 
@@ -8108,7 +8108,7 @@ describe('orchestrateManualCatchUp_ACU', () => {
       dataCommitted: true,
       terminalProgressSaved: false,
       diagnosticCode: 'replay_missing_selected_sheet',
-      error: expect.stringContaining('V2 replay 未恢复所选表：sheet_a'),
+      error: expect.stringContaining('V2 replay chưa khôi phục các bảng đã chọn: sheet_a'),
     }));
     expect(mockPersistTablesToChatMessage).toHaveBeenCalledTimes(1);
     expect(mockReloadStorageProvider).toHaveBeenCalledTimes(1);
@@ -8168,7 +8168,7 @@ describe('orchestrateManualCatchUp_ACU', () => {
       dataCommitted: true,
       terminalProgressSaved: false,
       diagnosticCode: 'replay_data_mismatch',
-      error: expect.stringContaining('V2 replay 与本轮已提交数据不一致：sheet_a'),
+      error: expect.stringContaining('V2 replay không khớp dữ liệu đã commit lượt này: sheet_a'),
     }));
     expect(mockPersistTablesToChatMessage).toHaveBeenCalledTimes(1);
     expect(mockReloadStorageProvider).toHaveBeenCalledTimes(1);
@@ -8219,7 +8219,7 @@ describe('orchestrateManualCatchUp_ACU', () => {
       strictSave: true,
       manualRefillProgress: expect.objectContaining({
         completedSheetMessageIndexByKey: { sheet_a: 3 },
-        lastError: '手动追平已终止。',
+        lastError: 'Bắt kịp thủ công đã bị dừng.',
       }),
     }));
     expect(mockCallCustomOpenAI).toHaveBeenCalledTimes(1);
@@ -8389,7 +8389,7 @@ describe('executeAutoFillStagingGroups_ACU', () => {
       committedBucketCount: 1,
       error: expect.stringContaining('primary save failed'),
     }));
-    expect(result.error).toContain('终态进度保存失败：terminal strict save failed');
+    expect(result.error).toContain('lưu tiến độ trạng thái cuối thất bại: terminal strict save failed');
     expect(mockPersistTablesToChatMessage).toHaveBeenCalledTimes(3);
     expect(mockPersistTablesToChatMessage.mock.calls[2][0]).toEqual(expect.objectContaining({
       strictSave: true,
@@ -8700,7 +8700,7 @@ describe('runtime schema 冻结与双权威修复', () => {
 
     expect(result.success).toBe(false);
     expect(result.errorCategory).toBe('infrastructure');
-    expect(result.error).toContain('SQLite runtime schema 冻结失败');
+    expect(result.error).toContain('Đóng băng SQLite runtime schema thất bại');
     expect(mockCallCustomOpenAI).not.toHaveBeenCalled();
     expect(mockPrepareAIInput).not.toHaveBeenCalled();
     expect(mockPersistTablesToChatMessage).not.toHaveBeenCalled();

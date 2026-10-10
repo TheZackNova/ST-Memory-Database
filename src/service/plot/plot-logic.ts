@@ -190,7 +190,7 @@ export function normalizePlotTask_ACU(task: Record<string, any> | null, { index 
     const defaultId = `plotTask${index + 1}`;
     const rawId = String(cloned.id || cloned.name || fallback?.id || defaultId).trim();
     const taskId = rawId.replace(/[^\w-]+/g, '_') || defaultId;
-    const taskName = String(cloned.name || fallback?.name || `剧情任务${index + 1}`).trim() || `剧情任务${index + 1}`;
+    const taskName = String(cloned.name || fallback?.name || `Tác vụ cốt truyện ${index + 1}`).trim() || `Tác vụ cốt truyện ${index + 1}`;
     const promptGroup = getPlotPromptGroupFromSource_ACU(cloned, { fallbackPromptGroup: fallback?.promptGroup || null });
 
     return {
@@ -217,7 +217,7 @@ export function normalizePlotTask_ACU(task: Record<string, any> | null, { index 
     };
 }
 
-function buildLegacyWrappedPlotTask_ACU(source: Record<string, any> | null, { taskId = 'defaultPlotTask', taskName = '默认任务', order = 0 } = {}) {
+function buildLegacyWrappedPlotTask_ACU(source: Record<string, any> | null, { taskId = 'defaultPlotTask', taskName = 'Tác vụ mặc định', order = 0 } = {}) {
     return normalizePlotTask_ACU({
       id: taskId,
       name: taskName,
@@ -232,7 +232,7 @@ function buildLegacyWrappedPlotTask_ACU(source: Record<string, any> | null, { ta
     }, { index: order });
 }
 
-export function normalizePlotTasks_ACU(source: Record<string, any> | null, { fallbackTaskId = 'defaultPlotTask', fallbackTaskName = '默认任务' } = {}) {
+export function normalizePlotTasks_ACU(source: Record<string, any> | null, { fallbackTaskId = 'defaultPlotTask', fallbackTaskName = 'Tác vụ mặc định' } = {}) {
     const baseSource = source && typeof source === 'object' ? source : {};
     const fallbackTask = buildLegacyWrappedPlotTask_ACU(baseSource, {
       taskId: fallbackTaskId,
@@ -612,9 +612,9 @@ export function ensurePlotPromptsArray_ACU(plotSettings: Record<string, any>) {
     const p = plotSettings.prompts;
     if (Array.isArray(p)) {
       const required = [
-        { id: 'mainPrompt', role: 'system', name: '主系统提示词 (通用)' },
-        { id: 'systemPrompt', role: 'user', name: '拦截任务详细指令' },
-        { id: 'finalSystemDirective', role: 'system', name: '最终注入指令 (Storyteller Directive)' },
+        { id: 'mainPrompt', role: 'system', name: 'Prompt hệ thống chính (chung)' },
+        { id: 'systemPrompt', role: 'user', name: 'Chỉ thị chi tiết của tác vụ chặn' },
+        { id: 'finalSystemDirective', role: 'system', name: 'Chỉ thị chèn cuối cùng (Storyteller Directive)' },
       ];
       required.forEach((req: { id: string; role: string; name: string }) => {
         if (!p.some((x: any) => x && x.id === req.id)) {
@@ -625,9 +625,9 @@ export function ensurePlotPromptsArray_ACU(plotSettings: Record<string, any>) {
     }
     const legacy = (p && typeof p === 'object') ? p : {};
     plotSettings.prompts = [
-      { id: 'mainPrompt', name: '主系统提示词 (通用)', role: 'system', content: legacy.mainPrompt || '', deletable: false },
-      { id: 'systemPrompt', name: '拦截任务详细指令', role: 'user', content: legacy.systemPrompt || '', deletable: false },
-      { id: 'finalSystemDirective', name: '最终注入指令 (Storyteller Directive)', role: 'system', content: legacy.finalSystemDirective || '', deletable: false },
+      { id: 'mainPrompt', name: 'Prompt hệ thống chính (chung)', role: 'system', content: legacy.mainPrompt || '', deletable: false },
+      { id: 'systemPrompt', name: 'Chỉ thị chi tiết của tác vụ chặn', role: 'user', content: legacy.systemPrompt || '', deletable: false },
+      { id: 'finalSystemDirective', name: 'Chỉ thị chèn cuối cùng (Storyteller Directive)', role: 'system', content: legacy.finalSystemDirective || '', deletable: false },
     ];
 }
 

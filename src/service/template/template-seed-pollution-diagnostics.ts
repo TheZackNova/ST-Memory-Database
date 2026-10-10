@@ -137,7 +137,7 @@ export function diagnoseSheetSeedPools_ACU(
         push_ACU(out, {
           severity: 'error', code: 'seed_row_id_conflict', source, sheetKey, sheetName,
           businessKeyColumns: ['row_id'], conflictingKeys: [rid],
-          message: `表 ${sheetName} (${sheetKey}) 的 seedRows 池内存在重复 row_id=${rid}，身份空间冲突。`,
+          message: `Bảng ${sheetName} (${sheetKey}) có row_id trùng lặp trong pool seedRows (row_id=${rid}), xung đột không gian danh tính.`,
         });
       } else if (rid) {
         seenRowIds.set(rid, 0);
@@ -164,7 +164,7 @@ export function diagnoseSheetSeedPools_ACU(
           push_ACU(out, {
             severity: 'error', code: 'content_seed_duplicate', source, sheetKey, sheetName,
             businessKeyColumns: group, conflictingKeys: [key],
-            message: `表 ${sheetName} (${sheetKey}) 的 content 与 seedRows 存在同 UNIQUE 业务键（${group.join(', ')}=${key.replace(/\u0001/g, '/')}），双池重复。`,
+            message: `content và seedRows của bảng ${sheetName} (${sheetKey}) có cùng khóa nghiệp vụ UNIQUE (${group.join(', ')}=${key.replace(/\u0001/g, '/')}), trùng hai pool.`,
           });
         }
       }
@@ -190,7 +190,7 @@ export function diagnoseSheetSeedPools_ACU(
           push_ACU(out, {
             severity: 'warning', code: 'guide_seed_duplicate', source, sheetKey, sheetName,
             businessKeyColumns: group, conflictingKeys: [key],
-            message: `guide 表 ${sheetName} (${sheetKey}) 的 seedRows 已与 runtime 数据存在同 UNIQUE 业务键（${group.join(', ')}=${key.replace(/\u0001/g, '/')}），可能已物化但未清理 seed。`,
+            message: `seedRows của bảng guide ${sheetName} (${sheetKey}) đã có cùng khóa nghiệp vụ UNIQUE với dữ liệu runtime (${group.join(', ')}=${key.replace(/\u0001/g, '/')}), có thể đã hiện thực hóa nhưng chưa dọn seed.`,
           });
         }
       }
@@ -201,7 +201,7 @@ export function diagnoseSheetSeedPools_ACU(
     push_ACU(out, {
       severity: 'info', code: 'info_no_issue', source, sheetKey, sheetName,
       businessKeyColumns: keyGroups.flat(), conflictingKeys: [],
-      message: `表 ${sheetName} (${sheetKey}) 未检测到 seed 双池污染。`,
+      message: `Bảng ${sheetName} (${sheetKey}) không phát hiện nhiễm seed hai pool.`,
     });
   }
   return out;

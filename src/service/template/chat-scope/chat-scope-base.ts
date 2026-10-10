@@ -22,7 +22,7 @@ export function normalizeChatScopedConfigSource_ACU(source: any, fallback = 'inh
 export function assertReadableSheetSource_ACU(source: unknown): asserts source is Record<string, any> {
     const isRecord = (value: unknown): value is Record<string, any> =>
         !!value && typeof value === 'object' && !Array.isArray(value);
-    const fail = (): never => { throw new Error('只读表格模板或 guide 来源损坏，禁止以默认值建立桥接。'); };
+    const fail = (): never => { throw new Error('Nguồn mẫu bảng hoặc guide chỉ đọc bị hỏng, cấm thiết lập cầu nối bằng giá trị mặc định.'); };
     if (!isRecord(source)) fail();
     const data = source as Record<string, any>;
     if (data.mate !== undefined && !isRecord(data.mate)) fail();
@@ -50,7 +50,7 @@ export function assertReadableSheetSource_ACU(source: unknown): asserts source i
 export function parseReadableSheetSource_ACU(source: unknown): Record<string, any> {
     let parsed: unknown;
     try { parsed = typeof source === 'string' ? JSON.parse(source) : source; }
-    catch { throw new Error('只读表格模板来源无法解析，禁止回退默认模板。'); }
+    catch { throw new Error('Không thể phân tích nguồn mẫu bảng chỉ đọc, cấm quay về mẫu mặc định.'); }
     assertReadableSheetSource_ACU(parsed);
     // 下游旧规范化器会修改 mate 和顺序号；只读路径只向它提供副本。
     return JSON.parse(JSON.stringify(parsed));

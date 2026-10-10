@@ -408,7 +408,7 @@ export async function recoverLostCheckpointsAfterMessageDeletion_ACU(): Promise<
         } catch (error: any) {
             restoreSnapshots();
             restoreMaterialCheckpointFields_ACU(chat, materialSnapshots);
-            const message = error?.message || String(error || '删楼 checkpoint 恢复失败。');
+            const message = error?.message || String(error || 'Khôi phục checkpoint khi xóa tầng thất bại.');
             logError_ACU(`[删楼守卫] 删楼 checkpoint 前移恢复失败，已回滚改动（保管库保留，下次删楼事件重试）：${message}`);
             return { recovered: false, graftedCount: 0, error: message };
         }

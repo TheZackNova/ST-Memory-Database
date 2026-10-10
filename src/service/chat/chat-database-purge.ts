@@ -167,7 +167,7 @@ function captureChatIdentity_ACU(): string {
 }
 
 function describeChatIdentityChange_ACU(before: string, after: string): string {
-    return `当前聊天标识在硬清空期间发生变化（before=${before || '<空>'}，after=${after || '<空>'}），已中止并回滚。`;
+    return `Định danh cuộc trò chuyện hiện tại đã thay đổi trong lúc xóa sạch cứng (before=${before || '<rỗng>'}, after=${after || '<rỗng>'}), đã hủy và khôi phục.`;
 }
 
 /**
@@ -187,7 +187,7 @@ async function restoreAndPersistRollback_ACU(
         await saveChatToHostStrict_ACU();
         return null;
     } catch (error: any) {
-        return error?.message || String(error || '未知错误');
+        return error?.message || String(error || 'Lỗi không xác định');
     }
 }
 
@@ -257,7 +257,7 @@ async function cleanupVectorManifestsFromSnapshots_ACU(
         try {
             await deleteSummaryVectorIndexExternal_ACU(manifest);
         } catch (error: any) {
-            const warning = `外置向量索引资源清理失败：${error?.message || String(error || '未知错误')}`;
+            const warning = `Dọn tài nguyên chỉ mục vector bên ngoài thất bại: ${error?.message || String(error || 'Lỗi không xác định')}`;
             warnings.push(warning);
             logWarn_ACU(`[硬清空] ${warning}`, error);
         }
@@ -268,7 +268,7 @@ async function cleanupVectorManifestsFromSnapshots_ACU(
             await deleteSummaryVectorHotCacheByScope_ACU(hint);
             await clearSummaryVectorFlushTasksByScope_ACU(hint);
         } catch (error: any) {
-            const warning = `向量热缓存或 flush 任务清理失败（${hint.isolationKey}/${hint.sourceTableKey}）：${error?.message || String(error || '未知错误')}`;
+            const warning = `Dọn bộ nhớ đệm nóng vector hoặc tác vụ flush thất bại (${hint.isolationKey}/${hint.sourceTableKey}): ${error?.message || String(error || 'Lỗi không xác định')}`;
             warnings.push(warning);
             logWarn_ACU(`[硬清空] ${warning}`, error);
         }
@@ -277,9 +277,9 @@ async function cleanupVectorManifestsFromSnapshots_ACU(
     if (scopeHints.size > 0) {
         try {
             const gc = await cleanupUnreachableSummaryVectorIndexFiles_ACU({ scopeHints: [...scopeHints.values()] });
-            gc.failedDeletes.forEach(item => warnings.push(`向量安全 GC 删除失败（${item.path}）：${item.error}`));
+            gc.failedDeletes.forEach(item => warnings.push(`Xóa của GC an toàn vector thất bại (${item.path}): ${item.error}`));
         } catch (error: any) {
-            const warning = `向量安全 GC 执行失败：${error?.message || String(error || '未知错误')}`;
+            const warning = `Thực thi GC an toàn vector thất bại: ${error?.message || String(error || 'Lỗi không xác định')}`;
             warnings.push(warning);
             logWarn_ACU(`[硬清空] ${warning}`, error);
         }
@@ -309,7 +309,7 @@ async function cleanupDatabaseGeneratedWorldbookEntries_ACU(): Promise<string[]>
         const target = await getInjectionTargetLorebook_ACU();
         if (target) lorebookNames.add(target);
     } catch (error: any) {
-        warnings.push(`无法获取注入目标世界书：${error?.message || String(error || '未知错误')}`);
+        warnings.push(`Không thể lấy sổ thế giới đích để chèn: ${error?.message || String(error || 'Lỗi không xác định')}`);
         logWarn_ACU('[硬清空] 无法获取注入目标世界书，跳过数据库派生条目清理。', error);
         return warnings;
     }
@@ -331,7 +331,7 @@ async function cleanupDatabaseGeneratedWorldbookEntries_ACU(): Promise<string[]>
                 logDebug_ACU(`[硬清空] 已清理数据库生成的世界书条目：${uids.length}`);
             }
         } catch (error: any) {
-            const warning = `数据库派生世界书条目清理失败（${lorebookName}）：${error?.message || String(error || '未知错误')}`;
+            const warning = `Dọn mục sổ thế giới phái sinh từ cơ sở dữ liệu thất bại (${lorebookName}): ${error?.message || String(error || 'Lỗi không xác định')}`;
             warnings.push(warning);
             logWarn_ACU(`[硬清空] ${warning}`, error);
         }
@@ -384,16 +384,16 @@ async function rebuildEmptyRuntimeFromGlobalTemplateAfterPurge_ACU(): Promise<st
             await reloadStorageProvider();
         }
         if (!loadResult.loaded) {
-            return [`硬清空已完成，但回落全局模板空结构失败：${loadResult.error || '模板初始化未完成'}。`];
+            return [`Xóa sạch cứng đã hoàn tất, nhưng quay về cấu trúc rỗng của mẫu toàn cục thất bại: ${loadResult.error || 'Khởi tạo mẫu chưa hoàn tất'}.`];
         }
         logDebug_ACU('[硬清空] 运行时已回落为当前全局模板的 header-only 空结构（pristine）。');
         // S1-2：回落即模板运行时变更，广播给模板面板刷新名称/徽标/下拉（回落失败不广播）。
         notifyTemplateRuntimeCommitted_ACU();
         return [];
     } catch (error: any) {
-        const message = error?.message || String(error || '未知错误');
+        const message = error?.message || String(error || 'Lỗi không xác định');
         logWarn_ACU(`[硬清空] 回落全局模板空结构失败：${message}`, error);
-        return [`硬清空已完成，但回落全局模板空结构失败：${message}。`];
+        return [`Xóa sạch cứng đã hoàn tất, nhưng quay về cấu trúc rỗng của mẫu toàn cục thất bại: ${message}.`];
     }
 }
 
@@ -409,7 +409,7 @@ export async function purgeCurrentChatDatabaseState_ACU(): Promise<ChatDatabaseP
 }
 
 async function purgeCurrentChatDatabaseStateCore_ACU(): Promise<ChatDatabasePurgeResult_ACU> {
-    const emptyResult: ChatDatabasePurgeResult_ACU = { saved: false, clearedMessageCount: 0, removedMetadata: [], error: '当前聊天记录为空。' };
+    const emptyResult: ChatDatabasePurgeResult_ACU = { saved: false, clearedMessageCount: 0, removedMetadata: [], error: 'Bản ghi cuộc trò chuyện hiện tại đang trống.' };
     const chat = getChatArray_ACU();
     if (!Array.isArray(chat) || chat.length === 0) {
         return emptyResult;
@@ -426,7 +426,7 @@ async function purgeCurrentChatDatabaseStateCore_ACU(): Promise<ChatDatabasePurg
     }, async (): Promise<ChatDatabasePurgeResult_ACU> => {
         const liveChat = getChatArray_ACU();
         if (!Array.isArray(liveChat) || liveChat.length === 0) {
-            return { ...emptyResult, error: '硬清空期间聊天记录变为空，已中止。' };
+            return { ...emptyResult, error: 'Bản ghi cuộc trò chuyện trở thành rỗng trong lúc xóa sạch cứng, đã hủy.' };
         }
 
         // ── 快照 ──
@@ -487,7 +487,7 @@ async function purgeCurrentChatDatabaseStateCore_ACU(): Promise<ChatDatabasePurg
             restoreChatMetadataFields_ACU(metadataSnapshot);
             return {
                 ...emptyResult,
-                error: `硬清空残留扫描未通过（消息残留=${residualMessages.map(item => `#${item.index}:${item.fields.join(',')}`).join('；') || '无'}；首条镜像残留=${residualScopeFields.join(',') || '无'}），已回滚。`,
+                error: `Quét phần dư sau xóa sạch cứng không đạt (tin nhắn còn sót=${residualMessages.map(item => `#${item.index}:${item.fields.join(',')}`).join('; ') || 'không có'}; phần dư ở bản sao đầu tiên=${residualScopeFields.join(',') || 'không có'}), đã khôi phục.`,
             };
         }
 
@@ -496,12 +496,12 @@ async function purgeCurrentChatDatabaseStateCore_ACU(): Promise<ChatDatabasePurg
             await saveChatToHostStrict_ACU();
         } catch (error: any) {
             const rollbackError = await restoreAndPersistRollback_ACU(messageSnapshots, scopeSnapshot, metadataSnapshot);
-            const saveError = error?.message || String(error || '未知错误');
+            const saveError = error?.message || String(error || 'Lỗi không xác định');
             return {
                 ...emptyResult,
                 error: rollbackError
-                    ? `硬清空严格保存失败（${saveError}）；内存已回滚，但回滚严格保存也失败（${rollbackError}）。`
-                    : `硬清空严格保存失败，已回滚并严格保存恢复状态：${saveError}`,
+                    ? `Lưu nghiêm ngặt sau xóa sạch cứng thất bại (${saveError}); bộ nhớ đã khôi phục, nhưng lưu nghiêm ngặt khi khôi phục cũng thất bại (${rollbackError}).`
+                    : `Lưu nghiêm ngặt sau xóa sạch cứng thất bại, đã khôi phục và lưu nghiêm ngặt trạng thái khôi phục: ${saveError}`,
             };
         }
 
@@ -519,7 +519,7 @@ async function purgeCurrentChatDatabaseStateCore_ACU(): Promise<ChatDatabasePurg
                 saved: true,
                 clearedMessageCount,
                 removedMetadata,
-                cleanupWarnings: [`硬清空已保存，但保存后残留扫描发现未清空状态（消息残留=${postResidualMessages.map(item => `#${item.index}:${item.fields.join(',')}`).join('；') || '无'}；首条镜像残留=${postResidualScopeFields.join(',') || '无'}；ScopedConfig=${postScopedConfig === null ? '无' : '存在'}；SheetGuide=${postSheetGuide === null ? '无' : '存在'}），请人工检查。`],
+                cleanupWarnings: [`Xóa sạch cứng đã lưu, nhưng quét phần dư sau khi lưu phát hiện trạng thái chưa được xóa sạch (tin nhắn còn sót=${postResidualMessages.map(item => `#${item.index}:${item.fields.join(',')}`).join('; ') || 'không có'}; phần dư ở bản sao đầu tiên=${postResidualScopeFields.join(',') || 'không có'}; ScopedConfig=${postScopedConfig === null ? 'không có' : 'tồn tại'}; SheetGuide=${postSheetGuide === null ? 'không có' : 'tồn tại'}), vui lòng kiểm tra thủ công.`],
             };
         }
 

@@ -20,7 +20,7 @@ export async function synchronizeZeroLayerBridge_ACU(store: ZeroLayerStore_ACU,
     signal.throwIfAborted();
     assertZeroLayerCarrier_ACU(context);
     if (current.sessionId !== sessionId || current.activeBranchId !== branchId) {
-      throw new ZeroLayerError_ACU('scope-changed', '桥接会话或分支已变化。');
+      throw new ZeroLayerError_ACU('scope-changed', 'Phiên hoặc nhánh cầu nối đã thay đổi.');
     }
     const bridge = current.branches.find(branch => branch.branchId === branchId)?.bridge;
     if (bridge) {
@@ -36,14 +36,14 @@ export async function synchronizeZeroLayerBridge_ACU(store: ZeroLayerStore_ACU,
     const confirmed = await store.read();
     assertCurrent();
     if (!confirmed || fingerprint(confirmed) !== fingerprint(saved)) {
-      throw new ZeroLayerError_ACU('revision-conflict', '桥接阶段保存后载体已变化，禁止推进。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Vật mang đã thay đổi sau khi lưu giai đoạn cầu nối, cấm tiến tiếp.');
     }
     current = confirmed;
   };
   assertCurrent();
   let bridge = current.branches.find(branch => branch.branchId === branchId)!.bridge;
   if (bridge?.phase === 'reconciled') return current;
-  if (current.enabled) throw new ZeroLayerError_ACU('migration-conflict', '已启用的旧载体不能覆盖首基线。');
+  if (current.enabled) throw new ZeroLayerError_ACU('migration-conflict', 'Vật mang cũ đã bật không được ghi đè đường cơ sở đầu tiên.');
   if (!bridge) {
     await commit({ type: 'begin-bridge', migrationId: crypto.randomUUID() });
   }
@@ -53,7 +53,7 @@ export async function synchronizeZeroLayerBridge_ACU(store: ZeroLayerStore_ACU,
   for (;;) {
     assertCurrent();
     bridge = current.branches.find(branch => branch.branchId === branchId)!.bridge;
-    if (!bridge) throw new ZeroLayerError_ACU('corrupt-data', '桥接阶段账本缺失。');
+    if (!bridge) throw new ZeroLayerError_ACU('corrupt-data', 'Thiếu sổ cái giai đoạn cầu nối.');
     if (bridge.phase === 'reconciled') return current;
     const phase = nextPhase[bridge.phase];
     // Normalize 仅保存指纹；Candidate、Verify 均独立回放，不复用未保存的载荷。

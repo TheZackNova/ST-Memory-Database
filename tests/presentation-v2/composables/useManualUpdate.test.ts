@@ -176,20 +176,20 @@ describe('useManualUpdate destructive refill confirmation', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualUpdate();
-    await waitForCondition(() => dialog.active?.title === '执行手动填表', '确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Thực hiện điền bảng thủ công', '确认弹窗出现');
 
-    expect(dialog.active?.message).toContain('会先删除本次重填范围内选中表的 checkpoint 与 V2 增量日志');
-    expect(dialog.active?.message).toContain('此前楼层的表格数据将无法恢复');
-    expect(dialog.active?.message).toContain('范围外的 checkpoint、范围外聊天记录的表格数据和未选中的表不会被删除');
+    expect(dialog.active?.message).toContain('hệ thống sẽ xóa trước checkpoint và nhật ký tăng thêm V2 của các bảng đã chọn trong phạm vi điền lại lần này');
+    expect(dialog.active?.message).toContain('dữ liệu bảng ở các tầng trước đó sẽ không thể khôi phục');
+    expect(dialog.active?.message).toContain('checkpoint ngoài phạm vi, dữ liệu bảng của lịch sử trò chuyện ngoài phạm vi và các bảng không được chọn sẽ không bị xóa');
     // 二次确认链路已移除，首次文案不得再承诺它。
-    expect(dialog.active?.message).not.toContain('第二次破坏性确认');
+    expect(dialog.active?.message).not.toContain('lần xác nhận phá hủy thứ hai');
     // Issue #18-4：首批落盘前失败会恢复清理前数据；已提交批次仍保留。
-    expect(dialog.active?.message).toContain('若在首批结果落盘前失败或中止，会自动恢复清理前的表格数据');
-    expect(dialog.active?.message).toContain('一旦已有批次成功提交，失败不会回滚清理');
-    expect(dialog.active?.message).toContain('已提交批次会保留');
-    expect(dialog.active?.message).not.toContain('会回滚到本次操作前的状态');
+    expect(dialog.active?.message).toContain('Nếu thất bại hoặc bị dừng trước khi kết quả của đợt đầu được ghi xuống, dữ liệu bảng trước khi dọn sẽ được tự động khôi phục');
+    expect(dialog.active?.message).toContain('Một khi đã có đợt được cam kết thành công, thất bại sẽ không hoàn tác việc dọn');
+    expect(dialog.active?.message).toContain('các đợt đã cam kết sẽ được giữ lại');
+    expect(dialog.active?.message).not.toContain('sẽ được hoàn tác về trạng thái trước thao tác này');
     // 默认注入目标是角色卡绑定的主世界书：大规模回填前必须让用户看到条目将写去哪里。
-    expect(dialog.active?.message).toContain('世界书注入目标：角色卡绑定世界书 · 主世界书');
+    expect(dialog.active?.message).toContain('Đích chèn sổ thế giới: Thẻ nhân vật gắn sổ thế giới · 主世界书');
     expect(dialog.active?.confirmVariant).toBe('danger');
 
     dialog.cancelActive();
@@ -203,9 +203,9 @@ describe('useManualUpdate destructive refill confirmation', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualUpdate();
-    await waitForCondition(() => dialog.active?.title === '执行手动填表', '确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Thực hiện điền bảng thủ công', '确认弹窗出现');
 
-    expect(dialog.active?.message).toContain('世界书注入目标：太渊战记外挂数据库');
+    expect(dialog.active?.message).toContain('Đích chèn sổ thế giới: 太渊战记外挂数据库');
 
     dialog.cancelActive();
     await pending;
@@ -221,10 +221,10 @@ describe('useManualUpdate destructive refill confirmation', () => {
     const pending = manual.runManualUpdate();
     // 挂起期间弹窗不出现；推进到超时阈值后降级弹出。
     await vi.advanceTimersByTimeAsync(1400);
-    expect(dialog.active?.title).not.toBe('执行手动填表');
+    expect(dialog.active?.title).not.toBe('Thực hiện điền bảng thủ công');
     await vi.advanceTimersByTimeAsync(200);
-    expect(dialog.active?.title).toBe('执行手动填表');
-    expect(dialog.active?.message).toContain('世界书注入目标：角色卡绑定世界书（主世界书解析超时）');
+    expect(dialog.active?.title).toBe('Thực hiện điền bảng thủ công');
+    expect(dialog.active?.message).toContain('Đích chèn sổ thế giới: Thẻ nhân vật gắn sổ thế giới (hết thời gian phân tích sổ thế giới chính)');
 
     dialog.cancelActive();
     vi.useRealTimers();
@@ -238,9 +238,9 @@ describe('useManualUpdate destructive refill confirmation', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualUpdate();
-    await waitForCondition(() => dialog.active?.title === '执行手动填表', '确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Thực hiện điền bảng thủ công', '确认弹窗出现');
 
-    expect(dialog.active?.message).toContain('世界书注入目标：角色卡绑定世界书（未解析到主世界书）');
+    expect(dialog.active?.message).toContain('Đích chèn sổ thế giới: Thẻ nhân vật gắn sổ thế giới (chưa phân tích được sổ thế giới chính)');
 
     dialog.cancelActive();
     await pending;
@@ -252,7 +252,7 @@ describe('useManualUpdate destructive refill confirmation', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualUpdate();
-    await waitForCondition(() => dialog.active?.title === '执行手动填表', '确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Thực hiện điền bảng thủ công', '确认弹窗出现');
     dialog.cancelActive();
     await pending;
 
@@ -267,7 +267,7 @@ describe('useManualUpdate destructive refill confirmation', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualUpdate();
-    await waitForCondition(() => dialog.active?.title === '执行手动填表', '确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Thực hiện điền bảng thủ công', '确认弹窗出现');
     dialog.submitActive();
     await pending;
 
@@ -284,7 +284,7 @@ describe('useManualUpdate destructive refill confirmation', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualUpdate();
-    await waitForCondition(() => dialog.active?.title === '执行手动填表', '确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Thực hiện điền bảng thủ công', '确认弹窗出现');
     dialog.submitActive();
     await pending;
 
@@ -332,7 +332,7 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     // runtime 未就绪时选择必为空，先走“未选择”分支提示，而非误报“运行时未就绪”。
     expect(dialog.active).toBeNull();
     expect(orchestrateManualUpdate_ACU).not.toHaveBeenCalled();
-    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('未选择需要手动填表的表格'))).toBe(true);
+    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('Chưa chọn bảng cần điền bảng thủ công'))).toBe(true);
     __resetToastStoreForTests();
   });
 
@@ -354,7 +354,7 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     // 运行时未就绪分支：快照为空，阻断且不弹确认框
     expect(dialog.active).toBeNull();
     expect(orchestrateManualUpdate_ACU).not.toHaveBeenCalled();
-    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('运行时未就绪'))).toBe(true);
+    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('chưa sẵn sàng'))).toBe(true);
     __resetToastStoreForTests();
   });
 
@@ -432,14 +432,14 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualUpdate();
-    await waitForCondition(() => dialog.active?.title === '执行手动填表', '确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Thực hiện điền bảng thủ công', '确认弹窗出现');
     // 用户在确认弹窗停留期间发生 purge：runtime 被清空
     displayTableData = null;
     dialog.submitActive();
     await pending;
 
     expect(orchestrateManualUpdate_ACU).not.toHaveBeenCalled();
-    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('确认期间发生变化'))).toBe(true);
+    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('thay đổi trong lúc xác nhận'))).toBe(true);
     // UI 复检失败分支同样经 finally refresh()：purge 后 selection 被清空，不残留失效目标
     expect(manual.selectedManualTableKeys.value).toEqual([]);
     __resetToastStoreForTests();
@@ -451,7 +451,7 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualUpdate();
-    await waitForCondition(() => dialog.active?.title === '执行手动填表', '确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Thực hiện điền bảng thủ công', '确认弹窗出现');
     // 确认期间新增 sheet_1：runtime 表集合与确认前快照不一致
     displayTableData = {
       sheet_0: { name: '物品表', content: [['row_id', '名称']] },
@@ -461,7 +461,7 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     await pending;
 
     expect(orchestrateManualUpdate_ACU).not.toHaveBeenCalled();
-    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('确认期间发生变化'))).toBe(true);
+    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('thay đổi trong lúc xác nhận'))).toBe(true);
     __resetToastStoreForTests();
   });
 
@@ -471,7 +471,7 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualUpdate();
-    await waitForCondition(() => dialog.active?.title === '执行手动填表', '确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Thực hiện điền bảng thủ công', '确认弹窗出现');
     // 确认期间 sheet_0 被删除，runtime 只剩 sheet_9
     displayTableData = {
       sheet_9: { name: '另一表', content: [['row_id', '名称']] },
@@ -480,7 +480,7 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     await pending;
 
     expect(orchestrateManualUpdate_ACU).not.toHaveBeenCalled();
-    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('确认期间发生变化'))).toBe(true);
+    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('thay đổi trong lúc xác nhận'))).toBe(true);
     __resetToastStoreForTests();
   });
 
@@ -496,7 +496,7 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     manual.setManualSelectedKeys(['sheet_0']);
 
     const pending = manual.runManualUpdate();
-    await waitForCondition(() => dialog.active?.title === '执行手动填表', '确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Thực hiện điền bảng thủ công', '确认弹窗出现');
     const confirmMessage = dialog.active?.message || '';
     // 确认期间外部直接改写 selection ref（绕过 setter），把目标换成 sheet_1
     manual.selectedManualTableKeys.value = ['sheet_1'];
@@ -537,7 +537,7 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     manual.setManualSelectedKeys(['sheet_0']);
 
     const pending = manual.runManualCatchUp();
-    await waitForCondition(() => dialog.active?.title === '追平所选表未填楼层', '追平确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Bắt kịp các tầng chưa điền của bảng đã chọn', '追平确认弹窗出现');
     const confirmMessage = dialog.active?.message || '';
     manual.selectedManualTableKeys.value = ['sheet_1'];
     dialog.submitActive();
@@ -609,8 +609,8 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
 
     await manual.runManualUpdate();
     expect(dialog.active).toBeNull();
-    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('未选择需要手动填表的表格'))).toBe(true);
-    expect(toast.items.some(item => item.text.includes('运行时未就绪'))).toBe(false);
+    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('Chưa chọn bảng cần điền bảng thủ công'))).toBe(true);
+    expect(toast.items.some(item => item.text.includes('chưa sẵn sàng'))).toBe(false);
     __resetToastStoreForTests();
   });
 
@@ -622,8 +622,8 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
 
     await manual.runManualCatchUp();
     expect(dialog.active).toBeNull();
-    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('未选择需要追平的表格'))).toBe(true);
-    expect(toast.items.some(item => item.text.includes('运行时未就绪'))).toBe(false);
+    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('Chưa chọn bảng cần bắt kịp'))).toBe(true);
+    expect(toast.items.some(item => item.text.includes('chưa sẵn sàng'))).toBe(false);
     __resetToastStoreForTests();
   });
 
@@ -649,14 +649,14 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualCatchUp();
-    await waitForCondition(() => dialog.active?.title === '追平所选表未填楼层', '追平确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Bắt kịp các tầng chưa điền của bảng đã chọn', '追平确认弹窗出现');
     // 用户在确认弹窗停留期间发生 purge
     displayTableData = null;
     dialog.submitActive();
     await pending;
 
     expect(orchestrateManualCatchUp_ACU).not.toHaveBeenCalled();
-    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('确认期间发生变化'))).toBe(true);
+    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('thay đổi trong lúc xác nhận'))).toBe(true);
     __resetToastStoreForTests();
   });
 
@@ -681,7 +681,7 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualCatchUp();
-    await waitForCondition(() => dialog.active?.title === '追平所选表未填楼层', '追平确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Bắt kịp các tầng chưa điền của bảng đã chọn', '追平确认弹窗出现');
     // 确认期间 runtime 表集合变化（sheet_0 被删、新增 sheet_9）
     displayTableData = {
       sheet_9: { name: '另一表', content: [['row_id', '名称']] },
@@ -690,7 +690,7 @@ describe('useManualUpdate purge 后执行边界守卫', () => {
     await pending;
 
     expect(orchestrateManualCatchUp_ACU).not.toHaveBeenCalled();
-    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('确认期间发生变化'))).toBe(true);
+    expect(toast.items.some(item => item.kind === 'warning' && item.text.includes('thay đổi trong lúc xác nhận'))).toBe(true);
     __resetToastStoreForTests();
   });
 
@@ -728,7 +728,7 @@ describe('useManualUpdate 手动追平表更新通知', () => {
     const manual = useManualUpdate();
 
     const pending = manual.runManualCatchUp();
-    await waitForCondition(() => dialog.active?.title === '追平所选表未填楼层', '追平确认弹窗出现');
+    await waitForCondition(() => dialog.active?.title === 'Bắt kịp các tầng chưa điền của bảng đã chọn', '追平确认弹窗出现');
     dialog.submitActive();
     await pending;
 

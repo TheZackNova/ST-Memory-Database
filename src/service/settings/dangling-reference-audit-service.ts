@@ -39,15 +39,15 @@ export interface DanglingReferenceItem_ACU {
 }
 
 const CONTINUATION_ROLE_LABELS_ACU: Record<string, string> = {
-  main: '主 Agent',
-  outline: '大纲子代理',
-  arcArchitect: '故事总纲子代理',
-  maintainer: '伏笔维护子代理',
-  mainlinePlanner: '主线策划子代理',
-  beatPlanner: '节拍策划子代理',
-  reviewer: '连续性审查子代理',
-  finalReviewer: '发送前终审子代理',
-  webResearcher: '网页检索子代理',
+  main: 'Agent chính',
+  outline: 'Agent phụ dàn ý',
+  arcArchitect: 'Agent phụ tổng cương cốt truyện',
+  maintainer: 'Agent phụ bảo trì phục bút',
+  mainlinePlanner: 'Agent phụ lập kế hoạch tuyến chính',
+  beatPlanner: 'Agent phụ lập kế hoạch nhịp',
+  reviewer: 'Agent phụ rà soát tính liên tục',
+  finalReviewer: 'Agent phụ thẩm định cuối trước khi gửi',
+  webResearcher: 'Agent phụ tìm kiếm web',
 };
 
 function clone<T>(value: T): T {
@@ -99,14 +99,14 @@ function collectFromContinuationSettings_ACU(
   keyPrefix: string,
 ): void {
   if (!settings) return;
-  pushPresetRef(items, existing, settings.fixedApiPresetName, `${keyPrefix}-fixed`, `${sourceLabel}固定 API 预设`, `${keyPrefix}_fixed`);
+  pushPresetRef(items, existing, settings.fixedApiPresetName, `${keyPrefix}-fixed`, `${sourceLabel} preset API cố định`, `${keyPrefix}_fixed`);
   const presets = settings.agentApiPresets;
   if (!presets || typeof presets !== 'object') return;
   for (const role of CONTINUATION_AGENT_API_PRESET_ROLES_ACU) {
     const choice = presets[role];
     if (!choice) continue;
     const roleLabel = CONTINUATION_ROLE_LABELS_ACU[role] || role;
-    pushPresetRef(items, existing, choice.presetName, `${keyPrefix}-agent-${role}`, `${sourceLabel}${roleLabel}渠道`, `${keyPrefix}_agent:${role}`);
+    pushPresetRef(items, existing, choice.presetName, `${keyPrefix}-agent-${role}`, `${sourceLabel} ${roleLabel} - kênh`, `${keyPrefix}_agent:${role}`);
   }
 }
 
@@ -118,12 +118,12 @@ function collectFromSimulationSettings_ACU(
   keyPrefix: string,
 ): void {
   if (!settings) return;
-  pushPresetRef(items, existing, settings.fixedApiPresetName, `${keyPrefix}-fixed`, `${sourceLabel}固定 API 预设`, `${keyPrefix}_fixed`);
+  pushPresetRef(items, existing, settings.fixedApiPresetName, `${keyPrefix}-fixed`, `${sourceLabel} preset API cố định`, `${keyPrefix}_fixed`);
   const presets = settings.agentApiPresets;
   if (!presets || typeof presets !== 'object') return;
   for (const [role, choice] of Object.entries(presets)) {
     if (!choice) continue;
-    pushPresetRef(items, existing, choice.presetName, `${keyPrefix}-agent-${role}`, `${sourceLabel}Agent「${role}」渠道`, `${keyPrefix}_agent:${role}`);
+    pushPresetRef(items, existing, choice.presetName, `${keyPrefix}-agent-${role}`, `${sourceLabel} Agent "${role}" - kênh`, `${keyPrefix}_agent:${role}`);
   }
 }
 
@@ -140,36 +140,36 @@ function peekFirstFloorField_ACU(field: string): unknown {
 export function collectDanglingApiPresetReferences_ACU(): DanglingReferenceItem_ACU[] {
   const existing = existingPresetNames_ACU();
   const items: DanglingReferenceItem_ACU[] = [];
-  pushPresetRef(items, existing, settings_ACU.tableApiPreset, 'table', '填表 API 预设', 'table');
-  pushPresetRef(items, existing, settings_ACU.plotApiPreset, 'plot', '剧情推进 API 预设', 'plot');
-  pushPresetRef(items, existing, settings_ACU.contentOptimizationSettings?.apiPreset, 'optimization', '正文优化 API 预设', 'optimization');
-  pushPresetRef(items, existing, readKeywordApiPreset_ACU(), 'vector-keyword', '向量关键词 API 预设', 'vector_keyword');
+  pushPresetRef(items, existing, settings_ACU.tableApiPreset, 'table', 'Preset API điền bảng', 'table');
+  pushPresetRef(items, existing, settings_ACU.plotApiPreset, 'plot', 'Preset API đẩy cốt truyện', 'plot');
+  pushPresetRef(items, existing, settings_ACU.contentOptimizationSettings?.apiPreset, 'optimization', 'Preset API tối ưu nội dung chính', 'optimization');
+  pushPresetRef(items, existing, readKeywordApiPreset_ACU(), 'vector-keyword', 'Preset API từ khóa vector', 'vector_keyword');
 
   const tableOverrides = settings_ACU.tableApiPresetOverridesByName;
   if (tableOverrides && typeof tableOverrides === 'object') {
     for (const [sheetName, presetName] of Object.entries(tableOverrides)) {
-      pushPresetRef(items, existing, presetName, `table-override-${sheetName}`, `表格「${sheetName}」API 预设`, `table_override:${sheetName}`);
+      pushPresetRef(items, existing, presetName, `table-override-${sheetName}`, `Preset API của bảng "${sheetName}"`, `table_override:${sheetName}`);
     }
   }
   const plotOverrides = settings_ACU.plotTaskApiPresetOverridesById;
   if (plotOverrides && typeof plotOverrides === 'object') {
     for (const [taskId, presetName] of Object.entries(plotOverrides)) {
-      pushPresetRef(items, existing, presetName, `plot-task-${taskId}`, `剧情任务「${taskId}」API 预设`, `plot_task:${taskId}`);
+      pushPresetRef(items, existing, presetName, `plot-task-${taskId}`, `Preset API của tác vụ cốt truyện "${taskId}"`, `plot_task:${taskId}`);
     }
   }
 
-  collectFromContinuationSettings_ACU(items, existing, readContinuationGlobalSettings_ACU(), '智能续写（全局副本）', 'continuation_global');
+  collectFromContinuationSettings_ACU(items, existing, readContinuationGlobalSettings_ACU(), 'Viết tiếp thông minh (bản sao toàn cục)', 'continuation_global');
   const continuationRaw = peekFirstFloorField_ACU(CONTINUATION_FIRST_FLOOR_FIELD_ACU);
   const continuationSettings = continuationRaw && typeof continuationRaw === 'object' && !Array.isArray(continuationRaw)
     ? (continuationRaw as { settings?: ContinuationSettings_ACU }).settings ?? null
     : null;
-  collectFromContinuationSettings_ACU(items, existing, continuationSettings, '智能续写（当前聊天）', 'continuation');
+  collectFromContinuationSettings_ACU(items, existing, continuationSettings, 'Viết tiếp thông minh (cuộc trò chuyện hiện tại)', 'continuation');
 
   const simulationRaw = peekFirstFloorField_ACU(WORLD_SIMULATION_FIRST_FLOOR_FIELD_ACU);
   const simulationSettings = simulationRaw && typeof simulationRaw === 'object' && !Array.isArray(simulationRaw)
     ? (simulationRaw as { settings?: { fixedApiPresetName?: string; agentApiPresets?: Record<string, { presetName?: string }> } }).settings ?? null
     : null;
-  collectFromSimulationSettings_ACU(items, existing, simulationSettings, '格林推演（当前聊天）', 'simulation');
+  collectFromSimulationSettings_ACU(items, existing, simulationSettings, 'Mô phỏng thế giới (cuộc trò chuyện hiện tại)', 'simulation');
   return items;
 }
 
@@ -182,7 +182,7 @@ export async function collectDanglingWorldbookReferences_ACU(): Promise<Dangling
     return [{
       id: 'injection-target',
       kind: 'worldbook',
-      label: '填表写入目标世界书',
+      label: 'Sổ thế giới đích khi điền bảng',
       name: target,
       clearKey: 'worldbook_injection',
     }];
@@ -233,7 +233,7 @@ export async function clearDanglingReference_ACU(item: DanglingReferenceItem_ACU
     const saveResult = saveSettings_ACU();
     if (!saveResult.saved) {
       settings_ACU.tableApiPresetOverridesByName = snapshot;
-      return { ok: false, message: saveResult.warning || saveResult.error || '保存失败，已回滚。' };
+      return { ok: false, message: saveResult.warning || saveResult.error || 'Lưu thất bại, đã khôi phục.' };
     }
     return { ok: true };
   }
@@ -246,7 +246,7 @@ export async function clearDanglingReference_ACU(item: DanglingReferenceItem_ACU
         const saveResult = saveSettings_ACU();
         if (!saveResult.saved) {
           (settings_ACU as Record<string, unknown>)[CONTINUATION_GLOBAL_SETTINGS_KEY_ACU] = globalSettings;
-          return { ok: false, message: saveResult.warning || saveResult.error || '保存失败，已回滚。' };
+          return { ok: false, message: saveResult.warning || saveResult.error || 'Lưu thất bại, đã khôi phục.' };
         }
       }
     } else {
@@ -288,9 +288,9 @@ export async function clearDanglingReference_ACU(item: DanglingReferenceItem_ACU
     const saveResult = saveSettings_ACU();
     if (!saveResult.saved) {
       cfg.injectionTarget = previous;
-      return { ok: false, message: saveResult.warning || saveResult.error || '保存失败，已回滚。' };
+      return { ok: false, message: saveResult.warning || saveResult.error || 'Lưu thất bại, đã khôi phục.' };
     }
     return { ok: true };
   }
-  return { ok: false, message: '未知的失效引用，无法清除。' };
+  return { ok: false, message: 'Tham chiếu hỏng không xác định, không thể xóa.' };
 }

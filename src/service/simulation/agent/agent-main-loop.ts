@@ -1,7 +1,7 @@
 import { assembleAgentPrompt_ACU } from '../../../shared/agent-prompt-layout';
 import { USER_PREFILL_CONTENT_ACU } from '../../../shared/user-prefill.js';
 import { sha256HexSync_ACU } from '../../../shared/sha256-sync';
-import { formatWorldSimulationLedgerRequiredFields_ACU, type WorldCollisionReport_ACU, type WorldSimulationLedger_ACU, type WorldSimulationLedgerModule_ACU, type WorldSimulationRunIdentity_ACU, type WorldSimulationSettings_ACU } from '../model';
+import { formatWorldSimulationLedgerRequiredFieldsVi_ACU, type WorldCollisionReport_ACU, type WorldSimulationLedger_ACU, type WorldSimulationLedgerModule_ACU, type WorldSimulationRunIdentity_ACU, type WorldSimulationSettings_ACU } from '../model';
 import { applyWorldSimulationCandidatesDetailedViaSql_ACU, preflightWorldSimulationCandidates_ACU } from '../simulation-transaction';
 import type { WorldSimulationRunWriteState_ACU } from '../simulation-run-write-state';
 import type { WorldSimulationEvidenceRegistry_ACU } from '../world-simulation-evidence-registry';
@@ -421,8 +421,8 @@ export class WorldSimulationMainLoop_ACU {
       });
     };
     const runEntryId = beginWorldSimulationSessionRun_ACU(
-      input.identity.chatIdentity, '格林推演 Agent 运行',
-      resetRunBudget ? `用户指令续跑，预算窗口重置（保留 ${candidates.length} 个候选）` : budgetExhausted ? `预算窗口重置，从第 1 轮继续（保留 ${candidates.length} 个候选）` : resumedState ? `从第 ${iteration} 次迭代恢复` : `stage=${input.identity.stageId}`,
+      input.identity.chatIdentity, 'Chạy Agent mô phỏng thế giới',
+      resetRunBudget ? `Chạy tiếp theo chỉ thị của người dùng, đặt lại cửa sổ ngân sách (giữ ${candidates.length} ứng viên)` : budgetExhausted ? `Đặt lại cửa sổ ngân sách, tiếp tục từ lượt 1 (giữ ${candidates.length} ứng viên)` : resumedState ? `Khôi phục từ lần lặp ${iteration}` : `stage=${input.identity.stageId}`,
       !!resumedState,
     );
     await persistEntry(runEntryId, resumedState ? 'run-resumed' : 'run-started');
@@ -439,7 +439,7 @@ export class WorldSimulationMainLoop_ACU {
         perAgent: Object.fromEntries(perAgent),
         outcomes: outcomes.map(item => ({ agentName: item.agentName, status: item.status, summary: item.summary, fingerprint: fingerprint_ACU(item) })),
         candidateFingerprint: sha256HexSync_ACU(JSON.stringify(unique.map(item => item.candidateId))),
-        candidateSummary: unique.map(item => item.summary).join('；').slice(0, 1000),
+        candidateSummary: unique.map(item => item.summary).join('; ').slice(0, 1000),
         // 升级标记与缺口跨后续 persist 保留；其它拒绝原因留在 transcript。
         reviewerFeedback: workflowEscalation && !extras.budgetExhausted
           ? `${workflowEscalationPrefix}${JSON.stringify(workflowEscalation)}` : reviewerFeedback,
@@ -498,7 +498,7 @@ export class WorldSimulationMainLoop_ACU {
         || (typeof input.promptContext.anchorMessage === 'string' && input.promptContext.anchorMessage.trim())
         || input.identity.stageId;
       const workflowEntryId = logWorldSimulationSession_ACU(input.identity.chatIdentity, {
-        kind: 'delegation', title: '固定工作流正在执行', detail: focus,
+        kind: 'delegation', title: 'Quy trình cố định đang thực thi', detail: focus,
         agentName: director, status: 'running',
       });
       // 工作流可能逐栏持久化；先留下恢复锚点，避免中断后误当作新开局重复派工。
@@ -526,13 +526,13 @@ export class WorldSimulationMainLoop_ACU {
           triggeredWorldbook, fixedWorldbook,
         });
       } catch (error) {
-        updateWorldSimulationSession_ACU(input.identity.chatIdentity, workflowEntryId, { title: '固定工作流失败', detail: compact_ACU(error), ok: false, status: 'failed' });
+        updateWorldSimulationSession_ACU(input.identity.chatIdentity, workflowEntryId, { title: 'Quy trình cố định thất bại', detail: compact_ACU(error), ok: false, status: 'failed' });
         await persistEntry(workflowEntryId, 'workflow-opening-failed');
         throw error;
       }
       for (const outcome of workflow.outcomes) upsertLatestOutcome_ACU(outcomes, outcome);
       updateWorldSimulationSession_ACU(input.identity.chatIdentity, workflowEntryId, {
-        title: `固定工作流：${workflow.outcome}`, detail: workflow.summary,
+        title: `Quy trình cố định: ${workflow.outcome}`, detail: workflow.summary,
         ok: workflow.outcome !== 'escalate' && workflow.outcome !== 'blocked', status: workflow.outcome === 'escalate' || workflow.outcome === 'blocked' ? 'failed' : 'done',
       });
       await persistEntry(workflowEntryId, 'workflow-opening');
@@ -546,7 +546,7 @@ export class WorldSimulationMainLoop_ACU {
         if (storage.mode === 'host') clearWorldSimulationRunState_ACU(input.identity.chatIdentity);
         if (workflow.outcome === 'blocked') {
           const unresolved = workflow.pendingFixes.map(fix => `${fix.module}: ${fix.lastError}`);
-          const blockId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'block', title: workflow.summary, detail: unresolved.join('；'), agentName: director, ok: false });
+          const blockId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'block', title: workflow.summary, detail: unresolved.join('; '), agentName: director, ok: false });
           await persistEntry(blockId, 'workflow-opening-blocked');
           return { outcome: 'blocked', summary: workflow.summary, unresolved, outcomes };
         }
@@ -565,8 +565,8 @@ export class WorldSimulationMainLoop_ACU {
         fallbackTokens: input.settings.agentReadFallbackTokens,
       });
       const requestContext = resultContext_ACU(currentContext(), input.registry, uniqueCandidates_ACU(candidates), outcomes);
-      requestContext.readBudgetText = `本轮剩余阅读预算：约 ${Math.max(0, readBudget.effectiveMaxReadTokens - readGateState.grantedTokens)} tokens（上限 ${readBudget.effectiveMaxReadTokens}，已授予 ${readGateState.grantedTokens}）；剩余 read/search 次数 ${Math.max(0, input.settings.agentRunBudget.maxReads - toolUsage.readsUsed)}/${input.settings.agentRunBudget.maxReads}。`;
-      if (persistentHistory) requestContext.history = { note: '主会话历史已按模型消息顺序提供；此处不重复展示卡片' };
+      requestContext.readBudgetText = `Ngân sách đọc còn lại của lượt này: khoảng ${Math.max(0, readBudget.effectiveMaxReadTokens - readGateState.grantedTokens)} tokens (giới hạn ${readBudget.effectiveMaxReadTokens}, đã cấp ${readGateState.grantedTokens}); số lần read/search còn lại ${Math.max(0, input.settings.agentRunBudget.maxReads - toolUsage.readsUsed)}/${input.settings.agentRunBudget.maxReads}.`;
+      if (persistentHistory) requestContext.history = { note: 'Lịch sử phiên chính đã được cung cấp theo thứ tự tin nhắn của mô hình; không hiển thị lại thẻ ở đây' };
       if (workflowEscalation) {
         const runtimeContext = requestContext.runtimeContext && typeof requestContext.runtimeContext === 'object'
           ? requestContext.runtimeContext as Record<string, unknown>
@@ -575,8 +575,8 @@ export class WorldSimulationMainLoop_ACU {
       }
       const mainEntryId = logWorldSimulationSession_ACU(input.identity.chatIdentity, {
         kind: 'main_action',
-        title: `主 Agent 第 ${iteration} 轮正在工作`,
-        detail: iteration === 1 ? `正在分析本轮幕后推演：${input.promptContext.userGuidance || input.identity.stageId}` : '正在结合上一轮取证与派工结果决定下一步动作…',
+        title: `Agent chính đang làm việc ở lượt ${iteration}`,
+        detail: iteration === 1 ? `Đang phân tích mô phỏng hậu trường của lượt này: ${input.promptContext.userGuidance || input.identity.stageId}` : 'Đang kết hợp kết quả thu thập bằng chứng và giao việc của lượt trước để quyết định hành động tiếp theo…',
         agentName: director,
         status: 'running',
       });
@@ -591,18 +591,18 @@ export class WorldSimulationMainLoop_ACU {
           createWorldSimulationPlaceholderResolvers_ACU({
             ...requestContext,
             evidenceRegistry: requestSnapshot,
-            readBudgetText: '阅读预算见本轮运行时快照。',
+            readBudgetText: 'Ngân sách đọc xem trong snapshot runtime của lượt này.',
           }),
         );
         const fixed = rendered.messages.filter(message => message.content !== USER_PREFILL_CONTENT_ACU);
         const snapshot = await renderWorldSimulationSnapshotSections_ACU(split.snapshotTemplate,
           createWorldSimulationPlaceholderResolvers_ACU({ ...requestContext, evidenceRegistry: requestSnapshot }));
         const snapshotText = [
-          '【本次格林推演最新快照】',
+          '【Snapshot mới nhất của lần mô phỏng thế giới này】',
           snapshot.text,
           ...(triggeredWorldbook ? [triggeredWorldbook] : []),
-          `实时阅读预算：${requestContext.readBudgetText ?? '（不可用）'}`,
-          `账本修订号：${currentLedger().revision}`,
+          `Ngân sách đọc thời gian thực: ${requestContext.readBudgetText ?? '(không khả dụng)'}`,
+          `Số sửa đổi sổ cái: ${currentLedger().revision}`,
         ].join('\n\n');
         const tail = [...(persistentHistory && handoffHint ? [handoffHint] : [])];
         const count = this.dependencies.countTokens ?? countWorldSimulationTokens_ACU;
@@ -677,17 +677,17 @@ export class WorldSimulationMainLoop_ACU {
           },
         });
       } catch (error) {
-        updateWorldSimulationSession_ACU(input.identity.chatIdentity, mainEntryId, { title: `主 Agent 第 ${iteration} 轮失败`, detail: compact_ACU(error), ok: false, status: 'failed' });
+        updateWorldSimulationSession_ACU(input.identity.chatIdentity, mainEntryId, { title: `Agent chính thất bại ở lượt ${iteration}`, detail: compact_ACU(error), ok: false, status: 'failed' });
         await persistEntry(mainEntryId, `main-${iteration}-failed`);
-        const failedId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'run_failed', title: '主 Agent 请求失败', detail: compact_ACU(error), agentName: director, ok: false });
+        const failedId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'run_failed', title: 'Yêu cầu của Agent chính thất bại', detail: compact_ACU(error), agentName: director, ok: false });
         await persistEntry(failedId, `run-failed-main-${iteration}`);
         throw error;
       }
       if (sent.status === 'rejected') {
-        updateWorldSimulationSession_ACU(input.identity.chatIdentity, mainEntryId, { title: `主 Agent 第 ${iteration} 轮失败`, detail: sent.reason, ok: false, status: 'failed' });
+        updateWorldSimulationSession_ACU(input.identity.chatIdentity, mainEntryId, { title: `Agent chính thất bại ở lượt ${iteration}`, detail: sent.reason, ok: false, status: 'failed' });
         await persistEntry(mainEntryId, `main-${iteration}-rejected`);
         await persist(iteration);
-        const failedId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'run_failed', title: '最终请求超出 Token 门禁', detail: sent.reason, agentName: director, ok: false });
+        const failedId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'run_failed', title: 'Yêu cầu cuối cùng vượt ngưỡng Token', detail: sent.reason, agentName: director, ok: false });
         await persistEntry(failedId, `run-failed-token-${iteration}`);
         throw new Error(sent.reason);
       }
@@ -703,36 +703,36 @@ export class WorldSimulationMainLoop_ACU {
       let action;
       try {
         if (toolMode === 'tools') {
-          if (!nativeCalls.length) throw new Error('工具模式下必须调用函数：取证用 read 或 search，决策调用 open_round、delegate、finalize 或 block，不要输出 JSON 文本');
+          if (!nativeCalls.length) throw new Error('Ở chế độ công cụ bắt buộc phải gọi hàm: thu thập bằng chứng dùng read hoặc search, quyết định gọi open_round, delegate, finalize hoặc block, không xuất văn bản JSON');
           const split = splitNativeDecisionCalls_ACU(nativeToolArguments_ACU(nativeCalls), AGENT_DECISION_TOOL_NAMES_ACU);
           // nativeToolArguments_ACU 已把函数名注入 action，决策参数沿用原契约解析器校验。
           action = split.decision
             ? parseWorldSimulationMainAction_ACU(split.decision.payload, allowDelegate, requestSnapshot)
             : { kind: 'tools' as const, calls: split.tools.map(({ call, payload }) => {
-              if (call.name !== 'read' && call.name !== 'search') throw new Error(`主 Agent 不允许调用 ${call.name}`);
+              if (call.name !== 'read' && call.name !== 'search') throw new Error(`Agent chính không được phép gọi ${call.name}`);
               return parseWorldSimulationMainAction_ACU(payload, false, requestSnapshot) as Extract<ReturnType<typeof parseWorldSimulationMainAction_ACU>, { kind: 'read' | 'search' }>;
             }) };
         } else {
-          if (nativeCalls.length) throw new Error('当前为 JSON 模式，不要调用函数；把动作写成 JSON 对象输出');
+          if (nativeCalls.length) throw new Error('Hiện ở chế độ JSON, không gọi hàm; hãy viết hành động thành đối tượng JSON để xuất');
           action = parseWorldSimulationMainOutput_ACU(raw, WORLD_SIMULATION_AGENT_PREFILLS_ACU[director], allowDelegate, requestSnapshot);
         }
       } catch (error) {
         const exhausted = compactWorldSimulationProtocolError_ACU(error);
         if (exhausted.reasonCode === 'DELEGATION_BUDGET_EXHAUSTED') {
-          updateWorldSimulationSession_ACU(input.identity.chatIdentity, mainEntryId, { title: `主 Agent 第 ${iteration} 轮派工预算耗尽`, detail: `${exhausted.reasonCode} ${exhausted.path}`, ok: false, status: 'failed' });
+          updateWorldSimulationSession_ACU(input.identity.chatIdentity, mainEntryId, { title: `Ngân sách giao việc của Agent chính hết ở lượt ${iteration}`, detail: `${exhausted.reasonCode} ${exhausted.path}`, ok: false, status: 'failed' });
           await persistEntry(mainEntryId, `main-${iteration}-delegation-budget`);
-          pushFeedback('派工预算已耗尽，当轮终止。');
+          pushFeedback('Ngân sách giao việc đã hết, kết thúc lượt này.');
           return blockOnBudget_ACU(
             iteration,
             'delegation budget exhausted',
-            '派工预算已耗尽',
+            'Ngân sách giao việc đã hết',
             `${exhausted.reasonCode} ${exhausted.path}`,
             ['delegation budget exhausted'],
             'block-delegation-budget',
           );
         }
         const failure = recordWorldSimulationProtocolFailure_ACU(protocolRepair, error);
-        updateWorldSimulationSession_ACU(input.identity.chatIdentity, mainEntryId, { title: `主 Agent 第 ${iteration} 轮协议未通过`, detail: `${failure.issue.reasonCode} ${failure.issue.path}`, ok: false, status: 'failed' });
+        updateWorldSimulationSession_ACU(input.identity.chatIdentity, mainEntryId, { title: `Giao thức của Agent chính không đạt ở lượt ${iteration}`, detail: `${failure.issue.reasonCode} ${failure.issue.path}`, ok: false, status: 'failed' });
         await persistEntry(mainEntryId, `main-${iteration}-protocol-failed`);
         if (!failure.retry) {
           await persist(iteration, `${failure.issue.reasonCode}:${failure.issue.path}`);
@@ -740,18 +740,18 @@ export class WorldSimulationMainLoop_ACU {
         }
         const rejection = renderWorldSimulationDirectorProtocolRejection_ACU(failure.issue, allowDelegate, toolMode);
         pushFeedback(rejection);
-        const retryId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'protocol_retry', title: '主 Agent 协议修正', detail: `${failure.issue.reasonCode} ${failure.issue.path}\n模型返回片段：${raw.slice(0, 300) || '(空)'}`, agentName: director, ok: false });
+        const retryId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'protocol_retry', title: 'Sửa giao thức Agent chính', detail: `${failure.issue.reasonCode} ${failure.issue.path}\nĐoạn mô hình trả về: ${raw.slice(0, 300) || '(rỗng)'}`, agentName: director, ok: false });
         await persistEntry(retryId, `main-${iteration}-protocol-retry`);
         continue;
       }
-      updateWorldSimulationSession_ACU(input.identity.chatIdentity, mainEntryId, { title: `主 Agent 动作：${action.kind}`, detail: `第 ${iteration} 轮决策完成`, ok: true, status: 'done' });
+      updateWorldSimulationSession_ACU(input.identity.chatIdentity, mainEntryId, { title: `Hành động của Agent chính: ${action.kind}`, detail: `Quyết định lượt ${iteration} hoàn tất`, ok: true, status: 'done' });
       await persistEntry(mainEntryId, `main-${iteration}-done`);
 
       if (action.kind === 'read' || action.kind === 'search' || action.kind === 'tools') {
         const calls = action.kind === 'tools' ? action.calls : [action];
         const toolEntryId = logWorldSimulationSession_ACU(input.identity.chatIdentity, {
-          kind: 'tool_read', title: '主 Agent 正在读取资料',
-          detail: calls.map(call => call.kind === 'read' ? `read: ${call.reads.join(', ')}` : `search: ${call.query}`).join('；'),
+          kind: 'tool_read', title: 'Agent chính đang đọc tài liệu',
+          detail: calls.map(call => call.kind === 'read' ? `read: ${call.reads.join(', ')}` : `search: ${call.query}`).join('; '),
           agentName: director, status: 'running',
         });
         let perCallResults: Array<Awaited<ReturnType<typeof runWorldSimulationToolBatch_ACU>>>;
@@ -786,19 +786,19 @@ export class WorldSimulationMainLoop_ACU {
           const results = perCallResults.flat();
           const toolOk = results.every(result => result.status === 'ok' || result.status === 'empty');
           updateWorldSimulationSession_ACU(input.identity.chatIdentity, toolEntryId, {
-            title: toolOk ? `资料读取完成（${results.length} 项）` : '资料读取部分失败',
-            detail: results.map(result => `${result.kind}:${result.status} ${result.address} ${result.summary}`).join('；'),
+            title: toolOk ? `Đọc tài liệu hoàn tất (${results.length} mục)` : 'Đọc tài liệu thất bại một phần',
+            detail: results.map(result => `${result.kind}:${result.status} ${result.address} ${result.summary}`).join('; '),
             ok: toolOk, status: toolOk ? 'done' : 'failed',
           });
           await persistEntry(toolEntryId, `tool-${iteration}`);
         } catch (error) {
-          updateWorldSimulationSession_ACU(input.identity.chatIdentity, toolEntryId, { title: '资料读取失败', detail: compact_ACU(error), ok: false, status: 'failed' });
+          updateWorldSimulationSession_ACU(input.identity.chatIdentity, toolEntryId, { title: 'Đọc tài liệu thất bại', detail: compact_ACU(error), ok: false, status: 'failed' });
           await persistEntry(toolEntryId, `tool-${iteration}-failed`);
           throw error;
         }
         if (toolMode === 'tools') transcript.push(...nativeToolExchange_ACU(turn.content, nativeCalls, perCallResults.map(toolResultText_ACU)));
         // JSON 模式的回执也保留 "kind":"read" 结构，renderWorldSimulationDirectorReads_ACU 依此转交子代理。
-        else pushFeedback(`【工具结果】\n${toolResultText_ACU(perCallResults.flat())}`);
+        else pushFeedback(`【Kết quả công cụ】\n${toolResultText_ACU(perCallResults.flat())}`);
         pendingReview = null;
         await persist(iteration + 1);
         continue;
@@ -807,7 +807,7 @@ export class WorldSimulationMainLoop_ACU {
       if (action.kind === 'open_round') {
         const workflowEntryId = logWorldSimulationSession_ACU(input.identity.chatIdentity, {
           kind: 'delegation',
-          title: '固定工作流正在执行',
+          title: 'Quy trình cố định đang thực thi',
           detail: action.focus,
           agentName: director,
           status: 'running',
@@ -840,13 +840,13 @@ export class WorldSimulationMainLoop_ACU {
             triggeredWorldbook, fixedWorldbook,
           });
         } catch (error) {
-          updateWorldSimulationSession_ACU(input.identity.chatIdentity, workflowEntryId, { title: '固定工作流失败', detail: compact_ACU(error), ok: false, status: 'failed' });
+          updateWorldSimulationSession_ACU(input.identity.chatIdentity, workflowEntryId, { title: 'Quy trình cố định thất bại', detail: compact_ACU(error), ok: false, status: 'failed' });
           await persistEntry(workflowEntryId, `workflow-${iteration}-failed`);
           throw error;
         }
         for (const outcome of workflow.outcomes) upsertLatestOutcome_ACU(outcomes, outcome);
         updateWorldSimulationSession_ACU(input.identity.chatIdentity, workflowEntryId, {
-          title: `固定工作流：${workflow.outcome}`,
+          title: `Quy trình cố định: ${workflow.outcome}`,
           detail: workflow.summary,
           ok: workflow.outcome !== 'escalate' && workflow.outcome !== 'blocked',
           status: workflow.outcome === 'escalate' || workflow.outcome === 'blocked' ? 'failed' : 'done',
@@ -856,7 +856,7 @@ export class WorldSimulationMainLoop_ACU {
           const workflowFeedback = JSON.stringify({ outcome: 'escalate', pendingFixes: workflow.pendingFixes, agents: workflow.outcomes.map(item => ({ agentName: item.agentName, status: item.status })) });
           pushFeedback(`${workflowFeedback}
 ${workflow.summary}
-资料维护未合格。你是和用户对话的主会话，要针对子代理反馈制定修缮方案，不要直接停下：逐条对照 pendingFixes 的模块、违规路径与原因，能修的 delegate 负责该模块的 specialist 定向修复，instruction 写明修哪条记录的哪一栏、依据哪段正文、不许做什么（例如已删除的条目不要重建）。证据不足、需要用户裁决或定向修复后仍失败时输出 block，unresolved 逐条写明缺口与建议。不要再次 open_round 同一批已升级的待修复项。`);
+Bảo trì tài liệu chưa đạt. Bạn là phiên chính đang trò chuyện với người dùng, cần lập phương án sửa chữa dựa trên phản hồi của agent phụ, đừng dừng ngay: đối chiếu từng module, đường dẫn vi phạm và nguyên nhân trong pendingFixes, những gì sửa được thì delegate cho specialist phụ trách module đó sửa có định hướng, instruction ghi rõ sửa bản ghi nào, cột nào, dựa vào đoạn chính văn nào, không được làm gì (ví dụ mục đã xóa thì không tạo lại). Khi bằng chứng không đủ, cần người dùng quyết định hoặc sửa có định hướng vẫn thất bại thì xuất block, unresolved ghi rõ từng chỗ thiếu và đề xuất. Không open_round lại cùng lô mục cần sửa đã được nâng cấp.`);
           await flushDirectorHistory();
           workflowEscalation = { summary: workflow.summary, pendingFixes: workflow.pendingFixes };
           await persist(iteration + 1, workflow.summary);
@@ -871,7 +871,7 @@ ${workflow.summary}
         if (workflow.outcome === 'blocked') {
           if (storage.mode === 'host') clearWorldSimulationRunState_ACU(input.identity.chatIdentity);
           const unresolved = workflow.pendingFixes.map(fix => `${fix.module}: ${fix.lastError}`);
-          const blockId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'block', title: workflow.summary, detail: unresolved.join('；'), agentName: director, ok: false });
+          const blockId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'block', title: workflow.summary, detail: unresolved.join('; '), agentName: director, ok: false });
           await persistEntry(blockId, `workflow-${iteration}-blocked`);
           return { outcome: 'blocked', summary: workflow.summary, unresolved, outcomes };
         }
@@ -891,10 +891,10 @@ ${workflow.summary}
           const used = perAgent.get(delegation.agentName) ?? 0;
           const allowedKind = definition
             && (definition.kind === 'specialist' || definition.kind === 'researcher');
-          const reason = !allowedKind ? `角色 ${delegation.agentName} 不可派工`
-            : delegationsUsed + accepted.length >= input.settings.agentRunBudget.maxDelegations ? `总派工预算已耗尽（${delegationsUsed + accepted.length}/${input.settings.agentRunBudget.maxDelegations}）`
-            : used >= input.settings.agentRunBudget.maxSameAgent ? `同角色派工预算已耗尽（${used}/${input.settings.agentRunBudget.maxSameAgent}）`
-            : accepted.length >= input.settings.agentRunBudget.maxConcurrent ? `并行派工预算已耗尽（${accepted.length}/${input.settings.agentRunBudget.maxConcurrent}）`
+          const reason = !allowedKind ? `Vai trò ${delegation.agentName} không thể giao việc`
+            : delegationsUsed + accepted.length >= input.settings.agentRunBudget.maxDelegations ? `Ngân sách giao việc tổng đã hết (${delegationsUsed + accepted.length}/${input.settings.agentRunBudget.maxDelegations})`
+            : used >= input.settings.agentRunBudget.maxSameAgent ? `Ngân sách giao việc cho cùng vai trò đã hết (${used}/${input.settings.agentRunBudget.maxSameAgent})`
+            : accepted.length >= input.settings.agentRunBudget.maxConcurrent ? `Ngân sách giao việc song song đã hết (${accepted.length}/${input.settings.agentRunBudget.maxConcurrent})`
             : '';
           // 预算/角色门禁拦截：不调用被拦子代理、不出会话卡片、不记 outcome，原因回灌 transcript。
           if (reason) {
@@ -903,17 +903,17 @@ ${workflow.summary}
           }
           accepted.push(delegation);
           runningEntries.set(delegation, logWorldSimulationSession_ACU(input.identity.chatIdentity, {
-            kind: 'delegation', title: `${delegation.agentName} 正在工作`, detail: delegation.instruction, agentName: delegation.agentName, status: 'running',
+            kind: 'delegation', title: `${delegation.agentName} đang làm việc`, detail: delegation.instruction, agentName: delegation.agentName, status: 'running',
           }));
         }
-        const budgetUsageText = `当前用量：总派工 ${delegationsUsed}/${input.settings.agentRunBudget.maxDelegations}${[...perAgent.entries()].map(([name, count]) => `；${name} ${count}/${input.settings.agentRunBudget.maxSameAgent}`).join('')}`;
-        const rejectionText = `派工被预算门禁拦截（未调用被拦子代理）：\n${rejected.map(item => `- ${item.agentName}：${item.reason}`).join('\n')}\n${budgetUsageText}\n预算耗尽即终止。请改派仍有预算的角色、基于现有候选 finalize，或在证据不足时输出 block。`;
+        const budgetUsageText = `Mức dùng hiện tại: tổng giao việc ${delegationsUsed}/${input.settings.agentRunBudget.maxDelegations}${[...perAgent.entries()].map(([name, count]) => `; ${name} ${count}/${input.settings.agentRunBudget.maxSameAgent}`).join('')}`;
+        const rejectionText = `Giao việc bị chặn bởi ngưỡng ngân sách (agent phụ bị chặn chưa được gọi):\n${rejected.map(item => `- ${item.agentName}: ${item.reason}`).join('\n')}\n${budgetUsageText}\nHết ngân sách là dừng. Hãy giao cho vai trò còn ngân sách, finalize dựa trên ứng viên hiện có, hoặc xuất block khi bằng chứng không đủ.`;
         if (!accepted.length) {
           pushFeedback(rejectionText);
           return blockOnBudget_ACU(
             iteration,
             'delegation gate exhausted',
-            '派工被预算门禁拦截，无可派工角色',
+            'Giao việc bị chặn bởi ngưỡng ngân sách, không có vai trò nào có thể giao',
             rejectionText,
             rejected.map(item => `${item.agentName}: ${item.reason}`),
             'block-delegation-gate',
@@ -985,7 +985,7 @@ ${rejectionText}` : delegationFeedback);
         pushFeedback(JSON.stringify({ outcome: 'blocked', summary: action.reason, unresolved: action.unresolved }));
         await flushDirectorHistory();
         await persist(iteration + 1, action.reason);
-        const blockId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'block', title: action.reason, detail: action.unresolved.join('；'), agentName: director, ok: false });
+        const blockId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'block', title: action.reason, detail: action.unresolved.join('; '), agentName: director, ok: false });
         await persistEntry(blockId, `block-${iteration}`);
         return { outcome: 'blocked', summary: action.reason, unresolved: action.unresolved, outcomes };
       }
@@ -994,8 +994,8 @@ ${rejectionText}` : delegationFeedback);
       if (action.outcome === 'no_change') {
         const insufficient = !action.evidenceRefs.length || !outcomes.length || outcomes.some(item => item.status !== 'no_change') || candidates.length > 0;
         if (insufficient) {
-          await persist(iteration + 1, 'no_change 缺少完整证据或存在候选/失败结果');
-          pushFeedback('no_change 未满足门禁：必须有授权证据，且已有派工结果全部为 no_change，不得存在候选、失败或 blocked。请继续取证或输出 blocked。');
+          await persist(iteration + 1, 'no_change thiếu bằng chứng đầy đủ hoặc tồn tại ứng viên/kết quả thất bại');
+          pushFeedback('no_change chưa đạt ngưỡng: phải có bằng chứng được ủy quyền, và mọi kết quả giao việc hiện có đều là no_change, không được tồn tại ứng viên, thất bại hoặc blocked. Hãy tiếp tục thu thập bằng chứng hoặc xuất blocked.');
           continue;
         }
         pushFeedback(JSON.stringify({ outcome: 'prepared_no_change', summary: action.summary }));
@@ -1008,8 +1008,8 @@ ${rejectionText}` : delegationFeedback);
       if (outcomes.some(item => item.completion === 'failed' && (item.acceptedKeys?.length || item.unresolvedIssues?.length))) {
         const unresolved = outcomes.flatMap(item => item.completion === 'failed'
           ? (item.unresolvedIssues ?? []).map(issue => `${issue.path}: ${issue.message}`) : []);
-        await persist(iteration + 1, '逐栏维护仍有未解决缺口');
-        pushFeedback(`逐栏写入尚未合格：${unresolved.join('；')}。不能提交成功；请修正后再完成，或输出 blocked。`);
+        await persist(iteration + 1, 'Bảo trì theo từng cột vẫn còn chỗ thiếu chưa giải quyết');
+        pushFeedback(`Ghi theo từng cột chưa đạt: ${unresolved.join('; ')}. Không thể nộp thành công; hãy sửa rồi hoàn tất, hoặc xuất blocked.`);
         continue;
       }
       if (!available.length && input.runWrites?.hasConfirmedWrites) {
@@ -1024,8 +1024,8 @@ ${rejectionText}` : delegationFeedback);
         return { outcome: 'commit', summary: action.summary, commitCandidate, outcomes };
       }
       if (!available.length) {
-        await persist(iteration + 1, 'commit 缺少候选');
-        pushFeedback('commit 没有可审核候选。请继续派工，或在证据不足时输出 blocked。');
+        await persist(iteration + 1, 'commit thiếu ứng viên');
+        pushFeedback('commit không có ứng viên để rà soát. Hãy tiếp tục giao việc, hoặc xuất blocked khi bằng chứng không đủ.');
         continue;
       }
       try {
@@ -1034,25 +1034,25 @@ ${rejectionText}` : delegationFeedback);
         const message = compact_ACU(error);
         pendingReview = null;
         await persist(iteration + 1, message);
-        pushFeedback(`${message}：候选覆盖了本次运行已确认的逐栏写入。不得重复提交；请修订为只包含尚未落盘的写集。`);
+        pushFeedback(`${message}: ứng viên ghi đè các lần ghi theo từng cột đã được xác nhận trong lần chạy này. Không được nộp lặp; hãy sửa lại để chỉ chứa tập ghi chưa lưu xuống.`);
         continue;
       }
       let reviewer;
       const reviewFingerprint = candidateReviewFingerprint_ACU(available);
-      const reviewerEntryId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'delegation', title: '因果审核正在工作', detail: `正在审核 ${available.length} 个候选的时间、因果、权限与证据完整性`, agentName: 'causality-reviewer', status: 'running' });
+      const reviewerEntryId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'delegation', title: 'Rà soát nhân quả đang làm việc', detail: `Đang rà soát tính toàn vẹn về thời gian, nhân quả, quyền hạn và bằng chứng của ${available.length} ứng viên`, agentName: 'causality-reviewer', status: 'running' });
       try {
         reviewer = pendingReview?.fingerprint === reviewFingerprint
           ? await pendingReview.promise
           : await this.dependencies.subagents.runReviewer({ candidates: available, settings: input.settings, toolMode, promptContext: requestContext, registry: input.registry, tools: input.tools, roundId, readRoundState, isCurrent: input.isCurrent, directorMaterials: renderWorldSimulationDirectorReads_ACU(transcript), triggeredWorldbook, fixedWorldbook });
         pendingReview = null;
-        updateWorldSimulationSession_ACU(input.identity.chatIdentity, reviewerEntryId, { title: `因果审核：${reviewer.verdict}`, detail: reviewer.summary, ok: reviewer.verdict !== 'reject', status: reviewer.verdict === 'reject' ? 'failed' : 'done' });
+        updateWorldSimulationSession_ACU(input.identity.chatIdentity, reviewerEntryId, { title: `Rà soát nhân quả: ${reviewer.verdict}`, detail: reviewer.summary, ok: reviewer.verdict !== 'reject', status: reviewer.verdict === 'reject' ? 'failed' : 'done' });
         await persistEntry(reviewerEntryId, `causality-review-${iteration}`);
       } catch (error) {
         pendingReview = null;
-        updateWorldSimulationSession_ACU(input.identity.chatIdentity, reviewerEntryId, { title: '因果审核失败', detail: compact_ACU(error), ok: false, status: 'failed' });
+        updateWorldSimulationSession_ACU(input.identity.chatIdentity, reviewerEntryId, { title: 'Rà soát nhân quả thất bại', detail: compact_ACU(error), ok: false, status: 'failed' });
         await persistEntry(reviewerEntryId, `causality-review-${iteration}-failed`);
         await persist(iteration + 1, compact_ACU(error));
-        pushFeedback(`reviewer 未完成：${compact_ACU(error)}。请继续修正候选或输出 blocked。`);
+        pushFeedback(`reviewer chưa hoàn tất: ${compact_ACU(error)}. Hãy tiếp tục sửa ứng viên hoặc xuất blocked.`);
         continue;
       }
       const acceptedIds = new Set(reviewer.acceptedCandidateIds);
@@ -1062,9 +1062,9 @@ ${rejectionText}` : delegationFeedback);
         await persist(iteration + 1, reviewer.summary);
         const findings = reviewer.findings.filter(item => item.severity !== 'minor');
         const feedback = findings.length
-          ? findings.map(item => `${item.severity}:${item.reasonCode}:${item.path}；期望=${item.expected}；实际=${String(item.actual)}`).join('\n')
-          : 'reviewer 未接受任何候选';
-        pushFeedback(`reviewer 驳回或要求修订候选：${reviewer.summary}\n${feedback}\n请根据审核意见重新派工修正候选；不得把本次驳回当作任务终局。只有确实无法补足证据或修正时才输出 blocked。`);
+          ? findings.map(item => `${item.severity}:${item.reasonCode}:${item.path}; kỳ vọng=${item.expected}; thực tế=${String(item.actual)}`).join('\n')
+          : 'reviewer không chấp nhận ứng viên nào';
+        pushFeedback(`reviewer bác bỏ hoặc yêu cầu sửa ứng viên: ${reviewer.summary}\n${feedback}\nHãy giao việc lại để sửa ứng viên theo ý kiến rà soát; không coi lần bác bỏ này là kết cục của nhiệm vụ. Chỉ khi thực sự không thể bổ sung bằng chứng hoặc sửa được mới xuất blocked.`);
         continue;
       }
       const causalEvidenceRefs = [...new Set([...action.evidenceRefs, ...acceptedCandidates.flatMap(item => item.evidenceRefs)])];
@@ -1076,17 +1076,17 @@ ${rejectionText}` : delegationFeedback);
         const message = compact_ACU(error);
         pendingReview = null;
         await persist(iteration + 1, message);
-        pushFeedback(`${message}：候选覆盖了本次运行已确认的逐栏写入。不得重复提交；请修订为只包含尚未落盘的写集。`);
+        pushFeedback(`${message}: ứng viên ghi đè các lần ghi theo từng cột đã được xác nhận trong lần chạy này. Không được nộp lặp; hãy sửa lại để chỉ chứa tập ghi chưa lưu xuống.`);
         continue;
       }
       let finalCandidates = acceptedCandidates;
       const preview = await applyWorldSimulationCandidatesDetailedViaSql_ACU(baseLedger, acceptedCandidates, new Set(causalEvidenceRefs), input.settings, { anchorMessage });
       if (!preview.appliedModules.length) {
-        const message = preview.pendingFixes.map(item => item.lastError).join('；') || '没有模块入库';
+        const message = preview.pendingFixes.map(item => item.lastError).join('; ') || 'Không có module nào được nhập kho';
         await persist(iteration + 1, message);
-        const failedId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'main_action', title: '候选事务应用失败，等待修订', detail: message, agentName: director, ok: false, status: 'failed' });
+        const failedId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'main_action', title: 'Áp dụng giao dịch ứng viên thất bại, chờ sửa đổi', detail: message, agentName: director, ok: false, status: 'failed' });
         await persistEntry(failedId, `candidate-transaction-failed-${iteration}`);
-        pushFeedback(`已接受候选在账本事务应用阶段失败：${message}\n请把该错误作为修订约束重新派工。若为 revision 冲突，必须基于当前账本 revision 重建受影响条目；若为字段缺失，必须一次性补齐该模块全部持久化必填字段。完整必填字段模板：${formatWorldSimulationLedgerRequiredFields_ACU()}。不得把本次事务失败当作任务终局，只有确实无法修正时才输出 blocked。`);
+        pushFeedback(`Ứng viên đã chấp nhận thất bại ở giai đoạn áp dụng giao dịch sổ cái: ${message}\nHãy coi lỗi này là ràng buộc sửa đổi và giao việc lại. Nếu là xung đột revision, phải dựa trên revision sổ cái hiện tại để dựng lại các mục bị ảnh hưởng; nếu thiếu trường, phải bổ sung một lần toàn bộ trường bắt buộc cần lưu trữ của module đó. Mẫu trường bắt buộc đầy đủ: ${formatWorldSimulationLedgerRequiredFieldsVi_ACU()}. Không coi lần giao dịch thất bại này là kết cục của nhiệm vụ, chỉ khi thực sự không thể sửa được mới xuất blocked.`);
         continue;
       }
       finalCandidates = acceptedCandidates;
@@ -1101,9 +1101,9 @@ ${rejectionText}` : delegationFeedback);
       } catch (error) {
         const message = compact_ACU(error);
         await persist(iteration + 1, message);
-        const failedId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'main_action', title: '候选事务应用失败，等待修订', detail: message, agentName: director, ok: false, status: 'failed' });
+        const failedId = logWorldSimulationSession_ACU(input.identity.chatIdentity, { kind: 'main_action', title: 'Áp dụng giao dịch ứng viên thất bại, chờ sửa đổi', detail: message, agentName: director, ok: false, status: 'failed' });
         await persistEntry(failedId, `candidate-transaction-failed-${iteration}`);
-        pushFeedback(`已接受候选在账本事务应用阶段失败：${message}\n请把该错误作为修订约束重新派工。若为 revision 冲突，必须基于当前账本 revision 重建受影响条目；若为字段缺失，必须一次性补齐该模块全部持久化必填字段。完整必填字段模板：${formatWorldSimulationLedgerRequiredFields_ACU()}。不得把本次事务失败当作任务终局，只有确实无法修正时才输出 blocked。`);
+        pushFeedback(`Ứng viên đã chấp nhận thất bại ở giai đoạn áp dụng giao dịch sổ cái: ${message}\nHãy coi lỗi này là ràng buộc sửa đổi và giao việc lại. Nếu là xung đột revision, phải dựa trên revision sổ cái hiện tại để dựng lại các mục bị ảnh hưởng; nếu thiếu trường, phải bổ sung một lần toàn bộ trường bắt buộc cần lưu trữ của module đó. Mẫu trường bắt buộc đầy đủ: ${formatWorldSimulationLedgerRequiredFieldsVi_ACU()}. Không coi lần giao dịch thất bại này là kết cục của nhiệm vụ, chỉ khi thực sự không thể sửa được mới xuất blocked.`);
         continue;
       }
     }
@@ -1111,7 +1111,7 @@ ${rejectionText}` : delegationFeedback);
     return blockOnBudget_ACU(
       input.settings.agentRunBudget.maxIterations,
       'iteration budget exhausted',
-      '格林推演主循环迭代预算耗尽',
+      'Ngân sách lặp của vòng lặp chính mô phỏng thế giới đã hết',
       `maxIterations=${input.settings.agentRunBudget.maxIterations}`,
       ['iteration budget exhausted'],
       'block-iteration-budget',

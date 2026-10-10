@@ -19,8 +19,8 @@
           icon="fa-solid fa-circle-info"
           :aria-expanded="descriptionOpen"
           :aria-controls="descriptionId"
-          :title="descriptionOpen ? '收起说明' : '展开说明'"
-          :aria-label="descriptionOpen ? '收起说明' : '展开说明'"
+          :title="descriptionOpen ? 'Thu gọn mô tả' : 'Mở rộng mô tả'"
+          :aria-label="descriptionOpen ? 'Thu gọn mô tả' : 'Mở rộng mô tả'"
           @click="toggleDescription"
         />
       </div>

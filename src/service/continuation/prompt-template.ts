@@ -52,30 +52,30 @@ function failPrompt_ACU(code: 'CONTINUATION_ENVELOPE_INVALID' | 'CONTINUATION_PR
 }
 
 export function validateContinuationPromptSegments_ACU(value: unknown, phase: ContinuationErrorPhase_ACU, errorCode: 'CONTINUATION_ENVELOPE_INVALID' | 'CONTINUATION_PROMPT_INVALID' = 'CONTINUATION_PROMPT_INVALID'): ContinuationPromptSegment_ACU[] {
-  if (!Array.isArray(value)) failPrompt_ACU(errorCode, phase, '提示词必须是数组');
+  if (!Array.isArray(value)) failPrompt_ACU(errorCode, phase, 'Prompt phải là mảng');
   const result = value.map((raw, index) => {
-    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) failPrompt_ACU(errorCode, phase, '提示词段必须是对象', { index });
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) failPrompt_ACU(errorCode, phase, 'Đoạn prompt phải là đối tượng', { index });
     const segment = raw as Record<string, unknown>;
-    if (Object.keys(segment).some(key => !['role', 'content', 'snapshotTemplate', 'enabled', 'deletable', 'pinned'].includes(key))) failPrompt_ACU(errorCode, phase, '提示词段包含未知字段', { index });
+    if (Object.keys(segment).some(key => !['role', 'content', 'snapshotTemplate', 'enabled', 'deletable', 'pinned'].includes(key))) failPrompt_ACU(errorCode, phase, 'Đoạn prompt chứa trường không xác định', { index });
     if (typeof segment.content !== 'string' || (!['system', 'user', 'assistant'].includes(segment.role as string)
-      && !(segment.role === 'history' && isAgentHistorySlot_ACU(segment as { content: string })))) failPrompt_ACU(errorCode, phase, '提示词段角色或内容非法', { index });
-    if (segment.enabled !== undefined && typeof segment.enabled !== 'boolean') failPrompt_ACU(errorCode, phase, '提示词段 enabled 非法', { index });
-    if (segment.deletable !== undefined && typeof segment.deletable !== 'boolean') failPrompt_ACU(errorCode, phase, '提示词段 deletable 非法', { index });
-    if (segment.pinned !== undefined && typeof segment.pinned !== 'boolean') failPrompt_ACU(errorCode, phase, '提示词段 pinned 非法', { index });
-    if (!segment.content.trim()) failPrompt_ACU(errorCode, phase, '提示词段内容不能为空', { index });
+      && !(segment.role === 'history' && isAgentHistorySlot_ACU(segment as { content: string })))) failPrompt_ACU(errorCode, phase, 'Vai trò hoặc nội dung của đoạn prompt không hợp lệ', { index });
+    if (segment.enabled !== undefined && typeof segment.enabled !== 'boolean') failPrompt_ACU(errorCode, phase, 'enabled của đoạn prompt không hợp lệ', { index });
+    if (segment.deletable !== undefined && typeof segment.deletable !== 'boolean') failPrompt_ACU(errorCode, phase, 'deletable của đoạn prompt không hợp lệ', { index });
+    if (segment.pinned !== undefined && typeof segment.pinned !== 'boolean') failPrompt_ACU(errorCode, phase, 'pinned của đoạn prompt không hợp lệ', { index });
+    if (!segment.content.trim()) failPrompt_ACU(errorCode, phase, 'Nội dung đoạn prompt không được rỗng', { index });
     if (segment.snapshotTemplate !== undefined && (typeof segment.snapshotTemplate !== 'string'
       || !isAgentSnapshotSlot_ACU(segment as { content: string })
-      || /\$(?:HISTORY_ANCHOR|RUNTIME_SNAPSHOT)\b/.test(segment.snapshotTemplate))) failPrompt_ACU(errorCode, phase, '快照模板必须属于快照卡，且不能嵌套历史或快照插入点', { index });
+      || /\$(?:HISTORY_ANCHOR|RUNTIME_SNAPSHOT)\b/.test(segment.snapshotTemplate))) failPrompt_ACU(errorCode, phase, 'Mẫu snapshot phải thuộc thẻ snapshot, và không được lồng điểm chèn lịch sử hoặc snapshot', { index });
     return { role: segment.role, content: segment.content, ...(segment.snapshotTemplate === undefined ? {} : { snapshotTemplate: segment.snapshotTemplate }), ...(segment.enabled === undefined ? {} : { enabled: segment.enabled }), ...(segment.deletable === undefined ? {} : { deletable: segment.deletable }), ...(segment.pinned === undefined ? {} : { pinned: segment.pinned }) } as ContinuationPromptSegment_ACU;
   });
-  if (!result.length) failPrompt_ACU(errorCode, phase, '提示词不能为空');
+  if (!result.length) failPrompt_ACU(errorCode, phase, 'Prompt không được rỗng');
   return result;
 }
 
 export async function renderContinuationPrompt_ACU(segments: unknown, resolvers: Partial<Record<ContinuationPromptPlaceholder_ACU, PlaceholderResolver_ACU>>, phase: ContinuationErrorPhase_ACU): Promise<{ messages: Array<{ role: string; content: string }>; usedPlaceholders: ContinuationPromptPlaceholder_ACU[] }> {
   const validated = validateContinuationPromptSegments_ACU(segments, phase);
   const enabledSegments = validated.filter(segment => segment.enabled !== false);
-  if (!enabledSegments.length) failPrompt_ACU('CONTINUATION_PROMPT_EMPTY', phase, '提示词至少需要一个启用段');
+  if (!enabledSegments.length) failPrompt_ACU('CONTINUATION_PROMPT_EMPTY', phase, 'Prompt cần ít nhất một đoạn đang bật');
   // 按实际匹配结果判定「用到了哪些占位符」，而不是子串包含：否则写了 $STORY_ARC_STATE
   // 的段会被算成同时用了 $STORY_ARC，白跑一次解析器。
   const matched = new Set<string>();

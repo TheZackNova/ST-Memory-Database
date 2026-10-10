@@ -109,14 +109,14 @@ describe('agent-module-sql-view', () => {
 
   it('upsert 条目缺少合法 即拒绝', async () => {
     view = await materializeAgentModuleSqlView_ACU(makeSnapshot());
-    expect(() => view!.applyRowWrite({ module: 'hooks', expectedRevision: 3, upserts: [{ summary: '无 id' }] })).toThrow(/缺少合法 id/);
+    expect(() => view!.applyRowWrite({ module: 'hooks', expectedRevision: 3, upserts: [{ summary: '无 id' }] })).toThrow(/thiếu id hợp lệ/);
     expect(view.hasChanges()).toBe(false);
   });
 
   it('物化含无 id 条目的快照即失败', async () => {
     const broken = makeSnapshot();
     (broken.hooks as unknown[]).push({ summary: '无 id 条目' });
-    await expect(materializeAgentModuleSqlView_ACU(broken)).rejects.toThrow(/无法物化/);
+    await expect(materializeAgentModuleSqlView_ACU(broken)).rejects.toThrow(/không thể hiện thực hóa/);
   });
 
 
@@ -154,7 +154,7 @@ describe('agent-module-sql-view', () => {
 
   it('userRequirements 拒绝非 string 数组写集', async () => {
     view = await materializeAgentModuleSqlView_ACU(makeSnapshot());
-    expect(() => view!.applyRowWrite({ module: 'userRequirements', expectedRevision: 5, upserts: [{ id: 'x' }] })).toThrow(/整表替换/);
+    expect(() => view!.applyRowWrite({ module: 'userRequirements', expectedRevision: 5, upserts: [{ id: 'x' }] })).toThrow(/thay thế cả bảng/);
     expect(view.hasChanges()).toBe(false);
   });
 });
@@ -322,11 +322,11 @@ describe('agent-module-sql-view 逐栏层', () => {
 
   it('完整条目按草稿丢弃、撤销完整条目栏目、矩阵外栏目、空批次、陈旧 revision 均 fail-closed', async () => {
     view = await materializeAgentModuleSqlView_ACU(makeSnapshot());
-    expect(() => view!.applyFieldBatch({ module: 'hooks', expectedRevision: 3, updatedAt: 2000, discardPartialIds: ['hook-1'] })).toThrow(/完整条目/);
-    expect(() => view!.applyFieldBatch({ module: 'hooks', expectedRevision: 3, updatedAt: 2000, fieldWrites: { 'hook-1': { summary: { unset: true } } } })).toThrow(/不能按草稿撤销/);
-    expect(() => view!.applyFieldBatch({ module: 'hooks', expectedRevision: 3, updatedAt: 2000, fieldWrites: { 'hook-1': { bogus: { value: 1 } } } })).toThrow(/不在栏目矩阵/);
-    expect(() => view!.applyFieldBatch({ module: 'hooks', expectedRevision: 3, updatedAt: 2000 })).toThrow(/批次为空/);
-    expect(() => view!.applyFieldBatch({ module: 'hooks', expectedRevision: 99, updatedAt: 2000, fieldWrites: { 'hook-1': { summary: { value: 'x' } } } })).toThrow(/revision 冲突/);
+    expect(() => view!.applyFieldBatch({ module: 'hooks', expectedRevision: 3, updatedAt: 2000, discardPartialIds: ['hook-1'] })).toThrow(/mục hoàn chỉnh/);
+    expect(() => view!.applyFieldBatch({ module: 'hooks', expectedRevision: 3, updatedAt: 2000, fieldWrites: { 'hook-1': { summary: { unset: true } } } })).toThrow(/không thể hoàn tác như bản nháp/);
+    expect(() => view!.applyFieldBatch({ module: 'hooks', expectedRevision: 3, updatedAt: 2000, fieldWrites: { 'hook-1': { bogus: { value: 1 } } } })).toThrow(/không nằm trong ma trận cột/);
+    expect(() => view!.applyFieldBatch({ module: 'hooks', expectedRevision: 3, updatedAt: 2000 })).toThrow(/Lô theo cột/);
+    expect(() => view!.applyFieldBatch({ module: 'hooks', expectedRevision: 99, updatedAt: 2000, fieldWrites: { 'hook-1': { summary: { value: 'x' } } } })).toThrow(/Xung đột revision/);
     const back = view.readSnapshot();
     expect(back.hooks).toHaveLength(2);
     expect(back.revisions.hooks).toBe(3);

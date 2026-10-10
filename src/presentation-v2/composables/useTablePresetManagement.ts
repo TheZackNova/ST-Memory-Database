@@ -51,7 +51,7 @@ interface TablePresetMeta {
 }
 
 const RUNTIME_SENTINEL_NAME = '__runtime__';
-const RUNTIME_TEMPLATE_LABEL = '当前生效模板（内存）';
+const RUNTIME_TEMPLATE_LABEL = 'Mẫu đang có hiệu lực (bộ nhớ)';
 
 function isRuntimeSentinelName(name: string): boolean {
   return String(name || '') === RUNTIME_SENTINEL_NAME;
@@ -102,7 +102,7 @@ export function useTablePresetManagement() {
   const defaultPresetName = ref('');
 
   const isDrawerOpen = computed(() => drawerView.value !== 'closed');
-  const title = computed(() => (drawerView.value === 'manage' ? '管理表格模板预设' : ''));
+  const title = computed(() => (drawerView.value === 'manage' ? 'Quản lý preset mẫu bảng' : ''));
 
   function refresh(): void {
     const items: TablePresetMeta[] = [];
@@ -137,7 +137,7 @@ export function useTablePresetManagement() {
     try {
       return await action();
     } catch (error: any) {
-      toast.error(error?.message || '操作失败。');
+      toast.error(error?.message || 'Thao tác thất bại.');
       return null;
     } finally {
       busy.value = false;
@@ -173,15 +173,15 @@ export function useTablePresetManagement() {
       return firstResult;
     }
     const destructiveBlockers = firstResult.blockers.filter((blocker: unknown) => (
-      typeof blocker === 'string' && /删除(?:表|列).+需要显式确认/.test(blocker)
+      typeof blocker === 'string' && (/删除(?:表|列).+需要显式确认/.test(blocker) || /Xóa (?:bảng|cột) .+ cần xác nhận (?:rõ ràng|tường minh)/.test(blocker))
     ));
     if (destructiveBlockers.length === 0) return firstResult;
     const confirmed = await dialogStore.confirm({
-      title: '确认破坏性模板变更',
-      message: `此模板变更会删除现有表或列：\n${destructiveBlockers.join('\n')}`,
-      dangerMessage: '确认后将按 V2 原子提交执行。删除的数据只能通过聊天备份或 checkpoint 恢复。',
-      confirmLabel: '确认删除并继续',
-      cancelLabel: '取消',
+      title: 'Xác nhận thay đổi mẫu có tính phá hủy',
+      message: `Thay đổi mẫu này sẽ xóa bảng hoặc cột hiện có:\n${destructiveBlockers.join('\n')}`,
+      dangerMessage: 'Sau khi xác nhận sẽ thực hiện theo cam kết nguyên tử V2. Dữ liệu đã xóa chỉ có thể khôi phục qua bản sao lưu trò chuyện hoặc checkpoint.',
+      confirmLabel: 'Xác nhận xóa và tiếp tục',
+      cancelLabel: 'Hủy',
       confirmVariant: 'danger',
     });
     return confirmed ? applyWithSingleStaleRetry(true) : firstResult;
@@ -191,8 +191,8 @@ export function useTablePresetManagement() {
   async function openVisualizer(): Promise<void> {
     await run(async () => {
       const opened = await openVisualizerSurface_ACU({ source: 'v2-shell' });
-      if (!opened) throw new Error('可视化编辑器加载失败。');
-      toast.success('已打开可视化表格编辑器。');
+      if (!opened) throw new Error('Tải trình chỉnh sửa trực quan thất bại.');
+      toast.success('Đã mở trình chỉnh sửa bảng trực quan.');
     });
   }
 
@@ -200,16 +200,16 @@ export function useTablePresetManagement() {
   async function editPreset(name: string): Promise<void> {
     const normalized = normalizeTemplatePresetSelectionValue_ACU(name);
     if (isRuntimeSentinelName(name) || normalized === RUNTIME_SENTINEL_NAME) {
-      toast.warning('当前生效模板不是可编辑的预设，请先另存为全局预设。');
+      toast.warning('Mẫu đang có hiệu lực không phải preset có thể sửa, vui lòng lưu thành preset toàn cục trước.');
       return;
     }
     if (!normalized) {
-      toast.warning('默认预设不能直接编辑，请从默认新建后修改。');
+      toast.warning('Không thể sửa trực tiếp preset mặc định, vui lòng tạo mới từ mặc định rồi chỉnh sửa.');
       return;
     }
     await run(async () => {
       const preset = getTemplatePreset_ACU(normalized);
-      if (!preset?.templateStr) throw new Error('找不到目标预设。');
+      if (!preset?.templateStr) throw new Error('Không tìm thấy preset đích.');
       const guideData = buildChatSheetGuideDataFromTemplateObj_ACU(
         typeof preset.templateStr === 'string' ? safeJsonParse_ACU(preset.templateStr, null) : preset.templateStr,
         { stripSeedRows: false },
@@ -221,7 +221,7 @@ export function useTablePresetManagement() {
         updateGlobal: false,
         persistChatScope: true,
       });
-      const applyError = getTemplateApplyError_ACU(result, '切换到目标预设失败。');
+      const applyError = getTemplateApplyError_ACU(result, 'Chuyển sang preset đích thất bại.');
       if (applyError) throw new Error(applyError);
       const warning = getTemplateApplyWarning_ACU(result);
       if (warning) {
@@ -229,14 +229,14 @@ export function useTablePresetManagement() {
         return;
       }
       const opened = await openVisualizerSurface_ACU({ source: 'v2-shell' });
-      if (!opened) throw new Error('可视化编辑器加载失败。');
-      toast.success(`已切换到「${normalized}」并打开可视化编辑器。`);
+      if (!opened) throw new Error('Tải trình chỉnh sửa trực quan thất bại.');
+      toast.success(`Đã chuyển sang「${normalized}」và mở trình chỉnh sửa trực quan.`);
     });
   }
 
   async function setAsDefault(name: string): Promise<void> {
     if (isRuntimeSentinelName(name)) {
-      toast.warning('当前生效模板不是全局预设，不能设为默认。');
+      toast.warning('Mẫu đang có hiệu lực không phải preset toàn cục, không thể đặt làm mặc định.');
       return;
     }
     const normalized = normalizeTemplatePresetSelectionValue_ACU(name);
@@ -248,11 +248,11 @@ export function useTablePresetManagement() {
         updateGlobal: true,
         persistChatScope: false,
       });
-      const applyError = getTemplateApplyError_ACU(result, '设为全局默认失败。');
+      const applyError = getTemplateApplyError_ACU(result, 'Đặt làm mặc định toàn cục thất bại.');
       if (applyError) throw new Error(applyError);
       const applyWarning = getTemplateApplyWarning_ACU(result);
       if (applyWarning) toast.warning(applyWarning, { muteable: false, durationMs: 6000 });
-      toast.success(`「${normalized || '默认预设'}」已设为全局默认。`);
+      toast.success(`「${normalized || 'Preset mặc định'}」đã được đặt làm mặc định toàn cục.`);
       // S1-2：当前聊天存在覆盖时，新全局默认不会生效——确认后清覆盖跟随全局。
       if (getActiveTemplatePresetMeta_ACU().mode === 'chat_override') {
         await promptFollowGlobalAfterSetDefault_ACU({
@@ -267,17 +267,17 @@ export function useTablePresetManagement() {
 
   async function deletePreset(name: string): Promise<void> {
     if (isRuntimeSentinelName(name)) {
-      toast.warning('当前生效模板是只读运行时条目，不能删除。');
+      toast.warning('Mẫu đang có hiệu lực là mục runtime chỉ đọc, không thể xóa.');
       return;
     }
     if (!name) {
-      toast.warning('默认预设不能删除。');
+      toast.warning('Không thể xóa preset mặc định.');
       return;
     }
     const confirmed = await dialogStore.confirm({
-      title: '删除全局模板预设',
-      message: `确定要删除全局模板预设「${name}」吗？此操作不可撤销。`,
-      confirmLabel: '删除预设',
+      title: 'Xóa preset mẫu toàn cục',
+      message: `Bạn có chắc muốn xóa preset mẫu toàn cục「${name}」không? Thao tác này không thể hoàn tác.`,
+      confirmLabel: 'Xóa preset',
       confirmVariant: 'danger',
     });
     if (!confirmed) return;
@@ -293,7 +293,7 @@ export function useTablePresetManagement() {
           updateGlobal: true,
           persistChatScope: false,
         });
-        const globalError = getTemplateApplyError_ACU(globalResult, '全局默认回退失败，未删除预设。');
+        const globalError = getTemplateApplyError_ACU(globalResult, 'Quay về mặc định toàn cục thất bại, chưa xóa preset.');
         if (globalError) throw new Error(globalError);
       }
       if (wasActive) {
@@ -304,7 +304,7 @@ export function useTablePresetManagement() {
           persistChatScope: true,
           signal: templateOperationController.signal,
         });
-        const chatError = getTemplateApplyError_ACU(chatResult, '当前聊天回退失败，未删除预设。');
+        const chatError = getTemplateApplyError_ACU(chatResult, 'Quay về cuộc trò chuyện hiện tại thất bại, chưa xóa preset.');
         if (chatError) throw new Error(chatError);
         const warning = getTemplateApplyWarning_ACU(chatResult);
         if (warning) {
@@ -312,8 +312,8 @@ export function useTablePresetManagement() {
           return;
         }
       }
-      if (!deleteTemplatePreset_ACU(name)) throw new Error('删除失败或预设不存在。');
-      toast.success(`已删除全局模板预设「${name}」。`);
+      if (!deleteTemplatePreset_ACU(name)) throw new Error('Xóa thất bại hoặc preset không tồn tại.');
+      toast.success(`Đã xóa preset mẫu toàn cục「${name}」.`);
     });
   }
 
@@ -321,23 +321,23 @@ export function useTablePresetManagement() {
     const isRuntimeItem = isRuntimeSentinelName(name);
     const resolved = isRuntimeItem ? resolveTemplateForExport_ACU('runtime') : resolveTemplateForExport_ACU('global', name);
     if (!resolved) {
-      toast.error('无法解析目标模板。');
+      toast.error('Không thể phân tích mẫu đích.');
       return;
     }
     const sanitized = sanitizeChatSheetsObject_ACU(resolved.jsonData, { ensureMate: true });
     const safeName = sanitizeFilenameComponent_ACU(resolved.fromPresetName) || 'template';
     downloadJson(sanitized, isRuntimeItem ? `TavernDB_template_runtime_${safeName}.json` : `TavernDB_template_${safeName}.json`);
     message.value = null;
-    toast.success(isRuntimeItem ? '当前生效模板已导出。' : `「${resolved.fromPresetName || '默认预设'}」已导出。`);
+    toast.success(isRuntimeItem ? 'Đã xuất mẫu đang có hiệu lực hiện tại.' : `「${resolved.fromPresetName || 'Preset mặc định'}」đã được xuất.`);
   }
 
   async function createBlankPreset(): Promise<void> {
     const raw = await dialogStore.prompt({
-      title: '新建全局模板预设',
-      message: '请输入新建全局模板预设名称。',
-      label: '预设名称',
-      defaultValue: '新模板预设',
-      confirmLabel: '新建预设',
+      title: 'Tạo preset mẫu toàn cục mới',
+      message: 'Vui lòng nhập tên preset mẫu toàn cục mới.',
+      label: 'Tên preset',
+      defaultValue: 'Preset mẫu mới',
+      confirmLabel: 'Tạo preset',
     });
     if (!raw) return;
     const requested = raw.trim();
@@ -346,46 +346,46 @@ export function useTablePresetManagement() {
       const finalName = ensureUniqueTemplatePresetName_ACU(requested);
       if (finalName !== requested) {
         const confirmed = await dialogStore.confirm({
-          title: '预设名已存在',
-          message: `预设名已存在，将自动另存为「${finalName}」。是否继续？`,
-          confirmLabel: '继续保存',
+          title: 'Tên preset đã tồn tại',
+          message: `Tên preset đã tồn tại, sẽ tự động lưu thành「${finalName}」. Tiếp tục không?`,
+          confirmLabel: 'Tiếp tục lưu',
         });
         if (!confirmed) return;
       }
       const snapshot = getDefaultTemplateSnapshot_ACU();
-      if (!snapshot?.templateStr) throw new Error('无法解析默认模板。');
-      if (!upsertTemplatePreset_ACU(finalName, snapshot.templateStr)) throw new Error('无法写入全局模板预设。');
-      toast.success(`已新建全局模板预设「${finalName}」。`);
+      if (!snapshot?.templateStr) throw new Error('Không thể phân tích mẫu mặc định.');
+      if (!upsertTemplatePreset_ACU(finalName, snapshot.templateStr)) throw new Error('Không thể ghi vào preset mẫu toàn cục.');
+      toast.success(`Đã tạo preset mẫu toàn cục「${finalName}」.`);
     });
   }
 
   /** "重命名当前生效的全局预设"——保留原有能力，从抽屉里发起。 */
   async function renamePreset(name: string): Promise<void> {
     if (isRuntimeSentinelName(name)) {
-      toast.warning('当前生效模板是只读运行时条目，不能重命名。');
+      toast.warning('Mẫu đang có hiệu lực là mục runtime chỉ đọc, không thể đổi tên.');
       return;
     }
     if (!name) {
-      toast.warning('默认预设不能重命名。');
+      toast.warning('Không thể đổi tên preset mặc định.');
       return;
     }
     const preset = getTemplatePreset_ACU(name);
     if (!preset?.templateStr) {
-      toast.warning('找不到目标预设。');
+      toast.warning('Không tìm thấy preset đích.');
       return;
     }
     const raw = await dialogStore.prompt({
-      title: '重命名全局模板预设',
-      message: `将全局模板预设「${name}」重命名为：`,
-      label: '预设名称',
+      title: 'Đổi tên preset mẫu toàn cục',
+      message: `Đổi tên preset mẫu toàn cục「${name}」thành:`,
+      label: 'Tên preset',
       defaultValue: name,
-      confirmLabel: '重命名',
+      confirmLabel: 'Đổi tên',
     });
     if (!raw) return;
     const newName = raw.trim();
     if (!newName || newName === name) return;
     await run(async () => {
-      if (!upsertTemplatePreset_ACU(newName, preset.templateStr)) throw new Error('重命名失败。');
+      if (!upsertTemplatePreset_ACU(newName, preset.templateStr)) throw new Error('Đổi tên thất bại.');
       deleteTemplatePreset_ACU(name);
       if (defaultPresetName.value === name) {
         const result = await applyTemplatePresetToCurrent_ACU(newName, {
@@ -394,9 +394,9 @@ export function useTablePresetManagement() {
           save: true,
           persistChatScope: false,
         });
-        if (!result) throw new Error('重命名后切换全局模板预设失败。');
+        if (!result) throw new Error('Chuyển preset mẫu toàn cục sau khi đổi tên thất bại.');
       }
-      toast.success(`预设已重命名为「${newName}」。`);
+      toast.success(`Preset đã được đổi tên thành「${newName}」.`);
     });
   }
 

@@ -2,7 +2,7 @@
   <div class="acu-viz-placement">
     <h3 class="acu-viz-placement__title">{{ title }}</h3>
     <div class="acu-viz-placement__grid">
-      <AcuFormRow label="位置">
+      <AcuFormRow label="Vị trí">
         <AcuSelect
           :model-value="placement.position"
           :options="options"

@@ -501,7 +501,7 @@ describe('visualizer template assistant panel', () => {
 
     const select = document.querySelector('#acu-vis-assistant-api-preset') as HTMLSelectElement;
     expect(select).toBeTruthy();
-    expect(document.body.innerHTML).toContain('API预设');
+    expect(document.body.innerHTML).toContain('Preset API');
     expect(document.body.innerHTML).toContain('preset-alpha');
     expect(document.body.innerHTML).toContain('preset-beta');
     expect(document.body.innerHTML).toContain('<option value="preset-beta" selected>preset-beta</option>');
@@ -814,7 +814,7 @@ describe('visualizer template assistant panel', () => {
     applyBtn.click();
 
     expect(mockApply).not.toHaveBeenCalled();
-    expect(mockShowToastr).toHaveBeenCalledWith('warning', '请先确认所有高风险项后再应用。');
+    expect(mockShowToastr).toHaveBeenCalledWith('warning', 'Hãy xác nhận tất cả mục rủi ro cao trước khi áp dụng.');
   });
 
   it('混合高风险时只对 DDL 项默认通过，其他项仍需确认', async () => {
@@ -895,14 +895,14 @@ describe('visualizer template assistant panel', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(document.body.innerHTML).toContain('当前表：A表 (sheet_a)');
+    expect(document.body.innerHTML).toContain('Bảng hiện tại: A表 (sheet_a)');
     expect(document.body.innerHTML).toContain('战利品表 [sheet_new]');
 
     state.tempData.sheet_b = { name: 'B表' } as any;
     state.currentSheetKey = 'sheet_b';
     handleVisualizerTemplateAssistantSheetChange_ACU();
 
-    expect(document.body.innerHTML).toContain('当前表：B表 (sheet_b)');
+    expect(document.body.innerHTML).toContain('Bảng hiện tại: B表 (sheet_b)');
     expect(document.body.innerHTML).not.toContain('战利品表 [sheet_new]');
   });
 
@@ -941,7 +941,7 @@ describe('visualizer template assistant panel', () => {
     state.currentSheetKey = 'sheet_b';
     handleVisualizerTemplateAssistantSheetChange_ACU();
 
-    expect(document.body.innerHTML).toContain('当前表：B表 (sheet_b)');
+    expect(document.body.innerHTML).toContain('Bảng hiện tại: B表 (sheet_b)');
     expect(document.body.innerHTML).toContain('战利品表 [sheet_new]');
   });
 
@@ -1176,7 +1176,7 @@ describe('visualizer template assistant panel', () => {
       // 检查只有一个详情折叠摘要
       const collapsedSummaries = document.querySelectorAll('.acu-collapsed-summary');
       expect(collapsedSummaries.length).toBe(1);
-      expect(document.body.innerHTML).toContain('详情');
+      expect(document.body.innerHTML).toContain('Chi tiết');
     });
 
     it('展开摘要后显示详细内容', async () => {
@@ -1494,7 +1494,7 @@ describe('visualizer template assistant panel', () => {
 
       const secondCallArgs = mockRunSession.mock.calls[1][0];
       expect(secondCallArgs.priorTurns).toEqual([]);
-      expect(document.body.innerHTML).toContain('当前选中表已变化，请重新生成 assistant 草稿。');
+      expect(document.body.innerHTML).toContain('Bảng đang chọn đã thay đổi, hãy tạo lại bản nháp của assistant.');
       expect(document.body.innerHTML).not.toContain('会失效的请求');
     });
 
@@ -1528,7 +1528,7 @@ describe('visualizer template assistant panel', () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      expect(document.body.innerHTML).toContain('空操作停止');
+      expect(document.body.innerHTML).toContain('Dừng do thao tác rỗng');
     });
 
 
@@ -1604,7 +1604,7 @@ describe('visualizer template assistant panel', () => {
       await Promise.resolve();
 
       expect(document.body.innerHTML).toContain('最终结果');
-      expect(document.body.innerHTML).toContain('空操作停止');
+      expect(document.body.innerHTML).toContain('Dừng do thao tác rỗng');
       expect(document.querySelector('#acu-vis-assistant-apply')).toBeTruthy();
     });
 
@@ -1714,9 +1714,9 @@ describe('visualizer template assistant panel', () => {
       const summaryElements = document.querySelectorAll('.acu-collapsed-summary');
       expect(summaryElements.length).toBe(1);
       // 验证摘要包含警告、变更、高风险信息
-      expect(html).toContain('警告1条');
-      expect(html).toContain('变更1处');
-      expect(html).toContain('高风险1项');
+      expect(html).toContain('1 cảnh báo');
+      expect(html).toContain('1 thay đổi');
+      expect(html).toContain('1 mục rủi ro cao');
     });
 
     it('near-bottom用户：新消息追加后自动滚动到底部', async () => {

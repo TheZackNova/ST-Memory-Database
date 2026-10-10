@@ -101,18 +101,18 @@ export interface VectorIndexStatsItem {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  none: '未加载',
-  building: '构建中',
-  uploading: '上传中',
-  ready: '可用',
-  missing: '外置文件缺失',
-  corrupt: '索引损坏',
-  incompatible: '版本不兼容',
-  upload_failed: '上传失败',
-  rebuild_required: '需要重建',
-  delete_pending: '等待删除',
-  delete_failed: '删除失败',
-  superseded: '已被新索引替代',
+  none: 'Chưa nạp',
+  building: 'Đang dựng',
+  uploading: 'Đang tải lên',
+  ready: 'Khả dụng',
+  missing: 'Thiếu tệp ngoài',
+  corrupt: 'Chỉ mục bị hỏng',
+  incompatible: 'Phiên bản không tương thích',
+  upload_failed: 'Tải lên thất bại',
+  rebuild_required: 'Cần dựng lại',
+  delete_pending: 'Chờ xóa',
+  delete_failed: 'Xóa thất bại',
+  superseded: 'Đã bị chỉ mục mới thay thế',
 };
 
 const STATUS_VARIANTS: Record<string, BadgeVariant> = {
@@ -228,7 +228,7 @@ export function useVectorIndexConfig() {
   }
 
   function notifyProgress(text: string): void {
-    const progressOptions = { durationMs: 0, muteable: false, feature: '交火索引' };
+    const progressOptions = { durationMs: 0, muteable: false, feature: 'Chỉ mục giao hỏa' };
     if (progressToastId && toast.update(progressToastId, 'info', text, progressOptions)) {
       return;
     }
@@ -274,7 +274,7 @@ export function useVectorIndexConfig() {
     runValidation();
   }
 
-  function pushSavedMessage(text = '设置已保存。'): void {
+  function pushSavedMessage(text = 'Đã lưu cài đặt.'): void {
     void text;
   }
 
@@ -292,7 +292,7 @@ export function useVectorIndexConfig() {
     (form as any)[key] = next;
     const result = updateGlobalVectorMemoryConfigFields_ACU({ [key]: next });
     if (!result.ok) {
-      toast.error(result.message || '保存失败。');
+      toast.error(result.message || 'Lưu thất bại.');
       return;
     }
     runValidation();
@@ -312,13 +312,13 @@ export function useVectorIndexConfig() {
       if (!Number.isFinite(value) || value <= 0) {
         const fallback = getDefaultRecentFixedInjectCount();
         form.recentFixedInjectCount = Number.isFinite(value) ? Math.floor(value) : 0;
-        toast.warning(`固定写入必须是正整数，已重置为默认值 ${fallback}。`);
+        toast.warning(`Giá trị ghi cố định phải là số nguyên dương, đã đặt lại về mặc định ${fallback}.`);
         form.recentFixedInjectCount = fallback;
         const result = updateGlobalVectorMemoryConfigFields_ACU({
           recentFixedInjectCount: fallback,
         });
         if (!result.ok) {
-          toast.error(result.message || '保存失败。');
+          toast.error(result.message || 'Lưu thất bại.');
           return;
         }
         runValidation();
@@ -331,12 +331,12 @@ export function useVectorIndexConfig() {
       if (!Number.isFinite(value) || value <= 0) {
         const fallback = getDefaultRollingDeltaFoldThreshold();
         form.summaryIndexRollingDeltaFoldThreshold = fallback;
-        toast.warning(`滚动增量折叠阈值必须是正整数，已重置为默认值 ${fallback}。`);
+        toast.warning(`Ngưỡng gộp tăng thêm cuộn phải là số nguyên dương, đã đặt lại về mặc định ${fallback}.`);
         const result = updateGlobalVectorMemoryConfigFields_ACU({
           summaryIndexRollingDeltaFoldThreshold: fallback,
         });
         if (!result.ok) {
-          toast.error(result.message || '保存失败。');
+          toast.error(result.message || 'Lưu thất bại.');
           return;
         }
         runValidation();
@@ -350,7 +350,7 @@ export function useVectorIndexConfig() {
     (form as any)[key] = num;
     const result = updateGlobalVectorMemoryConfigFields_ACU({ [key]: num });
     if (!result.ok) {
-      toast.error(result.message || '保存失败。');
+      toast.error(result.message || 'Lưu thất bại.');
       return;
     }
     runValidation();
@@ -365,7 +365,7 @@ export function useVectorIndexConfig() {
     (form as any)[key] = next;
     const result = updateGlobalVectorMemoryConfigFields_ACU({ [key]: next });
     if (!result.ok) {
-      toast.error(result.message || '保存失败。');
+      toast.error(result.message || 'Lưu thất bại.');
       return;
     }
     runValidation();
@@ -380,7 +380,7 @@ export function useVectorIndexConfig() {
     form.summaryIndexV2WriteScopeAllowlistText = normalized.join('\n');
     const result = updateGlobalVectorMemoryConfigFields_ACU({ summaryIndexV2WriteScopeAllowlist: normalized });
     if (!result.ok) {
-      toast.error(result.message || '保存失败。');
+      toast.error(result.message || 'Lưu thất bại.');
       return;
     }
     runValidation();
@@ -400,7 +400,7 @@ export function useVectorIndexConfig() {
     form.minScore = num;
     const result = updateGlobalVectorMemoryConfigFields_ACU({ minScore: num });
     if (!result.ok) {
-      toast.error(result.message || '保存失败。');
+      toast.error(result.message || 'Lưu thất bại.');
       return;
     }
     runValidation();
@@ -447,19 +447,19 @@ export function useVectorIndexConfig() {
 
     const result = updateGlobalVectorMemoryConfigFields_ACU({ keywordPromptGroup: segs });
     if (!result.ok) {
-      toast.error(result.message || '保存失败。');
+      toast.error(result.message || 'Lưu thất bại.');
       return;
     }
     promptSegments.value = cloneSegments(segs);
     promptDirty.value = false;
-    notify('success', '关键词生成提示词已保存');
+    notify('success', 'Đã lưu prompt tạo từ khóa');
   }
 
 
   function resetPromptGroup(): void {
     promptSegments.value = defaultKeywordPromptGroup();
     promptDirty.value = true;
-    notify('warning', '已载入默认关键词提示词，保存后生效。');
+    notify('warning', 'Đã nạp prompt từ khóa mặc định, lưu để áp dụng.');
   }
 
   function formatBytes(bytes: number): string {
@@ -493,9 +493,9 @@ export function useVectorIndexConfig() {
       const stateChunks = Array.isArray(state?.chunks) ? state.chunks.length : 0;
       displayRowCount.value = stateRows > 0 ? stateRows : stats.rowCount;
       displayChunkCount.value = stateChunks > 0 ? stateChunks : stats.chunkCount;
-      if (notify) toast.success('交火索引状态已刷新。');
+      if (notify) toast.success('Đã làm mới trạng thái chỉ mục giao hỏa.');
     } catch (error: any) {
-      toast.error(`交火索引状态读取失败：${error?.message || '未知错误'}`);
+      toast.error(`Đọc trạng thái chỉ mục giao hỏa thất bại: ${error?.message || 'Lỗi không xác định'}`);
     } finally {
       statusLoading.value = false;
     }
@@ -507,9 +507,9 @@ export function useVectorIndexConfig() {
     try {
       await clearAllSummaryVectorIndexCaches_ACU();
       await refreshIndexStatus(false);
-      notify('success', '交火索引临时缓存与热缓存已清空。权威外置文件和聊天记录不会被删除。', { muteable: false });
+      notify('success', 'Đã xóa bộ nhớ đệm tạm và bộ nhớ đệm nóng của chỉ mục giao hỏa. Tệp ngoài gốc và lịch sử trò chuyện sẽ không bị xóa.', { muteable: false });
     } catch (error: any) {
-      notify('error', `清空交火索引缓存失败：${error?.message || '未知错误'}`, { muteable: false });
+      notify('error', `Xóa bộ nhớ đệm chỉ mục giao hỏa thất bại: ${error?.message || 'Lỗi không xác định'}`, { muteable: false });
     } finally {
       maintenanceBusy.value = false;
     }
@@ -524,12 +524,12 @@ export function useVectorIndexConfig() {
       notify(
         changed ? 'success' : 'info',
         changed
-          ? '当前聊天的交火索引已删除。需要使用时请重新构建。'
-          : '当前聊天没有可删除的交火索引。',
+          ? 'Đã xóa chỉ mục giao hỏa của cuộc trò chuyện hiện tại. Cần dùng thì hãy dựng lại.'
+          : 'Cuộc trò chuyện hiện tại không có chỉ mục giao hỏa nào để xóa.',
         { muteable: false },
       );
     } catch (error: any) {
-      notify('error', `删除当前交火索引失败：${error?.message || '未知错误'}`, { muteable: false });
+      notify('error', `Xóa chỉ mục giao hỏa hiện tại thất bại: ${error?.message || 'Lỗi không xác định'}`, { muteable: false });
     } finally {
       maintenanceBusy.value = false;
     }
@@ -539,29 +539,29 @@ export function useVectorIndexConfig() {
     if (maintenanceBusy.value || buildBusy.value) return;
     maintenanceBusy.value = true;
     progressToastId = null;
-    notifyProgress('正在检查旧交火索引...');
+    notifyProgress('Đang kiểm tra chỉ mục giao hỏa cũ...');
     try {
       const report = await inspectSummaryVectorIndexHealth_ACU();
       const legacyCount = report.legacyManifestCount || 0;
       if (legacyCount === 0) {
-        notify('info', '当前没有可迁移的旧交火索引。', { muteable: false });
+        notify('info', 'Hiện không có chỉ mục giao hỏa cũ nào có thể di chuyển.', { muteable: false });
         return;
       }
 
-      notifyProgress('正在迁移旧交火索引...');
+      notifyProgress('Đang di chuyển chỉ mục giao hỏa cũ...');
       const result = await migrateLegacySummaryVectorIndexToContentAddressed_ACU();
       await refreshIndexStatus(false);
       if (result.success && !result.skipped) {
-        notify('success', `旧交火索引非破坏迁移完成：${result.indexedRowCount || 0} 行，${result.chunkCount || 0} 个 chunks。新 V2 pointer 已 durable 发布；旧外置对象未在主提交路径删除，后续由安全 GC 处理。`, { muteable: false });
+        notify('success', `Di chuyển không phá hủy chỉ mục giao hỏa cũ hoàn tất: ${result.indexedRowCount || 0} hàng, ${result.chunkCount || 0} chunks. V2 pointer mới đã được phát hành durable; đối tượng ngoài cũ không bị xóa trên đường cam kết chính, sau đó sẽ do GC an toàn xử lý.`, { muteable: false });
         return;
       }
 
       const reason = result.errors?.length
-        ? result.errors.join('；')
-        : (result.reason || '无可迁移内容');
-      notify(result.success ? 'info' : 'warning', `旧交火索引迁移未执行：${reason}`, { muteable: false });
+        ? result.errors.join('; ')
+        : (result.reason || 'Không có nội dung để di chuyển');
+      notify(result.success ? 'info' : 'warning', `Chưa thực hiện di chuyển chỉ mục giao hỏa cũ: ${reason}`, { muteable: false });
     } catch (error: any) {
-      notify('error', `旧交火索引迁移失败：${error?.message || '未知错误'}`, { muteable: false });
+      notify('error', `Di chuyển chỉ mục giao hỏa cũ thất bại: ${error?.message || 'Lỗi không xác định'}`, { muteable: false });
     } finally {
       maintenanceBusy.value = false;
     }
@@ -571,20 +571,20 @@ export function useVectorIndexConfig() {
     if (buildBusy.value) return;
     buildBusy.value = true;
     progressToastId = null;
-    notifyProgress('正在重建交火索引快照...');
+    notifyProgress('Đang dựng lại snapshot chỉ mục giao hỏa...');
     try {
       const result = await rebuildCurrentSummaryVectorIndexNow_ACU();
       if (result.success && !result.skipped) {
-        notify('success', `交火索引快照重建完成：${result.indexedRowCount || 0} 行，${result.chunkCount || 0} 个 chunks。`, { muteable: false });
+        notify('success', `Dựng lại snapshot chỉ mục giao hỏa hoàn tất: ${result.indexedRowCount || 0} hàng, ${result.chunkCount || 0} chunks.`, { muteable: false });
         await refreshIndexStatus(false);
         return;
       }
       const reason = result.errors?.length
-        ? result.errors.join('；')
-        : (result.reason || '无可重建内容');
-      notify(result.success ? 'info' : 'error', `交火索引快照未完成：${reason}`, { muteable: false });
+        ? result.errors.join('; ')
+        : (result.reason || 'Không có nội dung để dựng lại');
+      notify(result.success ? 'info' : 'error', `Snapshot chỉ mục giao hỏa chưa hoàn tất: ${reason}`, { muteable: false });
     } catch (error: any) {
-      notify('error', `交火索引快照重建失败：${error?.message || '未知错误'}`, { muteable: false });
+      notify('error', `Dựng lại snapshot chỉ mục giao hỏa thất bại: ${error?.message || 'Lỗi không xác định'}`, { muteable: false });
     } finally {
       buildBusy.value = false;
     }
@@ -597,26 +597,26 @@ export function useVectorIndexConfig() {
   const statusStatsItems = computed<VectorIndexStatsItem[]>(() => {
     const stats = indexStats.value;
     return [
-      { label: '索引 ID', value: stats?.indexId || '—', key: 'indexId' },
-      { label: '后端', value: stats?.backend || 'none' },
-      { label: '行 / 分片', value: `${displayRowCount.value} / ${displayChunkCount.value}` },
+      { label: 'ID chỉ mục', value: stats?.indexId || '—', key: 'indexId' },
+      { label: 'Backend', value: stats?.backend || 'none' },
+      { label: 'Hàng / phân đoạn', value: `${displayRowCount.value} / ${displayChunkCount.value}` },
       { label: 'Base / Delta', value: `${stats?.baseShardCount || 0} / ${stats?.deltaShardCount || 0}` },
-      { label: 'Tombstone', value: `${stats?.tombstoneRowCount || 0} 行 / ${stats?.tombstoneChunkCount || 0} 块` },
-      { label: '外置体积', value: formatBytes(stats?.externalTotalBytes || 0) },
-      { label: '缓存体积', value: formatBytes(stats?.cacheTotalBytes || 0) },
+      { label: 'Tombstone', value: `${stats?.tombstoneRowCount || 0} hàng / ${stats?.tombstoneChunkCount || 0} khối` },
+      { label: 'Dung lượng tệp ngoài', value: formatBytes(stats?.externalTotalBytes || 0) },
+      { label: 'Dung lượng bộ nhớ đệm', value: formatBytes(stats?.cacheTotalBytes || 0) },
       {
-        label: '归档队列',
-        value: `${(stats?.flushTaskDirtyCount || 0) + (stats?.flushTaskQueuedCount || 0) + (stats?.flushTaskFlushingCount || 0)} 等待 / ${stats?.flushTaskFailedCount || 0} 失败`,
+        label: 'Hàng đợi lưu trữ',
+        value: `${(stats?.flushTaskDirtyCount || 0) + (stats?.flushTaskQueuedCount || 0) + (stats?.flushTaskFlushingCount || 0)} chờ / ${stats?.flushTaskFailedCount || 0} thất bại`,
       },
       {
-        label: '身份健康',
+        label: 'Sức khỏe danh tính',
         value: `${healthReport.value?.status || 'unknown'} / ${healthReport.value?.identityMismatchCount || 0} identity / ${healthReport.value?.pathIdentityCollisionCount || 0} collision / ${healthReport.value?.checksumMismatchCount || 0} checksum`,
       },
       {
-        label: 'Legacy 待迁移',
+        label: 'Legacy chờ di chuyển',
         value: healthReport.value?.legacyManifestCount || 0,
       },
-      { label: '更新时间', value: formatTime(stats?.updatedAt || ''), key: 'updatedAt' },
+      { label: 'Thời gian cập nhật', value: formatTime(stats?.updatedAt || ''), key: 'updatedAt' },
     ];
   });
   const promptTemplateMode = computed<'default' | 'custom'>(() =>

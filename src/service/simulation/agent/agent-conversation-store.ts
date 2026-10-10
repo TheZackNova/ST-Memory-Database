@@ -46,24 +46,24 @@ function reject_ACU(message: string, details?: Record<string, unknown>): never {
 }
 
 function requiredText_ACU(value: unknown, path: string): string {
-  if (typeof value !== 'string' || !value.trim()) reject_ACU(`${path} 必须是非空字符串`, { path });
+  if (typeof value !== 'string' || !value.trim()) reject_ACU(`${path} phải là chuỗi không rỗng`, { path });
   return value;
 }
 
 function nonNegativeInteger_ACU(value: unknown, path: string): number {
-  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) reject_ACU(`${path} 必须是非负整数`, { path });
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) reject_ACU(`${path} phải là số nguyên không âm`, { path });
   return value;
 }
 
 function validateMessage_ACU(raw: unknown, path: string): WorldSimulationConversationMessage_ACU {
-  if (!isRecord_ACU(raw)) reject_ACU(`${path} 必须是对象`, { path });
+  if (!isRecord_ACU(raw)) reject_ACU(`${path} phải là đối tượng`, { path });
   const allowed = new Set(['id', 'kind', 'text', 'digest', 'turnKey', 'at', 'readKey', 'eventKind', 'title', 'status', 'agentName', 'ok', 'toolCalls', 'toolCallId']);
   for (const key of Object.keys(raw)) {
-    if (!allowed.has(key)) reject_ACU(`${path}.${key} 是未知字段`, { path: `${path}.${key}` });
+    if (!allowed.has(key)) reject_ACU(`${path}.${key} là trường không xác định`, { path: `${path}.${key}` });
   }
   const kind = raw.kind;
   if (typeof kind !== 'string' || !(WORLD_SIMULATION_MESSAGE_KINDS_ACU as readonly string[]).includes(kind)) {
-    reject_ACU(`${path}.kind 非法`, { path: `${path}.kind` });
+    reject_ACU(`${path}.kind không hợp lệ`, { path: `${path}.kind` });
   }
   const toolCalls = parseConversationToolCalls_ACU(raw.toolCalls, path);
   const toolCallId = raw.toolCallId === undefined ? undefined : requiredText_ACU(raw.toolCallId, `${path}.toolCallId`);
@@ -79,20 +79,20 @@ function validateMessage_ACU(raw: unknown, path: string): WorldSimulationConvers
   if (raw.eventKind !== undefined) {
     const eventKind = requiredText_ACU(raw.eventKind, `${path}.eventKind`);
     if (!(WORLD_SIMULATION_SESSION_EVENT_KINDS_ACU as readonly string[]).includes(eventKind)) {
-      reject_ACU(`${path}.eventKind 非法`, { path: `${path}.eventKind` });
+      reject_ACU(`${path}.eventKind không hợp lệ`, { path: `${path}.eventKind` });
     }
     message.eventKind = eventKind;
   }
   if (raw.title !== undefined) message.title = requiredText_ACU(raw.title, `${path}.title`);
   if (raw.status !== undefined) {
     if (raw.status !== 'running' && raw.status !== 'done' && raw.status !== 'failed') {
-      reject_ACU(`${path}.status 非法`, { path: `${path}.status` });
+      reject_ACU(`${path}.status không hợp lệ`, { path: `${path}.status` });
     }
     message.status = raw.status;
   }
   if (raw.agentName !== undefined) message.agentName = requiredText_ACU(raw.agentName, `${path}.agentName`);
   if (raw.ok !== undefined) {
-    if (typeof raw.ok !== 'boolean') reject_ACU(`${path}.ok 必须是布尔值`, { path: `${path}.ok` });
+    if (typeof raw.ok !== 'boolean') reject_ACU(`${path}.ok phải là giá trị boolean`, { path: `${path}.ok` });
     message.ok = raw.ok;
   }
   if (toolCalls?.length) message.toolCalls = toolCalls;
@@ -102,9 +102,9 @@ function validateMessage_ACU(raw: unknown, path: string): WorldSimulationConvers
 
 function parseConversationToolCalls_ACU(raw: unknown, path: string): Array<{ id: string; name: string; arguments: string }> | undefined {
   if (raw === undefined) return undefined;
-  if (!Array.isArray(raw) || !raw.length) reject_ACU(`${path}.toolCalls 必须是非空数组`, { path: `${path}.toolCalls` });
+  if (!Array.isArray(raw) || !raw.length) reject_ACU(`${path}.toolCalls phải là mảng không rỗng`, { path: `${path}.toolCalls` });
   return (raw as unknown[]).map((item, index) => {
-    if (!item || typeof item !== 'object' || Array.isArray(item)) reject_ACU(`${path}.toolCalls[${index}] 必须是对象`);
+    if (!item || typeof item !== 'object' || Array.isArray(item)) reject_ACU(`${path}.toolCalls[${index}] phải là đối tượng`);
     const value = item as { id?: unknown; name?: unknown; arguments?: unknown };
     return {
       id: requiredText_ACU(value.id, `${path}.toolCalls[${index}].id`),
@@ -115,7 +115,7 @@ function parseConversationToolCalls_ACU(raw: unknown, path: string): Array<{ id:
 }
 
 function validateCompaction_ACU(raw: unknown, path: string): WorldSimulationConversationCompaction_ACU {
-  if (!isRecord_ACU(raw)) reject_ACU(`${path} 必须是对象`, { path });
+  if (!isRecord_ACU(raw)) reject_ACU(`${path} phải là đối tượng`, { path });
   return {
     compactedThroughId: nonNegativeInteger_ACU(raw.compactedThroughId, `${path}.compactedThroughId`),
     report: requiredText_ACU(raw.report, `${path}.report`),
@@ -124,14 +124,14 @@ function validateCompaction_ACU(raw: unknown, path: string): WorldSimulationConv
 }
 
 function validateSegment_ACU(raw: unknown, path: string): WorldSimulationConversationSegment_ACU {
-  if (!isRecord_ACU(raw)) reject_ACU(`${path} 必须是对象`, { path });
+  if (!isRecord_ACU(raw)) reject_ACU(`${path} phải là đối tượng`, { path });
   const allowed = new Set(['schemaVersion', 'segmentId', 'runId', 'taskId', 'stageId', 'stageRevision', 'messages', 'compaction', 'updatedAt']);
   for (const key of ['schemaVersion', 'segmentId', 'runId', 'taskId', 'stageId', 'stageRevision', 'messages', 'updatedAt']) {
-    if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU(`${path}.${key} 缺失`, { path: `${path}.${key}` });
+    if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU(`${path}.${key} bị thiếu`, { path: `${path}.${key}` });
   }
-  for (const key of Object.keys(raw)) if (!allowed.has(key)) reject_ACU(`${path}.${key} 是未知字段`, { path: `${path}.${key}` });
-  if (raw.schemaVersion !== WORLD_SIMULATION_CONVERSATION_SCHEMA_VERSION_ACU) reject_ACU(`${path}.schemaVersion 非法`);
-  if (!Array.isArray(raw.messages) || raw.messages.length === 0) reject_ACU(`${path}.messages 不能为空`);
+  for (const key of Object.keys(raw)) if (!allowed.has(key)) reject_ACU(`${path}.${key} là trường không xác định`, { path: `${path}.${key}` });
+  if (raw.schemaVersion !== WORLD_SIMULATION_CONVERSATION_SCHEMA_VERSION_ACU) reject_ACU(`${path}.schemaVersion không hợp lệ`);
+  if (!Array.isArray(raw.messages) || raw.messages.length === 0) reject_ACU(`${path}.messages không được để trống`);
   return {
     schemaVersion: WORLD_SIMULATION_CONVERSATION_SCHEMA_VERSION_ACU,
     segmentId: requiredText_ACU(raw.segmentId, `${path}.segmentId`),
@@ -146,16 +146,16 @@ function validateSegment_ACU(raw: unknown, path: string): WorldSimulationConvers
 }
 
 export function validateWorldSimulationConversationFloorRecord_ACU(raw: unknown): WorldSimulationConversationFloorRecord_ACU {
-  if (!isRecord_ACU(raw)) reject_ACU('会话楼层记录必须是对象');
+  if (!isRecord_ACU(raw)) reject_ACU('Bản ghi tầng của phiên phải là đối tượng');
   const keys = Object.keys(raw);
-  if (keys.some(key => !['schemaVersion', 'segments', 'updatedAt'].includes(key))) reject_ACU('会话楼层记录存在未知字段');
+  if (keys.some(key => !['schemaVersion', 'segments', 'updatedAt'].includes(key))) reject_ACU('Bản ghi tầng của phiên có trường không xác định');
   if (raw.schemaVersion !== WORLD_SIMULATION_CONVERSATION_SCHEMA_VERSION_ACU || !Array.isArray(raw.segments)) {
-    reject_ACU('会话楼层记录结构非法');
+    reject_ACU('Cấu trúc bản ghi tầng của phiên không hợp lệ');
   }
   const segments = raw.segments.map((segment, index) => validateSegment_ACU(segment, `segments[${index}]`));
   const ids = new Set<string>();
   for (const segment of segments) {
-    if (ids.has(segment.segmentId)) reject_ACU('会话楼层记录存在重复 segmentId', { segmentId: segment.segmentId });
+    if (ids.has(segment.segmentId)) reject_ACU('Bản ghi tầng của phiên có segmentId trùng lặp', { segmentId: segment.segmentId });
     ids.add(segment.segmentId);
   }
   return {
@@ -177,16 +177,16 @@ interface LegacyConversationEntry_ACU {
 
 function legacyConversationEnvelope_ACU(raw: unknown): { version: 1; entries: LegacyConversationEntry_ACU[] } | null {
   if (!isRecord_ACU(raw) || raw.version !== 1 || !Array.isArray(raw.entries)) return null;
-  if (Object.keys(raw).some(key => !['version', 'entries'].includes(key))) reject_ACU('旧版会话 envelope 存在未知字段');
+  if (Object.keys(raw).some(key => !['version', 'entries'].includes(key))) reject_ACU('Envelope phiên bản cũ có trường không xác định');
   const entries: LegacyConversationEntry_ACU[] = [];
   const locations = new Set<string>();
   for (const [entryIndex, candidate] of raw.entries.entries()) {
     if (!isRecord_ACU(candidate) || !isRecord_ACU(candidate.swipe) || !Array.isArray(candidate.messages)) {
-      reject_ACU(`旧版会话 entries[${entryIndex}] 结构非法`);
+      reject_ACU(`entries[${entryIndex}] của phiên bản cũ có cấu trúc không hợp lệ`);
     }
     if (Object.keys(candidate).some(key => !['swipe', 'nextId', 'messages'].includes(key))
       || Object.keys(candidate.swipe).some(key => !['messageIndex', 'messageKey', 'swipeIndex', 'baseTextHash'].includes(key))) {
-      reject_ACU(`旧版会话 entries[${entryIndex}] 存在未知字段`);
+      reject_ACU(`entries[${entryIndex}] của phiên bản cũ có trường không xác định`);
     }
     const swipe = candidate.swipe;
     if (!Number.isInteger(swipe.messageIndex) || (swipe.messageIndex as number) < 0
@@ -194,10 +194,10 @@ function legacyConversationEnvelope_ACU(raw: unknown): { version: 1; entries: Le
       || !Number.isInteger(swipe.swipeIndex) || (swipe.swipeIndex as number) < 0
       || typeof swipe.baseTextHash !== 'string' || !swipe.baseTextHash.trim()
       || !Number.isInteger(candidate.nextId) || (candidate.nextId as number) < 1) {
-      reject_ACU(`旧版会话 entries[${entryIndex}] 身份非法`);
+      reject_ACU(`entries[${entryIndex}] của phiên bản cũ có danh tính không hợp lệ`);
     }
     const location = `${swipe.messageIndex}|${swipe.messageKey}|${swipe.swipeIndex}`;
-    if (locations.has(location)) reject_ACU(`旧版会话 entries[${entryIndex}] 位置重复`);
+    if (locations.has(location)) reject_ACU(`entries[${entryIndex}] của phiên bản cũ trùng vị trí`);
     locations.add(location);
     const messages = candidate.messages.map((message, messageIndex) => {
       if (!isRecord_ACU(message) || !Number.isInteger(message.id) || (message.id as number) < 1
@@ -205,17 +205,17 @@ function legacyConversationEnvelope_ACU(raw: unknown): { version: 1; entries: Le
         || typeof message.kind !== 'string' || typeof message.status !== 'string'
         || typeof message.title !== 'string' || !message.title.trim()
         || typeof message.detail !== 'string' || !message.detail.trim()) {
-        reject_ACU(`旧版会话 entries[${entryIndex}].messages[${messageIndex}] 非法`);
+        reject_ACU(`entries[${entryIndex}].messages[${messageIndex}] của phiên bản cũ không hợp lệ`);
       }
       if (Object.keys(message).some(key => !['id', 'at', 'kind', 'status', 'title', 'detail', 'requestId', 'agentName'].includes(key))) {
-        reject_ACU(`旧版会话 entries[${entryIndex}].messages[${messageIndex}] 存在未知字段`);
+        reject_ACU(`entries[${entryIndex}].messages[${messageIndex}] của phiên bản cũ có trường không xác định`);
       }
       return message as unknown as LegacyConversationMessage_ACU;
     });
     const ids = new Set(messages.map(message => message.id));
     const highestId = messages.reduce((max, message) => Math.max(max, message.id), 0);
     if (ids.size !== messages.length || (candidate.nextId as number) <= highestId) {
-      reject_ACU(`旧版会话 entries[${entryIndex}] 消息 ID 非法`);
+      reject_ACU(`ID tin nhắn của entries[${entryIndex}] phiên bản cũ không hợp lệ`);
     }
     entries.push({ swipe: swipe as LegacyConversationEntry_ACU['swipe'], nextId: candidate.nextId as number, messages });
   }
@@ -247,12 +247,12 @@ export function migrateLegacyWorldSimulationConversationBucket_ACU(
   const entries: WorldSimulationBucket_ACU<WorldSimulationConversationFloorRecord_ACU>['entries'] = {};
   for (const [entryIndex, legacyEntry] of legacy.entries.entries()) {
     const content = contentForLegacySwipe_ACU(message, legacyEntry.swipe.swipeIndex);
-    if (content === null) reject_ACU(`旧版会话 entries[${entryIndex}] 无法解析对应 swipe 正文`);
+    if (content === null) reject_ACU(`entries[${entryIndex}] của phiên bản cũ không phân tích được nội dung swipe tương ứng`);
     const rawId = message.message_id;
     const messageId = typeof rawId === 'string' || typeof rawId === 'number' ? rawId : legacyEntry.swipe.messageIndex;
     const expectedMessageKey = `${typeof messageId}:${String(messageId)}`;
     if (legacyEntry.swipe.messageIndex !== messageIndex || legacyEntry.swipe.messageKey !== expectedMessageKey) {
-      reject_ACU(`旧版会话 entries[${entryIndex}] 与宿主楼层身份不一致`);
+      reject_ACU(`entries[${entryIndex}] của phiên bản cũ không khớp danh tính tầng của host`);
     }
     const anchor = {
       chatIdentity,
@@ -310,7 +310,7 @@ function collectSegments_ACU(chat?: any[]): { segments: WorldSimulationConversat
       if (record) segments.push(...record.segments);
     } catch (error) {
       if (error instanceof WorldSimulationValidationError_ACU) {
-        diagnostics.push(`楼层 ${index}: ${error.message}`);
+        diagnostics.push(`Tầng ${index}: ${error.message}`);
         continue;
       }
       throw error;
@@ -322,7 +322,7 @@ function collectSegments_ACU(chat?: any[]): { segments: WorldSimulationConversat
 /** 桥接只读完整会话段；损坏不能被展示路径的诊断降级隐藏。 */
 export function readWorldSimulationConversationRecordStrict_ACU(chat: any[]): WorldSimulationConversationFloorRecord_ACU {
   const { segments, diagnostics } = collectSegments_ACU(chat);
-  if (diagnostics.length) reject_ACU('推演桥接会话源损坏，禁止建立空基线');
+  if (diagnostics.length) reject_ACU('Nguồn phiên cầu nối mô phỏng bị hỏng, cấm tạo đường cơ sở rỗng');
   const updatedAt = segments.reduce((latest, segment) => Math.max(latest,
     segment.compaction?.at ?? 0, ...segment.messages.map(message => message.at)), 0);
   return validateWorldSimulationConversationFloorRecord_ACU({
@@ -349,7 +349,7 @@ export function projectWorldSimulationConversationSegments_ACU(segments: readonl
   }
   const projected = compaction
     ? [
-        { id: 0, kind: 'handoff' as const, text: compaction.report, digest: '早期会话交接报告', turnKey: '', at: compaction.at },
+        { id: 0, kind: 'handoff' as const, text: compaction.report, digest: 'Báo cáo bàn giao phiên giai đoạn đầu', turnKey: '', at: compaction.at },
         ...allMessages.filter(message => message.id > compaction!.compactedThroughId),
       ]
     : allMessages;
@@ -368,7 +368,7 @@ export function readWorldSimulationDirectorCompactionSource_ACU(chat?: any[]): {
 export function projectWorldSimulationDirectorSource_ACU(
   segments: readonly WorldSimulationConversationSegment_ACU[], diagnostics: string[] = [],
 ): { view: WorldSimulationConversationView_ACU; fingerprint: string } {
-  if (diagnostics.length) reject_ACU('格林推演主会话历史楼层损坏', { diagnostics });
+  if (diagnostics.length) reject_ACU('Tầng lịch sử của phiên chính mô phỏng thế giới bị hỏng', { diagnostics });
   const all = segments.flatMap(segment => segment.messages);
   const compaction = segments.flatMap(segment => segment.compaction ? [segment.compaction] : [])
     .sort((left, right) => right.compactedThroughId - left.compactedThroughId)[0] ?? null;
@@ -381,7 +381,7 @@ export function projectWorldSimulationDirectorSource_ACU(
     view: {
       nextId: all.reduce((max, message) => Math.max(max, message.id), 0) + 1,
       messages: compaction
-        ? [{ id: 0, kind: 'handoff', text: compaction.report, digest: '早期会话交接报告', turnKey: '', at: compaction.at }, ...projected]
+        ? [{ id: 0, kind: 'handoff', text: compaction.report, digest: 'Báo cáo bàn giao phiên giai đoạn đầu', turnKey: '', at: compaction.at }, ...projected]
         : projected,
       compaction,
       diagnostics,
@@ -408,7 +408,7 @@ export function projectWorldSimulationDirectorMessages_ACU(messages: readonly Wo
 /** Only the current run's model turns are used when migrating an old run-state transcript. */
 export function readWorldSimulationDirectorRunHistory_ACU(runId: string, chat?: any[], afterId = 0): Array<{ role: 'assistant' | 'user' | 'tool'; content: string; tool_calls?: ReturnType<typeof toOpenAiToolCalls_ACU>; tool_call_id?: string }> {
   const { segments, diagnostics } = collectSegments_ACU(chat);
-  if (diagnostics.length) reject_ACU('格林推演主会话历史楼层损坏', { diagnostics });
+  if (diagnostics.length) reject_ACU('Tầng lịch sử của phiên chính mô phỏng thế giới bị hỏng', { diagnostics });
   return segments.filter(segment => segment.runId === runId).flatMap(segment => segment.messages.filter(message => message.id > afterId).flatMap((message): Array<{ role: 'assistant' | 'user' | 'tool'; content: string; tool_calls?: ReturnType<typeof toOpenAiToolCalls_ACU>; tool_call_id?: string }> => {
     if (message.kind === 'model_agent') return [{ role: 'assistant' as const, content: message.text, ...(message.toolCalls?.length ? { tool_calls: toOpenAiToolCalls_ACU(message.toolCalls) } : {}) }];
     if (message.toolCallId) return [{ role: 'tool' as const, tool_call_id: message.toolCallId, content: message.text }];
@@ -428,12 +428,12 @@ export async function appendWorldSimulationDirectorHistory_ACU(input: {
 }, chat?: any[]): Promise<boolean> {
   if (!input.messages.length) return false;
   if (!isModelExchangeSequence_ACU(input.messages)) {
-    reject_ACU('主会话动作与反馈必须成对保存');
+    reject_ACU('Hành động và phản hồi của phiên chính phải được lưu thành cặp');
   }
   const toolNames = new Map(input.messages.flatMap(item => (item.tool_calls ?? []).map(call => [call.id, call.function.name] as const)));
   return serializeConversationWrite_ACU(input.anchor.chatIdentity, () => {
     const messages = Array.isArray(chat) ? chat : getChatArray_ACU();
-    if (messages !== getChatArray_ACU()) reject_ACU('主会话锚点聊天已经切换');
+    if (messages !== getChatArray_ACU()) reject_ACU('Cuộc trò chuyện neo của phiên chính đã được chuyển');
     const prefix = `director:${input.runId}:`;
     const seq = peekCurrentConversationSegments_ACU(input.anchor, messages)
       .filter(segment => segment.segmentId.startsWith(prefix)).length;
@@ -458,7 +458,7 @@ export async function appendWorldSimulationDirectorHistory_ACU(input: {
 function truncateText_ACU(text: string): string {
   return text.length <= TEXT_LIMIT_ACU
     ? text
-    : `${text.slice(0, TEXT_LIMIT_ACU)}\n（本条内容超出 ${TEXT_LIMIT_ACU} 字上限，已截断）`;
+    : `${text.slice(0, TEXT_LIMIT_ACU)}\n(Nội dung này vượt quá giới hạn ${TEXT_LIMIT_ACU} ký tự, đã bị cắt bớt)`;
 }
 
 /** 模型轮次（导演动作、反馈、带 toolCallId 的工具回执）必须保真，不参与展示截断。 */
@@ -576,7 +576,7 @@ async function appendWorldSimulationConversationSegmentUnlocked_ACU(
   else if (migrated) currentBucket = migrated;
   else if (isRecord_ACU(previous) && previous.schemaVersion === 1 && isRecord_ACU(previous.entries)) {
     currentBucket = previous as unknown as WorldSimulationBucket_ACU<WorldSimulationConversationFloorRecord_ACU>;
-  } else reject_ACU(`${WORLD_SIMULATION_CONVERSATION_FIELD_ACU} 分桶结构损坏`);
+  } else reject_ACU(`${WORLD_SIMULATION_CONVERSATION_FIELD_ACU} cấu trúc phân nhóm bị hỏng`);
   const entry = resolveWorldSimulationBucketEntry_ACU(currentBucket.entries, currentAnchor, WORLD_SIMULATION_CONVERSATION_FIELD_ACU);
   const existing = entry
     ? validateWorldSimulationConversationFloorRecord_ACU(entry.value)
@@ -585,7 +585,7 @@ async function appendWorldSimulationConversationSegmentUnlocked_ACU(
   const sameId = existing.segments.find(segment => segment.segmentId === input.segmentId);
   if (sameId) {
     if (input.idempotent && conversationAppendFingerprint_ACU(sameId.messages) === incomingFingerprint) return true;
-    reject_ACU('重复 segmentId，拒绝重复持久化', { segmentId: input.segmentId });
+    reject_ACU('segmentId trùng lặp, từ chối lưu trùng', { segmentId: input.segmentId });
   }
   if (input.idempotent) {
     const sameContent = existing.segments.find(segment => (
@@ -728,10 +728,10 @@ export async function writeWorldSimulationConversationCompaction_ACU(
 ): Promise<boolean> {
   return serializeConversationWrite_ACU(input.anchor.chatIdentity, async () => {
     const messages = Array.isArray(chat) ? chat : getChatArray_ACU();
-    if (messages !== getChatArray_ACU()) reject_ACU('主会话锚点聊天已经切换');
+    if (messages !== getChatArray_ACU()) reject_ACU('Cuộc trò chuyện neo của phiên chính đã được chuyển');
     const currentAnchor = resolveCurrentWorldSimulationAnchor_ACU(input.anchor, messages);
     if (input.expectedFingerprint && readWorldSimulationDirectorCompactionSource_ACU(messages).fingerprint !== input.expectedFingerprint) {
-      reject_ACU('主会话压缩来源或保留后缀在总结期间发生变化');
+      reject_ACU('Nguồn nén hoặc hậu tố giữ lại của phiên chính đã thay đổi trong lúc tóm tắt');
     }
     const hostMessage = messages[currentAnchor.messageIndex] as Record<string, unknown>;
     const previous = hostMessage[WORLD_SIMULATION_CONVERSATION_FIELD_ACU];
@@ -743,7 +743,7 @@ export async function writeWorldSimulationConversationCompaction_ACU(
     if (migrated) currentBucket = migrated;
     else if (isRecord_ACU(previous) && previous.schemaVersion === 1 && isRecord_ACU(previous.entries)) {
       currentBucket = previous as unknown as WorldSimulationBucket_ACU<WorldSimulationConversationFloorRecord_ACU>;
-    } else reject_ACU(`${WORLD_SIMULATION_CONVERSATION_FIELD_ACU} 分桶结构损坏`);
+    } else reject_ACU(`${WORLD_SIMULATION_CONVERSATION_FIELD_ACU} cấu trúc phân nhóm bị hỏng`);
     const entry = resolveWorldSimulationBucketEntry_ACU(currentBucket.entries, currentAnchor, WORLD_SIMULATION_CONVERSATION_FIELD_ACU);
     const existing = entry
       ? validateWorldSimulationConversationFloorRecord_ACU(entry.value)
@@ -754,7 +754,7 @@ export async function writeWorldSimulationConversationCompaction_ACU(
     const last = existing.segments[existing.segments.length - 1];
     if ((input.expectedStageId && last.stageId !== input.expectedStageId)
       || (input.expectedStageRevision !== undefined && last.stageRevision !== input.expectedStageRevision)) {
-      reject_ACU('主会话压缩锚点阶段或 revision 已变化');
+      reject_ACU('Giai đoạn neo nén hoặc revision của phiên chính đã thay đổi');
     }
     const updated: WorldSimulationConversationSegment_ACU = {
       ...last,

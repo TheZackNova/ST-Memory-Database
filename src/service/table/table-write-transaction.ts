@@ -453,7 +453,7 @@ export async function runTableWriteTransaction_ACU<T>(
         const label = reason || 'unspecified';
         if (base.scopeKey && base.scopeKey !== runtimeScopeKey) {
           throw new Error(
-            `runtime revision conflict: ${label}: 基线快照属于其他聊天作用域（base=${base.scopeKey}, current=${runtimeScopeKey}），已拒绝陈旧提交。`,
+            `runtime revision conflict: ${label}: snapshot nền thuộc phạm vi cuộc trò chuyện khác (base=${base.scopeKey}, current=${runtimeScopeKey}), đã từ chối commit cũ.`,
           );
         }
         const state = getRuntimeRevisionState_ACU(runtimeScopeKey);
@@ -461,7 +461,7 @@ export async function runTableWriteTransaction_ACU<T>(
           // all 写入会覆盖全部表：基线也是 all 捕获时，任何期间写入（global 变化）都构成冲突。
           if (base.all && base.global !== state.global) {
             throw new Error(
-              `runtime revision conflict: ${label}: 全表基线已过期（base global=${base.global}, current global=${state.global}），请重新读取当前表格后重试。`,
+              `runtime revision conflict: ${label}: baseline toàn bảng đã hết hạn (base global=${base.global}, current global=${state.global}), hãy đọc lại bảng hiện tại rồi thử lại.`,
             );
           }
           // 基线是具体表捕获：只校验基线覆盖到的表；其余表无基线信息，无从校验。
@@ -471,7 +471,7 @@ export async function runTableWriteTransaction_ACU<T>(
               const currentEffective = Math.max(state.sheets.get(sheetKey) || 0, state.allRevision);
               if (baseEffective !== currentEffective) {
                 throw new Error(
-                  `runtime revision conflict: ${label}: sheetKey=${sheetKey} 基线已过期（base=${baseEffective}, current=${currentEffective}），请重新读取当前表格后重试。`,
+                  `runtime revision conflict: ${label}: sheetKey=${sheetKey} baseline đã hết hạn (base=${baseEffective}, current=${currentEffective}), hãy đọc lại bảng hiện tại rồi thử lại.`,
                 );
               }
             }
@@ -488,7 +488,7 @@ export async function runTableWriteTransaction_ACU<T>(
           const currentEffective = Math.max(state.sheets.get(sheetKey) || 0, state.allRevision);
           if (baseEffective !== currentEffective) {
             throw new Error(
-              `runtime revision conflict: ${label}: sheetKey=${sheetKey} 基线已过期（base=${baseEffective}, current=${currentEffective}），请重新读取当前表格后重试。`,
+              `runtime revision conflict: ${label}: sheetKey=${sheetKey} baseline đã hết hạn (base=${baseEffective}, current=${currentEffective}), hãy đọc lại bảng hiện tại rồi thử lại.`,
             );
           }
         }

@@ -24,7 +24,7 @@ export function useAgentToolMode(feature: AgentToolModeFeature_ACU) {
     const result = saveSettings_ACU();
     if (!result.saved) {
       settings_ACU[key] = previous;
-      toast.error(result.error || result.warning || '工具调用开关保存失败。');
+      toast.error(result.error || result.warning || 'Lưu công tắc gọi công cụ thất bại.');
     } else if (result.warning) toast.warning(result.warning);
     notifyNoticeSettingsChanged_ACU();
   }

@@ -56,6 +56,6 @@ describe('受限 SQL 引号近似字符容错（仅一次性容错路径）', ()
   });
 
   it('严格解析路径不做归一，错误信息指明引号问题', () => {
-    expect(() => parseRestrictedSqlDml_ACU("INSERT INTO actors (name) VALUES (\u2018a\u2019)")).toThrow(/英文半角单引号/);
+    expect(() => parseRestrictedSqlDml_ACU("INSERT INTO actors (name) VALUES (\u2018a\u2019)")).toThrow(/nửa-độ rộng tiếng Anh/);
   });
 });

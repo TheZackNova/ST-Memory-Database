@@ -18,19 +18,19 @@ export function bridgeCandidateFingerprint_ACU(candidate: ZeroLayerBridgeCandida
 export function validateBridgeCandidate_ACU(raw: unknown, source: ZeroLayerEnvelope_ACU,
   cut: ZeroLayerActivationCut_ACU): asserts raw is ZeroLayerBridgeCandidate_ACU {
   requireValue(record(raw) && raw.schemaVersion === 1 && record(raw.table)
-    && record(raw.table.input) && record(raw.availability), '桥接候选结构无效。');
+    && record(raw.table.input) && record(raw.availability), 'Cấu trúc ứng viên cầu nối không hợp lệ.');
   const input = raw.table.input;
   requireValue(typeof input.chatKey === 'string' && input.chatKey.trim()
     && typeof input.isolationKey === 'string' && ['native', 'sqlite'].includes(String(input.storageMode))
-    && typeof input.autoUpdateEnabled === 'boolean', '桥接表格作用域无效。');
+    && typeof input.autoUpdateEnabled === 'boolean', 'Phạm vi bảng cầu nối không hợp lệ.');
   validateZeroLayerTableData_ACU(input.tableData);
   validateZeroLayerTableData_ACU(input.templateData);
   validateZeroLayerTableFrontier_ACU(input.completedAiFloorBySheetKey);
   requireValue(Object.values(input.completedAiFloorBySheetKey).every(value => value <= cut.completedAiCount),
-    '桥接表格覆盖前沿超出启用切点。');
+    'Đầu bao phủ của bảng cầu nối vượt quá điểm cắt kích hoạt.');
   requireValue(record(raw.table.payload) && raw.table.payload.kind === 'full'
     && validateCanonicalCheckpoint_ACU(raw.table.payload).valid
-    && fingerprint(raw.table.payload.data) === fingerprint(input.tableData), '桥接表格基线不等价。');
+    && fingerprint(raw.table.payload.data) === fingerprint(input.tableData), 'Đường cơ sở bảng cầu nối không tương đương.');
   validateZeroLayerContinuationState_ACU(raw.continuation);
   validateZeroLayerSimulationState_ACU(raw.simulation);
   const completed = raw.simulation.envelope?.task?.completedAutoAnchor;
@@ -41,29 +41,29 @@ export function validateBridgeCandidate_ACU(raw: unknown, source: ZeroLayerEnvel
       && cut.refs.some(ref => fingerprint(ref) === fingerprint(hostCompletion.ref))
       && record(hostCompletion.anchor) && fingerprint(hostCompletion.anchor) === fingerprint(completed)
       && String(hostCompletion.ref.swipeId) === completed.swipeId,
-    '桥接宿主完成证明不属于当前任务或启用切点。');
-  } else requireValue(hostCompletion === null, '桥接不能凭空登记宿主完成证明。');
+    'Bằng chứng hoàn tất host của cầu nối không thuộc tác vụ hiện tại hoặc điểm cắt kích hoạt.');
+  } else requireValue(hostCompletion === null, 'Cầu nối không được tự đăng ký bằng chứng hoàn tất host.');
   validateZeroLayerSimulationRefs_ACU(raw.simulation, source.sessionId, source.activeBranchId, new Map(),
     hostCompletion as ZeroLayerBridgeHostCompletion_ACU | null);
 
   requireValue(['persisted', 'pristine'].includes(String(raw.availability.table))
     && ['persisted', 'absent'].includes(String(raw.availability.continuation))
-    && ['persisted', 'absent'].includes(String(raw.availability.simulation)), '桥接可用性回执无效。');
+    && ['persisted', 'absent'].includes(String(raw.availability.simulation)), 'Biên nhận khả dụng của cầu nối không hợp lệ.');
   if (input.scheduling !== undefined) {
     requireValue(record(input.scheduling) && Object.values(input.scheduling).every(integer)
       && integer(input.scheduling.autoUpdateFrequency) && integer(input.scheduling.skipUpdateFloors)
-      && integer(input.scheduling.autoUpdateThreshold) && integer(input.scheduling.updateBatchSize), '桥接调度快照无效。');
+      && integer(input.scheduling.autoUpdateThreshold) && integer(input.scheduling.updateBatchSize), 'Snapshot lập lịch cầu nối không hợp lệ.');
   }
   requireValue(raw.continuation.confirmed.length === 0 && raw.simulation.confirmed.length === 0
-    && raw.simulation.runState === null && raw.simulation.runProof === null, '桥接首基线不能伪造逻辑确认或运行。');
+    && raw.simulation.runState === null && raw.simulation.runProof === null, 'Đường cơ sở đầu tiên của cầu nối không được giả mạo xác nhận hoặc lần chạy logic.');
   const refs = new Set(cut.refs.map(ref => JSON.stringify(ref)));
   const moduleFrames = raw.continuation.moduleFrames;
-  requireValue(Object.keys(moduleFrames).every(key => refs.has(key)), '桥接资料帧缺少源限定引用。');
+  requireValue(Object.keys(moduleFrames).every(key => refs.has(key)), 'Khung tài liệu cầu nối thiếu tham chiếu giới hạn theo nguồn.');
   foldCheckpointContinuation_ACU(cut.refs.map(ref => ({
     payload: moduleFrames[JSON.stringify(ref)], swipeId: String(ref.swipeId),
   })));
   requireValue(typeof raw.fingerprint === 'string'
-    && raw.fingerprint === bridgeCandidateFingerprint_ACU(raw as unknown as ZeroLayerBridgeCandidate_ACU), '桥接候选指纹无效。');
+    && raw.fingerprint === bridgeCandidateFingerprint_ACU(raw as unknown as ZeroLayerBridgeCandidate_ACU), 'Dấu vân tay ứng viên cầu nối không hợp lệ.');
 }
 
 /** 校验完整阶段账本；读取不推进阶段，也不将候选当作活动基线。 */
@@ -72,7 +72,7 @@ export function validateZeroLayerBridgeState_ACU(source: ZeroLayerEnvelope_ACU, 
   if (state === undefined) return;
   requireValue(record(state) && state.schemaVersion === 1 && typeof state.migrationId === 'string'
     && state.migrationId.trim() && integer(state.sourceRevision) && state.sourceRevision < source.revision
-    && typeof state.sourceFingerprint === 'string' && state.sourceFingerprint.trim(), '桥接阶段身份无效。');
+    && typeof state.sourceFingerprint === 'string' && state.sourceFingerprint.trim(), 'Danh tính giai đoạn cầu nối không hợp lệ.');
   const config = state.config;
   requireValue(integer(state.createdAt) && record(config) && config.schemaVersion === 1
     && typeof config.chatKey === 'string' && config.chatKey.trim()
@@ -83,37 +83,37 @@ export function validateZeroLayerBridgeState_ACU(source: ZeroLayerEnvelope_ACU, 
     && typeof config.settings.autoUpdateEnabled === 'boolean'
     && [config.settings.autoUpdateFrequency, config.settings.skipUpdateFloors,
       config.settings.autoUpdateThreshold, config.settings.updateBatchSize].every(integer)
-    && state.configFingerprint === fingerprint(config), '桥接冻结配置或指纹无效。');
+    && state.configFingerprint === fingerprint(config), 'Cấu hình đóng băng hoặc dấu vân tay của cầu nối không hợp lệ.');
   validateZeroLayerTableData_ACU(config.templateData);
   const phase = ZERO_LAYER_BRIDGE_PHASES_ACU.indexOf(state.phase);
   const cut = state.activationCut;
   requireValue(phase >= 0 && record(cut) && cut.schemaVersion === 1
     && cut.sourceFingerprint === source.activationFingerprint && cut.messageCount === source.activationMessageCount
     && integer(cut.completedAiCount) && cut.completedAiCount <= cut.messageCount
-    && Array.isArray(cut.refs) && cut.refs.length === cut.messageCount, '桥接启用切点无效。');
+    && Array.isArray(cut.refs) && cut.refs.length === cut.messageCount, 'Điểm cắt kích hoạt của cầu nối không hợp lệ.');
   requireValue(cut.refs.every((ref, index) => record(ref) && ref.kind === 'host'
     && ref.messageIndex === index && integer(ref.swipeId) && ref.sourceFingerprint === cut.sourceFingerprint
-    && fingerprint(ref.scope) === fingerprint(source.scope)), '桥接切点引用无效。');
+    && fingerprint(ref.scope) === fingerprint(source.scope)), 'Tham chiếu điểm cắt cầu nối không hợp lệ.');
 
-  requireValue(Array.isArray(state.receipts) && state.receipts.length === phase + 1, '桥接阶段回执不连续。');
+  requireValue(Array.isArray(state.receipts) && state.receipts.length === phase + 1, 'Biên nhận giai đoạn cầu nối không liên tục.');
   let previousRevision = -1;
   for (const [index, receipt] of state.receipts.entries()) {
     requireValue(record(receipt) && receipt.phase === ZERO_LAYER_BRIDGE_PHASES_ACU[index]
       && integer(receipt.sourceRevision) && receipt.sourceRevision > previousRevision
       && receipt.sourceRevision < source.revision && receipt.sourceFingerprint === state.sourceFingerprint
       && (index === 0 ? receipt.sourceRevision === state.sourceRevision && receipt.normalizedFingerprint === null
-        : receipt.normalizedFingerprint === state.normalizedFingerprint), '桥接回执身份或指纹无效。');
+        : receipt.normalizedFingerprint === state.normalizedFingerprint), 'Danh tính hoặc dấu vân tay biên nhận cầu nối không hợp lệ.');
     previousRevision = receipt.sourceRevision;
   }
   if (phase === 0) requireValue(state.candidate === null && state.normalizedFingerprint === null,
-    'Inventory 不能提前保存规范化结果或候选。');
+    'Inventory không được lưu sớm kết quả chuẩn hóa hoặc ứng viên.');
   else requireValue(typeof state.normalizedFingerprint === 'string' && state.normalizedFingerprint.trim(),
-    '桥接规范化指纹缺失。');
-  if (phase === 1) requireValue(state.candidate === null, 'Normalize 只能保存指纹，不能提前保存候选。');
+    'Thiếu dấu vân tay chuẩn hóa của cầu nối.');
+  if (phase === 1) requireValue(state.candidate === null, 'Normalize chỉ được lưu dấu vân tay, không được lưu sớm ứng viên.');
   if (phase >= 2) {
     validateBridgeCandidate_ACU(state.candidate, source, cut);
     requireValue(state.candidate.fingerprint === state.normalizedFingerprint,
-      '桥接候选与已确认规范化指纹不一致。');
+      'Ứng viên cầu nối không khớp với dấu vân tay chuẩn hóa đã xác nhận.');
     const input = state.candidate.table.input;
     requireValue(input.chatKey === config.chatKey && input.isolationKey === config.isolationKey
       && input.storageMode === config.storageMode && input.autoUpdateEnabled === config.settings.autoUpdateEnabled
@@ -121,11 +121,11 @@ export function validateZeroLayerBridgeState_ACU(source: ZeroLayerEnvelope_ACU, 
       && fingerprint(input.scheduling) === fingerprint({
         autoUpdateFrequency: config.settings.autoUpdateFrequency, skipUpdateFloors: config.settings.skipUpdateFloors,
         autoUpdateThreshold: config.settings.autoUpdateThreshold, updateBatchSize: config.settings.updateBatchSize,
-      }), '桥接候选未消费同一冻结配置。');
+      }), 'Ứng viên cầu nối không dùng cùng cấu hình đóng băng.');
   }
   if (phase < ZERO_LAYER_BRIDGE_PHASES_ACU.length - 1) {
     requireValue(!source.enabled && source.turns.length === 0 && branch.continuation === undefined
-      && branch.simulation === undefined && branch.checkpoints === undefined, '桥接未确认前不能切换读侧或生成。');
+      && branch.simulation === undefined && branch.checkpoints === undefined, 'Chưa xác nhận cầu nối thì không thể chuyển phía đọc hoặc tạo.');
   } else requireValue(branch.continuation !== undefined && branch.simulation !== undefined,
-    '已确认桥接缺少三类活动基底。');
+    'Cầu nối đã xác nhận thiếu ba loại nền đang hoạt động.');
 }

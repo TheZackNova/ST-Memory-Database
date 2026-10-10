@@ -12,13 +12,13 @@ export async function stageExitTable_ACU(chat: Record<string, unknown>[], input:
   const { config, table, timeline, target } = input;
   const keys = Object.keys(table.tableData).filter(key => key.startsWith('sheet_'));
   requireExit_ACU(keys.every(key => table.completedAiFloorBySheetKey[key] === timeline.completedAiCount),
-    '表格仍有逻辑历史未覆盖，普通水位不能无损表达该缺口。');
+    'Bảng vẫn còn lịch sử logic chưa được bao phủ, mốc thường không thể biểu đạt khoảng trống này mà không mất dữ liệu.');
   const physicalCount = chat.filter(message => message.is_user !== true).length;
   const built = buildCanonicalFullCheckpoint_ACU({ createdAt: Date.now(), reason: 'import',
     data: table.tableData, scheduleSummary: Object.fromEntries(keys.map(key =>
       [key, { lastImportBaselineAiFloor: physicalCount }])),
     context: { messageIndex: target.messageIndex, isolationKey: config.isolationKey } });
-  requireExit_ACU(built.checkpoint, '退出表格未通过 canonical 校验。');
+  requireExit_ACU(built.checkpoint, 'Bảng thoát chưa qua kiểm tra canonical.');
   const isolation = { enabled: config.settings.dataIsolationEnabled, code: config.settings.dataIsolationCode };
   for (const message of chat) clearTableFieldsForIsolation_ACU(message, config.isolationKey, isolation);
   chat[target.messageIndex].TavernDB_ACU_IsolatedData = {
@@ -27,10 +27,10 @@ export async function stageExitTable_ACU(chat: Record<string, unknown>[], input:
       storageFrame: { version: 2, checkpoint: built.checkpoint, logEntries: [] } },
   };
   requireExit_ACU(!assertSingleActiveFullCheckpointV2_ACU(chat, config.isolationKey, 'zero_layer_exit'),
-    '退出表格存在多个活动基线。');
+    'Bảng thoát có nhiều đường cơ sở đang hoạt động.');
   const replay = await loadTableStateFromFramesV2Detailed_ACU(chat, config.isolationKey, {
     updateRuntimeState: false, throwOnRecoveryRequired: true, compatibilityMode: 'disabled', backgroundFixation: 'skip',
   });
   requireExit_ACU(replay && !replay.requiresCheckpointConvergence
-    && fingerprint(replay.data) === fingerprint(table.tableData), '退出表格严格回放不等价。');
+    && fingerprint(replay.data) === fingerprint(table.tableData), 'Phát lại nghiêm ngặt của bảng thoát không tương đương.');
 }

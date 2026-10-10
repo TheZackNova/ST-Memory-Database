@@ -280,10 +280,10 @@ describe('getTemplatePresetDisplayName_ACU', () => {
     expect(getTemplatePresetDisplayName_ACU('预设A')).toBe('预设A');
   });
   it('空名称返回默认预设', () => {
-    expect(getTemplatePresetDisplayName_ACU('')).toBe('默认预设');
+    expect(getTemplatePresetDisplayName_ACU('')).toBe('Preset mặc định');
   });
   it('默认值标记返回默认预设', () => {
-    expect(getTemplatePresetDisplayName_ACU('__default__')).toBe('默认预设');
+    expect(getTemplatePresetDisplayName_ACU('__default__')).toBe('Preset mặc định');
   });
 });
 
@@ -328,7 +328,7 @@ describe('resolveActiveTemplatePresetName_ACU', () => {
 
     expect(resolveActiveTemplatePresetName_ACU()).toBe('');
     expect(getActiveTemplatePresetMeta_ACU()).toMatchObject({
-      presetName: '', displayName: '默认预设', mode: 'chat_override', scope: 'chat', scopeLabel: '当前聊天',
+      presetName: '', displayName: 'Preset mặc định', mode: 'chat_override', scope: 'chat', scopeLabel: 'Cuộc trò chuyện hiện tại',
     });
   });
   it('preset_link 的空 presetName 同样保留默认模板语义', () => {
@@ -442,20 +442,20 @@ describe('parseImportedTemplateData_ACU', () => {
     expect(template.sheet_legacy_random.content).toEqual([['名称'], ['铁剑']]);
   });
   it('无效 JSON 抛出错误', () => {
-    expect(() => parseImportedTemplateData_ACU('not json')).toThrow('JSON解析错误');
+    expect(() => parseImportedTemplateData_ACU('not json')).toThrow('Lỗi phân tích JSON');
   });
   it('缺少 mate 抛出错误', () => {
     expect(() => parseImportedTemplateData_ACU('{"sheet_0":{}}')).toThrow('mate');
   });
   it('缺少 sheet 抛出错误', () => {
-    expect(() => parseImportedTemplateData_ACU('{"mate":{"type":"chatSheets"}}')).toThrow('未找到任何表格');
+    expect(() => parseImportedTemplateData_ACU('{"mate":{"type":"chatSheets"}}')).toThrow('Không tìm thấy dữ liệu bảng nào');
   });
   it('sheet 结构不完整抛出错误', () => {
     const data = { mate: { type: 'chatSheets' }, sheet_0: { name: '表' } };
-    expect(() => parseImportedTemplateData_ACU(data)).toThrow('结构不完整');
+    expect(() => parseImportedTemplateData_ACU(data)).toThrow('cấu trúc không đầy đủ');
   });
   it('非字符串非对象抛出错误', () => {
-    expect(() => parseImportedTemplateData_ACU(123)).toThrow('无效的模板数据');
+    expect(() => parseImportedTemplateData_ACU(123)).toThrow('Dữ liệu mẫu không hợp lệ');
   });
   it('校验失败时不会调用 sanitizer 或持久化预设', () => {
     const invalid = {
@@ -1106,7 +1106,7 @@ describe('applyChatTemplateSnapshotWithReconciliation_ACU', () => {
 
     const result = await applyChatTemplateSnapshotWithReconciliation_ACU(legacyKeyTemplate);
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('V2 replay 基线不可用') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Đường cơ sở V2 replay của cuộc trò chuyện hiện tại không khả dụng') });
     expect(reconcileChatTemplate_ACU).not.toHaveBeenCalled();
     expect(commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
     expect(commitCurrentFloorTemplateScopeOnly_ACU).not.toHaveBeenCalled();
@@ -1185,7 +1185,7 @@ describe('applyChatTemplateSnapshotWithReconciliation_ACU', () => {
     const first = applyChatTemplateSnapshotWithReconciliation_ACU(candidate);
     const second = await applyChatTemplateSnapshotWithReconciliation_ACU(candidate);
 
-    expect(second).toMatchObject({ saved: false, error: expect.stringContaining('正在进行中') });
+    expect(second).toMatchObject({ saved: false, error: expect.stringContaining('đang diễn ra') });
     expect(loadTableStateFromFramesV2_ACU).toHaveBeenCalledOnce();
 
     resolveBaseline({ mate: { type: 'chatSheets', version: 1 }, sheet_live: candidate.sheet_live });
@@ -1279,7 +1279,7 @@ describe('applyChatTemplateSnapshotWithReconciliation_ACU', () => {
 
     const result = await applyChatTemplateSnapshotWithReconciliation_ACU(candidate);
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('V2 replay 基线不可用') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Đường cơ sở V2 replay của cuộc trò chuyện hiện tại không khả dụng') });
     expect(reconcileChatTemplate_ACU).not.toHaveBeenCalled();
     expect(commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
   });
@@ -1347,7 +1347,7 @@ describe('applyChatTemplateSnapshotWithReconciliation_ACU', () => {
 
     const result = await applyChatTemplateSnapshotWithReconciliation_ACU(candidate);
 
-    expect(result).toMatchObject({ saved: true, runtimeReady: false, postCommitWarning: expect.stringContaining('回退到原生模式') });
+    expect(result).toMatchObject({ saved: true, runtimeReady: false, postCommitWarning: expect.stringContaining('quay về chế độ gốc') });
   });
 
   it('入口没有可绑定聊天时立即拒绝，不等待随后出现的任意聊天', async () => {
@@ -1357,7 +1357,7 @@ describe('applyChatTemplateSnapshotWithReconciliation_ACU', () => {
 
     const result = await applyChatTemplateSnapshotWithReconciliation_ACU(candidate);
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('没有可绑定的目标聊天') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Hiện không có cuộc trò chuyện đích để gắn') });
     expect(loadTableStateFromFramesV2_ACU).not.toHaveBeenCalled();
     expect(commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
     expect(commitCurrentFloorTemplateScopeOnly_ACU).not.toHaveBeenCalled();
@@ -1387,7 +1387,7 @@ describe('applyChatTemplateSnapshotWithReconciliation_ACU', () => {
     const result = await pending;
     vi.useRealTimers();
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('目标聊天已切换') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Cuộc trò chuyện đích đã chuyển') });
     expect(loadTableStateFromFramesV2_ACU).not.toHaveBeenCalled();
     expect(commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
   });
@@ -1424,7 +1424,7 @@ describe('applyChatTemplateSnapshotWithReconciliation_ACU', () => {
     controller.abort();
     const result = await pending;
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('已取消') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('đã bị hủy') });
     expect(loadTableStateFromFramesV2_ACU).not.toHaveBeenCalled();
     expect(commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
   });
@@ -1438,7 +1438,7 @@ describe('applyChatTemplateSnapshotWithReconciliation_ACU', () => {
     const result = await pending;
     vi.useRealTimers();
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('聊天元数据尚未就绪') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Siêu dữ liệu cuộc trò chuyện hiện tại chưa sẵn sàng') });
     expect(loadTableStateFromFramesV2_ACU).not.toHaveBeenCalled();
     expect(commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
   });
@@ -1473,7 +1473,7 @@ describe('followGlobalTemplateForCurrentChat_ACU', () => {
 
     const result = await followGlobalTemplateForCurrentChat_ACU();
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('无法解析当前全局模板') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Không thể phân tích mẫu toàn cục hiện tại') });
     expect(reconcileChatTemplate_ACU).not.toHaveBeenCalled();
     expect(setCurrentChatTemplateScopeState_ACU).not.toHaveBeenCalled();
   });

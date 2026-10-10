@@ -298,7 +298,7 @@ describe('validateStageOutlinePacing_ACU', () => {
       expect(failure.code).toBe('CONTINUATION_OUTLINE_PACING_INVALID');
       expect(failure.phase).toBe('outline_validate');
       expect(failure.details).toMatchObject({ rule: 'downtime_floor', tempo: 'mixed', scopeTurns: 6, required: 2, actual: 1 });
-      expect(String(failure.details?.labels)).toContain('第1轮=setup');
+      expect(String(failure.details?.labels)).toContain('lượt 1=setup');
     }
   });
 
@@ -345,7 +345,7 @@ describe('validateStageOutlinePacing_ACU', () => {
       expect(error).toBeInstanceOf(ContinuationValidationError_ACU);
       const failure = (error as ContinuationValidationError_ACU).error;
       expect(failure.details).toMatchObject({ rule: 'pressure_streak', turnNumber: 3, streak: 9, limit: 8, leadingPressureStreak: 6 });
-      expect(String(failure.message)).toContain('其中 6 轮来自前面已经写完的剧情');
+      expect(String(failure.message)).toContain('trong đó 6 lượt đến từ cốt truyện đã viết xong ở trước');
     }
   });
 
@@ -467,12 +467,12 @@ describe('Continuation defaults', () => {
     expect(first.promptForceDefaultVersion).toBe(CONTINUATION_PROMPT_FORCE_DEFAULT_VERSION_V52_ACU);
     expect(first.outlinePrompt.some(segment => segment.content.includes('<stage_title>'))).toBe(true);
     expect(first.maxConsecutivePressureTurns).toBe(8);
-    expect(first.agentPrompts.main[0].content).toContain('主控 Agent');
-    expect(first.agentPrompts.arcArchitect[0].content).toContain('故事总纲子代理');
-    expect(first.agentPrompts.arcArchitect.some(segment => segment.content.includes('短线 7–8 卷、中线 10–14 卷、长线 20 卷'))).toBe(true);
-    expect(first.agentPrompts.maintainer[0].content).toContain('伏笔、认知信息差与故事年代学的结算维护子代理');
-    expect(first.agentPrompts.mainlinePlanner[0].content).toContain('主线推进策划子代理');
-    expect(first.agentPrompts.beatPlanner[0].content).toContain('伏笔与情绪节拍策划子代理');
+    expect(first.agentPrompts.main[0].content).toContain('Agent chính điều khiển');
+    expect(first.agentPrompts.arcArchitect[0].content).toContain('agent phụ tổng cương cốt truyện');
+    expect(first.agentPrompts.arcArchitect.some(segment => segment.content.includes('tuyến ngắn 7–8 tập, tuyến vừa 10–14 tập, tuyến dài 20 tập'))).toBe(true);
+    expect(first.agentPrompts.maintainer[0].content).toContain('agent phụ bảo trì kết toán phục bút, chênh lệch nhận thức và niên đại học câu chuyện');
+    expect(first.agentPrompts.mainlinePlanner[0].content).toContain('agent phụ lên kế hoạch đẩy mạch chính');
+    expect(first.agentPrompts.beatPlanner[0].content).toContain('agent phụ lên kế hoạch phục bút và nhịp cảm xúc');
     expect(first.agentPrompts).not.toHaveProperty('reviewer');
 
     first.outlinePrompt[0].content = 'modified';

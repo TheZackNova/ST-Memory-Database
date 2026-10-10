@@ -84,13 +84,13 @@ export function validateDDLText(ddlText: string, tableHeaders: string[]): { vali
                             <span>${escapeHtml_ACU(header)}</span>
                         </label>
                         <select class="acu-form-input cfg-extra-index-col-mode" data-col-idx="${colIdx}" style="max-width: 260px;" ${checked ? '' : 'disabled'}>
-                            <option value="both" ${modeVal === 'both' ? 'selected' : ''}>该列在原条目和索引条目都保留</option>
-                            <option value="index_only" ${modeVal === 'index_only' ? 'selected' : ''}>该列仅放到索引条目</option>
+                            <option value="both" ${modeVal === 'both' ? 'selected' : ''}>Cột này được giữ ở cả mục gốc và mục chỉ mục</option>
+                            <option value="index_only" ${modeVal === 'index_only' ? 'selected' : ''}>Cột này chỉ đặt vào mục chỉ mục</option>
                         </select>
                     </div>
                 `;
             }).join('')
-          : '<div class="acu-hint">当前表格没有可选列。</div>';
+          : '<div class="acu-hint">Bảng hiện tại không có cột để chọn.</div>';
       const isSummaryTable = isSummaryOrOutlineTable_ACU(sheet.name);
       const sheetKey = _acuVisState.currentSheetKey;
       const specialIndexCol = isSummaryTable ? getSummaryIndexColumnIndex_ACU(sheet) : -1;
@@ -104,53 +104,53 @@ export function validateDDLText(ddlText: string, tableHeaders: string[]): { vali
           isImportantPersonsTableName_ACU(sheet.name);
       const specialLockHtml = isSummaryTable ? `
               <div class="acu-config-section">
-                  <h4>编码索引列锁定</h4>
+                  <h4>Khóa cột chỉ mục mã hóa</h4>
                   <div class="acu-form-group">
                       <label>
                           <input type="checkbox" id="cfg-special-index-lock" ${specialIndexLocked ? 'checked' : ''}>
-                          启用编码索引列特殊锁定
+                          Bật khóa đặc biệt cho cột chỉ mục mã hóa
                       </label>
-                      <div class="acu-hint">锁定时该列由系统按 AM0001、AM0002... 自动生成，仅对AI更新生效。</div>
+                      <div class="acu-hint">Khi khóa, cột này do hệ thống tự tạo theo AM0001, AM0002..., chỉ có hiệu lực với cập nhật của AI.</div>
                       ${specialIndexCol >= 0
-                          ? `<div class="acu-hint">当前识别列: [${specialIndexCol}] ${escapeHtml_ACU(String(specialIndexHeader || ''))}</div>`
-                          : `<div class="acu-hint" style="color:#f6c177;">未识别到编码索引列，将默认使用最后一列。</div>`}
+                          ? `<div class="acu-hint">Cột đang nhận diện: [${specialIndexCol}] ${escapeHtml_ACU(String(specialIndexHeader || ''))}</div>`
+                          : `<div class="acu-hint" style="color:#f6c177;">Không nhận diện được cột chỉ mục mã hóa, sẽ mặc định dùng cột cuối.</div>`}
                   </div>
               </div>
       ` : '';
       const fixedPlacementHtml = isFixedConfigTable ? `
               <div class="acu-config-section">
-                  <h4>固定条目注入配置（本表专用）</h4>
+                  <h4>Cấu hình chèn mục cố định (riêng cho bảng này)</h4>
                   <div class="acu-form-group">
-                      <label>主条目位置:</label>
+                      <label>Vị trí mục chính:</label>
                       <select class="acu-form-input" id="cfg-fixed-entry-position">
-                          <option value="at_depth_as_system" ${fixedEntryPlacement.position === 'at_depth_as_system' ? 'selected' : ''}>系统</option>
-                          <option value="before_character_definition" ${fixedEntryPlacement.position === 'before_character_definition' ? 'selected' : ''}>角色定义前</option>
-                          <option value="after_character_definition" ${fixedEntryPlacement.position === 'after_character_definition' ? 'selected' : ''}>角色定义后</option>
+                          <option value="at_depth_as_system" ${fixedEntryPlacement.position === 'at_depth_as_system' ? 'selected' : ''}>Hệ thống</option>
+                          <option value="before_character_definition" ${fixedEntryPlacement.position === 'before_character_definition' ? 'selected' : ''}>Trước định nghĩa nhân vật</option>
+                          <option value="after_character_definition" ${fixedEntryPlacement.position === 'after_character_definition' ? 'selected' : ''}>Sau định nghĩa nhân vật</option>
                       </select>
                   </div>
                   <div class="acu-form-group">
-                      <label>主条目插入深度 (Depth):</label>
+                      <label>Độ sâu chèn mục chính (Depth):</label>
                       <input type="number" class="acu-form-input" id="cfg-fixed-entry-depth" step="1" value="${fixedEntryPlacement.depth}">
                   </div>
                   <div class="acu-form-group">
-                      <label>主条目插入顺序 (Order):</label>
+                      <label>Thứ tự chèn mục chính (Order):</label>
                       <input type="number" class="acu-form-input" id="cfg-fixed-entry-order" min="1" step="1" value="${fixedEntryPlacement.order}">
                   </div>
                   ${isImportantPersonsTableName_ACU(sheet.name) ? `
                   <div class="acu-form-group" style="margin-top:10px; padding-top:10px; border-top: 1px dashed #ddd;">
-                      <label>索引条目位置:</label>
+                      <label>Vị trí mục chỉ mục:</label>
                       <select class="acu-form-input" id="cfg-fixed-index-position">
-                          <option value="at_depth_as_system" ${fixedIndexPlacement.position === 'at_depth_as_system' ? 'selected' : ''}>系统</option>
-                          <option value="before_character_definition" ${fixedIndexPlacement.position === 'before_character_definition' ? 'selected' : ''}>角色定义前</option>
-                          <option value="after_character_definition" ${fixedIndexPlacement.position === 'after_character_definition' ? 'selected' : ''}>角色定义后</option>
+                          <option value="at_depth_as_system" ${fixedIndexPlacement.position === 'at_depth_as_system' ? 'selected' : ''}>Hệ thống</option>
+                          <option value="before_character_definition" ${fixedIndexPlacement.position === 'before_character_definition' ? 'selected' : ''}>Trước định nghĩa nhân vật</option>
+                          <option value="after_character_definition" ${fixedIndexPlacement.position === 'after_character_definition' ? 'selected' : ''}>Sau định nghĩa nhân vật</option>
                       </select>
                   </div>
                   <div class="acu-form-group">
-                      <label>索引条目插入深度 (Depth):</label>
+                      <label>Độ sâu chèn mục chỉ mục (Depth):</label>
                       <input type="number" class="acu-form-input" id="cfg-fixed-index-depth" step="1" value="${fixedIndexPlacement.depth}">
                   </div>
                   <div class="acu-form-group">
-                      <label>索引条目插入顺序 (Order):</label>
+                      <label>Thứ tự chèn mục chỉ mục (Order):</label>
                       <input type="number" class="acu-form-input" id="cfg-fixed-index-order" min="1" step="1" value="${fixedIndexPlacement.order}">
                   </div>` : ''}
               </div>
@@ -159,214 +159,214 @@ export function validateDDLText(ddlText: string, tableHeaders: string[]): { vali
       const html = `
           <div class="acu-config-panel">
               <div class="acu-config-section">
-                  <h4>基本信息</h4>
+                  <h4>Thông tin cơ bản</h4>
                   <div class="acu-form-group">
-                      <label>表格名称:</label>
+                      <label>Tên bảng:</label>
                       <input type="text" class="acu-form-input" id="cfg-name" value="${escapeHtml_ACU(sheet.name)}">
                   </div>
               </div>
 
               <div class="acu-config-section">
-                  <h4>表头/列定义</h4>
+                  <h4>Tiêu đề/Định nghĩa cột</h4>
                   <div class="acu-col-list" id="cfg-col-list"></div>
-                  <button id="cfg-add-col" class="acu-btn-secondary" style="margin-top:10px; width:100%;"><i class="fa-solid fa-plus"></i> 添加列</button>
+                  <button id="cfg-add-col" class="acu-btn-secondary" style="margin-top:10px; width:100%;"><i class="fa-solid fa-plus"></i> Thêm cột</button>
               </div>
               ${specialLockHtml}
 
               <div class="acu-config-section">
-                  <h4>自动化更新参数</h4>
+                  <h4>Tham số cập nhật tự động</h4>
                   <div class="acu-form-group">
-                      <label>AI读取上下文层数 (Context Depth): <span class="acu-hint">(-1 = 沿用UI全局, 1+ = 生效；0 会被视为沿用UI)</span></label>
+                      <label>Số tầng ngữ cảnh AI đọc (Context Depth): <span class="acu-hint">(-1 = theo UI toàn cục, 1+ = có hiệu lực; 0 được coi là theo UI)</span></label>
                       <input type="number" class="acu-form-input" id="cfg-depth" min="-1" step="1" value="${ucVal(updateConfig.contextDepth)}">
                   </div>
                   <div class="acu-form-group">
-                      <label>更新频率 (Update Frequency): <span class="acu-hint">(-1 = 沿用UI全局, 0 = 禁用该表自动更新)</span></label>
+                      <label>Tần suất cập nhật (Update Frequency): <span class="acu-hint">(-1 = theo UI toàn cục, 0 = tắt tự động cập nhật bảng này)</span></label>
                       <input type="number" class="acu-form-input" id="cfg-freq" min="-1" step="1" value="${ucVal(updateConfig.updateFrequency)}">
                   </div>
                   <div class="acu-form-group">
-                      <label>批处理大小 (Batch Size): <span class="acu-hint">(-1 = 沿用UI全局, 1+ = 生效；0 会被视为沿用UI)</span></label>
+                      <label>Kích thước lô (Batch Size): <span class="acu-hint">(-1 = theo UI toàn cục, 1+ = có hiệu lực; 0 được coi là theo UI)</span></label>
                       <input type="number" class="acu-form-input" id="cfg-batch" min="-1" step="1" value="${ucVal(updateConfig.batchSize)}">
                   </div>
                   <div class="acu-form-group">
-                      <label>分组编号 (groupId): <span class="acu-hint">(-1 = 默认同组；不同编号的表会拆分并发；相同编号仍会继续按上下文与 Batch Size 分组)</span></label>
+                      <label>Số nhóm (groupId): <span class="acu-hint">(-1 = cùng nhóm mặc định; bảng khác số sẽ tách chạy đồng thời; cùng số vẫn tiếp tục gom nhóm theo ngữ cảnh và Batch Size)</span></label>
                       <input type="number" class="acu-form-input" id="cfg-group-id" min="-1" step="1" value="${ucVal(updateConfig.groupId)}">
                   </div>
                   <div class="acu-form-group">
-                      <label>跳过更新楼层 (Skip Floors): <span class="acu-hint">(-1 = 沿用UI全局, 0+ = 生效)</span></label>
+                      <label>Bỏ qua tầng cập nhật (Skip Floors): <span class="acu-hint">(-1 = theo UI toàn cục, 0+ = có hiệu lực)</span></label>
                       <input type="number" class="acu-form-input" id="cfg-skip" min="-1" step="1" value="${ucVal(updateConfig.skipFloors)}">
                   </div>
                    <div class="acu-form-group">
-                       <label>发送最新N行 (Send Latest Rows): <span class="acu-hint">(-1 = 全部发送, 0 = 沿用UI全局, 1+ = 仅发送最新N条；纪要表固定使用10条)</span></label>
+                       <label>Gửi N hàng mới nhất (Send Latest Rows): <span class="acu-hint">(-1 = gửi tất cả, 0 = theo UI toàn cục, 1+ = chỉ gửi N mục mới nhất; bảng kỷ yếu cố định dùng 10 mục)</span></label>
                        <input type="number" class="acu-form-input" id="cfg-send-rows" min="-1" step="1" value="${ucVal(updateConfig.sendLatestRows)}">
                    </div>
                    <div class="acu-form-group">
-                       <label>表级API预设覆盖: <span class="acu-hint">仅保存到数据库插件设置，不随模板导出；该表及同组其他表将使用此预设</span></label>
+                       <label>Ghi đè preset API cấp bảng: <span class="acu-hint">Chỉ lưu vào cài đặt plugin cơ sở dữ liệu, không xuất cùng mẫu; bảng này và các bảng cùng nhóm sẽ dùng preset này</span></label>
                        <select class="acu-form-input" id="cfg-table-api-preset">
-                           <option value="">使用填表整体API配置</option>
+                           <option value="">Dùng cấu hình API chung của điền bảng</option>
                            ${tableApiPresetOptionsHtml}
                        </select>
                    </div>
                </div>
 
               <div class="acu-config-section">
-                  <h4>AI提示词指令 (Source Data)</h4>
+                  <h4>Chỉ thị prompt AI (Source Data)</h4>
                   <div class="acu-form-group">
-                      <label>表格说明 (Note):</label>
+                      <label>Mô tả bảng (Note):</label>
                       <textarea class="acu-form-textarea" id="cfg-note">${escapeHtml_ACU(sourceData.note || '')}</textarea>
                   </div>
                   <div class="acu-form-group">
-                      <label>初始化触发 (Init):</label>
+                      <label>Kích hoạt khởi tạo (Init):</label>
                       <textarea class="acu-form-textarea" id="cfg-init">${escapeHtml_ACU(sourceData.initNode || '')}</textarea>
                   </div>
                   <div class="acu-form-group">
-                      <label>新增触发 (Insert):</label>
+                      <label>Kích hoạt thêm mới (Insert):</label>
                       <textarea class="acu-form-textarea" id="cfg-insert">${escapeHtml_ACU(sourceData.insertNode || '')}</textarea>
                   </div>
                   <div class="acu-form-group">
-                      <label>更新触发 (Update):</label>
+                      <label>Kích hoạt cập nhật (Update):</label>
                       <textarea class="acu-form-textarea" id="cfg-update">${escapeHtml_ACU(sourceData.updateNode || '')}</textarea>
                   </div>
                   <div class="acu-form-group">
-                      <label>删除触发 (Delete):</label>
+                      <label>Kích hoạt xóa (Delete):</label>
                       <textarea class="acu-form-textarea" id="cfg-delete">${escapeHtml_ACU(sourceData.deleteNode || '')}</textarea>
                   </div>
               </div>
 
               ${isSqliteMode() ? `
               <div class="acu-config-section" id="cfg-ddl-section">
-                  <h4>DDL 定义 (SQLite 模式)</h4>
+                  <h4>Định nghĩa DDL (chế độ SQLite)</h4>
                   <div class="acu-form-group">
-                      <label>CREATE TABLE 语句:</label>
+                      <label>Câu lệnh CREATE TABLE:</label>
                       <textarea class="acu-form-textarea" id="cfg-ddl" style="font-family: monospace; font-size: 0.85em; min-height: 120px; white-space: pre;">${escapeHtml_ACU(sourceData.ddl || '')}</textarea>
-                      <div class="acu-hint">定义该表的 SQL Schema。SQLite 模式下，AI 将使用标准 SQL 语句更新此表。每张表 DDL 必须以 <code>row_id INTEGER PRIMARY KEY -- 行号</code> 作为第一列。</div>
+                      <div class="acu-hint">Định nghĩa SQL Schema của bảng này. Ở chế độ SQLite, AI sẽ dùng câu lệnh SQL chuẩn để cập nhật bảng. DDL của mỗi bảng phải bắt đầu bằng <code>row_id INTEGER PRIMARY KEY -- 行号</code> làm cột đầu tiên.</div>
                   </div>
                   <div class="acu-form-group" style="display: flex; gap: 8px; align-items: center;">
-                      <button id="cfg-ddl-validate" class="acu-btn-secondary" style="white-space: nowrap;"><i class="fa-solid fa-check-circle"></i> 校验 DDL</button>
+                      <button id="cfg-ddl-validate" class="acu-btn-secondary" style="white-space: nowrap;"><i class="fa-solid fa-check-circle"></i> Kiểm tra DDL</button>
                       <span id="cfg-ddl-validate-result" class="acu-hint" style="flex: 1;"></span>
                   </div>
               </div>
               ` : ''}
               
               <div class="acu-config-section">
-                  <h4>世界书注入配置</h4>
+                  <h4>Cấu hình chèn sổ thế giới</h4>
                   <div class="acu-form-group">
                       <label>
                           <input type="checkbox" id="cfg-inject" ${config.injectIntoWorldbook !== false ? 'checked' : ''}>
-                          是否注入到世界书条目
+                          Có chèn vào mục sổ thế giới hay không
                       </label>
-                      <div class="acu-hint">勾选后，该表格会注入到世界书条目中；关闭后不会注入到任何世界书条目。</div>
+                      <div class="acu-hint">Khi chọn, bảng này sẽ được chèn vào mục sổ thế giới; khi tắt sẽ không chèn vào bất kỳ mục nào.</div>
                   </div>
                   
                   <div style="border-top: 1px dashed #ddd; margin: 10px 0; padding-top: 10px;">
                       <div class="acu-form-group">
                           <label>
                               <input type="checkbox" id="cfg-export-enabled" ${config.enabled ? 'checked' : ''}>
-                              启用独立导出 (Custom Export)
+                              Bật xuất riêng (Custom Export)
                           </label>
-                          <div class="acu-hint">勾选后，该表格将额外导出为独立的世界书条目。</div>
+                          <div class="acu-hint">Khi chọn, bảng này sẽ được xuất thêm thành mục sổ thế giới độc lập.</div>
                       </div>
 
                       <div id="cfg-export-options" style="display: ${config.enabled ? 'block' : 'none'}; padding-left: 20px; border-left: 2px solid #eee;">
                           <div class="acu-form-group">
                               <label>
                                   <input type="checkbox" id="cfg-split" ${config.splitByRow ? 'checked' : ''}>
-                                  按行拆分 (Split by Row)
+                                  Tách theo hàng (Split by Row)
                               </label>
-                              <div class="acu-hint">勾选后，每一行数据将生成一个单独的条目。</div>
+                              <div class="acu-hint">Khi chọn, mỗi hàng dữ liệu sẽ tạo một mục riêng.</div>
                           </div>
                           
                           <div class="acu-form-group">
-                              <label>条目名称 (Entry Name):</label>
-                              <input type="text" class="acu-form-input" id="cfg-entry-name" value="${escapeHtml_ACU(config.entryName || sheet.name || '')}" placeholder="例如: ${escapeHtml_ACU(sheet.name)}">
-                              <div class="acu-hint">如果不拆分，此为条目名；如果拆分，自动命名为 "名称-1", "名称-2" 等。</div>
+                              <label>Tên mục (Entry Name):</label>
+                              <input type="text" class="acu-form-input" id="cfg-entry-name" value="${escapeHtml_ACU(config.entryName || sheet.name || '')}" placeholder="Ví dụ: ${escapeHtml_ACU(sheet.name)}">
+                              <div class="acu-hint">Nếu không tách, đây là tên mục; nếu tách, sẽ tự đặt tên "Tên-1", "Tên-2"...</div>
                           </div>
 
                           <div class="acu-form-group">
-                              <label>条目类型 (Entry Type):</label>
+                              <label>Loại mục (Entry Type):</label>
                               <select class="acu-form-input" id="cfg-entry-type">
-                                  <option value="constant" ${(!config.entryType || config.entryType === 'constant') ? 'selected' : ''}>常量条目 (Constant/Blue)</option>
-                                  <option value="keyword" ${config.entryType === 'keyword' ? 'selected' : ''}>关键词条目 (Keyword/Green)</option>
+                                  <option value="constant" ${(!config.entryType || config.entryType === 'constant') ? 'selected' : ''}>Mục hằng (Constant/Blue)</option>
+                                  <option value="keyword" ${config.entryType === 'keyword' ? 'selected' : ''}>Mục từ khóa (Keyword/Green)</option>
                               </select>
                           </div>
 
                           <div class="acu-form-group">
-                              <label>关键词 (Keywords):</label>
-                              <input type="text" class="acu-form-input" id="cfg-keywords" value="${escapeHtml_ACU(config.keywords || '')}" placeholder="关键词1, 关键词2">
+                              <label>Từ khóa (Keywords):</label>
+                              <input type="text" class="acu-form-input" id="cfg-keywords" value="${escapeHtml_ACU(config.keywords || '')}" placeholder="Từ khóa 1, Từ khóa 2">
                               <div class="acu-hint">
-                                  如果未拆分，填写的词就是关键词。<br>
-                                  如果拆分且关键词与列名相同，则使用该行对应列的内容作为关键词。
+                                  Nếu không tách, các từ điền vào chính là từ khóa.<br>
+                                  Nếu tách và từ khóa trùng tên cột, sẽ dùng nội dung của cột tương ứng ở hàng đó làm từ khóa.
                               </div>
                           </div>
                           
                           <div class="acu-form-group">
                               <label>
                                   <input type="checkbox" id="cfg-recursion" ${config.preventRecursion !== false ? 'checked' : ''}>
-                                  防止递归 (Prevent Recursion)
+                                  Chống đệ quy (Prevent Recursion)
                               </label>
                           </div>
 
                           <div class="acu-form-group">
-                              <label>自定义注入模板 (可选):</label>
-                              <textarea class="acu-form-textarea" id="cfg-template" placeholder="使用 $1 代表本表导出的蓝灯/绿灯条目列表，$1 上下的内容会分别生成独立的常量条目，插入到该表注入区块的最前与最后。">${escapeHtml_ACU(config.injectionTemplate || '')}</textarea>
-                              <div class="acu-hint">注入词现在以独立的常量条目进行包裹。填写模板后，$1 保留为条目本身，$1 之前和之后的内容会各自成为前/后包裹条目。</div>
+                              <label>Mẫu chèn tùy chỉnh (tùy chọn):</label>
+                              <textarea class="acu-form-textarea" id="cfg-template" placeholder="Dùng $1 đại diện cho danh sách mục đèn xanh dương/xanh lá do bảng này xuất; nội dung phía trên và dưới $1 sẽ tạo các mục hằng riêng, chèn vào đầu và cuối khối chèn của bảng.">${escapeHtml_ACU(config.injectionTemplate || '')}</textarea>
+                              <div class="acu-hint">Từ chèn hiện được bao bằng các mục hằng riêng. Sau khi điền mẫu, $1 giữ nguyên là chính mục, nội dung trước và sau $1 sẽ thành mục bao trước/sau.</div>
                           </div>
                           <div class="acu-form-group" style="margin-top:10px; padding-top:10px; border-top: 1px dashed #ddd;">
-                              <label>主条目位置:</label>
+                              <label>Vị trí mục chính:</label>
                               <select class="acu-form-input" id="cfg-entry-position">
-                                  <option value="at_depth_as_system" ${entryPlacement.position === 'at_depth_as_system' ? 'selected' : ''}>系统</option>
-                                  <option value="before_character_definition" ${entryPlacement.position === 'before_character_definition' ? 'selected' : ''}>角色定义前</option>
-                                  <option value="after_character_definition" ${entryPlacement.position === 'after_character_definition' ? 'selected' : ''}>角色定义后</option>
+                                  <option value="at_depth_as_system" ${entryPlacement.position === 'at_depth_as_system' ? 'selected' : ''}>Hệ thống</option>
+                                  <option value="before_character_definition" ${entryPlacement.position === 'before_character_definition' ? 'selected' : ''}>Trước định nghĩa nhân vật</option>
+                                  <option value="after_character_definition" ${entryPlacement.position === 'after_character_definition' ? 'selected' : ''}>Sau định nghĩa nhân vật</option>
                               </select>
                           </div>
                           <div class="acu-form-group">
-                              <label>主条目插入深度 (Depth):</label>
+                              <label>Độ sâu chèn mục chính (Depth):</label>
                               <input type="number" class="acu-form-input" id="cfg-entry-depth" step="1" value="${entryPlacement.depth}">
                           </div>
                           <div class="acu-form-group">
-                              <label>主条目插入顺序 (Order):</label>
+                              <label>Thứ tự chèn mục chính (Order):</label>
                               <input type="number" class="acu-form-input" id="cfg-entry-order" min="1" step="1" value="${entryPlacement.order}">
-                              <div class="acu-hint">只需设置主条目的顺序；若存在上/下包裹条目，会自动占用前后顺序位。</div>
+                              <div class="acu-hint">Chỉ cần đặt thứ tự của mục chính; nếu có mục bao trên/dưới sẽ tự chiếm vị trí thứ tự trước/sau.</div>
                           </div>
 
                           <div class="acu-form-group" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #ddd;">
                               <label>
                                   <input type="checkbox" id="cfg-extra-index-enabled" ${config.extraIndexEnabled ? 'checked' : ''}>
-                                  额外增加索引条目
+                                  Thêm mục chỉ mục bổ sung
                               </label>
-                              <div class="acu-hint">启用后会在该表导出区块额外注入 1 条“索引条目”（常量条目）。</div>
+                              <div class="acu-hint">Khi bật, sẽ chèn thêm 1 "mục chỉ mục" (mục hằng) vào khối xuất của bảng này.</div>
                           </div>
                           <div id="cfg-extra-index-options" style="display: ${config.extraIndexEnabled ? 'block' : 'none'}; padding-left: 12px; border-left: 2px solid #eee;">
                               <div class="acu-form-group">
-                                  <label>索引条目名称:</label>
-                                  <input type="text" class="acu-form-input" id="cfg-extra-index-entry-name" value="${escapeHtml_ACU(config.extraIndexEntryName || `${config.entryName || sheet.name || ''}-索引`)}" placeholder="例如: ${escapeHtml_ACU((config.entryName || sheet.name || '表格') + '-索引')}">
-                                  <div class="acu-hint">将作为额外注入世界书条目的名称。</div>
+                                  <label>Tên mục chỉ mục:</label>
+                                  <input type="text" class="acu-form-input" id="cfg-extra-index-entry-name" value="${escapeHtml_ACU(config.extraIndexEntryName || `${config.entryName || sheet.name || ''}-索引`)}" placeholder="Ví dụ: ${escapeHtml_ACU((config.entryName || sheet.name || '表格') + '-索引')}">
+                                  <div class="acu-hint">Sẽ dùng làm tên của mục sổ thế giới chèn thêm.</div>
                               </div>
                               <div class="acu-form-group">
-                                  <label>索引条目列选择（可多选）:</label>
+                                  <label>Chọn cột cho mục chỉ mục (chọn nhiều):</label>
                                   <div id="cfg-extra-index-columns-list">
                                       ${extraIndexColumnsHtml}
                                   </div>
-                                  <div class="acu-hint">每列可独立设置：仅放索引条目，或原条目与索引条目都保留。</div>
+                                  <div class="acu-hint">Mỗi cột có thể đặt riêng: chỉ đặt vào mục chỉ mục, hoặc giữ ở cả mục gốc và mục chỉ mục.</div>
                               </div>
                               <div class="acu-form-group">
-                                  <label>索引条目自定义注入模板 (可选):</label>
-                                  <textarea class="acu-form-textarea" id="cfg-extra-index-template" placeholder="使用 $1 代表索引条目内容；$1 上下内容会分别生成独立常量条目并放在索引条目之前/之后。">${escapeHtml_ACU(config.extraIndexInjectionTemplate || '')}</textarea>
-                                  <div class="acu-hint">逻辑与独立导出条目的自定义注入模板一致。</div>
+                                  <label>Mẫu chèn tùy chỉnh cho mục chỉ mục (tùy chọn):</label>
+                                  <textarea class="acu-form-textarea" id="cfg-extra-index-template" placeholder="Dùng $1 đại diện cho nội dung mục chỉ mục; nội dung phía trên/dưới $1 sẽ tạo các mục hằng riêng đặt trước/sau mục chỉ mục.">${escapeHtml_ACU(config.extraIndexInjectionTemplate || '')}</textarea>
+                                  <div class="acu-hint">Logic giống mẫu chèn tùy chỉnh của mục xuất riêng.</div>
                               </div>
                               <div class="acu-form-group" style="margin-top:10px; padding-top:10px; border-top: 1px dashed #ddd;">
-                                  <label>索引条目位置:</label>
+                                  <label>Vị trí mục chỉ mục:</label>
                                   <select class="acu-form-input" id="cfg-extra-index-position">
-                                      <option value="at_depth_as_system" ${extraIndexPlacement.position === 'at_depth_as_system' ? 'selected' : ''}>系统</option>
-                                      <option value="before_character_definition" ${extraIndexPlacement.position === 'before_character_definition' ? 'selected' : ''}>角色定义前</option>
-                                      <option value="after_character_definition" ${extraIndexPlacement.position === 'after_character_definition' ? 'selected' : ''}>角色定义后</option>
+                                      <option value="at_depth_as_system" ${extraIndexPlacement.position === 'at_depth_as_system' ? 'selected' : ''}>Hệ thống</option>
+                                      <option value="before_character_definition" ${extraIndexPlacement.position === 'before_character_definition' ? 'selected' : ''}>Trước định nghĩa nhân vật</option>
+                                      <option value="after_character_definition" ${extraIndexPlacement.position === 'after_character_definition' ? 'selected' : ''}>Sau định nghĩa nhân vật</option>
                                   </select>
                               </div>
                               <div class="acu-form-group">
-                                  <label>索引条目插入深度 (Depth):</label>
+                                  <label>Độ sâu chèn mục chỉ mục (Depth):</label>
                                   <input type="number" class="acu-form-input" id="cfg-extra-index-depth" step="1" value="${extraIndexPlacement.depth}">
                               </div>
                               <div class="acu-form-group">
-                                  <label>索引条目插入顺序 (Order):</label>
+                                  <label>Thứ tự chèn mục chỉ mục (Order):</label>
                                   <input type="number" class="acu-form-input" id="cfg-extra-index-order" min="1" step="1" value="${extraIndexPlacement.order}">
                               </div>
                           </div>
@@ -422,7 +422,7 @@ export function validateDDLText(ddlText: string, tableHeaders: string[]): { vali
       
       $colList.on('click', '.acu-col-btn', function() {
           const idx = parseInt(jQuery_API_ACU(this).data('idx'));
-          if (confirm('删除列将同时删除该列的所有数据，确定吗？')) {
+          if (confirm('Xóa cột sẽ xóa luôn toàn bộ dữ liệu của cột đó, xác nhận?')) {
               // [修复] headers 是 sheet.content[0] 的引用，只需对数据行执行splice，避免双重删除
               headers.splice(idx, 1);
               sheet.content.slice(1).forEach((row: any) => row.splice(idx, 1));
@@ -431,7 +431,7 @@ export function validateDDLText(ddlText: string, tableHeaders: string[]): { vali
       });
       
       jQuery_API_ACU('#cfg-add-col').on('click', () => {
-          const newName = prompt('输入新列名:');
+          const newName = prompt('Nhập tên cột mới:');
           if (newName) {
               headers.push(newName);
               // Update all rows

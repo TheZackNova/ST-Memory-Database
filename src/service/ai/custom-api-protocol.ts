@@ -11,7 +11,7 @@ export function processDirectMessages_ACU(input: any[]): any[] {
 
 export function providerEndpoint_ACU(raw: string, format: CustomApiFormat_ACU): string {
     const url = new URL(raw);
-    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('API 端点必须是 HTTP 或 HTTPS 地址。');
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Endpoint API phải là địa chỉ HTTP hoặc HTTPS.');
     let path = url.pathname.replace(/\/+$/, '').replace(/\/(chat\/completions|responses|messages|interactions)$/, '');
     if (!path && format !== 'openai_compat' && format !== 'openai_responses') path = format === 'claude_messages' ? '/v1' : '/v1beta';
     url.pathname = path + ({ openai_compat: '/chat/completions', openai_responses: '/responses', claude_messages: '/messages', gemini_interactions: '/interactions' }[format]);
@@ -61,7 +61,7 @@ export function buildProviderRequest_ACU(body: Record<string, any>, format: Cust
 /** 原始非流式回复归一到现有 OpenAI 回复契约，原始 wire 另行完整记录。 */
 export function normalizeProviderReply_ACU(data: any, format: CustomApiFormat_ACU): any {
     if (format === 'openai_compat' || data?.choices) return data;
-    if (data?.error || data?.errors?.length || ['failed', 'cancelled'].includes(data?.status)) throw new Error('直连 API 返回上游错误。');
+    if (data?.error || data?.errors?.length || ['failed', 'cancelled'].includes(data?.status)) throw new Error('API kết nối trực tiếp trả về lỗi từ upstream.');
     const blocks = format === 'claude_messages' ? data.content ?? []
         : format === 'openai_responses' ? data.output ?? [] : data.steps ?? data.outputs ?? [];
     const content = blocks.map((b: any) => b.type === 'text' ? b.text : text(b.content)).join('');
@@ -87,7 +87,7 @@ export function normalizeProviderStream_ACU(raw: string, format: CustomApiFormat
         if (!data) continue;
         if (data === '[DONE]') { completed = true; continue; }
         const json = JSON.parse(data);
-        if (json.error || json.type === 'error' || json.type === 'response.failed' || json.event_type === 'error') throw new Error('直连 API 流返回上游错误。');
+        if (json.error || json.type === 'error' || json.type === 'response.failed' || json.event_type === 'error') throw new Error('Luồng API kết nối trực tiếp trả về lỗi từ upstream.');
         if (format === 'openai_responses') {
             if (json.type === 'response.output_text.delta') emit({ content: json.delta });
             if (json.type === 'response.output_item.added' && json.item?.type === 'function_call') emit({ tool_calls: [{ index: json.output_index ?? 0, id: json.item.call_id ?? json.item.id, type: 'function', function: { name: json.item.name, arguments: '' } }] });

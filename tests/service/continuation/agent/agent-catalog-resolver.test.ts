@@ -62,7 +62,7 @@ describe('Agent 目录渲染', () => {
     const catalog = renderAgentSubagentCatalog_ACU();
     expect(catalog).toContain('hook-cognition-maintainer');
     expect(catalog).not.toContain('continuity-reviewer');
-    expect(catalog).toContain('无（只返回建议）');
+    expect(catalog).toContain('Không (chỉ trả về đề xuất)');
     expect(catalog).not.toContain('你只输出一个 JSON 对象');
     expect(catalog).not.toContain('requirements-maintainer');
     expect(catalog).toContain('arc-architect');
@@ -74,18 +74,18 @@ describe('Agent 目录渲染', () => {
     const catalog = renderAgentModuleCatalog_ACU();
     expect(catalog).toContain('$HOOKS_LEDGER');
     expect(catalog).toContain('$ACTIVE_CONSTRAINTS');
-    expect(catalog).toContain('仅主 Agent 裁决后登记');
+    expect(catalog).toContain('chỉ đăng ký sau khi Agent chính phân xử');
   });
 
   it('目录与写入说明公开故事年代学账本，并由维护代理职责固定负责', () => {
     const moduleCatalog = renderAgentModuleCatalog_ACU();
     expect(moduleCatalog).toContain('$CHRONOLOGY');
-    expect(moduleCatalog).toContain('故事年代学账本');
-    expect(moduleCatalog).toContain('大纲里的时间字段是计划，不在此账本内');
+    expect(moduleCatalog).toContain('Sổ niên đại học câu chuyện');
+    expect(moduleCatalog).toContain('Trường thời gian trong dàn ý là kế hoạch, không nằm trong sổ này');
 
     const subagentCatalog = renderAgentSubagentCatalog_ACU();
-    expect(subagentCatalog).toContain('$HOOKS_LEDGER、$INFO_GAP、$CHRONOLOGY（职责固定');
-    expect(subagentCatalog).toContain('故事年代学账本');
+    expect(subagentCatalog).toContain('$HOOKS_LEDGER, $INFO_GAP, $CHRONOLOGY (trách nhiệm cố định');
+    expect(subagentCatalog).toContain('sổ niên đại học câu chuyện');
   });
 
   it('未知代理名查不到定义', () => {
@@ -105,18 +105,18 @@ describe('Agent 表格只读投影', () => {
   it('按别名命中三张保底表', () => {
     expect(renderAgentTableByAliases_ACU('global', tableData_ACU)).toContain('禁区外围');
     expect(renderAgentTableByAliases_ACU('characters', tableData_ACU)).toContain('林瑶');
-    expect(renderAgentTableByAliases_ACU('chronicles', tableData_ACU)).toContain('该表暂无数据行');
+    expect(renderAgentTableByAliases_ACU('chronicles', tableData_ACU)).toContain('bảng này chưa có hàng dữ liệu');
   });
 
   it('表缺失时如实标注并阻止据此推断', () => {
     const text = renderAgentTableByAliases_ACU('characters', { s0: tableData_ACU.s0 });
-    expect(text).toContain('不存在角色表');
-    expect(text).toContain('请勿据此推断');
+    expect(text).toContain('không có 角色表');
+    expect(text).toContain('Đừng suy diễn nội dung từ đó');
   });
 
   it('同类多张表全部列出而不是猜一张', () => {
     const text = renderAgentTableByAliases_ACU('characters', { a: tableData_ACU.s1, b: { name: '人物表', content: [['姓名'], ['另一张']] } });
-    expect(text).toContain('命中 2 张同名或同类表');
+    expect(text).toContain('Khớp 2 bảng cùng tên hoặc cùng loại');
   });
 
   it('目录列出全部实际存在的表并给出读集写法，mate 不算表', () => {
@@ -124,47 +124,47 @@ describe('Agent 表格只读投影', () => {
     expect(catalog).toContain('$TABLE:自定义道具表');
     expect(catalog).not.toContain('mate');
     expect(renderAgentTableByName_ACU('自定义道具表', tableData_ACU)).toContain('黑色晶屑');
-    expect(renderAgentTableByName_ACU('不存在表', tableData_ACU)).toContain('不存在名为');
+    expect(renderAgentTableByName_ACU('不存在表', tableData_ACU)).toContain('không có bảng tên');
   });
 });
 
 describe('Agent 读写集解析', () => {
   it('未结算历史从水位之后开始逐楼列出，且只含 AI 楼层（正文永不含用户楼层）', () => {
     const text = renderAgentUnsettledHistory_ACU(context_ACU());
-    expect(text).toContain('【楼层 1】');
+    expect(text).toContain('【Tầng 1】');
     expect(text).toContain('第一楼');
     expect(text).not.toContain('第二楼');
     expect(text).not.toContain('第零楼');
   });
 
   it('水位已到最后一楼时如实说明没有未结算内容', () => {
-    expect(renderAgentUnsettledHistory_ACU({ ...context_ACU(), settledThroughIndex: 2 })).toContain('没有尚未结算的真实历史');
+    expect(renderAgentUnsettledHistory_ACU({ ...context_ACU(), settledThroughIndex: 2 })).toContain('Không có lịch sử thật chưa quyết toán');
   });
 
   it('大纲窗口标出本轮位置并声明大纲只是计划', () => {
     const text = resolveAgentReadToken_ACU('$OUTLINE_WINDOW', context_ACU()).text;
-    expect(text).toContain('← 本轮');
-    expect(text).toContain('阶段结构职责：development');
-    expect(text).toContain('阶段时间目标：三日');
+    expect(text).toContain('← lượt này');
+    expect(text).toContain('Chức trách cấu trúc giai đoạn: development');
+    expect(text).toContain('Mục tiêu thời gian giai đoạn: 三日');
     expect(text).toContain('function=reveal');
     expect(text).toContain('mainline=step');
     expect(text).toContain('time=days｜anchor=第三日清晨');
-    expect(text).toContain('大纲是计划，不是已经发生的事实');
+    expect(text).toContain('dàn ý là kế hoạch, không phải sự thật đã xảy ra');
   });
 
   it('无大纲与阶段已完成两种空态都指引 open_round 固定工作流准备大纲', () => {
     const noOutline = context_ACU();
     noOutline.execution = { ...noOutline.execution, stage: null, revision: null, node: null, turn: null, turnNumber: null, nodeTurnNumber: null } as any;
-    expect(resolveAgentReadToken_ACU('$OUTLINE_WINDOW', noOutline).text).toContain('还没有阶段大纲');
-    expect(resolveAgentReadToken_ACU('$OUTLINE_WINDOW', noOutline).text).toContain('open_round 固定工作流');
-    expect(resolveAgentReadToken_ACU('$OUTLINE_WINDOW', noOutline).text).toContain('可单独 delegate outline-architect 创建');
-    expect(resolveAgentReadToken_ACU('$CURRENT_TURN_GOAL', noOutline).text).toContain('尚无可执行的大纲轮次');
+    expect(resolveAgentReadToken_ACU('$OUTLINE_WINDOW', noOutline).text).toContain('chưa có dàn ý giai đoạn');
+    expect(resolveAgentReadToken_ACU('$OUTLINE_WINDOW', noOutline).text).toContain('quy trình cố định open_round');
+    expect(resolveAgentReadToken_ACU('$OUTLINE_WINDOW', noOutline).text).toContain('Có thể delegate riêng outline-architect để tạo');
+    expect(resolveAgentReadToken_ACU('$CURRENT_TURN_GOAL', noOutline).text).toContain('chưa có lượt dàn ý khả thi');
 
     const completed = context_ACU();
     completed.execution = { ...completed.execution, stage: { stageNumber: 2, status: 'completed', completedTurns: 6 } as any, revision: null, node: null, turn: null, turnNumber: null, nodeTurnNumber: null };
     const text = resolveAgentReadToken_ACU('$OUTLINE_WINDOW', completed).text;
-    expect(text).toContain('已全部完成');
-    expect(text).toContain('固定工作流会继续下一阶段大纲');
+    expect(text).toContain('đã hoàn thành toàn bộ');
+    expect(text).toContain('quy trình cố định sẽ tiếp tục dàn ý giai đoạn kế tiếp');
   });
 
   it('$TABLE:<表名> 形式的动态读集直接解析成该表内容', () => {
@@ -174,23 +174,23 @@ describe('Agent 读写集解析', () => {
   });
 
   it('未知读集 token 明确告知不可读而不是静默返回空', () => {
-    expect(resolveAgentReadToken_ACU('$NOT_A_TOKEN', context_ACU()).text).toContain('不是可读资料接口');
+    expect(resolveAgentReadToken_ACU('$NOT_A_TOKEN', context_ACU()).text).toContain('không phải giao diện tư liệu đọc được');
   });
 
   it('材料块按分节汇总并去重，空读集如实标注', () => {
     const materials = renderAgentReadMaterials_ACU(['$HOOKS_LEDGER', '$HOOKS_LEDGER', '$TABLE_CHARACTERS'], context_ACU());
     expect(materials.match(/### /g)).toHaveLength(2);
-    expect(materials).toContain('伏笔账本');
+    expect(materials).toContain('Sổ phục bút');
     expect(materials).toContain('林瑶');
-    expect(renderAgentReadMaterials_ACU([], context_ACU())).toContain('信息不足');
+    expect(renderAgentReadMaterials_ACU([], context_ACU())).toContain('thiếu thông tin');
   });
 
   it('读集词汇表覆盖全部地址体系，主/子代理共用同一份', () => {
     const catalog = renderAgentReadCatalog_ACU('tools');
     expect(catalog).toContain('$STORY_RANGE:');
-    expect(catalog).toContain('$TABLE:表名:起始行-结束行');
-    expect(catalog).toContain('$WORLDBOOK:书名:uid');
-    expect(catalog).toContain('$TABLE:纪要表:起始行-结束行');
+    expect(catalog).toContain('$TABLE:tên_bảng:hàng_đầu-hàng_cuối');
+    expect(catalog).toContain('$WORLDBOOK:tên_sách:uid');
+    expect(catalog).toContain('$TABLE:纪要表:hàng_đầu-hàng_cuối');
     expect(catalog).toContain('$CHRONOLOGY / $CHRONOLOGY:ID,ID');
     expect(catalog).not.toContain('$CHRONICLES');
     expect(catalog).toContain('search');
@@ -205,12 +205,12 @@ describe('Agent 读写集解析', () => {
     };
 
     const full = resolveAgentReadToken_ACU('$CHRONOLOGY', context);
-    expect(full.title).toContain('故事年代学账本');
-    expect(full.text).toContain('当前时间锚：入城后的第七天');
+    expect(full.title).toContain('Sổ niên đại học câu chuyện');
+    expect(full.text).toContain('Mốc thời gian hiện tại: 入城后的第七天');
 
     const byId = resolveAgentReadToken_ACU('$CHRONOLOGY:T1', context);
     expect(byId.text).toContain('在临川城休整七日');
-    expect(resolveAgentReadToken_ACU('$CHRONOLOGY:T9', context).text).toContain('不存在');
+    expect(resolveAgentReadToken_ACU('$CHRONOLOGY:T9', context).text).toContain('không tồn tại');
   });
 });
 
@@ -232,7 +232,7 @@ describe('正文窗口与区间读取', () => {
 
   it('目录只列窗口内楼层，尾部楼层给全文，更早的指引纪要', () => {
     const catalog = renderAgentStoryCatalog_ACU(storyContext_ACU(2, 1));
-    expect(catalog).toContain('更早的 1 个 AI 楼层不在可读窗口内');
+    expect(catalog).toContain('1 tầng AI sớm hơn nằm ngoài cửa sổ đọc được');
     expect(catalog).toContain('$STORY_RANGE:3-3');
     expect(catalog).toContain('第四楼正文内容');
     expect(catalog).not.toContain('第一楼正文内容');
@@ -243,13 +243,13 @@ describe('正文窗口与区间读取', () => {
     };
     for (const token of ['$HISTORY_UNSETTLED', '$STORY_TEXT']) {
       const text = resolveAgentReadToken_ACU(token, highFloorContext).text;
-      expect(text.match(/【楼层 \d+】/g)).toHaveLength(2);
+      expect(text.match(/【Tầng \d+】/g)).toHaveLength(2);
       expect(text).toContain('正文标记-997-结束');
       expect(text).toContain('正文标记-999-结束');
       expect(text).not.toContain('正文标记-995-结束');
       expect(text).not.toContain('正文标记-998-结束');
-      expect(text).toContain('498 个未结算 AI 楼层');
-      expect(text).toContain('不能据此宣称旧正文已被完整结算');
+      expect(text).toContain('498 tầng AI chưa quyết toán');
+      expect(text).toContain('không thể dựa vào đó để tuyên bố chính văn cũ đã được quyết toán đầy đủ');
       expect(text).toContain('$TABLE:纪要表');
       const disabled = resolveAgentReadToken_ACU(token, { ...highFloorContext, storyWindowFloors: 0 }).text;
       expect(disabled).not.toContain('正文标记-');
@@ -259,7 +259,7 @@ describe('正文窗口与区间读取', () => {
         modules: { hooks: 'complete_no_change' as const, infoGap: 'complete_no_change' as const, chronology: 'complete_no_change' as const }, updatedAt: 1 } } };
     expect(resolveAgentReadToken_ACU('$HISTORY_UNSETTLED', completed).text).not.toContain('正文标记-');
     expect(resolveAgentReadToken_ACU('$STORY_TEXT', completed).text).toContain('正文标记-999-结束');
-    expect(resolveAgentReadToken_ACU('$STORY_TEXT', completed).text.match(/【楼层 \d+】/g)).toHaveLength(2);
+    expect(resolveAgentReadToken_ACU('$STORY_TEXT', completed).text.match(/【Tầng \d+】/g)).toHaveLength(2);
     const resumed = { ...completed, chat: [...completed.chat, { mes: '用户新指令', is_user: true }, { mes: '新增正文' }] };
     const resumedText = resolveAgentReadToken_ACU('$HISTORY_UNSETTLED', resumed).text;
     expect(resumedText).toContain('新增正文');
@@ -282,7 +282,7 @@ describe('正文窗口与区间读取', () => {
     const context = storyContext_ACU(2, 1);
     expect(resolveAgentReadToken_ACU('$STORY_RANGE:3-4', context).text).toContain('第三楼正文内容');
     expect(resolveAgentReadToken_ACU('$STORY_RANGE:1-1', context).text).toContain('$TABLE:纪要表');
-    expect(resolveAgentReadToken_ACU('$STORY_RANGE:xx', context).text).toContain('不合法');
+    expect(resolveAgentReadToken_ACU('$STORY_RANGE:xx', context).text).toContain('không hợp lệ');
   });
 
   it('表格行区间读取只回区间内数据行', () => {
@@ -296,7 +296,7 @@ describe('正文窗口与区间读取', () => {
   it('模块按 ID 精读时未知 ID 如实标注', () => {
     const text = resolveAgentReadToken_ACU('$HOOKS_LEDGER:H999', context_ACU()).text;
     expect(text).toContain('H999');
-    expect(text).toContain('不存在');
+    expect(text).toContain('không tồn tại');
   });
 });
 
@@ -332,8 +332,8 @@ describe('事件概览渲染与截断', () => {
 
   it('截断时只保留尾部窗口，并给出被省略行区间的回溯地址', () => {
     const text = renderAgentStoryOverview_ACU({ tableData: chronicleData_ACU }, { maxRows: 2 });
-    expect(text).toContain('更早的 4 轮概览已省略（对应「纪要表」第 1-4 行）');
-    expect(text).toContain('$TABLE:纪要表:行区间');
+    expect(text).toContain('Tổng quan 4 lượt sớm hơn đã được lược bỏ (ứng với hàng 1-4 của "纪要表")');
+    expect(text).toContain('$TABLE:纪要表:khoảng hàng');
     expect(text).toContain('- AM0005｜第五轮概览');
     expect(text).toContain('- AM0006｜第六轮概览');
     expect(text).not.toContain('第三轮概览');
@@ -341,7 +341,7 @@ describe('事件概览渲染与截断', () => {
 
   it('窗口外的召回命中行不被截断：以纪要全文按行序前置展示', () => {
     const text = renderAgentStoryOverview_ACU({ tableData: chronicleData_ACU, recallCodes: ['AM0001', 'AM0003', 'AM0006'] }, { maxRows: 2 });
-    expect(text).toContain('以下为本轮召回命中的更早轮次');
+    expect(text).toContain('Sau đây là các lượt sớm hơn được truy hồi trong lượt này');
     expect(text).toContain('- AM0001｜【纪要全文】第一轮纪要全文');
     expect(text).toContain('- AM0003｜【纪要全文】第三轮纪要全文');
     expect(text.indexOf('AM0001')).toBeLessThan(text.indexOf('AM0003'));
@@ -352,7 +352,7 @@ describe('事件概览渲染与截断', () => {
 
   it('窗口外召回命中但纪要列为空时退回概览文本，不静默丢弃', () => {
     const text = renderAgentStoryOverview_ACU({ tableData: chronicleData_ACU, recallCodes: ['AM0002'] }, { maxRows: 2 });
-    expect(text).toContain('以下为本轮召回命中的更早轮次');
+    expect(text).toContain('Sau đây là các lượt sớm hơn được truy hồi trong lượt này');
     expect(text).toContain('- AM0002｜第二轮概览');
   });
 });

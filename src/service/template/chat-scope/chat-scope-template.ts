@@ -272,11 +272,11 @@ import { normalizeIsolationCode_ACU } from '../../../shared/data-constants';
       return raw ? hashUserInput_ACU(raw) : '';
   }
 
-  function getChatTemplateArchiveBaseLabel_ACU(templateState: Record<string, any>, { fallback = '聊天模板快照' } = {}) {
+  function getChatTemplateArchiveBaseLabel_ACU(templateState: Record<string, any>, { fallback = 'Snapshot mẫu cuộc trò chuyện' } = {}) {
       const normalizedState = normalizeChatTemplateScopeState_ACU(templateState);
-      if (normalizedState.source === 'legacy_history_frozen') return '旧对话历史模板快照';
-      if (normalizedState.source === 'legacy_header_frozen') return '旧版表头冻结模板';
-      if (normalizedState.source === 'legacy_frozen') return '旧版聊天冻结模板';
+      if (normalizedState.source === 'legacy_history_frozen') return 'Snapshot mẫu lịch sử hội thoại cũ';
+      if (normalizedState.source === 'legacy_header_frozen') return 'Mẫu đóng băng tiêu đề cột bản cũ';
+      if (normalizedState.source === 'legacy_frozen') return 'Mẫu đóng băng cuộc trò chuyện bản cũ';
       const presetName = normalizeTemplatePresetSelectionValue_ACU(normalizedState.presetName || '');
       return presetName ? getTemplatePresetDisplayName_ACU(presetName) : fallback;
   }
@@ -389,12 +389,12 @@ import { normalizeIsolationCode_ACU } from '../../../shared/data-constants';
 
   export function getChatTemplateArchiveOptionLabel_ACU(entry: Record<string, any>) {
       const normalizedEntry = normalizeChatTemplateArchiveEntry_ACU(entry);
-      if (!normalizedEntry) return '聊天历史模板快照';
+      if (!normalizedEntry) return 'Snapshot mẫu lịch sử cuộc trò chuyện';
       const baseLabel = getChatTemplateArchiveBaseLabel_ACU(normalizedEntry);
       const archivedAtText = (typeof formatPlotScopeUpdatedAt_ACU === 'function') ? formatPlotScopeUpdatedAt_ACU(normalizedEntry.archivedAt || normalizedEntry.updatedAt) : '';
       return archivedAtText
-          ? `${baseLabel}（聊天历史快照，${archivedAtText}）`
-          : `${baseLabel}（聊天历史快照）`;
+          ? `${baseLabel} (snapshot lịch sử cuộc trò chuyện, ${archivedAtText})`
+          : `${baseLabel} (snapshot lịch sử cuộc trò chuyện)`;
   }
 
   export function listChatTemplateArchiveEntries_ACU({ chat = getChatArray_ACU(), isolationKey = getCurrentIsolationKey_ACU() } = {}) {
@@ -417,7 +417,7 @@ import { normalizeIsolationCode_ACU } from '../../../shared/data-constants';
           if (!rawState || typeof rawState !== 'object' || Array.isArray(rawState)
               || rawState.mode !== undefined && !['inherit_global', 'chat_override', 'preset_link'].includes(rawState.mode)
               || rawState.isolationKey !== undefined && rawState.isolationKey !== normalizedKey) {
-              throw new Error('只读模板作用域损坏或隔离身份不匹配，禁止回退全局模板。');
+              throw new Error('Phạm vi mẫu chỉ đọc bị hỏng hoặc danh tính cô lập không khớp, cấm quay về mẫu toàn cục.');
           }
           rawState = { ...rawState };
           if (rawState.mode === 'chat_override') {
@@ -430,7 +430,7 @@ import { normalizeIsolationCode_ACU } from '../../../shared/data-constants';
           }
           if (rawState.mode === 'preset_link' && rawState.presetName !== undefined
               && typeof rawState.presetName !== 'string') {
-              throw new Error('只读预设链接身份损坏，禁止使用默认预设。');
+              throw new Error('Danh tính liên kết preset chỉ đọc bị hỏng, cấm dùng preset mặc định.');
           }
       }
       if (!rawState || typeof rawState !== 'object' || Array.isArray(rawState)) return null;
@@ -741,7 +741,7 @@ import { normalizeIsolationCode_ACU } from '../../../shared/data-constants';
       }
 
       if (readOnly) {
-          throw new Error('只读模板快照无法解析，拒绝修改运行时模板或以默认值替代损坏来源。');
+          throw new Error('Không thể phân tích snapshot mẫu chỉ đọc, từ chối sửa mẫu runtime hoặc thay nguồn bị hỏng bằng giá trị mặc định.');
       }
       try {
           _set_TABLE_TEMPLATE_ACU(savedTemplate || DEFAULT_TABLE_TEMPLATE_ACU);

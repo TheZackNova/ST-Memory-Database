@@ -41,7 +41,7 @@ export function createZeroLayerContinuationRuntime_ACU(dependencies: Dependencie
     autoContinueTimer = null;
   };
   const assertCurrent = () => {
-    if (disposed) throw new ZeroLayerError_ACU('scope-changed', '零层续写运行时已失效。');
+    if (disposed) throw new ZeroLayerError_ACU('scope-changed', 'Runtime viết tiếp Tầng 0 đã mất hiệu lực.');
     store.readSource();
   };
   const notify = () => { for (const listener of listeners) listener(); };
@@ -95,10 +95,10 @@ export function createZeroLayerContinuationRuntime_ACU(dependencies: Dependencie
   });
   const unregister = zero.registerContinuationSettlement(async (envelope, turnId, attemptId, signal) => {
     assertCurrent();
-    if (signal.aborted) throw new ZeroLayerError_ACU('scope-changed', '续写确认已中止。');
+    if (signal.aborted) throw new ZeroLayerError_ACU('scope-changed', 'Xác nhận viết tiếp đã bị hủy.');
     const turn = envelope.turns.find(item => item.turnId === turnId && item.attemptId === attemptId);
     if (!turn || envelope.sessionId !== store.sessionId || turn.branchId !== store.branchId) {
-      throw new ZeroLayerError_ACU('revision-conflict', '续写正文不属于当前运行时。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Nội dung chính viết tiếp không thuộc runtime hiện tại.');
     }
     await orchestrator.confirmLogicalTurn({ sessionId: envelope.sessionId, branchId: turn.branchId,
       turnId, attemptId, floorId: turn.assistantFloor.floorId });
@@ -135,8 +135,8 @@ export function createZeroLayerContinuationRuntime_ACU(dependencies: Dependencie
         assertCurrent();
         if (result.preparedTurn) await send(result.preparedTurn);
       } catch {
-        if (!disposed) logAgentSession_ACU({ kind: 'run_failed', title: '自动续写已暂停',
-          detail: '逻辑正文或续写准备未完成，进度已保留；请检查任务状态后显式继续。', ok: false });
+        if (!disposed) logAgentSession_ACU({ kind: 'run_failed', title: 'Tự động viết tiếp đã tạm dừng',
+          detail: 'Nội dung chính logic hoặc phần chuẩn bị viết tiếp chưa hoàn tất, tiến độ đã được giữ lại; hãy kiểm tra trạng thái tác vụ rồi tiếp tục rõ ràng.', ok: false });
       } finally {
         if (!disposed) notify();
       }
@@ -147,7 +147,7 @@ export function createZeroLayerContinuationRuntime_ACU(dependencies: Dependencie
     debug.step('logical_entered', { mode: 'logical', chars: prepared.instruction.instruction.length });
     try {
       assertCurrent();
-      if (sending) throw new ZeroLayerError_ACU('pending-turn', '零层续写已有在途正文。');
+      if (sending) throw new ZeroLayerError_ACU('pending-turn', 'Viết tiếp Tầng 0 đã có nội dung chính đang chạy.');
     } catch (error) {
       debug.finish('failed', { reason: 'pending_snapshot', errorType: continuationDebugErrorType_ACU(error) }, false);
       throw error;
@@ -155,7 +155,7 @@ export function createZeroLayerContinuationRuntime_ACU(dependencies: Dependencie
     const frozen = structuredClone(prepared);
     if (frozen.identity.chatIdentity !== store.getChatIdentity()) {
       debug.finish('failed', { reason: 'chat_mismatch' }, false);
-      throw new ZeroLayerError_ACU('scope-changed', '规划结果不属于当前零层续写。');
+      throw new ZeroLayerError_ACU('scope-changed', 'Kết quả lập kế hoạch không thuộc viết tiếp Tầng 0 hiện tại.');
     }
     cancelAutoContinue();
     sending = true;
@@ -194,8 +194,8 @@ export function createZeroLayerContinuationRuntime_ACU(dependencies: Dependencie
 
   /** 显式继续先回读持久结果：正文已保存只补结算，未知发送绝不重发。 */
   const continueTask: ContinuationRuntime_ACU['continueTask'] = async () => {
-    if (disposed) throw new ZeroLayerError_ACU('scope-changed', '零层续写运行时已失效。');
-    if (sending) throw new ZeroLayerError_ACU('pending-turn', '零层续写已有在途正文。');
+    if (disposed) throw new ZeroLayerError_ACU('scope-changed', 'Runtime viết tiếp Tầng 0 đã mất hiệu lực.');
+    if (sending) throw new ZeroLayerError_ACU('pending-turn', 'Viết tiếp Tầng 0 đã có nội dung chính đang chạy.');
     zero.store.assertCanOperate();
     cancelAutoContinue();
     await zero.store.readPersisted();
@@ -212,7 +212,7 @@ export function createZeroLayerContinuationRuntime_ACU(dependencies: Dependencie
     if (!turn) return orchestrator.continueTask();
     if (!turn.continuationIdentity
       || turn.continuationIdentity.taskId !== store.readPersisted()?.activeTask?.taskId) {
-      throw new ZeroLayerError_ACU('pending-turn', '未结算逻辑回合不属于当前续写，请恢复原回合。');
+      throw new ZeroLayerError_ACU('pending-turn', 'Lượt logic chưa quyết toán không thuộc viết tiếp hiện tại, hãy khôi phục lượt gốc.');
     }
     sending = true;
     const ref = { sessionId: source.sessionId, branchId: turn.branchId, turnId: turn.turnId,
@@ -231,12 +231,12 @@ export function createZeroLayerContinuationRuntime_ACU(dependencies: Dependencie
         await zero.resumePrepared(turn.turnId, turn.attemptId, ref =>
           orchestrator.recordLogicalTurn(turn.continuationIdentity!, ref, true));
       } else {
-        throw new ZeroLayerError_ACU('pending-turn', '正文发送结果未知或准备未完成；禁止重新请求模型，请检查原回合。');
+        throw new ZeroLayerError_ACU('pending-turn', 'Kết quả gửi nội dung chính chưa rõ hoặc chuẩn bị chưa xong; cấm yêu cầu lại mô hình, hãy kiểm tra lượt gốc.');
       }
       assertCurrent();
       await store.clearPublishedTurnFailure(turn.continuationIdentity, ref);
       const envelope = store.readPersisted();
-      if (!envelope?.activeTask) throw new ZeroLayerError_ACU('corrupt-data', '恢复后续写任务缺失。');
+      if (!envelope?.activeTask) throw new ZeroLayerError_ACU('corrupt-data', 'Thiếu tác vụ viết tiếp sau khi khôi phục.');
       published = true;
       return { envelope, task: envelope.activeTask };
     } catch (error) {
@@ -261,7 +261,7 @@ export function createZeroLayerContinuationRuntime_ACU(dependencies: Dependencie
     mode: 'logical', orchestrator, bridge: null,
     continueTask, send,
     retryHostGeneration: async () => {
-      throw new ZeroLayerError_ACU('invalid-transition', '零层正文不使用酒馆物理重发，请通过继续恢复已保存回合。');
+      throw new ZeroLayerError_ACU('invalid-transition', 'Nội dung chính Tầng 0 không dùng gửi lại vật lý của SillyTavern, hãy khôi phục lượt đã lưu bằng cách tiếp tục.');
     },
     stopGeneration: () => { activeDebug?.finish('stopped', { reason: 'user_stopped' }); cancelAutoContinue(); zero.cancel(); },
     subscribeStateChanges: listener => {
@@ -269,7 +269,7 @@ export function createZeroLayerContinuationRuntime_ACU(dependencies: Dependencie
       return () => { listeners.delete(listener); };
     },
     initialize: async () => {
-      if (disposed) throw new ZeroLayerError_ACU('scope-changed', '零层续写运行时已失效。');
+      if (disposed) throw new ZeroLayerError_ACU('scope-changed', 'Runtime viết tiếp Tầng 0 đã mất hiệu lực.');
       zero.store.assertCanOperate();
       await zero.store.readPersisted();
       assertCurrent();

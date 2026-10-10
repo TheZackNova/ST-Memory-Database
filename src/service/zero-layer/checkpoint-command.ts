@@ -17,9 +17,9 @@ export type ZeroLayerCheckpointCommand_ACU =
 /** 同一 carrier 保存队列中的阶段迁移；这里不保存，不调用物理重定位。 */
 export function applyZeroLayerCheckpointCommand_ACU(source: ZeroLayerEnvelope_ACU,
   command: ZeroLayerCheckpointCommand_ACU, physical: readonly Record<string, unknown>[]): ZeroLayerEnvelope_ACU {
-  if (!source.enabled) throw new ZeroLayerError_ACU('mode-disabled', '零层 checkpoint 需要已启用的载体。');
+  if (!source.enabled) throw new ZeroLayerError_ACU('mode-disabled', 'Checkpoint Tầng 0 cần vật mang đã được bật.');
   if (source.turns.some(turn => !['published', 'failed', 'cancelled'].includes(turn.phase))) {
-    throw new ZeroLayerError_ACU('pending-turn', '在途回合不能切换或清理 checkpoint。');
+    throw new ZeroLayerError_ACU('pending-turn', 'Lượt đang chạy không thể chuyển hoặc dọn checkpoint.');
   }
   const candidate = structuredClone(source);
   const branch = candidate.branches.find(item => item.branchId === candidate.activeBranchId)!;
@@ -27,9 +27,9 @@ export function applyZeroLayerCheckpointCommand_ACU(source: ZeroLayerEnvelope_AC
   const state = branch.checkpoints ??= { schemaVersion: 1, active: null, pending: null,
     cleanupPending: false, replayFrames: {} };
   if (command.type === 'stage-checkpoint') {
-    if (state.pending || state.cleanupPending) throw new ZeroLayerError_ACU('invalid-transition', '旧 checkpoint 阶段尚未确认。');
+    if (state.pending || state.cleanupPending) throw new ZeroLayerError_ACU('invalid-transition', 'Giai đoạn checkpoint cũ chưa được xác nhận.');
     if (command.candidate.sourceRevision !== source.revision || command.candidate.sourceHeadTurnId !== branch.headTurnId) {
-      throw new ZeroLayerError_ACU('revision-conflict', 'checkpoint 规划源已变化。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Nguồn lập kế hoạch checkpoint đã thay đổi.');
     }
     candidate.revision += 1;
     validateZeroLayerCheckpointSet_ACU(command.candidate, candidate, branch);
@@ -37,7 +37,7 @@ export function applyZeroLayerCheckpointCommand_ACU(source: ZeroLayerEnvelope_AC
     state.pending = structuredClone(command.candidate);
   } else if (command.type === 'activate-checkpoint') {
     if (!state.pending || state.pending.checkpointId !== command.checkpointId || state.cleanupPending) {
-      throw new ZeroLayerError_ACU('invalid-transition', 'checkpoint 候选尚未确认。');
+      throw new ZeroLayerError_ACU('invalid-transition', 'Ứng viên checkpoint chưa được xác nhận.');
     }
     assertCheckpointSource_ACU(source, timeline, state.pending);
     state.active = state.pending;
@@ -46,15 +46,15 @@ export function applyZeroLayerCheckpointCommand_ACU(source: ZeroLayerEnvelope_AC
     candidate.revision += 1;
   } else {
     if (!state.active || state.active.checkpointId !== command.checkpointId || !state.cleanupPending || state.pending) {
-      throw new ZeroLayerError_ACU('invalid-transition', 'checkpoint 激活尚未确认，禁止清理。');
+      throw new ZeroLayerError_ACU('invalid-transition', 'Kích hoạt checkpoint chưa được xác nhận, cấm dọn dẹp.');
     }
 
     const active = state.active;
     const cut = timeline.floors.findIndex(floor => fingerprint(floor.ref) === fingerprint(active.position.ref));
-    requireValue(cut >= 0, 'checkpoint 清理切点不存在。');
+    requireValue(cut >= 0, 'Điểm cắt dọn checkpoint không tồn tại.');
     const replayFrames = checkpointReplayFrames_ACU(source, timeline);
     const rebuilt = continuationCheckpointPayload_ACU(replayFrames.slice(0, cut + 1));
-    requireValue(fingerprint(rebuilt) === fingerprint(active.continuation), 'checkpoint 覆盖前缀与原始回放不等价。');
+    requireValue(fingerprint(rebuilt) === fingerprint(active.continuation), 'Tiền tố checkpoint bao phủ không tương đương với phát lại gốc.');
     const before = foldCheckpointContinuation_ACU(replayFrames);
     for (let index = 0; index <= cut; index += 1) {
       const key = JSON.stringify(timeline.floors[index].ref);
@@ -70,7 +70,7 @@ export function applyZeroLayerCheckpointCommand_ACU(source: ZeroLayerEnvelope_AC
       payload: message[AGENT_MODULE_FIELD_ACU], swipeId: String(message.swipe_id ?? 0),
     })));
     requireValue(fingerprint([before.snapshot, before.fields]) === fingerprint([after.snapshot, after.fields]),
-      'checkpoint 清理后完整回放不等价，禁止保存。');
+      'Phát lại đầy đủ sau khi dọn checkpoint không tương đương, cấm lưu.');
   }
   return candidate;
 }

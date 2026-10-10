@@ -51,52 +51,52 @@ function updateStatusDisplay() {
 
 function buildBatchProgressLabel(event: Partial<CardUpdateProgressEvent>): string {
     if (Number.isFinite(event.currentBatch) && Number.isFinite(event.totalBatches)) {
-        return `第 ${event.currentBatch}/${event.totalBatches} 批`;
+        return `Lô ${event.currentBatch}/${event.totalBatches}`;
     }
-    return '当前批次';
+    return 'Lô hiện tại';
 }
 
 function formatLegacyCheckpointReasonLabel_ACU(reason?: string): string {
     switch (reason) {
         case 'init':
-            return '初始基线';
+            return 'Mốc ban đầu';
         case 'migration':
-            return '迁移基线';
+            return 'Mốc di chuyển';
         case 'compaction':
-            return '保留边界基线';
+            return 'Mốc ranh giới giữ lại';
         case 'manual':
-            return '历史手动基线';
+            return 'Mốc thủ công cũ';
         case 'periodic':
-            return '历史周期基线';
+            return 'Mốc định kỳ cũ';
         default:
-            return reason ? `旧基线:${reason}` : '旧基线';
+            return reason ? `Mốc cũ:${reason}` : 'Mốc cũ';
     }
 }
 
 function formatLegacyAiFloorRange_ACU(startAiFloor: number, endAiFloor: number): string {
-    return startAiFloor === endAiFloor ? `AI 第 ${startAiFloor} 层` : `AI 第 ${startAiFloor}~${endAiFloor} 层`;
+    return startAiFloor === endAiFloor ? `Tầng AI ${startAiFloor}` : `Tầng AI ${startAiFloor}~${endAiFloor}`;
 }
 
 function buildLegacySelectedSheetSummary_ACU(targetKeys: string[]): string {
     const tables = currentJsonTableData_ACU && typeof currentJsonTableData_ACU === 'object' ? currentJsonTableData_ACU as Record<string, any> : null;
-    return targetKeys.map(key => `${String(tables?.[key]?.name || key)}（${key}）`).join('、');
+    return targetKeys.map(key => `${String(tables?.[key]?.name || key)} (${key})`).join(', ');
 }
 
 function buildLegacyCheckpointFloorsLabel_ACU(): string {
     try {
         const checkpoints = collectV2CheckpointFloorsFromChat_ACU(getChatArray_ACU(), getCurrentIsolationKey_ACU());
         return checkpoints.length > 0
-            ? checkpoints.map(item => `AI 第 ${item.aiFloor} 层（${formatLegacyCheckpointReasonLabel_ACU(item.reason)}）`).join('、')
-            : '当前隔离标签暂无 full checkpoint';
+            ? checkpoints.map(item => `Tầng AI ${item.aiFloor} (${formatLegacyCheckpointReasonLabel_ACU(item.reason)})`).join(', ')
+            : 'Nhãn cô lập hiện tại chưa có full checkpoint';
     } catch {
-        return '当前隔离标签暂无 full checkpoint';
+        return 'Nhãn cô lập hiện tại chưa có full checkpoint';
     }
 }
 
 function buildLegacyManualRefillRangeLabel_ACU(): string {
     try {
         const chat = getChatArray_ACU();
-        if (!Array.isArray(chat) || chat.length === 0) return '暂无可重填 AI 楼层';
+        if (!Array.isArray(chat) || chat.length === 0) return 'Chưa có tầng AI nào để điền lại';
         const aiItems = chat
             .map((msg: any, index: number) => msg && !msg.is_user ? { index, aiFloor: 0 } : null)
             .filter((item): item is { index: number; aiFloor: number } => item !== null);
@@ -105,10 +105,10 @@ function buildLegacyManualRefillRangeLabel_ACU(): string {
         const manualDepth = Number.isFinite(Number(settings_ACU.manualUpdateContextDepth)) && Number(settings_ACU.manualUpdateContextDepth) > 0 ? Math.floor(Number(settings_ACU.manualUpdateContextDepth)) : aiItems.length;
         const effectiveAiItems = skip > 0 ? aiItems.slice(0, -skip) : aiItems.slice();
         const contextItems = manualDepth > 0 ? effectiveAiItems.slice(-manualDepth) : effectiveAiItems;
-        if (!contextItems.length) return '暂无可重填 AI 楼层';
+        if (!contextItems.length) return 'Chưa có tầng AI nào để điền lại';
         return formatLegacyAiFloorRange_ACU(contextItems[0].aiFloor, contextItems[contextItems.length - 1].aiFloor);
     } catch {
-        return '暂无可重填 AI 楼层';
+        return 'Chưa có tầng AI nào để điền lại';
     }
 }
 
@@ -116,23 +116,23 @@ function buildProgressMessage(event: CardUpdateProgressEvent): string {
     const batchLabel = buildBatchProgressLabel(event);
     switch (event.phase) {
         case 'preparing':
-            return `${batchLabel}：准备AI输入...`;
+            return `${batchLabel}: Đang chuẩn bị đầu vào AI...`;
         case 'calling_ai':
-            return `${batchLabel}：第 ${event.attempt || 1}/${event.maxRetries || 1} 次调用AI进行增量更新...`;
+            return `${batchLabel}: Gọi AI cập nhật tăng dần lần ${event.attempt || 1}/${event.maxRetries || 1}...`;
         case 'parsing':
-            return `${batchLabel}：解析并应用AI返回的更新...`;
+            return `${batchLabel}: Đang phân tích và áp dụng cập nhật do AI trả về...`;
         case 'saving':
-            return `${batchLabel}：正在将更新后的数据库保存到聊天记录...`;
+            return `${batchLabel}: Đang lưu cơ sở dữ liệu đã cập nhật vào lịch sử trò chuyện...`;
         case 'chunk_done':
-            return `${batchLabel}：分块处理成功...`;
+            return `${batchLabel}: Xử lý theo khối thành công...`;
         case 'complete':
-            return `${batchLabel}：数据库增量更新成功！`;
+            return `${batchLabel}: Cập nhật tăng dần cơ sở dữ liệu thành công!`;
         case 'retry':
-            return `${batchLabel}：第 ${event.attempt || 1}/${event.maxRetries || 1} 次尝试失败，5秒后重试...${event.message ? ` (${event.message})` : ''}`;
+            return `${batchLabel}: Lần thử ${event.attempt || 1}/${event.maxRetries || 1} thất bại, thử lại sau 5 giây...${event.message ? ` (${event.message})` : ''}`;
         case 'error':
-            return `${batchLabel}：错误：更新失败。`;
+            return `${batchLabel}: Lỗi: cập nhật thất bại.`;
         default:
-            return `${batchLabel}：正在处理...`;
+            return `${batchLabel}: Đang xử lý...`;
     }
 }
 
@@ -143,16 +143,16 @@ function beginTableFillTask(feature: string, detail: string, abortController?: A
     const task: NoticeTaskHandle_ACU = beginNoticeTask_ACU(feature, {
         detail,
         action: {
-            label: '终止',
+            label: 'Dừng',
             variant: 'danger',
             run: () => {
                 syncManualUpdateButtonAvailability_ACU();
                 _set_wasStoppedByUser_ACU(true);
                 abortController?.abort();
                 abortAllActiveRequests_ACU();
-                updateStatusText('填表任务已终止，正在停止当前任务与后续批次...', false);
-                task.update('填表任务已终止，正在停止当前任务与后续批次...', { action: null });
-                showToastr_ACU('warning', '填表任务已由用户终止，当前任务与后续批次将立即停止。');
+                updateStatusText('Tác vụ điền bảng đã bị dừng, đang dừng tác vụ hiện tại và các lô tiếp theo...', false);
+                task.update('Tác vụ điền bảng đã bị dừng, đang dừng tác vụ hiện tại và các lô tiếp theo...', { action: null });
+                showToastr_ACU('warning', 'Người dùng đã dừng tác vụ điền bảng, tác vụ hiện tại và các lô tiếp theo sẽ dừng ngay.');
             },
         },
     });
@@ -192,7 +192,7 @@ function handleProgressEvent(event: CardUpdateProgressEvent, isSilentMode: boole
  */
 export async function proceedWithCardUpdate_ACU(
     messagesToUse: any[],
-    batchToastMessage = '正在填表，请稍候...',
+    batchToastMessage = 'Đang điền bảng, vui lòng chờ...',
     saveTargetIndex = -1,
     isImportMode = false,
     updateMode = 'standard',
@@ -225,9 +225,9 @@ export async function proceedWithCardUpdate_ACU(
                 if (!executionOptions.planManaged && !isSilentMode && !progressTask && event.phase === 'calling_ai') {
                     notifyTableFillStart();
                     const initialMessage = progressContext
-                        ? `${buildBatchProgressLabel(progressContext)}：${batchToastMessage || '正在填表，请稍候...'}`
-                        : (batchToastMessage || '正在填表，请稍候...');
-                    progressTask = beginTableFillTask(isImportMode ? '外部导入' : '填表', initialMessage, localAbortController);
+                        ? `${buildBatchProgressLabel(progressContext)}: ${batchToastMessage || 'Đang điền bảng, vui lòng chờ...'}`
+                        : (batchToastMessage || 'Đang điền bảng, vui lòng chờ...');
+                    progressTask = beginTableFillTask(isImportMode ? 'Nhập từ bên ngoài' : 'Điền bảng', initialMessage, localAbortController);
                 }
                 if (!executionOptions.planManaged) handleProgressEvent(event, isSilentMode, progressTask);
             }
@@ -239,8 +239,8 @@ export async function proceedWithCardUpdate_ACU(
                 notifyTableUpdate();
             }, 250);
         } else if (!result.success && !result.aborted && !isSilentMode && showFinalErrorToast) {
-            showToastr_ACU('error', `更新失败: ${result.error || '未知错误'}`);
-            updateStatusText('错误：更新失败。', false);
+            showToastr_ACU('error', `Cập nhật thất bại: ${result.error || 'Lỗi không xác định'}`);
+            updateStatusText('Lỗi: cập nhật thất bại.', false);
         }
 
         return result;
@@ -293,7 +293,7 @@ export async function handleManualUpdate_ACU(options: { skipConfirm?: boolean } 
     try {
         if (shouldShowVectorMemoryManualUpdateWarning_ACU()) {
             syncManualUpdateButtonAvailability_ACU();
-            showToastr_ACU('warning', '向量功能启用时不建议手动更新表格；本次将继续执行。', {
+            showToastr_ACU('warning', 'Không nên cập nhật bảng thủ công khi tính năng vector đang bật; lần này vẫn tiếp tục thực hiện.', {
                 acuToastCategory: ACU_TOAST_CATEGORY_ACU.MANUAL_TABLE,
             });
         }
@@ -307,7 +307,7 @@ export async function handleManualUpdate_ACU(options: { skipConfirm?: boolean } 
         // [前置校验] 在弹出确认框之前，先做基本有效性检查
         // 避免用户确认后又因为"没选表格"或"聊天为空"而报错
         if (!targetKeys || targetKeys.length === 0) {
-            showToastr_ACU('warning', '未选择需要更新的表格。');
+            showToastr_ACU('warning', 'Chưa chọn bảng cần cập nhật.');
             return false;
         }
 
@@ -317,25 +317,25 @@ export async function handleManualUpdate_ACU(options: { skipConfirm?: boolean } 
         // 弹出确认框：手动填表会先删除范围内选中表的 checkpoint 与增量，再重新填写
         // 外部 API 调用由调用方负责确认（skipConfirm），不在宿主页面弹出确认遮罩。
         const confirmed = options.skipConfirm === true || await showCustomConfirm_ACU(
-            '手动填表确认',
-            `即将执行手动填表。\n\n当前 full checkpoint：${checkpointFloorsLabel}\n本次重填范围：${manualRefillRangeLabel}\n选中表：${selectedSheetSummary}\n\n` +
-            '高风险操作：系统会先删除本次重填范围内选中表的 checkpoint 与 V2 增量日志，再以清理后的状态作为填表基底重新填写，最后写入新的单表 checkpoint。\n' +
-            '如果被删除的 checkpoint 是这些表唯一的数据基线，此前楼层的表格数据将无法恢复。\n' +
-            '保留边界 checkpoint 会按 AI 回复楼层计数，在达到保留窗口和 20 个 AI 楼层缓冲后自动滚动建立。\n' +
-            '范围外的 checkpoint、范围外聊天记录的表格数据和未选中的表不会被删除。执行失败或终止时会回滚到本次操作前的状态。',
-            { confirmLabel: '确认并继续', cancelLabel: '取消' }
+            'Xác nhận điền bảng thủ công',
+            `Sắp thực hiện điền bảng thủ công.\n\nfull checkpoint hiện tại: ${checkpointFloorsLabel}\nPhạm vi điền lại lần này: ${manualRefillRangeLabel}\nBảng đã chọn: ${selectedSheetSummary}\n\n` +
+            'Thao tác rủi ro cao: hệ thống sẽ xóa checkpoint và nhật ký tăng dần V2 của các bảng đã chọn trong phạm vi điền lại, rồi dùng trạng thái đã dọn làm nền để điền lại, cuối cùng ghi checkpoint đơn bảng mới.\n' +
+            'Nếu checkpoint bị xóa là mốc dữ liệu duy nhất của các bảng này, dữ liệu bảng của các tầng trước đó sẽ không thể khôi phục.\n' +
+            'checkpoint ranh giới giữ lại được tính theo tầng phản hồi AI, sẽ tự động cuộn để tạo sau khi đạt cửa sổ giữ lại và đệm 20 tầng AI.\n' +
+            'checkpoint ngoài phạm vi, dữ liệu bảng của lịch sử trò chuyện ngoài phạm vi và các bảng không được chọn sẽ không bị xóa. Khi thực hiện thất bại hoặc bị dừng sẽ khôi phục về trạng thái trước thao tác này.',
+            { confirmLabel: 'Xác nhận và tiếp tục', cancelLabel: 'Hủy' }
         );
 
         if (!confirmed) {
             logDebug_ACU('[更新流程] 用户取消了手动填表确认框');
-            showToastr_ACU('info', '已取消手动填表。');
+            showToastr_ACU('info', 'Đã hủy điền bảng thủ công.');
             return false;
         }
 
         // 调用 service 层，启用事务式手动重填（兼容沿用 clearBeforeUpdate 参数名）
         _set_wasStoppedByUser_ACU(false);
         notifyTableFillStart();
-        manualProgressTask = beginTableFillTask('手动填表', '手动填表开始。');
+        manualProgressTask = beginTableFillTask('Điền bảng thủ công', 'Bắt đầu điền bảng thủ công.');
 
         const result = await orchestrateManualUpdate_ACU(
             targetKeys,
@@ -362,17 +362,17 @@ export async function handleManualUpdate_ACU(options: { skipConfirm?: boolean } 
 
         // UI：根据返回值显示 toast
         if (result.success) {
-            showToastr_ACU(result.checkpointWarning ? 'warning' : 'success', result.checkpointWarning ? `手动更新完成，但 AI 楼层保留边界 checkpoint 建立失败：${result.checkpointWarning}` : '手动更新完成！');
+            showToastr_ACU(result.checkpointWarning ? 'warning' : 'success', result.checkpointWarning ? `Cập nhật thủ công hoàn tất, nhưng tạo checkpoint ranh giới giữ lại của tầng AI thất bại: ${result.checkpointWarning}` : 'Cập nhật thủ công hoàn tất!');
             updateStatusDisplay();
             notifyTableUpdate();
 
             if (result.autoMergeTriggered && result.autoMergeSuccess) {
-                showToastr_ACU('success', '自动合并纪要完成！');
+                showToastr_ACU('success', 'Tự động gộp kỷ yếu hoàn tất!');
                 notifyTableUpdate();
             }
         } else if (result.error) {
             // 区分 warning 和 error 类型
-            const warningMessages = ['正在进行中', '聊天记录为空', '尚未检测到', '未选择', '未找到可用'];
+            const warningMessages = ['正在进行中', '聊天记录为空', '尚未检测到', '未选择', '未找到可用', 'đang được cập nhật', 'Lịch sử trò chuyện trống', 'Chưa phát hiện phản hồi AI', 'Chưa chọn bảng', 'Không tìm thấy ngữ cảnh khả dụng'];
             const isWarning = warningMessages.some(msg => result.error!.includes(msg));
             showToastr_ACU(isWarning ? 'warning' : 'error', result.error);
         }

@@ -49,15 +49,15 @@ import { $popupInstance_ACU, $statusMessageSpan_ACU, $manualUpdateCardButton_ACU
         $manualUpdateCardButton_ACU
             .prop('disabled', false)
             .addClass(MANUAL_UPDATE_VECTOR_SOFT_DISABLED_CLASS_ACU)
-            .text('交火索引已启用')
-            .attr('title', '交火模式纪要索引启用时不建议手动更新表格；特殊场景下仍可点击执行。');
+            .text('Chỉ mục giao hỏa đã bật')
+            .attr('title', 'Không nên cập nhật bảng thủ công khi chỉ mục kỷ yếu chế độ giao hỏa đang bật; trong trường hợp đặc biệt vẫn có thể bấm để thực hiện.');
         return;
     }
   
     $manualUpdateCardButton_ACU
         .prop('disabled', false)
         .removeClass(MANUAL_UPDATE_VECTOR_SOFT_DISABLED_CLASS_ACU)
-        .text('立即手动更新')
+        .text('Cập nhật thủ công ngay')
         .removeAttr('title');
   }
 
@@ -85,7 +85,7 @@ import { $popupInstance_ACU, $statusMessageSpan_ACU, $manualUpdateCardButton_ACU
     if (!$popupInstance_ACU) return;
     const $titleElement = $popupInstance_ACU.find('h2#updater-main-title-acu');
     if ($titleElement.length)
-        $titleElement.html(`当前聊天：${escapeHtml_ACU(chatIdentifier || '未知')}`);
+        $titleElement.html(`Cuộc trò chuyện hiện tại: ${escapeHtml_ACU(chatIdentifier || 'Không rõ')}`);
   }
 
   // [T175] 检查弹窗是否打开（供 service 层用布尔判断，不暴露 DOM 引用）
@@ -111,7 +111,7 @@ import { $popupInstance_ACU, $statusMessageSpan_ACU, $manualUpdateCardButton_ACU
       if ($temperatureInput_ACU) $temperatureInput_ACU.val(s.apiConfig.temperature);
       if ($customApiModelInput_ACU) $customApiModelInput_ACU.val(s.apiConfig.model || '');
       if ($customApiModelSelect_ACU) {
-          $customApiModelSelect_ACU.empty().append('<option value="">-- 请先加载模型列表 --</option>');
+          $customApiModelSelect_ACU.empty().append('<option value="">-- Hãy tải danh sách mô hình trước --</option>');
           if (s.apiConfig.model) {
               $customApiModelSelect_ACU.append(`<option value="${escapeHtml_ACU(s.apiConfig.model)}">${escapeHtml_ACU(s.apiConfig.model)}</option>`);
           }
@@ -131,8 +131,8 @@ import { $popupInstance_ACU, $statusMessageSpan_ACU, $manualUpdateCardButton_ACU
       if ($skipUpdateFloorsInput_ACU) $skipUpdateFloorsInput_ACU.val(s.skipUpdateFloors || 0);
       if ($retainRecentLayersInput_ACU) $retainRecentLayersInput_ACU.val(s.retainRecentLayers || '');
       if (typeof renderExcludeRuleRows_ACU === 'function') {
-          renderExcludeRuleRows_ACU(`#${SCRIPT_ID_PREFIX_ACU}-table-context-extract-rules`, normalizeExtractRules_ACU(s.tableContextExtractRules, s.tableContextExtractTags || ''), { startPlaceholder: '开始词（例如：<think）', endPlaceholder: '结束词（例如：</think>）' });
-          renderExcludeRuleRows_ACU(`#${SCRIPT_ID_PREFIX_ACU}-table-context-exclude-rules`, normalizeExcludeRules_ACU(s.tableContextExcludeRules, s.tableContextExcludeTags || ''), { startPlaceholder: '开始词（例如：<thinking）', endPlaceholder: '结束词（例如：</thinking>）' });
+          renderExcludeRuleRows_ACU(`#${SCRIPT_ID_PREFIX_ACU}-table-context-extract-rules`, normalizeExtractRules_ACU(s.tableContextExtractRules, s.tableContextExtractTags || ''), { startPlaceholder: 'Từ bắt đầu (ví dụ: <think)', endPlaceholder: 'Từ kết thúc (ví dụ: </think>)' });
+          renderExcludeRuleRows_ACU(`#${SCRIPT_ID_PREFIX_ACU}-table-context-exclude-rules`, normalizeExcludeRules_ACU(s.tableContextExcludeRules, s.tableContextExcludeTags || ''), { startPlaceholder: 'Từ bắt đầu (ví dụ: <thinking)', endPlaceholder: 'Từ kết thúc (ví dụ: </thinking>)' });
       }
       const find = (id: string) => $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-${id}`);
       const setVal = (id: string, v: any) => { const $el = find(id); if ($el.length) $el.val(v); };
@@ -206,10 +206,10 @@ import { $popupInstance_ACU, $statusMessageSpan_ACU, $manualUpdateCardButton_ACU
           $summaryVectorIndexHint.text(summaryVectorIndexEnabled
               ? hasSummaryVectorIndexArchive
                   ? summaryVectorIndexRowCount >= summaryIndexKeywordMinRows
-                      ? `交火模式纪要索引已启用；当前可用索引：${summaryVectorIndexRowCount} 条纪要，${summaryVectorIndexChunkCount} 个概要列 chunks，已达到 ${summaryIndexKeywordMinRows} 条门槛。发送前会生成关键词、召回概要列 chunks、执行可选 Rerank，并按纪要表原顺序覆盖原概要索引条目。`
-                      : `交火模式纪要索引已启用；当前可用索引：${summaryVectorIndexRowCount}/${summaryIndexKeywordMinRows} 条纪要，${summaryVectorIndexChunkCount} 个概要列 chunks。未达到门槛前，发送时不会触发交火召回，填表保存后仍会立即归档并继续累积外置索引。`
-                  : `交火模式纪要索引已启用，但当前聊天尚无外置纪要向量索引；完成一次纪要表填写后会自动归档，也可点击“立即构建交火纪要索引”手动构建。`
-              : '使用前请先配置好 Embedding 模型以及可选 Rerank 模型；开启后会在纪要表填写完成时立即归档外置概要列向量索引，达到门槛后发送前覆盖原概要索引条目。');
+                      ? `Chỉ mục kỷ yếu chế độ giao hỏa đã bật; chỉ mục khả dụng hiện tại: ${summaryVectorIndexRowCount} kỷ yếu, ${summaryVectorIndexChunkCount} chunk cột tóm lược, đã đạt ngưỡng ${summaryIndexKeywordMinRows} mục. Trước khi gửi sẽ tạo từ khóa, truy hồi chunk cột tóm lược, chạy Rerank tùy chọn và ghi đè mục chỉ mục tóm lược gốc theo thứ tự gốc của bảng kỷ yếu.`
+                      : `Chỉ mục kỷ yếu chế độ giao hỏa đã bật; chỉ mục khả dụng hiện tại: ${summaryVectorIndexRowCount}/${summaryIndexKeywordMinRows} kỷ yếu, ${summaryVectorIndexChunkCount} chunk cột tóm lược. Trước khi đạt ngưỡng, khi gửi sẽ không kích hoạt truy hồi giao hỏa, sau khi lưu điền bảng vẫn lưu trữ ngay và tiếp tục tích lũy chỉ mục ngoài.`
+                  : `Chỉ mục kỷ yếu chế độ giao hỏa đã bật, nhưng cuộc trò chuyện hiện tại chưa có chỉ mục vector kỷ yếu ngoài; sau khi điền xong bảng kỷ yếu một lần sẽ tự lưu trữ, cũng có thể bấm "Dựng chỉ mục kỷ yếu giao hỏa ngay" để dựng thủ công.`
+              : 'Trước khi dùng hãy cấu hình mô hình Embedding và mô hình Rerank tùy chọn; sau khi bật, khi điền xong bảng kỷ yếu sẽ lưu trữ ngay chỉ mục vector cột tóm lược ngoài, sau khi đạt ngưỡng sẽ ghi đè mục chỉ mục tóm lược gốc trước khi gửi.');
       }
       if ($useMainApiCheckbox_ACU) { $useMainApiCheckbox_ACU.prop('checked', s.apiConfig.useMainApi); if (typeof updateCustomApiInputsState_ACU === 'function') updateCustomApiInputsState_ACU(); }
       if ($manualTableSelector_ACU && typeof renderManualTableSelector_ACU === 'function') renderManualTableSelector_ACU();

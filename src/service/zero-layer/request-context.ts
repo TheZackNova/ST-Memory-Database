@@ -19,7 +19,7 @@ export function bindZeroLayerPromptContext_ACU(
   context: ChatCompletionPromptContext_ACU,
 ): void {
   const existing = contexts_ACU.get(request);
-  if (existing && existing !== context) throw new Error('同一请求不能绑定不同零层回合。');
+  if (existing && existing !== context) throw new Error('Cùng một yêu cầu không thể gắn với các lượt Tầng 0 khác nhau.');
   contexts_ACU.set(request, context);
 }
 
@@ -44,7 +44,7 @@ export function runZeroLayerTemplatePass_ACU(
       const loaded = await provider.loadFromData(structuredClone(context.allTablesJson));
       context.assertCurrent?.();
       if (loaded.error || !provider.isReady()) {
-        throw new ZeroLayerError_ACU('effects-pending', '正文模板的独立 SQLite 快照未就绪。');
+        throw new ZeroLayerError_ACU('effects-pending', 'Snapshot SQLite độc lập của mẫu nội dung chính chưa sẵn sàng.');
       }
       await process({ provider, mapper: provider.createReadNameMapper_ACU(),
         tableData: provider.getCurrentDataStrict_ACU() });

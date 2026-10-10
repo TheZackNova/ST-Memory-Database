@@ -107,12 +107,12 @@ export async function bindStatusEvents_ACU(): Promise<void> {
           const enabled = jQuery_API_ACU(this).is(':checked');
           const result = setAutoUpdateEnabled_ACU(enabled);
           if (!result.ok) {
-            showToastr_ACU('error', result.message || '保存自动更新开关失败，已回滚。');
+            showToastr_ACU('error', result.message || 'Lưu công tắc tự động cập nhật thất bại, đã khôi phục.');
             jQuery_API_ACU(this).prop('checked', !enabled);
             return;
           }
           logDebug_ACU('数据库自动更新启用状态已保存:', enabled);
-          showToastr_ACU('info', `数据库自动更新已 ${enabled ? '启用' : '禁用'}`);
+          showToastr_ACU('info', `Tự động cập nhật cơ sở dữ liệu đã ${enabled ? 'bật' : 'tắt'}`);
         });
       }
       if ($standardizedTableFillEnabledCheckbox_ACU && $standardizedTableFillEnabledCheckbox_ACU.length) {
@@ -120,7 +120,7 @@ export async function bindStatusEvents_ACU(): Promise<void> {
           settings_ACU.standardizedTableFillEnabled = jQuery_API_ACU(this).is(':checked');
           saveSettingsAndNotify_ACU();
           logDebug_ACU('规范填表功能启用状态已保存:', settings_ACU.standardizedTableFillEnabled);
-          showToastr_ACU('info', `规范填表功能已 ${settings_ACU.standardizedTableFillEnabled ? '开启' : '关闭'}`, {
+          showToastr_ACU('info', `Chức năng điền bảng chuẩn hóa đã ${settings_ACU.standardizedTableFillEnabled ? 'bật' : 'tắt'}`, {
             acuToastCategory: ACU_TOAST_CATEGORY_ACU.MANUAL_TABLE,
           });
         });
@@ -131,7 +131,7 @@ export async function bindStatusEvents_ACU(): Promise<void> {
           saveSettingsAndNotify_ACU();
           logDebug_ACU('静默提示框启用状态已保存:', settings_ACU.toastMuteEnabled);
           // 该提示属于"导入/手动操作类"允许项，避免用户开启后无反馈
-          showToastr_ACU('info', `静默提示框已 ${settings_ACU.toastMuteEnabled ? '开启' : '关闭'}`, {
+          showToastr_ACU('info', `Tắt thông báo đã ${settings_ACU.toastMuteEnabled ? 'bật' : 'tắt'}`, {
             acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT,
           });
         });
@@ -144,7 +144,7 @@ export async function bindStatusEvents_ACU(): Promise<void> {
           settings_ACU.promptTemplateSettings.enabled = jQuery_API_ACU(this).is(':checked');
           saveSettingsAndNotify_ACU();
           logDebug_ACU('条件模板功能启用状态已保存:', settings_ACU.promptTemplateSettings.enabled);
-          showToastr_ACU('info', `条件模板功能已 ${settings_ACU.promptTemplateSettings.enabled ? '开启' : '关闭'}`, {
+          showToastr_ACU('info', `Chức năng mẫu có điều kiện đã ${settings_ACU.promptTemplateSettings.enabled ? 'bật' : 'tắt'}`, {
             acuToastCategory: ACU_TOAST_CATEGORY_ACU.MANUAL_TABLE,
           });
         });
@@ -154,7 +154,7 @@ export async function bindStatusEvents_ACU(): Promise<void> {
           settings_ACU.tableEditLastPairOnly = jQuery_API_ACU(this).is(':checked');
           saveSettingsAndNotify_ACU();
           logDebug_ACU('仅识别最后一对 tableEdit 启用状态已保存:', settings_ACU.tableEditLastPairOnly);
-          showToastr_ACU('info', `tableEdit 解析将${settings_ACU.tableEditLastPairOnly ? '仅使用最后一对标签' : '按全部标签优先匹配'}`, {
+          showToastr_ACU('info', `Phân tích tableEdit sẽ ${settings_ACU.tableEditLastPairOnly ? 'chỉ dùng cặp thẻ cuối cùng' : 'ưu tiên khớp theo tất cả thẻ'}`, {
             acuToastCategory: ACU_TOAST_CATEGORY_ACU.MANUAL_TABLE,
           });
         });
@@ -185,15 +185,15 @@ export async function bindStatusEvents_ACU(): Promise<void> {
               const previousMode = getCurrentStorageMode();
               if (selectedMode === previousMode) return;
 
-              const targetModeLabel = selectedMode === 'sqlite' ? 'SQLite' : '原生';
-              showToastr_ACU('info', `正在切换到 ${targetModeLabel} 模式...`);
+              const targetModeLabel = selectedMode === 'sqlite' ? 'SQLite' : 'gốc';
+              showToastr_ACU('info', `Đang chuyển sang chế độ ${targetModeLabel}...`);
 
               try {
                   // [V1 收敛] 先通过 service 原子写 settings（含提示词重置）；
                   // 保存失败即返回，不触发 provider 切换。与 V2 useDashboardPage.setStorageMode 语义一致。
                   const writeResult = setStorageMode_ACU(selectedMode);
                   if (!writeResult.ok) {
-                      showToastr_ACU('error', writeResult.message || '存储模式保存失败。');
+                      showToastr_ACU('error', writeResult.message || 'Lưu chế độ lưu trữ thất bại.');
                       $storageModeRadios.filter(`[value="${previousMode}"]`).prop('checked', true);
                       return;
                   }
@@ -201,7 +201,7 @@ export async function bindStatusEvents_ACU(): Promise<void> {
                   // 执行模式切换（包含数据重载和 fallback）
                   await switchStorageMode(selectedMode);
 
-                  showToastr_ACU('success', `已切换到 ${targetModeLabel} 模式，数据已重新加载。`);
+                  showToastr_ACU('success', `Đã chuyển sang chế độ ${targetModeLabel}, dữ liệu đã được tải lại.`);
                   logDebug_ACU(`存储模式已切换: ${previousMode} → ${selectedMode}`);
               } catch (e: any) {
                   // 切换失败：回滚 settings 到切换前的模式，避免 storageMode 与运行时 provider 分叉。
@@ -213,7 +213,7 @@ export async function bindStatusEvents_ACU(): Promise<void> {
                   $storageModeRadios.filter(`[value="${fallbackMode}"]`).prop('checked', true);
 
                   logError_ACU(`存储模式切换失败: ${e?.message}`);
-                  showToastr_ACU('error', `模式切换失败: ${e?.message || '未知错误'}。已回退到${fallbackMode === 'sqlite' ? 'SQLite' : '原生'}模式。`);
+                  showToastr_ACU('error', `Chuyển chế độ thất bại: ${e?.message || 'Lỗi không xác định'}. Đã quay về chế độ ${fallbackMode === 'sqlite' ? 'SQLite' : 'gốc'}.`);
               }
           });
       }

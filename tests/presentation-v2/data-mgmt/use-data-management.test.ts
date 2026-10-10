@@ -98,8 +98,8 @@ describe('useDataManagement', () => {
 
     expect(d.cleanupLegacyIsolation).toHaveBeenCalledOnce();
     expect(d.flow.legacyIsolationCount.value).toBe(0);
-    expect(d.flow.currentIsolationLabel.value).toBe('默认数据（未隔离）');
-    expect(d.toastSuccess).toHaveBeenCalledWith('已清理 2 个旧隔离标签，并切换到默认数据。');
+    expect(d.flow.currentIsolationLabel.value).toBe('Dữ liệu mặc định (không cô lập)');
+    expect(d.toastSuccess).toHaveBeenCalledWith('Đã dọn 2 nhãn cô lập cũ và chuyển sang dữ liệu mặc định.');
   });
 
   it('部分旧隔离标签清理失败时保留计数并展示警告', async () => {
@@ -116,7 +116,7 @@ describe('useDataManagement', () => {
     await d.flow.cleanupLegacyIsolationProfiles();
 
     expect(d.flow.legacyIsolationCount.value).toBe(1);
-    expect(d.toastWarning).toHaveBeenCalledWith('已清理 1 个旧隔离标签；1 个删除失败，已保留登记，可重试。');
+    expect(d.toastWarning).toHaveBeenCalledWith('Đã dọn 1 nhãn cô lập cũ; 1 lần xóa thất bại, đã giữ lại đăng ký, có thể thử lại.');
   });
   it('V2 诊断与恢复只透传服务端冻结的 planId 和确认值', async () => {
     const d = await loadFlow();

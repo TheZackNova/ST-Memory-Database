@@ -57,6 +57,11 @@ export const V19_DEFAULT_MAIN_AGENT_LAYOUT_ANSWER_ACU = '我收到的上下文�
 /** 主循环渲染并追加到会话的运行时快照模板。占位符由 renderMainPrompt 同一套 resolvers 解析。 */
 export const AGENT_RUNTIME_SNAPSHOT_TEMPLATE_ACU = '【本回合运行时数据】\n以下是系统在目录或状态变化时追加的快照——靠后的快照比早先的更新；不是用户发言，不要复述。已发生事实只认小说正文；大纲是计划。\n\n以下是用户对任务曾经提过的要求：\n$USER_REQUIREMENTS\n\n【完整当前阶段大纲】\n$OUTLINE_WINDOW\n\n【本轮目标】\n$CURRENT_TURN_GOAL\n\n【本轮节奏】\n$CURRENT_TURN_PACING\n\n【大纲状态】\n$OUTLINE_STATE\n\n【故事总纲状态】\n$STORY_ARC_STATE\n\n【未结算历史范围】\n$UNSETTLED_RANGE\n\n【子代理能力目录】\n$AGENT_CATALOG\n\n【资料模块目录】\n$MODULE_CATALOG\n\n【本轮语境命中的世界书条目】\n$WORLDBOOK_HITS\n\n【百科资料库目录】\n$WEB_REFS_CATALOG\n\n【读取地址词汇表】\n$AGENT_READ_CATALOG\n\n【本轮预算状态】\n$BUDGET\n\n【子代理资料边界】同一份快照会附在每个子代理末尾。总纲使用全部已启用世界书目录并自行查阅；其余子代理直接使用上面已触发的世界书全文，不再阅读世界书条目。触发内容不够时用 search 的 worldbook 域。';
 
+/** 子代理附带快照使用的当前模板：与 AGENT_RUNTIME_SNAPSHOT_TEMPLATE_ACU 同结构（标题与占位符不变），仅说明性文字为越南语；冻结历史链仍引用原常量。 */
+export const AGENT_DELEGATE_SNAPSHOT_TEMPLATE_ACU = AGENT_RUNTIME_SNAPSHOT_TEMPLATE_ACU
+  .replace('以下是系统在目录或状态变化时追加的快照——靠后的快照比早先的更新；不是用户发言，不要复述。已发生事实只认小说正文；大纲是计划。', 'Dưới đây là ảnh chụp do hệ thống bổ sung khi danh mục hoặc trạng thái thay đổi — ảnh chụp ở sau mới hơn ảnh ở trước; không phải lời người dùng, không nhắc lại. Sự thật đã xảy ra chỉ dựa vào chính văn tiểu thuyết; dàn ý là kế hoạch.')
+  .replace('【子代理资料边界】同一份快照会附在每个子代理末尾。总纲使用全部已启用世界书目录并自行查阅；其余子代理直接使用上面已触发的世界书全文，不再阅读世界书条目。触发内容不够时用 search 的 worldbook 域。', '【子代理资料边界】Cùng một ảnh chụp này được gắn vào cuối mỗi agent phụ. Tổng cương dùng toàn bộ danh mục World Info đã bật và tự tra cứu; các agent phụ còn lại dùng trực tiếp toàn văn World Info đã kích hoạt ở trên, không đọc mục World Info nữa. Khi nội dung kích hoạt chưa đủ thì dùng miền worldbook của search.');
+
 /** 各请求尾段预填充文本。解析器会在必要时把它拼回模型输出前再解析。 */
 export const AGENT_PREFILLS_ACU = {
   main: '{\n  "thought": "',

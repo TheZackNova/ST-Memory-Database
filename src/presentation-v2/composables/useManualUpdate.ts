@@ -35,8 +35,8 @@ import { useToastStore } from '../stores/toast-store';
 type MessageKind = 'info' | 'success' | 'warning' | 'error';
 
 /** 气泡与桌宠里显示的功能名。 */
-const MANUAL_UPDATE_TASK_FEATURE = '手动填表';
-const CATCH_UP_TASK_FEATURE = '手动追平';
+const MANUAL_UPDATE_TASK_FEATURE = 'Điền bảng thủ công';
+const CATCH_UP_TASK_FEATURE = 'Bắt kịp thủ công';
 
 /** 宿主世界书 API 挂起时确认弹窗不能被无限期拖住，超过该时长即降级为提示文案。 */
 const INJECTION_TARGET_RESOLVE_TIMEOUT_MS = 1500;
@@ -58,10 +58,10 @@ async function describeInjectionTargetForConfirm(): Promise<string> {
         timeoutHandle = setTimeout(() => resolve(RESOLVE_TIMEOUT), INJECTION_TARGET_RESOLVE_TIMEOUT_MS);
       }),
     ]);
-    if (primary === RESOLVE_TIMEOUT) return '角色卡绑定世界书（主世界书解析超时）';
-    return primary ? `角色卡绑定世界书 · ${primary}` : '角色卡绑定世界书（未解析到主世界书）';
+    if (primary === RESOLVE_TIMEOUT) return 'Thẻ nhân vật gắn sổ thế giới (hết thời gian phân tích sổ thế giới chính)';
+    return primary ? `Thẻ nhân vật gắn sổ thế giới · ${primary}` : 'Thẻ nhân vật gắn sổ thế giới (chưa phân tích được sổ thế giới chính)';
   } catch {
-    return '角色卡绑定世界书（未解析到主世界书）';
+    return 'Thẻ nhân vật gắn sổ thế giới (chưa phân tích được sổ thế giới chính)';
   } finally {
     if (timeoutHandle !== null) clearTimeout(timeoutHandle);
   }
@@ -193,34 +193,34 @@ function resolveManualRefillRangeSummary_ACU(manualDepth: number): ManualRefillR
 
 function formatAiFloorRange_ACU(startAiFloor: number, endAiFloor: number): string {
   return startAiFloor === endAiFloor
-    ? `AI 第 ${startAiFloor} 层`
-    : `AI 第 ${startAiFloor}~${endAiFloor} 层`;
+    ? `Tầng AI ${startAiFloor}`
+    : `Tầng AI ${startAiFloor}~${endAiFloor}`;
 }
 
 function progressLabel(event: CardUpdateProgressEvent): string {
   const prefix = event.currentBatch && event.totalBatches
-    ? `批次 ${event.currentBatch}/${event.totalBatches} · `
+    ? `Đợt ${event.currentBatch}/${event.totalBatches} · `
     : '';
   if (event.message && event.phase !== 'retry' && event.phase !== 'error') {
     return `${prefix}${normalizeManualProgressMessage(event.message)}`;
   }
   switch (event.phase) {
-    case 'preparing': return `${prefix}准备上下文`;
-    case 'calling_ai': return `${prefix}调用 AI${event.attempt ? `（第 ${event.attempt}/${event.maxRetries || '?'} 次尝试）` : ''}`;
-    case 'parsing': return `${prefix}解析填表结果`;
-    case 'saving': return `${prefix}保存表格数据`;
-    case 'retry': return `${prefix}重试中${event.message ? `:${event.message}` : ''}`;
-    case 'complete': return `${prefix}完成`;
-    case 'chunk_done': return `${prefix}分块完成`;
-    case 'error': return `${prefix}出错${event.message ? `:${event.message}` : ''}`;
-    default: return prefix || '处理中';
+    case 'preparing': return `${prefix} Chuẩn bị ngữ cảnh`;
+    case 'calling_ai': return `${prefix}Gọi AI${event.attempt ? ` (lần thử ${event.attempt}/${event.maxRetries || '?'})` : ''}`;
+    case 'parsing': return `${prefix} Phân tích kết quả điền bảng`;
+    case 'saving': return `${prefix} Lưu dữ liệu bảng`;
+    case 'retry': return `${prefix} Đang thử lại ${event.message ? `:${event.message}` : ''}`;
+    case 'complete': return `${prefix} Hoàn tất`;
+    case 'chunk_done': return `${prefix} Hoàn tất phân khối`;
+    case 'error': return `${prefix} Gặp lỗi ${event.message ? `:${event.message}` : ''}`;
+    default: return prefix || 'Đang xử lý';
   }
 }
 
 function normalizeManualProgressMessage(message: string): string {
   return message
-    .split(' AI 响应').join('手动填表结果')
-    .split('AI 响应').join('手动填表结果');
+    .split(' AI 响应').join('kết quả điền bảng thủ công')
+    .split('AI 响应').join('kết quả điền bảng thủ công');
 }
 
 export function useManualUpdate(): ManualUpdateState {
@@ -250,7 +250,7 @@ export function useManualUpdate(): ManualUpdateState {
       action: abortDisabled
         ? undefined
         : {
-            label: '终止',
+            label: 'Dừng',
             variant: 'danger' as const,
             dismissOnClick: false,
             onClick: onAbort,
@@ -283,14 +283,14 @@ export function useManualUpdate(): ManualUpdateState {
     abortAllActiveRequests_ACU();
     _set_isAutoUpdatingCard_ACU(false);
     if (progressToastId) {
-      toast.update(progressToastId, 'warning', '手动填表已终止，正在停止当前任务与后续批次...', {
+      toast.update(progressToastId, 'warning', 'Đã dừng điền bảng thủ công, đang dừng tác vụ hiện tại và các đợt tiếp theo...', {
         durationMs: 0,
         muteable: false,
         dismissible: false,
         feature: MANUAL_UPDATE_TASK_FEATURE,
       });
     } else {
-      toast.warning('手动填表已终止，正在停止当前任务与后续批次...', {
+      toast.warning('Đã dừng điền bảng thủ công, đang dừng tác vụ hiện tại và các đợt tiếp theo...', {
         durationMs: 0,
         muteable: false,
         dismissible: false,
@@ -302,7 +302,7 @@ export function useManualUpdate(): ManualUpdateState {
   function requestCatchUpAbort(): void {
     if (!catchUpAbortController || catchUpAbortController.signal.aborted) return;
     catchUpAbortController.abort();
-    const text = '手动追平已终止，正在等待当前安全边界收敛...';
+    const text = 'Đã dừng bắt kịp thủ công, đang chờ hội tụ về ranh giới an toàn hiện tại...';
     const options = { durationMs: 0, muteable: false, dismissible: false, feature: CATCH_UP_TASK_FEATURE };
     if (progressToastId) {
       toast.update(progressToastId, 'warning', text, options);
@@ -333,11 +333,11 @@ export function useManualUpdate(): ManualUpdateState {
 
   const selectedSheetSummary = computed<string>(() => {
     const keys = selectedManualTableKeys.value;
-    if (!keys.length) return '未选择表格';
+    if (!keys.length) return 'Chưa chọn bảng';
     const names = sheetNames.value;
     return keys
-      .map(key => `${names[key] || key}（${key}）`)
-      .join('、');
+      .map(key => `${names[key] || key} (${key})`)
+      .join(', ');
   });
 
   const checkpointFloors = computed(() => {
@@ -352,17 +352,17 @@ export function useManualUpdate(): ManualUpdateState {
   function formatCheckpointReasonLabel(reason?: string): string {
     switch (reason) {
       case 'init':
-        return '初始基线';
+        return 'Mốc cơ sở ban đầu';
       case 'migration':
-        return '迁移基线';
+        return 'Mốc cơ sở di trú';
       case 'compaction':
-        return '保留边界基线';
+        return 'Mốc cơ sở ranh giới lưu giữ';
       case 'manual':
-        return '历史手动基线';
+        return 'Mốc cơ sở thủ công lịch sử';
       case 'periodic':
-        return '历史周期基线';
+        return 'Mốc cơ sở chu kỳ lịch sử';
       default:
-        return reason ? `旧基线:${reason}` : '旧基线';
+        return reason ? `Mốc cơ sở cũ: ${reason}` : 'Mốc cơ sở cũ';
     }
   }
 
@@ -370,9 +370,9 @@ export function useManualUpdate(): ManualUpdateState {
     const checkpoints = checkpointFloors.value;
     return checkpoints.length > 0
       ? checkpoints
-        .map(item => `AI 第 ${item.aiFloor} 层（${formatCheckpointReasonLabel(item.reason)}）`)
-        .join('、')
-      : '当前隔离标签暂无 full checkpoint';
+        .map(item => `Tầng AI ${item.aiFloor} (${formatCheckpointReasonLabel(item.reason)})`)
+        .join(', ')
+      : 'Nhãn cô lập hiện tại chưa có full checkpoint';
   });
 
   const manualRefillRange = computed<ManualRefillRangeSummary | null>(() => {
@@ -388,7 +388,7 @@ export function useManualUpdate(): ManualUpdateState {
     const range = manualRefillRange.value;
     return range
       ? formatAiFloorRange_ACU(range.startAiFloor, range.endAiFloor)
-      : '暂无可重填 AI 楼层';
+      : 'Chưa có tầng AI nào có thể điền lại';
   });
 
   const checkpointRiskMessage = computed<string>(() => {
@@ -398,8 +398,8 @@ export function useManualUpdate(): ManualUpdateState {
     const checkpointIndexSet = new Set(range.indices);
     const coveredCheckpoints = checkpoints.filter(item => checkpointIndexSet.has(item.messageIndex));
     if (coveredCheckpoints.length !== checkpoints.length) return '';
-    const coveredFloors = coveredCheckpoints.map(item => `AI 第 ${item.aiFloor} 层`).join('、');
-    return `危险：当前聊天的所有 full checkpoint 都在本次重填范围内（${coveredFloors}）。系统首次执行时只会做边界检查；如果确认缺少重填起点前可回放 checkpoint，会在下一步要求你单独确认是否替换本次范围内选中表的基底。`;
+    const coveredFloors = coveredCheckpoints.map(item => `Tầng AI ${item.aiFloor}`).join(', ');
+    return `Nguy hiểm: toàn bộ full checkpoint của cuộc trò chuyện hiện tại đều nằm trong phạm vi điền lại lần này (${coveredFloors}). Lần đầu chạy, hệ thống chỉ kiểm tra ranh giới; nếu xác nhận thiếu checkpoint có thể phát lại trước điểm bắt đầu điền lại, bước tiếp theo sẽ yêu cầu bạn xác nhận riêng việc có thay thế nền của các bảng đã chọn trong phạm vi lần này hay không.`;
   });
 
   /** 本次重填范围是否会覆盖（删除并重建）任一 full checkpoint；不覆盖时静默执行。 */
@@ -459,7 +459,7 @@ export function useManualUpdate(): ManualUpdateState {
     if (manualUpdateBusy.value || catchUpBusy.value) return;
     // 空选择优先于 runtime 状态判断：保持原有提示，避免误报“运行时未就绪”。
     if (!selectedManualTableKeys.value.length) {
-      toast.warning('未选择需要手动填表的表格。');
+      toast.warning('Chưa chọn bảng cần điền bảng thủ công.');
       return;
     }
     // 执行边界校验（确认前）：selected keys 必须仍是当前 runtime 真实表。
@@ -471,7 +471,7 @@ export function useManualUpdate(): ManualUpdateState {
     const runtimeKeys = new Set(snapshotRuntimeKeys);
     const validTargetKeys = requestedTargetKeys.filter((key) => runtimeKeys.has(key));
     if (!snapshotRuntimeKeys.length || validTargetKeys.length !== requestedTargetKeys.length) {
-      toast.warning('当前表格运行时未就绪，无法执行手动填表。');
+      toast.warning('Runtime bảng hiện chưa sẵn sàng, không thể điền bảng thủ công.');
       return;
     }
 
@@ -480,11 +480,11 @@ export function useManualUpdate(): ManualUpdateState {
       if (refillRangeCoversCheckpoint.value) {
       const injectionTargetLabel = await describeInjectionTargetForConfirm();
       const confirmed = await dialogStore.confirm({
-        title: '执行手动填表',
-        message: `即将执行手动填表。\n\n当前 full checkpoint：${checkpointFloorsLabel.value}\n本次重填范围：${manualRefillRangeLabel.value}\n选中表：${selectedSheetSummary.value}\n世界书注入目标：${injectionTargetLabel}（填表结果会写入该世界书的 TavernDB 条目）\n\n高风险操作：系统会先删除本次重填范围内选中表的 checkpoint 与 V2 增量日志，再以清理后的状态作为填表基底重新填写，最后写入新的单表 checkpoint。\n如果被删除的 checkpoint 是这些表唯一的数据基线，此前楼层的表格数据将无法恢复。\n\n范围外的 checkpoint、范围外聊天记录的表格数据和未选中的表不会被删除。若在首批结果落盘前失败或中止，会自动恢复清理前的表格数据。一旦已有批次成功提交，失败不会回滚清理：已提交批次会保留，运行时会按聊天记录中的已提交结果重新对齐。`,
+        title: 'Thực hiện điền bảng thủ công',
+        message: `Sắp thực hiện điền bảng thủ công.\n\nfull checkpoint hiện tại: ${checkpointFloorsLabel.value}\nPhạm vi điền lại lần này: ${manualRefillRangeLabel.value}\nBảng đã chọn: ${selectedSheetSummary.value}\nĐích chèn sổ thế giới: ${injectionTargetLabel} (kết quả điền bảng sẽ được ghi vào mục TavernDB của sổ thế giới đó)\n\nThao tác rủi ro cao: hệ thống sẽ xóa trước checkpoint và nhật ký tăng thêm V2 của các bảng đã chọn trong phạm vi điền lại lần này, rồi lấy trạng thái sau khi dọn làm nền để điền lại, cuối cùng ghi checkpoint bảng đơn mới.\nNếu checkpoint bị xóa là mốc dữ liệu duy nhất của các bảng này, dữ liệu bảng ở các tầng trước đó sẽ không thể khôi phục.\n\ncheckpoint ngoài phạm vi, dữ liệu bảng của lịch sử trò chuyện ngoài phạm vi và các bảng không được chọn sẽ không bị xóa. Nếu thất bại hoặc bị dừng trước khi kết quả của đợt đầu được ghi xuống, dữ liệu bảng trước khi dọn sẽ được tự động khôi phục. Một khi đã có đợt được cam kết thành công, thất bại sẽ không hoàn tác việc dọn: các đợt đã cam kết sẽ được giữ lại, runtime sẽ căn chỉnh lại theo kết quả đã cam kết trong lịch sử trò chuyện.`,
         dangerMessage: checkpointRiskMessage.value || undefined,
-        confirmLabel: '确认并继续',
-        cancelLabel: '取消',
+        confirmLabel: 'Xác nhận và tiếp tục',
+        cancelLabel: 'Hủy',
         confirmVariant: 'danger',
       });
       if (!confirmed) return;
@@ -495,7 +495,7 @@ export function useManualUpdate(): ManualUpdateState {
       // 若当前 runtime 表集合与确认前快照不一致，或目标已失效，必须 fail-closed 阻断，
       // 不得静默缩减/替换执行目标后继续破坏性重填。
       if (!runtimeTargetsStillMatch(snapshotRuntimeKeys, requestedTargetKeys)) {
-        toast.warning('表格运行时在确认期间发生变化，已取消本次手动填表，请确认后重试。');
+        toast.warning('Runtime bảng đã thay đổi trong lúc xác nhận, đã hủy lần điền bảng thủ công này, vui lòng xác nhận rồi thử lại.');
         return;
       }
       const targetManualTableKeys = requestedTargetKeys.slice();
@@ -503,9 +503,9 @@ export function useManualUpdate(): ManualUpdateState {
       progressToastId = null;
       abortRequested = false;
       _set_wasStoppedByUser_ACU(false);
-      notifyProgress('手动填表开始。');
+      notifyProgress('Bắt đầu điền bảng thủ công.');
       const extra = manualExtraHint.value.trim();
-      if (extra) _set_manualExtraHint_ACU(`以下为用户的额外填表要求,请严格遵守:\n${extra}`);
+      if (extra) _set_manualExtraHint_ACU(`Sau đây là yêu cầu điền bảng bổ sung của người dùng, hãy tuân thủ nghiêm ngặt:\n${extra}`);
       const handleProgress = (event: CardUpdateProgressEvent) => {
         notifyProgress(progressLabel(event));
         if (event.phase === 'complete') {
@@ -549,17 +549,17 @@ export function useManualUpdate(): ManualUpdateState {
         },
       );
       finishToast(
-        result.success ? (result.checkpointWarning ? 'warning' : 'success') : (abortRequested || result.error?.includes('终止') ? 'warning' : 'error'),
+        result.success ? (result.checkpointWarning ? 'warning' : 'success') : (abortRequested || result.error?.includes('终止') || result.error?.includes('bị dừng') ? 'warning' : 'error'),
         result.success
           ? `${result.autoMergeTriggered
-              ? `手动填表完成;自动合并总结${result.autoMergeSuccess ? '已完成' : '未完成'}。`
-              : '手动填表完成。'}${result.checkpointWarning
-                ? ` 但 AI 楼层保留边界 checkpoint 建立失败：${result.checkpointWarning}`
+              ? `Điền bảng thủ công hoàn tất; tự động gộp tóm tắt ${result.autoMergeSuccess ? 'đã hoàn tất' : 'chưa hoàn tất'}.`
+              : 'Điền bảng thủ công hoàn tất.'}${result.checkpointWarning
+                ? ` Nhưng việc tạo checkpoint ranh giới lưu giữ của tầng AI thất bại: ${result.checkpointWarning}`
                 : ''}`
-          : (abortRequested ? '手动填表任务已由用户终止。' : (result.error || '手动填表失败。')),
+          : (abortRequested ? 'Tác vụ điền bảng thủ công đã bị người dùng dừng.' : (result.error || 'Điền bảng thủ công thất bại.')),
       );
     } catch (error: any) {
-      finishToast('error', error?.message || '手动填表执行异常。');
+      finishToast('error', error?.message || 'Điền bảng thủ công thực thi bất thường.');
     } finally {
       manualUpdateBusy.value = false;
       refresh();
@@ -571,7 +571,7 @@ export function useManualUpdate(): ManualUpdateState {
     catchUpBusy.value = true;
     try {
       if (progressToastId) {
-        toast.update(progressToastId, 'info', '正在仅重试世界书同步，不会再次调用 AI...', {
+        toast.update(progressToastId, 'info', 'Đang chỉ thử lại đồng bộ sổ thế giới, sẽ không gọi lại AI...', {
           durationMs: 0,
           muteable: false,
           dismissible: false,
@@ -583,16 +583,16 @@ export function useManualUpdate(): ManualUpdateState {
         showCatchUpSyncPending();
         return;
       }
-      finishToast('success', '世界书同步已完成；没有再次调用 AI。');
+      finishToast('success', 'Đồng bộ sổ thế giới đã hoàn tất; không gọi lại AI.');
     } catch (error: any) {
-      showCatchUpSyncPending(error?.message || '世界书同步仍未完成。');
+      showCatchUpSyncPending(error?.message || 'Đồng bộ sổ thế giới vẫn chưa hoàn tất.');
     } finally {
       catchUpBusy.value = false;
     }
   }
 
   function showCatchUpSyncPending(detail?: string): void {
-    const text = `追平数据已保存，但世界书同步待重试。${detail ? ` ${detail}` : ''}`;
+    const text = `Dữ liệu bắt kịp đã được lưu nhưng đồng bộ sổ thế giới đang chờ thử lại. ${detail ? ` ${detail}` : ''}`;
     const options = {
       durationMs: 0,
       muteable: false,
@@ -601,7 +601,7 @@ export function useManualUpdate(): ManualUpdateState {
       // 待用户重试的常驻提示，不代表正在干活。
       busy: false,
       action: {
-        label: '仅同步重试',
+        label: 'Chỉ thử lại đồng bộ',
         dismissOnClick: false,
         onClick: retryCatchUpSyncOnly,
       },
@@ -614,7 +614,7 @@ export function useManualUpdate(): ManualUpdateState {
     if (manualUpdateBusy.value || catchUpBusy.value) return;
     // 空选择优先于 runtime 状态判断：保持原有提示，避免误报“运行时未就绪”。
     if (!selectedManualTableKeys.value.length) {
-      toast.warning('未选择需要追平的表格。');
+      toast.warning('Chưa chọn bảng cần bắt kịp.');
       return;
     }
     // 执行边界校验（确认前）：追平同样绝不允许把模板表当作执行目标。
@@ -624,7 +624,7 @@ export function useManualUpdate(): ManualUpdateState {
     const runtimeKeys = new Set(snapshotRuntimeKeys);
     const validTargetKeys = requestedTargetKeys.filter((key) => runtimeKeys.has(key));
     if (!snapshotRuntimeKeys.length || validTargetKeys.length !== requestedTargetKeys.length) {
-      toast.warning('当前表格运行时未就绪，无法执行手动追平。');
+      toast.warning('Runtime bảng hiện chưa sẵn sàng, không thể bắt kịp thủ công.');
       return;
     }
 
@@ -632,12 +632,12 @@ export function useManualUpdate(): ManualUpdateState {
     try {
       const planningResult = await prepareManualCatchUpPlan_ACU(requestedTargetKeys);
       if (!planningResult.success || !planningResult.plan) {
-        finishToast('error', planningResult.error || '无法生成手动追平计划。');
+        finishToast('error', planningResult.error || 'Không thể tạo kế hoạch bắt kịp thủ công.');
         return;
       }
       const plan = planningResult.plan;
       if (!plan.waves.length) {
-        finishToast('info', '所选表已追平，无需调用 AI 或写入数据。');
+        finishToast('info', 'Các bảng đã chọn đã được bắt kịp, không cần gọi AI hoặc ghi dữ liệu.');
         return;
       }
       const totalBuckets = plan.waves.reduce((count, wave) => count + wave.groups.reduce(
@@ -645,13 +645,13 @@ export function useManualUpdate(): ManualUpdateState {
         0,
       ), 0);
       const waveSummary = plan.waves.map((wave, index) =>
-        `Wave ${index + 1}：${formatAiFloorRange_ACU(wave.startAiFloor, wave.endAiFloor)}；${wave.sheetKeys.map(key => sheetNames.value[key] || key).join('、')}`
+        `Wave ${index + 1}: ${formatAiFloorRange_ACU(wave.startAiFloor, wave.endAiFloor)}; ${wave.sheetKeys.map(key => sheetNames.value[key] || key).join(', ')}`
       ).join('\n');
       const confirmed = await dialogStore.confirm({
-        title: '追平所选表未填楼层',
-        message: `锁定目标：AI 第 ${plan.targetAiFloor} 层\n预计 ${plan.waves.length} 个 wave、${totalBuckets} 个 bucket。\n跳过最新楼层：${normalizeNonNegativeInteger(settings_ACU.skipUpdateFloors, 0)} 层。\n\n${waveSummary}\n\n本功能只补每张表已提交连续前沿之后的后缀缺口，不扫描或修复历史前沿之前的内部空洞。执行时会重新读取已提交事实并重新规划，避免重复处理确认期间已完成的 bucket。\n\n执行前会基于当前已提交事实重新预检存储锚点：若目标楼层早于正式 checkpoint，将自动建立临时锚点并在原边界原子汇合（已提交成果不会丢失，也不会留下第二正式根）；若预检无法证明安全，将在调用 AI 前阻止。`,
-        confirmLabel: '确认追平',
-        cancelLabel: '取消',
+        title: 'Bắt kịp các tầng chưa điền của bảng đã chọn',
+        message: `Mục tiêu khóa: tầng AI ${plan.targetAiFloor} \nDự kiến ${plan.waves.length} wave, ${totalBuckets} bucket.\nBỏ qua tầng mới nhất: ${normalizeNonNegativeInteger(settings_ACU.skipUpdateFloors, 0)} tầng.\n\n${waveSummary}\n\nChức năng này chỉ bổ sung phần thiếu hậu tố sau tiền tuyến liên tục đã cam kết của mỗi bảng, không quét hay sửa các khoảng trống nội bộ trước tiền tuyến lịch sử. Khi thực thi sẽ đọc lại dữ kiện đã cam kết và lập kế hoạch lại, tránh xử lý lặp các bucket đã hoàn tất trong lúc chờ xác nhận.\n\nTrước khi thực thi sẽ dựa trên dữ kiện đã cam kết hiện tại để kiểm tra trước mốc neo lưu trữ: nếu tầng mục tiêu sớm hơn checkpoint chính thức, sẽ tự động tạo mốc neo tạm và hội tụ nguyên tử tại ranh giới gốc (thành quả đã cam kết không bị mất, cũng không để lại gốc chính thức thứ hai); nếu kiểm tra trước không chứng minh được an toàn, sẽ chặn trước khi gọi AI.`,
+        confirmLabel: 'Xác nhận bắt kịp',
+        cancelLabel: 'Hủy',
       });
       if (!confirmed) return;
 
@@ -659,13 +659,13 @@ export function useManualUpdate(): ManualUpdateState {
       // 追平计划基于确认前快照生成，若当前 runtime 表集合与快照不一致，
       // 必须重新规划并要求用户重新确认，避免“确认的计划”与“执行的目标”不一致。
       if (!runtimeTargetsStillMatch(snapshotRuntimeKeys, requestedTargetKeys)) {
-        finishToast('warning', '表格运行时在确认期间发生变化，已取消本次追平，请重新确认目标。');
+        finishToast('warning', 'Runtime bảng đã thay đổi trong lúc xác nhận, đã hủy lần bắt kịp này, vui lòng xác nhận lại mục tiêu.');
         return;
       }
       progressToastId = null;
       abortRequested = false;
       catchUpAbortController = new AbortController();
-      notifyProgress('手动追平开始。', requestCatchUpAbort);
+      notifyProgress('Bắt đầu bắt kịp thủ công.', requestCatchUpAbort);
       const result = await orchestrateManualCatchUp_ACU(
         requestedTargetKeys,
         refreshMergedDataAndNotify_ACU,
@@ -683,22 +683,22 @@ export function useManualUpdate(): ManualUpdateState {
       if (result.outcome === 'sync_pending') {
         showCatchUpSyncPending();
       } else if (result.outcome === 'no_work') {
-        finishToast('info', '所选表已追平，无需调用 AI 或写入数据。');
+        finishToast('info', 'Các bảng đã chọn đã được bắt kịp, không cần gọi AI hoặc ghi dữ liệu.');
       } else if (result.outcome === 'progress_metadata_failed') {
-        finishToast('warning', `手动追平数据已提交，但完成状态记录失败：${result.error || '下次追平会重新记录状态。'}`);
+        finishToast('warning', `Dữ liệu bắt kịp thủ công đã được cam kết nhưng ghi nhận trạng thái hoàn tất thất bại: ${result.error || 'Lần bắt kịp sau sẽ ghi nhận lại trạng thái.'}`);
       } else if (result.outcome === 'integrity_failed') {
-        finishToast('error', `手动追平持久化完整性校验失败，已回载聊天中的已保存数据：${result.error || '请执行 V2 恢复诊断。'}`);
+        finishToast('error', `Kiểm tra tính toàn vẹn lưu trữ của lần bắt kịp thủ công thất bại, đã nạp lại dữ liệu đã lưu trong cuộc trò chuyện: ${result.error || 'Hãy chạy chẩn đoán khôi phục V2.'}`);
       } else if (result.outcome === 'blocked') {
-        finishToast('error', result.error || '手动追平已在调用 AI 前阻止：V2 存储锚点无法安全修复。');
+        finishToast('error', result.error || 'Bắt kịp thủ công đã bị chặn trước khi gọi AI: không thể sửa an toàn mốc neo lưu trữ V2.');
       } else if (result.outcome === 'stopped' || catchUpAbortController.signal.aborted) {
-        finishToast('warning', `手动追平已终止；已保留 ${result.committedBucketCount || 0} 个已提交 bucket。`);
+        finishToast('warning', `Đã dừng bắt kịp thủ công; đã giữ lại ${result.committedBucketCount || 0} bucket đã cam kết.`);
       } else if (result.success) {
-        finishToast('success', `手动追平完成，共提交 ${result.committedBucketCount || 0} 个 bucket。`);
+        finishToast('success', `Bắt kịp thủ công hoàn tất, đã cam kết tổng cộng ${result.committedBucketCount || 0} bucket.`);
       } else {
-        finishToast('error', result.error || '手动追平失败。');
+        finishToast('error', result.error || 'Bắt kịp thủ công thất bại.');
       }
     } catch (error: any) {
-      finishToast('error', error?.message || '手动追平执行异常。');
+      finishToast('error', error?.message || 'Bắt kịp thủ công thực thi bất thường.');
     } finally {
       catchUpAbortController = null;
       catchUpBusy.value = false;

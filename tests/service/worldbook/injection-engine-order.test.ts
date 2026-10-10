@@ -106,7 +106,7 @@ describe('allocOrder_ACU', () => {
 
   it('所有 order 被占用时抛出错误', () => {
     const used = new Set([1, 2, 3]);
-    expect(() => allocOrder_ACU(used, 1, 1, 3)).toThrow('无法分配可用的世界书条目 order');
+    expect(() => allocOrder_ACU(used, 1, 1, 3)).toThrow('Không thể cấp order (độ sâu chèn) khả dụng cho mục sổ thế giới');
   });
 
   it('preferred 小于 min 时从 min 开始', () => {
@@ -173,7 +173,7 @@ describe('allocConsecutiveOrderBlock_ACU', () => {
 
   it('无法分配时抛出错误', () => {
     const used = new Set([1, 2, 3, 4, 5]);
-    expect(() => allocConsecutiveOrderBlock_ACU(used, 3, 1, 1, 5)).toThrow('无法分配连续的世界书条目 order 区间');
+    expect(() => allocConsecutiveOrderBlock_ACU(used, 3, 1, 1, 5)).toThrow('Không thể cấp dải order liên tục cho mục sổ thế giới');
   });
 
   it('blockSize 为 1 时等同于 allocOrder', () => {

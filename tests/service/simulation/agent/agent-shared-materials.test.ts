@@ -24,8 +24,8 @@ describe('格林推演子代理资料边界', () => {
 
   it('审核员只取审查相关动态字段，导演仍保留会话历史', () => {
     const reviewer = splitWorldSimulationSubagentPrompt_ACU(buildDefaultWorldSimulationAgentPrompt_ACU('causality-reviewer'), 'causality-reviewer');
-    expect(reviewer.snapshotTemplate).toContain('候选：$WORLD_CANDIDATES');
-    expect(reviewer.snapshotTemplate).toContain('证据注册表：$CURRENT_EVIDENCE_REGISTRY');
+    expect(reviewer.snapshotTemplate).toContain('Ứng viên: $WORLD_CANDIDATES');
+    expect(reviewer.snapshotTemplate).toContain('Sổ đăng ký bằng chứng: $CURRENT_EVIDENCE_REGISTRY');
     expect(reviewer.snapshotTemplate).not.toContain('$WORLD_HISTORY');
     expect(reviewer.snapshotTemplate).not.toContain('$WORLD_TOOL_CATALOG');
     const director = splitWorldSimulationSubagentPrompt_ACU(buildDefaultWorldSimulationAgentPrompt_ACU('world-director'), 'world-director');
@@ -133,7 +133,7 @@ describe('格林推演子代理资料边界', () => {
       { role: 'user', content: fullReceipt },
       { role: 'user', content: '{"outcome":"prepared"}' },
     ]);
-    expect(text).toBe(`【主会话已调阅】\n\n下面是主会话本轮已经读到的全文。不要再对同一地址调用 read。\n\n${fullReceipt}`);
+    expect(text).toBe(`【Phiên chính đã đọc】\n\nDưới đây là toàn văn phiên chính đã đọc được trong lượt này. Không gọi read lại cho cùng một địa chỉ.\n\n${fullReceipt}`);
     expect(text).not.toContain('prepared');
   });
 

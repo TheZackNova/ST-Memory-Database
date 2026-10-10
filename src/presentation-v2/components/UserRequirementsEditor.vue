@@ -1,23 +1,23 @@
 <template>
-  <section class="acu-requirements-editor" aria-label="用户要求编辑">
-    <p class="acu-requirements-editor__hint">每个标签是一条用户要求；点击新增标签后直接填写。保存时会自动转换为字符串数组。</p>
+  <section class="acu-requirements-editor" aria-label="Sửa yêu cầu người dùng">
+    <p class="acu-requirements-editor__hint">Mỗi thẻ là một yêu cầu của người dùng; bấm thêm thẻ rồi nhập trực tiếp. Khi lưu sẽ tự chuyển thành mảng chuỗi.</p>
     <div v-for="(item, index) in items" :key="index" class="acu-requirements-editor__row">
-      <label :for="`acu-requirement-${editorId}-${index}`">要求 {{ index + 1 }}</label>
+      <label :for="`acu-requirement-${editorId}-${index}`">Yêu cầu {{ index + 1 }}</label>
       <AcuTextarea
         :id="`acu-requirement-${editorId}-${index}`"
         :model-value="item"
         :rows="2"
         :disabled="disabled || saving"
-        placeholder="输入一条用户要求"
+        placeholder="Nhập một yêu cầu của người dùng"
         @update:model-value="updateItem(index, $event)"
       />
-      <AcuButton size="sm" variant="danger" :disabled="disabled || saving" @click="removeItem(index)">删除标签</AcuButton>
+      <AcuButton size="sm" variant="danger" :disabled="disabled || saving" @click="removeItem(index)">Xóa thẻ</AcuButton>
     </div>
     <div class="acu-requirements-editor__actions">
-      <AcuButton :disabled="disabled || saving" @click="emit('update:items', [...items, ''])">新增标签</AcuButton>
+      <AcuButton :disabled="disabled || saving" @click="emit('update:items', [...items, ''])">Thêm thẻ</AcuButton>
       <span class="acu-requirements-editor__spacer" />
-      <AcuButton :disabled="disabled || saving || !dirty" @click="emit('discard')">放弃修改</AcuButton>
-      <AcuButton variant="primary" :loading="saving" :disabled="disabled || !dirty" @click="emit('save')">保存用户要求</AcuButton>
+      <AcuButton :disabled="disabled || saving || !dirty" @click="emit('discard')">Bỏ thay đổi</AcuButton>
+      <AcuButton variant="primary" :loading="saving" :disabled="disabled || !dirty" @click="emit('save')">Lưu yêu cầu người dùng</AcuButton>
     </div>
     <p v-if="error" role="alert" class="acu-requirements-editor__error">{{ error }}</p>
   </section>

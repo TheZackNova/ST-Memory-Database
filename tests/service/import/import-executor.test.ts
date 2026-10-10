@@ -124,7 +124,7 @@ describe('importTxtTextAndSplitCore_ACU', () => {
     const result = await importTxtTextAndSplitCore_ACU('   ');
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('为空');
+    expect(result.error).toContain('đang trống');
     expect(mockImportTempSet).not.toHaveBeenCalled();
   });
 
@@ -188,7 +188,7 @@ describe('initImportDatabase_ACU', () => {
     mockParseTemplate.mockImplementation(() => { throw new Error('解析失败'); });
     const result = await initImportDatabase_ACU('lorebook1', null, [{ chunk: 1 }], 'sig1');
     expect(result.success).toBe(false);
-    expect(result.error).toContain('模板');
+    expect(result.error).toContain('mẫu');
   });
 
   it('断点续行但世界书数据丢失且内存无数据', async () => {
@@ -326,7 +326,7 @@ describe('injectImportedSelectedCore_ACU', () => {
     const result = await injectImportedSelectedCore_ACU({ targetWorldbook: 'lorebook1' });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('尚未加载');
+    expect(result.error).toContain('Chưa tải tệp TXT');
     expect(mockExecuteCardUpdateCore).not.toHaveBeenCalled();
   });
 
@@ -336,7 +336,7 @@ describe('injectImportedSelectedCore_ACU', () => {
     const result = await injectImportedSelectedCore_ACU({ targetWorldbook: 'lorebook1' });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('导入暂存数据已损坏，已清空');
+    expect(result.error).toContain('Dữ liệu nhập tạm đã bị hỏng và đã được xóa');
     expect(mockImportTempRemove).toHaveBeenCalledWith('imported_entries');
     expect(mockImportTempRemove).toHaveBeenCalledWith('imported_status');
     expect(mockImportTempRemove).toHaveBeenCalledWith('imported_status_standard');
@@ -351,7 +351,7 @@ describe('injectImportedSelectedCore_ACU', () => {
     const result = await injectImportedSelectedCore_ACU({ targetWorldbook: 'lorebook1' });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('没有可注入的分块');
+    expect(result.error).toContain('Không có khối nào để chèn');
     expect(mockExecuteCardUpdateCore).not.toHaveBeenCalled();
   });
 
@@ -377,7 +377,7 @@ describe('injectImportedSelectedCore_ACU', () => {
     const result = await injectImportedSelectedCore_ACU({ targetWorldbook: 'character' });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('当前角色绑定的主世界书');
+    expect(result.error).toContain('sổ thế giới chính gắn với nhân vật hiện tại');
     expect(mockExecuteCardUpdateCore).not.toHaveBeenCalled();
   });
 
@@ -399,7 +399,7 @@ describe('injectImportedSelectedCore_ACU', () => {
     const result = await injectImportedSelectedCore_ACU({ targetWorldbook: 'lorebook1', selectedSheetKeys: [] });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('未选择任何表格');
+    expect(result.error).toContain('Chưa chọn bảng nào');
     expect(mockExecuteCardUpdateCore).not.toHaveBeenCalled();
   });
 
@@ -461,7 +461,7 @@ describe('injectImportedSelectedCore_ACU', () => {
     const result = await injectImportedSelectedCore_ACU({ targetWorldbook: 'lorebook1' });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('未选择任何表格');
+    expect(result.error).toContain('Chưa chọn bảng nào');
     expect(mockExecuteCardUpdateCore).not.toHaveBeenCalled();
   });
 

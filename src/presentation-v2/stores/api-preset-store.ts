@@ -97,19 +97,19 @@ function resolveCurrentConfigStatus(): { ready: boolean; label: string } {
 
   if (mode === 'tavern') {
     return tavernProfile
-      ? { ready: true, label: `酒馆连接预设 ${tavernProfile}` }
-      : { ready: false, label: '未选择酒馆连接预设' };
+      ? { ready: true, label: `Preset kết nối SillyTavern ${tavernProfile}` }
+      : { ready: false, label: 'Chưa chọn preset kết nối SillyTavern' };
   }
 
   if (config.useMainApi) {
-    return { ready: true, label: '酒馆主 API' };
+    return { ready: true, label: 'API chính của SillyTavern' };
   }
 
   if (config.url.trim() && config.model.trim()) {
     return { ready: true, label: config.model.trim() };
   }
 
-  return { ready: false, label: '当前 API 配置不完整' };
+  return { ready: false, label: 'Cấu hình API hiện tại chưa đầy đủ' };
 }
 
 export const useApiPresetStore = defineStore('acu-v2-api-presets', {
@@ -118,7 +118,7 @@ export const useApiPresetStore = defineStore('acu-v2-api-presets', {
     defaultApiPresetName: '',
     activePresetName: '',
     currentConfigReady: false,
-    currentConfigLabel: '当前 API 配置不完整',
+    currentConfigLabel: 'Cấu hình API hiện tại chưa đầy đủ',
     currentChatKey: getCurrentChatKey_ACU(),
     streamingEnabled: false,
     tavernProfiles: [],
@@ -199,7 +199,7 @@ export const useApiPresetStore = defineStore('acu-v2-api-presets', {
       if (!result.success) {
         this.modelOptions = [];
         this.modelLoadStatus = 'error';
-        this.modelLoadError = result.error || '模型列表加载失败';
+        this.modelLoadError = result.error || 'Tải danh sách mô hình thất bại';
         return false;
       }
       this.modelOptions = result.models || [];

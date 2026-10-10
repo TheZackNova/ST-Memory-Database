@@ -20,8 +20,8 @@ export interface WorldInUseCatalog_ACU {
   readHint: string;
 }
 
-export const WORLD_CATALOG_READ_HINT_ACU = '目录中任一条目可通过 read 工具按地址调阅详细信息（在用条目如 seeds:{id}；逐栏状态必须使用 field:seeds:{id} 或 field:seeds:{id}:title；归档总结经 chronicle-archive:{archiveRef}）。不得省略 field 地址中的条目 ID。';
-export const WORLD_SUBAGENT_DEDUP_HINT_ACU = '以下目录包含正在生效的资料与已经发生的事情（含已归档总结索引）；若你正要推演的事件与已发生目录中某条实质相同，不要重复推演。';
+export const WORLD_CATALOG_READ_HINT_ACU = 'Mọi mục trong danh mục đều có thể xem chi tiết bằng công cụ read theo địa chỉ (mục đang dùng như seeds:{id}; trạng thái theo từng cột phải dùng field:seeds:{id} hoặc field:seeds:{id}:title; tóm tắt lưu trữ qua chronicle-archive:{archiveRef}). Không được bỏ ID mục trong địa chỉ field.';
+export const WORLD_SUBAGENT_DEDUP_HINT_ACU = 'Danh mục dưới đây gồm tài liệu đang có hiệu lực và những việc đã xảy ra (kèm chỉ mục tóm tắt đã lưu trữ); nếu sự kiện bạn sắp mô phỏng về bản chất giống một mục trong danh mục đã xảy ra thì đừng mô phỏng lặp lại.';
 
 function clip_ACU(value: string, max = 80): string {
   const text = value.replace(/\s+/g, ' ').trim();
@@ -38,20 +38,20 @@ function locationText_ACU(ref: WorldLocationRef_ACU | null | undefined, fallback
 
 /** 目录摘要是条目整体的浓缩：状态、位置、驱动因素与关联，一眼可判断是否需要精读。 */
 function joinParts_ACU(parts: ReadonlyArray<string | false | 0 | null | undefined>): string {
-  return parts.filter((part): part is string => typeof part === 'string' && part.length > 0).join('；');
+  return parts.filter((part): part is string => typeof part === 'string' && part.length > 0).join('; ');
 }
 
 /** 已结束条目的显式标注，避免其他 AI 把已收场的事当成仍在进行。 */
 export function worldLedgerEndedLabel_ACU(module: 'seeds' | 'rumors' | 'actors', row: Record<string, unknown>): string | null {
   if (module === 'seeds') {
-    if (row.status === 'resolved') return '已结束：已收束';
-    if (row.status === 'retired') return `已结束：已退役${row.retiredReason ? `（${String(row.retiredReason)}）` : ''}`;
+    if (row.status === 'resolved') return 'Đã kết thúc: đã khép lại';
+    if (row.status === 'retired') return `Đã kết thúc: đã nghỉ hưu${row.retiredReason ? ` (${String(row.retiredReason)})` : ''}`;
   }
   if (module === 'rumors') {
-    if (row.status === 'revealed') return '已结束：主角已得知';
-    if (row.status === 'dead') return '已结束：已失效';
+    if (row.status === 'revealed') return 'Đã kết thúc: nhân vật chính đã biết';
+    if (row.status === 'dead') return 'Đã kết thúc: đã mất hiệu lực';
   }
-  if (module === 'actors' && row.life === 'dead') return '已结束：已死亡';
+  if (module === 'actors' && row.life === 'dead') return 'Đã kết thúc: đã chết';
   return null;
 }
 
@@ -72,12 +72,12 @@ export function worldLedgerRowsForAgent_ACU<T extends object>(module: 'seeds' | 
 }
 
 function actorActionText_ACU(action: { text: string; expectedDuration: string } | null | undefined): string {
-  return action ? `${action.text}（预计${action.expectedDuration}）` : '';
+  return action ? `${action.text} (dự kiến ${action.expectedDuration})` : '';
 }
 
 function actorLatestExperience_ACU(item: WorldSimulationLedger_ACU['actors'][number]): string {
   const latest = recentWorldActorExperiences_ACU(item, 1)[0];
-  return latest ? `近期经历：${latest.text}（第${latest.endedAtDay}日${latest.status === 'done' ? '了结' : '中止'}）` : '';
+  return latest ? `Trải nghiệm gần đây: ${latest.text} (ngày ${latest.endedAtDay} ${latest.status === 'done' ? 'hoàn tất' : 'bị dừng'})` : '';
 }
 
 export function buildInUseWorldCatalog_ACU(ledger: WorldSimulationLedger_ACU): WorldInUseCatalog_ACU {
@@ -91,18 +91,18 @@ export function buildInUseWorldCatalog_ACU(ledger: WorldSimulationLedger_ACU): W
     seeds: activeSeeds.map(item => row_ACU(item.id, item.title, joinParts_ACU([
       `${item.status} lv${item.level} ${item.visibility}`,
       locationText_ACU(item.location) && `@${locationText_ACU(item.location)}`,
-      item.catalyst && `催化：${item.catalyst}`,
-      item.expiresAtDay !== null && `时限第${item.expiresAtDay}日`,
-      item.actorIds.length > 0 && `人物：${item.actorIds.join(',')}`,
+      item.catalyst && `Xúc tác: ${item.catalyst}`,
+      item.expiresAtDay !== null && `Hạn chót ngày ${item.expiresAtDay}`,
+      item.actorIds.length > 0 && `Nhân vật: ${item.actorIds.join(',')}`,
     ]), 'seeds', 140)),
     actors: ledger.actors.map(item => row_ACU(item.id, item.name, joinParts_ACU([
-      item.life === 'dead' ? `已结束：已死亡 ${item.visibility}` : `${item.life} ${item.visibility}`,
-      `@${locationText_ACU(item.locationRef, item.location) || '未知'}`,
-      item.life === 'dead' && item.deathSummary && `死因：${item.deathSummary}`,
-      item.life !== 'dead' && item.currentAction && `在做：${actorActionText_ACU(item.currentAction)}`,
-      item.life !== 'dead' && item.longTermAction && `长期：${actorActionText_ACU(item.longTermAction)}`,
-      item.goals.length > 0 && `目标：${item.goals.slice(0, 2).join('、')}`,
-      item.interests.length > 0 && `关切：${item.interests.slice(0, 2).join('、')}`,
+      item.life === 'dead' ? `Đã kết thúc: đã chết ${item.visibility}` : `${item.life} ${item.visibility}`,
+      `@${locationText_ACU(item.locationRef, item.location) || 'Không rõ'}`,
+      item.life === 'dead' && item.deathSummary && `Nguyên nhân chết: ${item.deathSummary}`,
+      item.life !== 'dead' && item.currentAction && `Đang làm: ${actorActionText_ACU(item.currentAction)}`,
+      item.life !== 'dead' && item.longTermAction && `Dài hạn: ${actorActionText_ACU(item.longTermAction)}`,
+      item.goals.length > 0 && `Mục tiêu: ${item.goals.slice(0, 2).join(', ')}`,
+      item.interests.length > 0 && `Quan tâm: ${item.interests.slice(0, 2).join(', ')}`,
       actorLatestExperience_ACU(item),
     ]), 'actors', 220)),
     rumors: activeRumors.map(item => row_ACU(item.id, item.fact, `${item.status} ${item.channels.join(',')}`, 'rumors')),
@@ -123,7 +123,7 @@ export const WORLD_RELATED_READONLY_MODULES_ACU: Record<string, readonly string[
   rumors: ['seeds'],
   chronicle: ['seeds', 'actors', 'rumors'],
 };
-export const WORLD_RELATED_READONLY_HINT_ACU = '关联模块只读目录：仅供对齐引用与一致性核对，禁止写入；目录行含 readAddress，可用 read 工具调阅详情。';
+export const WORLD_RELATED_READONLY_HINT_ACU = 'Danh mục chỉ đọc của module liên quan: chỉ dùng để căn chỉnh tham chiếu và đối chiếu tính nhất quán, cấm ghi; dòng danh mục có readAddress, có thể dùng công cụ read để xem chi tiết.';
 
 export function sliceModuleCatalog_ACU(
   catalog: WorldInUseCatalog_ACU,
@@ -133,7 +133,7 @@ export function sliceModuleCatalog_ACU(
   const writable = new Set(writableModules);
   // 普通角色的目录不能沿用导演的“任一条目可读”提示，也不能无条件附带玩家状态。
   const slice: Record<string, unknown> = {
-    readHint: '仅按当前角色授权的目录地址调用 read；目录未列出的资料不代表可读取。字段地址必须包含条目 ID。',
+    readHint: 'Chỉ gọi read theo địa chỉ danh mục mà vai trò hiện tại được ủy quyền; tài liệu không có trong danh mục không có nghĩa là đọc được. Địa chỉ trường phải chứa ID mục.',
   };
   if (writableModules.some(module => ['clock', 'dimensions', 'seeds', 'actors', 'chronicle', 'rumors'].includes(module))) {
     slice.clock = catalog.clock;

@@ -354,25 +354,25 @@ function splitDefaultSubagentMaterials_ACU(
     return { segments: segments.map(segment => ({ ...segment })), taskTemplate: '' };
   }
   return {
-    segments: segments.map((segment, index) => index === taskIndex ? { ...segment, content: '本次任务、写入范围、资料与自检清单见独立的当前快照。' } : { ...segment }),
+    segments: segments.map((segment, index) => index === taskIndex ? { ...segment, content: 'Nhiệm vụ lần này, phạm vi ghi, tư liệu và danh sách tự kiểm tra xem trong snapshot hiện tại độc lập.' } : { ...segment }),
     taskTemplate: candidate.content,
   };
 }
 
 export function renderStoryArcVolumePlanInstruction_ACU(settings: ContinuationSettings_ACU): string {
   const plan = settings.storyArcVolumePlan;
-  const capacity = '每个新 volume 必须声明 narrativeRole、targetStageRange、targetTimeSpan、progressCeiling、至少一条 sustainingThreads 和至少一条 payoffTargets。targetStageRange 是解释性容量锚：按单轮约 800–1200 字、标准阶段 6–10 轮校准；60 万字仅对应约 500–750 轮的数量级检查，不承诺固定字数或章节数。';
-  if (plan === 'short') return `【总纲卷数计划】短线：新建或全量重构总纲时规划 7–8 卷。${capacity}`;
-  if (plan === 'medium') return `【总纲卷数计划】中线：新建或全量重构总纲时规划 10–14 卷。${capacity}`;
-  if (plan === 'long') return `【总纲卷数计划】长线：新建或全量重构总纲时规划 20 卷。${capacity}`;
+  const capacity = 'Mỗi volume mới phải khai báo narrativeRole, targetStageRange, targetTimeSpan, progressCeiling, ít nhất một sustainingThreads và ít nhất một payoffTargets. targetStageRange là mốc dung lượng mang tính diễn giải: hiệu chỉnh theo mỗi lượt khoảng 800–1200 chữ, giai đoạn chuẩn 6–10 lượt; 600 nghìn chữ chỉ tương ứng kiểm tra bậc độ lớn khoảng 500–750 lượt, không cam kết số chữ hay số chương cố định.';
+  if (plan === 'short') return `【总纲卷数计划】Tuyến ngắn: khi tạo mới hoặc tái cấu trúc toàn bộ tổng cương thì hoạch định 7–8 tập. ${capacity}`;
+  if (plan === 'medium') return `【总纲卷数计划】Tuyến vừa: khi tạo mới hoặc tái cấu trúc toàn bộ tổng cương thì hoạch định 10–14 tập. ${capacity}`;
+  if (plan === 'long') return `【总纲卷数计划】Tuyến dài: khi tạo mới hoặc tái cấu trúc toàn bộ tổng cương thì hoạch định 20 tập. ${capacity}`;
   const count = settings.customStoryArcVolumeCount;
-  return `【总纲卷数计划】自定义：新建或全量重构总纲时规划 ${count ?? '未配置'} 卷。${capacity}`;
+  return `【总纲卷数计划】Tùy chỉnh: khi tạo mới hoặc tái cấu trúc toàn bộ tổng cương thì hoạch định ${count ?? 'chưa cấu hình'} tập. ${capacity}`;
 }
 
 function describeWriteScope_ACU(writes: readonly AgentWritableModule_ACU[]): string {
-  if (!writes.length) return '你的职责不含写入。你只需返回建议或判词，不要输出 delta。';
-  const labels: Record<AgentWritableModule_ACU, string> = { hooks: '$HOOKS_LEDGER 伏笔账本', infoGap: '$INFO_GAP 认知与信息差时间线', constraints: '$ACTIVE_CONSTRAINTS 长期约束', storyArc: '$STORY_ARC 故事总纲', chronology: '$CHRONOLOGY 故事年代学账本', webRefs: '$WEB_REFS 百科资料库', userRequirements: '$USER_REQUIREMENTS 用户要求' };
-  return `你的职责固定写入：${writes.map(item => labels[item]).join('、')}。职责之外的模块一律不许出现在 delta 里。`;
+  if (!writes.length) return 'Nhiệm vụ của bạn không bao gồm ghi dữ liệu. Bạn chỉ cần trả về đề xuất hoặc phán quyết, không xuất delta.';
+  const labels: Record<AgentWritableModule_ACU, string> = { hooks: '$HOOKS_LEDGER sổ phục bút', infoGap: '$INFO_GAP dòng thời gian nhận thức và chênh lệch thông tin', constraints: '$ACTIVE_CONSTRAINTS ràng buộc dài hạn', storyArc: '$STORY_ARC tổng cương câu chuyện', chronology: '$CHRONOLOGY sổ niên đại học câu chuyện', webRefs: '$WEB_REFS kho tư liệu bách khoa', userRequirements: '$USER_REQUIREMENTS yêu cầu của người dùng' };
+  return `Phạm vi ghi cố định của bạn: ${writes.map(item => labels[item]).join(', ')}. Các mô-đun ngoài nhiệm vụ tuyệt đối không được xuất hiện trong delta.`;
 }
 
 function agentReadRoundKey_ACU(agentName: string, roundId: string): string {
@@ -429,11 +429,11 @@ function renderSubagentReadBudgetNote_ACU(params: {
 }): string {
   const remaining = Math.max(0, params.maxToolRounds - params.toolRoundsUsed);
   return [
-    `【读取预算状态】单批次读取上限约 ${params.maxReadTokens} tokens；临近总结阈值时只有不超过 ${params.fallbackTokens} tokens 的精读批次会被放行。`,
-    `工具轮次剩余 ${remaining} / ${params.maxToolRounds}（本次派工已累计放行读取约 ${params.grantedTokens} tokens，仅遥测、不扣减后续批次额度）。`,
+    `【读取预算状态】Giới hạn mỗi lô đọc khoảng ${params.maxReadTokens} tokens; khi gần ngưỡng tóm tắt, chỉ lô đọc kỹ không quá ${params.fallbackTokens} tokens mới được cho qua.`,
+    `Số vòng công cụ còn lại ${remaining} / ${params.maxToolRounds} (lần giao việc này đã tích lũy cho phép đọc khoảng ${params.grantedTokens} tokens, chỉ để theo dõi, không trừ hạn mức các lô sau).`,
     params.readOnce
-      ? '本轮只允许一个成功读取批次：确需补读时把全部地址放进同一次回复并发读取，失败批次不占额度、修正后可重试；读过或无需读取就直接交付，缺口如实标注「信息不足」，不许硬编。'
-      : '按预算分配调阅：先 search 定位，再用窄地址（楼层区间/表格行区间/模块 ID）精读；轮次见底就基于已有资料交付，缺口如实标注「信息不足」，不许硬编。',
+      ? 'Lượt này chỉ cho phép một lô đọc thành công: khi thật sự cần đọc bổ sung, hãy đưa toàn bộ địa chỉ vào cùng một lần trả lời để đọc song song; lô thất bại không chiếm hạn mức và có thể thử lại sau khi sửa; đã đọc hoặc không cần đọc thì giao ngay, chỗ thiếu ghi trung thực là "thiếu thông tin", không được bịa.'
+      : 'Phân bổ tra cứu theo ngân sách: trước hết search để định vị, rồi dùng địa chỉ hẹp (khoảng tầng/khoảng hàng bảng/ID mô-đun) để đọc kỹ; hết số vòng thì giao dựa trên tư liệu hiện có, chỗ thiếu ghi trung thực là "thiếu thông tin", không được bịa.',
   ].join('\n');
 }
 
@@ -451,10 +451,10 @@ function resolveResearcherDraft_ACU(draft: ReturnType<typeof parseAgentResearche
     const key = pageRef.trim().toUpperCase();
     const page = cache.pages.get(key);
     if (!page) {
-      researcherProtocolError_ACU(`pageRef「${pageRef}」不在本次派工的工具结果里。可用句柄：${available.length ? available.join('、') : '（尚未抓取任何页面，先用 encyclopedia_read / web_read 抓取）'}`);
+      researcherProtocolError_ACU(`pageRef "${pageRef}" không có trong kết quả công cụ của lần giao việc này. Handle khả dụng: ${available.length ? available.join(', ') : '(chưa tải trang nào, hãy tải bằng encyclopedia_read / web_read trước)'}`);
     }
     if (page.status !== 'ok' || !page.text) {
-      researcherProtocolError_ACU(`pageRef「${pageRef}」对应的页面抓取失败（${page.note || page.status}），不能入库；换来源或换词重抓，或从契约里去掉这一条`);
+      researcherProtocolError_ACU(`Trang ứng với pageRef "${pageRef}" tải thất bại (${page.note || page.status}), không thể nhập kho; hãy đổi nguồn hoặc đổi từ khóa để tải lại, hoặc bỏ mục này khỏi hợp đồng`);
     }
     return { title: page.title, source: page.source, url: page.url, query: page.query, sourceStatus: page.status };
   };
@@ -505,7 +505,7 @@ function resolveMaterial_ACU(token: string, context: AgentResolveContext_ACU, re
   return {
     key: token,
     label: token,
-    text: `### ${resolved.title}（${token}）\n${proofMissing ? 'fence-proof-missing' : resolved.text}`,
+    text: `### ${resolved.title} (${token})\n${proofMissing ? 'fence-proof-missing' : resolved.text}`,
     ...(failed
       ? { status: 'failed' as const }
       : { read: { title: resolved.title, body: resolved.text, ...(requestedFence === undefined ? {} : { requestedFence }) } }),
@@ -525,53 +525,53 @@ function blankMaintainerOutput_ACU(summary: string): AgentMaintainerOutput_ACU {
   };
 }
 
-const SQL_QUOTING_ACU = '字符串用单引号，正文里的单引号写成两个单引号。数组和对象用单引号包裹的 JSON 文本，例如 \'["条目"]\'、\'{"min":1,"max":2}\'。列名用 snake_case。新行可以不写 id 和 expected_revision；若写 expected_revision，必须是 0。已有行的 UPDATE/DELETE 在 WHERE 里写 id 和该模块的当前修订号，SET 里不要写这两项。修订号是模块级的：同一模块各行共用一个号，取最近一次回执 revisions 里该模块的值或 $FIELD 读到的 revisions；fieldOutcome.saved 里的 fieldRevision 只是单个栏目的版本，不能写进 expected_revision。';
+const SQL_QUOTING_ACU = 'Chuỗi dùng dấu nháy đơn, dấu nháy đơn trong chính văn viết thành hai dấu nháy đơn. Mảng và đối tượng dùng văn bản JSON bao bằng dấu nháy đơn, ví dụ \'["mục"]\', \'{"min":1,"max":2}\'. Tên cột dùng snake_case. Hàng mới có thể không ghi id và expected_revision; nếu ghi expected_revision thì phải là 0. UPDATE/DELETE hàng đã có thì ghi id và số hiệu chỉnh hiện tại của mô-đun đó trong WHERE, đừng ghi hai mục này trong SET. Số hiệu chỉnh ở cấp mô-đun: các hàng của cùng một mô-đun dùng chung một số, lấy giá trị của mô-đun đó trong revisions của biên nhận gần nhất hoặc revisions đọc được từ $FIELD; fieldRevision trong fieldOutcome.saved chỉ là phiên bản của một cột đơn lẻ, không được ghi vào expected_revision.';
 
 /** 各维护角色的 write_sql 格式、范例和使用时机。运行时注入，不依赖提示词模板是否已迁移。 */
 function renderMaintenanceSqlGuide_ACU(name: string, toolMode: AgentToolMode_ACU = 'json'): string {
   const head = [
     toolMode === 'tools'
-      ? '调用 write_sql 函数提交。一次调用的 sql 可以包含多条语句，用分号隔开，不要拆成多次调用，也不要写成 JSON、delta 或 Markdown。'
-      : '用 write_sql 动作对象提交：{"action":"write_sql","sql":"语句"}。一个 sql 可以包含多条语句，用分号隔开，不要拆成多个对象，也不要写成 delta 或 Markdown。',
+      ? 'Gọi hàm write_sql để nộp. sql của một lần gọi có thể chứa nhiều câu lệnh, ngăn cách bằng dấu chấm phẩy, đừng tách thành nhiều lần gọi, cũng đừng viết thành JSON, delta hay Markdown.'
+      : 'Nộp bằng đối tượng hành động write_sql: {"action":"write_sql","sql":"câu lệnh"}. Một sql có thể chứa nhiều câu lệnh, ngăn cách bằng dấu chấm phẩy, đừng tách thành nhiều đối tượng, cũng đừng viết thành delta hay Markdown.',
     SQL_QUOTING_ACU,
-    `${toolMode === 'tools' ? '只在资料确实要新增、修改或删除时调用。没有变化就不要调用，直接调用 submit 交付 summary。' : '只在资料确实要新增、修改或删除时输出 write_sql。没有变化就不要输出，直接交最终 JSON 的 summary。'}status=committed 的 accepted 已保存；有 partials 时按 missingFields 仅 UPDATE 补未保存栏目，不要重发整行。保存状态不确定时先 read 权威帧。`,
+    `${toolMode === 'tools' ? 'Chỉ gọi khi tư liệu thật sự cần thêm, sửa hoặc xóa. Nếu không có thay đổi thì đừng gọi, hãy gọi thẳng submit để giao summary.' : 'Chỉ xuất write_sql khi tư liệu thật sự cần thêm, sửa hoặc xóa. Nếu không có thay đổi thì đừng xuất, hãy giao thẳng summary của JSON cuối cùng.'}status=committed thì accepted đã được lưu; khi có partials thì chỉ UPDATE bổ sung các cột chưa lưu theo missingFields, đừng gửi lại cả hàng. Khi trạng thái lưu không chắc chắn thì read khung chuẩn trước.`,
   ];
   if (name === 'arc-architect') {
     return [
       ...head,
-      '只写 story_arc。scope=story 全局只能有一条活跃记录，不要写卷级栏目。volume 在 story 必填栏之外，还必须写 narrative_role、target_stage_range、target_time_span、progress_ceiling、sustaining_threads、payoff_targets。同一时刻只能有一条 volume 的 status 为 active，其余 planned。',
-      '何时使用：还没有总纲时 INSERT 全书和各卷；阶段完成后只 UPDATE 当前卷的 stage_numbers；卷收束时再 UPDATE status 和完成依据；废弃一卷用 DELETE 并写 reason。',
-      '范例（全书加第一卷，新行修订号为 0）：',
-      'INSERT INTO story_arc (scope, title, direction, escalation, withheld, status) VALUES (\'story\', \'追查真相\', \'主角要查清禁区来历，失败就会失去进城资格\', \'从门外怀疑到确认守门人知情\', \'终局身份\', \'active\');',
-      'INSERT INTO story_arc (scope, title, direction, escalation, withheld, status, narrative_role, target_stage_range, target_time_span, progress_ceiling, sustaining_threads, payoff_targets) VALUES (\'volume\', \'入城\', \'主角选择进城并结识守门人\', \'从门外观察进入到获得第一块线索\', \'守门人真实身份\', \'active\', \'setup\', \'{"min":1,"max":2}\', \'数日\', \'只确认入口，不揭开禁区核心\', \'["与守门人的信任"]\', \'["拿到第一块晶屑线索"]\');',
-      '改已有卷（7 只是示意，换成 revisions.storyArc 的当前值）：UPDATE story_arc SET stage_numbers = \'[1]\' WHERE id = \'VOL-01\' AND expected_revision = 7;',
-      '删除：DELETE FROM story_arc WHERE id = \'VOL-02\' AND reason = \'与正文冲突\' AND expected_revision = 7;',
+      'Chỉ ghi story_arc. scope=story toàn cục chỉ được có một bản ghi active, đừng ghi các cột cấp tập. volume ngoài các cột bắt buộc của story còn phải ghi narrative_role, target_stage_range, target_time_span, progress_ceiling, sustaining_threads, payoff_targets. Cùng một lúc chỉ được có một volume có status là active, các tập còn lại là planned.',
+      'Khi nào dùng: chưa có tổng cương thì INSERT toàn truyện và các tập; sau khi giai đoạn hoàn thành chỉ UPDATE stage_numbers của tập hiện tại; khi tập khép lại thì UPDATE status và căn cứ hoàn thành; bỏ một tập thì dùng DELETE và ghi reason.',
+      'Ví dụ (toàn truyện cộng tập một, hàng mới có số hiệu chỉnh là 0):',
+      'INSERT INTO story_arc (scope, title, direction, escalation, withheld, status) VALUES (\'story\', \'Truy tìm sự thật\', \'Nhân vật chính phải làm rõ lai lịch cấm địa, thất bại sẽ mất tư cách vào thành\', \'Từ nghi ngờ ngoài cổng đến xác nhận người gác cổng biết chuyện\', \'Thân phận cuối cùng\', \'active\');',
+      'INSERT INTO story_arc (scope, title, direction, escalation, withheld, status, narrative_role, target_stage_range, target_time_span, progress_ceiling, sustaining_threads, payoff_targets) VALUES (\'volume\', \'Vào thành\', \'Nhân vật chính chọn vào thành và làm quen người gác cổng\', \'Từ quan sát ngoài cổng đến lấy được manh mối đầu tiên\', \'Thân phận thật của người gác cổng\', \'active\', \'setup\', \'{"min":1,"max":2}\', \'vài ngày\', \'Chỉ xác nhận lối vào, không vén lõi cấm địa\', \'["Lòng tin với người gác cổng"]\', \'["Lấy được manh mối mảnh tinh thể đầu tiên"]\');',
+      'Sửa tập đã có (7 chỉ là minh họa, thay bằng giá trị hiện tại của revisions.storyArc): UPDATE story_arc SET stage_numbers = \'[1]\' WHERE id = \'VOL-01\' AND expected_revision = 7;',
+      'Xóa: DELETE FROM story_arc WHERE id = \'VOL-02\' AND reason = \'Mâu thuẫn với chính văn\' AND expected_revision = 7;',
     ].join('\n');
   }
   if (name === 'hook-cognition-maintainer') {
     return [
       ...head,
-      '只写 hooks、info_gap、chronology，以及建议登记的 constraint_proposals。只登记真实正文里已经发生的变化。大纲里的时间字段是计划，不能写进 chronology。',
-      '何时使用：新正文出现线索、伏笔被再次触碰、角色知晓变化、或正文实际跨夜/跨日时调用。没有可证实的变化就不要调用。',
-      '伏笔范例：INSERT INTO hooks (summary, status, importance, planted_index, planned_payoff) VALUES (\'守门人右手藏着晶屑\', \'planted\', \'mid\', 3, \'入城后由守门人自己交出\');',
-      'status 只能是 planted、reinforced、misled、partially_paid、paid、abandoned。importance 只能是 high、mid、low。',
-      '信息差范例：INSERT INTO info_gap (topic, objective_fact, reader_known, character_knowledge, reveal_status) VALUES (\'晶屑来历\', \'晶屑来自禁区核心\', \'读者只看见守门人藏起晶屑\', \'[{"name":"守门人","knows":"亲身保管晶屑"}]\', \'partial\');',
-      'reveal_status 为 revealed 时必须同时写 reveal_index；未揭示时 reveal_index 写 NULL。角色知道的内容必须能追溯到亲历、目击、听闻、阅读或转述。',
-      '年代学范例：INSERT INTO chronology (anchor, elapsed, precision, transition, evidence_indexes) VALUES (\'入城后的第二天清晨\', \'自开篇约两日\', \'approximate\', \'在城门口守了一夜\', \'[3,4]\');',
-      'precision 只能是 exact、approximate、unknown。evidence_indexes 必须是已经出现的 AI 正文楼层号，可以引用本次正在结算的楼层；用户楼层和不存在的楼层会被拒绝。',
-      "约束建议：只有真实正文暴露出需要长期遵守的新边界时才登记提议；这不会直接修改长期约束，须由主 Agent 裁决。constraint_proposals 只能 INSERT，只有 text 一列，不写 id、UPDATE 或 DELETE。范例：INSERT INTO constraint_proposals (text) VALUES ('伏笔回收前不要提前揭露守门人身份');",
-      '改已有伏笔（7 只是示意，换成 revisions.hooks 的当前值）：UPDATE hooks SET status = \'reinforced\' WHERE id = \'H001\' AND expected_revision = 7;',
-      '作废：DELETE FROM hooks WHERE id = \'H001\' AND reason = \'正文已经明示回收\' AND expected_revision = 7;',
+      'Chỉ ghi hooks, info_gap, chronology và constraint_proposals đề xuất đăng ký. Chỉ đăng ký những thay đổi đã thực sự xảy ra trong chính văn. Trường thời gian trong dàn ý là kế hoạch, không được ghi vào chronology.',
+      'Khi nào dùng: gọi khi chính văn mới xuất hiện manh mối, phục bút bị chạm lại, nhân vật biết thêm điều gì, hoặc chính văn thực sự qua đêm/qua ngày. Không có thay đổi có thể chứng thực thì đừng gọi.',
+      'Ví dụ phục bút: INSERT INTO hooks (summary, status, importance, planted_index, planned_payoff) VALUES (\'Người gác cổng giấu mảnh tinh thể trong tay phải\', \'planted\', \'mid\', 3, \'Sau khi vào thành, người gác cổng tự tay giao ra\');',
+      'status chỉ được là planted, reinforced, misled, partially_paid, paid, abandoned. importance chỉ được là high, mid, low.',
+      'Ví dụ chênh lệch thông tin: INSERT INTO info_gap (topic, objective_fact, reader_known, character_knowledge, reveal_status) VALUES (\'Lai lịch mảnh tinh thể\', \'Mảnh tinh thể đến từ lõi cấm địa\', \'Độc giả chỉ thấy người gác cổng giấu mảnh tinh thể\', \'[{"name":"Người gác cổng","knows":"Tự tay giữ mảnh tinh thể"}]\', \'partial\');',
+      'Khi reveal_status là revealed thì phải ghi đồng thời reveal_index; chưa tiết lộ thì reveal_index ghi NULL. Nội dung nhân vật biết phải truy được về tự trải qua, tận mắt thấy, nghe nói, đọc được hoặc được kể lại.',
+      'Ví dụ niên đại học: INSERT INTO chronology (anchor, elapsed, precision, transition, evidence_indexes) VALUES (\'Sáng sớm ngày thứ hai sau khi vào thành\', \'Khoảng hai ngày kể từ mở đầu\', \'approximate\', \'Canh ở cổng thành suốt một đêm\', \'[3,4]\');',
+      'precision chỉ được là exact, approximate, unknown. evidence_indexes phải là số tầng chính văn AI đã xuất hiện, có thể trích dẫn tầng đang quyết toán lần này; tầng của người dùng và tầng không tồn tại sẽ bị từ chối.',
+      "Đề xuất ràng buộc: chỉ đăng ký đề xuất khi chính văn thật sự bộc lộ ranh giới mới cần tuân thủ lâu dài; việc này không trực tiếp sửa ràng buộc dài hạn, phải do Agent chính quyết định. constraint_proposals chỉ được INSERT, chỉ có một cột text, không ghi id, UPDATE hay DELETE. Ví dụ: INSERT INTO constraint_proposals (text) VALUES ('Trước khi thu hồi phục bút, đừng tiết lộ sớm thân phận người gác cổng');",
+      'Sửa phục bút đã có (7 chỉ là minh họa, thay bằng giá trị hiện tại của revisions.hooks): UPDATE hooks SET status = \'reinforced\' WHERE id = \'H001\' AND expected_revision = 7;',
+      'Hủy bỏ: DELETE FROM hooks WHERE id = \'H001\' AND reason = \'Chính văn đã nêu rõ việc thu hồi\' AND expected_revision = 7;',
     ].join('\n');
   }
   if (name === 'web-researcher') {
     return [
       ...head,
-      '只写 web_refs。page_ref 必须是本轮 encyclopedia_read 或 web_read 返回的页面句柄，例如 P1。不要编造 URL，原文不入库。',
-      '何时使用：抓到可用页面后 INSERT；确认旧条目过时或错误时 UPDATE 或 DELETE。没有抓到页面就不要 INSERT。',
-      '范例：INSERT INTO web_refs (page_ref, name, brief, tags, detail) VALUES (\'P1\', \'守门人\', \'禁区入口的常驻看守\', \'["人物"]\', \'页面写明其只知道铁门前的事\');',
-      '修订已有条目（7 只是示意，换成 revisions.webRefs 的当前值）：UPDATE web_refs SET name = \'守门人\', brief = \'禁区入口的常驻看守\', page_ref = \'P1\' WHERE id = \'WR-001\' AND expected_revision = 7;',
-      '删除：DELETE FROM web_refs WHERE id = \'WR-001\' AND reason = \'页面已不存在\' AND expected_revision = 7;',
+      'Chỉ ghi web_refs. page_ref phải là handle trang do encyclopedia_read hoặc web_read trả về trong lượt này, ví dụ P1. Không bịa URL, nguyên văn không nhập kho.',
+      'Khi nào dùng: INSERT sau khi tải được trang dùng được; UPDATE hoặc DELETE khi xác nhận mục cũ đã lỗi thời hoặc sai. Chưa tải được trang thì đừng INSERT.',
+      'Ví dụ: INSERT INTO web_refs (page_ref, name, brief, tags, detail) VALUES (\'P1\', \'Người gác cổng\', \'Người canh gác thường trực ở lối vào cấm địa\', \'["Nhân vật"]\', \'Trang ghi rõ ông ta chỉ biết chuyện trước cổng sắt\');',
+      'Sửa mục đã có (7 chỉ là minh họa, thay bằng giá trị hiện tại của revisions.webRefs): UPDATE web_refs SET name = \'Người gác cổng\', brief = \'Người canh gác thường trực ở lối vào cấm địa\', page_ref = \'P1\' WHERE id = \'WR-001\' AND expected_revision = 7;',
+      'Xóa: DELETE FROM web_refs WHERE id = \'WR-001\' AND reason = \'Trang đã không còn tồn tại\' AND expected_revision = 7;',
     ].join('\n');
   }
   return head.join('\n');
@@ -584,11 +584,11 @@ function renderMissingAgentSql_ACU(
 ): string | null {
   const table = { hooks: 'hooks', infoGap: 'info_gap', storyArc: 'story_arc', chronology: 'chronology', webRefs: 'web_refs' }[item.module];
   const samples: Record<string, Record<string, string>> = {
-    hooks: { summary: "'守门人藏起晶屑'", status: "'planted'", importance: "'mid'", plantedIndex: '3', plannedPayoff: "'入城后由守门人交出'" },
-    infoGap: { topic: "'晶屑来历'", objectiveFact: "'来自禁区核心'", readerKnown: "'读者只见守门人藏起晶屑'", characterKnowledge: `'[{"name":"守门人","knows":"亲身保管晶屑"}]'`, revealStatus: "'unrevealed'" },
-    storyArc: { scope: item.id.startsWith('VOL-') ? "'volume'" : "'story'", title: "'入城追查'", direction: "'主角查明晶屑来历'", escalation: "'从守门人隐瞒推进到线索显现'", withheld: "'晶屑真正用途'", status: item.id.startsWith('VOL-') ? "'planned'" : "'active'", narrativeRole: "'setup'", targetStageRange: `'{"min":1,"max":2}'`, targetTimeSpan: "'数日'", progressCeiling: "'仅确认禁区入口'", sustainingThreads: `'["与守门人的信任"]'`, payoffTargets: `'["取得第一块线索"]'` },
-    chronology: { anchor: "'入城后的次日'", elapsed: "'约两日'", precision: "'approximate'", transition: "'守了一夜'", evidenceIndexes: "'[3]'" },
-    webRefs: { title: "'守门人'", brief: "'禁区入口的看守'", url: "'P1'" },
+    hooks: { summary: "'Người gác cổng giấu mảnh tinh thể'", status: "'planted'", importance: "'mid'", plantedIndex: '3', plannedPayoff: "'Sau khi vào thành, người gác cổng giao ra'" },
+    infoGap: { topic: "'Lai lịch mảnh tinh thể'", objectiveFact: "'Đến từ lõi cấm địa'", readerKnown: "'Độc giả chỉ thấy người gác cổng giấu mảnh tinh thể'", characterKnowledge: `'[{"name":"Người gác cổng","knows":"Tự tay giữ mảnh tinh thể"}]'`, revealStatus: "'unrevealed'" },
+    storyArc: { scope: item.id.startsWith('VOL-') ? "'volume'" : "'story'", title: "'Truy tìm khi vào thành'", direction: "'Nhân vật chính làm rõ lai lịch mảnh tinh thể'", escalation: "'Từ người gác cổng che giấu đến manh mối lộ ra'", withheld: "'Công dụng thật của mảnh tinh thể'", status: item.id.startsWith('VOL-') ? "'planned'" : "'active'", narrativeRole: "'setup'", targetStageRange: `'{"min":1,"max":2}'`, targetTimeSpan: "'vài ngày'", progressCeiling: "'Chỉ xác nhận lối vào cấm địa'", sustainingThreads: `'["Lòng tin với người gác cổng"]'`, payoffTargets: `'["Lấy được manh mối đầu tiên"]'` },
+    chronology: { anchor: "'Ngày hôm sau khi vào thành'", elapsed: "'khoảng hai ngày'", precision: "'approximate'", transition: "'canh suốt một đêm'", evidenceIndexes: "'[3]'" },
+    webRefs: { title: "'Người gác cổng'", brief: "'Người canh gác lối vào cấm địa'", url: "'P1'" },
   };
   // web_refs.url 只能由本次成功读取的页面句柄 page_ref 颁发，不能直接写 URL。
   const assignments = item.missingFields.map(field => {
@@ -606,45 +606,45 @@ function renderMissingAgentSql_ACU(
 function renderWriteSqlRepair_ACU(receipt: AgentModuleFieldReceipt_ACU): string {
   if (receipt.partials === null || receipt.revisions === null) {
     const stale = receipt.rejected.find(item => item.path === 'chat');
-    if (stale) return `【write_sql 任务失效】${stale.reason}。这不是字段错误，不在旧任务内继续读写。`;
-    return '【write_sql 补栏】保存或恢复状态不确定。先按上一次回执的 ID read $FIELD:模块:ID 权威栏目，核实已存栏目与当前 revisions；不要重发原 SQL 或猜测修订号。';
+    if (stale) return `【write_sql 任务失效】${stale.reason}. Đây không phải lỗi trường, không tiếp tục đọc ghi trong tác vụ cũ.`;
+    return '【write_sql 补栏】Trạng thái lưu hoặc khôi phục không chắc chắn. Trước hết read cột chuẩn $FIELD:mô-đun:ID theo ID của biên nhận lần trước, xác minh các cột đã lưu và revisions hiện tại; đừng gửi lại SQL gốc hay đoán số hiệu chỉnh.';
   }
   const lines: string[] = [];
   const operationPaths = new Set((receipt.operationOnlyConfirmed ?? []).flatMap(item => item.rejectedPaths));
-  if (operationPaths.size) lines.push('纯系统字段操作已拒绝且未写入；运行时已核实目标记录完整、当前修订号一致。不要为消除报错修改业务内容，不重发系统字段；核对本轮正文后，无业务变化就单独交付 summary，有真实变化仍只写合法业务字段。');
-  if (receipt.rejected.length || receipt.partials.length) lines.push(`WHERE expected_revision 使用当前模块修订号 revisions：${JSON.stringify(receipt.revisions)}；accepted / alreadySaved 的 revision 是字段修订号，不是模块修订号。`);
-  if (receipt.alreadySaved?.length) lines.push(`此前已保存且本次未重复写入：${receipt.alreadySaved.map(item => `${item.module}#${item.id}.${item.field}`).join('、')}。不要再次提交这些栏目。`);
+  if (operationPaths.size) lines.push('Thao tác thuần trường hệ thống đã bị từ chối và chưa ghi; thời gian chạy đã xác minh bản ghi đích đầy đủ và số hiệu chỉnh hiện tại khớp. Đừng sửa nội dung nghiệp vụ chỉ để xóa báo lỗi, đừng gửi lại trường hệ thống; sau khi đối chiếu chính văn lượt này, nếu không có thay đổi nghiệp vụ thì giao riêng summary, nếu có thay đổi thật thì vẫn chỉ ghi các trường nghiệp vụ hợp lệ.');
+  if (receipt.rejected.length || receipt.partials.length) lines.push(`expected_revision trong WHERE dùng số hiệu chỉnh mô-đun hiện tại revisions: ${JSON.stringify(receipt.revisions)}; revision của accepted / alreadySaved là số hiệu chỉnh trường, không phải số hiệu chỉnh mô-đun.`);
+  if (receipt.alreadySaved?.length) lines.push(`Đã lưu trước đó và lần này không ghi lặp: ${receipt.alreadySaved.map(item => `${item.module}#${item.id}.${item.field}`).join(', ')}. Đừng nộp lại các cột này.`);
   const drafts = receipt.partials.filter(item => item.missingFields.length || item.promotionError);
   if (drafts.length || receipt.rejected.length) {
-    lines.push('字段对照示例：原 INSERT 拟写 A/B/C/D，若回执 accepted 确认 A/C 已保存而 missingFields 或 rejected 指出 B/D 未保存，下次只按回执给出的真实 ID 和当前 revision 执行 UPDATE B/D；不得重发 INSERT 或 A/C。');
+    lines.push('Ví dụ đối chiếu trường: INSERT gốc định ghi A/B/C/D, nếu accepted của biên nhận xác nhận A/C đã lưu còn missingFields hoặc rejected chỉ ra B/D chưa lưu, lần sau chỉ UPDATE B/D theo ID thật và revision hiện tại mà biên nhận đưa ra; không được gửi lại INSERT hay A/C.');
   }
   for (const item of drafts) {
     const revision = receipt.revisions[item.module];
-    lines.push(`${item.module}#${item.id} 已有草稿；只缺 ${item.missingFields.join('、') || '领域校验所需的修正'}。当前模块修订号 ${revision}。`);
+    lines.push(`${item.module}#${item.id} đã có bản nháp; chỉ thiếu ${item.missingFields.join(', ') || 'chỉnh sửa cần cho kiểm tra miền'}. Số hiệu chỉnh mô-đun hiện tại ${revision}.`);
     if (item.missingFields.length) {
       const sql = renderMissingAgentSql_ACU(item, revision);
-      if (sql) lines.push(`仅补缺栏范例：${sql}`);
-      else lines.push('先 read 对应 $FIELD:模块:ID，按 missingFields 核对可写列，再仅补未保存的栏目。');
+      if (sql) lines.push(`Ví dụ chỉ bổ sung cột thiếu: ${sql}`);
+      else lines.push('Trước hết read $FIELD:mô-đun:ID tương ứng, đối chiếu các cột có thể ghi theo missingFields, rồi chỉ bổ sung các cột chưa lưu.');
     }
-    if (item.module === 'webRefs' && item.missingFields.includes('url')) lines.push('page_ref 必须来自本轮成功的 encyclopedia_read 或 web_read 页面句柄；没有句柄时先读取页面，不要把 P1 当作实际句柄。');
-    if (item.promotionError) lines.push(`未能提升：${item.promotionError}。如 missingFields 为空，先 read 核对已存栏目，再只修正领域校验失败的栏目；不能照搬缺栏范例。`);
+    if (item.module === 'webRefs' && item.missingFields.includes('url')) lines.push('page_ref phải đến từ handle trang của encyclopedia_read hoặc web_read thành công trong lượt này; chưa có handle thì đọc trang trước, đừng coi P1 là handle thực.');
+    if (item.promotionError) lines.push(`Chưa thể nâng cấp: ${item.promotionError}. Nếu missingFields rỗng thì read đối chiếu các cột đã lưu trước, rồi chỉ sửa các cột không qua kiểm tra miền; không được sao nguyên ví dụ thiếu cột.`);
   }
   for (const item of receipt.rejected) {
     if (item.reason.startsWith('already_absent')) {
-      lines.push(`${item.path}：删除目标已不存在，视为删除已完成。不要 INSERT 重建该条目，也不要重发这条 DELETE。`);
+      lines.push(`${item.path}: mục tiêu xóa đã không còn tồn tại, coi như đã xóa xong. Đừng INSERT tạo lại mục này, cũng đừng gửi lại DELETE này.`);
       continue;
     }
     if (operationPaths.has(item.path)) {
-      lines.push(`${item.path}：${item.reason}。这是已核实的错误操作，不是待补业务栏目。`);
+      lines.push(`${item.path}: ${item.reason}. Đây là thao tác sai đã được xác minh, không phải cột nghiệp vụ chờ bổ sung.`);
       continue;
     }
-    if (item.operationOnlyTarget) lines.push('系统字段不能补写。先核对同一条目及当前模块修订号；记录不完整、版本冲突或保存未知时，仍须处理真实缺口，不能宣称无变化。');
-    lines.push(`${item.path}：${item.reason}。被拒栏目尚未保存；按报错核对类型、枚举和正文证据，只补拒绝的栏目，不重发 accepted。`);
-    if (item.reason === 'not_found') lines.push('UPDATE 的目标不存在：先 read 对应 $FIELD:模块:ID 核实；只有正文确实新出现该条目才用 INSERT 建新行，已有草稿必须用 UPDATE，已删除的条目不要重建。');
-    if (item.reason === 'id_exists' || item.reason.startsWith('revision_conflict')) lines.push('先 read 对应 $FIELD:模块:ID 核实已存栏目，再用回执 revisions 或权威快照中的当前模块修订号补写；不要使用旧号或示例的 0。');
-    if (item.reason.includes('字段数与值数量不一致')) lines.push('列名与 VALUES 必须逐项对应；检查是否把正文误放进列名列表或漏写值，不要盲目添加 id / expected_revision。只有失败语句未写入，其他语句按 accepted / alreadySaved 确认，不重发。');
-    if (item.reason.includes('字符串字面量未闭合')) lines.push('检查字符串的英文单引号是否成对，正文里的单引号写成两个单引号。');
-    if (item.reason.includes('必须是非空字符串数组')) lines.push("数组必须写成单引号包裹的 JSON 文本，例如 '[\"与守门人的信任\"]'，不能用逗号或竖线代替。");
+    if (item.operationOnlyTarget) lines.push('Trường hệ thống không thể ghi bổ sung. Trước hết đối chiếu cùng mục và số hiệu chỉnh mô-đun hiện tại; khi bản ghi không đầy đủ, xung đột phiên bản hoặc không rõ đã lưu hay chưa, vẫn phải xử lý chỗ thiếu thật, không được tuyên bố không có thay đổi.');
+    lines.push(`${item.path}: ${item.reason}. Cột bị từ chối chưa được lưu; đối chiếu kiểu, enum và bằng chứng chính văn theo báo lỗi, chỉ bổ sung cột bị từ chối, không gửi lại accepted.`);
+    if (item.reason === 'not_found') lines.push('Mục tiêu của UPDATE không tồn tại: trước hết read $FIELD:mô-đun:ID tương ứng để xác minh; chỉ khi chính văn thật sự mới xuất hiện mục này mới dùng INSERT tạo hàng mới, bản nháp đã có phải dùng UPDATE, mục đã xóa thì đừng tạo lại.');
+    if (item.reason === 'id_exists' || item.reason.startsWith('revision_conflict')) lines.push('Trước hết read $FIELD:mô-đun:ID tương ứng để xác minh các cột đã lưu, rồi dùng số hiệu chỉnh mô-đun hiện tại trong revisions của biên nhận hoặc snapshot chuẩn để ghi bổ sung; đừng dùng số cũ hay số 0 của ví dụ.');
+    if (item.reason.includes('字段数与值数量不一致')) lines.push('Tên cột và VALUES phải tương ứng từng mục; kiểm tra xem có đặt nhầm chính văn vào danh sách tên cột hoặc thiếu giá trị không, đừng thêm id / expected_revision một cách mù quáng. Chỉ câu lệnh thất bại là chưa ghi, các câu lệnh khác xác nhận theo accepted / alreadySaved, không gửi lại.');
+    if (item.reason.includes('字符串字面量未闭合')) lines.push('Kiểm tra dấu nháy đơn tiếng Anh của chuỗi có thành cặp không, dấu nháy đơn trong chính văn viết thành hai dấu nháy đơn.');
+    if (item.reason.includes('必须是非空字符串数组') || item.reason.includes('mảng chuỗi không rỗng')) lines.push("Mảng phải viết thành văn bản JSON bao bằng dấu nháy đơn, ví dụ '[\"Lòng tin với người gác cổng\"]', không được thay bằng dấu phẩy hay gạch đứng.");
   }
   return lines.join('\n');
 }
@@ -656,54 +656,54 @@ function renderIncompleteFieldWrite_ACU(receipt: AgentModuleFieldReceipt_ACU): s
   const missing = (receipt.partials ?? []).filter(item => item.missingFields.length || item.promotionError);
   if (!rejected.length && !missing.length && receipt.partials !== null && !renderWriteSqlRepair_ACU(receipt)) return null;
   const lines: string[] = [];
-  if (receipt.accepted.length) lines.push(`已写入并保留 ${receipt.accepted.length} 个栏目。不要重发这些栏目。`);
+  if (receipt.accepted.length) lines.push(`Đã ghi và giữ lại ${receipt.accepted.length} cột. Đừng gửi lại các cột này.`);
   if (rejected.length) {
-    lines.push('下列栏目没有写入：');
-    for (const item of rejected) lines.push(`- ${item.path}：${item.reason}`);
+    lines.push('Các cột sau chưa được ghi:');
+    for (const item of rejected) lines.push(`- ${item.path}: ${item.reason}`);
   }
   if (missing.length) {
-    lines.push('下列条目还缺必填栏目，补齐后才会成为正式资料：');
-    for (const item of missing) lines.push(`- ${item.module}#${item.id}：${item.missingFields.join('、') || '提升失败'}${item.promotionError ? `（${item.promotionError}）` : ''}`);
+    lines.push('Các mục sau còn thiếu cột bắt buộc, bổ sung đủ thì mới trở thành tư liệu chính thức:');
+    for (const item of missing) lines.push(`- ${item.module}#${item.id}: ${item.missingFields.join(', ') || 'nâng cấp thất bại'}${item.promotionError ? ` (${item.promotionError})` : ''}`);
   }
-  if (receipt.partials === null || receipt.revisions === null) lines.push('保存状态不确定。先 read $FIELD:模块:ID 读取权威帧，再决定补写。');
+  if (receipt.partials === null || receipt.revisions === null) lines.push('Trạng thái lưu không chắc chắn. Trước hết read $FIELD:mô-đun:ID để đọc khung chuẩn, rồi mới quyết định ghi bổ sung.');
   const repair = renderWriteSqlRepair_ACU(receipt);
   if (repair) lines.push(repair);
   lines.push(receipt.partials === null || receipt.revisions === null
-    ? '保存状态不确定时先 read 权威帧确认已存栏目和修订号，不要继续写入。'
-    : '请只补尚未保存的栏目；已有草稿用 UPDATE，WHERE 带 id 和当前模块 expected_revision。只有权威读取确认不存在的全新行才用 INSERT。不要拆成多次调用。');
+    ? 'Khi trạng thái lưu không chắc chắn thì read khung chuẩn trước để xác nhận các cột đã lưu và số hiệu chỉnh, đừng ghi tiếp.'
+    : 'Chỉ bổ sung các cột chưa lưu; bản nháp đã có dùng UPDATE, WHERE kèm id và expected_revision của mô-đun hiện tại. Chỉ hàng hoàn toàn mới được đọc chuẩn xác nhận là chưa tồn tại mới dùng INSERT. Đừng tách thành nhiều lần gọi.');
   return lines.join('\n');
 }
 
 /** 总纲还没建立时，直接要一条 SQL，不再把模型赶回 delta.storyArc。 */
 function renderArcSqlBootstrap_ACU(chat: any[], remainingWriteRounds: number, toolMode: AgentToolMode_ACU): string {
   if (remainingWriteRounds <= 0) {
-    return `总纲还不能执行，write_sql 轮次已用尽，不再提交写入。${toolMode === 'tools' ? '单独调用 submit' : '单独输出最终 JSON'}，在 summary 中如实报告总纲尚未建立及缺口，不带 sql。`;
+    return `Tổng cương vẫn chưa thể thực thi, số vòng write_sql đã dùng hết, không nộp ghi nữa. ${toolMode === 'tools' ? 'Gọi riêng submit' : 'Xuất riêng JSON cuối cùng'}, báo cáo trung thực trong summary rằng tổng cương chưa được lập cùng các chỗ thiếu, không kèm sql.`;
   }
   const lines = [
-    '总纲还不能执行。summary、Markdown、delta 和顶层 storyArc 数组都不会入库。',
+    'Tổng cương vẫn chưa thể thực thi. summary, Markdown, delta và mảng storyArc cấp cao nhất đều sẽ không nhập kho.',
     toolMode === 'tools'
-      ? '请调用 write_sql。新行 INSERT 的 expected_revision 固定写 0。补已有行用当前模块修订号，同一条 sql 里的多条 UPDATE 都用这个号。'
-      : '请单独输出 {"action":"write_sql","sql":"全部语句"}。新行 INSERT 的 expected_revision 固定写 0。补已有行用当前模块修订号，同一个 sql 里的多条 UPDATE 都用这个号。',
+      ? 'Hãy gọi write_sql. INSERT hàng mới luôn ghi expected_revision là 0. Bổ sung hàng đã có thì dùng số hiệu chỉnh mô-đun hiện tại, nhiều UPDATE trong cùng một sql đều dùng số này.'
+      : 'Hãy xuất riêng {"action":"write_sql","sql":"toàn bộ câu lệnh"}. INSERT hàng mới luôn ghi expected_revision là 0. Bổ sung hàng đã có thì dùng số hiệu chỉnh mô-đun hiện tại, nhiều UPDATE trong cùng một sql đều dùng số này.',
   ];
   const folded = readAgentModuleFoldState_ACU(chat);
   if (folded.salvaged || folded.candidates.some(item => !item.valid)) {
-    lines.push('资料帧状态不确定。先 read $FIELD:storyArc 读取权威帧，再决定补写。');
+    lines.push('Trạng thái khung tư liệu không chắc chắn. Trước hết read $FIELD:storyArc để đọc khung chuẩn, rồi mới quyết định ghi bổ sung.');
     return lines.join('\n');
   }
   const revision = folded.snapshot.revisions.storyArc;
-  lines.push(`当前 story_arc 修订号是 ${revision}。新行 INSERT 的 expected_revision 固定写 0；补已有行才写 ${revision}。每条 INSERT 都必须带 withheld。`);
+  lines.push(`Số hiệu chỉnh story_arc hiện tại là ${revision}. INSERT hàng mới luôn ghi expected_revision là 0; chỉ khi bổ sung hàng đã có mới ghi ${revision}. Mỗi INSERT đều phải kèm withheld.`);
   const records = Object.entries(folded.fields.records.storyArc ?? {});
   if (!records.length) {
-    lines.push('现在没有任何总纲记录。把一条 scope=\'story\' 的全书方向和全部 volume 放进同一条 sql 一次写入，不要拆成多次调用。story 不要带 narrative_role、target_stage_range、sustaining_threads、payoff_targets。只有第一卷 status=\'active\'，其余 \'planned\'。');
+    lines.push('Hiện chưa có bản ghi tổng cương nào. Đặt một dòng scope=\'story\' (hướng đi toàn truyện) và toàn bộ volume vào cùng một sql để ghi một lần, đừng tách thành nhiều lần gọi. story không kèm narrative_role, target_stage_range, sustaining_threads, payoff_targets. Chỉ tập đầu tiên có status=\'active\', các tập còn lại là \'planned\'.');
   } else {
-    lines.push('已有分栏记录，不要重发已保存栏目：');
+    lines.push('Đã có bản ghi theo cột, đừng gửi lại các cột đã lưu:');
     for (const [id, record] of records) {
       const saved = Object.keys(record.fields);
-      lines.push(`- ${id}（${record.status === 'complete' ? '已是正式条目' : '尚未成为正式条目'}）：已有 ${saved.join('、') || '无'}；缺 ${record.missingFields.join('、') || '无'}。`);
+      lines.push(`- ${id} (${record.status === 'complete' ? 'đã là mục chính thức' : 'chưa trở thành mục chính thức'}): đã có ${saved.join(', ') || 'không có'}; thiếu ${record.missingFields.join(', ') || 'không có'}.`);
     }
-    lines.push('缺栏用 UPDATE，WHERE 带 id 和上面的修订号。还没有的 id 才用 INSERT。');
+    lines.push('Cột thiếu dùng UPDATE, WHERE kèm id và số hiệu chỉnh ở trên. Chỉ id chưa có mới dùng INSERT.');
   }
-  lines.push('sustaining_threads 与 payoff_targets 必须是单引号包裹的 JSON 数组，例如 \'["经营线"]\'。target_stage_range 例如 \'{"min":6,"max":10}\'。字符串里的单引号写成两个单引号。');
+  lines.push('sustaining_threads và payoff_targets phải là mảng JSON bao bằng dấu nháy đơn, ví dụ \'["tuyến kinh doanh"]\'. target_stage_range ví dụ \'{"min":6,"max":10}\'. Dấu nháy đơn trong chuỗi viết thành hai dấu nháy đơn.');
   return lines.join('\n');
 }
 
@@ -730,7 +730,7 @@ export class AgentSubagentRuntime_ACU {
   async run(input: AgentSubagentRunInput_ACU): Promise<AgentSubagentRunResult_ACU> {
     const definition = findAgentSubagentDefinition_ACU(input.delegation.agentName);
     if (!definition) {
-      rejectDelegation_ACU(`目录里没有名为 ${input.delegation.agentName} 的子代理`, { agentName: input.delegation.agentName });
+      rejectDelegation_ACU(`Trong danh mục không có agent phụ tên ${input.delegation.agentName}`, { agentName: input.delegation.agentName });
     }
     const accessProfile = getAgentSubagentAccessProfile_ACU(definition.kind);
     const writes = definition.kind === 'maintain' && input.targetModules?.length
@@ -757,15 +757,15 @@ export class AgentSubagentRuntime_ACU {
     const authorizedReads = getAgentSubagentReadPrefixes_ACU(definition.kind, writes);
     const unauthorizedSeed = seedTokens.find(token => !readStaysWithOwner_ACU(token, authorizedReads));
     if (unauthorizedSeed) {
-      rejectDelegation_ACU(`派工种子地址未获 ${definition.name} 授权：${unauthorizedSeed}`, { agentName: definition.name, address: unauthorizedSeed });
+      rejectDelegation_ACU(`Địa chỉ hạt giống của lần giao việc chưa được ${definition.name} cấp quyền: ${unauthorizedSeed}`, { agentName: definition.name, address: unauthorizedSeed });
     }
     const seeds = seedTokens.map(token => resolveMaterial_ACU(token, input.resolveContext));
     const failedSeed = seeds.find(seed => seed.status === 'failed');
-    if (failedSeed) throw subagentFailed_ACU(`派工种子读取失败：${failedSeed.key}`, false, { address: failedSeed.key, reason: failedSeed.text });
+    if (failedSeed) throw subagentFailed_ACU(`Đọc địa chỉ hạt giống của lần giao việc thất bại: ${failedSeed.key}`, false, { address: failedSeed.key, reason: failedSeed.text });
     const seedDecision = await gateAgentReadBatch_ACU(seeds.map(seed => ({ label: seed.label, text: seed.text })), gate.state, gate.config, 0);
     if (!seedDecision.allowed) {
       rejectDelegation_ACU(
-        `派工种子读集超出读取预算，整次派工未执行。请缩小 reads——正文用更窄的 $STORY_RANGE 区间、表格用 $TABLE:表名:行区间、模块按 ID 精读。\n${seedDecision.report}`,
+        `Tập đọc hạt giống của lần giao việc vượt ngân sách đọc, toàn bộ lần giao việc không được thực thi. Hãy thu hẹp reads: chính văn dùng khoảng $STORY_RANGE hẹp hơn, bảng dùng $TABLE:tên bảng:khoảng hàng, mô-đun thì đọc kỹ theo ID.\n${seedDecision.report}`,
         { agentName: definition.name, seedTokens, batchTokens: seedDecision.batchTokens },
       );
     }
@@ -773,7 +773,7 @@ export class AgentSubagentRuntime_ACU {
     for (const seed of seeds) gate.granted.add(seed.key);
     const materials = seeds.length
       ? seeds.map(seed => seed.text).join('\n\n')
-      : `本次没有为你注入任何种子资料。需要的信息用 ${accessProfile.allowSearch ? 'read / search' : 'read'} 工具按各目录的地址调阅。`;
+      : `Lần này không tiêm tư liệu hạt giống nào cho bạn. Thông tin cần thiết hãy dùng công cụ ${accessProfile.allowSearch ? 'read / search' : 'read'} để tra cứu theo địa chỉ trong từng danh mục.`;
 
     // 捕获与渲染必须同一时刻取自同一份快照，否则并发校验的基准就不是子代理真正读到的版本。
     const readRevisions: AgentModuleRevisions_ACU = { ...input.resolveContext.moduleSnapshot.revisions };
@@ -815,7 +815,7 @@ export class AgentSubagentRuntime_ACU {
       $AGENT_READ_MATERIALS: () => materials,
       $AGENT_TASK: () => input.delegation.prompt,
       $AGENT_WRITE_SCOPE: () => describeWriteScope_ACU(writes),
-      $USER_INTENT: () => input.resolveContext.originInstruction || '（用户未提供初始要求）',
+      $USER_INTENT: () => input.resolveContext.originInstruction || '(Người dùng chưa cung cấp yêu cầu ban đầu)',
       $USER_REQUIREMENTS: () => renderAgentUserRequirements_ACU(input.resolveContext.moduleSnapshot, input.resolveContext.originInstruction),
       $OUTLINE_WINDOW: () => renderAgentOutlineWindow_ACU(input.resolveContext),
       // 资料目录与固定注入：默认提示词按角色矩阵引用；未引用的占位符不产生开销（惰性渲染）。
@@ -825,7 +825,7 @@ export class AgentSubagentRuntime_ACU {
       $WORLDBOOK_CATALOG: () => renderAgentWorldbookBrowseCatalog_ACU(input.resolveContext.worldbook ?? buildEmptyAgentWorldbookSnapshot_ACU(false)),
       $WORLDBOOK_HITS: () => {
         const worldbook = input.resolveContext.worldbook ?? buildEmptyAgentWorldbookSnapshot_ACU(false);
-        if (definition.kind === 'arc') return '总纲不注入命中条目全文。请用已启用世界书目录自行选择 read，或用 search 的 worldbook 域按关键词检索。';
+        if (definition.kind === 'arc') return 'Tổng cương không tiêm toàn văn các mục khớp. Hãy tự chọn read theo danh mục sổ thế giới đã bật, hoặc dùng miền worldbook của search để tìm theo từ khóa.';
         return renderAgentWorldbookTriggeredInjection_ACU(worldbook, buildAgentWorldbookScanText_ACU(input.resolveContext));
       },
       $STORY_OVERVIEW: () => renderAgentStoryOverview_ACU({ tableData: input.resolveContext.tableData, recallCodes: input.resolveContext.recallCodes }, { maxRows: overviewMaxRows }),
@@ -838,7 +838,7 @@ export class AgentSubagentRuntime_ACU {
       $CHRONOLOGY: () => resolveAgentReadToken_ACU('$CHRONOLOGY', input.resolveContext).text,
       $WEB_REFS: () => resolveAgentReadToken_ACU('$WEB_REFS', input.resolveContext).text,
       $WEB_TOOL_CATALOG: () => renderAgentWebToolCatalog_ACU({
-        sources: enabledEncyclopediaSources_ACU(webSettings).map(source => `${source}（${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]}）`),
+        sources: enabledEncyclopediaSources_ACU(webSettings).map(source => `${source} (${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]})`),
         provider: webSettings.searchProvider,
         maxPages: webSettings.maxPages,
         pageCharLimit: webSettings.pageCharLimit,
@@ -862,25 +862,25 @@ export class AgentSubagentRuntime_ACU {
         || message.content === maintenanceFormat('tools')));
     const sharedReadExhausted = readOnceKind && readRoundState.successfulReadBatches.has(readRoundKey);
     const readScopeSnapshot = authorizedReads.length
-      ? `本角色只可 read 以下自有或强相关地址：${authorizedReads.join('、')}。${accessProfile.allowSearch ? '世界书检索限已授权范围。' : '不得做本地 search。'}${readOnceKind ? sharedReadExhausted || maxToolRounds === 0
-        ? '本次读取额度已用尽，不能再 read；重新派工不恢复同轮额度。基于已注入资料和回执交付，证据不足时如实说明未确认缺口。读取限制不改变本次写入授权。'
-        : '每轮至多一个成功读取批次：确需补读时把地址放进同一次回复并发读齐；固定注入与目录足够时不读，直接交付。' : ''}`
-      : '本角色没有本地调阅工具，直接根据已备资料交付。';
+      ? `Vai trò này chỉ được read các địa chỉ riêng hoặc liên quan chặt chẽ sau: ${authorizedReads.join(', ')}. ${accessProfile.allowSearch ? 'Tìm kiếm sổ thế giới chỉ trong phạm vi đã cấp quyền.' : 'Không được search cục bộ.'}${readOnceKind ? sharedReadExhausted || maxToolRounds === 0
+        ? 'Hạn mức đọc lần này đã dùng hết, không thể read nữa; giao việc lại không khôi phục hạn mức của cùng lượt. Hãy giao dựa trên tư liệu đã tiêm và biên nhận, khi thiếu bằng chứng thì nói rõ trung thực các chỗ thiếu chưa xác nhận. Giới hạn đọc không thay đổi quyền ghi của lần này.'
+        : 'Mỗi lượt tối đa một lô đọc thành công: khi thật sự cần đọc bổ sung, hãy đưa địa chỉ vào cùng một lần trả lời để đọc đủ song song; nếu phần tiêm cố định và danh mục đã đủ thì đừng đọc, giao ngay.' : ''}`
+      : 'Vai trò này không có công cụ tra cứu cục bộ, hãy giao trực tiếp dựa trên tư liệu đã chuẩn bị.';
     const tableNames: Partial<Record<AgentWritableModule_ACU, string>> = {
       hooks: 'hooks', infoGap: 'info_gap', storyArc: 'story_arc', chronology: 'chronology', webRefs: 'web_refs',
     };
-    const writableTables = ` ${writes.map(module => tableNames[module]).filter(Boolean).join('、')}${definition.kind === 'maintain' ? '；constraint_proposals 仅登记建议' : ''}`;
+    const writableTables = ` ${writes.map(module => tableNames[module]).filter(Boolean).join(', ')}${definition.kind === 'maintain' ? '; constraint_proposals chỉ đăng ký đề xuất' : ''}`;
     // 授权随请求快照下发；历史之后只剩固定预填充，不再插入额外 system 段。
     const maintenanceAuthorization = maintenanceFormat !== undefined
       ? `【本次读取与写入授权】\n${readScopeSnapshot}\n${input.writeSql && writes.length
         ? definition.kind === 'maintain'
-          ? `本次允许用 summary + delta 一次提交维护变化，程序保存并回读；write_sql 仍可兼容写入${writableTables}。只认 status=committed 与权威回读，不重发已保存栏目。`
-          : `本次允许 write_sql 写入${writableTables}；只认写入回执的保存结果。`
-        : '本次没有 write_sql 写入授权，不提交写入，仅交付核对结果与缺口。'}`
+          ? `Lần này cho phép dùng summary + delta để nộp một lần các thay đổi bảo trì, chương trình lưu và đọc lại; write_sql vẫn có thể ghi tương thích vào${writableTables}. Chỉ công nhận status=committed và đọc lại chuẩn, không gửi lại các cột đã lưu.`
+          : `Lần này cho phép write_sql ghi vào${writableTables}; chỉ công nhận kết quả lưu trong biên nhận ghi.`
+        : 'Lần này không có quyền ghi write_sql, không nộp ghi, chỉ giao kết quả đối chiếu và các chỗ thiếu.'}`
       : definition.promptKey === 'mainlinePlanner' || definition.promptKey === 'beatPlanner'
-        ? `【本次读取与交付授权】\n${readScopeSnapshot}\n本角色只返回策划建议，不写入资料，不派遣其他角色。`
+        ? `【本次读取与交付授权】\n${readScopeSnapshot}\nVai trò này chỉ trả về đề xuất hoạch định, không ghi tư liệu, không điều động vai trò khác.`
         : definition.promptKey === 'instructionComposer'
-          ? `【本次读取与交付授权】\n${readScopeSnapshot}\n本角色只交付写作指令，不写入资料，不派遣其他角色。`
+          ? `【本次读取与交付授权】\n${readScopeSnapshot}\nVai trò này chỉ giao chỉ thị viết, không ghi tư liệu, không điều động vai trò khác.`
           : '';
     const presentTokens = new Set([...promptSegments, ...(split.taskTemplate ? [{ content: split.taskTemplate }] : [])].flatMap(segment => segment.content.match(/\$[A-Z][A-Z0-9_]*/g) ?? [] as string[]));
     const renderRequestSnapshot = async (): Promise<string> => {
@@ -1020,11 +1020,11 @@ export class AgentSubagentRuntime_ACU {
       const issues = new Map(writeProblems);
       if (writeStateUnknown) {
         issues.set('write_state', { module: writes[0], source: 'invoke_failed', path: 'write_state',
-          message: '逐栏保存或补偿状态未确认，必须重新读取权威资料' });
+          message: 'Trạng thái lưu theo cột hoặc bù trừ chưa được xác nhận, phải đọc lại tư liệu chuẩn' });
       }
       const folded = readAgentModuleFoldState_ACU(input.resolveContext.chat);
       if (folded.salvaged || folded.candidates.some(item => !item.valid)) {
-        issues.set('frame', { module: writes[0], source: 'invoke_failed', path: 'frame', message: '资料帧损坏，无法确认逐栏完成' });
+        issues.set('frame', { module: writes[0], source: 'invoke_failed', path: 'frame', message: 'Khung tư liệu bị hỏng, không thể xác nhận đã hoàn tất theo cột' });
       } else {
         // 可唯一定位的旧 SQL 拒绝转为字段缺口，跨派工后仍能与合法回执精确对账。
         for (const [key, target] of sqlRepairTargets) {
@@ -1050,13 +1050,13 @@ export class AgentSubagentRuntime_ACU {
         for (const module of writes) for (const record of Object.values(folded.fields.records[module] ?? {})) {
           if (record.status !== 'partial') continue;
           for (const field of record.missingFields) issues.set(`${module}#${record.id}.${field}`, { module,
-            source: 'transaction_rejected', id: record.id, path: `${module}#${record.id}.${field}`, message: `必填栏目 ${field} 尚未提交` });
+            source: 'transaction_rejected', id: record.id, path: `${module}#${record.id}.${field}`, message: `Cột bắt buộc ${field} chưa được nộp` });
         }
         for (const key of confirmedFields) {
           const [module, id, field] = key.split(':') as [AgentWritableModule_ACU, string, string];
           const record = folded.fields.records[module]?.[id];
           if (!record?.fields[field]) issues.set(`${module}#${id}.${field}`, { module, id, source: 'invoke_failed',
-            path: `${module}#${id}.${field}`, message: '写入回执未在当前权威资料中得到确认' });
+            path: `${module}#${id}.${field}`, message: 'Biên nhận ghi chưa được xác nhận trong tư liệu chuẩn hiện tại' });
         }
       }
       return [...issues.values()];
@@ -1183,7 +1183,7 @@ export class AgentSubagentRuntime_ACU {
             module,
             source: 'truncated',
             path: module,
-            message: '契约输出在 JSON 中途截断，尾部条目尚未确认完整',
+            message: 'Đầu ra hợp đồng bị cắt giữa chừng trong JSON, các mục ở cuối chưa được xác nhận đầy đủ',
           });
         }
       }
@@ -1247,7 +1247,7 @@ export class AgentSubagentRuntime_ACU {
       const identity = input.createIdentity(definition.name, attempt);
       attempt += 1;
       if (!input.isCurrent(identity)) {
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', '子代理请求已失效', false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', 'Yêu cầu của agent phụ đã hết hiệu lực', false));
       }
       // 传输错误（502/网络抖动）按设置延时重试；协议/契约拒绝仍走小循环内的对话级立即重试。
       const requestSnapshot = await renderRequestSnapshot();
@@ -1273,7 +1273,7 @@ export class AgentSubagentRuntime_ACU {
         },
       );
       if (!input.isCurrent(identity)) {
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', '子代理结果已失效', false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', 'Kết quả của agent phụ đã hết hiệu lực', false));
       }
       const turn = normalizeAgentModelReply_ACU(raw);
       const nativeCalls: AiNativeToolCall_ACU[] = turn.toolCalls;
@@ -1286,15 +1286,15 @@ export class AgentSubagentRuntime_ACU {
       // 回灌反馈：工具模式给每个函数调用配一条回执，json 模式用普通 user 消息。
       const pushFeedback = (feedback: string): void => {
         if (nativeMode && nativeCalls.length) transcript.push(...nativeToolExchange_ACU(turn.content, nativeCalls, nativeCalls.map(() => feedback)));
-        else transcript.push({ role: 'assistant', content: rawText || '(空输出)' }, { role: 'user', content: feedback });
+        else transcript.push({ role: 'assistant', content: rawText || '(đầu ra rỗng)' }, { role: 'user', content: feedback });
       };
       const pushToolResults = (results: readonly string[]): void => {
         if (nativeMode) transcript.push(...nativeToolExchange_ACU(turn.content, nativeCalls, results));
-        else transcript.push({ role: 'assistant', content: rawText || '(空输出)' }, { role: 'user', content: `【工具结果】\n${results.join('\n\n')}` });
+        else transcript.push({ role: 'assistant', content: rawText || '(đầu ra rỗng)' }, { role: 'user', content: `【工具结果】\n${results.join('\n\n')}` });
       };
       try {
         if (nativeMode) {
-          if (!nativeCalls.length) throw new Error('工具模式下必须调用函数：读取与写入用对应函数，交付结果调用 submit，不要输出 JSON 文本');
+          if (!nativeCalls.length) throw new Error('Ở chế độ công cụ phải gọi hàm: đọc và ghi dùng hàm tương ứng, giao kết quả thì gọi submit, đừng xuất văn bản JSON');
           const split = splitNativeDecisionCalls_ACU(nativeToolArguments_ACU(nativeCalls), [AGENT_SUBMIT_TOOL_NAME_ACU]);
           if (split.decision) submitText = submitPayloadText_ACU(split.decision.payload);
           toolCalls = split.tools.length ? split.tools.map(({ call, payload }) => {
@@ -1306,23 +1306,23 @@ export class AgentSubagentRuntime_ACU {
           if (call.name === 'write_sql') {
             // 兼容共享工具声明的可选证据参数；续写仍只按 SQL 与角色权限提交。
             if (!input.writeSql || !writes.length || typeof payload.sql !== 'string' || !payload.sql.trim()
-              || Object.keys(payload).some(key => !['action', 'sql', 'evidenceRefs'].includes(key))) throw new Error('write_sql 未授权或参数非法');
+              || Object.keys(payload).some(key => !['action', 'sql', 'evidenceRefs'].includes(key))) throw new Error('write_sql chưa được cấp quyền hoặc tham số không hợp lệ');
             return { kind: 'write_sql' as const, sql: payload.sql.trim() };
           }
           const { notes: _notes, ...argumentsWithoutNotes } = payload;
           if (['encyclopedia_search', 'encyclopedia_read', 'web_search', 'web_read'].includes(call.name)) {
-            if (!isResearch) throw new Error(`出网工具 ${call.name} 未授权`);
+            if (!isResearch) throw new Error(`Công cụ ra mạng ${call.name} chưa được cấp quyền`);
             return parseAgentWebToolCall_ACU(argumentsWithoutNotes);
           }
-          if (!authorizedToolNames.has(call.name)) throw new Error(`工具 ${call.name} 未获当前角色 profile 授权`);
-          if (call.name === 'read' && (definition.kind === 'compose' || (ownReads && !ownReads.length))) throw new Error('当前角色未授权本地读取');
-          if (_notes !== undefined && !isResearch) throw new Error('非研究角色不得传 notes');
+          if (!authorizedToolNames.has(call.name)) throw new Error(`Công cụ ${call.name} chưa được profile của vai trò hiện tại cấp quyền`);
+          if (call.name === 'read' && (definition.kind === 'compose' || (ownReads && !ownReads.length))) throw new Error('Vai trò hiện tại chưa được cấp quyền đọc cục bộ');
+          if (_notes !== undefined && !isResearch) throw new Error('Vai trò không nghiên cứu không được truyền notes');
           const parsed = parseAgentToolCall_ACU(argumentsWithoutNotes);
-          if (parsed.kind !== call.name) throw new Error('工具名称与动作不一致');
+          if (parsed.kind !== call.name) throw new Error('Tên công cụ và hành động không khớp');
           return parsed;
           }) : null;
         } else {
-          if (nativeCalls.length) throw new Error('当前为 JSON 模式，不要调用函数；把动作写成 JSON 对象输出');
+          if (nativeCalls.length) throw new Error('Hiện ở chế độ JSON, đừng gọi hàm; hãy viết hành động thành đối tượng JSON để xuất');
           toolCalls = input.writeSql && writes.length
             ? parseAgentWritableToolCalls_ACU(protocolText, prefill, isResearch)
             : isResearch ? parseAgentResearcherToolCalls_ACU(protocolText, prefill) : parseAgentSubagentToolCalls_ACU(protocolText, prefill);
@@ -1333,14 +1333,14 @@ export class AgentSubagentRuntime_ACU {
       } catch (error) {
         protocolRejections += 1;
         if (protocolRejections > retries) {
-          if (writeAttempted) throw subagentFailed_ACU('写入后工具协议重试耗尽，逐栏维护未完成', false, {
+          if (writeAttempted) throw subagentFailed_ACU('Sau khi ghi, số lần thử lại giao thức công cụ đã cạn, bảo trì theo cột chưa hoàn tất', false, {
             agentName: definition.name, acceptedKeys: [...confirmedFields], unresolvedIssues: [
               ...terminalIssues(), { module: writes[0], source: 'protocol_failed', path: 'write_sql', message: compactAgentProtocolError_ACU(error) },
             ],
           });
           throw error;
         }
-        const reason = `工具动作未执行：${compactAgentProtocolError_ACU(error)}。${nativeMode ? '请修正函数调用后重试。' : '请修正 action / sql 后重试。'}`;
+        const reason = `Hành động công cụ chưa được thực thi: ${compactAgentProtocolError_ACU(error)}. ${nativeMode ? 'Hãy sửa lệnh gọi hàm rồi thử lại.' : 'Hãy sửa action / sql rồi thử lại.'}`;
         pushFeedback(reason);
         continue;
       }
@@ -1351,10 +1351,10 @@ export class AgentSubagentRuntime_ACU {
           : toolRoundsUsed < maxToolRounds;
         if (!readsAllowed && toolCalls.every(item => item.kind !== 'write_sql')) {
           const exhausted = isResearch
-            ? `工具轮次已用尽（上限 ${maxToolRounds} 轮）。请基于已抓到的页面${nativeMode ? '单独调用 submit 交付' : '单独输出契约 JSON'}；没查到的实体在 summary 里如实列出，不许伪造。\n\n${renderReadBudgetNote(toolRoundsUsed)}`
+            ? `Số vòng công cụ đã dùng hết (giới hạn ${maxToolRounds} vòng). Hãy dựa trên các trang đã tải được mà ${nativeMode ? 'gọi riêng submit để giao' : 'xuất riêng JSON hợp đồng'}; thực thể không tra được thì liệt kê trung thực trong summary, không được ngụy tạo.\n\n${renderReadBudgetNote(toolRoundsUsed)}`
             : readOnceKind
-              ? `read-once-exhausted：读取轮次已用尽（每轮至多一个成功读取批次，本次上限 ${maxToolRounds}），不能再 read。${input.writeSql && writes.length && maxWriteRounds - writeRoundsUsed > 0 ? nativeMode ? '有可证实的变化就单独调用 write_sql 写齐；' : '有可证实的变化就单独输出 {"action":"write_sql","sql":"全部语句"} 写齐；' : ''}请基于已有资料${nativeMode ? '单独调用 submit 交付' : '单独交付契约 JSON'}；确实缺失的信息标注「信息不足」，不许伪造。\n\n${renderReadBudgetNote(toolRoundsUsed)}`
-              : `read/search 轮次已用尽（上限 ${maxToolRounds} 轮）。请基于已有资料${nativeMode ? '单独调用 submit 交付' : '单独输出契约 JSON'}；确实缺失的信息在结果里标注「信息不足」，不许伪造。\n\n${renderReadBudgetNote(toolRoundsUsed)}`;
+              ? `read-once-exhausted: số vòng đọc đã dùng hết (mỗi lượt tối đa một lô đọc thành công, giới hạn lần này ${maxToolRounds}), không thể read nữa. ${input.writeSql && writes.length && maxWriteRounds - writeRoundsUsed > 0 ? nativeMode ? 'Nếu có thay đổi chứng thực được thì gọi riêng write_sql để ghi đủ; ' : 'Nếu có thay đổi chứng thực được thì xuất riêng {"action":"write_sql","sql":"toàn bộ câu lệnh"} để ghi đủ; ' : ''}Hãy dựa trên tư liệu hiện có mà ${nativeMode ? 'gọi riêng submit để giao' : 'giao riêng JSON hợp đồng'}; thông tin thật sự thiếu thì đánh dấu "thiếu thông tin", không được ngụy tạo.\n\n${renderReadBudgetNote(toolRoundsUsed)}`
+              : `Số vòng read/search đã dùng hết (giới hạn ${maxToolRounds} vòng). Hãy dựa trên tư liệu hiện có mà ${nativeMode ? 'gọi riêng submit để giao' : 'xuất riêng JSON hợp đồng'}; thông tin thật sự thiếu thì đánh dấu "thiếu thông tin" trong kết quả, không được ngụy tạo.\n\n${renderReadBudgetNote(toolRoundsUsed)}`;
           // 唯一批次已用过时仍结算一次：只回报重复/收窄地址的如实提示或 read-once-exhausted，不注入任何新正文。
           const localReads = readOnceKind && maxToolRounds > 0
             ? toolCalls.filter((item): item is AgentToolCall_ACU => item.kind === 'read' || item.kind === 'search')
@@ -1371,7 +1371,7 @@ export class AgentSubagentRuntime_ACU {
           const call = toolCalls[index];
           if (call.kind === 'write_sql') {
             if (writeRoundsUsed >= maxWriteRounds) {
-              const exhausted = JSON.stringify({ action: 'write_sql', originalSql: call.sql, status: 'rejected', accepted: [], reason: 'write_sql 轮次已用尽',
+              const exhausted = JSON.stringify({ action: 'write_sql', originalSql: call.sql, status: 'rejected', accepted: [], reason: 'Số vòng write_sql đã dùng hết',
                 remainingToolRounds: maxToolRounds - toolRoundsUsed, remainingWriteRounds: 0 });
               perCallResults.push(exhausted);
               continue;
@@ -1381,9 +1381,9 @@ export class AgentSubagentRuntime_ACU {
             // 提交的 SQL 原文进会话流：用户要能看到这一轮究竟写了什么，而不只是成功或失败。
             // 同一条目在通过、被拒、宿主异常三种结局下回写，避免内容与结论分家。
             const writeEntryId = logAgentSession_ACU({ kind: 'write_sql', agentName: definition.name, status: 'running',
-              title: `提交 SQL（${call.sql.split(';').filter(part => part.trim()).length} 条语句）`, detail: call.sql });
+              title: `Nộp SQL (${call.sql.split(';').filter(part => part.trim()).length} câu lệnh)`, detail: call.sql });
             if (!input.isCurrent(identity) || input.signal?.aborted) {
-              throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', '写入请求已失效', false));
+              throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', 'Yêu cầu ghi đã hết hiệu lực', false));
             }
             try {
               const receipt = await input.writeSql!({ role: definition.name, sql: call.sql, revisionWindow,
@@ -1391,21 +1391,21 @@ export class AgentSubagentRuntime_ACU {
                 const page = pageCache.pages.get(handle.trim().toUpperCase());
                 return page?.status === 'ok' && page.text ? { title: page.title, source: page.source, url: page.url, query: page.query, sourceStatus: page.status } : null;
               } });
-              if (!input.isCurrent(identity) || input.signal?.aborted) throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', '写入回执已失效', false));
+              if (!input.isCurrent(identity) || input.signal?.aborted) throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', 'Biên nhận ghi đã hết hiệu lực', false));
               recordWriteReceipt(receipt);
               const stale = receipt.rejected.find(item => item.path === 'chat');
               if (stale) {
-                updateAgentSession_ACU(writeEntryId, { ok: false, status: 'failed', title: '写入任务已失效', detail: stale.reason });
+                updateAgentSession_ACU(writeEntryId, { ok: false, status: 'failed', title: 'Tác vụ ghi đã hết hiệu lực', detail: stale.reason });
                 throw new ContinuationValidationError_ACU(createContinuationError_ACU(
                   'CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', stale.reason, false));
               }
               // 路径之外必须带上原因：只显示 host / chat 时用户无从判断是租约失效、宿主保存失败还是字段非法。
-              const rejectedPaths = receipt.rejected.map(item => item.reason ? `${item.path}（${item.reason}）` : item.path).join('；');
+              const rejectedPaths = receipt.rejected.map(item => item.reason ? `${item.path} (${item.reason})` : item.path).join('; ');
               updateAgentSession_ACU(writeEntryId, {
                 ok: receipt.status === 'committed',
                 status: receipt.status === 'committed' ? 'done' : 'failed',
-                title: receipt.status === 'committed' ? (receipt.accepted.length ? `已保存 ${receipt.accepted.length} 栏` : receipt.alreadySaved?.length ? `已确认 ${receipt.alreadySaved.length} 栏此前已保存` : '提交已确认') : '提交被拒',
-                ...(rejectedPaths ? { detail: `${call.sql}\n未采纳：${rejectedPaths}` } : {}),
+                title: receipt.status === 'committed' ? (receipt.accepted.length ? `Đã lưu ${receipt.accepted.length} cột` : receipt.alreadySaved?.length ? `Đã xác nhận ${receipt.alreadySaved.length} cột đã lưu trước đó` : 'Đã xác nhận nộp') : 'Nộp bị từ chối',
+                ...(rejectedPaths ? { detail: `${call.sql}\nKhông được chấp nhận: ${rejectedPaths}` } : {}),
               });
               if (receipt.status === 'committed') {
                 committedWriteObserved = true;
@@ -1415,7 +1415,7 @@ export class AgentSubagentRuntime_ACU {
               }
               const repair = renderWriteSqlRepair_ACU(receipt);
               const receiptText = JSON.stringify({ action: 'write_sql', originalSql: call.sql, ...receipt,
-                fieldOutcome: receipt.partials === null || receipt.revisions === null ? '保存状态不明；先读取权威字段' : {
+                fieldOutcome: receipt.partials === null || receipt.revisions === null ? 'Trạng thái lưu không rõ; hãy đọc trường chuẩn trước' : {
                   saved: receipt.accepted.map(item => ({ module: item.module, id: item.id, field: item.field, fieldRevision: item.revision, ...('value' in item ? { value: item.value } : {}) })),
                   alreadySaved: receipt.alreadySaved ?? [],
                   notSaved: [...receipt.partials.flatMap(item => item.missingFields.map(field => `${item.module}#${item.id}.${field}`)), ...receipt.rejected.map(item => item.path)],
@@ -1432,18 +1432,18 @@ export class AgentSubagentRuntime_ACU {
             } catch (error) {
               if (error instanceof ContinuationValidationError_ACU && error.error.code === 'CONTINUATION_INTERNAL_REQUEST_STALE') throw error;
               writeStateUnknown = true;
-              updateAgentSession_ACU(writeEntryId, { ok: false, status: 'failed', title: '提交失败，保存状态无法确认',
-                detail: `${call.sql}\n失败原因：${compactAgentProtocolError_ACU(error)}` });
+              updateAgentSession_ACU(writeEntryId, { ok: false, status: 'failed', title: 'Nộp thất bại, không thể xác nhận trạng thái lưu',
+                detail: `${call.sql}\nNguyên nhân thất bại: ${compactAgentProtocolError_ACU(error)}` });
               writeProblems.set('host', { module: writes[0], source: 'invoke_failed', path: 'host', message: compactAgentProtocolError_ACU(error) });
               const unknownResult = `${JSON.stringify({ action: 'write_sql', originalSql: call.sql, status: 'rejected', accepted: [],
                 rejected: [{ path: 'host', reason: compactAgentProtocolError_ACU(error) }], partials: null, revisions: null,
                 readAddresses: [], reason: compactAgentProtocolError_ACU(error),
-                remainingToolRounds: maxToolRounds - toolRoundsUsed, remainingWriteRounds: maxWriteRounds - writeRoundsUsed })}\n【write_sql 补栏】保存状态无法确认。先 read 对应 $FIELD:模块:ID 权威帧与当前修订号，不要重发原 SQL。`;
+                remainingToolRounds: maxToolRounds - toolRoundsUsed, remainingWriteRounds: maxWriteRounds - writeRoundsUsed })}\n【write_sql 补栏】Không thể xác nhận trạng thái lưu. Trước hết read khung chuẩn $FIELD:mô-đun:ID tương ứng và số hiệu chỉnh hiện tại, đừng gửi lại SQL gốc.`;
               perCallResults.push(unknownResult);
             }
           } else {
             if (!readsAllowed) {
-              const denied = JSON.stringify({ action: call.kind, status: 'rejected', reason: readOnceKind ? 'read-once-exhausted' : 'read/search 轮次已用尽',
+              const denied = JSON.stringify({ action: call.kind, status: 'rejected', reason: readOnceKind ? 'read-once-exhausted' : 'Số vòng read/search đã dùng hết',
                 remainingToolRounds: 0, remainingWriteRounds: maxWriteRounds - writeRoundsUsed });
               perCallResults.push(denied);
               continue;
@@ -1459,7 +1459,7 @@ export class AgentSubagentRuntime_ACU {
               const result = await this.executeToolCalls_ACU(batch, input.resolveContext, gate, expandedReads, ownReads, allowSearch, !isResearch && definition.kind !== 'arc',
                 isResearch ? { settings: input.settings, cache: pageCache } : undefined);
               if (readOnceKind && gate.successfulReadBatch) toolRoundsUsed = 1;
-              perCallResults.push(result, ...batch.slice(1).map(() => '本逻辑读取批次已统一结算，结果见首个工具回执。'));
+              perCallResults.push(result, ...batch.slice(1).map(() => 'Lô đọc logic này đã được quyết toán thống nhất, kết quả xem ở biên nhận công cụ đầu tiên.'));
               continue;
             }
             const result = await this.executeToolCalls_ACU([call], input.resolveContext, gate, expandedReads, ownReads, allowSearch, false,
@@ -1467,7 +1467,7 @@ export class AgentSubagentRuntime_ACU {
             perCallResults.push(result);
           }
         }
-        const roundNote = maxWriteRounds ? `write_sql 轮次剩余 ${maxWriteRounds - writeRoundsUsed} / ${maxWriteRounds}。` : '';
+        const roundNote = maxWriteRounds ? `Số vòng write_sql còn lại ${maxWriteRounds - writeRoundsUsed} / ${maxWriteRounds}.` : '';
         const note = renderReadBudgetNote(toolRoundsUsed);
         const results = toolCalls.map((_, index) => [perCallResults[index] || '工具没有返回内容', roundNote, note].filter(Boolean).join('\n\n'));
         for (const call of nativeCalls) {
@@ -1482,7 +1482,7 @@ export class AgentSubagentRuntime_ACU {
       try {
         if (isResearch) {
           const payload = parseAgentJsonPayload_ACU(contractText, nativeCalls.length ? '' : prefill, KIND_PAYLOAD_KEYS_ACU.research);
-          if (payload.sql !== undefined) throw new Error(`最终交付中的 sql 不会执行；${nativeMode ? '请单独调用 write_sql 提交写入，收到回执后单独调用 submit 交付' : '请单独输出 {"action":"write_sql","sql":"语句"}，收到回执后单独输出最终交付 JSON'}`);
+          if (payload.sql !== undefined) throw new Error(`sql trong bản giao cuối cùng sẽ không được thực thi; ${nativeMode ? 'hãy gọi riêng write_sql để nộp ghi, nhận biên nhận rồi gọi riêng submit để giao' : 'hãy xuất riêng {"action":"write_sql","sql":"câu lệnh"}, nhận biên nhận rồi xuất riêng JSON giao cuối cùng'}`);
           const draft = parseAgentResearcherOutput_ACU(payload);
           const researcher = resolveResearcherDraft_ACU(draft, pageCache);
           return {
@@ -1505,7 +1505,7 @@ export class AgentSubagentRuntime_ACU {
         }
         if (contractKind) {
           const draft = parseAgentJsonPayloadDraft_ACU(contractText, nativeCalls.length ? '' : prefill, KIND_PAYLOAD_KEYS_ACU[definition.kind]);
-          if (draft.payload.sql !== undefined) throw new Error(`最终交付中的 sql 不会执行；${nativeMode ? '请单独调用 write_sql 提交写入，收到回执后单独调用 submit 交付' : '请单独输出 {"action":"write_sql","sql":"语句"}，收到回执后单独输出最终交付 JSON'}`);
+          if (draft.payload.sql !== undefined) throw new Error(`sql trong bản giao cuối cùng sẽ không được thực thi; ${nativeMode ? 'hãy gọi riêng write_sql để nộp ghi, nhận biên nhận rồi gọi riêng submit để giao' : 'hãy xuất riêng {"action":"write_sql","sql":"câu lệnh"}, nhận biên nhận rồi xuất riêng JSON giao cuối cùng'}`);
           const parsed = parseAgentMaintainerOutputDraft_ACU(draft.payload);
           let submitReceipt: AgentModuleFieldReceipt_ACU | undefined;
           if (definition.kind === 'maintain' && input.writeSql) {
@@ -1516,7 +1516,7 @@ export class AgentSubagentRuntime_ACU {
             ] as const) {
               if (writes.includes(module)) continue;
               for (const [index, item] of [...items, ...patches].entries()) parsed.rejected.push({
-                module, index, id: item.id, reason: '该模块不在本次写入授权内',
+                module, index, id: item.id, reason: 'Mô-đun này không nằm trong quyền ghi lần này',
               });
               items.length = 0; patches.length = 0;
             }
@@ -1525,18 +1525,18 @@ export class AgentSubagentRuntime_ACU {
             if (sql) {
               if (writeRoundsUsed >= maxWriteRounds) {
                 return deliverContract(blankMaintainerOutput_ACU(parsed.output.summary),
-                  [...parsed.rejected, { module: 'hooks', index: 0, id: '', reason: '维护写入轮次已用尽，写集尚未保存' }], draft.truncated);
+                  [...parsed.rejected, { module: 'hooks', index: 0, id: '', reason: 'Số vòng ghi bảo trì đã dùng hết, tập ghi chưa được lưu' }], draft.truncated);
               }
               writeRoundsUsed += 1;
               writeAttempted = true;
               if (!input.isCurrent(identity) || input.signal?.aborted) throw new ContinuationValidationError_ACU(
-                createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', '维护提交已失效', false));
+                createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', 'Bản nộp bảo trì đã hết hiệu lực', false));
               try {
                 submitReceipt = await input.writeSql({ role: definition.name, sql, revisionWindow, expectedRevisions: readRevisions,
                   isCurrent: () => input.isCurrent(identity) && !input.signal?.aborted, resolvePage: () => null });
                 if (!input.isCurrent(identity) || input.signal?.aborted || submitReceipt.rejected.some(item => item.path === 'chat')) {
                   throw new ContinuationValidationError_ACU(createContinuationError_ACU(
-                    'CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', '维护提交目标已失效', false));
+                    'CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', 'Đích của bản nộp bảo trì đã hết hiệu lực', false));
                 }
                 recordWriteReceipt(submitReceipt);
                 if (submitReceipt.status === 'committed') {
@@ -1546,7 +1546,7 @@ export class AgentSubagentRuntime_ACU {
                   input.resolveContext.moduleSnapshot = readAgentModuleSnapshot_ACU(input.resolveContext.chat);
                   for (const key of gate.granted) if (/^\$(FIELD:|HOOKS_LEDGER|INFO_GAP|CHRONOLOGY)/.test(key)) gate.granted.delete(key);
                 } else if (!submitReceipt.rejected.length) {
-                  writeProblems.set('submit', { module: writes[0], source: 'invoke_failed', path: 'submit', message: '维护写集未确认保存' });
+                  writeProblems.set('submit', { module: writes[0], source: 'invoke_failed', path: 'submit', message: 'Tập ghi bảo trì chưa được xác nhận đã lưu' });
                 }
               } catch (error) {
                 if (error instanceof ContinuationValidationError_ACU && error.error.code === 'CONTINUATION_INTERNAL_REQUEST_STALE') throw error;
@@ -1617,7 +1617,7 @@ export class AgentSubagentRuntime_ACU {
             continue;
           }
           if (emptyArcBootstrap && !pending.length && !draft.truncated) {
-            pending.push({ module: 'storyArc', index: 0, id: '', reason: '总纲尚未建立，但 delta.storyArc 为空。summary 里的文字不会写入任何东西：必须在 delta.storyArc 里给出 1 条 scope=story 的 upsert 与按【总纲卷数计划】数量的 scope=volume upsert，每条都带 title / direction / escalation / withheld / status 与卷级契约字段（id 可省略，系统自动编号）' });
+            pending.push({ module: 'storyArc', index: 0, id: '', reason: 'Tổng cương chưa được lập nhưng delta.storyArc rỗng. Chữ trong summary sẽ không được ghi vào đâu cả: phải đưa vào delta.storyArc 1 upsert scope=story và các upsert scope=volume theo số lượng trong 【总纲卷数计划】, mỗi mục đều kèm title / direction / escalation / withheld / status và các trường hợp đồng cấp tập (id có thể bỏ qua, hệ thống tự đánh số)' });
           }
           if (definition.kind === 'maintain' && submitReceipt && terminalIssues().length) {
             if (writeStateUnknown || continuationsUsed >= maxContinuations || writeRoundsUsed >= maxWriteRounds) {
@@ -1625,10 +1625,10 @@ export class AgentSubagentRuntime_ACU {
             }
             continuationsUsed += 1;
             pushFeedback([submitReceipt ? JSON.stringify({ ...submitReceipt, action: 'submit' }) : '',
-              `仅修复以下未完成项：${JSON.stringify(terminalIssues())}`,
-              pending.length ? `交付格式仍需修正：${JSON.stringify(pending)}` : '',
-              draft.truncated ? '交付尾部截断；仅补尚未提交的剩余条目。' : '',
-              '已保存栏目不得重发；按回执真实 ID 只提交失败字段的 patch。用 summary + delta 一次交付修正，程序保存成功后直接结束，无需额外确认。',
+              `Chỉ sửa các mục chưa hoàn tất sau: ${JSON.stringify(terminalIssues())}`,
+              pending.length ? `Định dạng giao vẫn cần sửa: ${JSON.stringify(pending)}` : '',
+              draft.truncated ? 'Phần cuối bản giao bị cắt; chỉ bổ sung các mục còn lại chưa nộp.' : '',
+              'Các cột đã lưu không được gửi lại; theo ID thật của biên nhận chỉ nộp patch cho các trường thất bại. Dùng summary + delta để giao bản sửa một lần, chương trình lưu thành công thì kết thúc ngay, không cần xác nhận thêm.',
             ].filter(Boolean).join('\n'));
             continue;
           }
@@ -1642,11 +1642,11 @@ export class AgentSubagentRuntime_ACU {
           }
           continuationsUsed += 1;
           pushFeedback(definition.kind === 'maintain' && input.writeSql
-            ? [draft.truncated ? '交付尾部截断；只补尚未提交的剩余条目。' : '仅修正以下交付条目。',
-              `待修项：${JSON.stringify(pending)}`,
-              `已保存栏目：${[...confirmedFields].join('、') || '无'}；不得重发。`,
-              nativeMode ? '单独调用 submit，以 summary + delta 一次提交修正。'
-                : '单独输出 summary + delta 的完整交付对象，一次提交修正。',
+            ? [draft.truncated ? 'Phần cuối bản giao bị cắt; chỉ bổ sung các mục còn lại chưa nộp.' : 'Chỉ sửa các mục giao sau.',
+              `Mục chờ sửa: ${JSON.stringify(pending)}`,
+              `Các cột đã lưu: ${[...confirmedFields].join(', ') || 'không có'}; không được gửi lại.`,
+              nativeMode ? 'Gọi riêng submit, dùng summary + delta để nộp bản sửa một lần.'
+                : 'Xuất riêng đối tượng giao hoàn chỉnh gồm summary + delta, nộp bản sửa một lần.',
             ].join('\n')
             : renderAgentContractContinuationRequest_ACU(accumulated, pending, draft.truncated, toolMode));
           continue;
@@ -1675,7 +1675,7 @@ export class AgentSubagentRuntime_ACU {
         lastReason = compactAgentProtocolError_ACU(error);
         protocolRejections += 1;
         if (protocolRejections > retries) {
-          throw subagentFailed_ACU(`${definition.name} 连续 ${retries + 1} 次返回不符合契约`, false, {
+          throw subagentFailed_ACU(`${definition.name} trả về ${retries + 1} lần liên tiếp không đúng hợp đồng`, false, {
             agentName: definition.name, lastReason,
             ...(writeAttempted ? { acceptedKeys: [...confirmedFields], unresolvedIssues: [
               ...terminalIssues(), { module: writes[0], source: 'protocol_failed', path: 'contract', message: lastReason },
@@ -1685,36 +1685,36 @@ export class AgentSubagentRuntime_ACU {
         // 被拒原文也要留在小循环对话里：模型必须看到自己上一次写了什么才能真正修正。
         const readRepair = maxToolRounds > toolRoundsUsed && (ownReads.length || isResearch)
           ? nativeMode
-            ? '资料不足时可先调用当前授权的调阅工具，遵守尾部读取预算。'
-            : `资料不足时可先输出 {"action":"read","reads":["授权地址"]}${allowSearch ? ' 或 {"action":"search","query":"关键词","scope":["worldbook"]}' : ''}${isResearch ? '，出网调阅按工具目录输出 JSON 动作' : ''}，遵守尾部读取预算。`
-          : '读取额度已用尽或本角色没有调阅权限，依据已备资料处理，不再调阅。';
+            ? 'Khi thiếu tư liệu có thể gọi trước công cụ tra cứu đang được cấp quyền, tuân thủ ngân sách đọc ở cuối.'
+            : `Khi thiếu tư liệu có thể xuất trước {"action":"read","reads":["địa chỉ được cấp quyền"]}${allowSearch ? ' hoặc {"action":"search","query":"từ khóa","scope":["worldbook"]}' : ''}${isResearch ? ', tra cứu ra mạng thì xuất hành động JSON theo danh mục công cụ' : ''}, tuân thủ ngân sách đọc ở cuối.`
+          : 'Hạn mức đọc đã dùng hết hoặc vai trò này không có quyền tra cứu, hãy xử lý dựa trên tư liệu đã chuẩn bị, không tra cứu nữa.';
         const writeRepair = definition.kind === 'maintain' && input.writeSql && writes.length
           ? maxWriteRounds > writeRoundsUsed
-            ? '确需维护时用 summary + delta 一次提交全部变化；只补失败字段，不重发已保存栏目。'
-            : '维护写入轮次已用尽，不再提交写集，如实报告缺口。'
+            ? 'Khi thật sự cần bảo trì thì dùng summary + delta nộp toàn bộ thay đổi một lần; chỉ bổ sung các trường thất bại, không gửi lại các cột đã lưu.'
+            : 'Số vòng ghi bảo trì đã dùng hết, không nộp tập ghi nữa, hãy báo cáo trung thực các chỗ thiếu.'
           : input.writeSql && writes.length
           ? maxWriteRounds > writeRoundsUsed
             ? nativeMode
-              ? '确需写入或补栏时单独调用 write_sql，把全部语句放进同一个 sql 参数；收到回执后再交付。'
-              : '确需写入或补栏时单独输出 {"action":"write_sql","sql":"全部语句"}；收到回执后再交付。'
-            : 'write_sql 轮次已用尽，不再提交写入，如实报告未完成的缺口。'
+              ? 'Khi thật sự cần ghi hoặc bổ sung cột thì gọi riêng write_sql, đặt toàn bộ câu lệnh vào cùng một tham số sql; nhận biên nhận rồi mới giao.'
+              : 'Khi thật sự cần ghi hoặc bổ sung cột thì xuất riêng {"action":"write_sql","sql":"toàn bộ câu lệnh"}; nhận biên nhận rồi mới giao.'
+            : 'Số vòng write_sql đã dùng hết, không nộp ghi nữa, hãy báo cáo trung thực các chỗ thiếu chưa hoàn tất.'
           : '';
         const deliveryRepair = nativeMode
-          ? '资料与写入已完成时单独调用 submit 交付，不与调阅或写入同回复。'
-          : '资料与写入已完成时单独输出符合契约的最终 JSON，不带 sql，不与工具动作同回复。';
-        const protocolRepair = `你上一次的输出没有被采纳。原因：${lastReason}\n${readRepair}\n${writeRepair}\n${deliveryRepair}`;
+          ? 'Khi tư liệu và việc ghi đã hoàn tất thì gọi riêng submit để giao, không chung một lần trả lời với tra cứu hoặc ghi.'
+          : 'Khi tư liệu và việc ghi đã hoàn tất thì xuất riêng JSON cuối cùng đúng hợp đồng, không kèm sql, không chung một lần trả lời với hành động công cụ.';
+        const protocolRepair = `Đầu ra lần trước của bạn không được chấp nhận. Lý do: ${lastReason}\n${readRepair}\n${writeRepair}\n${deliveryRepair}`;
         pushFeedback(protocolRepair);
       }
     }
 
     if (writeAttempted) {
       const issues = terminalIssues();
-      throw subagentFailed_ACU(`${definition.name} 工具/模型预算耗尽，逐栏维护未完成`, false, {
+      throw subagentFailed_ACU(`${definition.name} đã cạn ngân sách công cụ/mô hình, bảo trì theo cột chưa hoàn tất`, false, {
         agentName: definition.name, acceptedKeys: [...confirmedFields], unresolvedIssues: issues,
         remainingToolRounds: Math.max(0, maxToolRounds - toolRoundsUsed), remainingWriteRounds: Math.max(0, maxWriteRounds - writeRoundsUsed), lastReason,
       });
     }
-    throw subagentFailed_ACU(`${definition.name} 在 ${maxCalls} 次调用内没有交付契约输出`, false, { agentName: definition.name, lastReason, toolRoundsUsed });
+    throw subagentFailed_ACU(`${definition.name} không giao đầu ra hợp đồng trong ${maxCalls} lần gọi`, false, { agentName: definition.name, lastReason, toolRoundsUsed });
   }
 
   /**
@@ -1735,7 +1735,7 @@ export class AgentSubagentRuntime_ACU {
     };
     const fixedDecision = await gateAgentReadBatch_ACU(evidence.gateItems, gate.state, gate.config, 0);
     if (!fixedDecision.allowed) {
-      throw subagentFailed_ACU('终审固定证据超出独立读取预算，终审未执行。', false, {
+      throw subagentFailed_ACU('Bằng chứng cố định của chung thẩm vượt ngân sách đọc độc lập, chung thẩm chưa được thực thi.', false, {
         reason: fixedDecision.reason,
         report: fixedDecision.report,
         batchTokens: fixedDecision.batchTokens,
@@ -1752,7 +1752,7 @@ export class AgentSubagentRuntime_ACU {
     const reviewSplit = splitDefaultSubagentMaterials_ACU(adaptContinuationPromptSegmentsToToolMode_ACU('finalReviewer', input.settings.agentPrompts.finalReviewer, toolMode), 'finalReviewer', toolMode);
     const reviewSegments = stripUnownedSubagentPrompt_ACU(reviewSplit.segments, reviewKept);
     const reviewResolvers = {
-      $USER_INTENT: () => input.resolveContext.originInstruction || '（用户未提供初始要求）',
+      $USER_INTENT: () => input.resolveContext.originInstruction || '(Người dùng chưa cung cấp yêu cầu ban đầu)',
       $USER_REQUIREMENTS: () => renderAgentUserRequirements_ACU(input.resolveContext.moduleSnapshot, input.resolveContext.originInstruction),
       $OUTLINE_WINDOW: () => renderAgentOutlineWindow_ACU(input.resolveContext),
       $STORY_ARC: () => resolveAgentReadToken_ACU('$STORY_ARC', input.resolveContext).text,
@@ -1785,7 +1785,7 @@ export class AgentSubagentRuntime_ACU {
     // 终审与普通派工同一预算语义：首轮给出上限，每个工具批次后刷新剩余轮次与遥测；注入点必须在尾部预填充之前。
     const reviewPresent = new Set([...reviewSegments, ...(reviewSplit.taskTemplate ? [{ content: reviewSplit.taskTemplate }] : [])].flatMap(segment => segment.content.match(/\$[A-Z][A-Z0-9_]*/g) ?? [] as string[]));
     const sharedMaterialsNote = input.sharedMaterials !== undefined
-      ? '世界书全文和各资料库已在【本轮已备资料】。终审没有调阅工具，直接根据这些资料给出判词。'
+      ? 'Toàn văn sổ thế giới và các kho tư liệu đã nằm trong 【本轮已备资料】. Chung thẩm không có công cụ tra cứu, hãy đưa ra phán quyết trực tiếp dựa trên các tư liệu này.'
       : '';
     const renderReviewTail = async (): Promise<string> => {
       const editable = agentSnapshotTemplate_ACU(reviewSegments, '');
@@ -1845,7 +1845,7 @@ export class AgentSubagentRuntime_ACU {
       const identity = input.createIdentity(AGENT_FINAL_REVIEWER_NAME_ACU, attempt);
       attempt += 1;
       if (!input.isCurrent(identity)) {
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', '终审请求已失效', false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', 'Yêu cầu chung thẩm đã hết hiệu lực', false));
       }
       const reviewTail = await renderReviewTail();
       const requestBody = assembleAgentPrompt_ACU([...baseMessages, ...(trailingPrefill ? [trailingPrefill] : [])], [...(input.mainHistory ?? []), ...transcript],
@@ -1863,7 +1863,7 @@ export class AgentSubagentRuntime_ACU {
         },
       );
       if (!input.isCurrent(identity)) {
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', '终审结果已失效', false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_delegate', 'Kết quả chung thẩm đã hết hiệu lực', false));
       }
       const turn = normalizeAgentModelReply_ACU(raw);
       const nativeCalls = turn.toolCalls;
@@ -1874,22 +1874,22 @@ export class AgentSubagentRuntime_ACU {
       // 回灌：工具模式给每个函数调用配一条回执，json 模式用普通 user 消息。
       const pushFeedback = (feedback: string): void => {
         if (nativeMode && nativeCalls.length) transcript.push(...nativeToolExchange_ACU(turn.content, nativeCalls, nativeCalls.map(() => feedback)));
-        else transcript.push({ role: 'assistant', content: rawText || '(空输出)' }, { role: 'user', content: feedback });
+        else transcript.push({ role: 'assistant', content: rawText || '(đầu ra rỗng)' }, { role: 'user', content: feedback });
       };
       try {
         if (nativeMode) {
-          if (!nativeCalls.length) throw new Error('必须调用函数：补读用 read，交付终审判词调用 submit，不要输出 JSON 文本');
+          if (!nativeCalls.length) throw new Error('Phải gọi hàm: đọc bổ sung dùng read, giao phán quyết chung thẩm thì gọi submit, đừng xuất văn bản JSON');
           const split = splitNativeDecisionCalls_ACU(nativeToolArguments_ACU(nativeCalls), [AGENT_SUBMIT_TOOL_NAME_ACU]);
           if (split.decision) submitPayload = submitPayloadObject_ACU(split.decision.payload);
           toolCalls = split.tools.length ? split.tools.map(({ call, payload }) => {
-            if (call.name !== 'read' || input.sharedMaterials !== undefined) throw new Error('终审未授权该工具');
+            if (call.name !== 'read' || input.sharedMaterials !== undefined) throw new Error('Chung thẩm chưa được cấp quyền dùng công cụ này');
             const parsed = parseAgentToolCall_ACU(payload);
-            if (parsed.kind !== 'read') throw new Error('终审只允许 read');
+            if (parsed.kind !== 'read') throw new Error('Chung thẩm chỉ cho phép read');
             return parsed;
           }) : null;
         } else {
           toolCalls = parseAgentSubagentToolCalls_ACU(protocolText, prefill);
-          if (toolCalls && (input.sharedMaterials !== undefined || toolCalls.some(item => item.kind !== 'read'))) throw new Error('终审只允许 read');
+          if (toolCalls && (input.sharedMaterials !== undefined || toolCalls.some(item => item.kind !== 'read'))) throw new Error('Chung thẩm chỉ cho phép read');
         }
       } catch (error) {
         const reason = compactAgentProtocolError_ACU(error);
@@ -1897,14 +1897,14 @@ export class AgentSubagentRuntime_ACU {
         if (!(nativeMode && nativeCalls.length)) {
           lastReason = reason;
           protocolRejections += 1;
-          if (protocolRejections > retries) throw subagentFailed_ACU(`最终审查连续 ${retries + 1} 次返回不符合契约`, false, { lastReason });
+          if (protocolRejections > retries) throw subagentFailed_ACU(`Chung thẩm cuối trả về ${retries + 1} lần liên tiếp không đúng hợp đồng`, false, { lastReason });
         }
-        pushFeedback(nativeMode ? reason : `你上一次的输出没有被采纳。原因：${reason}\n请修正后重新输出。`);
+        pushFeedback(nativeMode ? reason : `Đầu ra lần trước của bạn không được chấp nhận. Lý do: ${reason}\nHãy sửa rồi xuất lại.`);
         continue;
       }
       if (toolCalls) {
         if (maxToolRounds === 0 || gate.successfulReadBatch) {
-          const exhausted = `read-once-exhausted：读取轮次已用尽（终审至多一个成功读取批次，本次上限 ${maxToolRounds}），不能再 read。请依据已有证据直接${nativeMode ? '调用 submit 交付终审判词' : '输出终审 JSON'}；无法证实的内容写为未验证，不许臆测。\n\n${renderReadBudgetNote(toolRoundsUsed)}`;
+          const exhausted = `read-once-exhausted: số vòng đọc đã dùng hết (chung thẩm tối đa một lô đọc thành công, giới hạn lần này ${maxToolRounds}), không thể read nữa. Hãy dựa trên bằng chứng hiện có để ${nativeMode ? 'gọi submit giao phán quyết chung thẩm' : 'xuất JSON chung thẩm'} trực tiếp; nội dung không chứng thực được thì ghi là chưa xác minh, không được suy đoán.\n\n${renderReadBudgetNote(toolRoundsUsed)}`;
           pushFeedback(exhausted);
           continue;
         }
@@ -1913,15 +1913,15 @@ export class AgentSubagentRuntime_ACU {
         // 只有成功批次计额；失败批次不注入正文，修正后可重试。
         if (gate.successfulReadBatch) toolRoundsUsed = 1;
         if (nativeMode) {
-          const perCallResults = toolCalls.map((_, index) => index === 0 ? batchResult : '本逻辑读取批次已统一结算，结果见首个工具回执。');
+          const perCallResults = toolCalls.map((_, index) => index === 0 ? batchResult : 'Lô đọc logic này đã được quyết toán thống nhất, kết quả xem ở biên nhận công cụ đầu tiên.');
           transcript.push(...nativeToolExchange_ACU(turn.content, nativeCalls, perCallResults.map(result => `${result}\n\n${renderReadBudgetNote(toolRoundsUsed)}`)));
         } else {
-          transcript.push({ role: 'assistant', content: rawText || '(空输出)' }, { role: 'user', content: `【工具结果】\n${batchResult}\n\n${renderReadBudgetNote(toolRoundsUsed)}` });
+          transcript.push({ role: 'assistant', content: rawText || '(đầu ra rỗng)' }, { role: 'user', content: `【工具结果】\n${batchResult}\n\n${renderReadBudgetNote(toolRoundsUsed)}` });
         }
         continue;
       }
       try {
-        if (nativeMode && !submitPayload) throw new Error('交付终审判词必须调用 submit');
+        if (nativeMode && !submitPayload) throw new Error('Giao phán quyết chung thẩm phải gọi submit');
         const payload = submitPayload ?? parseAgentJsonPayload_ACU(protocolText, prefill, ['verdict', 'summary', 'emotionFindings', 'worldFindings', 'logicFindings', 'requiredFixes', 'preserve']);
         return {
           output: parseAgentFinalReviewerOutput_ACU(payload),
@@ -1938,13 +1938,13 @@ export class AgentSubagentRuntime_ACU {
         lastReason = compactAgentProtocolError_ACU(error);
         protocolRejections += 1;
         if (protocolRejections > retries) {
-          throw subagentFailed_ACU(`最终审查连续 ${retries + 1} 次返回不符合契约`, false, { lastReason });
+          throw subagentFailed_ACU(`Chung thẩm cuối trả về ${retries + 1} lần liên tiếp không đúng hợp đồng`, false, { lastReason });
         }
         // 工具模式下 submit 调用也要配回执，否则下一次请求里存在没有结果的 tool_call。
-        pushFeedback(`你上一次的输出没有被采纳。原因：${lastReason}\n${nativeMode ? '请修正后重新调用 submit 交付终审判词。' : '请修正后重新输出符合终审契约的 JSON 对象。'}`);
+        pushFeedback(`Đầu ra lần trước của bạn không được chấp nhận. Lý do: ${lastReason}\n${nativeMode ? 'Hãy sửa rồi gọi lại submit để giao phán quyết chung thẩm.' : 'Hãy sửa rồi xuất lại đối tượng JSON đúng hợp đồng chung thẩm.'}`);
       }
     }
-    throw subagentFailed_ACU(`最终审查在 ${maxCalls} 次调用内没有交付契约输出`, false, { lastReason, toolRoundsUsed });
+    throw subagentFailed_ACU(`Chung thẩm cuối không giao đầu ra hợp đồng trong ${maxCalls} lần gọi`, false, { lastReason, toolRoundsUsed });
   }
 
   /**
@@ -1968,7 +1968,7 @@ export class AgentSubagentRuntime_ACU {
       return capacity.defaultReadFenceTokens;
     } catch (error) {
       const code = error instanceof Error ? error.message : String(error);
-      throw subagentFailed_ACU(`${agentName} 的最终请求超出上下文容量（${code}），请求未发送；资料未截断、未摘要。`, false, {
+      throw subagentFailed_ACU(`Yêu cầu cuối cùng của ${agentName} vượt dung lượng ngữ cảnh (${code}), yêu cầu chưa được gửi; tư liệu không bị cắt hay tóm tắt.`, false, {
         reason: 'context-capacity-exceeded',
         code,
         inputLimitTokens,
@@ -2001,14 +2001,14 @@ export class AgentSubagentRuntime_ACU {
     for (const call of calls) {
       if (call.kind === 'encyclopedia_search' || call.kind === 'encyclopedia_read' || call.kind === 'web_search' || call.kind === 'web_read') {
         if (!research) {
-          webSections.push(`出网工具 ${call.kind} 只有 web-researcher 可用，本次未执行。`);
+          webSections.push(`Công cụ ra mạng ${call.kind} chỉ web-researcher mới dùng được, lần này không thực thi.`);
           continue;
         }
         webSections.push(await this.executeWebToolCall_ACU(call, research.settings, research.cache, expandedReads));
         continue;
       }
       if (call.kind === 'search' && !research && !allowSearch) {
-        refused.push('当前角色未授权本地搜索。');
+        refused.push('Vai trò hiện tại chưa được cấp quyền tìm kiếm cục bộ.');
         continue;
       }
       if (call.kind === 'read') {
@@ -2019,7 +2019,7 @@ export class AgentSubagentRuntime_ACU {
             failed.push({
               key,
               label: key,
-              text: `${key} 不在当前角色的授权读取范围。请改用 profile 允许的自有或强相关地址；越权地址不会注入正文。`,
+              text: `${key} không nằm trong phạm vi đọc được cấp quyền của vai trò hiện tại. Hãy dùng các địa chỉ riêng hoặc liên quan chặt chẽ mà profile cho phép; địa chỉ vượt quyền sẽ không được tiêm vào chính văn.`,
               status: 'failed',
             });
             continue;
@@ -2034,7 +2034,7 @@ export class AgentSubagentRuntime_ACU {
             seenInBatch.add(key);
             const narrowed = gate.narrowed.get(key);
             if (narrowed) {
-              duplicated.push(`原地址「${key}」此前只提供了收窄子范围「${narrowed.address}」的完整正文，未声称原地址已全部注入；未读取部分${narrowed.remainder ? `请改读「${narrowed.remainder}」` : '本次没有剩余范围'}。`);
+              duplicated.push(`Địa chỉ gốc "${key}" trước đó chỉ cung cấp toàn văn của phạm vi con thu hẹp "${narrowed.address}", không tuyên bố địa chỉ gốc đã được đưa vào toàn bộ; phần chưa đọc${narrowed.remainder ? ` hãy đọc "${narrowed.remainder}"` : ' lần này không còn phạm vi dư'}.`);
               continue;
             }
             if (gate.granted.has(key)) { duplicated.push(`地址「${key}」已放行，完整内容见上文，不再重注。`); continue; }
@@ -2045,7 +2045,7 @@ export class AgentSubagentRuntime_ACU {
           seenInBatch.add(key);
           const narrowed = gate.narrowed.get(key);
           if (narrowed) {
-            duplicated.push(`原地址「${key}」此前只提供了收窄子范围「${narrowed.address}」的完整正文，未声称原地址已全部注入；未读取部分${narrowed.remainder ? `请改读「${narrowed.remainder}」` : '本次没有剩余范围'}。`);
+            duplicated.push(`Địa chỉ gốc "${key}" trước đó chỉ cung cấp toàn văn của phạm vi con thu hẹp "${narrowed.address}", không tuyên bố địa chỉ gốc đã được đưa vào toàn bộ; phần chưa đọc${narrowed.remainder ? ` hãy đọc "${narrowed.remainder}"` : ' lần này không còn phạm vi dư'}.`);
             continue;
           }
           if (gate.granted.has(key)) { duplicated.push(`地址「${key}」已放行，完整内容见上文，不再重注。`); continue; }
@@ -2058,9 +2058,9 @@ export class AgentSubagentRuntime_ACU {
       const key = `search|${call.isRegex ? 're' : 'kw'}|${[...call.scope].sort().join('+')}|${call.maxResults}|${call.query}`;
       if (seenInBatch.has(key)) continue;
       seenInBatch.add(key);
-      const label = `search "${call.query}"（域：${call.scope.join('、')}）`;
+      const label = `search "${call.query}" (miền: ${call.scope.join(', ')})`;
       if (gate.granted.has(key)) { duplicated.push(label); continue; }
-      fresh.push({ key, label, text: `### 搜索「${call.query}」\n${runAgentSearch_ACU(call, context)}` });
+      fresh.push({ key, label, text: `### Tìm "${call.query}"\n${runAgentSearch_ACU(call, context)}` });
     }
 
     const sections: string[] = [...refused, ...webSections, ...failed.map(material => JSON.stringify({ action: 'read', address: material.key, status: 'failed', reason: material.text }))];
@@ -2069,7 +2069,7 @@ export class AgentSubagentRuntime_ACU {
       return `【工具结果】\n${sections.join('\n\n')}`;
     }
     if (duplicated.length) {
-      sections.push(`以下调阅请求未重复注入：\n${duplicated.join('\n')}`);
+      sections.push(`Các yêu cầu tra cứu sau không được tiêm lặp lại:\n${duplicated.join('\n')}`);
     }
     if (fresh.length) {
       if (readOnce && gate.successfulReadBatch) {
@@ -2122,7 +2122,7 @@ export class AgentSubagentRuntime_ACU {
           admitted = fresh.map(material => {
             const read = allocated.get(material.key);
             if (!read?.narrowed) return material;
-            return { key: read.address, label: `${read.address}（默认上围栏，原地址 ${material.key}）`, text: `### ${read.title}（${read.address}）\n${read.text}`, narrowedFrom: material.key, ...(read.remainder ? { remainder: read.remainder } : {}) };
+            return { key: read.address, label: `${read.address} (hàng rào trên mặc định, địa chỉ gốc ${material.key})`, text: `### ${read.title} (${read.address})\n${read.text}`, narrowedFrom: material.key, ...(read.remainder ? { remainder: read.remainder } : {}) };
           });
           admittedTokens = reservedTokens + allocation.reads.reduce((sum, read) => sum + read.tokens, 0);
         }
@@ -2153,7 +2153,7 @@ export class AgentSubagentRuntime_ACU {
         if (sharedReadRound) sharedReadRound.state.pendingReadBatches.delete(sharedReadRound.key);
       }
     } else if (!duplicated.length && !webSections.length && !failed.length) {
-      sections.push('本次工具批次没有任何有效的读取地址或搜索请求。请检查 read 的 reads 数组与 search 的 query。');
+      sections.push('Lô công cụ lần này không có địa chỉ đọc hay yêu cầu tìm kiếm hợp lệ nào. Hãy kiểm tra mảng reads của read và query của search.');
     }
     return `【工具结果】\n${sections.join('\n\n')}`;
   }
@@ -2180,39 +2180,39 @@ export class AgentSubagentRuntime_ACU {
       return handle;
     };
     const renderPage = (handle: string, page: AgentFetchedPage_ACU, reused: boolean): string => {
-      const head = `### [页面句柄 ${handle}]「${page.title || '（无标题）'}」来源=${page.source === 'web' ? '网页' : AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[page.source]}｜${page.url}`;
-      if (page.status !== 'ok') return `${head}\n抓取失败（${page.status}）：${page.note}`;
+      const head = `### [Handle trang ${handle}] "${page.title || '(không có tiêu đề)'}" nguồn=${page.source === 'web' ? 'trang web' : AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[page.source]}｜${page.url}`;
+      if (page.status !== 'ok') return `${head}\nTải thất bại (${page.status}): ${page.note}`;
       if (reused) return `${head}\n（该页面本次派工已抓取过，原文见上文，不再重注）`;
       return `${head}\n${page.text}`;
     };
     const pagesExhausted = (): string | null => (cache.pagesUsed >= webSettings.maxPages
-      ? `本次派工的页面配额已用尽（${webSettings.maxPages} 页）。请基于已抓到的页面交付契约 JSON。`
+      ? `Hạn mức trang của lần giao việc này đã dùng hết (${webSettings.maxPages} trang). Hãy giao JSON hợp đồng dựa trên các trang đã tải được.`
       : null);
 
     if (call.kind === 'encyclopedia_search') {
       const sources = call.sources.length ? call.sources : enabledEncyclopediaSources_ACU(webSettings);
-      if (!sources.length) return `### 百科检索「${call.query}」\n没有可用的百科来源（设置里全部关闭）。请改用 web_search。`;
+      if (!sources.length) return `### Tra cứu bách khoa "${call.query}"\nKhông có nguồn bách khoa khả dụng (tất cả đều tắt trong cài đặt). Hãy dùng web_search.`;
       const disabled = call.sources.filter(source => !enabledEncyclopediaSources_ACU(webSettings).includes(source));
       const results = await Promise.all(sources.filter(source => !disabled.includes(source)).map(async source => ({ source, ...(await client.searchEncyclopedia(source, call.query)) })));
       expandedReads.push(`encyclopedia_search "${call.query}"`);
       const lines: string[] = [];
       for (const result of results) {
         const label = AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[result.source];
-        if (!result.candidates.length) { lines.push(`- ${label}：无候选${result.note ? `（${result.note}）` : ''}`); continue; }
-        lines.push(`- ${label}：`);
+        if (!result.candidates.length) { lines.push(`- ${label}: không có ứng viên${result.note ? ` (${result.note})` : ''}`); continue; }
+        lines.push(`- ${label}:`);
         for (const candidate of result.candidates) {
-          lines.push(`  · 「${candidate.title}」${candidate.snippet ? `：${candidate.snippet.slice(0, 120)}` : ''}｜精读：调用 encyclopedia_read，source=${candidate.source}，title=${candidate.title}`);
+          lines.push(`  · "${candidate.title}"${candidate.snippet ? `: ${candidate.snippet.slice(0, 120)}` : ''}｜đọc kỹ: gọi encyclopedia_read, source=${candidate.source}, title=${candidate.title}`);
         }
       }
-      if (disabled.length) lines.push(`- 以下来源在设置里已关闭，未检索：${disabled.map(source => AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]).join('、')}`);
-      return `### 百科检索「${call.query}」\n${lines.join('\n')}`;
+      if (disabled.length) lines.push(`- Các nguồn sau đã tắt trong cài đặt, không tra cứu: ${disabled.map(source => AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]).join(', ')}`);
+      return `### Tra cứu bách khoa "${call.query}"\n${lines.join('\n')}`;
     }
     if (call.kind === 'encyclopedia_read') {
       if (!enabledEncyclopediaSources_ACU(webSettings).includes(call.source)) {
-        return `### 百科精读「${call.title}」\n来源 ${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[call.source]} 在设置里已关闭，未执行。`;
+        return `### Đọc kỹ bách khoa "${call.title}"\nNguồn ${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[call.source]} đã tắt trong cài đặt, không thực thi.`;
       }
       const exhausted = pagesExhausted();
-      if (exhausted) return `### 百科精读「${call.title}」\n${exhausted}`;
+      if (exhausted) return `### Đọc kỹ bách khoa "${call.title}"\n${exhausted}`;
       const page = await client.readEncyclopedia(call.source, call.title, webSettings.pageCharLimit);
       const reused = cache.byUrl.has(page.url);
       const handle = registerPage(page, call.title);
@@ -2222,12 +2222,12 @@ export class AgentSubagentRuntime_ACU {
     if (call.kind === 'web_search') {
       const result = await client.webSearch(call.query, webSettings);
       expandedReads.push(`web_search "${call.query}"`);
-      if (!result.hits.length) return `### 网页搜索「${call.query}」\n无结果${result.note ? `：${result.note}` : ''}。换更短的关键词、加上作品名，或改用 encyclopedia_search。`;
-      const lines = result.hits.map((hit, index) => `${index + 1}. 「${hit.title || '（无标题）'}」${hit.url ? `｜${hit.url}` : ''}${hit.snippet ? `\n   ${hit.snippet.slice(0, 200)}` : ''}${hit.url ? `\n   抓取：调用 web_read，url=${hit.url}` : ''}`);
-      return `### 网页搜索「${call.query}」（提供方：${webSettings.searchProvider}）\n${lines.join('\n')}`;
+      if (!result.hits.length) return `### Tìm kiếm web "${call.query}"\nKhông có kết quả${result.note ? `: ${result.note}` : ''}. Hãy dùng từ khóa ngắn hơn, thêm tên tác phẩm, hoặc chuyển sang encyclopedia_search.`;
+      const lines = result.hits.map((hit, index) => `${index + 1}. "${hit.title || '(không có tiêu đề)'}"${hit.url ? `｜${hit.url}` : ''}${hit.snippet ? `\n   ${hit.snippet.slice(0, 200)}` : ''}${hit.url ? `\n   Tải: gọi web_read, url=${hit.url}` : ''}`);
+      return `### Tìm kiếm web "${call.query}" (nhà cung cấp: ${webSettings.searchProvider})\n${lines.join('\n')}`;
     }
     const exhausted = pagesExhausted();
-    if (exhausted) return `### 网页抓取 ${call.url}\n${exhausted}`;
+    if (exhausted) return `### Tải trang web ${call.url}\n${exhausted}`;
     const page = await client.webRead(call.url, webSettings, this.dependencies.hostOrigin?.());
     const reused = cache.byUrl.has(page.url);
     const handle = registerPage(page, call.url);

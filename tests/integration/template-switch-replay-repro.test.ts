@@ -539,7 +539,7 @@ describe('F1 双身份存量：严格回放按表名接管（修正后）', () =
     console.log('[F1-A] NEW:', JSON.stringify(replay.data[NEW_KEY]?.content ?? null));
     expectStrictMergedIntoNewKey(replay);
     expect(replay.data[NEW_KEY].content).toEqual([['row_id', 'name', 'pos', 'state'], ['1', 'SQL新1', 'SQL新1', 'SQL新1']]);
-    expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining('同名表接管'));
+    expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining('tiếp quản bảng cùng tên'));
     // 归并只发生在读副本：原 storage frame 未被改写。
     expect(mocks.chat[0].TavernDB_ACU_IsolatedData[''].storageFrame.checkpoint.data[OLD_KEY].content[1]).toEqual(OLD_ROW);
 
@@ -876,7 +876,7 @@ describe('F2 兼容宽容回放结果契约（修正后）', () => {
     } catch (error) {
       strictError = error;
     }
-    expect(strictError instanceof Error ? strictError.message : String(strictError ?? '')).toContain('不支持的 operation kind');
+    expect(strictError instanceof Error ? strictError.message : String(strictError ?? '')).toContain('operation kind không được hỗ trợ');
 
     const replay = await loadTolerant();
     console.log('[F2 观察] baseKind:', replay.baseKind, '| keys:', JSON.stringify(sheetKeys(replay.data)),
@@ -885,7 +885,7 @@ describe('F2 兼容宽容回放结果契约（修正后）', () => {
     expect(replay.requiresCheckpointConvergence).toBe(true);
     expect(replay.legacyToleranceDiagnosis).toBeDefined();
     expect(replay.legacyToleranceDiagnosis?.tolerances).toContain('unknown_operation_kind_skipped:1');
-    expect(replay.legacyToleranceDiagnosis?.strictError).toContain('不支持的 operation kind');
+    expect(replay.legacyToleranceDiagnosis?.strictError).toContain('operation kind không được hỗ trợ');
     expect(replay.legacyToleranceDiagnosis?.identityRemaps).toEqual([]);
     // Phase 4b 约束：宽容态容忍项不是 temporary_sheet_anchor 模型，不得伪装成 repairs。
     expect(replay.compatibilityRepairs ?? []).toHaveLength(0);
@@ -906,7 +906,7 @@ describe('F2 兼容宽容回放结果契约（修正后）', () => {
     if (result.success) throw new Error('unreachable');
     expect(result.diagnosticCode).toBe('replay_requires_checkpoint_convergence');
     expect(result.error).toContain('兼容宽容回放');
-    expect(result.error).toContain('不支持的 operation kind');
+    expect(result.error).toContain('operation kind không được hỗ trợ');
     await flushPendingCompatTransitionFixations_ACU();
     expect(hasAnyCompatTransitionCheckpoint()).toBe(false);
   }, 60000);
@@ -943,7 +943,7 @@ describe('F2 兼容宽容回放结果契约（修正后）', () => {
     console.log('[F2 观察] persist:', JSON.stringify({ saved: result.saved, error: result.error }));
     expect(result.saved).toBe(false);
     expect(result.error).toContain('兼容宽容回放读出');
-    expect(result.error).toContain('不支持的 operation kind');
+    expect(result.error).toContain('operation kind không được hỗ trợ');
     // 零副作用：根帧字节不变、无新增 logEntries、固化（persist 内部回放再次触发）仍回滚无残迹。
     await flushPendingCompatTransitionFixations_ACU();
     expect(JSON.stringify(mocks.chat[0].TavernDB_ACU_IsolatedData)).toBe(rootBefore);
@@ -975,7 +975,7 @@ describe('F2 兼容宽容回放结果契约（修正后）', () => {
     expect(result.committedBucketCount).toBe(0);
     expect(result.dataCommitted).toBe(false);
     expect(result.error).toContain('兼容宽容回放读出');
-    expect(result.error).toContain('诊断 V2 数据恢复');
+    expect(result.error).toContain('Chẩn đoán khôi phục dữ liệu V2');
     expect(mocks.callCustomOpenAI.mock.calls.length).toBe(callsBefore);
     expect(countAppendedLogEntriesOutsideRoot()).toBe(0);
     expect(hasAnyCompatTransitionCheckpoint()).toBe(false);
@@ -1005,7 +1005,7 @@ describe('F2 兼容宽容回放结果契约（修正后）', () => {
     expect(result.outcome).toBe('blocked');
     expect(result.diagnosticCode).toBe('replay_requires_checkpoint_convergence');
     expect(result.error).toContain('兼容宽容回放读出');
-    expect(result.error).toContain('诊断 V2 数据恢复');
+    expect(result.error).toContain('Chẩn đoán khôi phục dữ liệu V2');
     expect(result.replayVerified).toBeFalsy();
     expect(mocks.callCustomOpenAI.mock.calls.length).toBe(callsBefore);
     expect(countAppendedLogEntriesOutsideRoot()).toBe(0);
@@ -1020,12 +1020,12 @@ describe('F2 兼容宽容回放结果契约（修正后）', () => {
     expect(summary.status).toBe('recoverable_compat_tolerant_replay');
     expect(summary.requiresConfirmation).toBe(false);
     expect(summary.sourceMessageIndex).toBe(0);
-    expect(summary.message).toContain('兼容宽容回放');
+    expect(summary.message).toContain('phát lại tương thích khoan dung');
     expect(summary.message).toContain('unknown_operation_kind_skipped:1');
-    expect(summary.message).toContain('身份归并=无');
+    expect(summary.message).toContain('gộp danh tính=không có');
     // 显式恢复是把兼容结果转成权威根的用户入口：诊断即产出经严格探针验证的固化 plan。
     expect(summary.planId).toBeTruthy();
-    expect(summary.message).toContain('固化方案');
+    expect(summary.message).toContain('Phương án cố định');
     await flushPendingCompatTransitionFixations_ACU();
     expect(hasAnyCompatTransitionCheckpoint()).toBe(false);
 
@@ -1033,7 +1033,7 @@ describe('F2 兼容宽容回放结果契约（修正后）', () => {
     const commit = await commitPreparedV2Recovery_ACU(summary.planId!);
     console.log('[F2 观察] recovery commit:', JSON.stringify(commit));
     expect(commit.status).toBe('commit_failed_rolled_back');
-    expect(commit.error).toContain('宿主保存失败');
+    expect(commit.error).toContain('Lưu host thất bại');
     expect(hasAnyCompatTransitionCheckpoint()).toBe(false);
     expect(countAppendedLogEntriesOutsideRoot()).toBe(0);
   }, 60000);
@@ -1162,7 +1162,7 @@ describe('F2 兼容宽容回放结果契约（修正后）', () => {
         ['row_id', 'name', 'state'],
         ['3', '新key填入', '新key态'],
       ]);
-      expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining('同名表接管'));
+      expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining('tiếp quản bảng cùng tên'));
 
       // 继续填表（第二笔）仍然可写，冷重载仍单身份：header + 第 3 行 + 第 4 行。
       const afterData2: any = clone(replay!.data);
@@ -1288,8 +1288,8 @@ describe('F2 兼容宽容回放结果契约（修正后）', () => {
       expect(sheetKeys(first.data)).toHaveLength(1);
       expect(hasAnyCompatTransitionCheckpoint()).toBe(false);
       expect(mocks.saveChatStrict).not.toHaveBeenCalled();
-      expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining('放弃固化兼容过渡根：兼容结果含 sheetKey 身份归并'));
-      expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining('身份归一化'));
+      expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining('放弃固化兼容过渡根：Kết quả tương thích chứa gộp danh tính sheetKey'));
+      expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining('chuẩn hóa danh tính'));
 
       const second = await loadTolerant();
       expect(second.baseKind).toBe('compat_tolerant_replay');
@@ -1299,8 +1299,8 @@ describe('F2 兼容宽容回放结果契约（修正后）', () => {
       // 恢复诊断把身份归并明细带给用户。
       const summary = await prepareV2Recovery_ACU();
       expect(summary.status).toBe('recoverable_compat_tolerant_replay');
-      expect(summary.message).toContain('身份归并=');
-      expect(summary.message).toContain('不会自动固化为过渡根');
+      expect(summary.message).toContain('gộp danh tính=');
+      expect(summary.message).toContain('sẽ không tự động được cố định thành gốc chuyển tiếp');
       expect(summary.affectedSheetKeys ?? []).toEqual(expect.arrayContaining([OLD_KEY, NEW_KEY]));
     }, 60000);
   });

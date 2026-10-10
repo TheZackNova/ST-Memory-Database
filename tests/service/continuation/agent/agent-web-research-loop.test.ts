@@ -179,13 +179,13 @@ describe('开场百科检索', () => {
     const first = h.subCalls[0].map(message => message.content).join('\n');
     expect(first).toContain('encyclopedia_search');
     expect(first).toContain('INSERT INTO web_refs');
-    expect(first).toContain('开场检索');
-    expect(first).toContain('本次派工最多 3 页');
+    expect(first).toContain('Tra cứu mở đầu');
+    expect(first).toContain('lần phân công này tối đa 3 trang');
     const second = h.subCalls[1].map(message => message.content).join('\n');
-    expect(second).toContain('百科检索「鲁迪乌斯·格雷拉特」');
-    expect(second).toContain('调用 encyclopedia_read');
+    expect(second).toContain('Tra cứu bách khoa "鲁迪乌斯·格雷拉特"');
+    expect(second).toContain('gọi encyclopedia_read');
     const third = h.subCalls[2].map(message => message.content).join('\n');
-    expect(third).toContain('[页面句柄 P1]');
+    expect(third).toContain('[Handle trang P1]');
     expect(third).toContain('泥沼：土系魔术');
 
     // 资料库落盘：url / 原文由运行时按 pageRef 回填，id 自动分配，不推进结算水位。
@@ -200,11 +200,11 @@ describe('开场百科检索', () => {
     // 主 Agent 的第一次调用：运行时快照里有预览行（名称 + 简介），没有详情与原文；目录里出现 web-researcher。
     expect(h.mainCalls).toHaveLength(1);
     const mainText = h.mainCalls[0].map(message => message.content).join('\n');
-    expect(mainText).toContain('[WR-001]「鲁迪乌斯·格雷拉特」《无职转生》主角，转生的前尼特魔术师。');
+    expect(mainText).toContain('[WR-001] "鲁迪乌斯·格雷拉特" 《无职转生》主角，转生的前尼特魔术师。');
     expect(mainText).not.toContain('布耶纳村贵族长男');
     expect(mainText).not.toContain('泥沼：土系魔术');
     expect(mainText).toContain('name: web-researcher');
-    expect(mainText).toContain('web-researcher｜成功');
+    expect(mainText).toContain('web-researcher｜Thành công');
     expect(mainText).toContain('$WEB_REFS:ID');
 
     for (const [calls, captured] of [[h.subCalls, h.subToolOptions], [h.mainCalls, h.mainToolOptions]] as const) {
@@ -226,7 +226,7 @@ describe('开场百科检索', () => {
     expect(h.subToolOptions[0].tools).toEqual(toolMode === 'json' ? [] : ['read', 'search', 'encyclopedia_search', 'encyclopedia_read', 'web_search', 'web_read', 'write_sql', 'submit']);
     expect(h.subCalls[3].map(message => message.content).join('\n')).toContain('"status":"committed"');
     const log = readAgentSessionLog_ACU();
-    expect(log.some(entry => entry.title.includes('开场百科检索完成'))).toBe(true);
+    expect(log.some(entry => entry.title.includes('Tra cứu bách khoa mở đầu hoàn tất'))).toBe(true);
   });
 
   it('功能关闭时不跑开场检索，目录里也没有 web-researcher；主 Agent 硬派它会被拒绝且不消耗派工额度', async () => {
@@ -245,10 +245,10 @@ describe('开场百科检索', () => {
     expect(h.written).toHaveLength(0);
     const mainText = h.mainCalls[0].map(message => message.content).join('\n');
     expect(mainText).not.toContain('name: web-researcher');
-    expect(mainText).toContain('百科资料库为空（网页检索功能未启用）');
+    expect(mainText).toContain('Kho tư liệu bách khoa đang trống (chức năng tra cứu web chưa bật)');
     const second = h.mainCalls[1].map(message => message.content).join('\n');
-    expect(second).toContain('网页检索功能未启用');
-    expect(second).toContain(`派工：已用 0 / ${DEFAULT_AGENT_RUN_BUDGET_ACU.maxDelegations}`);
+    expect(second).toContain('tra cứu web chưa bật');
+    expect(second).toContain(`Giao việc: đã dùng 0 / ${DEFAULT_AGENT_RUN_BUDGET_ACU.maxDelegations}`);
   });
 
   it('资料库已有条目或任务已有阶段时不重复开场检索；主 Agent 中途派工按普通派工落库', async () => {
@@ -270,8 +270,8 @@ describe('开场百科检索', () => {
     expect(h.written).toHaveLength(1);
     expect(h.written[0].webRefs).toHaveLength(1);
     const second = h.mainCalls[1].map(message => message.content).join('\n');
-    expect(second).toContain('百科资料库：新增/更新 1 条');
-    expect(second).toContain(`派工：已用 1 / ${DEFAULT_AGENT_RUN_BUDGET_ACU.maxDelegations}`);
+    expect(second).toContain('Kho tư liệu bách khoa: thêm/cập nhật 1 mục');
+    expect(second).toContain(`Giao việc: đã dùng 1 / ${DEFAULT_AGENT_RUN_BUDGET_ACU.maxDelegations}`);
   });
 
   it('web-researcher 的 SQL DELETE 经派工和领域事务退役已有百科条目', async () => {
@@ -315,7 +315,7 @@ describe('开场百科检索', () => {
     expect(h.webLog).toEqual([]);
     expect(h.written).toHaveLength(1);
     expect(h.snapshot().webRefs[0]).toMatchObject({ title: '旧资料', url: 'https://example.com/entry', brief: '更新后的简介', fetchedAt: 1 });
-    expect(h.mainCalls[1].map(message => message.content).join('\n')).toContain('逐栏写入已独立保存');
+    expect(h.mainCalls[1].map(message => message.content).join('\n')).toContain('Việc ghi theo từng cột đã được lưu độc lập');
   });
 
   it('SQL UPDATE 换源只接受本次抓取成功的页面句柄', async () => {
@@ -370,8 +370,8 @@ describe('开场百科检索', () => {
     await expect(h.planner.plan(h.request)).rejects.toBeInstanceOf(Error);
     expect(h.subCalls).toHaveLength(4);
     const correction = h.subCalls[3].map(message => message.content).join('\n');
-    expect(correction).toContain('pageRef「P9」不在本次派工的工具结果里');
-    expect(correction).toContain('可用句柄：P1');
+    expect(correction).toContain('pageRef "P9" không có trong kết quả công cụ của lần giao việc này');
+    expect(correction).toContain('Handle khả dụng: P1');
     expect(h.written).toHaveLength(1);
   });
 

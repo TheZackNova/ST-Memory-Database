@@ -11,11 +11,11 @@
     </AcuMessage>
 
     <AcuText variant="status-line" class="acu-table-template-panel__status-line">
-      当前聊天: <strong class="acu-text__value">{{ templates.selectedChatPresetLabel.value }}</strong>
-      <template v-if="templates.selectedGlobalPreset.value"> · 全局默认: <strong class="acu-text__value">{{ templates.selectedGlobalPreset.value }}</strong></template>
-      <template v-else> · 全局默认: <strong class="acu-text__value">默认预设</strong></template>
+      Cuộc trò chuyện hiện tại: <strong class="acu-text__value">{{ templates.selectedChatPresetLabel.value }}</strong>
+      <template v-if="templates.selectedGlobalPreset.value"> · Mặc định toàn cục: <strong class="acu-text__value">{{ templates.selectedGlobalPreset.value }}</strong></template>
+      <template v-else> · Mặc định toàn cục: <strong class="acu-text__value">Preset mặc định</strong></template>
       <AcuBadge :variant="templates.isChatOverridden.value ? 'accent' : 'neutral'">
-        {{ templates.isChatOverridden.value ? '已覆盖' : '跟随全局' }}
+        {{ templates.isChatOverridden.value ? 'Đã ghi đè' : 'Theo toàn cục' }}
       </AcuBadge>
     </AcuText>
 
@@ -25,13 +25,13 @@
         :model-value="templates.selectedChatPreset.value"
         :default-name="templates.selectedGlobalPresetValue.value"
         :disabled="templates.busy.value || management.busy.value"
-        placeholder="默认预设"
+        placeholder="Preset mặc định"
         @update:model-value="templates.selectChatPreset($event)"
         @set-default="templates.selectGlobalPreset($event)"
       />
       <AcuFileButton
         icon-only
-        title="导入模板 JSON"
+        title="Nhập JSON mẫu"
         accept="application/json,.json"
         :disabled="templates.busy.value || management.busy.value"
         @file="templates.importPresetForCurrentChat($event)"
@@ -40,26 +40,26 @@
       </AcuFileButton>
       <AcuIconButton
         icon="fa-solid fa-upload"
-        title="导出当前生效模板"
+        title="Xuất mẫu đang có hiệu lực"
         :disabled="templates.busy.value || management.busy.value || !templates.runtimeTemplateAvailable.value"
         @click="templates.exportTemplate('runtime')"
       />
       <AcuIconButton
         icon="fa-solid fa-clock-rotate-left"
-        title="恢复历史模板归档"
+        title="Khôi phục bản lưu trữ mẫu cũ"
         :disabled="templates.busy.value || management.busy.value || templates.chatArchiveItems.value.length === 0"
         @click="templates.restoreArchivedChatTemplate"
       />
       <AcuIconButton
         v-if="templates.isChatOverridden.value"
         icon="fa-solid fa-link-slash"
-        title="跟随全局（清除聊天覆盖）"
+        title="Theo toàn cục (xóa ghi đè của cuộc trò chuyện)"
         :disabled="templates.busy.value || management.busy.value"
         @click="templates.followGlobalTemplate"
       />
       <AcuIconButton
         icon="fa-solid fa-gear"
-        title="管理表格模板预设"
+        title="Quản lý preset mẫu bảng"
         :disabled="management.busy.value"
         @click="management.openManage"
       />
@@ -69,12 +69,12 @@
       <AcuButton
         variant="primary"
         class="acu-table-template-panel__visualizer-button"
-        title="打开可视化表格编辑器"
+        title="Mở trình chỉnh sửa bảng trực quan"
         :disabled="templates.busy.value || management.busy.value"
         @click="management.openVisualizer"
       >
         <i class="fa-solid fa-table-columns"></i>
-        打开可视化表格编辑器
+        Mở trình chỉnh sửa bảng trực quan
       </AcuButton>
     </div>
 

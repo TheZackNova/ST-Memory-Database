@@ -1,14 +1,14 @@
 export const developerCopy = {
   panels: {
     gatedFields: {
-      title: "开发者 gated 字段",
+      title: "Trường gated dành cho nhà phát triển",
       description:
-        "集中管理各功能的开发者专属功能。默认关闭，且建议无经验用户不开启使用。",
+        "Quản lý tập trung các tính năng dành riêng cho nhà phát triển của từng chức năng. Mặc định tắt, người dùng chưa có kinh nghiệm không nên bật.",
     },
     formFillRuntime: {
-      title: "填表执行参数",
+      title: "Tham số thực thi điền bảng",
       description:
-        "最大并发更新组数会影响多个表格分组同时填表的数量,不建议普通用户修改。",
+        "Số nhóm cập nhật đồng thời tối đa ảnh hưởng đến số nhóm bảng được điền cùng lúc, người dùng thông thường không nên sửa.",
     },
   },
 };

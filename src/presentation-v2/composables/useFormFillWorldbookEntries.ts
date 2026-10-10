@@ -124,7 +124,7 @@ export function useFormFillWorldbookEntries() {
       status.value = 'success';
     } catch (e: any) {
       logError_ACU('[ACU-V2] useFormFillWorldbookEntries loadEntries failed', e);
-      error.value = e?.message ?? '加载条目失败';
+      error.value = e?.message ?? 'Tải mục thất bại';
       status.value = 'error';
     }
   }

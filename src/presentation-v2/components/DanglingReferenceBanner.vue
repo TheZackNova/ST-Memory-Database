@@ -2,19 +2,19 @@
   <AcuMessage v-if="audit.items.value.length || audit.error.value" kind="warning">
     <p v-if="audit.error.value" class="acu-dangling-reference-banner__error">{{ audit.error.value }}</p>
     <p class="acu-dangling-reference-banner__intro">
-      下列引用指向已不存在的{{ kindLabel }}，不会自动改写已保存的设置。可一键清除后重新选择。
+      Các tham chiếu dưới đây trỏ tới {{ kindLabel }} không còn tồn tại, cài đặt đã lưu sẽ không bị tự ghi lại. Có thể xóa một chạm rồi chọn lại.
     </p>
     <ul class="acu-dangling-reference-banner__list">
       <li v-for="item in audit.items.value" :key="item.id" class="acu-dangling-reference-banner__item">
         <span>
-          {{ item.label }}「{{ item.name }}」已不存在
+          {{ item.label }}「{{ item.name }}」không còn tồn tại
         </span>
         <AcuButton
           size="sm"
           :disabled="audit.clearingId.value === item.id"
           @click="audit.clear(item)"
         >
-          清除引用
+          Xóa tham chiếu
         </AcuButton>
       </li>
     </ul>
@@ -32,7 +32,7 @@ const props = defineProps<{
 }>();
 
 const audit = useDanglingReferenceAudit(props.scope);
-const kindLabel = computed(() => (props.scope === 'worldbook' ? '世界书' : 'API 预设'));
+const kindLabel = computed(() => (props.scope === 'worldbook' ? 'Sổ thế giới' : 'Preset API'));
 </script>
 
 <style scoped>

@@ -43,7 +43,7 @@ function tryParseJsonObject(text: string): any {
   if (start >= 0 && end > start) {
     return JSON.parse(cleaned.slice(start, end + 1));
   }
-  throw new Error('回复不是合法 JSON 对象。');
+  throw new Error('Phản hồi không phải đối tượng JSON hợp lệ.');
 }
 
 function isPlainObject(value: any): value is Record<string, any> {
@@ -62,22 +62,22 @@ function buildSheetLookup(tableData: any, targetSheetKeys?: string[] | null) {
 
 function resolveSheet(sheet: any, tableData: any, targetSheetKeys?: string[] | null) {
   const name = String(sheet ?? '').trim();
-  if (!name) throw new Error('sheet 不能为空。');
+  if (!name) throw new Error('sheet không được để trống.');
   const { sortedKeys, entries } = buildSheetLookup(tableData);
   let sheetKey: string;
   try {
     [sheetKey] = rebindSheetKeysThroughTableAliases_ACU([name], null, tableData);
   } catch (error) {
     if (error instanceof SheetTableAliasResolutionError_ACU) {
-      throw new Error(`sheet 名称无效：${error.message}`);
+      throw new Error(`Tên sheet không hợp lệ: ${error.message}`);
     }
     throw error;
   }
-  if (!sheetKey) throw new Error(`sheet 未匹配到可编辑表格：${name}`);
+  if (!sheetKey) throw new Error(`sheet không khớp bảng nào có thể chỉnh sửa: ${name}`);
   const entry = entries.find(candidate => candidate.sheetKey === sheetKey);
-  if (!entry) throw new Error(`sheet 未匹配到可编辑表格：${name}`);
+  if (!entry) throw new Error(`sheet không khớp bảng nào có thể chỉnh sửa: ${name}`);
   if (Array.isArray(targetSheetKeys) && targetSheetKeys.length > 0 && !targetSheetKeys.includes(sheetKey)) {
-    throw new Error(`sheet 越权：${name} 解析为非目标表 ${sheetKey}。`);
+    throw new Error(`sheet vượt quyền: ${name} được phân giải thành bảng không phải đích ${sheetKey}.`);
   }
   return { ...entry, index: sortedKeys.indexOf(sheetKey) };
 }
@@ -93,10 +93,10 @@ function getHeaderMap(table: any) {
 }
 
 function normalizeValueObject(value: any, headerMap: Map<string, number>, label: string): Record<string, string> {
-  if (!isPlainObject(value)) throw new Error(`${label} 必须是对象。`);
+  if (!isPlainObject(value)) throw new Error(`${label} phải là đối tượng.`);
   const result: Record<string, string> = {};
   for (const [field, raw] of Object.entries(value)) {
-    if (!headerMap.has(field)) throw new Error(`字段名不存在：${field}`);
+    if (!headerMap.has(field)) throw new Error(`Tên trường không tồn tại: ${field}`);
     if (raw === undefined || raw === null) result[field] = '';
     else result[field] = String(raw);
   }
@@ -105,7 +105,7 @@ function normalizeValueObject(value: any, headerMap: Map<string, number>, label:
 
 function findUniqueRowIndex(table: any, where: Record<string, string>, headerMap: Map<string, number>): number {
   const whereKeys = Object.keys(where);
-  if (whereKeys.length === 0) throw new Error('where 必须至少包含一个字段。');
+  if (whereKeys.length === 0) throw new Error('where phải chứa ít nhất một trường.');
   const rows = Array.isArray(table.content) ? table.content.slice(1) : [];
   const matches: number[] = [];
   rows.forEach((row: any[], rowIndex: number) => {
@@ -115,8 +115,8 @@ function findUniqueRowIndex(table: any, where: Record<string, string>, headerMap
     });
     if (ok) matches.push(rowIndex);
   });
-  if (matches.length === 0) throw new Error('where 未匹配到任何行。');
-  if (matches.length > 1) throw new Error('where 匹配到多行，请增加定位条件。');
+  if (matches.length === 0) throw new Error('where không khớp hàng nào.');
+  if (matches.length > 1) throw new Error('where khớp nhiều hàng, hãy thêm điều kiện định vị.');
   return matches[0];
 }
 
@@ -124,7 +124,7 @@ function valuesToColumnObject(values: Record<string, string>, headerMap: Map<str
   const out: Record<string, string> = {};
   for (const [field, value] of Object.entries(values)) {
     const idx = headerMap.get(field);
-    if (idx === undefined) throw new Error(`字段名不存在：${field}`);
+    if (idx === undefined) throw new Error(`Tên trường không tồn tại: ${field}`);
     out[String(idx)] = value;
   }
   return out;
@@ -133,16 +133,16 @@ function valuesToColumnObject(values: Record<string, string>, headerMap: Map<str
 function assertOnlyKeys(value: Record<string, any>, allowed: string[], label: string) {
   const allowedSet = new Set(allowed);
   for (const key of Object.keys(value)) {
-    if (!allowedSet.has(key)) throw new Error(`${label} 包含不允许的字段：${key}`);
+    if (!allowedSet.has(key)) throw new Error(`${label} chứa trường không được phép: ${key}`);
   }
 }
 
 export function convertStrictOpsToTableEdit_ACU(ops: any[], tableData: any, targetSheetKeys?: string[] | null) {
-  if (!Array.isArray(ops)) throw new Error('ops 必须是数组。');
+  if (!Array.isArray(ops)) throw new Error('ops phải là mảng.');
   const lines: string[] = [];
   const modifiedKeys = new Set<string>();
   for (const op of ops) {
-    if (!isPlainObject(op)) throw new Error('ops 中的每一项都必须是对象。');
+    if (!isPlainObject(op)) throw new Error('Mỗi phần tử trong ops đều phải là đối tượng.');
     const kind = String(op.op || '').trim();
     const entry = resolveSheet(op.sheet, tableData, targetSheetKeys);
     const headerMap = getHeaderMap(entry.table);
@@ -155,7 +155,7 @@ export function convertStrictOpsToTableEdit_ACU(ops: any[], tableData: any, targ
       assertOnlyKeys(op, ['op', 'sheet', 'where', 'set'], 'update');
       const where = normalizeValueObject(op.where, headerMap, 'where');
       const set = normalizeValueObject(op.set, headerMap, 'set');
-      if (Object.keys(set).length === 0) throw new Error('set 必须至少包含一个字段。');
+      if (Object.keys(set).length === 0) throw new Error('set phải chứa ít nhất một trường.');
       const rowIndex = findUniqueRowIndex(entry.table, where, headerMap);
       lines.push(`updateRow(${entry.index}, ${rowIndex}, ${JSON.stringify(valuesToColumnObject(set, headerMap))})`);
       modifiedKeys.add(entry.sheetKey);
@@ -166,7 +166,7 @@ export function convertStrictOpsToTableEdit_ACU(ops: any[], tableData: any, targ
       lines.push(`deleteRow(${entry.index}, ${rowIndex})`);
       modifiedKeys.add(entry.sheetKey);
     } else {
-      throw new Error(`不支持的 op：${kind}`);
+      throw new Error(`op không được hỗ trợ: ${kind}`);
     }
   }
   const tableEditText = lines.join('\n');
@@ -180,18 +180,18 @@ export function convertStrictOpsToTableEdit_ACU(ops: any[], tableData: any, targ
 export function extractStrictJsonTableFillResponse_ACU(text: string, options: { sqlite?: boolean; tableData?: any; targetSheetKeys?: string[] | null } = {}): StrictJsonTableFillExtraction_ACU {
   try {
     const parsed = tryParseJsonObject(text);
-    if (!isPlainObject(parsed)) throw new Error('回复 JSON 根节点必须是对象。');
+    if (!isPlainObject(parsed)) throw new Error('Nút gốc của JSON phản hồi phải là đối tượng.');
     const expected = options.sqlite ? 'table_edit_sql_v1' : 'table_edit_ops_v1';
-    if (parsed.format !== expected) throw new Error(`format 必须是 ${expected}。`);
+    if (parsed.format !== expected) throw new Error(`format phải là ${expected}.`);
     if (expected === 'table_edit_sql_v1') {
-      if (typeof parsed.sql !== 'string') throw new Error('sql 必须是字符串。');
+      if (typeof parsed.sql !== 'string') throw new Error('sql phải là chuỗi.');
       const tableEditText = parsed.sql.trim();
       return { ok: true, format: expected, rawJson: parsed, tableEditText, normalizedResponse: `<tableEdit>\n${tableEditText}\n</tableEdit>` };
     }
     const converted = convertStrictOpsToTableEdit_ACU(parsed.ops, options.tableData, options.targetSheetKeys);
     return { ok: true, format: expected, rawJson: parsed, ...converted };
   } catch (error: any) {
-    const message = error?.message || '严格 JSON 填表响应解析失败。';
+    const message = error?.message || 'Phân tích phản hồi điền bảng JSON nghiêm ngặt thất bại.';
     return { ok: false, error: message, retryHint: message };
   }
 }

@@ -48,8 +48,8 @@ import { $popupInstance_ACU, $importTableSelector_ACU } from '../state/ui-refs';
                   const selectionSig = JSON.stringify(currentSelection || []);
 
                   if (settings_ACU.hasImportTableSelection && (!currentSelection || currentSelection.length === 0)) {
-                      $statusDisplay.text('状态：未选择任何表格，无法注入。').css('color', 'salmon');
-                      $injectButton.text('2. 注入（自选表格）').prop('disabled', true);
+                      $statusDisplay.text('Trạng thái: chưa chọn bảng nào, không thể chèn.').css('color', 'salmon');
+                      $injectButton.text('2. Chèn (bảng tự chọn)').prop('disabled', true);
                       return;
                       }
 
@@ -67,11 +67,11 @@ import { $popupInstance_ACU, $importTableSelector_ACU } from '../state/ui-refs';
                       (typeof status.selectionSig === 'undefined' || status.selectionSig === selectionSig);
 
                   if (canResume) {
-                      $statusDisplay.text(`状态：已暂停，完成 ${status.currentIndex}/${status.total}。`).css('color', 'orange');
-                      $injectButton.text('继续注入（自选表格）').prop('disabled', false);
+                      $statusDisplay.text(`Trạng thái: đã tạm dừng, hoàn tất ${status.currentIndex}/${status.total}.`).css('color', 'orange');
+                      $injectButton.text('Tiếp tục chèn (bảng tự chọn)').prop('disabled', false);
                       } else {
-                  $statusDisplay.text(`状态：已准备好 ${chunks.length} 个条目可供注入。`).css('color', 'lightgreen');
-                      $injectButton.text('2. 注入（自选表格）').prop('disabled', false);
+                  $statusDisplay.text(`Trạng thái: đã sẵn sàng ${chunks.length} mục để chèn.`).css('color', 'lightgreen');
+                      $injectButton.text('2. Chèn (bảng tự chọn)').prop('disabled', false);
                   }
                   return;
               }
@@ -81,8 +81,8 @@ import { $popupInstance_ACU, $importTableSelector_ACU } from '../state/ui-refs';
           }
       }
       
-      $statusDisplay.text('状态：尚未加载文件。').css('color', '');
-      $injectButton.text('2. 注入（自选表格）').prop('disabled', true);
+      $statusDisplay.text('Trạng thái: chưa tải tệp.').css('color', '');
+      $injectButton.text('2. Chèn (bảng tự chọn)').prop('disabled', true);
   }
 
   // [新增] 获取导入专用的世界书目标
@@ -110,7 +110,7 @@ import { $popupInstance_ACU, $importTableSelector_ACU } from '../state/ui-refs';
       const encoding = ($encodingSelect.val() as string) || 'UTF-8'; // 新增
 
       if (isNaN(splitSize) || splitSize <= 0) {
-          showToastr_ACU('error', '请输入有效的字符分割数。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+          showToastr_ACU('error', 'Vui lòng nhập số ký tự chia hợp lệ.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
           return;
       }
 
@@ -119,13 +119,13 @@ import { $popupInstance_ACU, $importTableSelector_ACU } from '../state/ui-refs';
           const file = (e.target as HTMLInputElement).files[0];
           if (!file) return;
 
-          $statusDisplay.text('状态：正在读取和拆分文件...').css('color', '#61afef');
+          $statusDisplay.text('Trạng thái: đang đọc và tách tệp...').css('color', '#61afef');
           const reader = new FileReader();
           
           reader.onload = (readerEvent) => {
               const content = readerEvent.target.result as string;
               if (!content) {
-                  showToastr_ACU('warning', '文件为空或读取失败。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                  showToastr_ACU('warning', 'Tệp rỗng hoặc đọc thất bại.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                   void updateImportStatusUI_ACU();
                   $fileInput.val('');
                   return;
@@ -140,7 +140,7 @@ import { $popupInstance_ACU, $importTableSelector_ACU } from '../state/ui-refs';
                       });
 
                       if (!result.success) {
-                          showToastr_ACU('error', result.error || '文件拆分失败。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+                          showToastr_ACU('error', result.error || 'Tách tệp thất bại.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                           void updateImportStatusUI_ACU();
                           $fileInput.val('');
                           return;
@@ -148,13 +148,13 @@ import { $popupInstance_ACU, $importTableSelector_ACU } from '../state/ui-refs';
                       
                       showToastr_ACU(
                           'success',
-                          `文件已成功拆分成 ${result.chunksCount || 0} 个部分。`,
+                          `Đã tách tệp thành ${result.chunksCount || 0} phần thành công.`,
                           { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT }
                       );
                       
                       void updateImportStatusUI_ACU();
                   } catch (e) {
-                      showToastr_ACU('error', e instanceof Error ? e.message : '文件拆分失败。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+                      showToastr_ACU('error', e instanceof Error ? e.message : 'Tách tệp thất bại.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                       void updateImportStatusUI_ACU();
                   } finally {
                       // Reset file input value to allow re-importing the same file
@@ -164,7 +164,7 @@ import { $popupInstance_ACU, $importTableSelector_ACU } from '../state/ui-refs';
           };
           
           reader.onerror = () => {
-              showToastr_ACU('error', '读取文件时出错。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+              showToastr_ACU('error', 'Lỗi khi đọc tệp.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
               void updateImportStatusUI_ACU();
               $fileInput.val('');
           };

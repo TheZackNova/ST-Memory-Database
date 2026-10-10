@@ -57,7 +57,7 @@ describe('WorldSimulationSessionFeed', () => {
   it('协议修正没有标题时回退为通用提示', () => {
     const el = mountFeed([entry_ACU({ title: '' })]);
     const details = el.querySelector<HTMLDetailsElement>('.acu-v2-session-feed__protocol');
-    expect(details!.querySelector('summary')?.textContent).toContain('已自动修正一次模型输出');
+    expect(details!.querySelector('summary')?.textContent).toContain('Đã tự động sửa một lần đầu ra của mô hình');
   });
 
   it('主流程完成事件仍使用高层级卡片', () => {
@@ -81,7 +81,7 @@ describe('WorldSimulationSessionFeed', () => {
     ]);
     const badges = Array.from(el.querySelectorAll('.acu-v2-session-feed__badge')).map(item => item.textContent?.trim());
 
-    expect(badges).toEqual(['格林推演', '阶段规划', 'custom-agent']);
+    expect(badges).toEqual(['Mô phỏng thế giới', 'Lập kế hoạch giai đoạn', 'custom-agent']);
     expect(el.textContent).not.toContain('world-analyst');
   });
 });

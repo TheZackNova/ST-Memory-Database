@@ -72,7 +72,7 @@ export async function importTableJsonThroughCommit_ACU(
       persisted: false,
       failureStage: 'input',
       issues: [{ code: 'import_invalid_json', message }],
-      error: `导入的JSON无法解析：${message}`,
+      error: `Không thể phân tích JSON đã nhập: ${message}`,
     };
   }
   if (!newData || typeof newData !== 'object' || !('mate' in newData) || !Object.keys(newData).some(k => k.startsWith('sheet_'))) {
@@ -80,8 +80,8 @@ export async function importTableJsonThroughCommit_ACU(
       success: false,
       persisted: false,
       failureStage: 'input',
-      issues: [{ code: 'import_invalid_structure', message: '导入的JSON缺少关键结构 (mate, sheet_*)。' }],
-      error: '导入的JSON缺少关键结构 (mate, sheet_*)。',
+      issues: [{ code: 'import_invalid_structure', message: 'JSON đã nhập thiếu cấu trúc then chốt (mate, sheet_*).' }],
+      error: 'JSON đã nhập thiếu cấu trúc then chốt (mate, sheet_*).',
     };
   }
 
@@ -91,11 +91,11 @@ export async function importTableJsonThroughCommit_ACU(
   if (!persist) {
     const provider = getStorageProvider();
     if (typeof provider.replaceAllData !== 'function') {
-      return { success: false, persisted: false, failureStage: 'runtime_restore', error: '当前存储 provider 不支持全量替换命令。' };
+      return { success: false, persisted: false, failureStage: 'runtime_restore', error: 'Storage provider hiện tại không hỗ trợ lệnh thay thế toàn bộ.' };
     }
     const replaceResult = await provider.replaceAllData(importedTableData);
     if (!replaceResult.success) {
-      return { success: false, persisted: false, failureStage: 'runtime_restore', error: replaceResult.error || '运行时全量替换失败。' };
+      return { success: false, persisted: false, failureStage: 'runtime_restore', error: replaceResult.error || 'Thay thế toàn bộ runtime thất bại.' };
     }
     const runtimeData = (provider.getCurrentData() || importedTableData) as TableDataObject_ACU;
     const sheetKeys = Object.keys(runtimeData).filter(k => k.startsWith('sheet_'));
@@ -124,21 +124,21 @@ export async function importTableJsonThroughCommit_ACU(
       failureStage: 'preflight',
       auditStatus: audit.status,
       issues: audit.issues,
-      error: `导入数据需要人工确认或无法修复：${diagnostics}`,
+      error: `Dữ liệu nhập cần xác nhận thủ công hoặc không thể sửa: ${diagnostics}`,
     };
   }
   const candidateData = repair.candidateData as TableDataObject_ACU;
   if (isSqliteMode()) {
     const sqlitePreflight = await validateSqliteTemplateDataStrict_ACU(candidateData, { allowRuntimeDdlFallback: true });
     if (!sqlitePreflight.success) {
-      const message = sqlitePreflight.error || '候选数据无法通过 SQLite hydrate。';
+      const message = sqlitePreflight.error || 'Dữ liệu ứng viên không thể qua SQLite hydrate.';
       return {
         success: false,
         persisted: false,
         failureStage: 'preflight',
         auditStatus: audit.status,
         issues: [{ code: 'sqlite_preflight_failed', message }],
-        error: `导入候选数据未通过 SQLite 预检：${message}`,
+        error: `Dữ liệu ứng viên nhập không qua kiểm tra trước SQLite: ${message}`,
       };
     }
   } else {
@@ -182,24 +182,24 @@ export async function importTableJsonThroughCommit_ACU(
       success: false,
       persisted: false,
       failureStage: 'commit',
-      error: commitResult.error || '导入数据提交失败。',
+      error: commitResult.error || 'Commit dữ liệu nhập thất bại.',
     };
   }
 
   const provider = getStorageProvider();
   if (typeof provider.replaceAllData !== 'function') {
     await reloadStorageProvider();
-    return { success: false, persisted: true, failureStage: 'post_commit_runtime', error: '导入数据已保存，但当前存储 provider 不支持运行时全量替换；已尝试重新加载运行时。' };
+    return { success: false, persisted: true, failureStage: 'post_commit_runtime', error: 'Dữ liệu nhập đã được lưu, nhưng storage provider hiện tại không hỗ trợ thay thế toàn bộ runtime; đã thử tải lại runtime.' };
   }
   try {
     const replaceResult = await provider.replaceAllData(commitResult.tableData);
     if (!replaceResult.success) {
       await reloadStorageProvider();
-      return { success: false, persisted: true, failureStage: 'post_commit_runtime', error: `导入数据已保存，但运行时全量替换失败；已尝试重新加载运行时：${replaceResult.error || '未知错误'}` };
+      return { success: false, persisted: true, failureStage: 'post_commit_runtime', error: `Dữ liệu nhập đã được lưu, nhưng thay thế toàn bộ runtime thất bại; đã thử tải lại runtime: ${replaceResult.error || 'Lỗi không xác định'}` };
     }
   } catch (error) {
     await reloadStorageProvider();
-    return { success: false, persisted: true, failureStage: 'post_commit_runtime', error: `导入数据已保存，但运行时全量替换异常；已尝试重新加载运行时：${error instanceof Error ? error.message : String(error)}` };
+    return { success: false, persisted: true, failureStage: 'post_commit_runtime', error: `Dữ liệu nhập đã được lưu, nhưng thay thế toàn bộ runtime gặp lỗi; đã thử tải lại runtime: ${error instanceof Error ? error.message : String(error)}` };
   }
 
   const hasSummaryTables = Object.keys(commitResult.tableData)

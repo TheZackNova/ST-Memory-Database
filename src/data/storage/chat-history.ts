@@ -105,7 +105,7 @@ function readContainer_ACU(raw: unknown, strict = false): Record<string, unknown
     if (raw == null || !strict && !raw) return null;
     const obj = (typeof raw === 'string') ? safeJsonParse_ACU(raw, null) : raw;
     if (obj && typeof obj === 'object' && !Array.isArray(obj)) return obj as Record<string, unknown>;
-    if (strict) throw new Error('只读聊天配置容器损坏，禁止以缺失来源继续桥接。');
+    if (strict) throw new Error('Vùng chứa cấu hình trò chuyện chỉ đọc bị hỏng, cấm tiếp tục bắc cầu với nguồn bị thiếu.');
     return null;
 }
 
@@ -255,7 +255,7 @@ function readChatScopedConfigContainer_ACU(chat: unknown[], persistLegacyMerge: 
     if (strict) for (const container of [metadataContainer, legacyContainer]) {
         const slots = container?.template;
         if (slots !== undefined && (!slots || typeof slots !== 'object' || Array.isArray(slots))) {
-            throw new Error('只读模板槽位容器损坏，禁止合并或回退默认模板。');
+            throw new Error('Vùng chứa slot mẫu chỉ đọc bị hỏng, cấm gộp hoặc lùi về mẫu mặc định.');
         }
     }
     const merged = mergeLegacyScopedConfigIntoMetadata_ACU(metadataContainer, legacyContainer);
@@ -309,7 +309,7 @@ function readChatSheetGuideContainer_ACU(chat: unknown[], persistLegacyMerge: bo
     if (strict) for (const container of [metadataContainer, legacyContainer]) {
         const tags = container?.tags;
         if (tags !== undefined && (!tags || typeof tags !== 'object' || Array.isArray(tags))) {
-            throw new Error('只读 guide 标签容器损坏，禁止合并或回退默认模板。');
+            throw new Error('Vùng chứa nhãn guide chỉ đọc bị hỏng, cấm gộp hoặc lùi về mẫu mặc định.');
         }
     }
     const merged = mergeLegacyGuideIntoMetadata_ACU(metadataContainer, legacyContainer);

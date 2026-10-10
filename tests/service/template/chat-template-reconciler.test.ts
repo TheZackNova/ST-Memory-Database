@@ -54,7 +54,7 @@ describe('reconcileChatTemplate_ACU', () => {
 
     // 显式硬删除仍需 destructiveChangeConfirmed 显式确认。
     const rejected = await reconcileChatTemplate_ACU({ baselineData: baseline, templateData: template, destructiveChangeConfirmed: false, hardDeleteMissingSheets: true });
-    expect(rejected.blockers.join('\n')).toContain('删除表');
+    expect(rejected.blockers.join('\n')).toContain('Xóa bảng');
     expect(rejected.sheetChanges).toEqual([]);
 
     const accepted = await reconcileChatTemplate_ACU({ baselineData: baseline, templateData: template, destructiveChangeConfirmed: true, hardDeleteMissingSheets: true });
@@ -229,10 +229,10 @@ describe('reconcileChatTemplate_ACU', () => {
     const plan = await reconcileChatTemplate_ACU({ baselineData: baseline, templateData: template, destructiveChangeConfirmed: false, storageMode: 'native' });
 
     const blockerText = plan.blockers.join('\n');
-    expect(blockerText).toContain('当前聊天表别名规范化重复');
-    expect(blockerText).toContain('(sheet_lEARaBa8, 1 行)');
-    expect(blockerText).toContain('(sheet_zhu_jue_ji_neng, 1 行)');
-    expect(blockerText).toContain('大写 I、小写 l');
+    expect(blockerText).toContain('Cuộc trò chuyện hiện tại: bí danh bảng trùng sau khi chuẩn hóa');
+    expect(blockerText).toContain('(sheet_lEARaBa8, 1 hàng)');
+    expect(blockerText).toContain('(sheet_zhu_jue_ji_neng, 1 hàng)');
+    expect(blockerText).toContain('I viết hoa, l viết thường');
     expect(plan.sheetChanges).toEqual([]);
   });
 
@@ -251,7 +251,7 @@ describe('reconcileChatTemplate_ACU', () => {
 
     const plan = await reconcileChatTemplate_ACU({ baselineData: baseline, templateData: template, destructiveChangeConfirmed: false, storageMode: 'native' });
 
-    expect(plan.blockers.join('\n')).toContain('当前聊天表别名规范化重复');
+    expect(plan.blockers.join('\n')).toContain('Cuộc trò chuyện hiện tại: bí danh bảng trùng sau khi chuẩn hóa');
     expect(plan.hiddenSheetKeys).toEqual([]);
     expect(plan.sheetChanges).toEqual([]);
   });
@@ -275,9 +275,9 @@ describe('reconcileChatTemplate_ACU', () => {
       sheet_y7m1q: sheet('sheet_y7m1q', '背包', ['row_id', '值'], 'row_id INTEGER PRIMARY KEY, 值 TEXT', []),
     });
     const ambiguousPlan = await reconcileChatTemplate_ACU({ baselineData: ambiguous, templateData: template, destructiveChangeConfirmed: false, storageMode: 'native' });
-    expect(ambiguousPlan.blockers.join('\n')).toContain('当前聊天表名规范化重复');
-    expect(ambiguousPlan.blockers.join('\n')).toContain('(sheet_x9k2f, 0 行)');
-    expect(ambiguousPlan.blockers.join('\n')).toContain('(sheet_y7m1q, 0 行)');
+    expect(ambiguousPlan.blockers.join('\n')).toContain('Cuộc trò chuyện hiện tại: tên bảng trùng sau khi chuẩn hóa');
+    expect(ambiguousPlan.blockers.join('\n')).toContain('(sheet_x9k2f, 0 hàng)');
+    expect(ambiguousPlan.blockers.join('\n')).toContain('(sheet_y7m1q, 0 hàng)');
     expect(ambiguousPlan.sheetChanges).toEqual([]);
   });
 
@@ -291,7 +291,7 @@ describe('reconcileChatTemplate_ACU', () => {
 
     const plan = await reconcileChatTemplate_ACU({ baselineData: state({}), templateData: template, destructiveChangeConfirmed: false });
 
-    expect(plan.blockers.join('\n')).toContain('表别名规范化重复');
+    expect(plan.blockers.join('\n')).toContain('bí danh bảng trùng sau khi chuẩn hóa');
     expect(plan.sheetChanges).toEqual([]);
   });
 
@@ -477,7 +477,7 @@ describe('reconcileChatTemplate_ACU', () => {
 
     const plan = await reconcileChatTemplate_ACU({ baselineData: baseline, templateData: template, destructiveChangeConfirmed: true });
 
-    expect(plan.blockers.join('\n')).toContain('无法唯一协调');
+    expect(plan.blockers.join('\n')).toContain('không thể điều phối duy nhất');
     expect(plan.sheetChanges).toEqual([]);
     expect(plan.deletedSheetKeys).toEqual([]);
     expect(plan.candidateData.sheet_stable.content[1][1]).toBe('稳定 key 数据');
@@ -629,11 +629,11 @@ describe('reconcileChatTemplate_ACU', () => {
   });
 
   it.each([
-    { label: '非数组行', rows: [['1', '铁剑'], 'bad-row' as any], expected: '不是数组' },
-    { label: '短行', rows: [['1']], expected: '宽度' },
-    { label: '超宽行', rows: [['1', '铁剑', '多余']], expected: '宽度' },
-    { label: '空 row_id', rows: [['', '铁剑']], expected: 'row_id 为空' },
-    { label: '重复 row_id', rows: [['1', '铁剑'], ['1', '木剑']], expected: 'row_id 重复' },
+    { label: '非数组行', rows: [['1', '铁剑'], 'bad-row' as any], expected: 'không phải mảng' },
+    { label: '短行', rows: [['1']], expected: 'Độ rộng' },
+    { label: '超宽行', rows: [['1', '铁剑', '多余']], expected: 'Độ rộng' },
+    { label: '空 row_id', rows: [['', '铁剑']], expected: 'rỗng' },
+    { label: '重复 row_id', rows: [['1', '铁剑'], ['1', '木剑']], expected: 'row_id trùng lặp' },
   ])('历史基线存在$label时 fail closed', async ({ rows, expected }) => {
     const baseline = state({ sheet_legacy: sheet('sheet_legacy', '背包', ['row_id', '名称'], 'row_id INTEGER PRIMARY KEY, item_name TEXT -- 名称', rows as any) });
     const template = state({ sheet_imported: sheet('sheet_imported', '背包', ['row_id', '名称'], 'row_id INTEGER PRIMARY KEY, item_name TEXT -- 名称') });
@@ -819,7 +819,7 @@ describe('reconcileChatTemplate_ACU', () => {
     const baseline = state({ sheet_legacy: baselineSheet });
     const plan = await reconcileChatTemplate_ACU({ baselineData: baseline, templateData: state({}), destructiveChangeConfirmed: false });
 
-    expect(plan.blockers.join('\n')).toContain('宽度');
+    expect(plan.blockers.join('\n')).toContain('Độ rộng');
     expect(plan.candidateData.sheet_legacy.content).toEqual(baselineSheet.content);
     expect(plan.candidateData.sheet_legacy.seedRows).toBeUndefined();
   });
@@ -1026,7 +1026,7 @@ describe('reconcileChatTemplate_ACU', () => {
     const invalidTemplate = sheet('sheet_new', '新表', ['row_id', '显示名称'], 'row_id INTEGER PRIMARY KEY, physical_name TEXT', []);
     const plan = await reconcileChatTemplate_ACU({ baselineData: state({}), templateData: state({ sheet_new: invalidTemplate }), destructiveChangeConfirmed: false });
 
-    expect(plan.blockers.join('\n')).toContain('完整 replay candidate DDL/表头预检失败');
+    expect(plan.blockers.join('\n')).toContain('Kiểm tra trước DDL/tiêu đề của replay candidate đầy đủ thất bại');
     expect(plan.blockers.join('\n')).toContain('sheet_xin_biao');
     expect(plan.sheetChanges).toEqual([]);
     expect(plan.candidateData.sheet_xin_biao).toBeUndefined();
@@ -1069,7 +1069,7 @@ describe('reconcileChatTemplate_ACU', () => {
 
     const plan = await reconcileChatTemplate_ACU({ baselineData: state({}), templateData: state({ sheet_new: invalidProjection }), destructiveChangeConfirmed: false });
 
-    expect(plan.blockers.join('\n')).toContain('完整 replay candidate 列投影预检失败');
+    expect(plan.blockers.join('\n')).toContain('Kiểm tra trước phép chiếu cột của replay candidate đầy đủ thất bại');
     expect(plan.blockers.join('\n')).toContain('missing_column');
     expect(plan.sheetChanges).toEqual([]);
     expect(plan.candidateData.sheet_xin_biao).toBeUndefined();
@@ -1084,8 +1084,8 @@ describe('reconcileChatTemplate_ACU', () => {
 
     const plan = await reconcileChatTemplate_ACU({ baselineData: state({}), templateData: state({ sheet_new: invalidRow }), destructiveChangeConfirmed: false });
 
-    expect(plan.blockers.join('\n')).toContain('完整 replay candidate SQLite hydrate 失败');
-    expect(plan.blockers.join('\n')).toContain('SQLite 写入失败：第 2 条语句失败（INSERT INTO xinbiao）');
+    expect(plan.blockers.join('\n')).toContain('SQLite hydrate của replay candidate đầy đủ thất bại');
+    expect(plan.blockers.join('\n')).toContain('Ghi SQLite thất bại: câu lệnh thứ 2 thất bại (INSERT INTO xinbiao)');
     expect(plan.blockers.join('\n')).toContain('CHECK constraint failed: score > 0');
     expect(plan.sheetChanges).toEqual([]);
     expect(plan.candidateData.sheet_xin_biao).toBeUndefined();
@@ -1528,7 +1528,7 @@ describe('reconcileChatTemplate_ACU', () => {
       const plan = await reconcileChatTemplate_ACU({ baselineData: state({ sheet_legacy: bad }), templateData: template, destructiveChangeConfirmed: false, storageMode: 'sqlite' });
 
       expect(plan.blockers).not.toEqual([]);
-      expect(plan.blockers.join('\n')).toContain('DDL 与表头列数不一致');
+      expect(plan.blockers.join('\n')).toContain('Số cột của DDL và tiêu đề không khớp');
       expect(plan.sheetChanges).toEqual([]);
       // 原 DDL 未被 fallback 覆盖。
       expect(bad.sourceData.ddl).toBe('CREATE TABLE inventory (item_name TEXT);');
@@ -1743,7 +1743,7 @@ describe('双向表别名认回（S1-5）', () => {
 
     const plan = await reconcileChatTemplate_ACU({ baselineData: baseline, templateData: template, destructiveChangeConfirmed: false });
 
-    expect(plan.blockers.join('\n')).toContain('显式历史别名同时匹配多张');
+    expect(plan.blockers.join('\n')).toContain('Bí danh lịch sử khai báo rõ');
     expect(plan.sheetChanges).toEqual([]);
   });
 });
@@ -1800,6 +1800,6 @@ describe('reconcileRevealedSheetWithTemplate_ACU（S1-4 reveal 后列级再协�
       'row_id INTEGER PRIMARY KEY,\n  title TEXT -- title', []);
 
     expect(() => reconcileRevealedSheetWithTemplate_ACU(restored, template, 'sheet_task', 'sqlite'))
-      .toThrow(/reveal 恢复数据不合法.*row_id 重复/);
+      .toThrow(/Dữ liệu khôi phục reveal không hợp lệ.*row_id trùng lặp/);
   });
-});
+});

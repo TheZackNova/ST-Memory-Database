@@ -109,7 +109,7 @@ export interface AgentModuleDefinition_ACU {
 export const AGENT_FINAL_REVIEWER_DEFINITION_ACU = {
   name: AGENT_FINAL_REVIEWER_NAME_ACU,
   kind: 'review' as const,
-  description: '发送前最终审查：核对人物情绪、世界书证据和逻辑边界，只读不写',
+  description: 'Chung duyệt trước khi gửi: đối chiếu cảm xúc nhân vật, bằng chứng World Info và ranh giới logic, chỉ đọc không ghi',
   promptKey: 'finalReviewer' as const,
 };
 
@@ -117,43 +117,43 @@ export const AGENT_SUBAGENT_DEFINITIONS_ACU: readonly AgentSubagentDefinition_AC
   {
     name: 'arc-architect',
     kind: 'arc',
-    description: '维护故事总纲：全书方向、卷级台阶（每卷推到什么高度、收在哪）、禁止提前翻的底牌，以及各卷已由哪些阶段承载的进度',
-    triggers: ['总纲状态显示「还没有故事总纲」时必须先派它', '一个阶段完成后回写进度、必要时把下一卷切成 active', '真实剧情已明显偏离既定方向、需要修订台阶时', '底牌被正文提前翻开、总纲的禁翻清单需要更新时', '当前卷的目标已实际收束或明显提前/推迟，台阶划分需要调整时'],
+    description: 'Bảo trì tổng cương câu chuyện: hướng đi toàn sách, bậc thang cấp tập (mỗi tập đẩy lên cao đến đâu, kết ở đâu), át chủ bài cấm lật sớm, và tiến độ các tập đã được những giai đoạn nào đảm nhận',
+    triggers: ['Khi trạng thái tổng cương hiển thị «chưa có tổng cương câu chuyện» thì phải phân công nó trước', 'Sau khi một giai đoạn hoàn tất thì ghi lại tiến độ, khi cần thì chuyển tập tiếp theo thành active', 'Khi cốt truyện thật đã lệch rõ khỏi hướng định sẵn, cần sửa bậc thang', 'Khi át chủ bài bị chính văn lật sớm, danh sách cấm lật của tổng cương cần cập nhật', 'Khi mục tiêu của tập hiện tại đã thực sự khép lại hoặc rõ ràng sớm/muộn hơn, cần điều chỉnh cách chia bậc thang'],
     promptKey: 'arcArchitect',
   },
   {
     name: 'hook-cognition-maintainer',
     kind: 'maintain',
-    description: '结算已经发生的正文：维护伏笔账本、认知信息差时间线与故事年代学账本，只登记真实历史里已实际发生的变化',
-    triggers: ['存在尚未结算的真实历史', '新正文出现异常线索、秘密、反常细节', '已有伏笔被再次触碰', '某个角色的知晓状态发生变化', '正文实际发生了跨夜、数日或更久的时间流逝'],
+    description: 'Kết toán chính văn đã xảy ra: bảo trì sổ phục bút, dòng thời gian chênh lệch nhận thức và sổ niên đại học câu chuyện, chỉ đăng ký những thay đổi đã thực sự xảy ra trong lịch sử thật',
+    triggers: ['Có lịch sử thật chưa kết toán', 'Chính văn mới xuất hiện manh mối bất thường, bí mật, chi tiết khác thường', 'Phục bút đã có bị chạm lại', 'Trạng thái hiểu biết của một nhân vật thay đổi', 'Trong chính văn thực sự đã trôi qua thời gian qua đêm, vài ngày hoặc lâu hơn'],
     promptKey: 'maintainer',
   },
   {
     name: 'mainline-planner',
     kind: 'plan',
-    description: '按本轮 pacing 策划场景：pressure/turn 给冲突阶梯、主角选择与实质价值变动；setup/cooldown 给具体生活动作、人物互动与非危机变化，允许主线 hold。输出叙事功能、主线增量与时间关系建议，不写正文、不改资料',
-    triggers: ['每轮都需要本轮场景策划建议（派工时写明 pacing）', 'pressure/turn 轮需要冲突升级或价值转移方案', 'setup/cooldown 轮需要具体的日常、恢复或经营内容而非空泛判词'],
+    description: 'Lên kế hoạch cảnh theo pacing lượt này: pressure/turn đưa bậc thang xung đột, lựa chọn của nhân vật chính và biến động giá trị thực chất; setup/cooldown đưa hành động đời sống cụ thể, tương tác nhân vật và thay đổi không phải khủng hoảng, cho phép mạch chính hold. Xuất đề xuất về chức năng tự sự, gia tăng mạch chính và quan hệ thời gian, không viết chính văn, không sửa tài liệu',
+    triggers: ['Mỗi lượt đều cần đề xuất kế hoạch cảnh của lượt này (khi phân công ghi rõ pacing)', 'Lượt pressure/turn cần phương án leo thang xung đột hoặc chuyển dịch giá trị', 'Lượt setup/cooldown cần nội dung đời thường, hồi phục hoặc kinh doanh cụ thể thay vì nhận xét sáo rỗng'],
     promptKey: 'mainlinePlanner',
   },
   {
     name: 'beat-planner',
     kind: 'plan',
-    description: '策划本轮伏笔操作与情绪节拍：给出埋设、强化、误导、回收的具体手法、信息差走到哪一步与收尾方式建议；低压轮允许无操作、安静闭合，不写正文、不改资料',
-    triggers: ['本轮计划操作伏笔', '本轮信息差需要设置、使用或揭示（揭示后允许结束，不强制补新谜团）', '情绪节拍需要承接上轮残留'],
+    description: 'Lên kế hoạch thao tác phục bút và nhịp cảm xúc lượt này: đưa thủ pháp cụ thể để gài, củng cố, đánh lạc hướng, hiện thực hóa, chênh lệch thông tin đi đến bước nào và đề xuất cách kết; lượt áp lực thấp cho phép không thao tác, khép lại yên tĩnh, không viết chính văn, không sửa tài liệu',
+    triggers: ['Lượt này dự định thao tác phục bút', 'Chênh lệch thông tin lượt này cần thiết lập, sử dụng hoặc tiết lộ (sau khi tiết lộ được phép kết thúc, không ép bổ sung bí ẩn mới)', 'Nhịp cảm xúc cần nối tiếp phần dư của lượt trước'],
     promptKey: 'beatPlanner',
   },
   {
     name: AGENT_WEB_RESEARCHER_NAME_ACU,
     kind: 'research',
-    description: '从互联网查原作与公开设定：优先萌娘百科、维基百科、百度百科，查不到再用搜索引擎与网页抓取；把有用的页面写成带摘要的百科资料库条目（$WEB_REFS）供其它代理阅读。只登记原作/公开常识，不写本故事剧情',
-    triggers: ['任务启用了开场检索且资料库为空时由运行时自动派工，无需你派', '正文或大纲新登场了原作人物、组织、地点、能力、术语，而百科资料库与世界书都没有对应条目', '需要核对某个原作设定（关系、能力边界、时间线、禁忌）而现有资料无法回答'],
+    description: 'Tra nguyên tác và thiết lập công khai từ Internet: ưu tiên Moegirl (萌娘百科), Wikipedia, Baidu Baike (百度百科), không tra được thì dùng công cụ tìm kiếm và thu thập trang web; viết các trang hữu ích thành mục thư viện bách khoa có tóm tắt ($WEB_REFS) cho các agent khác đọc. Chỉ đăng ký thường thức nguyên tác/công khai, không viết cốt truyện của câu chuyện này',
+    triggers: ['Khi nhiệm vụ bật tra cứu mở đầu và thư viện trống thì runtime tự phân công, không cần bạn phân công', 'Chính văn hoặc dàn ý mới xuất hiện nhân vật, tổ chức, địa điểm, năng lực, thuật ngữ của nguyên tác mà cả thư viện bách khoa lẫn World Info đều không có mục tương ứng', 'Cần đối chiếu một thiết lập nguyên tác (quan hệ, ranh giới năng lực, dòng thời gian, điều cấm kỵ) mà tài liệu hiện có không trả lời được'],
     promptKey: 'webResearcher',
   },
   {
     name: AGENT_INSTRUCTION_COMPOSER_NAME_ACU,
     kind: 'compose',
-    description: '通读结算后的资料、策划建议、审查结论、用户要求与活跃约束，产出本轮写作指令。由固定工作流调用，主 Agent 不能派工。',
-    triggers: ['固定工作流在策划与审查之后自动调用'],
+    description: 'Đọc toàn bộ tài liệu sau kết toán, đề xuất kế hoạch, kết luận kiểm duyệt, yêu cầu người dùng và ràng buộc đang hoạt động, tạo ra chỉ thị viết của lượt này. Do quy trình cố định gọi, Agent chính không được phân công.',
+    triggers: ['Quy trình cố định tự động gọi sau khi lên kế hoạch và kiểm duyệt'],
     promptKey: 'instructionComposer',
   },
 ];
@@ -161,66 +161,66 @@ export const AGENT_SUBAGENT_DEFINITIONS_ACU: readonly AgentSubagentDefinition_AC
 export const AGENT_MODULE_DEFINITIONS_ACU: readonly AgentModuleDefinition_ACU[] = [
   {
     token: '$STORY_ARC',
-    description: '故事总纲：全书方向（唯一一条）与卷级台阶。卷台阶包含结构职责、阶段容量、故事时间、主线进度上限、持续经营线、兑现目标、收束状态与真实阶段进度',
-    triggers: ['排新阶段大纲前确认本阶段该落在哪一级台阶上', '判断某张底牌本阶段能不能翻', '一个阶段完成后回写进度'],
+    description: 'Tổng cương câu chuyện: hướng đi toàn sách (duy nhất một mục) và bậc thang cấp tập. Bậc thang tập gồm trách nhiệm cấu trúc, dung lượng giai đoạn, thời gian câu chuyện, giới hạn tiến độ mạch chính, tuyến kinh doanh dài hạn, mục tiêu hiện thực hóa, trạng thái khép lại và tiến độ giai đoạn thật',
+    triggers: ['Trước khi sắp dàn ý giai đoạn mới, xác nhận giai đoạn này nên rơi vào bậc thang nào', 'Đánh giá giai đoạn này có được lật một át chủ bài nào đó không', 'Sau khi một giai đoạn hoàn tất thì ghi lại tiến độ'],
     writableBy: ['arc-architect'],
   },
   {
     token: '$HOOKS_LEDGER',
-    description: '伏笔账本：已进入真实正文的伏笔及其生命周期状态（埋设/强化/误导/部分回收/回收/放弃）、埋设楼层与重要度',
-    triggers: ['正文触碰异常线索', '本轮计划强化、误导或回收伏笔', '判断某条悬念是否已经欠账太久'],
+    description: 'Sổ phục bút: các phục bút đã vào chính văn thật cùng trạng thái vòng đời (gài/củng cố/đánh lạc hướng/hiện thực hóa một phần/hiện thực hóa/từ bỏ), tầng gài và mức quan trọng',
+    triggers: ['Chính văn chạm tới manh mối bất thường', 'Lượt này dự định củng cố, đánh lạc hướng hoặc hiện thực hóa phục bút', 'Đánh giá một hồi hộp nào đó đã nợ quá lâu chưa'],
     writableBy: ['hook-cognition-maintainer'],
   },
   {
     token: '$INFO_GAP',
-    description: '认知与信息差时间线：客观事实、读者已知、各角色知晓状态与揭示进度',
-    triggers: ['设计局部信息揭露', '判断某个角色此刻是否该知道某件事', '避免提前揭穿幕后'],
+    description: 'Dòng thời gian nhận thức và chênh lệch thông tin: sự thật khách quan, điều độc giả đã biết, trạng thái hiểu biết của từng nhân vật và tiến độ tiết lộ',
+    triggers: ['Thiết kế việc tiết lộ thông tin cục bộ', 'Đánh giá lúc này một nhân vật có nên biết một việc nào đó không', 'Tránh vạch trần hậu trường sớm'],
     writableBy: ['hook-cognition-maintainer'],
   },
   {
     token: '$ACTIVE_CONSTRAINTS',
-    description: '长期约束：契约红线、禁止提前释放的底牌、已知连贯性风险。子代理只能提议，由主 Agent 裁决后登记',
-    triggers: ['本轮动作可能越过既定红线', '需要确认哪些底牌本轮不能翻'],
+    description: 'Ràng buộc dài hạn: lằn ranh đỏ của khế ước, át chủ bài cấm tung ra sớm, rủi ro liên tục đã biết. Agent phụ chỉ được đề xuất, do Agent chính phân xử rồi mới đăng ký',
+    triggers: ['Hành động lượt này có thể vượt lằn ranh đỏ đã định', 'Cần xác nhận những át chủ bài nào lượt này không được lật'],
     writableBy: [],
   },
   {
     token: '$CHRONOLOGY',
-    description: '故事年代学账本：已发生正文结算出的故事时间事实——当前相对时间锚、自故事起点累计经过时间、精度（exact/approximate/unknown）、每次时间转换及其正文证据楼层。大纲里的时间字段是计划，不在此账本内',
-    triggers: ['规划或审查跨夜、数日、数周及更久的时间跳跃', '核对伤势恢复、训练/生产周期、旅行耗时、季节天气与关系熟悉度是否与累计时间相容', '最终指导需要给出可靠的相对时间锚'],
+    description: 'Sổ niên đại học câu chuyện: các sự thật thời gian câu chuyện do chính văn đã xảy ra kết toán — mốc thời gian tương đối hiện tại, thời gian tích lũy từ điểm bắt đầu câu chuyện, độ chính xác (exact/approximate/unknown), mỗi lần chuyển đổi thời gian và tầng chính văn làm bằng chứng. Trường thời gian trong dàn ý là kế hoạch, không nằm trong sổ này',
+    triggers: ['Lên kế hoạch hoặc kiểm duyệt bước nhảy thời gian qua đêm, vài ngày, vài tuần và lâu hơn', 'Đối chiếu hồi phục thương tích, chu kỳ huấn luyện/sản xuất, thời gian hành trình, mùa và thời tiết, độ quen thuộc quan hệ có tương thích với thời gian tích lũy không', 'Chỉ dẫn cuối cùng cần đưa ra mốc thời gian tương đối đáng tin'],
     writableBy: ['hook-cognition-maintainer'],
   },
   {
     token: '$WEB_REFS',
-    description: '百科资料库：web-researcher 从萌娘百科、维基百科、百度百科或网页查到的原作/公开设定，按实体（人物、法术、物品、组织、事件…）分条，每条固定有名称与一句话简介，另有自由格式详情与来源链接。目录与全量读只给「名称 + 简介」预览，详情按 ID 精读；网页原文不保存。它是外部参考，不是本故事已发生的事实；与世界书或正文冲突时以世界书和正文为准',
-    triggers: ['同人写作需要核对原作人物关系、能力边界、组织与地点设定', '大纲或策划涉及原作术语而世界书没有覆盖', '审查候选指导是否违背原作常识'],
+    description: 'Thư viện bách khoa: thiết lập nguyên tác/công khai mà web-researcher tra được từ Moegirl (萌娘百科), Wikipedia, Baidu Baike (百度百科) hoặc trang web, chia mục theo thực thể (nhân vật, phép thuật, vật phẩm, tổ chức, sự kiện…), mỗi mục cố định có tên và giới thiệu một câu, ngoài ra có chi tiết tự do và liên kết nguồn. Danh mục và đọc toàn bộ chỉ cho xem trước «tên + giới thiệu», chi tiết đọc kỹ theo ID; nguyên văn trang web không được lưu. Đây là tham khảo bên ngoài, không phải sự thật đã xảy ra trong câu chuyện này; khi xung đột với World Info hoặc chính văn thì lấy World Info và chính văn làm chuẩn',
+    triggers: ['Viết đồng nhân cần đối chiếu quan hệ nhân vật, ranh giới năng lực, thiết lập tổ chức và địa điểm của nguyên tác', 'Dàn ý hoặc kế hoạch liên quan thuật ngữ nguyên tác mà World Info không bao phủ', 'Kiểm duyệt chỉ dẫn ứng viên có trái thường thức nguyên tác không'],
     writableBy: [AGENT_WEB_RESEARCHER_NAME_ACU],
   },
   {
     token: '$USER_REQUIREMENTS',
-    description: '用户要求资料区：用户在 Agent 会话里对任务提过的要求，逐条分行。创建任务时机械写入 originInstruction 作为首条；之后由用户在资料面板手动维护，AI 不写',
-    triggers: ['规划、审查或写作需要遵守用户累计提出的任务要求', '用户中途补充、修正或覆盖了此前的要求'],
+    description: 'Vùng tài liệu yêu cầu người dùng: các yêu cầu người dùng từng nêu cho nhiệm vụ trong phiên Agent, chia từng dòng. Khi tạo nhiệm vụ thì ghi máy móc originInstruction làm mục đầu; sau đó do người dùng tự bảo trì trong bảng tài liệu, AI không ghi',
+    triggers: ['Lên kế hoạch, kiểm duyệt hoặc viết cần tuân thủ các yêu cầu nhiệm vụ mà người dùng đã nêu tích lũy', 'Người dùng giữa chừng bổ sung, sửa hoặc ghi đè các yêu cầu trước đó'],
     writableBy: [],
   },
 ];
 
 /** 子代理目录里的类型中文名。 */
 const KIND_DISPLAY_LABELS_ACU: Record<AgentSubagentKind_ACU, string> = {
-  arc: '总纲',
-  maintain: '结算维护',
-  plan: '策划',
-  review: '审查',
-  research: '网页检索',
-  compose: '写作指令',
+  arc: 'Tổng cương',
+  maintain: 'Bảo trì kết toán',
+  plan: 'Lên kế hoạch',
+  review: 'Kiểm duyệt',
+  research: 'Tra cứu web',
+  compose: 'Chỉ thị viết',
 };
 
 /** 按职责固定的写入说明，进子代理目录的「写入」行。 */
 const KIND_WRITE_LABELS_ACU: Record<AgentSubagentKind_ACU, string> = {
-  arc: '$STORY_ARC（职责固定；不碰伏笔、信息差与约束）',
-  maintain: '$HOOKS_LEDGER、$INFO_GAP、$CHRONOLOGY（职责固定；约束只能提议，由主 Agent 裁决登记）',
-  plan: '无（只返回建议）',
-  review: '无（只返回判词）',
-  research: '$WEB_REFS（职责固定；只写外部参考资料，不碰叙事模块）',
-  compose: '无（只产出写作指令；constraints 增量由运行时容错登记）',
+  arc: '$STORY_ARC (trách nhiệm cố định; không đụng phục bút, chênh lệch thông tin và ràng buộc)',
+  maintain: '$HOOKS_LEDGER, $INFO_GAP, $CHRONOLOGY (trách nhiệm cố định; ràng buộc chỉ được đề xuất, do Agent chính phân xử rồi đăng ký)',
+  plan: 'Không (chỉ trả về đề xuất)',
+  review: 'Không (chỉ trả về phán quyết)',
+  research: '$WEB_REFS (trách nhiệm cố định; chỉ ghi tài liệu tham khảo bên ngoài, không đụng module tự sự)',
+  compose: 'Không (chỉ tạo chỉ thị viết; phần tăng thêm của constraints do runtime đăng ký có dung sai)',
 };
 
 function isDefinitionVisible_ACU(name: AgentSubagentName_ACU, options?: AgentCatalogOptions_ACU): boolean {
@@ -239,15 +239,15 @@ export function renderAgentSubagentCatalog_ACU(options?: AgentCatalogOptions_ACU
     .filter(definition => isDefinitionVisible_ACU(definition.name, options))
     .map(definition => [
       `- name: ${definition.name}`,
-      `  类型: ${KIND_DISPLAY_LABELS_ACU[definition.kind]}`,
-      `  职责: ${definition.description}`,
-      `  适用时机: ${definition.triggers.join('；')}`,
+      `  Loại: ${KIND_DISPLAY_LABELS_ACU[definition.kind]}`,
+      `  Trách nhiệm: ${definition.description}`,
+      `  Thời điểm áp dụng: ${definition.triggers.join('; ')}`,
       definition.kind === 'research'
-        ? '  读取: 按角色 profile 调阅本地资料，并能出网（百科 API、搜索引擎、网页抓取）；派工 prompt 写清要查的作品、人物或设定名，reads 可留空'
-        : `  读取: 仅限角色 profile 的自有/强相关地址；派工时用 reads 给出种子地址${getAgentSubagentAccessProfile_ACU(definition.kind).allowSearch ? '，并可用 search 定位' : '，不提供 search 工具'}`,
-      `  写入: ${KIND_WRITE_LABELS_ACU[definition.kind]}`,
+        ? '  Đọc: tra cứu tài liệu cục bộ theo profile vai trò, và có thể ra ngoài (API bách khoa, công cụ tìm kiếm, thu thập trang web); prompt phân công ghi rõ tác phẩm, nhân vật hoặc tên thiết lập cần tra, reads có thể để trống'
+        : `  Đọc: chỉ giới hạn địa chỉ riêng/liên quan chặt của profile vai trò; khi phân công dùng reads đưa địa chỉ hạt giống${getAgentSubagentAccessProfile_ACU(definition.kind).allowSearch ? ', và có thể dùng search để định vị' : ', không cung cấp công cụ search'}`,
+      `  Ghi: ${KIND_WRITE_LABELS_ACU[definition.kind]}`,
     ].join('\n'));
-  return [...blocks, `- name: ${AGENT_OUTLINE_AGENT_NAME_ACU}\n  类型: 阶段大纲\n  职责: 按主会话给出的剧情依据创建、继续或重规划当前阶段大纲\n  写入: 当前阶段的新修订；保留已发生的完成前缀\n  调用: 单独 delegate，prompt 写清修改方向；总纲修改完成后再派阶段大纲`].join('\n');
+  return [...blocks, `- name: ${AGENT_OUTLINE_AGENT_NAME_ACU}\n  Loại: Dàn ý giai đoạn\n  Trách nhiệm: tạo, tiếp tục hoặc lập lại dàn ý giai đoạn hiện tại theo căn cứ cốt truyện do phiên chính đưa ra\n  Ghi: bản sửa đổi mới của giai đoạn hiện tại; giữ phần tiền tố hoàn tất đã xảy ra\n  Gọi: delegate riêng, prompt ghi rõ hướng sửa; sửa tổng cương xong rồi mới phân công dàn ý giai đoạn`].join('\n');
 }
 
 /**
@@ -259,10 +259,10 @@ export function renderAgentModuleCatalog_ACU(options?: AgentCatalogOptions_ACU &
   const blocks = AGENT_MODULE_DEFINITIONS_ACU
     .filter(definition => definition.token !== '$WEB_REFS' || options?.webResearchEnabled === true || options?.webRefsPresent === true)
     .map(definition => [
-      `- 占位符: ${definition.token}`,
-      `  内容: ${definition.description}`,
-      `  适用时机: ${definition.triggers.join('；')}`,
-      `  可写代理: ${definition.writableBy.length ? definition.writableBy.join('、') : '仅主 Agent 裁决后登记'}`,
+      `- Placeholder: ${definition.token}`,
+      `  Nội dung: ${definition.description}`,
+      `  Thời điểm áp dụng: ${definition.triggers.join('; ')}`,
+      `  Agent được ghi: ${definition.writableBy.length ? definition.writableBy.join(', ') : 'chỉ đăng ký sau khi Agent chính phân xử'}`,
     ].join('\n'));
   return blocks.join('\n');
 }
@@ -275,23 +275,23 @@ export function renderAgentModuleCatalog_ACU(options?: AgentCatalogOptions_ACU &
  */
 export function renderAgentReadCatalog_ACU(toolMode: AgentToolMode_ACU): string {
   return [
-    'read 在已经有地址时使用；还不知道地址时先 search。参数 reads 可混用多种地址，一次批量取数：',
-    '- $STORY_RANGE:起始楼-结束楼：可读窗口内的 AI 正文楼层区间，逐楼全文。可用楼层与窗口范围见正文目录。',
-    '- $TABLE:表名 / $TABLE:表名:起始行-结束行：整表或行区间。可用表名与行数见表格目录。',
-    '- $STORY_ARC / $STORY_ARC:ID,ID：故事总纲全部活跃条目（全书方向与卷台阶），或按 ID 精读（含已废止条目）。',
-    '- $HOOKS_LEDGER / $HOOKS_LEDGER:ID,ID：伏笔账本全部活跃条目，或按 ID 精读（含已退休条目）。',
-    '- $INFO_GAP / $INFO_GAP:ID,ID：认知与信息差时间线全部活跃条目，或按 ID 精读。',
-    '- $ACTIVE_CONSTRAINTS / $ACTIVE_CONSTRAINTS:ID,ID：长期约束全部条目，或按 ID 精读。',
-    '- $CHRONOLOGY / $CHRONOLOGY:ID,ID：故事年代学账本（已发生正文结算出的时间锚、累计经过时间与转换证据），或按 ID 精读（含已作废条目）。',
-    '- $WEB_REFS / $WEB_REFS:ID,ID：百科资料库——全量只给每条「名称 + 一句话简介」预览；按 ID 精读才有自由格式详情与来源链接，不保存网页原文。它是原作/公开设定的外部参考，不是本故事事实。',
-    '- $USER_REQUIREMENTS：用户在 Agent 会话里累计提过的任务要求，逐条分行；由系统在历史压缩后维护，不是正文事实。',
-    '- $WORLDBOOK:书名:uid[,uid]：已启用世界书条目全文。已触发的内容见末尾快照，不必重复 read；未命中条目可从目录或 search（scope=["worldbook"]）取得地址后精读。目录标注 token 数以便分配预算。',
-    '- $STORY_CATALOG / $STORY_OVERVIEW / $STORY_TAIL / $OUTLINE_WINDOW / $HISTORY_UNSETTLED：楼层索引、事件概览、尾部正文全文、完整大纲窗口、未结算正文全量。',
-    '- 早期剧情的详细纪要在纪要表里：$TABLE:纪要表:起始行-结束行 按行区间精读（行号见事件概览与表格目录）。',
+    'read dùng khi đã có địa chỉ; chưa biết địa chỉ thì search trước. Tham số reads có thể trộn nhiều loại địa chỉ, lấy dữ liệu hàng loạt một lần:',
+    '- $STORY_RANGE:tầng_đầu-tầng_cuối: khoảng tầng chính văn AI trong cửa sổ có thể đọc, toàn văn từng tầng. Tầng khả dụng và phạm vi cửa sổ xem trong danh mục chính văn.',
+    '- $TABLE:tên_bảng / $TABLE:tên_bảng:hàng_đầu-hàng_cuối: cả bảng hoặc khoảng hàng. Tên bảng và số hàng khả dụng xem trong danh mục bảng.',
+    '- $STORY_ARC / $STORY_ARC:ID,ID: toàn bộ mục đang hoạt động của tổng cương câu chuyện (hướng đi toàn sách và bậc thang tập), hoặc đọc kỹ theo ID (gồm cả mục đã bãi bỏ).',
+    '- $HOOKS_LEDGER / $HOOKS_LEDGER:ID,ID: toàn bộ mục đang hoạt động của sổ phục bút, hoặc đọc kỹ theo ID (gồm cả mục đã ngừng dùng).',
+    '- $INFO_GAP / $INFO_GAP:ID,ID: toàn bộ mục đang hoạt động của dòng thời gian nhận thức và chênh lệch thông tin, hoặc đọc kỹ theo ID.',
+    '- $ACTIVE_CONSTRAINTS / $ACTIVE_CONSTRAINTS:ID,ID: toàn bộ mục ràng buộc dài hạn, hoặc đọc kỹ theo ID.',
+    '- $CHRONOLOGY / $CHRONOLOGY:ID,ID: sổ niên đại học câu chuyện (mốc thời gian, thời gian tích lũy và bằng chứng chuyển đổi do chính văn đã xảy ra kết toán), hoặc đọc kỹ theo ID (gồm cả mục đã vô hiệu).',
+    '- $WEB_REFS / $WEB_REFS:ID,ID: thư viện bách khoa — đọc toàn bộ chỉ cho xem trước «tên + giới thiệu một câu» của mỗi mục; đọc kỹ theo ID mới có chi tiết tự do và liên kết nguồn, không lưu nguyên văn trang web. Đây là tham khảo bên ngoài về thiết lập nguyên tác/công khai, không phải sự thật của câu chuyện này.',
+    '- $USER_REQUIREMENTS: các yêu cầu nhiệm vụ người dùng đã nêu tích lũy trong phiên Agent, chia từng dòng; do hệ thống bảo trì sau khi nén lịch sử, không phải sự thật chính văn.',
+    '- $WORLDBOOK:tên_sách:uid[,uid]: toàn văn mục World Info đã bật. Nội dung đã kích hoạt xem trong ảnh chụp ở cuối, không cần read lại; mục chưa trúng có thể lấy địa chỉ từ danh mục hoặc search (scope=["worldbook"]) rồi đọc kỹ. Danh mục ghi số token để phân bổ ngân sách.',
+    '- $STORY_CATALOG / $STORY_OVERVIEW / $STORY_TAIL / $OUTLINE_WINDOW / $HISTORY_UNSETTLED: chỉ mục tầng, tổng quan sự kiện, toàn văn chính văn cuối, cửa sổ dàn ý đầy đủ, toàn bộ chính văn chưa kết toán.',
+    '- Kỷ yếu chi tiết của cốt truyện sớm nằm trong bảng kỷ yếu: $TABLE:纪要表:hàng_đầu-hàng_cuối đọc kỹ theo khoảng hàng (số hàng xem trong tổng quan sự kiện và danh mục bảng).',
     toolMode === 'tools'
-      ? 'search 使用函数调用。参数示例：{"query":"关键词或正则","scope":["story","tables","modules","outline","worldbook"],"isRegex":false,"maxResults":30}。'
-      : 'search 输出 JSON 动作：{"action":"search","query":"关键词或正则","scope":["story","tables","modules","outline","worldbook"],"isRegex":false,"maxResults":30}；read 输出 {"action":"read","reads":["授权地址"]}。',
-    '命中行会带上可直接复制进 read 的地址；先 search 定位、再用窄地址精读，比整读省预算。',
+      ? 'search dùng lệnh gọi hàm. Ví dụ tham số: {"query":"từ khóa hoặc regex","scope":["story","tables","modules","outline","worldbook"],"isRegex":false,"maxResults":30}.'
+      : 'search xuất hành động JSON: {"action":"search","query":"từ khóa hoặc regex","scope":["story","tables","modules","outline","worldbook"],"isRegex":false,"maxResults":30}; read xuất {"action":"read","reads":["địa chỉ được ủy quyền"]}.',
+    'Dòng trúng kèm địa chỉ có thể sao chép thẳng vào read; search định vị trước rồi đọc kỹ bằng địa chỉ hẹp sẽ tiết kiệm ngân sách hơn đọc nguyên khối.',
   ].join('\n');
 }
 
@@ -309,15 +309,15 @@ export function findAgentSubagentDefinition_ACU(name: string): AgentSubagentDefi
  * 只注入该子代理，主 Agent 与其它子代理看不到这些动作名。
  */
 export function renderAgentWebToolCatalog_ACU(input: { sources: string[]; provider: string; maxPages: number; pageCharLimit: number; pagesUsed: number }, toolMode: AgentToolMode_ACU): string {
-  const sourceText = input.sources.length ? input.sources.join('、') : '（全部百科来源已关闭，只能用 web_search / web_read）';
+  const sourceText = input.sources.length ? input.sources.join(', ') : '(toàn bộ nguồn bách khoa đã tắt, chỉ dùng được web_search / web_read)';
   return [
     toolMode === 'tools'
-      ? '出网工具 encyclopedia_search、encyclopedia_read、web_search、web_read 都是函数调用，和本地 read/search 一样，可以在同一次回复里并发调用，不要写成 JSON。结果里的页面带句柄 P1、P2…，契约里用 pageRef 引用它们。继续调用工具时，把上一批页面要留下的事实放进 notes 参数。'
-      : '出网工具 encyclopedia_search、encyclopedia_read、web_search、web_read 都输出 JSON 动作，action 填工具名，其余字段填下列参数，可与本地 read/search 在同一次回复输出多个对象。例如 {"action":"encyclopedia_search","query":"角色名","notes":"待核实的设定"}。结果里的页面带句柄 P1、P2…，用 pageRef 引用。继续调阅时，把上一批页面要留下的事实放进 notes 字段。',
-    `- 调用 encyclopedia_search，参数 query 为「角色名 或 作品名」，sources 例如 ["moegirl","wikipedia_zh"]。sources 省略即用全部启用来源：${sourceText}。萌娘按标题前缀匹配、百度按精确词条名匹配，查不到就换全名或作品内译名。`,
-    '- 调用 encyclopedia_read，参数 source 为 moegirl，title 为候选里的准确标题。精读词条正文，返回带句柄的页面。',
-    `- 调用 web_search，参数 query 为关键词。通用搜索（提供方：${input.provider}），返回标题、链接与摘要；百科查不到的冷门设定再用它。`,
-    '- 调用 web_read，参数 url 为完整网址。抓取任意网页正文。内网、酒馆自身与黑名单域名会被拒绝。',
-    `每次精读/抓取算一页，本次派工最多 ${input.maxPages} 页（已用 ${input.pagesUsed}），每页原文截断到 ${input.pageCharLimit} 字。同一页面不要重复抓取。`,
+      ? 'Các công cụ ra ngoài encyclopedia_search, encyclopedia_read, web_search, web_read đều là lệnh gọi hàm, giống read/search cục bộ, có thể gọi song song trong cùng một phản hồi, không viết thành JSON. Trang trong kết quả có tay cầm P1, P2…, trong khế ước dùng pageRef để tham chiếu. Khi tiếp tục gọi công cụ, đặt các sự thật cần giữ lại của lô trang trước vào tham số notes.'
+      : 'Các công cụ ra ngoài encyclopedia_search, encyclopedia_read, web_search, web_read đều xuất hành động JSON, action điền tên công cụ, các trường còn lại điền tham số dưới đây, có thể cùng read/search cục bộ xuất nhiều đối tượng trong cùng một phản hồi. Ví dụ {"action":"encyclopedia_search","query":"tên nhân vật","notes":"thiết lập cần xác minh"}. Trang trong kết quả có tay cầm P1, P2…, dùng pageRef để tham chiếu. Khi tiếp tục tra cứu, đặt các sự thật cần giữ lại của lô trang trước vào trường notes.',
+    `- Gọi encyclopedia_search, tham số query là «tên nhân vật hoặc tên tác phẩm», sources ví dụ ["moegirl","wikipedia_zh"]. Bỏ sources thì dùng toàn bộ nguồn đã bật: ${sourceText}. Moegirl khớp theo tiền tố tiêu đề, Baidu khớp theo tên mục từ chính xác, không tra được thì đổi sang tên đầy đủ hoặc tên dịch trong tác phẩm.`,
+    '- Gọi encyclopedia_read, tham số source là moegirl, title là tiêu đề chính xác trong danh sách ứng viên. Đọc kỹ chính văn mục từ, trả về trang kèm tay cầm.',
+    `- Gọi web_search, tham số query là từ khóa. Tìm kiếm chung (nhà cung cấp: ${input.provider}), trả về tiêu đề, liên kết và tóm tắt; thiết lập ít người biết mà bách khoa không tra được thì mới dùng nó.`,
+    '- Gọi web_read, tham số url là URL đầy đủ. Thu thập chính văn trang web bất kỳ. Mạng nội bộ, chính SillyTavern và tên miền trong danh sách đen sẽ bị từ chối.',
+    `Mỗi lần đọc kỹ/thu thập tính là một trang, lần phân công này tối đa ${input.maxPages} trang (đã dùng ${input.pagesUsed}), nguyên văn mỗi trang cắt còn ${input.pageCharLimit} chữ. Không thu thập lặp cùng một trang.`,
   ].join('\n');
 }

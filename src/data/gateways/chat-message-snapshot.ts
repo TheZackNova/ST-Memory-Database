@@ -9,7 +9,7 @@ export interface AiMessageSnapshot_ACU {
 export class TableFillTargetStaleError_ACU extends Error {
   readonly code = 'table_fill_target_stale';
   constructor() {
-    super('填表目标消息或内容版本已变化，已拒绝旧请求结果。请重新执行填表。');
+    super('Tin nhắn đích hoặc phiên bản nội dung của việc điền bảng đã thay đổi, đã từ chối kết quả của yêu cầu cũ. Hãy điền bảng lại.');
     this.name = 'TableFillTargetStaleError';
   }
 }

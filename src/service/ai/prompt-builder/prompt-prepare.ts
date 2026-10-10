@@ -94,14 +94,14 @@ function resolvePromptRowWindow_ACU(
   function getPromptRuntimeFailureFromHealth_ACU(): PrepareAIInputFailure_ACU {
     const health = getStorageRuntimeHealth_ACU();
     if (health.status === 'loading') {
-      return createPromptRuntimeFailure_ACU('runtime_loading', 'SQLite 运行时正在加载，请等待加载完成后重试。', true);
+      return createPromptRuntimeFailure_ACU('runtime_loading', 'Runtime SQLite đang tải, hãy chờ tải xong rồi thử lại.', true);
     }
     if (health.failureCode === 'provider_fallback' || health.activeMode === 'native') {
-      return createPromptRuntimeFailure_ACU('provider_fallback', 'SQLite 运行时加载失败，当前未使用 SQLite 数据库。', false);
+      return createPromptRuntimeFailure_ACU('provider_fallback', 'Tải runtime SQLite thất bại, hiện chưa dùng cơ sở dữ liệu SQLite.', false);
     }
     return createPromptRuntimeFailure_ACU(
       health.failureCode || 'provider_load_failed',
-      'SQLite 运行时未就绪，已阻止准备 AI 输入。',
+      'Runtime SQLite chưa sẵn sàng, đã chặn việc chuẩn bị đầu vào AI.',
       health.status === 'idle',
     );
   }
@@ -134,12 +134,12 @@ function resolvePromptRowWindow_ACU(
         const provider = await ensureStorageProviderReady_ACU({ signal: options?.signal });
         if (provider.mode !== 'sqlite') {
             logError_ACU('prepareAIInput_ACU: SQLite mode expected a SQLite runtime provider.');
-            return createPromptRuntimeFailure_ACU('provider_fallback', 'SQLite 运行时加载失败，当前未使用 SQLite 数据库。', false);
+            return createPromptRuntimeFailure_ACU('provider_fallback', 'Tải runtime SQLite thất bại, hiện chưa dùng cơ sở dữ liệu SQLite.', false);
         }
         const runtimeData = provider.getCurrentData();
         if (!runtimeData) {
             logError_ACU('prepareAIInput_ACU: SQLite runtime exported no table data.');
-            return createPromptRuntimeFailure_ACU('runtime_export_null', 'SQLite 运行时未导出可用表格数据。', true);
+            return createPromptRuntimeFailure_ACU('runtime_export_null', 'Runtime SQLite không xuất ra dữ liệu bảng khả dụng.', true);
         }
         return runtimeData;
     } catch (e) {
@@ -159,7 +159,7 @@ function resolvePromptRowWindow_ACU(
     options: { tableData?: any; isolatedSnapshot?: boolean; excludeImportTaggedWorldbookEntries?: boolean; agentGreenlights?: any[]; isolationKey?: string; templateScope?: TemplateScope_ACU; sqlApplyScope?: SqlTableApplyScope_ACU; signal?: AbortSignal; worldbookReadContext?: LorebookReadContext_ACU } = {},
   ) {
     if (options.isolatedSnapshot && (!options.tableData || typeof options.tableData !== 'object')) {
-        throw new Error('隔离填表必须提供显式表格快照。');
+        throw new Error('Điền bảng cô lập phải cung cấp snapshot bảng tường minh.');
     }
     const sqlMode = isSqliteMode();
     const sourceTableData = await resolvePromptSourceTableData_ACU(options, sqlMode);
@@ -309,7 +309,7 @@ function resolvePromptRowWindow_ACU(
                 const initNodeContent = table.sourceData.initNode || table.sourceData.insertNode || 'N/A';
                 tableDataText += `  - Init Trigger: ${initNodeContent}\n`;
             }
-            tableDataText += `  (该表格为空，请进行初始化。)\n\n`;
+            tableDataText += `  (Bảng này đang trống, hãy khởi tạo.)\n\n`;
         } else {
             tableDataText += `[${tableIndex}:${table.name}]\n`;
             // [修复] 同上——列头编号 0 基，与原生 DSL 对象键语义对齐
@@ -322,7 +322,7 @@ function resolvePromptRowWindow_ACU(
                 tableDataText += `  - Delete Trigger: ${table.sourceData.deleteNode || 'N/A'}\n`;
             }
             if (isUsingSeedRows) {
-                tableDataText += `  - SeedRows: 已提供模板基础数据（尚未写入聊天楼层数据；本次填表可直接基于这些行更新）\n`;
+                tableDataText += `  - SeedRows: Đã cung cấp dữ liệu nền của mẫu (chưa ghi vào dữ liệu tầng cuộc trò chuyện; lần điền bảng này có thể cập nhật trực tiếp dựa trên các hàng này)\n`;
             }
 
             const rowWindow = resolvePromptRowWindow_ACU(table, effectiveAllRows, flightMode.enabled);
@@ -347,7 +347,7 @@ function resolvePromptRowWindow_ACU(
         logDebug_ACU(`[SeedRows] $0 使用 seedRows 作为基础数据：${_seedRowsTablesUsed_ACU.join('、')}`);
     }
 
-    let messagesText = '当前最新对话内容:\n';
+    let messagesText = 'Nội dung hội thoại mới nhất hiện tại:\n';
     const conditionalSeedParts: string[] = [];
     if (messages && messages.length > 0) {
         const extractTags = (settings_ACU.tableContextExtractTags || '').trim();
@@ -356,7 +356,7 @@ function resolvePromptRowWindow_ACU(
         const excludeRules = normalizeExcludeRules_ACU(settings_ACU.tableContextExcludeRules, excludeTags);
 
         messagesText += messages.map((msg: any) => {
-            const prefix = msg.is_user ? getUserName_ACU() : msg.name || '角色';
+            const prefix = msg.is_user ? getUserName_ACU() : msg.name || 'Nhân vật';
             let content = msg.mes || msg.message || '';
 
             if (!msg.is_user && (extractTags || extractRules.length > 0 || excludeTags || excludeRules.length > 0)) {
@@ -369,7 +369,7 @@ function resolvePromptRowWindow_ACU(
             return `${prefix}: ${content}`;
         }).join('\n');
     } else {
-        messagesText += '(无最新对话内容)';
+        messagesText += '(Không có nội dung hội thoại mới nhất)';
     }
     const conditionalSeedContent = conditionalSeedParts.join('\n');
 
@@ -473,11 +473,11 @@ function resolvePromptRowWindow_ACU(
 
     // SQLite 模式下追加 SQL 编辑格式兜底说明（Q17 确认：$0 自带格式说明）
     if (isSqliteMode() && tableDataText) {
-        const identifierContract = 'SQL 表名和列名必须严格照抄上方对应 CREATE TABLE 中提供的标识符，不得翻译、缩写、猜测或改写。';
+        const identifierContract = 'Tên bảng và tên cột SQL phải sao chép đúng nguyên văn các định danh được cung cấp trong CREATE TABLE tương ứng ở trên, không được dịch, viết tắt, đoán hoặc sửa.';
         if (settings_ACU.strictJsonTableFillEnabled === true) {
-            tableDataText += `\n-- [SQL 编辑格式说明]\n-- 请在响应 JSON 的 sql 字符串中仅使用 INSERT INTO / INSERT OR REPLACE INTO / REPLACE INTO / UPDATE / DELETE FROM 数据变更语句\n-- ${identifierContract}\n-- 上方 CREATE TABLE 仅用于说明表结构，严禁复制或输出 CREATE、ALTER、DROP、SELECT、PRAGMA、VACUUM、BEGIN、COMMIT、ROLLBACK 等语句\n-- 所有 UPDATE 和 DELETE 必须带 WHERE 条件，优先参考各表 Note 中的 SQL 示例和 DDL 中的 UNIQUE 约束选择定位方式\n-- 普通 INSERT 必须显式列出业务列，不得包含 row_id；row_id 由系统在执行前分配稳定身份\n-- INSERT OR REPLACE / REPLACE INTO 按 SQLite 原生整行替换语义执行，应显式提供目标列及用于冲突定位的 row_id 或 UNIQUE 列\n-- 支持表达式更新（如 SET quantity = quantity + 1）、条件批量更新、CASE 条件更新标准 SQL 写法\n-- 每条语句以分号结尾，多条语句用换行分隔\n`;
+            tableDataText += `\n-- [Hướng dẫn định dạng chỉnh sửa SQL]\n-- Trong chuỗi sql của JSON phản hồi, chỉ dùng các câu lệnh thay đổi dữ liệu INSERT INTO / INSERT OR REPLACE INTO / REPLACE INTO / UPDATE / DELETE FROM\n-- ${identifierContract}\n-- CREATE TABLE ở trên chỉ dùng để mô tả cấu trúc bảng, nghiêm cấm sao chép hoặc xuất các câu lệnh như CREATE, ALTER, DROP, SELECT, PRAGMA, VACUUM, BEGIN, COMMIT, ROLLBACK\n-- Mọi UPDATE và DELETE phải có điều kiện WHERE, ưu tiên tham khảo ví dụ SQL trong Note của từng bảng và ràng buộc UNIQUE trong DDL để chọn cách định vị\n-- INSERT thường phải liệt kê rõ các cột nghiệp vụ, không được chứa row_id; row_id do hệ thống cấp danh tính ổn định trước khi thực thi\n-- INSERT OR REPLACE / REPLACE INTO thực thi theo ngữ nghĩa thay thế cả hàng gốc của SQLite, nên cung cấp rõ các cột đích và row_id hoặc cột UNIQUE dùng để định vị xung đột\n-- Hỗ trợ cập nhật bằng biểu thức (như SET quantity = quantity + 1), cập nhật hàng loạt có điều kiện, cách viết SQL chuẩn như CASE\n-- Mỗi câu lệnh kết thúc bằng dấu chấm phẩy, nhiều câu lệnh phân tách bằng xuống dòng\n`;
         } else {
-            tableDataText += `\n-- [SQL 编辑格式说明]\n-- 请在 <tableEdit> 标签内仅使用 INSERT INTO / INSERT OR REPLACE INTO / REPLACE INTO / UPDATE / DELETE FROM 数据变更语句\n-- ${identifierContract}\n-- 上方 CREATE TABLE 仅用于说明表结构，严禁复制或输出 CREATE、ALTER、DROP、SELECT、PRAGMA、VACUUM、BEGIN、COMMIT、ROLLBACK 等语句\n-- 所有 UPDATE 和 DELETE 必须带 WHERE 条件，优先参考各表 Note 中的 SQL 示例和 DDL 中的 UNIQUE 约束选择定位方式\n-- 普通 INSERT 必须显式列出业务列，不得包含 row_id；row_id 由系统在执行前分配稳定身份\n-- INSERT OR REPLACE / REPLACE INTO 按 SQLite 原生整行替换语义执行，应显式提供目标列及用于冲突定位的 row_id 或 UNIQUE 列\n-- 支持表达式更新（如 SET quantity = quantity + 1）、条件批量更新、CASE 条件更新等标准 SQL 写法\n-- 每条语句以分号结尾，多条语句用换行分隔\n`;
+            tableDataText += `\n-- [Hướng dẫn định dạng chỉnh sửa SQL]\n-- Trong thẻ <tableEdit>, chỉ dùng các câu lệnh thay đổi dữ liệu INSERT INTO / INSERT OR REPLACE INTO / REPLACE INTO / UPDATE / DELETE FROM\n-- ${identifierContract}\n-- CREATE TABLE ở trên chỉ dùng để mô tả cấu trúc bảng, nghiêm cấm sao chép hoặc xuất các câu lệnh như CREATE, ALTER, DROP, SELECT, PRAGMA, VACUUM, BEGIN, COMMIT, ROLLBACK\n-- Mọi UPDATE và DELETE phải có điều kiện WHERE, ưu tiên tham khảo ví dụ SQL trong Note của từng bảng và ràng buộc UNIQUE trong DDL để chọn cách định vị\n-- INSERT thường phải liệt kê rõ các cột nghiệp vụ, không được chứa row_id; row_id do hệ thống cấp danh tính ổn định trước khi thực thi\n-- INSERT OR REPLACE / REPLACE INTO thực thi theo ngữ nghĩa thay thế cả hàng gốc của SQLite, nên cung cấp rõ các cột đích và row_id hoặc cột UNIQUE dùng để định vị xung đột\n-- Hỗ trợ cập nhật bằng biểu thức (như SET quantity = quantity + 1), cập nhật hàng loạt có điều kiện, cách viết SQL chuẩn như CASE\n-- Mỗi câu lệnh kết thúc bằng dấu chấm phẩy, nhiều câu lệnh phân tách bằng xuống dòng\n`;
         }
     }
 
@@ -562,7 +562,7 @@ function resolvePromptTableNameForSheet_ACU(
         // 当前拼音物理名自身碰撞：结构化前置失败，绝不回退英文名掩盖真实 SQLite 冲突。
         registryFailure = createPromptRuntimeFailure_ACU(
             'authored_table_name_conflict',
-            `表身份解析失败：${error?.message || String(error)}`,
+            `Phân giải danh tính bảng thất bại: ${error?.message || String(error)}`,
             false,
         );
         registry = { aliases: new Map(), conflicts: new Set() };
@@ -590,7 +590,7 @@ function resolvePromptTableNameForSheet_ACU(
         if (!runtimeName) {
             return createPromptRuntimeFailure_ACU(
                 'authored_table_name_conflict',
-                `无法为表 ${sheetKey} 解析当前拼音物理名，已阻止构造可能误写的 AI prompt。`,
+                `Không thể phân giải tên vật lý pinyin hiện tại cho bảng ${sheetKey}, đã chặn việc dựng prompt AI có thể ghi sai.`,
                 false,
             );
         }
@@ -610,15 +610,15 @@ function buildSqlLockPromptNote_ACU(sheetKey: string, content: any[][] | null | 
         if (!identities.hasAny) return '';
         const parts: string[] = [];
         if (identities.rowIds.size > 0) {
-            parts.push(`锁定行（禁止 UPDATE/DELETE）：row_id ∈ [${[...identities.rowIds].join(', ')}]`);
+            parts.push(`Hàng bị khóa (cấm UPDATE/DELETE): row_id ∈ [${[...identities.rowIds].join(', ')}]`);
         }
         if (identities.colNames.size > 0) {
-            parts.push(`锁定列（禁止修改该列任何值）：${[...identities.colNames].map(name => `「${name}」`).join('、')}`);
+            parts.push(`Cột bị khóa (cấm sửa bất kỳ giá trị nào của cột): ${[...identities.colNames].map(name => `"${name}"`).join(', ')}`);
         }
         if (identities.cellPairs.length > 0) {
-            parts.push(`锁定单元格（禁止修改）：${identities.cellPairs.map(([rowId, colName]) => `(row_id=${rowId}, 列「${colName}」)`).join('、')}`);
+            parts.push(`Ô bị khóa (cấm sửa): ${identities.cellPairs.map(([rowId, colName]) => `(row_id=${rowId}, cột "${colName}")`).join(', ')}`);
         }
-        return `-- [锁定] 用户已锁定以下目标，请勿在 SQL 中修改它们（违规修改会被系统自动回滚）：\n${parts.map(part => `--   ${part}`).join('\n')}\n`;
+        return `-- [Khóa] Người dùng đã khóa các mục tiêu sau, đừng sửa chúng trong SQL (sửa trái phép sẽ bị hệ thống tự động khôi phục):\n${parts.map(part => `--   ${part}`).join('\n')}\n`;
     } catch (e) {
         // 软约束注入失败不能阻断填表 prompt 构建。
         return '';
@@ -697,11 +697,11 @@ export function formatTableForSqliteMode(
     // 输出 DDL
     text += ddl.trim() + '\n';
     if (resolvedDDL.source !== 'explicit') {
-        text += `-- WARNING: ${resolvedDDL.diagnostics[0]} 原始 DDL 未被改写。\n`;
+        text += `-- WARNING: ${resolvedDDL.diagnostics[0]} DDL gốc không bị sửa đổi.\n`;
     }
-    text += '-- SQL 写入时，以上 CREATE TABLE 中的列名是本轮唯一权威；Note/Trigger 中与其不一致的示例不得照抄，必须按上述列名改写。\n';
+    text += '-- Khi ghi SQL, tên cột trong các CREATE TABLE ở trên là căn cứ duy nhất của lượt này; các ví dụ trong Note/Trigger không khớp với chúng thì không được chép nguyên, phải sửa theo tên cột nêu trên.\n';
     if (options.authoredTableName) {
-        text += `-- SQL 写入必须严格使用本表上方 CREATE TABLE 中的表名 ${options.authoredTableName}；不得使用其他名称。\n`;
+        text += `-- Khi ghi SQL phải dùng đúng tên bảng ${options.authoredTableName} trong CREATE TABLE phía trên bảng này; không được dùng tên khác.\n`;
     }
 
     // 输出 Note 和 Trigger（作为 SQL 注释）
@@ -726,12 +726,12 @@ export function formatTableForSqliteMode(
         if (table.sourceData?.initNode) {
             text += `-- INIT: ${table.sourceData.initNode.replace(/\n/g, '\n-- ')}\n`;
         }
-        text += `-- (该表格为空，请进行初始化。)\n\n`;
+        text += `-- (Bảng này đang trống, hãy khởi tạo.)\n\n`;
         return text;
     }
 
     if (isUsingSeedRows) {
-        text += `-- SeedRows: 已提供模板基础数据（尚未写入聊天楼层数据；本次填表可直接基于这些行更新）\n`;
+        text += `-- SeedRows: Đã cung cấp dữ liệu nền của mẫu (chưa ghi vào dữ liệu tầng cuộc trò chuyện; lần điền bảng này có thể cập nhật trực tiếp dựa trên các hàng này)\n`;
     }
 
     const columnMappings: EffectiveDDLColumnMap_ACU['mappings'] = projection.hiddenPhysicalColumns.length === 0
@@ -744,7 +744,7 @@ export function formatTableForSqliteMode(
 
     if (sendRowsSqlTemplate && !hasHiddenPhysicalColumns) {
         const renderedRows = replaceDbSqlVariables(sendRowsSqlTemplate).trim();
-        text += `\n-- 当前数据\n`;
+        text += `\n-- Dữ liệu hiện tại\n`;
         text += renderedRows
             ? `${renderedRows}\n`
             : '-- (No data rows)\n';
@@ -766,7 +766,7 @@ export function formatTableForSqliteMode(
 
     // 输出当前数据（注释格式的表格）
     // 优先使用 DDL 中的英文列名作为表头，避免 AI 看到中文列名后用中文属性名写 SQL
-    text += `\n-- 当前数据 (${rowsToProcess.length} rows)\n`;
+    text += `\n-- Dữ liệu hiện tại (${rowsToProcess.length} rows)\n`;
     text += `-- | ${headers.join(' | ')} |\n`;
     rowsToProcess.forEach((row: any) => {
         const orderedValues = columnMappings.map(mapping => Array.isArray(row) ? row[mapping.sourceIndex] : null);

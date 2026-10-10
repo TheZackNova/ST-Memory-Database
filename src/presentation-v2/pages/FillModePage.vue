@@ -8,7 +8,7 @@
         :title="fillModeCopy.panels.mode.title"
         :description="fillModeCopy.panels.mode.description"
       >
-        <AcuFormRow label="当前对话填表模式" :hint="currentModeHint">
+        <AcuFormRow label="Chế độ điền bảng của hội thoại hiện tại" :hint="currentModeHint">
           <AcuPresetDropdown
             :items="modeItems"
             :model-value="formFillMode.selectedMode"
@@ -25,11 +25,11 @@
         <div class="acu-v2-fill-mode-page__intro" :data-acu-fill-mode-intro="formFillMode.selectedMode">
           <p class="acu-v2-fill-mode-page__intro-summary">{{ currentIntro.summary }}</p>
           <p class="acu-v2-fill-mode-page__intro-line">
-            <span class="acu-v2-fill-mode-page__intro-tag acu-v2-fill-mode-page__intro-tag--pro">优点</span>
+            <span class="acu-v2-fill-mode-page__intro-tag acu-v2-fill-mode-page__intro-tag--pro">Ưu điểm</span>
             {{ currentIntro.pros }}
           </p>
           <p class="acu-v2-fill-mode-page__intro-line">
-            <span class="acu-v2-fill-mode-page__intro-tag acu-v2-fill-mode-page__intro-tag--con">缺点</span>
+            <span class="acu-v2-fill-mode-page__intro-tag acu-v2-fill-mode-page__intro-tag--con">Nhược điểm</span>
             {{ currentIntro.cons }}
           </p>
         </div>
@@ -39,7 +39,7 @@
         </AcuMessage>
 
         <template v-if="formFillMode.selectedMode === 'classic'">
-          <AcuFormRow label="最近纪要表条数" hint="同时控制界面显示与经典模式提示词中的近期纪要条数，默认 15 条。">
+          <AcuFormRow label="Số mục bảng kỷ yếu gần nhất" hint="Đồng thời điều khiển hiển thị trên giao diện và số kỷ yếu gần đây trong prompt chế độ cổ điển, mặc định 15 mục.">
             <AcuInput
               type="number"
               :min="1"
@@ -52,7 +52,7 @@
         </template>
 
         <template v-if="formFillMode.selectedMode === 'vector'">
-          <AcuFormRow label="保留相关纪要条数" hint="按 rerank 结果从上到下保留的纪要条数，默认 30 条；纪要有效行数少于此数时不触发召回，全部纪要条目切为蓝灯。选中的纪要条目本轮切为蓝灯（常驻）注入，纪要索引仍保持完整目录。embedding 与 rerank 服务在下方「Embedding / Rerank」面板配置。">
+          <AcuFormRow label="Số kỷ yếu liên quan cần giữ" hint="Số kỷ yếu được giữ từ trên xuống theo kết quả rerank, mặc định 30 mục; khi số hàng kỷ yếu hợp lệ ít hơn số này sẽ không kích hoạt truy hồi, toàn bộ mục kỷ yếu chuyển sang đèn xanh. Các mục kỷ yếu được chọn lượt này chuyển sang đèn xanh (thường trực) để chèn vào, chỉ mục kỷ yếu vẫn giữ mục lục đầy đủ. Dịch vụ embedding và rerank được cấu hình ở bảng «Embedding / Rerank» bên dưới.">
             <AcuInput
               type="number"
               :min="1"
@@ -62,7 +62,7 @@
               @change="formFillMode.setVectorResultCount($event)"
             />
           </AcuFormRow>
-          <AcuFormRow label="预筛最低分" hint="Embedding 余弦分门槛，低于此分不进入候选，默认 0.35。与交火模式的预筛最低分独立。">
+          <AcuFormRow label="Điểm sàng lọc tối thiểu" hint="Ngưỡng điểm cosine của Embedding, thấp hơn sẽ không vào ứng viên, mặc định 0.35. Độc lập với điểm sàng lọc tối thiểu của chế độ giao hỏa.">
             <AcuInput
               type="number"
               :min="0"
@@ -72,7 +72,7 @@
               @change="formFillMode.setVectorMinScore($event)"
             />
           </AcuFormRow>
-          <AcuFormRow label="候选上限" hint="送入 Rerank 的候选分片上限，运行时不小于保留相关纪要条数。与交火模式的候选上限独立。">
+          <AcuFormRow label="Giới hạn ứng viên" hint="Số phân đoạn ứng viên tối đa đưa vào Rerank, khi chạy không nhỏ hơn số kỷ yếu liên quan cần giữ. Độc lập với giới hạn ứng viên của chế độ giao hỏa.">
             <AcuInput
               type="number"
               :min="1"
@@ -134,10 +134,10 @@ const modeItems = FORM_FILL_MODE_OPTIONS.map((option) => ({ value: option.value,
 const currentIntro = computed(() => FILL_MODE_INTROS[formFillMode.selectedMode]);
 const currentModeHint = computed(() => {
   const status = formFillMode.recordStatus;
-  const recordHint = status === "recorded" ? "当前模式已保存到本会话。"
-    : status === "invalid" ? "本会话的模式记录无法识别，请核对后重新选择模式。"
-    : status === "no_chat" ? "尚未打开会话，当前显示新会话偏好。"
-    : "本会话尚未保存模式标记，当前显示兼容判定或偏好模式。";
+  const recordHint = status === "recorded" ? "Chế độ hiện tại đã được lưu vào phiên này."
+    : status === "invalid" ? "Không nhận diện được bản ghi chế độ của phiên này, hãy kiểm tra rồi chọn lại chế độ."
+    : status === "no_chat" ? "Chưa mở phiên, hiện đang hiển thị ưu tiên của phiên mới."
+    : "Phiên này chưa lưu dấu chế độ, hiện đang hiển thị kết quả suy đoán tương thích hoặc chế độ ưu tiên.";
   return `${recordHint} ${fillModeCopy.panels.mode.selectHint}`;
 });
 

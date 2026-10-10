@@ -25,7 +25,7 @@ export class ZeroLayerContinuationStore_ACU {
   constructor(readonly store = new ZeroLayerStore_ACU()) {
     this.context = captureZeroLayerCarrier_ACU();
     const envelope = store.readSnapshot();
-    if (!envelope?.enabled) throw new ZeroLayerError_ACU('mode-disabled', '零层续写需要已启用的载体。');
+    if (!envelope?.enabled) throw new ZeroLayerError_ACU('mode-disabled', 'Viết tiếp Tầng 0 cần vật mang đã được bật.');
     this.sessionId = envelope.sessionId;
     this.branchId = envelope.activeBranchId;
   }
@@ -34,7 +34,7 @@ export class ZeroLayerContinuationStore_ACU {
     assertZeroLayerCarrier_ACU(this.context);
     const source = this.store.readSnapshot();
     if (!source?.enabled || source.sessionId !== this.sessionId || source.activeBranchId !== this.branchId) {
-      throw new ZeroLayerError_ACU('scope-changed', '续写所属会话或分支已变化。');
+      throw new ZeroLayerError_ACU('scope-changed', 'Phiên hoặc nhánh của viết tiếp đã thay đổi.');
     }
     return source;
   }
@@ -96,11 +96,11 @@ export class ZeroLayerContinuationStore_ACU {
     const source = this.readSource();
     const checkpoints = source.branches.find(branch => branch.branchId === this.branchId)!.checkpoints;
     if (checkpoints?.pending || checkpoints?.cleanupPending) {
-      throw new ZeroLayerError_ACU('effects-pending', 'checkpoint 提交尚未收尾；请先恢复已保存阶段，不得继续规划或修改资料。');
+      throw new ZeroLayerError_ACU('effects-pending', 'Gửi checkpoint chưa kết thúc; hãy khôi phục giai đoạn đã lưu trước, không được tiếp tục lập kế hoạch hoặc sửa tài liệu.');
     }
     if (source.turns.some(turn => turn.branchId === this.branchId
       && !['published', 'failed', 'cancelled'].includes(turn.phase))) {
-      throw new ZeroLayerError_ACU('pending-turn', '逻辑正文尚未发布，请先恢复已保存回合，不能重新规划或发送。');
+      throw new ZeroLayerError_ACU('pending-turn', 'Nội dung chính logic chưa được phát hành, hãy khôi phục lượt đã lưu trước, không thể lập kế hoạch lại hoặc gửi.');
     }
   }
 
@@ -152,9 +152,9 @@ export class ZeroLayerContinuationStore_ACU {
       }
       const unsent = !turn || ['failed', 'cancelled'].includes(turn.phase);
       const durable = !!turn && ['response-durable', 'effects-durable'].includes(turn.phase);
-      const message = durable ? '正文已保存，结算或发布未完成；请显式继续，仅补结算。'
-        : unsent ? '本轮正文未发送，续写已暂停；请检查状态后显式继续。'
-        : '本轮发送结果未知或准备未完成；已保留逻辑引用，禁止重新请求模型。';
+      const message = durable ? 'Nội dung chính đã lưu, quyết toán hoặc phát hành chưa hoàn tất; hãy tiếp tục rõ ràng, chỉ quyết toán bù.'
+        : unsent ? 'Nội dung chính của lượt này chưa gửi, viết tiếp đã tạm dừng; hãy kiểm tra trạng thái rồi tiếp tục rõ ràng.'
+        : 'Kết quả gửi của lượt này chưa rõ hoặc chuẩn bị chưa xong; đã giữ tham chiếu logic, cấm yêu cầu lại mô hình.';
       state.envelope = validateContinuationEnvelope_ACU({ ...envelope, activeTask: { ...task,
         status: 'paused', updatedAt: Date.now(), pendingHostTurn: unsent ? null : pending,
         lastError: createContinuationError_ACU('CONTINUATION_GENERATION_FAILED',
@@ -195,7 +195,7 @@ export class ZeroLayerContinuationStore_ACU {
       if (ref.sessionId !== this.sessionId || ref.branchId !== this.branchId
         || !turn?.continuationIdentity || turn.branchId !== this.branchId
         || turn.assistantFloor.floorId !== ref.floorId || !turn.body?.trim() || !state.envelope) {
-        throw new ZeroLayerError_ACU('revision-conflict', '续写确认引用与持久化正文不匹配。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Tham chiếu xác nhận viết tiếp không khớp với nội dung chính đã lưu bền.');
       }
       const identity = turn.continuationIdentity;
       const confirmed = state.confirmed.find(item => item.turnId === ref.turnId);
@@ -204,7 +204,7 @@ export class ZeroLayerContinuationStore_ACU {
       if (confirmed) {
         if (confirmed.attemptId !== ref.attemptId || confirmed.floorId !== ref.floorId
           || confirmed.continuationAttemptId !== identity.attemptId) {
-          throw new ZeroLayerError_ACU('corrupt-data', '逻辑续写确认与结算回执不一致。');
+          throw new ZeroLayerError_ACU('corrupt-data', 'Xác nhận viết tiếp logic không khớp biên nhận quyết toán.');
         }
         result = state.envelope;
         return;
@@ -218,7 +218,7 @@ export class ZeroLayerContinuationStore_ACU {
           .every(key => pending.identity[key] === identity[key])
         || !capturedRef || !(['sessionId', 'branchId', 'turnId', 'attemptId', 'floorId'] as const)
           .every(key => capturedRef[key] === ref[key])) {
-        throw new ZeroLayerError_ACU('revision-conflict', '逻辑正文已不属于当前续写等待轮。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Nội dung chính logic không còn thuộc lượt chờ viết tiếp hiện tại.');
       }
       result = validateContinuationEnvelope_ACU(advance(state.envelope), 'persist');
       state.envelope = result;
@@ -229,9 +229,9 @@ export class ZeroLayerContinuationStore_ACU {
       const revision = stage.revisions.find(item => item.revision === stage.activeRevision)!;
       const nextTurn = stage.status === 'running' ? revision.outline.nodes[stage.activeNodeIndex]?.turns[stage.activeTurnIndex] : null;
       const snapshot = readAgentConversation_ACU([{ [AGENT_CONVERSATION_FIELD_ACU]: state.conversation }]);
-      const next = appendAgentConversation_ACU(snapshot, [{ kind: 'turn', digest: '逻辑正文已确认',
+      const next = appendAgentConversation_ACU(snapshot, [{ kind: 'turn', digest: 'Nội dung chính logic đã xác nhận',
         turnKey: `${stage.stageId}#${stage.activeRevision}#${nextTurn?.id ?? ''}`,
-        text: `逻辑正文已确认，上一轮已结束。第 ${stage.stageNumber} 阶段；下一轮目标：${nextTurn?.goal ?? '当前阶段已完成，继续时准备下一阶段大纲'}。` }]);
+        text: `Nội dung chính logic đã xác nhận, lượt trước đã kết thúc. Giai đoạn ${stage.stageNumber}; mục tiêu lượt sau: ${nextTurn?.goal ?? 'Giai đoạn hiện tại đã hoàn tất, khi tiếp tục sẽ chuẩn bị dàn ý giai đoạn kế tiếp'}.` }]);
       state.conversation.segment.push(...next.messages.filter(message => message.id >= snapshot.nextId));
       state.conversation.updatedAt = next.updatedAt;
     }, ref);
@@ -246,7 +246,7 @@ export class ZeroLayerContinuationStore_ACU {
       || (guard.taskId !== undefined && guard.taskId !== (task?.taskId ?? null))
       || (guard.stageId !== undefined && guard.stageId !== (task?.activeStageId ?? null))
       || (guard.revision !== undefined && guard.revision !== (stage?.activeRevision ?? null))) {
-      throw new ZeroLayerError_ACU('revision-conflict', '续写任务、阶段或 revision 守卫不匹配。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Tác vụ, giai đoạn hoặc chốt chặn revision của viết tiếp không khớp.');
     }
   }
 

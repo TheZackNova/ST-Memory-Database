@@ -1,11 +1,11 @@
 <template>
   <div class="acu-viz-table-management" data-acu-visualizer-table-management>
     <AcuPanel
-      title="表格管理"
-      description="用于调整整套数据库里的表格顺序、新增和删除。改动只进入编辑器草稿，保存前不会写回当前聊天或全局模板；如果误删了表格，可以在保存前取消关闭或重新载入。"
+      title="Quản lý bảng"
+      description="Dùng để chỉnh thứ tự, thêm và xóa bảng trong cả bộ CSDL. Thay đổi chỉ vào bản nháp của trình chỉnh sửa, trước khi lưu sẽ không ghi lại vào cuộc trò chuyện hiện tại hay mẫu toàn cục; nếu lỡ xóa bảng, có thể hủy đóng hoặc tải lại trước khi lưu."
     >
       <template #actions>
-        <AcuBadge variant="neutral">{{ sheetItems.length }} 张表</AcuBadge>
+        <AcuBadge variant="neutral">{{ sheetItems.length }} bảng</AcuBadge>
       </template>
 
       <div class="acu-viz-table-management__list">
@@ -18,22 +18,22 @@
             <h3>
               <span>{{ item.name }}</span>
             </h3>
-            <p>{{ item.rowCount }} 行 · {{ item.columnCount }} 列</p>
+            <p>{{ item.rowCount }} hàng · {{ item.columnCount }} cột</p>
           </div>
           <div class="acu-viz-table-management__actions">
             <AcuIconButton
               icon="fa-solid fa-chevron-up"
               size="sm"
-              title="上移表格"
-              aria-label="上移表格"
+              title="Dời bảng lên"
+              aria-label="Dời bảng lên"
               :disabled="index === 0"
               @click="$emit('move-sheet', item.key, 'up')"
             />
             <AcuIconButton
               icon="fa-solid fa-chevron-down"
               size="sm"
-              title="下移表格"
-              aria-label="下移表格"
+              title="Dời bảng xuống"
+              aria-label="Dời bảng xuống"
               :disabled="index === sheetItems.length - 1"
               @click="$emit('move-sheet', item.key, 'down')"
             />
@@ -41,22 +41,22 @@
               icon="fa-solid fa-trash"
               size="sm"
               variant="danger"
-              title="删除表格"
-              aria-label="删除表格"
+              title="Xóa bảng"
+              aria-label="Xóa bảng"
               @click="$emit('request-delete-sheet', item.key)"
             />
           </div>
         </article>
 
         <p v-if="sheetItems.length === 0" class="acu-viz-table-management__empty">
-          当前数据库还没有表格。可以先新增表格，再进入表格编辑数据、结构和 AI 助手。
+          CSDL hiện chưa có bảng nào. Có thể thêm bảng trước, rồi vào bảng để sửa dữ liệu, cấu trúc và trợ lý AI.
         </p>
       </div>
 
       <div class="acu-viz-table-management__operation">
         <AcuButton size="sm" variant="primary" @click="$emit('request-add-sheet')">
           <i class="fa-solid fa-plus"></i>
-          新增表格
+          Thêm bảng
         </AcuButton>
       </div>
     </AcuPanel>

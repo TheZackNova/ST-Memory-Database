@@ -96,11 +96,11 @@ export function writeProfileTemplateToStorage_ACU(code: string, templateStr: str
 export function deleteProfileFromStorage_ACU(code: string): void {
     const normalizedCode = normalizeIsolationCode_ACU(code);
     if (!normalizedCode) {
-        throw new Error('不能删除默认 Profile。');
+        throw new Error('Không thể xóa Profile mặc định.');
     }
     const store = getConfigStorage_ACU();
     if (!store || typeof store.removeItem !== 'function') {
-        throw new Error('当前配置存储不支持删除 Profile。');
+        throw new Error('Kho cấu hình hiện tại không hỗ trợ xóa Profile.');
     }
     store.removeItem(getProfileSettingsKey_ACU(normalizedCode));
     store.removeItem(getProfileTemplateKey_ACU(normalizedCode));

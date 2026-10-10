@@ -157,7 +157,7 @@ describe('createAgentWorldbookApi', () => {
     const result = await api.setAgentWorldbookMode('enabled');
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('disabled、passive 或 agent');
+    expect(result.error).toContain('disabled, passive hoặc agent');
     expect(mockWriteControl).not.toHaveBeenCalled();
     expect(mockTakeover).not.toHaveBeenCalled();
     expect(mockRestore).not.toHaveBeenCalled();
@@ -466,7 +466,7 @@ describe('createAgentWorldbookApi', () => {
     const result = await api.saveAgentWorldbookSkillMeta('主世界书', 1, {}, 'system');
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('manual 或 agent-skillify');
+    expect(result.error).toContain('manual hoặc agent-skillify');
     expect(mockSaveMeta).not.toHaveBeenCalled();
   });
 
@@ -527,7 +527,7 @@ describe('createAgentWorldbookApi', () => {
     const result = await api.clearAgentWorldbookSkillMetas(['主世界书']);
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe('清除 Agent 世界书 Skill 元数据未完全完成。');
+    expect(result.error).toBe('Việc xóa metadata Skill của sổ thế giới Agent chưa hoàn tất hoàn toàn.');
     expect(result.result.errors[0].reason).toBe('write failed');
   });
 
@@ -544,7 +544,7 @@ describe('createAgentWorldbookApi', () => {
     const result = await api.clearAgentWorldbookSkillMetas(['主世界书']);
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe('清除 Agent 世界书 Skill 元数据未完全完成。');
+    expect(result.error).toBe('Việc xóa metadata Skill của sổ thế giới Agent chưa hoàn tất hoàn toàn.');
     expect(result.result.failed).toBe(0);
     expect(result.result.errors[0].reason).toBe('unexpected warning');
   });

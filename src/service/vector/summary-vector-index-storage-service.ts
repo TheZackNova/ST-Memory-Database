@@ -229,7 +229,7 @@ function buildVersionedSnapshotIndexId_ACU(params: { chatKey: string; isolationK
 export function buildVectorIndexSnapshotWriteGeneration_ACU(now: number = Date.now(), entropySource: Uint32Array = new Uint32Array(2)): string {
     const entropy = entropySource;
     if (entropy.length < 2) {
-        throw new Error('交火向量 V2 writeGeneration 需要至少 2 个 Uint32 熵值。');
+        throw new Error('Vector giao hỏa V2 writeGeneration cần ít nhất 2 giá trị entropy Uint32.');
     }
     return `${now.toString(36)}${Array.from(entropy.slice(0, 2), (value) => value.toString(36).padStart(7, '0')).join('')}`;
 }
@@ -316,7 +316,7 @@ function encodeVectorToF32B64_ACU(vector: number[] | Float32Array): string {
     for (let index = 0; index < vector.length; index += 1) {
         const numeric = Number(vector[index]);
         if (!Number.isFinite(numeric)) {
-            throw new Error(`交火向量包含非有限数值，拒绝编码: index=${index}`);
+            throw new Error(`Vector giao hỏa chứa giá trị không hữu hạn, từ chối mã hóa: index=${index}`);
         }
         view.setFloat32(index * 4, numeric, true);
     }
@@ -327,16 +327,16 @@ function encodeVectorToF32B64_ACU(vector: number[] | Float32Array): string {
         for (let i = 0; i < block.length; i += 1) binary += String.fromCharCode(block[i]);
     }
     const encoder = globalThis.btoa;
-    if (typeof encoder !== 'function') throw new Error('当前环境缺少 btoa，无法编码交火向量。');
+    if (typeof encoder !== 'function') throw new Error('Môi trường hiện tại thiếu btoa, không thể mã hóa vector giao hỏa.');
     return encoder(binary);
 }
 
 function decodeF32B64ToVector_ACU(encoded: string): Float32Array {
     const decoder = globalThis.atob;
-    if (typeof decoder !== 'function') throw new Error('当前环境缺少 atob，无法解码交火向量。');
+    if (typeof decoder !== 'function') throw new Error('Môi trường hiện tại thiếu atob, không thể giải mã vector giao hỏa.');
     const binary = decoder(String(encoded || ''));
     if (binary.length % 4 !== 0) {
-        throw new Error(`交火向量 f32b64 字节长度非法: bytes=${binary.length}`);
+        throw new Error(`Độ dài byte f32b64 của vector giao hỏa không hợp lệ: bytes=${binary.length}`);
     }
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i) & 0xff;
@@ -1075,7 +1075,7 @@ export async function cleanupUnreachableSummaryVectorIndexFiles_ACU(options: Sum
                 pendingSummaryVectorIndexPublicationPaths_ACU.delete(path);
                 deletedPaths.push(legacyDelete.path || path);
             } else {
-                failedDeletes.push({ path, error: legacyDelete.error || '删除失败' });
+                failedDeletes.push({ path, error: legacyDelete.error || 'Xóa thất bại' });
             }
             continue;
         }
@@ -1142,7 +1142,7 @@ export async function cleanupUnreachableSummaryVectorIndexFiles_ACU(options: Sum
                 pendingSummaryVectorIndexPublicationPaths_ACU.delete(path);
                 deletedPaths.push(packDelete.path || path);
             } else {
-                failedDeletes.push({ path, error: packDelete.error || '删除失败' });
+                failedDeletes.push({ path, error: packDelete.error || 'Xóa thất bại' });
             }
             continue;
         }
@@ -1204,7 +1204,7 @@ export async function cleanupUnreachableSummaryVectorIndexFiles_ACU(options: Sum
                 pendingSummaryVectorIndexPublicationPaths_ACU.delete(path);
                 deletedPaths.push(deleted.path || path);
             } else {
-                failedDeletes.push({ path, error: deleted.error || '删除失败' });
+                failedDeletes.push({ path, error: deleted.error || 'Xóa thất bại' });
             }
             continue;
         }
@@ -1295,7 +1295,7 @@ export async function cleanupUnreachableSummaryVectorIndexFiles_ACU(options: Sum
             pendingSummaryVectorIndexPublicationPaths_ACU.delete(path);
             deletedPaths.push(result.path || path);
         } else {
-            failedDeletes.push({ path, error: result.error || '删除失败' });
+            failedDeletes.push({ path, error: result.error || 'Xóa thất bại' });
         }
     }
     if (deletedPaths.length > 0) {
@@ -1375,7 +1375,7 @@ async function rollbackUploadedFiles_ACU(files: SummaryVectorIndexExternalFileRe
                 deletedPaths.push(result.path || path);
                 pendingSummaryVectorIndexPublicationPaths_ACU.delete(path);
             } else {
-                failedPaths.push({ path, error: result.error || '未知删除失败' });
+                failedPaths.push({ path, error: result.error || 'Xóa thất bại không xác định' });
             }
         } catch (error) {
             failedPaths.push({ path, error: String((error as Error)?.message || error) });
@@ -1418,7 +1418,7 @@ function buildRollbackAwareError_ACU(error: unknown, rollback: SummaryVectorInde
     const failedPaths = rollback.failedPaths.map(({ path, error: failure }) => `${path}: ${failure}`).join('; ');
     const unregisterFailure = rollback.unregisterError ? `; registry=${rollback.unregisterError}` : '';
     const orphanRegistrationFailure = rollback.orphanRegistrationError ? `; orphanRegistry=${rollback.orphanRegistrationError}` : '';
-    return new Error(`${String((error as Error)?.message || error)}；上传对象回滚不完整，待诊断路径：${failedPaths || '无'}${unregisterFailure}${orphanRegistrationFailure}`);
+    return new Error(`${String((error as Error)?.message || error)}; khôi phục đối tượng đã tải lên chưa đầy đủ, đường dẫn cần chẩn đoán: ${failedPaths || 'không có'}${unregisterFailure}${orphanRegistrationFailure}`);
 }
 
 function getReusableRollingBaseBatch_ACU(manifest: ChatSummaryVectorIndexManifest_ACU | null | undefined): SummaryVectorIndexBatchRef_ACU | null {
@@ -1538,7 +1538,7 @@ async function persistSummaryVectorIndexSnapshotAsRollingDelta_ACU(params: {
                 chunkCount: chunksWithShard.length,
                 status: 'ready',
             });
-            if (!written.ok || !written.ref) throw new Error(written.error || `${role === 'base' ? 'base' : 'delta'} 分片 ${shardId} 上传失败`);
+            if (!written.ok || !written.ref) throw new Error(written.error || `${role === 'base' ? 'base' : 'delta'} tải lên phân mảnh ${shardId} thất bại`);
             uploadedFiles.push(written.ref);
             await putVectorIndexCachedShard_ACU(indexId, shardId, cacheShard, written.ref.checksum);
             return written.ref;
@@ -1650,7 +1650,7 @@ async function persistSummaryVectorIndexSnapshotAsRollingDelta_ACU(params: {
             checkpoint,
         };
         const manifestWritten = await uploadVectorIndexJsonFile_ACU({ path: manifestPath, role: 'manifest', data: manifestDraft, rowCount: rowsWithShardIds.length, chunkCount: chunks.length, status: 'ready' });
-        if (!manifestWritten.ok || !manifestWritten.ref) throw new Error(manifestWritten.error || 'rolling delta manifest 上传失败');
+        if (!manifestWritten.ok || !manifestWritten.ref) throw new Error(manifestWritten.error || 'tải lên rolling delta manifest thất bại');
         uploadedFiles.push(manifestWritten.ref);
         const finalManifest: ChatSummaryVectorIndexManifest_ACU = {
             ...manifestDraft,
@@ -1697,11 +1697,11 @@ export async function persistSummaryVectorIndexExternal_ACU(
     const rows = normalizeRows_ACU(options.rows);
     const chunks = normalizeChunks_ACU(options.chunks);
     if (rows.length === 0 || chunks.length === 0) {
-        throw new Error('交火向量索引为空，拒绝写入外置文件。');
+        throw new Error('Chỉ mục vector giao hỏa rỗng, từ chối ghi tệp bên ngoài.');
     }
     const dimension = chunks[0]?.vector?.length || 0;
     if (dimension <= 0) {
-        throw new Error('交火向量索引缺少有效向量维度。');
+        throw new Error('Chỉ mục vector giao hỏa thiếu số chiều vector hợp lệ.');
     }
     const uploadedFiles: SummaryVectorIndexExternalFileRef_ACU[] = [];
     try {
@@ -1723,7 +1723,7 @@ export async function persistSummaryVectorIndexExternal_ACU(
             };
             const path = buildVectorIndexFileName_ACU({ chatKey, isolationKey, indexId, role: 'base_shard', shardId });
             const written = await uploadVectorIndexJsonFile_ACU({ path, role: 'base_shard', shardId, data: shard, chunkCount: shardChunks.length, status: 'ready' });
-            if (!written.ok || !written.ref) throw new Error(written.error || `分片 ${shardId} 上传失败`);
+            if (!written.ok || !written.ref) throw new Error(written.error || `tải lên phân mảnh ${shardId} thất bại`);
             uploadedFiles.push(written.ref);
             shardRefs.push(written.ref);
             await putVectorIndexCachedShard_ACU(indexId, shardId, shard, written.ref.checksum);
@@ -1736,12 +1736,12 @@ export async function persistSummaryVectorIndexExternal_ACU(
         const tombstone = buildTombstone_ACU(indexId, options.previousManifest, indexedAt);
         const rowIndexPath = buildVectorIndexFileName_ACU({ chatKey, isolationKey, indexId, role: 'row_index' });
         const rowIndexWritten = await uploadVectorIndexJsonFile_ACU({ path: rowIndexPath, role: 'row_index', data: rowIndex, rowCount: rows.length, status: 'ready' });
-        if (!rowIndexWritten.ok || !rowIndexWritten.ref) throw new Error(rowIndexWritten.error || 'rowIndex 上传失败');
+        if (!rowIndexWritten.ok || !rowIndexWritten.ref) throw new Error(rowIndexWritten.error || 'tải lên rowIndex thất bại');
         uploadedFiles.push(rowIndexWritten.ref);
 
         const tombstonePath = buildVectorIndexFileName_ACU({ chatKey, isolationKey, indexId, role: 'tombstone' });
         const tombstoneWritten = await uploadVectorIndexJsonFile_ACU({ path: tombstonePath, role: 'tombstone', data: tombstone, status: 'ready' });
-        if (!tombstoneWritten.ok || !tombstoneWritten.ref) throw new Error(tombstoneWritten.error || 'tombstone 上传失败');
+        if (!tombstoneWritten.ok || !tombstoneWritten.ref) throw new Error(tombstoneWritten.error || 'tải lên tombstone thất bại');
         uploadedFiles.push(tombstoneWritten.ref);
 
         const manifestPath = buildVectorIndexFileName_ACU({ chatKey, isolationKey, indexId, role: 'manifest' });
@@ -1774,7 +1774,7 @@ export async function persistSummaryVectorIndexExternal_ACU(
             externalTotalBytes: externalTotalBytesWithoutManifest,
         };
         const manifestWritten = await uploadVectorIndexJsonFile_ACU({ path: manifestPath, role: 'manifest', data: { ...manifestDraft, files: uploadedFiles }, status: 'ready' });
-        if (!manifestWritten.ok || !manifestWritten.ref) throw new Error(manifestWritten.error || 'manifest 上传失败');
+        if (!manifestWritten.ok || !manifestWritten.ref) throw new Error(manifestWritten.error || 'tải lên manifest thất bại');
         uploadedFiles.push(manifestWritten.ref);
         const manifest: ChatSummaryVectorIndexManifest_ACU = {
             ...manifestDraft,
@@ -1827,14 +1827,14 @@ export async function persistSummaryVectorIndexSnapshot_ACU(
     });
     if (summaryVectorIndexConfig.summaryIndexV2WriteEnabled === false) {
         logSummaryVectorIndexIdentityEvent_ACU('warn', 'persist', 'rejected_writer_disabled', { scopeFingerprint });
-        throw new Error('交火向量索引 V2 写入已关闭；为避免回滚时覆盖旧快照，本次归档未写入任何外置对象。');
+        throw new Error('Ghi chỉ mục vector giao hỏa V2 đã bị tắt; để tránh ghi đè snapshot cũ khi khôi phục, lần lưu trữ này không ghi đối tượng bên ngoài nào.');
     }
     const writeScopeAllowlist = Array.isArray(summaryVectorIndexConfig.summaryIndexV2WriteScopeAllowlist)
         ? summaryVectorIndexConfig.summaryIndexV2WriteScopeAllowlist
         : [];
     if (writeScopeAllowlist.length > 0 && !writeScopeAllowlist.includes(scopeFingerprint)) {
         logSummaryVectorIndexIdentityEvent_ACU('warn', 'persist', 'rejected_scope_not_allowlisted', { scopeFingerprint });
-        throw new Error(`交火向量索引 V2 写入未向当前 scope 灰度开放：scope=${scopeFingerprint}`);
+        throw new Error(`Ghi chỉ mục vector giao hỏa V2 chưa mở thử nghiệm cho scope hiện tại: scope=${scopeFingerprint}`);
     }
     // P4 内容寻址 pack 写入开关（T11）。默认关闭；当显式开启且命中 allowlist 时才走 pack 链路，
     // 否则保持现路径逐字节不变。
@@ -1857,17 +1857,17 @@ export async function persistSummaryVectorIndexSnapshot_ACU(
     const activeChunkIdSet = new Set(activeChunkIds);
     const chunks = allChunks.filter((chunk) => activeRowKeySet.has(chunk.rowKey) && activeChunkIdSet.has(chunk.chunkId));
     if (rows.length === 0 || chunks.length === 0 || activeChunkIds.length === 0) {
-        throw new Error('交火向量快照索引为空，拒绝写入外置文件。');
+        throw new Error('Chỉ mục snapshot vector giao hỏa rỗng, từ chối ghi tệp bên ngoài.');
     }
     const dimension = chunks[0]?.vector?.length || 0;
     if (dimension <= 0) {
-        throw new Error('交火向量快照索引缺少有效向量维度。');
+        throw new Error('Chỉ mục snapshot vector giao hỏa thiếu số chiều vector hợp lệ.');
     }
     // T2：收紧——校验全部 chunk 的向量维度与首 chunk 一致，拒绝混维写入。
     // 混维快照在召回时会被 cosineSimilarity_ACU 判 0 分（静默召回失败），必须在写入前拦住。
     const mixedDimensionChunk = chunks.find((chunk) => (chunk.vector?.length || 0) !== dimension);
     if (mixedDimensionChunk) {
-        throw new Error(`交火向量快照索引存在维度不一致的 chunk（期望 ${dimension}，实际 ${mixedDimensionChunk.vector?.length || 0}），拒绝写入外置文件。`);
+        throw new Error(`Chỉ mục snapshot vector giao hỏa có chunk lệch số chiều (mong đợi ${dimension}, thực tế ${mixedDimensionChunk.vector?.length || 0}), từ chối ghi tệp bên ngoài.`);
     }
     // rolling-delta 仍使用可覆盖的 legacy 物理路径，尚未具备 V2 的 immutable identity
     // 与 prepared/published 生命周期。不得让实验开关绕过本函数后续的安全发布流程。
@@ -1894,10 +1894,10 @@ export async function persistSummaryVectorIndexSnapshot_ACU(
         // 旧代码用 chunkKeysByChunkId 单向映射，重复不会被发现，pack 复用时会读到歧义内容。
         const existingChunkId = chunkKeyToChunkId.get(chunkKey);
         if (existingChunkId !== undefined && existingChunkId !== chunk.chunkId) {
-            throw new Error(`交火向量快照 chunkKey 冲突：chunkKey=${chunkKey} 同时映射到 chunkId=${existingChunkId} 与 ${chunk.chunkId}，拒绝写入外置文件。`);
+            throw new Error(`Xung đột chunkKey của snapshot vector giao hỏa: chunkKey=${chunkKey} đồng thời ánh xạ tới chunkId=${existingChunkId} và ${chunk.chunkId}, từ chối ghi tệp bên ngoài.`);
         }
         if (chunkKeysByChunkId.has(chunk.chunkId)) {
-            throw new Error(`交火向量快照 chunkId 重复：chunkId=${chunk.chunkId} 出现多次，拒绝写入外置文件。`);
+            throw new Error(`chunkId của snapshot vector giao hỏa bị trùng: chunkId=${chunk.chunkId} xuất hiện nhiều lần, từ chối ghi tệp bên ngoài.`);
         }
         chunkKeyToChunkId.set(chunkKey, chunk.chunkId);
         chunkKeysByChunkId.set(chunk.chunkId, chunkKey);
@@ -1922,7 +1922,7 @@ export async function persistSummaryVectorIndexSnapshot_ACU(
     const parentIndexIds = Array.from(new Set([...(options.parentIndexIds || []), ...(options.previousManifest?.indexId ? [options.previousManifest.indexId] : [])].filter(Boolean)));
     const entropy = new Uint32Array(2);
     if (!globalThis.crypto?.getRandomValues) {
-        throw new Error('交火向量 V2 快照写入需要 crypto.getRandomValues，以避免物理路径覆盖。');
+        throw new Error('Ghi snapshot vector giao hỏa V2 cần crypto.getRandomValues để tránh ghi đè đường dẫn vật lý.');
     }
     globalThis.crypto.getRandomValues(entropy);
     const writeGeneration = buildVectorIndexSnapshotWriteGeneration_ACU(Date.now(), entropy);
@@ -2098,7 +2098,7 @@ export async function persistSummaryVectorIndexSnapshot_ACU(
                     continue;
                 }
                 // 存在但内容不一致 -> collision，禁止覆盖
-                throw new Error(`交火向量内容寻址 pack 路径冲突：path=${packPath} 已存在但内容与本次 packKey=${packKey} 不一致，拒绝覆盖。`);
+                throw new Error(`Xung đột đường dẫn pack định vị theo nội dung của vector giao hỏa: path=${packPath} đã tồn tại nhưng nội dung không khớp packKey=${packKey} lần này, từ chối ghi đè.`);
             }
 
             // 5) 上传 pack（新对象）
@@ -2111,7 +2111,7 @@ export async function persistSummaryVectorIndexSnapshot_ACU(
                 status: 'ready',
             });
             if (!uploadResult.ok || !uploadResult.ref) {
-                throw new Error(uploadResult.error || `内容寻址 pack 上传失败: ${packPath}`);
+                throw new Error(uploadResult.error || `Tải lên pack định vị theo nội dung thất bại: ${packPath}`);
             }
             // 路径里的 scope token 不可逆，registry 条目必须自带 scope 才能被 GC 归属到聊天。
             uploadResult.ref.scope = { chatKey, isolationKey, sourceTableKey };
@@ -2119,7 +2119,7 @@ export async function persistSummaryVectorIndexSnapshot_ACU(
             // 否则物理写入的对象不在回滚集合内会泄漏为孤儿（计划 §T12.4）。
             newlyUploadedFiles.push(uploadResult.ref);
             if (uploadResult.ref.checksum && uploadResult.ref.checksum !== checksum) {
-                throw new Error(`内容寻址 pack 上传后 checksum 不一致: expected=${checksum} actual=${uploadResult.ref.checksum}`);
+                throw new Error(`checksum không khớp sau khi tải lên pack định vị theo nội dung: expected=${checksum} actual=${uploadResult.ref.checksum}`);
             }
             const packRef: SummaryVectorIndexPackRef_ACU = {
                 packKey,
@@ -2200,19 +2200,19 @@ export async function persistSummaryVectorIndexSnapshot_ACU(
         rowCount: rowsWithShardIds.length,
         status: 'ready',
     });
-    if (!written.ok || !written.ref) throw new Error(written.error || '单文件交火向量快照写入失败');
+    if (!written.ok || !written.ref) throw new Error(written.error || 'Ghi snapshot vector giao hỏa đơn tệp thất bại');
     written.ref.scope = { chatKey, isolationKey, sourceTableKey };
 
     const verified = await readVectorIndexJsonFile_ACU<VectorIndexSingleSnapshotBlob_ACU>(snapshotPath);
     let verificationError: unknown = null;
     try {
         if (!verified.ok || !verified.data || verified.data.schema !== 'single_file_snapshot') {
-            throw new Error('快照对象不可读取或协议不匹配');
+            throw new Error('Đối tượng snapshot không đọc được hoặc giao thức không khớp');
         }
         validateSingleFileSnapshotIdentity_ACU(manifestDraft, verified.data, snapshotPath);
         const verifiedChecksum = await sha256Text_ACU(JSON.stringify(verified.data));
         if (verifiedChecksum !== written.ref.checksum) {
-            throw new Error(`checksum 不匹配: expected=${written.ref.checksum} actual=${verifiedChecksum}`);
+            throw new Error(`checksum không khớp: expected=${written.ref.checksum} actual=${verifiedChecksum}`);
         }
     } catch (error) {
         verificationError = error;
@@ -2225,7 +2225,7 @@ export async function persistSummaryVectorIndexSnapshot_ACU(
             error: verificationError,
         });
         throw buildRollbackAwareError_ACU(
-            new Error(`[纪要向量索引] V2 快照写后校验失败: scope=${storageIdentity.scopeFingerprint}, indexId=${indexId}, path=${snapshotPath}, error=${String((verificationError as Error)?.message || verificationError)}`),
+            new Error(`[Chỉ mục vector kỷ yếu] Kiểm tra sau khi ghi snapshot V2 thất bại: scope=${storageIdentity.scopeFingerprint}, indexId=${indexId}, path=${snapshotPath}, error=${String((verificationError as Error)?.message || verificationError)}`),
             rollback,
         );
     }
@@ -2369,7 +2369,7 @@ async function loadChunksFromContentAddressedRefs_ACU(
                 chunkKeys: [ref.chunkKey],
             } as StoredVectorIndexChunk_ACU);
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error || '未知错误');
+            const message = error instanceof Error ? error.message : String(error || 'Lỗi không xác định');
             throw new Error(`交火向量索引内容块校验失败: ${sourcePath} chunk=${ref.chunkKey} ${message}`.trim());
         }
         if (!isVectorLike_ACU(decoded.vector) || decoded.vector.length === 0) {
@@ -2388,14 +2388,14 @@ async function loadChunksFromContentAddressedRefs_ACU(
         for (const ref of info.chunkRefs) {
             if (activeChunkKeys.size > 0 && !activeChunkKeys.has(ref.chunkKey)) continue;
             const packKey = String(ref.packKey || '').trim();
-            if (!packKey) throw new Error(`交火向量索引内容包引用缺少 packKey: ${ref.path}`);
+            if (!packKey) throw new Error(`Tham chiếu gói nội dung chỉ mục vector giao hỏa thiếu packKey: ${ref.path}`);
             const refs = chunkRefsByPackKey.get(packKey) || [];
             refs.push(ref);
             chunkRefsByPackKey.set(packKey, refs);
         }
         for (const [packKey, refs] of chunkRefsByPackKey.entries()) {
             const packRef = packRefsByKey.get(packKey);
-            if (!packRef) throw new Error(`交火向量索引内容包缺少 manifest 引用: packKey=${packKey}`);
+            if (!packRef) throw new Error(`Gói nội dung chỉ mục vector giao hỏa thiếu tham chiếu manifest: packKey=${packKey}`);
             const loaded = await readVectorIndexJsonFile_ACU<VectorIndexPackBlob_ACU>(packRef.path);
             if (!loaded.ok || !loaded.data) {
                 throw new Error(`交火向量索引内容包读取失败: ${packRef.path} ${loaded.error || ''}`.trim());
@@ -2415,7 +2415,7 @@ async function loadChunksFromContentAddressedRefs_ACU(
             });
             for (const ref of refs) {
                 const blob = blobsByChunkKey.get(ref.chunkKey);
-                if (!blob) throw new Error(`交火向量索引内容包缺少 chunk: pack=${packKey} chunk=${ref.chunkKey}`);
+                if (!blob) throw new Error(`Gói nội dung chỉ mục vector giao hỏa thiếu chunk: pack=${packKey} chunk=${ref.chunkKey}`);
                 if (String(blob.chunkKey || '') !== ref.chunkKey || String(blob.chunkId || '') !== ref.chunkId || String(blob.rowKey || '') !== ref.rowKey) {
                     throw new Error(`交火向量索引内容块身份不匹配: ${packRef.path} expectedChunk=${ref.chunkKey} actualChunk=${String(blob.chunkKey || 'empty')} expectedRow=${ref.rowKey} actualRow=${String(blob.rowKey || 'empty')}`);
                 }
@@ -2567,7 +2567,7 @@ async function loadChunksFromSingleFileSnapshot_ACU(
     options: LoadSummaryVectorIndexChunksOptions_ACU = {},
 ): Promise<ChatSummaryVectorIndexChunk_ACU[]> {
     const snapshotPath = String(manifest.manifestFile || manifest.files?.[0]?.path || '').trim();
-    if (!snapshotPath) throw new Error('交火向量单文件快照缺少 manifestFile 路径。');
+    if (!snapshotPath) throw new Error('Snapshot đơn tệp vector giao hỏa thiếu đường dẫn manifestFile.');
     const loaded = await readVectorIndexJsonFile_ACU<VectorIndexSingleSnapshotBlob_ACU>(snapshotPath);
     if (!loaded.ok || !loaded.data) {
         throw new Error(`交火向量单文件快照读取失败: ${snapshotPath} ${loaded.error || ''}`.trim());
@@ -2599,7 +2599,7 @@ async function loadChunksFromSingleFileSnapshot_ACU(
         ? await loadChunksFromContentPackRefs_ACU(manifest, blob, packRefs, options)
         : sortAndDedupeVectorChunks_ACU(decodeChunkVectorsInPlace_ACU(Array.isArray(blob.chunks) ? blob.chunks : []));
     if (manifest.chunkCount > 0 && chunks.length === 0) {
-        throw new Error(`交火向量单文件快照缺少有效 chunks: ${snapshotPath}`);
+        throw new Error(`Snapshot đơn tệp vector giao hỏa thiếu chunks hợp lệ: ${snapshotPath}`);
     }
     logSummaryVectorIndexIdentityEvent_ACU('debug', 'load', manifest.storageIdentity
         ? 'verified_v2_snapshot'
@@ -2626,7 +2626,7 @@ async function loadChunksFromContentPackRefs_ACU(
     // 缺 activeChunkIds 时直接 incompatible：静默猜序会改变召回顺序，属于难以察觉的正确性事故。
     const activeChunkIds = Array.isArray(manifest.snapshot?.activeChunkIds) ? manifest.snapshot.activeChunkIds : [];
     if (activeChunkIds.length === 0) {
-        throw new Error('交火向量内容寻址 pack 快照缺少 snapshot.activeChunkIds，协议不兼容，拒绝猜测 chunk 顺序。');
+        throw new Error('Snapshot pack định vị theo nội dung của vector giao hỏa thiếu snapshot.activeChunkIds, giao thức không tương thích, từ chối đoán thứ tự chunk.');
     }
     const expectedScope = buildVectorIndexSingleSnapshotV2ScopeToken_ACU({
         chatKey: manifest.chatKey,
@@ -2653,30 +2653,30 @@ async function loadChunksFromContentPackRefs_ACU(
         const results = await Promise.all(batch.map(async (ref) => {
             const loaded = await readVectorIndexJsonFile_ACU<SummaryVectorIndexContentPackBlob_ACU>(ref.path);
             if (!loaded.ok || !loaded.data) {
-                throw new Error(`交火向量内容寻址 pack 读取失败: ${ref.path} ${loaded.error || ''}`.trim());
+                throw new Error(`Đọc pack định vị theo nội dung của vector giao hỏa thất bại: ${ref.path} ${loaded.error || ''}`.trim());
             }
             const pack = loaded.data;
             if (pack.schema !== SUMMARY_VECTOR_INDEX_CONTENT_PACK_SCHEMA_ACU) {
-                throw new Error(`交火向量内容寻址 pack 协议不匹配: ${ref.path} schema=${pack.schema}`);
+                throw new Error(`Giao thức pack định vị theo nội dung của vector giao hỏa không khớp: ${ref.path} schema=${pack.schema}`);
             }
             if (Number(pack.version) !== SUMMARY_VECTOR_INDEX_CONTENT_PACK_VERSION_ACU) {
-                throw new Error(`交火向量内容寻址 pack 版本不受支持: ${ref.path} version=${pack.version}`);
+                throw new Error(`Phiên bản pack định vị theo nội dung của vector giao hỏa không được hỗ trợ: ${ref.path} version=${pack.version}`);
             }
             if (String(pack.packScope || '') !== expectedScope) {
-                throw new Error(`交火向量内容寻址 pack 所属 scope 不匹配: ${ref.path} expected=${expectedScope} actual=${pack.packScope}`);
+                throw new Error(`scope của pack định vị theo nội dung của vector giao hỏa không khớp: ${ref.path} expected=${expectedScope} actual=${pack.packScope}`);
             }
             if (String(pack.packKey || '') !== String(ref.packKey || '')) {
-                throw new Error(`交火向量内容寻址 pack packKey 不匹配: ${ref.path} expected=${ref.packKey} actual=${pack.packKey}`);
+                throw new Error(`packKey của pack định vị theo nội dung của vector giao hỏa không khớp: ${ref.path} expected=${ref.packKey} actual=${pack.packKey}`);
             }
             const actualChecksum = await sha256Text_ACU(JSON.stringify(pack));
             if (!ref.checksum || actualChecksum !== ref.checksum) {
-                throw new Error(`交火向量内容寻址 pack checksum 不匹配: ${ref.path} expected=${ref.checksum} actual=${actualChecksum}`);
+                throw new Error(`checksum của pack định vị theo nội dung của vector giao hỏa không khớp: ${ref.path} expected=${ref.checksum} actual=${actualChecksum}`);
             }
             if (String(pack.embeddingModel || '') !== String(manifest.embeddingModel || '')) {
-                throw new Error(`交火向量内容寻址 pack 模型不匹配: ${ref.path} expected=${manifest.embeddingModel} actual=${pack.embeddingModel}`);
+                throw new Error(`Mô hình của pack định vị theo nội dung của vector giao hỏa không khớp: ${ref.path} expected=${manifest.embeddingModel} actual=${pack.embeddingModel}`);
             }
             if (Number(pack.dimension) !== Number(manifest.dimension)) {
-                throw new Error(`交火向量内容寻址 pack 维度不匹配: ${ref.path} expected=${manifest.dimension} actual=${pack.dimension}`);
+                throw new Error(`Số chiều của pack định vị theo nội dung của vector giao hỏa không khớp: ${ref.path} expected=${manifest.dimension} actual=${pack.dimension}`);
             }
             return { pack, ref };
         }));
@@ -2685,13 +2685,13 @@ async function loadChunksFromContentPackRefs_ACU(
                 const chunkId = String(chunk.chunkId || '');
                 const chunkKey = String(chunk.chunkKey || '');
                 if (!chunkId || !chunkKey) {
-                    throw new Error(`交火向量内容寻址 pack 缺少 chunkId/chunkKey: ${ref.path}`);
+                    throw new Error(`Pack định vị theo nội dung của vector giao hỏa thiếu chunkId/chunkKey: ${ref.path}`);
                 }
                 if (seenChunkIds.has(chunkId)) {
-                    throw new Error(`交火向量内容寻址 pack chunkId 重复: ${chunkId}`);
+                    throw new Error(`chunkId của pack định vị theo nội dung của vector giao hỏa bị trùng: ${chunkId}`);
                 }
                 if (seenChunkKeys.has(chunkKey)) {
-                    throw new Error(`交火向量内容寻址 pack chunkKey 重复: ${chunkKey}`);
+                    throw new Error(`chunkKey của pack định vị theo nội dung của vector giao hỏa bị trùng: ${chunkKey}`);
                 }
                 seenChunkIds.add(chunkId);
                 seenChunkKeys.add(chunkKey);
@@ -2705,18 +2705,18 @@ async function loadChunksFromContentPackRefs_ACU(
     for (const { chunk } of collected) {
         const chunkId = String(chunk.chunkId || '');
         if (!sequenceByChunkId.has(chunkId)) {
-            throw new Error(`交火向量内容寻址 pack 含 activeChunkIds 之外的 chunk: ${chunkId}`);
+            throw new Error(`Pack định vị theo nội dung của vector giao hỏa chứa chunk ngoài activeChunkIds: ${chunkId}`);
         }
         const rowKey = String(chunk.rowKey || '');
         if (!rowOrderByRowKey.has(rowKey)) {
-            throw new Error(`交火向量内容寻址 pack chunk 的 rowKey 不存在于快照 rows: ${rowKey}`);
+            throw new Error(`rowKey của chunk trong pack định vị theo nội dung của vector giao hỏa không tồn tại trong rows của snapshot: ${rowKey}`);
         }
         const vector = decodeF32B64ToVector_ACU(String(chunk.vector || ''));
         if (vector.length !== Number(manifest.dimension)) {
-            throw new Error(`交火向量内容寻址 pack chunk 维度不符: ${chunkId} expected=${manifest.dimension} actual=${vector.length}`);
+            throw new Error(`Số chiều chunk trong pack định vị theo nội dung của vector giao hỏa không khớp: ${chunkId} expected=${manifest.dimension} actual=${vector.length}`);
         }
         if (!vector.every((value) => Number.isFinite(value))) {
-            throw new Error(`交火向量内容寻址 pack chunk 含非有限数值: ${chunkId}`);
+            throw new Error(`Chunk trong pack định vị theo nội dung của vector giao hỏa chứa giá trị không hữu hạn: ${chunkId}`);
         }
         byChunkId.set(chunkId, {
             chunkId,
@@ -2731,7 +2731,7 @@ async function loadChunksFromContentPackRefs_ACU(
     }
     for (const chunkId of activeChunkIds) {
         if (!byChunkId.has(chunkId)) {
-            throw new Error(`交火向量内容寻址 pack 缺少 activeChunkIds 中的 chunk: ${chunkId}`);
+            throw new Error(`Pack định vị theo nội dung của vector giao hỏa thiếu chunk trong activeChunkIds: ${chunkId}`);
         }
     }
     // 按 activeChunkIds 顺序输出，保证召回顺序稳定。
@@ -2874,7 +2874,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
             messageIndex: representative.messageIndex,
             isolationKey: representative.isolationKey,
             expected: Array.from(expectedIdentities).join(' | '),
-            message: '同一路径被多个不同预期身份引用，已禁止自动迁移、repoint 与删除。',
+            message: 'Cùng một đường dẫn bị nhiều danh tính kỳ vọng khác nhau tham chiếu, đã cấm tự động di chuyển, repoint và xóa.',
         });
         logSummaryVectorIndexIdentityEvent_ACU('warn', 'health', 'path_identity_collision', {
             manifest: representative.manifest,
@@ -2897,7 +2897,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                 role: file.role,
                 messageIndex: file.messageIndex,
                 isolationKey: file.isolationKey,
-                message: loaded.error || '外置文件不存在或无法读取',
+                message: loaded.error || 'Tệp bên ngoài không tồn tại hoặc không thể đọc',
             });
             continue;
         }
@@ -2914,7 +2914,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                 isolationKey: file.isolationKey,
                 expected: registryRef.checksum,
                 actual: checksum,
-                message: 'registry checksum 与实际文件内容不一致',
+                message: 'checksum trong registry không khớp nội dung tệp thực tế',
             });
         }
         if (isLegacySingleFileHealthTarget_ACU(file) && !file.manifest.storageIdentity
@@ -2927,7 +2927,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                 role: file.role,
                 messageIndex: file.messageIndex,
                 isolationKey: file.isolationKey,
-                message: '旧 single-file 快照仍可读取，但尚未具备 V2 immutable identity，等待显式迁移或重建。',
+                message: 'Snapshot single-file cũ vẫn đọc được nhưng chưa có V2 immutable identity, chờ di chuyển hoặc xây dựng lại rõ ràng.',
             });
         }
         if (isLegacySingleFileHealthTarget_ACU(file)) {
@@ -2947,7 +2947,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                     isolationKey: file.isolationKey,
                     expected: JSON.stringify(file.expectedIdentity),
                     actual: String((error as Error)?.message || error),
-                    message: '单文件快照未通过正式读取身份校验，已禁止将其视为可信对象。',
+                    message: 'Snapshot đơn tệp chưa qua kiểm tra danh tính đọc chính thức, đã cấm coi là đối tượng tin cậy.',
                 });
                 logSummaryVectorIndexIdentityEvent_ACU('warn', 'health', 'identity_mismatch', {
                     manifest: file.manifest,
@@ -2992,7 +2992,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                         isolationKey: file.isolationKey,
                         expected: `${expectedScope}/${expectedEmbeddingModel}/${expectedDimension}`,
                         actual: `${String(pack.packScope || '')}/${String(pack.embeddingModel || '')}/${Number(pack.dimension || 0)}`,
-                        message: '内容寻址 pack 身份与 manifest 引用不一致，或包内缺少有效向量',
+                        message: 'Danh tính pack định vị theo nội dung không khớp tham chiếu manifest, hoặc trong pack thiếu vector hợp lệ',
                     });
                 }
                 // 缺块 / 重复 / 多余 chunk 检查：activeChunkIds 每项必须恰好命中一次。
@@ -3017,7 +3017,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                                 rowKey: String(packChunks.find((c) => String(c.chunkId || '') === chunkId)?.rowKey || ''),
                                 expected: 'unique',
                                 actual: String(chunkIdCount.get(chunkId) || 0),
-                                message: '内容寻址 pack 内出现重复 chunkId',
+                                message: 'Trong pack định vị theo nội dung có chunkId trùng lặp',
                             });
                         }
                     }
@@ -3033,7 +3033,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                                 chunkId,
                                 expected: chunkId,
                                 actual: 'missing_in_pack',
-                                message: 'manifest activeChunkIds 指向的内容块在内容寻址 pack 内不存在',
+                                message: 'Khối nội dung mà activeChunkIds của manifest trỏ tới không tồn tại trong pack định vị theo nội dung',
                             });
                         }
                     }
@@ -3049,7 +3049,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                                 chunkId,
                                 expected: 'not_in_active',
                                 actual: chunkId,
-                                message: '内容寻址 pack 含 activeChunkIds 之外的 chunk',
+                                message: 'Pack định vị theo nội dung chứa chunk ngoài activeChunkIds',
                             });
                         }
                     }
@@ -3067,7 +3067,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                             isolationKey: file.isolationKey,
                             expected: file.checksum,
                             actual: actualChecksum,
-                            message: '内容寻址 pack checksum 与实际内容不一致',
+                            message: 'checksum của pack định vị theo nội dung không khớp nội dung thực tế',
                         });
                     }
                 }
@@ -3090,7 +3090,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                     isolationKey: file.isolationKey,
                     expected: String(file.indexId || ''),
                     actual: `${String(pack.indexId || '')}/${String(pack.packKey || '')}`,
-                    message: '内容寻址向量包身份与 manifest 引用不一致，或包内缺少有效向量',
+                    message: 'Danh tính gói vector định vị theo nội dung không khớp tham chiếu manifest, hoặc trong gói thiếu vector hợp lệ',
                 });
             }
             const chunkRefsForPack = reachability.reachableFiles.filter((item) => item.path === file.path && item.role === 'vector_chunk');
@@ -3109,7 +3109,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                         rowKey: ref.rowKey,
                         expected: String(ref.chunkKey || ''),
                         actual: 'missing_in_pack',
-                        message: 'manifest chunkRef 指向的内容块在 vector_pack 内不存在',
+                        message: 'Khối nội dung mà chunkRef của manifest trỏ tới không tồn tại trong vector_pack',
                     });
                     if (ref.rowKey) repairableRowKeys.add(ref.rowKey);
                     continue;
@@ -3131,7 +3131,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                         rowKey: ref.rowKey,
                         expected: `${ref.chunkKey || ''}/${ref.chunkId || ''}/${ref.rowKey || ''}`,
                         actual: `${String(chunk.chunkKey || '')}/${String(chunk.chunkId || '')}/${String(chunk.rowKey || '')}`,
-                        message: 'vector_pack 内 chunk 身份与 manifest chunkRef 不一致',
+                        message: 'Danh tính chunk trong vector_pack không khớp chunkRef của manifest',
                     });
                     if (ref.rowKey) repairableRowKeys.add(ref.rowKey);
                 }
@@ -3150,7 +3150,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                             rowKey: ref.rowKey,
                             expected: ref.checksum,
                             actual: chunkChecksum,
-                            message: 'vector_pack 内 chunk checksum 与 manifest chunkRef 不一致',
+                            message: 'checksum chunk trong vector_pack không khớp chunkRef của manifest',
                         });
                         if (ref.rowKey) repairableRowKeys.add(ref.rowKey);
                     }
@@ -3166,7 +3166,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                     isolationKey: file.isolationKey,
                     expected: file.checksum,
                     actual: checksum,
-                    message: 'manifest packRef checksum 与实际内容不一致',
+                    message: 'checksum packRef của manifest không khớp nội dung thực tế',
                 });
             }
         } else if (file.role === 'vector_chunk') {
@@ -3204,7 +3204,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                     rowKey: file.rowKey || blob.rowKey,
                     expected: `${file.chunkKey || ''}/${file.chunkId || ''}/${file.rowKey || ''}`,
                     actual: `${String(blob.chunkKey || '')}/${String(blob.chunkId || '')}/${String(blob.rowKey || '')}`,
-                    message: '内容寻址向量块身份与 manifest 引用不一致，或缺少有效向量',
+                    message: 'Danh tính khối vector định vị theo nội dung không khớp tham chiếu manifest, hoặc thiếu vector hợp lệ',
                 });
                 if (file.rowKey || blob.rowKey) repairableRowKeys.add(String(file.rowKey || blob.rowKey));
             }
@@ -3221,7 +3221,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                     rowKey: file.rowKey,
                     expected: file.checksum,
                     actual: checksum,
-                    message: 'manifest chunkRef checksum 与实际内容不一致',
+                    message: 'checksum chunkRef của manifest không khớp nội dung thực tế',
                 });
                 if (file.rowKey) repairableRowKeys.add(file.rowKey);
             }
@@ -3234,7 +3234,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
                 role: file.role,
                 messageIndex: file.messageIndex,
                 isolationKey: file.isolationKey,
-                message: '旧 shard 协议仍可读，但建议迁移到内容寻址 chunk 协议',
+                message: 'Giao thức shard cũ vẫn đọc được, nhưng nên di chuyển sang giao thức chunk định vị theo nội dung',
             });
         }
     }
@@ -3247,7 +3247,7 @@ export async function inspectSummaryVectorIndexHealth_ACU(): Promise<SummaryVect
             code: 'unreachable_registered_file',
             path,
             role: file.role,
-            message: 'registry 中存在当前聊天快照不可达的外置文件，可由安全 GC 清理',
+            message: 'Trong registry có tệp bên ngoài mà snapshot cuộc trò chuyện hiện tại không với tới được, có thể dọn bằng GC an toàn',
         });
     });
 

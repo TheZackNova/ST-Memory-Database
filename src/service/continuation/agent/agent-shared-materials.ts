@@ -5,7 +5,7 @@
 import type { ContinuationPromptSegment_ACU, ContinuationSettings_ACU } from '../model';
 import type { AgentToolMode_ACU } from '../../ai/agent-tool-mode';
 import { renderContinuationPrompt_ACU } from '../prompt-template';
-import { AGENT_RUNTIME_SNAPSHOT_TEMPLATE_ACU } from './agent-defaults';
+import { AGENT_DELEGATE_SNAPSHOT_TEMPLATE_ACU } from './agent-defaults';
 import { getAgentSubagentAccessProfile_ACU, renderAgentModuleCatalog_ACU, renderAgentReadCatalog_ACU, renderAgentSubagentCatalog_ACU } from './agent-catalog';
 import { hasActiveStoryArc_ACU, renderAgentWebRefsCatalog_ACU } from './agent-module-store';
 import { renderAgentTableCatalog_ACU } from './agent-tables';
@@ -58,7 +58,7 @@ export function renderMainSessionReadAppendix_ACU(messages: readonly AgentConver
   if (!latest.size) return '';
   return [
     '【主会话已调阅】',
-    '下面是主会话本轮已经读到的全文。不要再对同一地址调用 read。世界书触发全文已在快照里；未命中条目可用 search（scope=["worldbook"]）定位后按地址精读。',
+    'Dưới đây là toàn văn mà phiên chính đã đọc được trong lượt này. Không gọi read lại cho cùng một địa chỉ. Toàn văn World Info được kích hoạt đã có trong ảnh chụp; mục chưa trúng có thể dùng search (scope=["worldbook"]) để định vị rồi đọc kỹ theo địa chỉ.',
     ...[...latest.values()].map(({ address, text }) => `【调阅项 ${JSON.stringify(address)} ${text.length}】\n${text}`),
   ].join('\n\n');
 }
@@ -211,17 +211,17 @@ export async function renderFallbackAgentSnapshot_ACU(settings: ContinuationSett
   const start = context.settledThroughIndex + 1;
   const last = context.chat.length - 1;
   const rendered = await renderContinuationPrompt_ACU(
-    [{ role: 'user', content: AGENT_RUNTIME_SNAPSHOT_TEMPLATE_ACU, enabled: true, deletable: false, pinned: true }],
+    [{ role: 'user', content: AGENT_DELEGATE_SNAPSHOT_TEMPLATE_ACU, enabled: true, deletable: false, pinned: true }],
     {
       $USER_REQUIREMENTS: () => renderAgentUserRequirements_ACU(context.moduleSnapshot, context.originInstruction),
       $OUTLINE_WINDOW: () => renderAgentOutlineWindow_ACU(context),
-      $CURRENT_TURN_GOAL: () => context.execution.turn?.goal || '（尚无可执行的大纲轮次）',
+      $CURRENT_TURN_GOAL: () => context.execution.turn?.goal || '(chưa có lượt dàn ý có thể thực thi)',
       $CURRENT_TURN_PACING: () => renderAgentTurnGuidance_ACU(context.execution.turn ?? null),
       $OUTLINE_STATE: () => renderAgentOutlineState_ACU(context),
       $STORY_ARC_STATE: () => hasActiveStoryArc_ACU(context.moduleSnapshot)
-        ? `故事总纲：已建立（修订号 ${context.moduleSnapshot.revisions.storyArc}）。`
-        : '故事总纲：尚未建立。',
-      $UNSETTLED_RANGE: () => start > last ? '没有尚未结算的真实历史。' : `未结算楼层区间：${start} 到 ${last}。`,
+        ? `Tổng cương câu chuyện: đã lập (số sửa đổi ${context.moduleSnapshot.revisions.storyArc}).`
+        : 'Tổng cương câu chuyện: chưa lập.',
+      $UNSETTLED_RANGE: () => start > last ? 'Không có lịch sử thật nào chưa kết toán.' : `Khoảng tầng chưa kết toán: từ ${start} đến ${last}.`,
       $AGENT_CATALOG: () => renderAgentSubagentCatalog_ACU({ webResearchEnabled: settings.webResearch.enabled }),
       $MODULE_CATALOG: () => renderAgentModuleCatalog_ACU({
         webResearchEnabled: settings.webResearch.enabled,
@@ -232,7 +232,7 @@ export async function renderFallbackAgentSnapshot_ACU(settings: ContinuationSett
       $WORLDBOOK_HITS: () => renderAgentWorldbookTriggeredInjection_ACU(worldbook, buildAgentWorldbookScanText_ACU(context)),
       $WEB_REFS_CATALOG: () => renderAgentWebRefsCatalog_ACU(context.moduleSnapshot, settings.webResearch.enabled),
       $AGENT_READ_CATALOG: () => renderAgentReadCatalog_ACU(toolMode),
-      $BUDGET: () => '主会话预算见会话里的最新快照。本子代理的读取轮次见紧随其后的【读取预算状态】。',
+      $BUDGET: () => 'Ngân sách của phiên chính xem trong ảnh chụp mới nhất của phiên. Số lượt đọc của agent phụ này xem trong 【读取预算状态】 ngay sau đó.',
     },
     'agent_delegate',
   );

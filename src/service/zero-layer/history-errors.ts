@@ -9,24 +9,24 @@ export class ZeroLayerHistoryReadError_ACU extends Error {
 }
 
 const recovery_ACU: Record<ZeroLayerHistoryErrorCode_ACU, [boolean, string]> = {
-  'mode-disabled': [false, '由宿主显式启用零层模式。'],
-  loading: [true, '等待聊天加载后重新读取。'],
-  'not-ready': [true, '等待宿主完成零层装配或桥接恢复。'],
-  'access-denied': [false, '由宿主重新授权当前只读作用域。'],
-  'unsupported-version': [false, '使用受支持的接口或存档版本。'],
-  'invalid-query': [false, '修正查询参数后重新读取。'],
-  'not-found': [false, '选择当前快照内存在的回合。'],
-  'storage-read-failed': [true, '由宿主检查存储并显式回读；读取接口不会自动恢复。'],
-  'corrupt-data': [false, '由宿主检查损坏存档，禁止以空历史替代。'],
-  'snapshot-stale': [true, '重新取得 snapshot 后重启分页。'],
-  'scope-changed': [true, '在当前作用域重新取得 snapshot 和订阅。'],
-  'history-unavailable': [false, '由宿主检查历史来源和可用恢复素材。'],
+  'mode-disabled': [false, 'Host bật chế độ Tầng 0 một cách rõ ràng.'],
+  loading: [true, 'Chờ cuộc trò chuyện tải xong rồi đọc lại.'],
+  'not-ready': [true, 'Chờ host hoàn tất lắp ráp Tầng 0 hoặc khôi phục cầu nối.'],
+  'access-denied': [false, 'Host cấp quyền lại cho phạm vi chỉ đọc hiện tại.'],
+  'unsupported-version': [false, 'Dùng giao diện hoặc phiên bản bản lưu được hỗ trợ.'],
+  'invalid-query': [false, 'Sửa tham số truy vấn rồi đọc lại.'],
+  'not-found': [false, 'Chọn lượt có trong snapshot hiện tại.'],
+  'storage-read-failed': [true, 'Host kiểm tra lưu trữ và đọc lại rõ ràng; giao diện đọc không tự động khôi phục.'],
+  'corrupt-data': [false, 'Host kiểm tra bản lưu bị hỏng, cấm thay bằng lịch sử rỗng.'],
+  'snapshot-stale': [true, 'Lấy lại snapshot rồi bắt đầu lại phân trang.'],
+  'scope-changed': [true, 'Lấy lại snapshot và đăng ký trong phạm vi hiện tại.'],
+  'history-unavailable': [false, 'Host kiểm tra nguồn lịch sử và tài liệu khôi phục khả dụng.'],
 };
 
 /** 不把上游错误载荷、凭据或私有日志透传至公开 Interface。 */
 export function zeroLayerHistoryFailure_ACU<T>(error: unknown): ZeroLayerHistoryResult_ACU<T> {
   let code: ZeroLayerHistoryErrorCode_ACU = 'storage-read-failed';
-  let message = '零层历史读取失败。';
+  let message = 'Đọc lịch sử Tầng 0 thất bại.';
   if (error instanceof ZeroLayerHistoryReadError_ACU) {
     code = error.code;
     message = error.message;
@@ -40,7 +40,7 @@ export function zeroLayerHistoryFailure_ACU<T>(error: unknown): ZeroLayerHistory
       case 'source-changed': code = 'history-unavailable'; break;
       case 'revision-conflict': code = 'snapshot-stale'; break;
     }
-    message = `零层历史读取被拒绝（${code}）。`;
+    message = `Đọc lịch sử Tầng 0 bị từ chối (${code}).`;
   }
   const [retryable, recoveryAction] = recovery_ACU[code];
   return { ok: false, error: { code, message, retryable, recoveryAction } };

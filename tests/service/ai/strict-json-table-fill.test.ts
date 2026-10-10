@@ -40,10 +40,10 @@ function tableData() {
 describe('strict-json-table-fill', () => {
   it('keeps native default prompt details and only replaces output protocol', () => {
     const mainPrompt = DEFAULT_CHAR_CARD_PROMPT_STRICT_JSON_ACU.find((segment: any) => segment.mainSlot === 'A')?.content || '';
-    expect(mainPrompt).toContain('必须逐表阅读每个表格的note部分');
-    expect(mainPrompt).toContain('可能还存在某些存放特殊填表规则的表格');
-    expect(mainPrompt).toContain('日志与纪要语气校准');
-    expect(mainPrompt).toContain('正常恋爱互动');
+    expect(mainPrompt).toContain('Bắt buộc đọc phần note của từng bảng');
+    expect(mainPrompt).toContain('có thể còn tồn tại một số bảng chứa quy tắc điền bảng đặc biệt');
+    expect(mainPrompt).toContain('Hiệu chỉnh giọng điệu nhật ký và kỷ yếu');
+    expect(mainPrompt).toContain('tương tác tình cảm bình thường');
     expect(mainPrompt).toContain('"format":"table_edit_ops_v1"');
     expect(mainPrompt).toContain('where');
     expect(mainPrompt).not.toContain('insertRow(表格ID');
@@ -53,10 +53,10 @@ describe('strict-json-table-fill', () => {
 
   it('keeps sqlite default prompt SQL rules and only wraps SQL in JSON protocol', () => {
     const mainPrompt = DEFAULT_CHAR_CARD_PROMPT_SQL_STRICT_JSON_ACU.find((segment: any) => segment.mainSlot === 'A')?.content || '';
-    expect(mainPrompt).toContain('必须逐表阅读每个表格的 DDL 注释和 Note 部分');
-    expect(mainPrompt).toContain('WHERE 条件选择原则');
-    expect(mainPrompt).toContain('CASE 条件更新');
-    expect(mainPrompt).toContain('禁止使用 DROP TABLE / ALTER TABLE / CREATE TABLE 等结构变更语句');
+    expect(mainPrompt).toContain('Bắt buộc đọc chú thích DDL và phần Note của từng bảng');
+    expect(mainPrompt).toContain('Nguyên tắc chọn điều kiện WHERE');
+    expect(mainPrompt).toContain('Cập nhật điều kiện CASE');
+    expect(mainPrompt).toContain('Cấm dùng các câu lệnh thay đổi cấu trúc như DROP TABLE / ALTER TABLE / CREATE TABLE');
     expect(mainPrompt).toContain('"format":"table_edit_sql_v1"');
     expect(mainPrompt).toContain('"sql":""');
     expect(mainPrompt).not.toContain('<tableEdit>\nINSERT INTO');
@@ -112,7 +112,7 @@ describe('strict-json-table-fill', () => {
       ops: [{ op: 'insert', sheet: '关系表旧名', row: { 姓名: '小玉', 好感: '升高' } }],
     }), { tableData: data, targetSheetKeys: ['sheet_status'] });
     expect(result.ok).toBe(false);
-    expect(result.error).toContain('越权');
+    expect(result.error).toContain('vượt quyền');
   });
 
   it('rejects unknown sheet', () => {
@@ -121,7 +121,7 @@ describe('strict-json-table-fill', () => {
       ops: [{ op: 'insert', sheet: '不存在', row: { 姓名: '小玉' } }],
     }), { tableData: tableData() });
     expect(result.ok).toBe(false);
-    expect(result.error).toContain('无法解析别名');
+    expect(result.error).toContain('không thể phân tích bí danh');
   });
 
   it('rejects unknown field', () => {
@@ -130,7 +130,7 @@ describe('strict-json-table-fill', () => {
       ops: [{ op: 'insert', sheet: '角色状态', row: { 未知: '值' } }],
     }), { tableData: tableData() });
     expect(result.ok).toBe(false);
-    expect(result.error).toContain('字段名不存在');
+    expect(result.error).toContain('Tên trường không tồn tại');
   });
 
   it('rejects extra tableId field', () => {
@@ -139,7 +139,7 @@ describe('strict-json-table-fill', () => {
       ops: [{ op: 'insert', sheet: '角色状态', tableId: 0, row: { 姓名: '小玉' } }],
     }), { tableData: tableData() });
     expect(result.ok).toBe(false);
-    expect(result.error).toContain('不允许的字段');
+    expect(result.error).toContain('trường không được phép');
   });
 
   it('rejects extra rowIndex field', () => {
@@ -148,7 +148,7 @@ describe('strict-json-table-fill', () => {
       ops: [{ op: 'update', sheet: '角色状态', rowIndex: 0, where: { 姓名: '小玉' }, set: { 状态: '疲惫' } }],
     }), { tableData: tableData() });
     expect(result.ok).toBe(false);
-    expect(result.error).toContain('不允许的字段');
+    expect(result.error).toContain('trường không được phép');
   });
 
   it('rejects where matching no rows', () => {
@@ -157,7 +157,7 @@ describe('strict-json-table-fill', () => {
       ops: [{ op: 'update', sheet: '角色状态', where: { 姓名: '不存在' }, set: { 状态: '疲惫' } }],
     }), { tableData: tableData() });
     expect(result.ok).toBe(false);
-    expect(result.error).toContain('where 未匹配');
+    expect(result.error).toContain('where không khớp');
   });
 
   it('rejects where matching multiple rows', () => {
@@ -166,7 +166,7 @@ describe('strict-json-table-fill', () => {
       ops: [{ op: 'update', sheet: '重复记录', where: { 姓名: '小玉' }, set: { 状态: '休息' } }],
     }), { tableData: tableData() });
     expect(result.ok).toBe(false);
-    expect(result.error).toContain('where 匹配到多行');
+    expect(result.error).toContain('where khớp nhiều hàng');
   });
 
   it('extracts sqlite sql string without rewriting row_id WHERE', () => {
@@ -229,7 +229,7 @@ describe('strict-json-table-fill', () => {
       ops: [{ op: 'update', sheet: '角色状态', where: { 姓名: '小玉' }, set: { 旧备注: '改写' } }],
     }), { tableData: data });
     expect(extraction.ok).toBe(false);
-    expect(extraction.error).toContain('字段名不存在');
+    expect(extraction.error).toContain('Tên trường không tồn tại');
   });
 
   it('falls back to wide schema when sheet threshold is exceeded', () => {

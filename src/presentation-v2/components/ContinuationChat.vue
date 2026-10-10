@@ -3,9 +3,9 @@
     <div class="acu-v2-continuation-chat__status">
       <span class="acu-v2-continuation-chat__badge" :class="`acu-v2-continuation-chat__badge--${statusTone}`">{{ statusText }}</span>
       <span class="acu-v2-continuation-chat__status-item">{{ stageText }}</span>
-      <span class="acu-v2-continuation-chat__status-item">已完成 {{ completedTurns }} / {{ totalTurns }} 轮</span>
-      <span v-if="revisionText" class="acu-v2-continuation-chat__status-item">大纲 {{ revisionText }}</span>
-      <span class="acu-v2-continuation-chat__status-item">倒计时 {{ deadlineText }}</span>
+      <span class="acu-v2-continuation-chat__status-item">Đã xong {{ completedTurns }} / {{ totalTurns }} lượt</span>
+      <span v-if="revisionText" class="acu-v2-continuation-chat__status-item">Dàn ý {{ revisionText }}</span>
+      <span class="acu-v2-continuation-chat__status-item">Đếm ngược {{ deadlineText }}</span>
     </div>
 
     <ContinuationSessionFeed :entries="entries" :running="running" />
@@ -22,9 +22,9 @@
         @keydown="onKeydown"
       />
       <div class="acu-v2-continuation-chat__composer-actions">
-        <span class="acu-v2-continuation-chat__hint">{{ inFlight ? '进行中可点停止' : 'Ctrl / ⌘ + Enter 发送' }}</span>
-        <AcuButton v-if="inFlight" variant="danger" @click="emit('stop')">停止</AcuButton>
-        <AcuButton v-else variant="primary" :disabled="!draft.trim()" @click="send">发送</AcuButton>
+        <span class="acu-v2-continuation-chat__hint">{{ inFlight ? 'Đang chạy, có thể bấm Dừng' : 'Ctrl / ⌘ + Enter để gửi' }}</span>
+        <AcuButton v-if="inFlight" variant="danger" @click="emit('stop')">Dừng</AcuButton>
+        <AcuButton v-else variant="primary" :disabled="!draft.trim()" @click="send">Gửi</AcuButton>
       </div>
     </div>
   </div>
@@ -78,18 +78,18 @@ const statusTone = computed(() => {
 });
 
 const placeholder = computed(() => {
-  if (!props.task) return '描述你想要的续写方向，发送后主 Agent 会创建任务并开始规划...';
-  if (props.awaitingHost) return '酒馆正在生成正文。点「停止」可打断；要接着做就打字再发送。';
-  if (props.task.status === 'running' || props.running) return '主 Agent 正在工作。点「停止」可打断；要接着做就打字再发送。';
-  return '继续和主 Agent 对话，写好后再发送...';
+  if (!props.task) return 'Mô tả hướng viết tiếp bạn muốn; sau khi gửi, Agent chính sẽ tạo tác vụ và bắt đầu lên kế hoạch...';
+  if (props.awaitingHost) return 'SillyTavern đang tạo nội dung. Bấm «Dừng» để ngắt; muốn làm tiếp thì gõ rồi gửi.';
+  if (props.task.status === 'running' || props.running) return 'Agent chính đang làm việc. Bấm «Dừng» để ngắt; muốn làm tiếp thì gõ rồi gửi.';
+  return 'Tiếp tục trò chuyện với Agent chính, soạn xong rồi gửi...';
 });
 
 const notice = computed(() => {
-  if (props.awaitingHost) return '酒馆正在生成正文。点「停止」会同时打断 Agent 和酒馆生成。';
+  if (props.awaitingHost) return 'SillyTavern đang tạo nội dung. Bấm «Dừng» sẽ ngắt cả Agent lẫn việc tạo của SillyTavern.';
   if (props.task?.stopReason && props.task.stopReason !== 'manual') {
-    return `任务已停止：${props.task.stopReason}。输入新指令后发送即可继续。`;
+    return `Tác vụ đã dừng: ${props.task.stopReason}. Nhập chỉ dẫn mới rồi gửi để tiếp tục.`;
   }
-  if (props.task?.lastError) return `上一次失败：${props.task.lastError.message}`;
+  if (props.task?.lastError) return `Lần trước thất bại: ${props.task.lastError.message}`;
   return '';
 });
 

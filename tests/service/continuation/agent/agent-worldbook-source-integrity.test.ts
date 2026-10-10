@@ -34,7 +34,7 @@ describe('世界书宿主正文完整性', () => {
     expect(snapshot.available).toBe(true);
     expect(snapshot.entries).toHaveLength(1);
     expect(snapshot.entries[0].content).toBe(content);
-    expect(renderAgentWorldbookHitBodies_ACU(snapshot, '')).toBe(`### 正文（设定集#7）\n${content}`);
+    expect(renderAgentWorldbookHitBodies_ACU(snapshot, '')).toBe(`### 正文 (设定集#7)\n${content}`);
   });
   it('同一条目等长改写后重新计量，未改正文才复用缓存', async () => {
     host.bookNames.mockResolvedValue(['等长改写测试']);

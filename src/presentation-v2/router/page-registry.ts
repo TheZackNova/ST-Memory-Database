@@ -43,19 +43,19 @@ export const ACU_V2_PAGE_REGISTRY: readonly AcuV2Page[] = Object.freeze([
 
   // 配置
   { id: ACU_V2_FILL_MODE_PAGE_ID, title: fillModeCopy.pageTitle, group: 'config', component: markRaw(FillModePage) },
-  { id: ACU_V2_FORM_FILL_PAGE_ID, title: '填表工作台', group: 'config', component: markRaw(FormFillPage) },
+  { id: ACU_V2_FORM_FILL_PAGE_ID, title: 'Bàn điền bảng', group: 'config', component: markRaw(FormFillPage) },
   { id: 'agent', title: 'Agent', group: 'config', component: markRaw(AgentPage), minUiTier: 'medium' },
   { id: 'api', title: 'API', group: 'config', component: markRaw(ApiPage) },
 
   // 功能
   // 剧情推进始终保留导航入口，填表模式支持范围由页面内说明。
   { id: ACU_V2_PLOT_PAGE_ID, title: plotCopy.pageTitle, group: 'feature', component: markRaw(PlotPage) },
-  { id: 'continuation', title: '智能续写', group: 'feature', component: markRaw(ContinuationPage), minUiTier: 'medium', featureGate: FEATURE_GATE_CONTINUATION },
-  { id: 'world-simulation', title: '格林推演', group: 'feature', component: markRaw(WorldSimulationPage), minUiTier: 'high', featureGate: FEATURE_GATE_WORLD_SIMULATION },
-  { id: 'import', title: '外部导入', group: 'feature', component: markRaw(ImportPage), minUiTier: 'medium', featureGate: FEATURE_GATE_IMPORT },
+  { id: 'continuation', title: 'Viết tiếp thông minh', group: 'feature', component: markRaw(ContinuationPage), minUiTier: 'medium', featureGate: FEATURE_GATE_CONTINUATION },
+  { id: 'world-simulation', title: 'Mô phỏng thế giới', group: 'feature', component: markRaw(WorldSimulationPage), minUiTier: 'high', featureGate: FEATURE_GATE_WORLD_SIMULATION },
+  { id: 'import', title: 'Nhập từ ngoài', group: 'feature', component: markRaw(ImportPage), minUiTier: 'medium', featureGate: FEATURE_GATE_IMPORT },
   {
     id: 'content-replace',
-    title: '正文替换',
+    title: 'Thay thế nội dung',
     group: 'feature',
     component: markRaw(ContentReplacePage),
     minUiTier: 'high',
@@ -65,13 +65,13 @@ export const ACU_V2_PAGE_REGISTRY: readonly AcuV2Page[] = Object.freeze([
   // 工具
   // 高级工具页轻量模式即可见：轻量 / 进阶只显示运行日志，SQL 控制台由页内按高级档位开放。
   // 数据管理（含删除表格数据）在所有模式下可见。
-  { id: 'data-mgmt', title: '数据管理', group: 'tool', component: markRaw(DataMgmtPage) },
-  { id: 'advanced-tools', title: '高级工具', group: 'tool', component: markRaw(AdvancedToolsPage) },
+  { id: 'data-mgmt', title: 'Quản lý dữ liệu', group: 'tool', component: markRaw(DataMgmtPage) },
+  { id: 'advanced-tools', title: 'Công cụ nâng cao', group: 'tool', component: markRaw(AdvancedToolsPage) },
 
   // 开发者（plan §D24：仪表盘"启用开发者选项"总开关 gate）
   {
     id: 'developer',
-    title: '开发者选项',
+    title: 'Tùy chọn nhà phát triển',
     group: 'developer',
     component: markRaw(DeveloperPage),
     minUiTier: 'high',

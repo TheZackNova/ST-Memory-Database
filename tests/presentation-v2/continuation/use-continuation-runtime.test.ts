@@ -119,7 +119,7 @@ describe('useContinuationRuntime', () => {
       release({ ...result, preparedTurn: instruction });
       await expect(pending).resolves.toBe(lifecycle !== 'chat_changed');
       expect(harness.continueTask).toHaveBeenCalledOnce();
-      const debug = sessionLog.readAgentSessionLog_ACU().find(entry => entry.title.includes('[续写 DEBUG #'));
+      const debug = sessionLog.readAgentSessionLog_ACU().find(entry => entry.title.includes('[Viết tiếp DEBUG #'));
       if (lifecycle === 'chat_changed') {
         expect(harness.bridgeSend).not.toHaveBeenCalled();
         expect(debug?.detail).toContain('page_discarded');
@@ -303,9 +303,9 @@ describe('useContinuationRuntime', () => {
 
     expect(harness.bridgeRetryHostGeneration).toHaveBeenCalledOnce();
     expect(harness.bridgeSend).not.toHaveBeenCalled();
-    expect(harness.toastInfo).toHaveBeenCalledWith('上一轮正文未完成，已让酒馆直接重新生成；你的消息会在下一轮被主 Agent 读取。');
+    expect(harness.toastInfo).toHaveBeenCalledWith('Nội dung vòng trước chưa hoàn tất, đã để SillyTavern tạo lại trực tiếp; tin nhắn của bạn sẽ được Agent chính đọc ở vòng tiếp theo.');
     const entries = sessionLog.readAgentSessionLog_ACU();
-    expect(entries.some(entry => entry.kind === 'protocol_retry' && entry.title === '重发上一轮正文')).toBe(true);
+    expect(entries.some(entry => entry.kind === 'protocol_retry' && entry.title === 'Gửi lại nội dung vòng trước')).toBe(true);
     sessionLog.resetAgentSessionLogForTests_ACU();
   });
 
@@ -398,7 +398,7 @@ describe('useContinuationRuntime', () => {
     harness.sendAgentMessage.mockResolvedValue({ ...result, disposition: 'queued_after_host', shouldContinue: false });
     expect(await continuation.sendAgentMessage('当前正文结束后再收束')).toBe(true);
     expect(harness.continueTask).not.toHaveBeenCalled();
-    expect(harness.toastInfo).toHaveBeenCalledWith('消息已排队，会在当前正文完成后生效。');
+    expect(harness.toastInfo).toHaveBeenCalledWith('Tin nhắn đã được xếp hàng, sẽ có hiệu lực sau khi nội dung hiện tại hoàn tất.');
 
     harness.sendAgentMessage.mockResolvedValue({ ...result, disposition: 'accepted_without_resume', detail: '当前大纲正在等待确认。', shouldContinue: false });
     expect(await continuation.sendAgentMessage('确认前先放慢节奏')).toBe(true);
@@ -407,7 +407,7 @@ describe('useContinuationRuntime', () => {
 
     harness.sendAgentMessage.mockResolvedValue({ ...result, disposition: 'unexpected_action', shouldContinue: false });
     expect(await continuation.sendAgentMessage('不接受未知动作')).toBe(false);
-    expect(harness.toastError).toHaveBeenCalledWith('消息已保存，但返回了无法执行的后续动作。', { muteable: false });
+    expect(harness.toastError).toHaveBeenCalledWith('Tin nhắn đã được lưu nhưng trả về hành động tiếp theo không thể thực thi.', { muteable: false });
   });
 
   it('消息已保存但续跑失败时不重复发送消息，并显示准确提示', async () => {
@@ -420,7 +420,7 @@ describe('useContinuationRuntime', () => {
     expect(harness.sendAgentMessage).toHaveBeenCalledOnce();
     expect(harness.continueTask).toHaveBeenCalledOnce();
     // 失败原因必须带出来：只说「启动续写失败」用户无法判断是楼层、宿主还是状态问题。
-    expect(harness.toastError).toHaveBeenCalledWith('消息已保存，但启动续写失败：续跑失败', { muteable: false });
+    expect(harness.toastError).toHaveBeenCalledWith('Tin nhắn đã được lưu nhưng khởi động viết tiếp thất bại: 续跑失败', { muteable: false });
   });
 
   it('会话发送失败时不触发续跑', async () => {

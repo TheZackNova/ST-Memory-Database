@@ -322,7 +322,7 @@ function buildFieldRecord_ACU(engine: SqliteEngine, module: AgentWritableModule_
 }
 
 function readFieldRecord_ACU(engine: SqliteEngine, module: AgentWritableModule_ACU, id: string): AgentModuleFieldRecord_ACU | null {
-  if (!isWritableModule_ACU(module)) throw new AgentModuleSqlViewError_ACU(`未知资料模块: ${String(module)}`);
+  if (!isWritableModule_ACU(module)) throw new AgentModuleSqlViewError_ACU(`Mô-đun tư liệu không xác định: ${String(module)}`);
   const normalized = normalizeFieldRecordId_ACU(module, id);
   const row = readFieldRecordRow_ACU(engine, module, normalized);
   if (!row) return null;
@@ -330,7 +330,7 @@ function readFieldRecord_ACU(engine: SqliteEngine, module: AgentWritableModule_A
 }
 
 function readPartialRecords_ACU(engine: SqliteEngine, module?: AgentWritableModule_ACU): AgentModuleFieldRecord_ACU[] {
-  if (module !== undefined && !isWritableModule_ACU(module)) throw new AgentModuleSqlViewError_ACU(`未知资料模块: ${String(module)}`);
+  if (module !== undefined && !isWritableModule_ACU(module)) throw new AgentModuleSqlViewError_ACU(`Mô-đun tư liệu không xác định: ${String(module)}`);
   const records: AgentModuleFieldRecord_ACU[] = [];
   for (const key of module ? [module] : AGENT_WRITABLE_MODULES_ACU) {
     const rows = engine.query(`SELECT id, updated_at FROM ${FIELD_RECORDS_TABLE_ACU} WHERE module = ? AND status = 'partial' ORDER BY id`, [key]).values;
@@ -351,7 +351,7 @@ function loadSnapshot_ACU(engine: SqliteEngine, snapshot: AgentModuleSnapshot_AC
     } else {
       for (const entry of snapshot[module] as readonly unknown[]) {
         const id = entryId_ACU(entry);
-        if (!id) throw new AgentModuleSqlViewError_ACU(`模块 ${module} 存在无 id 条目，无法物化进 SQL 视图`, { module });
+        if (!id) throw new AgentModuleSqlViewError_ACU(`Mô-đun ${module} có mục không có id, không thể hiện thực hóa vào khung nhìn SQL`, { module });
         engine.run(`INSERT INTO ${table} (id, payload) VALUES (?, ?)`, [id, JSON.stringify(entry)]);
       }
     }
@@ -367,22 +367,22 @@ function loadSnapshot_ACU(engine: SqliteEngine, snapshot: AgentModuleSnapshot_AC
 
 function applyRowWrite_ACU(engine: SqliteEngine, input: AgentModuleSqlRowWrite_ACU): number {
   if (!isWritableModule_ACU(input.module)) {
-    throw new AgentModuleSqlViewError_ACU(`未知资料模块: ${String(input.module)}`);
+    throw new AgentModuleSqlViewError_ACU(`Mô-đun tư liệu không xác định: ${String(input.module)}`);
   }
   const module = input.module;
   if (!Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) {
-    throw new AgentModuleSqlViewError_ACU(`模块 ${module} 的 expectedRevision 非法: ${String(input.expectedRevision)}`, { module });
+    throw new AgentModuleSqlViewError_ACU(`expectedRevision của mô-đun ${module} không hợp lệ: ${String(input.expectedRevision)}`, { module });
   }
   if (module === 'userRequirements') {
     if (!Array.isArray(input.upserts) || !input.upserts.every(line => typeof line === 'string')) {
-      throw new AgentModuleSqlViewError_ACU('userRequirements 只接受 string[] 整表替换', { module });
+      throw new AgentModuleSqlViewError_ACU('userRequirements chỉ nhận thay thế cả bảng bằng string[]', { module });
     }
   } else {
     for (const item of input.upserts ?? []) {
-      if (!entryId_ACU(item)) throw new AgentModuleSqlViewError_ACU(`模块 ${module} upsert 条目缺少合法 id`, { module });
+      if (!entryId_ACU(item)) throw new AgentModuleSqlViewError_ACU(`Mục upsert của mô-đun ${module} thiếu id hợp lệ`, { module });
     }
     for (const id of input.removedIds ?? []) {
-      if (typeof id !== 'string' || !id.trim()) throw new AgentModuleSqlViewError_ACU(`模块 ${module} removedIds 含非法 id`, { module });
+      if (typeof id !== 'string' || !id.trim()) throw new AgentModuleSqlViewError_ACU(`removedIds của mô-đun ${module} chứa id không hợp lệ`, { module });
     }
   }
   const table = moduleTable_ACU(module);
@@ -390,7 +390,7 @@ function applyRowWrite_ACU(engine: SqliteEngine, input: AgentModuleSqlRowWrite_A
   try {
     const current = readRevision_ACU(engine, module);
     if (current !== input.expectedRevision) {
-      throw new AgentModuleSqlViewError_ACU(`模块 ${module} revision 冲突：期望 ${input.expectedRevision}，实际 ${current}`, { module, expected: input.expectedRevision, actual: current });
+      throw new AgentModuleSqlViewError_ACU(`Xung đột revision của mô-đun ${module}: mong đợi ${input.expectedRevision}, thực tế ${current}`, { module, expected: input.expectedRevision, actual: current });
     }
     if (module === 'userRequirements') {
       const lines = input.upserts as readonly string[];
@@ -426,28 +426,28 @@ function applyRowWrite_ACU(engine: SqliteEngine, input: AgentModuleSqlRowWrite_A
 
 function applyFieldBatch_ACU(engine: SqliteEngine, input: AgentModuleSqlFieldBatch_ACU): number {
   if (!isWritableModule_ACU(input.module)) {
-    throw new AgentModuleSqlViewError_ACU(`未知资料模块: ${String(input.module)}`);
+    throw new AgentModuleSqlViewError_ACU(`Mô-đun tư liệu không xác định: ${String(input.module)}`);
   }
   const module = input.module;
   if (!Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) {
-    throw new AgentModuleSqlViewError_ACU(`模块 ${module} 的 expectedRevision 非法: ${String(input.expectedRevision)}`, { module });
+    throw new AgentModuleSqlViewError_ACU(`expectedRevision của mô-đun ${module} không hợp lệ: ${String(input.expectedRevision)}`, { module });
   }
   if (!Number.isFinite(input.updatedAt) || input.updatedAt < 0) {
-    throw new AgentModuleSqlViewError_ACU(`模块 ${module} 的 updatedAt 非法: ${String(input.updatedAt)}`, { module });
+    throw new AgentModuleSqlViewError_ACU(`updatedAt của mô-đun ${module} không hợp lệ: ${String(input.updatedAt)}`, { module });
   }
   const matrix = AGENT_MODULE_FIELD_MATRIX_ACU[module];
   const writeIds = new Map<string, Record<string, AgentModuleFieldWrite_ACU>>();
   for (const [rawId, writes] of Object.entries(input.fieldWrites ?? {})) {
     const id = normalizeFieldRecordId_ACU(module, rawId);
-    if (!id) throw new AgentModuleSqlViewError_ACU(`模块 ${module} 逐栏写入含非法 id`, { module });
-    if (!isRecord_ACU(writes)) throw new AgentModuleSqlViewError_ACU(`模块 ${module}#${id} 的栏目写集必须是对象`, { module });
+    if (!id) throw new AgentModuleSqlViewError_ACU(`Ghi theo cột của mô-đun ${module} chứa id không hợp lệ`, { module });
+    if (!isRecord_ACU(writes)) throw new AgentModuleSqlViewError_ACU(`Tập ghi cột của ${module}#${id} phải là đối tượng`, { module });
     const merged = writeIds.get(id) ?? {};
     for (const [field, write] of Object.entries(writes)) {
       if (!matrix.fields.includes(field)) {
-        throw new AgentModuleSqlViewError_ACU(`模块 ${module}#${id} 的栏目 ${field} 不在栏目矩阵`, { module });
+        throw new AgentModuleSqlViewError_ACU(`Cột ${field} của ${module}#${id} không nằm trong ma trận cột`, { module });
       }
       if (!isRecord_ACU(write) || (write.unset !== true && !Object.prototype.hasOwnProperty.call(write, 'value'))) {
-        throw new AgentModuleSqlViewError_ACU(`模块 ${module}#${id} 的栏目 ${field} 写入必须给 value 或 unset`, { module });
+        throw new AgentModuleSqlViewError_ACU(`Việc ghi cột ${field} của ${module}#${id} phải đưa value hoặc unset`, { module });
       }
       merged[field] = write;
     }
@@ -456,35 +456,35 @@ function applyFieldBatch_ACU(engine: SqliteEngine, input: AgentModuleSqlFieldBat
   const upsertIds = new Map<string, Record<string, unknown>>();
   for (const [rawId, payload] of Object.entries(input.domainUpserts ?? {})) {
     const id = normalizeFieldRecordId_ACU(module, rawId);
-    if (!id) throw new AgentModuleSqlViewError_ACU(`模块 ${module} 领域写含非法 id`, { module });
+    if (!id) throw new AgentModuleSqlViewError_ACU(`Ghi miền của mô-đun ${module} chứa id không hợp lệ`, { module });
     if (module === 'userRequirements') {
       if (!Array.isArray(payload) || !payload.every(line => typeof line === 'string')) {
-        throw new AgentModuleSqlViewError_ACU('userRequirements 领域写只接受 string[] 整表', { module });
+        throw new AgentModuleSqlViewError_ACU('Ghi miền của userRequirements chỉ nhận cả bảng string[]', { module });
       }
       upsertIds.set(id, { value: [...payload] });
       continue;
     }
-    if (!isRecord_ACU(payload)) throw new AgentModuleSqlViewError_ACU(`模块 ${module}#${id} 的领域写必须是对象`, { module });
+    if (!isRecord_ACU(payload)) throw new AgentModuleSqlViewError_ACU(`Ghi miền của ${module}#${id} phải là đối tượng`, { module });
     if (entryId_ACU(payload) !== id) {
-      throw new AgentModuleSqlViewError_ACU(`模块 ${module} 领域写 id 不一致：键 ${id}，条目 ${entryId_ACU(payload) || '(无 id)'}`, { module });
+      throw new AgentModuleSqlViewError_ACU(`id ghi miền của mô-đun ${module} không nhất quán: khóa ${id}, mục ${entryId_ACU(payload) || '(không có id)'}`, { module });
     }
     upsertIds.set(id, payload);
   }
   const discardIds = new Set<string>();
   for (const rawId of input.discardPartialIds ?? []) {
     const id = normalizeFieldRecordId_ACU(module, rawId);
-    if (!id) throw new AgentModuleSqlViewError_ACU(`模块 ${module} 草稿丢弃含非法 id`, { module });
+    if (!id) throw new AgentModuleSqlViewError_ACU(`Việc bỏ bản nháp của mô-đun ${module} chứa id không hợp lệ`, { module });
     discardIds.add(id);
   }
   if (!writeIds.size && !upsertIds.size && !discardIds.size) {
-    throw new AgentModuleSqlViewError_ACU(`模块 ${module} 的逐栏批次为空`, { module });
+    throw new AgentModuleSqlViewError_ACU(`Lô theo cột của mô-đun ${module} rỗng`, { module });
   }
   const table = moduleTable_ACU(module);
   engine.run('BEGIN');
   try {
     const current = readRevision_ACU(engine, module);
     if (current !== input.expectedRevision) {
-      throw new AgentModuleSqlViewError_ACU(`模块 ${module} revision 冲突：期望 ${input.expectedRevision}，实际 ${current}`, { module, expected: input.expectedRevision, actual: current });
+      throw new AgentModuleSqlViewError_ACU(`Xung đột revision của mô-đun ${module}: mong đợi ${input.expectedRevision}, thực tế ${current}`, { module, expected: input.expectedRevision, actual: current });
     }
     // 被点名即产生血统语义（complete/partial 翻转），需要回放进折叠并推进模块 revision
     let changed = upsertIds.size > 0;
@@ -513,7 +513,7 @@ function applyFieldBatch_ACU(engine: SqliteEngine, input: AgentModuleSqlFieldBat
         const rows = engine.query(`SELECT value, revision FROM ${FIELD_VALUES_TABLE_ACU} WHERE module = ? AND id = ? AND field = ?`, [module, id, field]).values;
         if (write.unset === true) {
           if (inDomain) {
-            throw new AgentModuleSqlViewError_ACU(`模块 ${module}#${id} 是完整条目，栏目 ${field} 不能按草稿撤销`, { module });
+            throw new AgentModuleSqlViewError_ACU(`${module}#${id} là mục hoàn chỉnh, cột ${field} không thể hoàn tác như bản nháp`, { module });
           }
           if (rows.length) {
             engine.run(`DELETE FROM ${FIELD_VALUES_TABLE_ACU} WHERE module = ? AND id = ? AND field = ?`, [module, id, field]);
@@ -542,7 +542,7 @@ function applyFieldBatch_ACU(engine: SqliteEngine, input: AgentModuleSqlFieldBat
     // 3) 丢弃草稿：完整条目按草稿丢弃即失败（fail-closed）
     for (const id of discardIds) {
       if (readDomainItem_ACU(engine, module, id) !== null) {
-        throw new AgentModuleSqlViewError_ACU(`模块 ${module}#${id} 是完整条目，不能按草稿丢弃`, { module });
+        throw new AgentModuleSqlViewError_ACU(`${module}#${id} là mục hoàn chỉnh, không thể bỏ như bản nháp`, { module });
       }
       const values = readFieldValueRows_ACU(engine, module, id);
       for (const field of values.keys()) recordFieldChange_ACU(engine, module, id, field);
@@ -704,7 +704,7 @@ export async function materializeAgentModuleSqlView_ACU(
   } catch (error) {
     db.dispose();
     if (error instanceof AgentModuleSqlViewError_ACU) throw error;
-    throw new AgentModuleSqlViewError_ACU(`续写资料 SQL 视物化失败: ${error instanceof Error ? error.message : String(error)}`);
+    throw new AgentModuleSqlViewError_ACU(`Hiện thực hóa khung nhìn SQL của tư liệu viết tiếp thất bại: ${error instanceof Error ? error.message : String(error)}`);
   }
   return {
     engine: db,

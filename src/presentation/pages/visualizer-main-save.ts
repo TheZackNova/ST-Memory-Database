@@ -115,10 +115,10 @@ function buildTemplateCompatibilityCandidate_ACU(templateData: Record<string, an
         if (isSqliteMode()) {
             const ddl = String(nextSheet?.sourceData?.ddl || '').trim();
             if (!ddl) {
-                issues.push(`表「${nextSheet?.name || sheetKey}」缺少 DDL，SQLite 模式下不能保存该模板。`);
+                issues.push(`Bảng "${nextSheet?.name || sheetKey}" thiếu DDL, không thể lưu mẫu này ở chế độ SQLite.`);
             } else {
                 const validation = validateDDLTextAgainstHeaders_ACU(ddl, nextHeader);
-                if (!validation.valid) issues.push(`表「${nextSheet?.name || sheetKey}」DDL 与表头不兼容：${validation.message}`);
+                if (!validation.valid) issues.push(`DDL của bảng "${nextSheet?.name || sheetKey}" không tương thích với tiêu đề cột: ${validation.message}`);
             }
         }
     });
@@ -223,11 +223,11 @@ async function runPostSaveRefresh_ACU(reason: string, targetMessageIndex?: numbe
                 });
             if (!queueResult.queued && !queueResult.skipped) {
                 logWarn_ACU('[VisualizerVectorIndex] 交火索引防抖归档入队失败:', queueResult.reason);
-                showToastr_ACU('warning', `表格已保存，但交火索引防抖归档入队失败：${queueResult.reason || 'unknown'}`);
+                showToastr_ACU('warning', `Đã lưu bảng, nhưng đưa vào hàng đợi lưu trữ chống rung của chỉ mục giao hỏa thất bại: ${queueResult.reason || 'unknown'}`);
             }
         } catch (error) {
             logWarn_ACU('[VisualizerVectorIndex] 交火索引防抖归档入队异常:', error);
-            showToastr_ACU('warning', '表格已保存，但交火索引防抖归档入队异常，请查看控制台日志。');
+            showToastr_ACU('warning', 'Đã lưu bảng, nhưng đưa vào hàng đợi lưu trữ chống rung của chỉ mục giao hỏa gặp lỗi, hãy xem nhật ký console.');
         }
     }
 
@@ -240,17 +240,17 @@ async function runPostSaveRefresh_ACU(reason: string, targetMessageIndex?: numbe
 export async function saveVisualizerDataChanges_ACU(): Promise<void> {
     const orderedData = prepareOrderedVisualizerData_ACU();
     if (hasTemplateStructureChanges_ACU(orderedData)) {
-        showToastr_ACU('error', '存在未保存的模板/结构变更；本次是数据保存，已阻止混合提交。请先保存模板，或刷新后只保存数据。');
+        showToastr_ACU('error', 'Có thay đổi mẫu/cấu trúc chưa lưu; lần này là lưu dữ liệu, đã chặn commit hỗn hợp. Hãy lưu mẫu trước, hoặc làm mới rồi chỉ lưu dữ liệu.');
         return;
     }
 
     const result = await applyVisualizerPendingDataOps_ACU(_acuVisState);
     if (!result.success) {
-        showToastr_ACU('error', result.error || '可视化编辑器保存失败：批量 SQL 写入运行时失败。');
+        showToastr_ACU('error', result.error || 'Lưu trình chỉnh sửa trực quan thất bại: ghi hàng loạt SQL vào runtime thất bại.');
         return;
     }
     if (!result.changed) {
-        showToastr_ACU('info', '没有需要保存的数据增量。');
+        showToastr_ACU('info', 'Không có phần dữ liệu tăng dần nào cần lưu.');
         return;
     }
 
@@ -265,13 +265,13 @@ export async function saveVisualizerDataChanges_ACU(): Promise<void> {
     await runPostSaveRefresh_ACU('visualizer_save_data', appendTargetIndex !== -1 ? appendTargetIndex : (latestAiIndex !== -1 ? latestAiIndex : undefined), sourceTableKey);
     replaceVisualizerTemporaryRowIds_ACU(_acuVisState, result.insertedRowIds || {});
     resetVisualizerPendingDataOps_ACU(_acuVisState);
-    showToastr_ACU('success', '数据增量已通过 V2 回放保存到当前消息。');
+    showToastr_ACU('success', 'Phần dữ liệu tăng dần đã được lưu vào tin nhắn hiện tại qua phát lại V2.');
     closeACUWindow(`${SCRIPT_ID_PREFIX_ACU}-visualizer-window`);
 }
 
 export async function saveVisualizerTemplateChanges_ACU(scope: 'chat' | 'global'): Promise<void> {
     if (hasVisualizerPendingDataOps_ACU(_acuVisState)) {
-        showToastr_ACU('error', '存在未保存的数据增量；本次是模板保存，已阻止混合提交。请先保存数据，或刷新后只保存模板。');
+        showToastr_ACU('error', 'Có phần dữ liệu tăng dần chưa lưu; lần này là lưu mẫu, đã chặn commit hỗn hợp. Hãy lưu dữ liệu trước, hoặc làm mới rồi chỉ lưu mẫu.');
         return;
     }
 
@@ -279,14 +279,14 @@ export async function saveVisualizerTemplateChanges_ACU(scope: 'chat' | 'global'
     const orderedKeys = getOrderedSheetKeys_ACU();
     const hasCurrentChat = getChatArray_ACU().length > 0;
     if (scope === 'chat' && !hasCurrentChat) {
-        showToastr_ACU('error', '当前没有聊天，不能保存模板到当前聊天。');
+        showToastr_ACU('error', 'Hiện không có cuộc trò chuyện, không thể lưu mẫu vào cuộc trò chuyện hiện tại.');
         return;
     }
 
     const shouldValidateRuntimeRecovery = hasCurrentChat && isSqliteMode();
     const compatibility = await validateTemplateCompatibleWithRuntimeData_ACU(orderedData, { includeRuntimeRows: shouldValidateRuntimeRecovery });
     if (!compatibility.success || !compatibility.data) {
-        const prefix = shouldValidateRuntimeRecovery ? '模板与当前聊天旧数据不兼容，已阻止保存。' : '模板自身校验失败，已阻止保存。';
+        const prefix = shouldValidateRuntimeRecovery ? 'Mẫu không tương thích với dữ liệu cũ của cuộc trò chuyện hiện tại, đã chặn lưu.' : 'Mẫu tự kiểm tra thất bại, đã chặn lưu.';
         showToastr_ACU('error', `${prefix}\n${compatibility.error || ''}`);
         return;
     }
@@ -304,7 +304,7 @@ export async function saveVisualizerTemplateChanges_ACU(scope: 'chat' | 'global'
             orderedKeys,
         });
         if (!guideData || !Object.keys(guideData).some(key => key.startsWith('sheet_'))) {
-            showToastr_ACU('error', '保存当前聊天模板失败：无法生成模板指导表。');
+            showToastr_ACU('error', 'Lưu mẫu của cuộc trò chuyện hiện tại thất bại: không thể tạo bảng hướng dẫn mẫu.');
             return;
         }
 
@@ -317,20 +317,20 @@ export async function saveVisualizerTemplateChanges_ACU(scope: 'chat' | 'global'
             source: 'visualizer_template_save_chat',
         });
         if (!saved) {
-            showToastr_ACU('error', '保存当前聊天模板失败：无法写入指导表。');
+            showToastr_ACU('error', 'Lưu mẫu của cuộc trò chuyện hiện tại thất bại: không thể ghi bảng hướng dẫn.');
             return;
         }
         await saveChatToHost_ACU();
         if (isSqliteMode()) await reloadStorageProvider();
         await runPostSaveRefresh_ACU('visualizer_save_template_chat');
-        showToastr_ACU('success', '模板/结构已保存到当前聊天。');
+        showToastr_ACU('success', 'Đã lưu mẫu/cấu trúc vào cuộc trò chuyện hiện tại.');
         closeACUWindow(`${SCRIPT_ID_PREFIX_ACU}-visualizer-window`);
         return;
     }
 
     const { templateObj, changed } = buildTemplateObjectFromVisualizerData_ACU(templateData, orderedKeys);
     if (!changed) {
-        showToastr_ACU('info', '全局模板无变化，无需保存。');
+        showToastr_ACU('info', 'Mẫu toàn cục không thay đổi, không cần lưu.');
         return;
     }
 
@@ -340,22 +340,22 @@ export async function saveVisualizerTemplateChanges_ACU(scope: 'chat' | 'global'
     );
     let finalGlobalPresetName = activePresetName;
     if (isDefaultTemplatePresetSelection_ACU(finalGlobalPresetName)) {
-        const promptedName = prompt('请输入要保存到全局的模板预设名称：', '新模板预设');
+        const promptedName = prompt('Nhập tên preset mẫu cần lưu vào toàn cục:', 'Preset mẫu mới');
         if (!promptedName) return;
         finalGlobalPresetName = normalizeTemplatePresetSelectionValue_ACU(String(promptedName).trim());
-    } else if (!confirm(`确定要用当前编辑结果覆盖全局预设 "${finalGlobalPresetName}" 吗？`)) {
+    } else if (!confirm(`Xác nhận dùng kết quả chỉnh sửa hiện tại để ghi đè preset toàn cục "${finalGlobalPresetName}"?`)) {
         return;
     }
     if (!finalGlobalPresetName) return;
 
     const preparedSnapshot = sanitizeTemplateSnapshotForChat_ACU(templateObj);
     if (!preparedSnapshot?.templateStr) {
-        showToastr_ACU('error', '保存全局模板失败：无法生成模板快照。');
+        showToastr_ACU('error', 'Lưu mẫu toàn cục thất bại: không thể tạo snapshot mẫu.');
         return;
     }
     const presetSaved = upsertTemplatePreset_ACU(finalGlobalPresetName, preparedSnapshot.templateStr);
     if (!presetSaved) {
-        showToastr_ACU('error', '保存全局模板失败：无法写入全局预设库。');
+        showToastr_ACU('error', 'Lưu mẫu toàn cục thất bại: không thể ghi vào thư viện preset toàn cục.');
         return;
     }
 
@@ -366,12 +366,12 @@ export async function saveVisualizerTemplateChanges_ACU(scope: 'chat' | 'global'
         persistChatScope: false,
     });
     if (!appliedGlobalTemplate) {
-        showToastr_ACU('error', '保存全局模板失败：模板快照应用失败。');
+        showToastr_ACU('error', 'Lưu mẫu toàn cục thất bại: áp dụng snapshot mẫu thất bại.');
         return;
     }
     if (isSqliteMode()) await reloadStorageProvider();
     await runPostSaveRefresh_ACU('visualizer_save_template_global');
-    showToastr_ACU('success', `模板/结构已保存到全局预设：${finalGlobalPresetName}。`);
+    showToastr_ACU('success', `Đã lưu mẫu/cấu trúc vào preset toàn cục: ${finalGlobalPresetName}.`);
     closeACUWindow(`${SCRIPT_ID_PREFIX_ACU}-visualizer-window`);
 }
 

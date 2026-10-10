@@ -27,6 +27,6 @@ describe('summary-vector-index realign dirty scope', () => {
 
   it('拒绝缺失 scope 的 dirty 标记', () => {
     expect(() => markSummaryVectorIndexDirtyForRealign_ACU('', 'runtime_stale_rows'))
-      .toThrow('缺少 scopeKey');
+      .toThrow('thiếu scopeKey');
   });
 });

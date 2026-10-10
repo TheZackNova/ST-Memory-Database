@@ -28,7 +28,7 @@ describe('formatWorldSimulationAnchorStaleDiff_ACU', () => {
         contentDigest: 'ccccccccccccdddddddddddd',
       },
     }));
-    expect(text).toBe('锚点差异：swipeId expected=0 actual=1；contentDigest expected=aaaaaaaaaaaa actual=cccccccccccc');
+    expect(text).toBe('Khác biệt mốc neo: swipeId expected=0 actual=1; contentDigest expected=aaaaaaaaaaaa actual=cccccccccccc');
     expect(text).not.toContain('bbbbbbbbbbbb');
     expect(text).not.toContain('chatIdentity');
     expect(text).not.toContain('messageKey');

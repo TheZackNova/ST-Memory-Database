@@ -90,11 +90,11 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
     // 与含 row_id 的表头必然不等，所有匹配表都被误判为“DDL 与表头列数不一致”。
     // 在进入表身份匹配与 schema 协调前，为 baseline 与规范化后的 template 补齐
     // 缺失 DDL（仅缺失/全空白，绝不覆盖非空 DDL），使后续逻辑看到同一份合法契约。
-    const baselineFallback = applyMissingDdlFallback_ACU(baselineData, '当前聊天基线');
+    const baselineFallback = applyMissingDdlFallback_ACU(baselineData, 'Đường cơ sở cuộc trò chuyện hiện tại');
     if (baselineFallback.blockers.length > 0) {
       return emptyPlan_ACU(baselineData, audit, baselineFallback.blockers);
     }
-    const templateFallback = applyMissingDdlFallback_ACU(templateData, '目标模板');
+    const templateFallback = applyMissingDdlFallback_ACU(templateData, 'Mẫu đích');
     if (templateFallback.blockers.length > 0) {
       return emptyPlan_ACU(baselineData, audit, templateFallback.blockers);
     }
@@ -103,17 +103,17 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
   const candidateData = stripRuntimeSeedRows_ACU(baselineData);
   candidateData.mate = clone_ACU(templateData.mate || baselineData.mate);
   for (const [key, sheet] of listSheets_ACU(baselineData)) {
-    try { validateBaselineSheetRows_ACU(sheet); } catch (error: any) { blockers.push(`当前聊天表「${sheet.name || key}」历史数据无效：${error?.message || String(error)}`); }
+    try { validateBaselineSheetRows_ACU(sheet); } catch (error: any) { blockers.push(`Dữ liệu lịch sử của bảng cuộc trò chuyện hiện tại "${sheet.name || key}" không hợp lệ: ${error?.message || String(error)}`); }
   }
   // 旧随机 key 迁移到稳定 key 后，历史 checkpoint 里可能残留零数据行的旧身份
   // （与被模板认领的新 key 同名或互为别名）。它们不是「两张不同的表」，而是同一逻辑表
   // 未收敛的旧 identity：不作为重复身份 blocker，而是排除出身份索引，让下方
   // 「目标模板缺失的既有表」循环按既有 hide 语义把它们隐藏收敛。
   const staleLegacyBaselineKeys = resolveStaleLegacyBaselineSheetKeys_ACU(baselineData, templateData);
-  const baselineByName = indexSheetsByName_ACU(baselineData, '当前聊天', blockers, staleLegacyBaselineKeys);
-  const templateByName = indexSheetsByName_ACU(templateData, '导入模板', blockers);
-  validateTableAliasDeclarations_ACU(baselineData, '当前聊天', blockers, staleLegacyBaselineKeys);
-  validateTableAliasDeclarations_ACU(templateData, '导入模板', blockers);
+  const baselineByName = indexSheetsByName_ACU(baselineData, 'Cuộc trò chuyện hiện tại', blockers, staleLegacyBaselineKeys);
+  const templateByName = indexSheetsByName_ACU(templateData, 'Mẫu nhập', blockers);
+  validateTableAliasDeclarations_ACU(baselineData, 'Cuộc trò chuyện hiện tại', blockers, staleLegacyBaselineKeys);
+  validateTableAliasDeclarations_ACU(templateData, 'Mẫu nhập', blockers);
   if (blockers.length > 0) return emptyPlan_ACU(baselineData, audit, blockers);
 
   const matchedKeys = new Set<string>();
@@ -131,14 +131,14 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
     const matchedByName = baselineByName.get(canonicalName);
     const occupiedByKey = baselineData[templateEntry.key] as Sheet_ACU | undefined;
     if (matchedByName && occupiedByKey && matchedByName.key !== templateEntry.key) {
-      blockers.push(`表「${templateEntry.sheet.name || templateEntry.key}」的名称匹配当前聊天 key「${matchedByName.key}」，但模板 key「${templateEntry.key}」已被表「${occupiedByKey.name || templateEntry.key}」占用，无法唯一协调。`);
+      blockers.push(`Tên của bảng "${templateEntry.sheet.name || templateEntry.key}" khớp với key "${matchedByName.key}" của cuộc trò chuyện hiện tại, nhưng key "${templateEntry.key}" của mẫu đã bị bảng "${occupiedByKey.name || templateEntry.key}" chiếm, không thể điều phối duy nhất.`);
       continue;
     }
     let previous = matchedByName;
     if (!previous) {
       const aliasMatches = findExplicitTableAliasMatches_ACU(templateEntry.sheet, baselineData, nameClaimedBaselineKeys);
       if (aliasMatches.length > 1) {
-        blockers.push(`表「${templateEntry.sheet.name || templateEntry.key}」的显式历史别名同时匹配多张当前聊天表，无法唯一协调。`);
+        blockers.push(`Bí danh lịch sử khai báo rõ của bảng "${templateEntry.sheet.name || templateEntry.key}" khớp đồng thời nhiều bảng của cuộc trò chuyện hiện tại, không thể điều phối duy nhất.`);
         continue;
       }
       previous = aliasMatches[0];
@@ -146,7 +146,7 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
     if (!previous) {
       const introducedKey = buildStableSheetKeyCandidate_ACU(templateEntry.sheet.name);
       if (!introducedKey) {
-        blockers.push(`新增表「${templateEntry.sheet.name || templateEntry.key}」缺少可用于派生 key 的有效显示名。`);
+        blockers.push(`Bảng mới "${templateEntry.sheet.name || templateEntry.key}" thiếu tên hiển thị hợp lệ để suy ra key.`);
         continue;
       }
       // 生命周期感知：派生 key 在历史中曾存在（hidden / indeterminate / active）时，
@@ -163,7 +163,7 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
           continue;
         }
         if (lifecycleEntry.status === 'indeterminate') {
-          blockers.push(`表「${templateEntry.sheet.name || templateEntry.key}」(${introducedKey}) 的历史生命周期无法判定（indeterminate），已阻止模板提交。请先在数据管理中检查并恢复 V2 历史。`);
+          blockers.push(`Vòng đời lịch sử của bảng "${templateEntry.sheet.name || templateEntry.key}" (${introducedKey}) không thể xác định (indeterminate), đã chặn việc gửi mẫu. Hãy kiểm tra và khôi phục lịch sử V2 trong Quản lý dữ liệu trước.`);
           continue;
         }
         // status === 'active' 但基线不含该表：这里刻意不 fail-closed。
@@ -181,7 +181,7 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
       }
       const occupiedByIntroducedKey = candidateData[introducedKey] as Sheet_ACU | undefined;
       if (occupiedByIntroducedKey) {
-        blockers.push(`新增表「${templateEntry.sheet.name || templateEntry.key}」派生 key「${introducedKey}」与当前表「${occupiedByIntroducedKey.name || introducedKey}」冲突；两张不同名称的表不能共享同一 key。`);
+        blockers.push(`Key suy ra "${introducedKey}" của bảng mới "${templateEntry.sheet.name || templateEntry.key}" xung đột với bảng hiện tại "${occupiedByIntroducedKey.name || introducedKey}"; hai bảng khác tên không thể dùng chung một key.`);
         continue;
       }
       try {
@@ -189,12 +189,12 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
         candidateData[introducedKey] = introduced;
         audit.push({ sheetKey: introducedKey, resolvedSheetKey: introducedKey, match: 'introduced', templateSheetKey: templateEntry.key, templateName: templateEntry.sheet.name, canonicalName, inheritedColumns: [], addedColumns: headers_ACU(introduced).slice(1), deletedColumns: [], hiddenColumns: [], physicalColumnMappings: [], fills: [], affectedRowCount: Math.max(0, introduced.content.length - 1), metadataChanged: false, metadataChangedFields: [], destructiveChangeConfirmed: false, operations: [] });
       } catch (error: any) {
-        blockers.push(`新增表「${templateEntry.sheet.name || templateEntry.key}」(${introducedKey}) 无法引入：${error?.message || String(error)}`);
+        blockers.push(`Bảng mới "${templateEntry.sheet.name || templateEntry.key}" (${introducedKey}) không thể đưa vào: ${error?.message || String(error)}`);
       }
       continue;
     }
     if (matchedKeys.has(previous.key)) {
-      blockers.push(`导入模板中的多个表同时匹配当前聊天表「${previous.sheet.name || previous.key}」（key=${previous.key}），无法唯一协调。`);
+      blockers.push(`Nhiều bảng trong mẫu nhập cùng khớp với bảng cuộc trò chuyện hiện tại "${previous.sheet.name || previous.key}" (key=${previous.key}), không thể điều phối duy nhất.`);
       continue;
     }
     matchedKeys.add(previous.key);
@@ -218,14 +218,14 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
       if (reconciled.changed) rebaseKeys.add(previous.key);
       audit.push(reconciled.audit);
     } catch (error: any) {
-      blockers.push(`表「${templateEntry.sheet.name || templateEntry.key}」无法协调（baselineKey=${previous.key} → templateKey=${templateEntry.key}）：${error?.message || String(error)}`);
+      blockers.push(`Bảng "${templateEntry.sheet.name || templateEntry.key}" không thể điều phối (baselineKey=${previous.key} → templateKey=${templateEntry.key}): ${error?.message || String(error)}`);
     }
   }
   for (const [key, sheet] of listSheets_ACU(baselineData)) {
     if (matchedKeys.has(key)) continue;
     // 目标模板缺失的既有表：默认隐藏保留（语义1），仅在显式硬删除时才进 deletedSheetKeys。
     if (input.hardDeleteMissingSheets === true) {
-      if (!input.destructiveChangeConfirmed) blockers.push(`删除表「${sheet.name || key}」需要显式确认。`);
+      if (!input.destructiveChangeConfirmed) blockers.push(`Xóa bảng "${sheet.name || key}" cần xác nhận rõ ràng.`);
       deletedSheetKeys.push(key);
       delete (candidateData as any)[key];
       audit.push({ sheetKey: key, resolvedSheetKey: key, match: 'deleted', baselineSheetKey: key, baselineName: sheet.name, canonicalName: canonicalizeDisplayName_ACU(sheet.name), inheritedColumns: [], addedColumns: [], deletedColumns: headers_ACU(sheet).slice(1), hiddenColumns: [], physicalColumnMappings: [], fills: [], affectedRowCount: Math.max(0, sheet.content.length - 1), metadataChanged: false, metadataChangedFields: [], destructiveChangeConfirmed: input.destructiveChangeConfirmed, operations: [] });
@@ -234,7 +234,7 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
       // 不能静默隐藏（可能误伤 indeterminate 历史）。fail-closed 阻止提交。
       const lifecycleEntry = input.lifecycle?.statusBySheetKey?.[key];
       if (lifecycleEntry?.status === 'indeterminate') {
-        blockers.push(`表「${sheet.name || key}」(${key}) 的历史生命周期无法判定（indeterminate），已阻止隐藏操作。请先在数据管理中检查并恢复 V2 历史。`);
+        blockers.push(`Vòng đời lịch sử của bảng "${sheet.name || key}" (${key}) không thể xác định (indeterminate), đã chặn thao tác ẩn. Hãy kiểm tra và khôi phục lịch sử V2 trong Quản lý dữ liệu trước.`);
         continue;
       }
       hiddenSheetKeys.push(key);
@@ -270,11 +270,11 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
         const validation = validateDDLTextAgainstHeaders_ACU(String(sheet.sourceData?.ddl || ''), headers_ACU(sheet));
         if (validation.valid) continue;
         return emptyPlan_ACU(baselineData, audit, [
-          `完整 replay candidate DDL/表头预检失败: ${key}: ${validation.message}`,
+          `Kiểm tra trước DDL/tiêu đề của replay candidate đầy đủ thất bại: ${key}: ${validation.message}`,
         ]);
       } catch (error: any) {
         return emptyPlan_ACU(baselineData, audit, [
-          `完整 replay candidate DDL/表头预检失败: ${key}: ${error?.message || String(error)}`,
+          `Kiểm tra trước DDL/tiêu đề của replay candidate đầy đủ thất bại: ${key}: ${error?.message || String(error)}`,
         ]);
       }
     }
@@ -288,7 +288,7 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
       getSheetColumnProjection_ACU(sheet);
     } catch (error: any) {
       return emptyPlan_ACU(baselineData, audit, [
-        `完整 replay candidate 列投影预检失败: ${key}: ${error?.message || String(error)}`,
+        `Kiểm tra trước phép chiếu cột của replay candidate đầy đủ thất bại: ${key}: ${error?.message || String(error)}`,
       ]);
     }
   }
@@ -301,7 +301,7 @@ export async function reconcileChatTemplate_ACU(input: ChatTemplateReconcileInpu
       await hydrateTableDataStrict_ACU(candidateData, { allowRuntimeDdlFallback: true });
     } catch (error: any) {
       return emptyPlan_ACU(baselineData, audit, [
-        `完整 replay candidate SQLite hydrate 失败: ${error?.message || String(error)}`,
+        `SQLite hydrate của replay candidate đầy đủ thất bại: ${error?.message || String(error)}`,
       ]);
     }
   }
@@ -339,10 +339,10 @@ function listSheets_ACU(data: TableDataObject_ACU): Array<[string, Sheet_ACU]> {
     .filter(([, sheet]) => !!sheet && typeof sheet === 'object' && !Array.isArray(sheet));
 }
 
-const SHEET_KEY_CONFUSABLE_HINT_ACU = '请核对完整 sheetKey（大写 I、小写 l、数字 1 等字符在普通字体下极易混淆）';
+const SHEET_KEY_CONFUSABLE_HINT_ACU = 'Hãy đối chiếu sheetKey đầy đủ (các ký tự như I viết hoa, l viết thường, số 1 rất dễ nhầm lẫn trong phông chữ thường)';
 
 function describeSheetForDiagnostic_ACU(entry: SheetEntry_ACU): string {
-  return `「${entry.sheet.name || entry.key}」(${entry.key}, ${sheetDataRowCount_ACU(entry.sheet)} 行)`;
+  return `"${entry.sheet.name || entry.key}" (${entry.key}, ${sheetDataRowCount_ACU(entry.sheet)} hàng)`;
 }
 
 function indexSheetsByName_ACU(
@@ -356,12 +356,12 @@ function indexSheetsByName_ACU(
     if (excludedKeys.has(key)) continue;
     const canonicalName = canonicalizeDisplayName_ACU(sheet.name);
     if (!canonicalName) {
-      blockers.push(`${label}存在空表名：${key}。`);
+      blockers.push(`${label} có tên bảng rỗng: ${key}.`);
       continue;
     }
     const existing = entries.get(canonicalName);
     if (existing) {
-      blockers.push(`${label}表名规范化重复：${describeSheetForDiagnostic_ACU(existing)}与${describeSheetForDiagnostic_ACU({ key, sheet })}规范化后同名「${canonicalName}」，同一逻辑表被两个 sheetKey 同时持有。${SHEET_KEY_CONFUSABLE_HINT_ACU}。`);
+      blockers.push(`${label}: tên bảng trùng sau khi chuẩn hóa: ${describeSheetForDiagnostic_ACU(existing)} và ${describeSheetForDiagnostic_ACU({ key, sheet })} sau chuẩn hóa cùng tên "${canonicalName}", cùng một bảng logic bị hai sheetKey giữ. ${SHEET_KEY_CONFUSABLE_HINT_ACU}.`);
       continue;
     }
     entries.set(canonicalName, { key, sheet });
@@ -392,7 +392,7 @@ function validateTableAliasDeclarations_ACU(
         continue;
       }
       if (owner.key !== entry.key) {
-        blockers.push(`${label}表别名规范化重复：${describeSheetForDiagnostic_ACU(owner)}与${describeSheetForDiagnostic_ACU(entry)}都声明了「${String(identity).trim()}」。${SHEET_KEY_CONFUSABLE_HINT_ACU}。`);
+        blockers.push(`${label}: bí danh bảng trùng sau khi chuẩn hóa: ${describeSheetForDiagnostic_ACU(owner)} và ${describeSheetForDiagnostic_ACU(entry)} đều khai báo "${String(identity).trim()}". ${SHEET_KEY_CONFUSABLE_HINT_ACU}.`);
       }
     }
   }
@@ -558,10 +558,10 @@ function applyMissingDdlFallback_ACU(data: TableDataObject_ACU, sourceLabel: str
         : [];
       const validation = validateDDLTextAgainstHeaders_ACU((sheet as any).sourceData.ddl, headers);
       if (!validation.valid) {
-        blockers.push(`${sourceLabel} 表「${(sheet as any).name || key}」（${key}）生成的 fallback DDL 校验失败：${validation.message}`);
+        blockers.push(`${sourceLabel} Bảng "${(sheet as any).name || key}" (${key}) kiểm tra DDL fallback được sinh ra thất bại: ${validation.message}`);
       }
     } catch (error: any) {
-      blockers.push(`${sourceLabel} 表「${(sheet as any).name || key}」（${key}）缺失 DDL fallback 失败：${error?.message || String(error)}`);
+      blockers.push(`${sourceLabel} Bảng "${(sheet as any).name || key}" (${key}) bổ sung DDL fallback bị thiếu thất bại: ${error?.message || String(error)}`);
     }
   }
   return { blockers };
@@ -569,7 +569,7 @@ function applyMissingDdlFallback_ACU(data: TableDataObject_ACU, sourceLabel: str
 
 function headers_ACU(sheet: Sheet_ACU): string[] {
   const headers = sheet?.content?.[0];
-  if (!Array.isArray(headers) || headers[0] !== 'row_id') throw new Error('缺少 row_id 首列表头。');
+  if (!Array.isArray(headers) || headers[0] !== 'row_id') throw new Error('Thiếu tiêu đề cột đầu row_id.');
   return headers.map(value => String(value ?? ''));
 }
 
@@ -615,7 +615,7 @@ function assignMissingRowIds_ACU(rows: string[][]): string[][] {
 function normalizeIntroducedRow_ACU(row: unknown, headerWidth: number, sheetKey: string): string[] {
   const cells: string[] = (Array.isArray(row) ? row : [row]).map(cell => (cell === null || cell === undefined ? '' : String(cell)));
   if (cells.length > headerWidth) {
-    throw new Error(`模板数据行宽度为 ${cells.length}，超过表头 ${headerWidth} 列（${sheetKey}）。`);
+    throw new Error(`Độ rộng hàng dữ liệu mẫu là ${cells.length}, vượt quá tiêu đề ${headerWidth} cột (${sheetKey}).`);
   }
   while (cells.length < headerWidth) cells.push('');
   return cells;
@@ -627,11 +627,11 @@ function validateBaselineSheetRows_ACU(sheet: Sheet_ACU): void {
   const rowIds = new Set<string>();
   for (let index = 1; index < sheet.content.length; index += 1) {
     const row = sheet.content[index];
-    if (!Array.isArray(row)) throw new Error(`第 ${index + 1} 行不是数组。`);
-    if (row.length !== headers.length) throw new Error(`第 ${index + 1} 行宽度为 ${row.length}，应为 ${headers.length}。`);
+    if (!Array.isArray(row)) throw new Error(`Hàng ${index + 1} không phải mảng.`);
+    if (row.length !== headers.length) throw new Error(`Độ rộng hàng ${index + 1} là ${row.length}, phải là ${headers.length}.`);
     const rowId = String(row[0] ?? '').trim();
-    if (!rowId) throw new Error(`第 ${index + 1} 行 row_id 为空。`);
-    if (rowIds.has(rowId)) throw new Error(`row_id 重复：${rowId}。`);
+    if (!rowId) throw new Error(`row_id của hàng ${index + 1} rỗng.`);
+    if (rowIds.has(rowId)) throw new Error(`row_id trùng lặp: ${rowId}.`);
     rowIds.add(rowId);
   }
 }
@@ -660,12 +660,12 @@ export function reconcileRevealedSheetWithTemplate_ACU(
   try {
     validateBaselineSheetRows_ACU(restored);
   } catch (error: any) {
-    throw new Error(`reveal 恢复数据不合法（${sheetKey}）：${error?.message || String(error)}`);
+    throw new Error(`Dữ liệu khôi phục reveal không hợp lệ (${sheetKey}): ${error?.message || String(error)}`);
   }
   if (contract === 'sqlite') {
     // 旧历史 hide checkpoint 可能没有持久化 DDL（运行时依赖 fallback）。
     // 与顶层协调器对 baseline/template 的处理一致：仅补缺失/全空白 DDL，绝不覆盖非空 DDL。
-    for (const [label, sheet] of [['reveal 恢复数据', restored], ['reveal 目标模板结构', template]] as const) {
+    for (const [label, sheet] of [['Dữ liệu khôi phục reveal', restored], ['Cấu trúc mẫu đích reveal', template]] as const) {
       const fallback = applyMissingDdlFallback_ACU({ [sheetKey]: sheet } as unknown as TableDataObject_ACU, label);
       if (fallback.blockers.length > 0) throw new Error(fallback.blockers.join('；'));
     }
@@ -676,7 +676,7 @@ export function reconcileRevealedSheetWithTemplate_ACU(
   if (contract === 'sqlite') {
     const validation = validateDDLTextAgainstHeaders_ACU(String(reconciled.sheet.sourceData?.ddl || ''), headers_ACU(reconciled.sheet));
     if (!validation.valid) {
-      throw new Error(`reveal 再协调结果 DDL 校验失败（${sheetKey}）：${validation.message}`);
+      throw new Error(`Kiểm tra DDL kết quả điều phối lại reveal thất bại (${sheetKey}): ${validation.message}`);
     }
   }
   return { sheet: reconciled.sheet, audit: reconciled.audit, changed: reconciled.changed };
@@ -711,7 +711,7 @@ function reconcileMatchedSheet_ACU(before: Sheet_ACU, template: Sheet_ACU, sheet
   const targetHeaders = headers_ACU(template);
   const beforeColumns = sqlite ? parseDDLColumnInfos_ACU(String(before.sourceData?.ddl || '')) : [];
   const targetColumns = sqlite ? parseDDLColumnInfos_ACU(String(template.sourceData?.ddl || '')) : [];
-  if (sqlite && (beforeColumns.length !== beforeHeaders.length || targetColumns.length !== targetHeaders.length)) throw new Error('DDL 与表头列数不一致。');
+  if (sqlite && (beforeColumns.length !== beforeHeaders.length || targetColumns.length !== targetHeaders.length)) throw new Error('Số cột của DDL và tiêu đề không khớp.');
   const beforeEntries = beforeHeaders.slice(1).map((name, index) => ({
     canonical: canonicalizeDisplayName_ACU(name), index: index + 1, physical: sqlite ? beforeColumns[index + 1].sqlName : name, header: name,
   }));
@@ -722,11 +722,11 @@ function reconcileMatchedSheet_ACU(before: Sheet_ACU, template: Sheet_ACU, sheet
   const targetByCanonical = new Map(targetEntries.map(column => [column.canonical, column]));
   if (beforeByCanonical.size !== beforeHeaders.length - 1 || targetByCanonical.size !== targetHeaders.length - 1
     || (!sqlite && (beforeEntries.some(entry => !entry.canonical) || targetEntries.some(entry => !entry.canonical)))) {
-    throw new Error(`表「${before.name || sheetKey}」(${sheetKey}) → 模板表「${template.name || templateSheetKey}」(${templateSheetKey}) 存在空列或规范化重复列。`);
+    throw new Error(`Bảng "${before.name || sheetKey}" (${sheetKey}) → bảng mẫu "${template.name || templateSheetKey}" (${templateSheetKey}) có cột rỗng hoặc cột trùng sau chuẩn hóa.`);
   }
   const beforeByPhysical = new Map(beforeEntries.map(column => [column.physical.toLowerCase(), column]));
   const targetByPhysical = new Map(targetEntries.map(column => [column.physical.toLowerCase(), column]));
-  if (beforeByPhysical.size !== beforeEntries.length || targetByPhysical.size !== targetEntries.length) throw new Error(`表「${before.name || sheetKey}」(${sheetKey}) → 模板表「${template.name || templateSheetKey}」(${templateSheetKey}) ${sqlite ? 'DDL 存在重复 physical column' : '存在大小写不敏感的重复表头'}。`);
+  if (beforeByPhysical.size !== beforeEntries.length || targetByPhysical.size !== targetEntries.length) throw new Error(`Bảng "${before.name || sheetKey}" (${sheetKey}) → bảng mẫu "${template.name || templateSheetKey}" (${templateSheetKey}) ${sqlite ? 'DDL có physical column trùng lặp' : 'có tiêu đề trùng lặp không phân biệt hoa thường'}.`);
 
   // === 零数据表语义（S1-6：统一走列级休眠，撞名列无损丢弃）===
   // 逐表判定：before.content.length > 1 才认为有数据行。零数据表不再走整表覆盖特例
@@ -837,9 +837,9 @@ function reconcileMatchedSheet_ACU(before: Sheet_ACU, template: Sheet_ACU, sheet
       const conflictDetails = reusedPhysicalNames.map(physical => {
         const hidden = hiddenEntries.find(entry => entry.physical.toLowerCase() === physical.toLowerCase());
         const target = targetEntries.find(entry => entry.physical.toLowerCase() === physical.toLowerCase());
-        return `physical=${physical}（休眠列「${hidden?.header}」→ 目标列「${target?.header}」）`;
+        return `physical=${physical} (cột ngủ "${hidden?.header}" → cột đích "${target?.header}")`;
       }).join('；');
-      throw new Error(`表「${before.name || sheetKey}」(${sheetKey}) → 模板表「${template.name || templateSheetKey}」(${templateSheetKey})：休眠列与目标可见列存在同名 physical column${sqlite ? '，产出重复列名 DDL，SQLite 建表会失败' : ''}。冲突：${conflictDetails}。baseline 行数=${before.content.length - 1}。`);
+      throw new Error(`Bảng "${before.name || sheetKey}" (${sheetKey}) → bảng mẫu "${template.name || templateSheetKey}" (${templateSheetKey}): cột ngủ và cột hiển thị đích có physical column trùng tên${sqlite ? ', sinh ra DDL có tên cột trùng, tạo bảng SQLite sẽ thất bại' : ''}. Xung đột: ${conflictDetails}. Số hàng baseline=${before.content.length - 1}.`);
     }
     // 零数据表的撞名分流（S1-6，承接计划 2.3）：旧表无任何单元格，丢弃撞名旧列
     // 不损失数据；保留则必然产出重复列名 DDL 而阻断切换。audit 以 deletedColumns
@@ -983,7 +983,7 @@ function renamePhysicalColumn_ACU(
   const definition = column.normalizedDefinition;
   const remainder = definition.slice(column.sqlName.length);
   if (!definition.startsWith(column.sqlName)) {
-    throw new Error(`无法重绑定物理列名：列定义未以列名起头（${column.sqlName}）。`);
+    throw new Error(`Không thể gắn lại tên cột vật lý: định nghĩa cột không bắt đầu bằng tên cột (${column.sqlName}).`);
   }
   return { ...column, sqlName: nextSqlName, normalizedDefinition: `${nextSqlName}${remainder}` };
 }
@@ -1004,7 +1004,7 @@ function adoptTemplateRowsForMatchedSheet_ACU(
     // cells[0] 是 row_id，其后是可见列。
     const expected = visibleColumnCount + 1;
     if (cells.length > expected) {
-      throw new Error(`模板数据行宽度为 ${cells.length}，超过目标可见列 ${expected} 列。`);
+      throw new Error(`Độ rộng hàng dữ liệu mẫu là ${cells.length}, vượt quá ${expected} cột hiển thị đích.`);
     }
     while (cells.length < expected) cells.push(null);
     // 隐藏列在新数据下无值。
@@ -1099,7 +1099,7 @@ function accumulateColumnAliases_ACU(
 function buildRetainedColumnDDL_ACU(before: Sheet_ACU, template: Sheet_ACU, targetColumns: ReturnType<typeof parseDDLColumnInfos_ACU>, targetHeaders: string[], retainedColumns: ReturnType<typeof parseDDLColumnInfos_ACU>, retainedHeaders: string[]): string {
   const templateDDL = String(template.sourceData?.ddl || '');
   const tableName = parseDDLTableName(templateDDL);
-  if (!tableName) throw new Error('模板 DDL 缺少可解析的物理表名。');
+  if (!tableName) throw new Error('DDL của mẫu thiếu tên bảng vật lý có thể phân tích.');
   const allColumns = [...targetColumns, ...retainedColumns];
   const definitions = allColumns.map((column, index) => {
     const header = index < targetColumns.length ? targetHeaders[index] : retainedHeaders[index - targetColumns.length];

@@ -1009,7 +1009,7 @@ describe('ensureV2BoundaryCheckpointForRetainedBuffer_ACU', () => {
 
     const result = await ensureV2BoundaryCheckpointForRetainedBuffer_ACU({ reason: 'manual_refill', save: true });
 
-    expect(result).toEqual(expect.objectContaining({ success: false, changed: false, anchorIndex: 23, error: expect.stringContaining('无法严格替代') }));
+    expect(result).toEqual(expect.objectContaining({ success: false, changed: false, anchorIndex: 23, error: expect.stringContaining('không thể thay thế nghiêm ngặt') }));
     expect(chat).toEqual(before);
     expect(mockSaveChatToHostStrict).not.toHaveBeenCalled();
   });
@@ -1109,7 +1109,7 @@ describe('ensureV2BoundaryCheckpointForRetainedBuffer_ACU', () => {
 
     const result = await ensureV2BoundaryCheckpointForRetainedBuffer_ACU({ reason: 'manual_refill', save: true });
 
-    expect(result).toMatchObject({ success: false, changed: false, failedIsolationKey: '', error: expect.stringContaining('未满足 canonical 契约') });
+    expect(result).toMatchObject({ success: false, changed: false, failedIsolationKey: '', error: expect.stringContaining('không thỏa hợp đồng canonical') });
     expect(mockSaveChatToHostStrict).not.toHaveBeenCalled();
   });
 
@@ -1940,7 +1940,7 @@ describe('ensureV2BoundaryCheckpointForRetainedBuffer_ACU', () => {
     mockGetChatArray.mockReturnValue(chat);
 
     const result = await ensureV2BoundaryCheckpointForRetainedBuffer_ACU({ reason: 'manual_refill', save: true });
-    expect(result).toMatchObject({ success: false, changed: false, error: expect.stringContaining('隐藏表 sheet_hidden 缺少可迁移的 hide checkpoint 数据') });
+    expect(result).toMatchObject({ success: false, changed: false, error: expect.stringContaining('bảng ẩn sheet_hidden thiếu dữ liệu hide checkpoint có thể di chuyển') });
     expect(mockSaveChatToHostStrict).not.toHaveBeenCalled();
   });
 
@@ -2425,7 +2425,7 @@ describe('deleteLocalDataInChatCore_ACU', () => {
 
     const result = await ensureManualCatchUpAnchorBeforeTarget_ACU(0, '');
 
-    expect(result).toMatchObject({ status: 'blocked', error: expect.stringContaining('之后存在无法安全重排') });
+    expect(result).toMatchObject({ status: 'blocked', error: expect.stringContaining('có V2 artifact gia tăng không thể sắp xếp lại an toàn') });
     expect(chat).toEqual(before);
     expect(mockSaveChatToHostStrict).not.toHaveBeenCalled();
   });
@@ -2441,7 +2441,7 @@ describe('deleteLocalDataInChatCore_ACU', () => {
 
     const result = await ensureManualCatchUpAnchorBeforeTarget_ACU(0, '');
 
-    expect(result).toMatchObject({ status: 'blocked', error: expect.stringContaining('保存失败') });
+    expect(result).toMatchObject({ status: 'blocked', error: expect.stringContaining('thất bại') });
     expect(chat).toEqual(before);
     expect(mockSaveChatToHostStrict).toHaveBeenCalledOnce();
   });
@@ -3674,9 +3674,9 @@ describe('clearManualRefillIncrementalDataInRange_ACU', () => {
   });
 
   it('未指定目标表时拒绝执行，避免把手动重填增量清理退化成全量清理', async () => {
-    await expect(clearManualRefillIncrementalDataInRange_ACU([1], [])).rejects.toThrow('手动重填增量清理必须指定目标表');
-    await expect(clearManualRefillIncrementalDataInRange_ACU([1], null)).rejects.toThrow('手动重填增量清理必须指定目标表');
-    await expect(clearManualRefillIncrementalDataInRange_ACU([1], undefined as unknown as string[])).rejects.toThrow('手动重填增量清理必须指定目标表');
+    await expect(clearManualRefillIncrementalDataInRange_ACU([1], [])).rejects.toThrow('Dọn gia tăng khi điền lại thủ công phải chỉ định bảng đích');
+    await expect(clearManualRefillIncrementalDataInRange_ACU([1], null)).rejects.toThrow('Dọn gia tăng khi điền lại thủ công phải chỉ định bảng đích');
+    await expect(clearManualRefillIncrementalDataInRange_ACU([1], undefined as unknown as string[])).rejects.toThrow('Dọn gia tăng khi điền lại thủ công phải chỉ định bảng đích');
     expect(mockRunTableWriteTransaction).not.toHaveBeenCalled();
   });
 });
@@ -4126,7 +4126,7 @@ describe('replaceManualRefillSheetBaselineInRangeAtomic_ACU', () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('找不到可承载单表 checkpoint 的整库 full checkpoint');
+    expect(result.error).toContain('không tìm thấy full checkpoint toàn cơ sở có thể chứa checkpoint đơn bảng');
     expect(mockSaveChatToHostStrict).not.toHaveBeenCalled();
     expect(chat[0].TavernDB_ACU_IsolatedData[''].storageFrame.checkpoint).toBeUndefined();
   });
@@ -4406,7 +4406,7 @@ describe('commitManualRefillSheetSnapshotInRangeAtomic_ACU', () => {
       snapshotData: { sheet_0: { name: '目标表', content: [['row_id', '值'], ['final', '最终值']] } },
     });
 
-    expect(result).toEqual(expect.objectContaining({ success: false, error: expect.stringContaining('多个整库 full checkpoint') }));
+    expect(result).toEqual(expect.objectContaining({ success: false, error: expect.stringContaining('nhiều full checkpoint toàn cơ sở') }));
     expect(chat).toEqual(before);
     expect(mockSaveChatToHostStrict).not.toHaveBeenCalled();
   });
@@ -4423,7 +4423,7 @@ describe('commitManualRefillSheetSnapshotInRangeAtomic_ACU', () => {
       snapshotData: { sheet_0: { name: '目标表', content: [['row_id', '值'], ['final', '最终值']] } }, templateData: template,
     });
 
-    expect(result).toEqual(expect.objectContaining({ success: false, error: expect.stringContaining('未能建立持久化 full checkpoint') }));
+    expect(result).toEqual(expect.objectContaining({ success: false, error: expect.stringContaining('không thiết lập được nền phát lại full checkpoint lưu bền') }));
     expect(chat).toEqual(before);
     expect(mockSaveChatToHostStrict).not.toHaveBeenCalled();
   });
@@ -4448,7 +4448,7 @@ describe('commitManualRefillSheetSnapshotInRangeAtomic_ACU', () => {
       snapshotData: { sheet_0: { name: '目标表', content: [['row_id', '值'], ['final', '最终值']] } },
     });
 
-    expect(result).toEqual(expect.objectContaining({ success: false, error: expect.stringContaining('不等于唯一回放根') }));
+    expect(result).toEqual(expect.objectContaining({ success: false, error: expect.stringContaining('không bằng gốc phát lại duy nhất') }));
     expect(chat).toEqual(before);
     expect(mockSaveChatToHostStrict).not.toHaveBeenCalled();
   });
@@ -4464,7 +4464,7 @@ describe('commitManualRefillSheetSnapshotInRangeAtomic_ACU', () => {
       templateData: { sheet_0: { name: '目标表', content: [['row_id', '值']] } },
     });
 
-    expect(result).toEqual(expect.objectContaining({ success: false, error: expect.stringContaining('缺少有效 mate') }));
+    expect(result).toEqual(expect.objectContaining({ success: false, error: expect.stringContaining('thiếu siêu dữ liệu gốc mate hợp lệ') }));
     expect(chat).toEqual(before);
     expect(mockSaveChatToHostStrict).not.toHaveBeenCalled();
   });
@@ -4481,7 +4481,7 @@ describe('commitManualRefillSheetSnapshotInRangeAtomic_ACU', () => {
       templateData: { mate: { type: 'acu' }, sheet_1: { name: '错表', content: [['row_id', '值']] } },
     });
 
-    expect(result).toEqual(expect.objectContaining({ success: false, error: expect.stringContaining('缺少目标表') }));
+    expect(result).toEqual(expect.objectContaining({ success: false, error: expect.stringContaining('thiếu bảng đích') }));
     expect(chat).toEqual(before);
     expect(mockSaveChatToHostStrict).not.toHaveBeenCalled();
   });
@@ -4622,7 +4622,7 @@ describe('establishManualRefillTemplateRoot_ACU', () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('缺少目标表');
+    expect(result.error).toContain('thiếu bảng đích');
     expect(chat).toEqual(before);
     expect(mockSaveChatToHostStrict).not.toHaveBeenCalled();
   });

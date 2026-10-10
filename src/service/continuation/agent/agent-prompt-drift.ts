@@ -126,18 +126,18 @@ export function compareAgentPromptMessages_ACU(
  * @returns 可直接打印的诊断行
  */
 export function formatAgentPromptDriftReport_ACU(report: AgentPromptDriftReport_ACU): string {
-  const head = `消息 ${report.messageCount} 条，system ${report.systemRoleCount} 条`;
-  if (report.baseline) return `基线建立：${head}`;
-  if (report.identical) return `与上次完全一致（重试）：${head}`;
+  const head = `${report.messageCount} tin nhắn, ${report.systemRoleCount} system`;
+  if (report.baseline) return `Thiết lập đường cơ sở: ${head}`;
+  if (report.identical) return `Hoàn toàn giống lần trước (thử lại): ${head}`;
   if (report.appendedMessages !== undefined) {
-    return `前缀完整保留：${head}；共享 ${report.sharedMessages} 条 / ${report.sharedChars} 字符，尾部新增 ${report.appendedMessages} 条`;
+    return `Tiền tố được giữ nguyên: ${head}; chung ${report.sharedMessages} tin / ${report.sharedChars} ký tự, thêm ${report.appendedMessages} tin ở cuối`;
   }
-  const location = `首个分歧在第 ${report.divergedMessageIndex} 条`
-    + (report.divergedCharOffset !== undefined ? `第 ${report.divergedCharOffset} 字符` : `（role: ${report.previousRole ?? '无'} → ${report.currentRole ?? '无'}）`);
+  const location = `Điểm khác biệt đầu tiên ở tin thứ ${report.divergedMessageIndex}`
+    + (report.divergedCharOffset !== undefined ? ` ký tự thứ ${report.divergedCharOffset}` : ` (role: ${report.previousRole ?? 'không có'} → ${report.currentRole ?? 'không có'})`);
   const excerpts = report.previousExcerpt !== undefined || report.currentExcerpt !== undefined
-    ? `；上次「${report.previousExcerpt ?? ''}」本次「${report.currentExcerpt ?? ''}」`
+    ? `; lần trước "${report.previousExcerpt ?? ''}" lần này "${report.currentExcerpt ?? ''}"`
     : '';
-  return `前缀分歧：${head}；共享 ${report.sharedMessages} 条 / ${report.sharedChars} 字符；${location}${excerpts}`;
+  return `Tiền tố khác biệt: ${head}; chung ${report.sharedMessages} tin / ${report.sharedChars} ký tự; ${location}${excerpts}`;
 }
 
 const lastPromptByScope_ACU = new Map<string, AgentPromptMessage_ACU[]>();

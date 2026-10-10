@@ -98,7 +98,7 @@ describe('renderReoptButton_ACU', () => {
   it('生成固定 id 的重新优化按钮', () => {
     const result = renderReoptButton_ACU();
     expect(result).toContain('acu-opt-toast-reoptimize');
-    expect(result).toContain('重新优化');
+    expect(result).toContain('Tối ưu lại');
   });
 
   it('返回 button 标签', () => {

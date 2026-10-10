@@ -66,8 +66,8 @@ describe('formatTableDataForLLM_ACU', () => {
     expect(result).toContain('总结表');
   });
   it('空数据返回提示文本', () => {
-    expect(formatTableDataForLLM_ACU(null)).toContain('无任何可用');
-    expect(formatTableDataForLLM_ACU({})).toContain('无任何可用');
+    expect(formatTableDataForLLM_ACU(null)).toContain('không có dữ liệu bảng nào khả dụng');
+    expect(formatTableDataForLLM_ACU({})).toContain('không có dữ liệu bảng nào khả dụng');
   });
   it('只有表头的表格不输出（content.length <= 1）', () => {
     const data = { sheet_0: { name: '空表', content: [['row_id', '列A']] } };
@@ -90,7 +90,7 @@ describe('formatOutlineTableForPlot_ACU', () => {
     expect(result).toContain('开始冒险');
   });
   it('空数据返回提示文本', () => {
-    expect(formatOutlineTableForPlot_ACU(null)).toContain('未获取到');
+    expect(formatOutlineTableForPlot_ACU(null)).toContain('không lấy được dữ liệu bảng');
   });
 });
 
@@ -104,7 +104,7 @@ describe('formatSummaryIndexForPlot_ACU', () => {
   it('空数据返回失败结果', () => {
     const result = formatSummaryIndexForPlot_ACU(null);
     expect(result.success).toBe(false);
-    expect(result.content).toContain('纪要索引');
+    expect(result.content).toContain('Chỉ mục kỷ yếu');
   });
 });
 

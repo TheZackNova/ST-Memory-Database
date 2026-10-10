@@ -1,18 +1,18 @@
 <template>
-  <nav class="acu-visualizer-nav" aria-label="数据库导航">
+  <nav class="acu-visualizer-nav" aria-label="Điều hướng CSDL">
     <div class="acu-visualizer-nav__brand">
       <span class="acu-visualizer-nav__brand-mark" aria-hidden="true">DB</span>
       <span class="acu-visualizer-nav__brand-copy">
-        <span class="acu-visualizer-nav__brand-title">数据库编辑器</span>
+        <span class="acu-visualizer-nav__brand-title">Trình chỉnh sửa CSDL</span>
         <span class="acu-visualizer-nav__brand-tag">
-          {{ sheetItems.length }} 张表 · {{ dirty ? "未保存" : "已同步" }}
+          {{ sheetItems.length }} bảng · {{ dirty ? "Chưa lưu" : "Đã đồng bộ" }}
         </span>
       </span>
     </div>
 
     <div class="acu-visualizer-nav__head">
-      <h2>表格列表</h2>
-      <AcuBadge variant="neutral">{{ sheetItems.length }} 张</AcuBadge>
+      <h2>Danh sách bảng</h2>
+      <AcuBadge variant="neutral">{{ sheetItems.length }} bảng</AcuBadge>
     </div>
 
     <div
@@ -30,12 +30,12 @@
         @click="$emit('select-sheet', item.key)"
       >
         <span>{{ item.name }}</span>
-        <small>{{ item.rowCount }} 行 · {{ item.columnCount }} 列</small>
+        <small>{{ item.rowCount }} hàng · {{ item.columnCount }} cột</small>
       </AcuButton>
     </div>
 
     <div class="acu-visualizer-nav__head acu-visualizer-nav__head--management">
-      <h2>数据库管理</h2>
+      <h2>Quản lý CSDL</h2>
     </div>
 
     <AcuButton
@@ -45,7 +45,7 @@
       :class="{ 'is-active': mode === 'table-management' || mode === 'global' }"
       @click="$emit('select-table-management')"
     >
-      数据库管理
+      Quản lý CSDL
     </AcuButton>
   </nav>
 </template>

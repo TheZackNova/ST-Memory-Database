@@ -5,11 +5,11 @@ export const chronicleSheet = {
   uid: "sheet_3NoMc1wI",
   name: "纪要表",
   sourceData: {
-    note: "轮次日志，每轮交互后必须立即插入一条新记录。（列号为 0 基，与表格数据中的列标一致）\n- 列0: 时间跨度 - 本轮事件发生的精确时间范围。\n- 列1: 地点 - 本轮事件发生的地点，从大到小描述。\n- 列2: 纪要 - 以第三方视角客观记录本轮事件，不得加入推测、情绪化语言、负面解读或主观判断。内容必须基于正文明确发生的事实，不得补充未出现的情节，不少于300字，结尾部分禁止进行总结或者升华。\n- 列3: 概要 - 30字以内，一句话概括纪要内容。\n- 列4: 编码索引 - 格式为 AMXXXX，XXXX从0001递增，不得与已有编号重复。\n",
-    initNode: "故事初始化时，插入一条新记录用于记录初始化剧情。",
-    deleteNode: "禁止删除。",
-    updateNode: "禁止操作。",
-    insertNode: "每轮交互结束后插入一条新记录。\n时间跨度格式必须为 YYYY-MM-DD HH:MM ~ YYYY-MM-DD HH:MM。\nSQL示例: INSERT INTO chronicle (time_span, location, chronicle_text, summary, code_index) VALUES ('2024-03-15 14:00 ~ 2024-03-15 15:00', '王城·中央广场', '本轮纪要内容...', '一句话概括', 'AM0002');",
+    note: "Nhật ký theo lượt, sau mỗi lượt tương tác phải chèn ngay một bản ghi mới. (Số cột đánh số từ 0, khớp với chỉ số cột trong dữ liệu bảng)\n- Cột 0: 时间跨度 (Khoảng thời gian) - Khoảng thời gian chính xác diễn ra sự kiện của lượt này.\n- Cột 1: 地点 (Địa điểm) - Địa điểm diễn ra sự kiện của lượt này, mô tả từ lớn đến nhỏ.\n- Cột 2: 纪要 (Kỷ yếu) - Ghi lại sự kiện của lượt này một cách khách quan theo góc nhìn bên thứ ba, không thêm suy đoán, ngôn ngữ cảm xúc, diễn giải tiêu cực hay phán đoán chủ quan. Nội dung phải dựa trên các sự việc đã xảy ra rõ ràng trong chính văn, không bổ sung tình tiết chưa xuất hiện, không dưới 300 chữ, phần kết cấm tổng kết hoặc nâng tầm ý nghĩa.\n- Cột 3: 概要 (Tóm lược) - Trong vòng 30 chữ, một câu tóm tắt nội dung kỷ yếu.\n- Cột 4: 编码索引 (Mã chỉ mục) - Định dạng AMXXXX, XXXX tăng dần từ 0001, không được trùng với mã đã có.\n",
+    initNode: "Khi khởi tạo câu chuyện, chèn một bản ghi mới để ghi lại cốt truyện khởi tạo.",
+    deleteNode: "Cấm xóa.",
+    updateNode: "Cấm thao tác.",
+    insertNode: "Sau mỗi lượt tương tác, chèn một bản ghi mới.\nĐịnh dạng khoảng thời gian bắt buộc là YYYY-MM-DD HH:MM ~ YYYY-MM-DD HH:MM.\nVí dụ SQL: INSERT INTO chronicle (time_span, location, chronicle_text, summary, code_index) VALUES ('2024-03-15 14:00 ~ 2024-03-15 15:00', 'Vương thành·Quảng trường trung tâm', 'Nội dung kỷ yếu của lượt này...', 'Tóm tắt trong một câu', 'AM0002');",
     ddl: `CREATE TABLE chronicle ( -- 纪要表
   row_id INTEGER PRIMARY KEY, -- 行号
   time_span TEXT NOT NULL CHECK(time_span GLOB '????-??-?? ??:?? ~ ????-??-?? ??:??'), -- 时间跨度

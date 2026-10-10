@@ -88,13 +88,13 @@ function fail_ACU(message: string): never {
 }
 
 function checkContext_ACU(chat: unknown[], identity: WorldSimulationRunIdentity_ACU, anchor: WorldSimulationAnchorIdentity_ACU, first: Floor_ACU, expectedEnvelope: string): void {
-  if (getChatArray_ACU() !== chat || chat[0] !== first || getActiveChatStorageIdentity_ACU(chat) !== identity.chatIdentity) fail_ACU('逐栏提交目标聊天已切换');
+  if (getChatArray_ACU() !== chat || chat[0] !== first || getActiveChatStorageIdentity_ACU(chat) !== identity.chatIdentity) fail_ACU('Cuộc trò chuyện đích của lần nộp theo từng cột đã được chuyển');
   resolveCurrentWorldSimulationAnchor_ACU(anchor, chat);
   const envelope = validateWorldSimulationEnvelope_ACU(first[WORLD_SIMULATION_FIRST_FLOOR_FIELD_ACU], 'persist');
-  if (canonical_ACU(envelope) !== expectedEnvelope) fail_ACU('逐栏提交期间首楼世界状态已变化');
+  if (canonical_ACU(envelope) !== expectedEnvelope) fail_ACU('Trạng thái thế giới ở tầng đầu đã thay đổi trong lúc nộp theo từng cột');
   const run = envelope.task?.activeRun;
   if (!run || envelope.task?.taskId !== identity.taskId || run.runId !== identity.runId
-    || run.stageRevision !== identity.stageRevision || envelope.activeStageId !== identity.stageId) fail_ACU('逐栏提交运行租约已失效');
+    || run.stageRevision !== identity.stageRevision || envelope.activeStageId !== identity.stageId) fail_ACU('Hợp đồng chạy của lần nộp theo từng cột đã hết hiệu lực');
 }
 
 function stageChain_ACU(chat: unknown[], anchor: WorldSimulationAnchorIdentity_ACU,
@@ -119,7 +119,7 @@ function stageChain_ACU(chat: unknown[], anchor: WorldSimulationAnchorIdentity_A
   }
   if (Object.values(fieldUpserts).some(rows => Object.keys(rows).length)
     && !appendWorldSimulationFieldDeltaChain_ACU({ chat: staged, messageIndex: anchor.messageIndex, anchor, fieldUpserts, updatedAt })) {
-    throw new Error('逐栏帧无法追加：缺少可折叠账本基线');
+    throw new Error('Không thể nối thêm khung theo từng cột: thiếu đường cơ sở sổ cái có thể gập');
   }
   const changes: Change_ACU[] = [];
   for (let index = 0; index < chat.length; index += 1) {
@@ -152,14 +152,14 @@ async function verifySqlAndStage_ACU(chat: unknown[], anchor: WorldSimulationAnc
       revision = view.applyFieldBatch({ ...batch, expectedRevision: revision,
         advanceRevision: !plan.archiveWrites.length && batch.advanceRevision });
     }
-    if (!equal_ACU(view.readLedger(), plan.ledger)) throw new Error('SQL 账本复算与领域规划不一致');
+    if (!equal_ACU(view.readLedger(), plan.ledger)) throw new Error('Kết quả tính lại sổ cái SQL không khớp với kế hoạch miền');
     if (plan.archiveWrites.length && !equal_ACU(view.exportArchiveRecords(),
-      Object.fromEntries(plan.archiveWrites.map(row => [row.archiveRef, row])))) throw new Error('SQL 归档复算与领域规划不一致');
+      Object.fromEntries(plan.archiveWrites.map(row => [row.archiveRef, row])))) throw new Error('Kết quả tính lại lưu trữ SQL không khớp với kế hoạch miền');
     const staged = stageChain_ACU(chat, anchor, before, ledger, archive, plan, updatedAt);
     const folded = foldWorldSimulationLedger_ACU(staged.chat, anchor.messageIndex);
     if (!folded || !equal_ACU(folded.ledger, plan.ledger)
       || !equal_ACU(foldWorldSimulationArchive_ACU(staged.chat).snapshot, plan.archive)) {
-      throw new Error('影子楼层帧折叠与领域规划不一致');
+      throw new Error('Việc gập khung tầng bóng không khớp với kế hoạch miền');
     }
     for (const batch of plan.batches) {
       const ids = new Set([...Object.keys(batch.fieldWrites ?? {}), ...Object.keys(batch.domainUpserts ?? {}),
@@ -167,7 +167,7 @@ async function verifySqlAndStage_ACU(chat: unknown[], anchor: WorldSimulationAnc
       for (const id of ids) {
         if (!equal_ACU(comparableFieldRecord_ACU(view.readFieldRecord(batch.module, id)),
           comparableFieldRecord_ACU(folded.fields.records[batch.module]?.[id] ?? null))) {
-          throw new Error(`影子楼层栏目 ${batch.module}#${id} 与 SQL 复算不一致`);
+          throw new Error(`Cột tầng bóng ${batch.module}#${id} không khớp với kết quả tính lại SQL`);
         }
       }
     }
@@ -179,19 +179,19 @@ export async function commitWorldSimulationFieldWritesWithinQueue_ACU(input: Wor
   assertWorldSimulationHostRun_ACU(input.identity);
   requireWorldSimulationHostAnchor_ACU(input.anchor);
   const lease = { ...input.identity };
-  if (input.isCurrent?.() === false) fail_ACU('逐栏提交派工租约已失效');
+  if (input.isCurrent?.() === false) fail_ACU('Hợp đồng giao việc của lần nộp theo từng cột đã hết hiệu lực');
   const chat = getChatArray_ACU();
   const identity = getActiveChatStorageIdentity_ACU(chat);
-  if (identity !== lease.chatIdentity || identity !== input.anchor.chatIdentity) fail_ACU('逐栏提交目标聊天身份已变化');
+  if (identity !== lease.chatIdentity || identity !== input.anchor.chatIdentity) fail_ACU('Danh tính cuộc trò chuyện đích của lần nộp theo từng cột đã thay đổi');
   const anchor = resolveCurrentWorldSimulationAnchor_ACU(input.anchor, chat);
   const first = chat[0];
-  if (!isRecord_ACU(first)) fail_ACU('逐栏提交首楼不可用');
+  if (!isRecord_ACU(first)) fail_ACU('Tầng đầu của lần nộp theo từng cột không khả dụng');
   const envelope = validateWorldSimulationEnvelope_ACU(first[WORLD_SIMULATION_FIRST_FLOOR_FIELD_ACU], 'persist');
   assertWorldSimulationHostEnvelope_ACU(envelope);
   const run = envelope.task?.activeRun;
   if (!run || envelope.task?.taskId !== lease.taskId || run.runId !== lease.runId
     || run.stageRevision !== lease.stageRevision || envelope.activeStageId !== lease.stageId
-    || input.evidenceRegistry.runId !== lease.runId) fail_ACU('逐栏提交运行租约已失效');
+    || input.evidenceRegistry.runId !== lease.runId) fail_ACU('Hợp đồng chạy của lần nộp theo từng cột đã hết hiệu lực');
   const expectedEnvelope = canonical_ACU(envelope);
   const baseline = chat.map((message, index) => ({ message,
     assistant: isRecord_ACU(message) && message.is_user !== true && message.is_system !== true,
@@ -222,7 +222,7 @@ export async function commitWorldSimulationFieldWritesWithinQueue_ACU(input: Wor
     parsed.intents = parsed.intents.filter(intent => {
       const module = intent.module === 'chronicle_archive' || intent.module === 'chronicle_overview' ? 'chronicle' : intent.module;
       if (allowed.has(module)) return true;
-      parsed.rejected.push({ path: `${intent.module}#${intent.id}`, reason: '派工无权写入该模块' });
+      parsed.rejected.push({ path: `${intent.module}#${intent.id}`, reason: 'Giao việc không có quyền ghi vào module này' });
       return false;
     });
   }
@@ -247,7 +247,7 @@ export async function commitWorldSimulationFieldWritesWithinQueue_ACU(input: Wor
   }
   const stagedFold = foldWorldSimulationLedger_ACU(staged.chat, anchor.messageIndex);
   const stagedArchive = foldWorldSimulationArchive_ACU(staged.chat, anchor.messageIndex).snapshot;
-  if (input.confirmRunLedger && !input.prepareRunProof) fail_ACU('确认逐栏写入必须与运行证明同次保存');
+  if (input.confirmRunLedger && !input.prepareRunProof) fail_ACU('Xác nhận ghi theo từng cột phải được lưu cùng lúc với bằng chứng chạy');
   const proof = input.prepareRunProof?.({ ledger: stagedFold!.ledger, fields: stagedFold!.fields, archive: stagedArchive },
     input.declaredEvidenceRefs ?? [], plan.accepted);
   if (proof) {
@@ -259,9 +259,9 @@ export async function commitWorldSimulationFieldWritesWithinQueue_ACU(input: Wor
       previous: target[WORLD_SIMULATION_RUN_WRITE_FIELD_ACU], staged: copy[WORLD_SIMULATION_RUN_WRITE_FIELD_ACU],
       expected: canonical_ACU(copy[WORLD_SIMULATION_RUN_WRITE_FIELD_ACU]) });
   }
-  if (input.isCurrent?.() === false) fail_ACU('逐栏提交派工租约已失效');
+  if (input.isCurrent?.() === false) fail_ACU('Hợp đồng giao việc của lần nộp theo từng cột đã hết hiệu lực');
   checkContext_ACU(chat, lease, anchor, first, expectedEnvelope);
-  if (!baselineIntact()) fail_ACU('逐栏提交规划期间旧账本或归档已变化');
+  if (!baselineIntact()) fail_ACU('Sổ cái hoặc lưu trữ cũ đã thay đổi trong lúc lập kế hoạch nộp theo từng cột');
   const stagedKeys = new Set(staged.changes.map(change => `${chat.indexOf(change.target)}:${change.key}`));
   const unstagedIntact = (): boolean => baselineIntact(stagedKeys);
   for (const change of staged.changes) change.target[change.key] = change.staged;
@@ -272,22 +272,22 @@ export async function commitWorldSimulationFieldWritesWithinQueue_ACU(input: Wor
         else delete change.target[change.key];
       }
     }
-    fail_ACU('逐栏提交保存前旧账本或归档已变化');
+    fail_ACU('Sổ cái hoặc lưu trữ cũ đã thay đổi trước khi lưu lần nộp theo từng cột');
   }
   let status: 'persist_failed' | 'readback_failed' = 'persist_failed';
   try {
-    if (input.isCurrent?.() === false) fail_ACU('逐栏提交派工租约已失效');
+    if (input.isCurrent?.() === false) fail_ACU('Hợp đồng giao việc của lần nộp theo từng cột đã hết hiệu lực');
     await saveChatToHostStrict_ACU();
     status = 'readback_failed';
-    if (input.isCurrent?.() === false) fail_ACU('逐栏提交派工租约已失效');
+    if (input.isCurrent?.() === false) fail_ACU('Hợp đồng giao việc của lần nộp theo từng cột đã hết hiệu lực');
     checkContext_ACU(chat, lease, anchor, first, expectedEnvelope);
-    if (!unstagedIntact()) fail_ACU('逐栏提交保存期间旧账本或归档已变化');
+    if (!unstagedIntact()) fail_ACU('Sổ cái hoặc lưu trữ cũ đã thay đổi trong lúc lưu lần nộp theo từng cột');
     const readback = foldWorldSimulationLedger_ACU(chat, anchor.messageIndex);
     if (!readback || !stagedFold || !equal_ACU(readback.ledger, plan.ledger)
       || !equal_ACU(foldWorldSimulationArchive_ACU(chat, anchor.messageIndex).snapshot, plan.archive)
       || !equal_ACU(readback.fields, stagedFold.fields)
       || (proof && !equal_ACU(readWorldSimulationRunWriteProof_ACU(anchor, chat), proof))
-      || !staged.changes.every(change => change.target[change.key] === change.staged && canonical_ACU(change.staged) === change.expected)) throw new Error('保存后同内存聊天折叠与提交规划不一致');
+      || !staged.changes.every(change => change.target[change.key] === change.staged && canonical_ACU(change.staged) === change.expected)) throw new Error('Việc gập cuộc trò chuyện trong bộ nhớ sau khi lưu không khớp với kế hoạch nộp');
     input.confirmRunLedger?.({ ledger: readback.ledger, fields: readback.fields, archive: foldWorldSimulationArchive_ACU(chat, anchor.messageIndex).snapshot }, input.declaredEvidenceRefs ?? [], plan.accepted);
     return receipt('committed', { partials: confirmedPartials_ACU(readback.fields, plan.partials), accepted: plan.accepted.map(item => {
       const field = readback.fields.records[item.module]?.[item.id]?.fields[item.field];
@@ -311,7 +311,7 @@ export async function commitWorldSimulationFieldWritesWithinQueue_ACU(input: Wor
         const restored = staged.changes.map(change => ({ change, current: canonical_ACU(change.target[change.key]),
           existed: Object.prototype.hasOwnProperty.call(change.target, change.key) }));
         try {
-          if (input.isCurrent?.() === false) fail_ACU('逐栏提交派工租约已失效');
+          if (input.isCurrent?.() === false) fail_ACU('Hợp đồng giao việc của lần nộp theo từng cột đã hết hiệu lực');
           await saveChatToHostStrict_ACU();
           const unchanged = restored.every(({ change, current, existed }) =>
             Object.prototype.hasOwnProperty.call(change.target, change.key) === existed

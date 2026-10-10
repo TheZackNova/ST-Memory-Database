@@ -52,9 +52,9 @@ export function createAgentHandoffSemanticSummaryAdapter_ACU(call: AgentHandoffS
       const request = (repair: boolean): Array<{ role: string; content: string }> => [
         {
           role: 'system',
-          content: '你只负责把输入会话事实压缩成 JSON。不得调用工具、不得计划、不得写小说。输出必须是单个 JSON 对象，字段恰好为 currentGoal、effectiveConstraints、decisions、completedItems、pendingItems、blockers、continuityFacts、readKeys、recentTurns；currentGoal 是字符串，其余字段都是字符串数组。不得编造读取地址或轮次指纹。',
+          content: 'Bạn chỉ chịu trách nhiệm nén các sự thật của hội thoại đầu vào thành JSON. Không được gọi công cụ, không được lập kế hoạch, không được viết tiểu thuyết. Đầu ra phải là một đối tượng JSON duy nhất, các trường chính xác là currentGoal, effectiveConstraints, decisions, completedItems, pendingItems, blockers, continuityFacts, readKeys, recentTurns; currentGoal là chuỗi, các trường còn lại đều là mảng chuỗi. Không được bịa địa chỉ đọc hay dấu vân tay lượt.',
         },
-        { role: 'user', content: repair ? `上一次输出不符合 JSON 契约。只输出符合契约的 JSON，不要解释。\n来源：${source}` : `来源：${source}` },
+        { role: 'user', content: repair ? `Đầu ra lần trước không đúng hợp đồng JSON. Chỉ xuất JSON đúng hợp đồng, không giải thích.\nNguồn: ${source}` : `Nguồn: ${source}` },
       ];
       const first = parseSemanticSummary_ACU(await call(request(false)));
       if (first) return first;
@@ -85,9 +85,9 @@ function buildDeterministicState_ACU(previous: AgentHandoffSummaryStateV2_ACU | 
 }
 
 export function renderAgentHandoffReport_ACU(state: AgentHandoffSummaryStateV2_ACU, degradationReason?: string): string {
-  const sections: Array<[string, string[]]> = [['当前目标', state.currentGoal ? [state.currentGoal] : []], ['有效约束', state.effectiveConstraints], ['已执行决策', state.decisions], ['已完成', state.completedItems], ['待办', state.pendingItems], ['阻塞', state.blockers], ['连续性事实', state.continuityFacts], ['资料地址', state.readKeys], ['近期轮次', state.recentTurns]];
+  const sections: Array<[string, string[]]> = [['Mục tiêu hiện tại', state.currentGoal ? [state.currentGoal] : []], ['Ràng buộc hiệu lực', state.effectiveConstraints], ['Quyết định đã thực hiện', state.decisions], ['Đã hoàn thành', state.completedItems], ['Việc cần làm', state.pendingItems], ['Bị chặn', state.blockers], ['Sự thật liên tục', state.continuityFacts], ['Địa chỉ tư liệu', state.readKeys], ['Lượt gần đây', state.recentTurns]];
   const body = sections.filter(([, items]) => items.length).map(([title, items]) => `【${title}】\n${items.map(item => `- ${item}`).join('\n')}`).join('\n');
-  return `${degradationReason ? `【摘要降级】${degradationReason}\n` : ''}【更早会话交接】\n${body || '没有可保留的早期事项。'}`;
+  return `${degradationReason ? `【Hạ cấp tóm tắt】${degradationReason}\n` : ''}【Bàn giao hội thoại sớm】\n${body || 'Không có việc sớm nào cần giữ lại.'}`;
 }
 
 export async function summarizeAgentHandoff_ACU(input: { previous: AgentHandoffSummaryStateV2_ACU | null; messages: readonly AgentConversationMessage_ACU[]; maxTokens: number; countTokens: TokenCounter_ACU; semanticAdapter?: AgentHandoffSemanticSummaryAdapter_ACU }): Promise<AgentHandoffSummaryResult_ACU> {

@@ -178,7 +178,7 @@ describe('collectDanglingWorldbookReferences_ACU', () => {
     expect(items).toEqual([{
       id: 'injection-target',
       kind: 'worldbook',
-      label: '填表写入目标世界书',
+      label: 'Sổ thế giới đích khi điền bảng',
       name: '失踪世界书',
       clearKey: 'worldbook_injection',
     }]);
@@ -201,7 +201,7 @@ describe('clearDanglingReference_ACU', () => {
     const result = await clearDanglingReference_ACU({
       id: 'table',
       kind: 'api_preset',
-      label: '填表 API 预设',
+      label: 'Preset API điền bảng',
       name: 'ghost-table',
       clearKey: 'table',
     });
@@ -217,7 +217,7 @@ describe('clearDanglingReference_ACU', () => {
     const result = await clearDanglingReference_ACU({
       id: 'injection-target',
       kind: 'worldbook',
-      label: '填表写入目标世界书',
+      label: 'Sổ thế giới đích khi điền bảng',
       name: '失踪世界书',
       clearKey: 'worldbook_injection',
     });
@@ -231,7 +231,7 @@ describe('clearDanglingReference_ACU', () => {
     const result = await clearDanglingReference_ACU({
       id: 'injection-target',
       kind: 'worldbook',
-      label: '填表写入目标世界书',
+      label: 'Sổ thế giới đích khi điền bảng',
       name: '失踪世界书',
       clearKey: 'worldbook_injection',
     });

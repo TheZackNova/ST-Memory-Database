@@ -46,17 +46,17 @@ export interface WorldSimulationAgentDefinition_ACU {
 }
 
 export const WORLD_SIMULATION_AGENT_CATALOG_ACU: readonly WorldSimulationAgentDefinition_ACU[] = [
-  { name: 'world-director', kind: 'director', description: '用户沟通接口：用户在推演对话发消息时决定开局焦点或定向维护；自动推演不经过导演', triggers: ['用户消息'], promptKey: 'world-director', apiRole: 'world-director', writableModules: [] },
-  { name: 'undercurrent-analyst', kind: 'specialist', description: '推演世界时钟、维度压力与暗流种子生命周期的幕后演变', triggers: ['每轮推演批次一'], promptKey: 'undercurrent-analyst', apiRole: 'undercurrent-analyst', writableModules: ['clock', 'dimensions', 'seeds'] },
-  { name: 'dramatis-keeper', kind: 'specialist', description: '推演行动者信息边界、玩家位置接触与人物死亡伴生传闻', triggers: ['每轮推演批次一'], promptKey: 'dramatis-keeper', apiRole: 'dramatis-keeper', writableModules: ['actors', 'player', 'rumors'] },
-  { name: 'causality-reviewer', kind: 'reviewer', description: '审核幕后演变的时间、空间、因果、revision、权限与证据，不写入 guidance', triggers: ['用户路径候选终审'], promptKey: 'causality-reviewer', apiRole: 'causality-reviewer', writableModules: [] },
-  { name: 'guidance-composer', kind: 'specialist', description: '统合本轮变更：记录幕后编年、维护世界传闻，并决定台面投影', triggers: ['每轮推演批次二'], promptKey: 'guidance-composer', apiRole: 'guidance-composer', writableModules: ['chronicle', 'rumors', 'guidance'] },
-  { name: 'lore-researcher', kind: 'researcher', description: '补充外部公开设定资料支撑幕后推演，不写入世界账本', triggers: ['本地证据不足且允许外部研究'], promptKey: 'lore-researcher', apiRole: 'lore-researcher', writableModules: [] },
+  { name: 'world-director', kind: 'director', description: 'Giao diện trao đổi với người dùng: khi người dùng gửi tin trong hội thoại mô phỏng thì quyết định tiêu điểm mở màn hoặc bảo trì có định hướng; mô phỏng tự động không qua đạo diễn', triggers: ['Tin nhắn người dùng'], promptKey: 'world-director', apiRole: 'world-director', writableModules: [] },
+  { name: 'undercurrent-analyst', kind: 'specialist', description: 'Mô phỏng diễn biến hậu trường của đồng hồ thế giới, áp lực chiều và vòng đời hạt giống dòng ngầm', triggers: ['Lô một của mỗi lượt mô phỏng'], promptKey: 'undercurrent-analyst', apiRole: 'undercurrent-analyst', writableModules: ['clock', 'dimensions', 'seeds'] },
+  { name: 'dramatis-keeper', kind: 'specialist', description: 'Mô phỏng ranh giới thông tin của actor, vị trí và liên lạc của người chơi, và tin đồn đi kèm cái chết của nhân vật', triggers: ['Lô một của mỗi lượt mô phỏng'], promptKey: 'dramatis-keeper', apiRole: 'dramatis-keeper', writableModules: ['actors', 'player', 'rumors'] },
+  { name: 'causality-reviewer', kind: 'reviewer', description: 'Rà soát thời gian, không gian, nhân quả, revision, quyền hạn và bằng chứng của diễn biến hậu trường, không ghi vào guidance', triggers: ['Chung thẩm ứng viên đường dẫn người dùng'], promptKey: 'causality-reviewer', apiRole: 'causality-reviewer', writableModules: [] },
+  { name: 'guidance-composer', kind: 'specialist', description: 'Tổng hợp thay đổi của lượt này: ghi niên biểu hậu trường, bảo trì tin đồn thế giới và quyết định phép chiếu lên mặt tiền', triggers: ['Lô hai của mỗi lượt mô phỏng'], promptKey: 'guidance-composer', apiRole: 'guidance-composer', writableModules: ['chronicle', 'rumors', 'guidance'] },
+  { name: 'lore-researcher', kind: 'researcher', description: 'Bổ sung tài liệu thiết lập công khai bên ngoài để hỗ trợ mô phỏng hậu trường, không ghi vào sổ cái thế giới', triggers: ['Bằng chứng cục bộ không đủ và cho phép nghiên cứu bên ngoài'], promptKey: 'lore-researcher', apiRole: 'lore-researcher', writableModules: [] },
 ];
 
 const LEGACY_ROLE_DEFINITIONS_ACU: readonly WorldSimulationAgentDefinition_ACU[] = [
-  { name: 'timekeeper', kind: 'specialist', description: '推演世界时钟的幕后推进，产出 clockAdvance 候选', triggers: ['旧运行恢复'], promptKey: 'timekeeper', apiRole: 'timekeeper', writableModules: ['clock'] },
-  { name: 'chronicler', kind: 'specialist', description: '综合暗流完结、人物结局与错过清扫，记录台面下重大事件并维护世界里正在传播的传闻', triggers: ['旧运行恢复'], promptKey: 'chronicler', apiRole: 'chronicler', writableModules: ['chronicle', 'rumors'] },
+  { name: 'timekeeper', kind: 'specialist', description: 'Đẩy tiến hậu trường của đồng hồ thế giới, tạo ứng viên clockAdvance', triggers: ['Khôi phục lần chạy cũ'], promptKey: 'timekeeper', apiRole: 'timekeeper', writableModules: ['clock'] },
+  { name: 'chronicler', kind: 'specialist', description: 'Tổng hợp việc kết thúc dòng ngầm, kết cục nhân vật và dọn dẹp những điều bị bỏ lỡ, ghi lại sự kiện lớn dưới mặt tiền và bảo trì các tin đồn đang lan truyền trong thế giới', triggers: ['Khôi phục lần chạy cũ'], promptKey: 'chronicler', apiRole: 'chronicler', writableModules: ['chronicle', 'rumors'] },
 ];
 
 export type WorldSimulationAgentNativeToolName_ACU = Extract<AgentNativeToolName_ACU, 'read' | 'search' | 'write_sql'>;

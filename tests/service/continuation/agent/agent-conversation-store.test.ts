@@ -166,7 +166,7 @@ describe('会话时间线（展示通道）', () => {
       ['handoff', '交接报告内容'],
       ['agent', '最近输出'],
     ]);
-    expect(timeline[2].digest).toBe('早期会话交接报告（此前内容对当前 AI 不可见）');
+    expect(timeline[2].digest).toBe('Báo cáo bàn giao hội thoại sớm (nội dung trước đó không hiển thị với AI hiện tại)');
 
     // 同一份数据在模型通道里只剩交接报告之后的内容——两个通道语义不同。
     expect(readAgentConversation_ACU(chat).messages.map(item => item.kind)).toEqual(['handoff', 'agent']);
@@ -180,13 +180,13 @@ describe('会话时间线（展示通道）', () => {
     ];
     const timeline = readAgentConversationTimeline_ACU(chat);
     expect(timeline.map(item => item.text)).toEqual(['第一段', '第一份交接', '第二段', '第二份交接', '第三段']);
-    expect(timeline[1].digest).toBe('早期会话交接报告（已被更晚的总结取代）');
-    expect(timeline[3].digest).toBe('早期会话交接报告（此前内容对当前 AI 不可见）');
+    expect(timeline[1].digest).toBe('Báo cáo bàn giao hội thoại sớm (đã bị tóm tắt muộn hơn thay thế)');
+    expect(timeline[3].digest).toBe('Báo cáo bàn giao hội thoại sớm (nội dung trước đó không hiển thị với AI hiện tại)');
 
     // 删掉承载第二份标记的楼层：时间线退回只有第一份交接，且它重新成为可见性边界。
     const rolledBack = readAgentConversationTimeline_ACU(chat.slice(0, 2));
     expect(rolledBack.map(item => item.text)).toEqual(['第一段', '第一份交接', '第二段']);
-    expect(rolledBack[1].digest).toBe('早期会话交接报告（此前内容对当前 AI 不可见）');
+    expect(rolledBack[1].digest).toBe('Báo cáo bàn giao hội thoại sớm (nội dung trước đó không hiển thị với AI hiện tại)');
   });
 
   it('只剩标记没有消息段时仍输出交接条目；截止值不小于全部消息 id 时挂在末尾', () => {
@@ -362,7 +362,7 @@ describe('会话追加与渲染', () => {
       { kind: 'user', text: long, digest: '', turnKey: '' },
     ]);
     expect(next.messages[0].text.length).toBeLessThan(long.length);
-    expect(next.messages[0].text).toContain('已截断');
+    expect(next.messages[0].text).toContain('đã cắt bớt');
     expect(next.messages.slice(1).every(message => message.text === long)).toBe(true);
   });
 
@@ -370,7 +370,7 @@ describe('会话追加与渲染', () => {
     const long = '目录'.repeat(AGENT_CONVERSATION_TEXT_LIMIT_ACU);
     const next = appendAgentConversation_ACU(buildEmptyAgentConversation_ACU(), [{ kind: 'runtime', text: long, digest: '运行时快照', turnKey: 't1' }]);
     expect(next.messages[0].text).toBe(long);
-    expect(next.messages[0].text).not.toContain('已截断');
+    expect(next.messages[0].text).not.toContain('đã cắt bớt');
   });
 
   it('渲染时只有主 Agent 自己的输出是 assistant，其余带来源前缀走 user', () => {

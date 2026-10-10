@@ -419,7 +419,7 @@ function finalizeSave_ACU(snapshot: Record<string, unknown>): ApiPresetWriteResu
       code: saveResult.code === 'settings_loading' ? 'settings_loading' : 'save_failed',
       changed: true,
       saveResult,
-      message: saveResult.warning || saveResult.error || '保存失败，已回滚。',
+      message: saveResult.warning || saveResult.error || 'Lưu thất bại, đã khôi phục.',
     };
   }
   if (snapshot.persistEnvelopes === true) persistCascadedEnvelopes_ACU();
@@ -522,7 +522,7 @@ export function setActivePresetForCurrentChat_ACU(name: string): ApiPresetWriteR
   ensureApiSettingsShape_ACU();
   const preset = findPresetByName_ACU(settings_ACU.apiPresets, name);
   if (!preset) {
-    return { ok: false, code: 'not_found', changed: false, message: `预设 "${name}" 不存在。` };
+    return { ok: false, code: 'not_found', changed: false, message: `Preset "${name}" không tồn tại.` };
   }
   const snapshot = snapshotApiFields_ACU();
   const chatKey = getCurrentChatKey_ACU();
@@ -537,7 +537,7 @@ export function setActivePresetForCurrentChat_ACU(name: string): ApiPresetWriteR
 export function saveApiPreset_ACU(presetInput: ApiPreset_ACU, originalName = ''): ApiPresetWriteResult_ACU {
   const preset = normalizePreset_ACU(presetInput);
   if (!preset) {
-    return { ok: false, code: 'invalid_input', changed: false, message: '预设数据无效。' };
+    return { ok: false, code: 'invalid_input', changed: false, message: 'Dữ liệu preset không hợp lệ.' };
   }
   ensureApiSettingsShape_ACU();
   const snapshot = snapshotApiFields_ACU();
@@ -585,7 +585,7 @@ export function deleteApiPreset_ACU(name: string): ApiPresetWriteResult_ACU {
   ensureApiSettingsShape_ACU();
   const target = findPresetByName_ACU(settings_ACU.apiPresets, name);
   if (!target) {
-    return { ok: false, code: 'not_found', changed: false, message: `预设 "${name}" 不存在。` };
+    return { ok: false, code: 'not_found', changed: false, message: `Preset "${name}" không tồn tại.` };
   }
   const snapshot = snapshotApiFields_ACU();
   const chatKey = getCurrentChatKey_ACU();
@@ -624,7 +624,7 @@ export function setDefaultApiPreset_ACU(name: string): ApiPresetWriteResult_ACU 
   ensureApiSettingsShape_ACU();
   const preset = findPresetByName_ACU(settings_ACU.apiPresets, name);
   if (!preset) {
-    return { ok: false, code: 'not_found', changed: false, message: `预设 "${name}" 不存在。` };
+    return { ok: false, code: 'not_found', changed: false, message: `Preset "${name}" không tồn tại.` };
   }
   const snapshot = snapshotApiFields_ACU();
   settings_ACU.defaultApiPresetName = preset.name;

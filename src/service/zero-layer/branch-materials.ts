@@ -18,7 +18,7 @@ export function capturePublishedMaterials_ACU(source: ZeroLayerEnvelope_ACU,
   turn: ZeroLayerTurn_ACU): ZeroLayerPublishedMaterialSnapshot_ACU {
   const branch = source.branches.find(item => item.branchId === turn.branchId);
   if (!branch?.continuation || !branch.simulation) {
-    throw new ZeroLayerError_ACU('history-unavailable', '发布缺少可确认的续写或推演恢复素材。');
+    throw new ZeroLayerError_ACU('history-unavailable', 'Phát hành thiếu tài liệu khôi phục viết tiếp hoặc mô phỏng có thể xác nhận.');
   }
   const table = turn.assistantFloor.data.table;
   validateZeroLayerTableResult_ACU(table, turn.assistantFloor.floorId);
@@ -38,16 +38,16 @@ export function validatePublishedMaterials_ACU(raw: ZeroLayerPublishedMaterialSn
     || !Number.isSafeInteger(raw.sourceRevision) || raw.sourceRevision < 0 || raw.sourceRevision >= source.revision
     || fingerprint(raw.ref) !== fingerprint(checkpointTurnRef_ACU(source, turn))
     || raw.fingerprint !== publishedMaterialFingerprint_ACU(raw)) {
-    throw new ZeroLayerError_ACU('corrupt-data', '发布恢复快照的切点、版本或指纹无效。');
+    throw new ZeroLayerError_ACU('corrupt-data', 'Điểm cắt, phiên bản hoặc dấu vân tay của snapshot khôi phục phát hành không hợp lệ.');
   }
   validateZeroLayerTableResult_ACU(raw.table, turn.assistantFloor.floorId);
   if (fingerprint(raw.table) !== fingerprint(turn.assistantFloor.data.table)) {
-    throw new ZeroLayerError_ACU('corrupt-data', '发布恢复快照与目标表格结算不一致。');
+    throw new ZeroLayerError_ACU('corrupt-data', 'Snapshot khôi phục phát hành không khớp với quyết toán bảng đích.');
   }
   validateZeroLayerContinuationState_ACU(raw.continuation);
   validateZeroLayerSimulationState_ACU(raw.simulation);
   const owner = source.branches.find(branch => branch.branchId === turn.branchId);
-  if (!owner) throw new ZeroLayerError_ACU('corrupt-data', '发布恢复快照缺少所属分支。');
+  if (!owner) throw new ZeroLayerError_ACU('corrupt-data', 'Snapshot khôi phục phát hành thiếu nhánh sở hữu.');
   const branch = { ...owner, headTurnId: turn.turnId, continuation: raw.continuation,
     simulation: raw.simulation, ...(raw.checkpoints === null ? {} : { checkpoints: raw.checkpoints }) };
   if (raw.checkpoints === null) delete branch.checkpoints;
@@ -58,7 +58,7 @@ export function validatePublishedMaterials_ACU(raw: ZeroLayerPublishedMaterialSn
   for (const ref of raw.continuation.confirmed) {
     const confirmed = path.find(item => item.turnId === ref.turnId && item.attemptId === ref.attemptId
       && item.assistantFloor.floorId === ref.floorId && item.continuationIdentity?.attemptId === ref.continuationAttemptId);
-    if (!confirmed) throw new ZeroLayerError_ACU('corrupt-data', '发布续写快照包含目标切点之后的确认。');
+    if (!confirmed) throw new ZeroLayerError_ACU('corrupt-data', 'Snapshot viết tiếp phát hành chứa xác nhận sau điểm cắt đích.');
     validateZeroLayerContinuationReceipt_ACU(confirmed, source.sessionId);
   }
   validateZeroLayerSimulationRefs_ACU(raw.simulation, source.sessionId, branch.branchId,

@@ -1,17 +1,17 @@
 <template>
   <div v-if="task" class="acu-v2-plot-task-editor">
     <fieldset class="acu-v2-plot-task-editor__section">
-      <legend>基本字段</legend>
+      <legend>Trường cơ bản</legend>
       <div class="acu-v2-plot-task-editor__grid">
-        <AcuFormRow label="任务名称">
+        <AcuFormRow label="Tên tác vụ">
           <AcuInput
             type="text"
             :model-value="task.name"
-            placeholder="例如：记忆召回任务"
+            placeholder="Ví dụ: tác vụ truy hồi ký ức"
             @change="patch({ name: String($event) })"
           />
         </AcuFormRow>
-        <AcuFormRow label="阶段号" hint="同阶段并发，跨阶段串行">
+        <AcuFormRow label="Số giai đoạn" hint="Cùng giai đoạn chạy song song, khác giai đoạn chạy tuần tự">
           <AcuInput
             type="number"
             :min="1"
@@ -20,7 +20,7 @@
             @change="patch({ stage: Math.max(1, Math.round(Number($event))) })"
           />
         </AcuFormRow>
-        <AcuFormRow label="最大重试">
+        <AcuFormRow label="Số lần thử lại tối đa">
           <AcuInput
             type="number"
             :min="1"
@@ -31,18 +31,18 @@
             "
           />
         </AcuFormRow>
-        <AcuFormRow label="启用任务">
+        <AcuFormRow label="Bật tác vụ">
           <AcuToggle
             :model-value="task.enabled"
-            :label="task.enabled ? '已启用' : '已禁用'"
+            :label="task.enabled ? 'Đã bật' : 'Đã tắt'"
             @update:model-value="patch({ enabled: $event })"
           />
         </AcuFormRow>
       </div>
       <div class="acu-v2-plot-task-editor__grid">
         <AcuFormRow
-          label="标签摘取"
-          hint="例如 recall,supplement，仅作用于本任务"
+          label="Trích theo thẻ"
+          hint="Ví dụ recall,supplement, chỉ áp dụng cho tác vụ này"
         >
           <AcuInput
             type="text"
@@ -50,14 +50,14 @@
             @change="patch({ extractTags: String($event) })"
           />
         </AcuFormRow>
-        <AcuFormRow label="提取写入标签" hint="优先级高于标签摘取；留空不追加">
+        <AcuFormRow label="Thẻ ghi khi trích xuất" hint="Ưu tiên cao hơn trích theo thẻ; để trống thì không thêm">
           <AcuInput
             type="text"
             :model-value="task.extractInjectTags"
             @change="patch({ extractInjectTags: String($event) })"
           />
         </AcuFormRow>
-        <AcuFormRow label="最小回复长度" hint="少于此长度自动重试">
+        <AcuFormRow label="Độ dài phản hồi tối thiểu" hint="Ngắn hơn mức này sẽ tự thử lại">
           <AcuInput
             type="number"
             :min="0"
@@ -72,34 +72,34 @@
     </fieldset>
 
     <fieldset class="acu-v2-plot-task-editor__section">
-      <legend>Agent 任务控制</legend>
+      <legend>Điều khiển tác vụ Agent</legend>
       <p class="acu-v2-plot-task-editor__hint">
-        描述和触发条件会作为 agent模式判断任务是否执行、是否串联以及先后顺序的依据。全部留空且未启用 Agent 控制时，仍按原启用状态、阶段号和顺序执行。
+        Mô tả và điều kiện kích hoạt là căn cứ để chế độ agent quyết định tác vụ có chạy không, có nối chuỗi không và thứ tự trước sau. Khi để trống hết và chưa bật điều khiển Agent, vẫn chạy theo trạng thái bật, số giai đoạn và thứ tự ban đầu.
       </p>
       <div class="acu-v2-plot-task-editor__grid acu-v2-plot-task-editor__grid--wide">
         <AcuFormRow
-          label="任务描述"
-          hint="说明这个推进任务负责什么。留空时不参与 Agent Skill 判断。"
+          label="Mô tả tác vụ"
+          hint="Mô tả tác vụ đẩy này phụ trách việc gì. Để trống thì không tham gia phán đoán của Agent Skill."
         >
           <AcuTextarea
             :model-value="task.description"
             :rows="2"
             :max-rows="6"
             auto-resize
-            placeholder="例如：从长期记忆中选择与当前剧情最相关的事件。"
+            placeholder="Ví dụ: chọn từ ký ức dài hạn những sự kiện liên quan nhất tới cốt truyện hiện tại."
             @update:model-value="patch({ description: $event })"
           />
         </AcuFormRow>
         <AcuFormRow
-          label="触发条件"
-          hint="说明什么情况下应执行该任务。留空时保持原逻辑。"
+          label="Điều kiện kích hoạt"
+          hint="Mô tả khi nào nên chạy tác vụ này. Để trống thì giữ logic ban đầu."
         >
           <AcuTextarea
             :model-value="task.triggerWhen"
             :rows="2"
             :max-rows="6"
             auto-resize
-            placeholder="例如：用户输入涉及旧事件、承诺、人物关系变化或未解决伏笔时触发。"
+            placeholder="Ví dụ: kích hoạt khi đầu vào người dùng nhắc tới sự kiện cũ, lời hứa, thay đổi quan hệ nhân vật hoặc mạch truyện chưa giải quyết."
             @update:model-value="patch({ triggerWhen: $event })"
           />
         </AcuFormRow>
@@ -108,33 +108,33 @@
       <div class="acu-v2-plot-task-editor__toggles">
         <AcuToggle
           :model-value="task.agentControl.enabled"
-          :label="task.agentControl.enabled ? 'Agent 可控制此任务' : 'Agent 不控制此任务'"
+          :label="task.agentControl.enabled ? 'Agent có thể điều khiển tác vụ này' : 'Agent không điều khiển tác vụ này'"
           @update:model-value="patchAgentControl({ enabled: $event })"
         />
         <AcuToggle
           :model-value="task.agentControl.selectable"
-          label="允许 Agent 选择/跳过"
+          label="Cho phép Agent chọn/bỏ qua"
           @update:model-value="patchAgentControl({ selectable: $event })"
         />
         <AcuToggle
           :model-value="task.agentControl.defaultSelected"
-          label="Agent 无决策时默认选中"
+          label="Mặc định chọn khi Agent không quyết định"
           @update:model-value="patchAgentControl({ defaultSelected: $event })"
         />
         <AcuToggle
           :model-value="task.agentControl.allowSequential"
-          label="允许串联"
+          label="Cho phép nối chuỗi"
           @update:model-value="patchAgentControl({ allowSequential: $event })"
         />
         <AcuToggle
           :model-value="task.agentControl.allowParallel"
-          label="允许并行"
+          label="Cho phép chạy song song"
           @update:model-value="patchAgentControl({ allowParallel: $event })"
         />
       </div>
 
       <div class="acu-v2-plot-task-editor__grid">
-        <AcuFormRow label="偏好阶段" hint="Agent 排序参考；留空则不指定。">
+        <AcuFormRow label="Giai đoạn ưu tiên" hint="Tham chiếu sắp xếp của Agent; để trống thì không chỉ định.">
           <AcuInput
             type="number"
             :min="1"
@@ -143,7 +143,7 @@
             @change="patchAgentControl({ preferredStage: parseOptionalPositiveInteger($event) })"
           />
         </AcuFormRow>
-        <AcuFormRow label="偏好顺序" hint="阶段内排序参考；留空则不指定。">
+        <AcuFormRow label="Thứ tự ưu tiên" hint="Tham chiếu sắp xếp trong giai đoạn; để trống thì không chỉ định.">
           <AcuInput
             type="number"
             :min="0"
@@ -156,24 +156,24 @@
 
       <div class="acu-v2-plot-task-editor__grid acu-v2-plot-task-editor__grid--wide">
         <AcuFormRow
-          label="依赖任务 ID"
-          hint="逗号分隔。Agent 排序时应先执行这些任务；非法或循环依赖会在运行时校验。"
+          label="ID tác vụ phụ thuộc"
+          hint="Phân cách bằng dấu phẩy. Agent khi sắp xếp nên chạy các tác vụ này trước; phụ thuộc không hợp lệ hoặc vòng sẽ được kiểm tra lúc chạy."
         >
           <AcuInput
             type="text"
             :model-value="formatTaskIdList(task.agentControl.dependsOnTaskIds)"
-            placeholder="例如：recallTask, summaryTask"
+            placeholder="Ví dụ: recallTask, summaryTask"
             @change="patchAgentControl({ dependsOnTaskIds: parseTaskIdList($event) })"
           />
         </AcuFormRow>
         <AcuFormRow
-          label="阻塞任务 ID"
-          hint="逗号分隔。用于提示 Agent 此任务与哪些任务不应同时执行。"
+          label="ID tác vụ chặn"
+          hint="Phân cách bằng dấu phẩy. Dùng để báo Agent biết tác vụ này không nên chạy cùng với những tác vụ nào."
         >
           <AcuInput
             type="text"
             :model-value="formatTaskIdList(task.agentControl.blocksTaskIds)"
-            placeholder="例如：legacyRecallTask"
+            placeholder="Ví dụ: legacyRecallTask"
             @change="patchAgentControl({ blocksTaskIds: parseTaskIdList($event) })"
           />
         </AcuFormRow>
@@ -181,22 +181,22 @@
     </fieldset>
 
     <fieldset class="acu-v2-plot-task-editor__section">
-      <legend>当前任务使用的 API</legend>
+      <legend>API dùng cho tác vụ hiện tại</legend>
       <AcuFormRow
-        label="API 预设"
-        hint="单独为当前任务选择API预设，默认继承剧情推进页。优先级：任务 > 剧情推进页 > 活动 API。全局保存，不写入预设。"
+        label="Preset API"
+        hint="Chọn riêng preset API cho tác vụ hiện tại, mặc định kế thừa trang đẩy cốt truyện. Ưu tiên: tác vụ > trang đẩy cốt truyện > API đang dùng. Lưu toàn cục, không ghi vào preset."
       >
         <AcuSelect
           :options="taskApiSelectOptions"
           :model-value="taskApiOverride"
-          placeholder="继承剧情推进 API 预设"
+          placeholder="Kế thừa preset API đẩy cốt truyện"
           @update:model-value="$emit('task-api-override', $event)"
         />
       </AcuFormRow>
     </fieldset>
 
     <fieldset class="acu-v2-plot-task-editor__section">
-      <legend>提示词段（promptGroup）</legend>
+      <legend>Đoạn prompt (promptGroup)</legend>
       <PlotPromptSegments
         :segments="task.promptGroup"
         @add="$emit('segment-add', $event)"
@@ -207,7 +207,7 @@
     </fieldset>
   </div>
   <div v-else class="acu-v2-plot-task-editor__empty">
-    请在上方选择一个任务进行编辑。
+    Hãy chọn một tác vụ ở trên để chỉnh sửa.
   </div>
 </template>
 
@@ -242,7 +242,7 @@ const emit = defineEmits<{
 }>();
 
 const taskApiSelectOptions = computed<AcuSelectOption[]>(() => [
-  { value: "", label: "继承剧情推进 API 预设" },
+  { value: "", label: "Kế thừa preset API đẩy cốt truyện" },
   ...props.apiPresetOptions.map((o) => ({ value: o.name, label: o.name })),
 ]);
 

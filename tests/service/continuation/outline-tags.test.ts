@@ -179,12 +179,12 @@ describe('parseOutlineTags_ACU', () => {
   });
 
   it('fails with a raw snippet when no node tag exists', async () => {
-    await expectParseFailure_ACU('这是一段没有任何标签的散文，模型忘记了输出格式。', '模型返回片段：这是一段没有任何标签的散文');
-    await expectParseFailure_ACU('', '大纲返回为空');
+    await expectParseFailure_ACU('这是一段没有任何标签的散文，模型忘记了输出格式。', 'Đoạn mô hình trả về: 这是一段没有任何标签的散文');
+    await expectParseFailure_ACU('', 'Đầu ra dàn ý rỗng');
   });
 
   it('fails when a node has no non-empty turn', async () => {
-    await expectParseFailure_ACU('<node><node_goal>目标</node_goal><turn>   </turn></node>', '没有任何非空 <turn>');
+    await expectParseFailure_ACU('<node><node_goal>目标</node_goal><turn>   </turn></node>', 'không có thẻ <turn> không rỗng nào');
   });
 });
 
@@ -206,7 +206,7 @@ describe('buildStageOutlineFromTags_ACU', () => {
     expect(outline.goal).toBe('沿用目标');
     // 重规划时模型可以不重述阶段字段，此时沿用旧大纲；首次生成缺失则留给严格校验拒绝。
     expect(outline.tempo).toBe('surge');
-    expect(outline.nodes[0].title).toBe('节点1');
+    expect(outline.nodes[0].title).toBe('Nút 1');
     expect(buildStageOutlineFromTags_ACU(parsed, allocator_ACU()).tempo).toBeUndefined();
   });
 

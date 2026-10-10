@@ -1,5 +1,5 @@
 <template>
-  <nav :class="['acu-v2-sidebar', `acu-v2-sidebar--${variant}`]" aria-label="一级页导航">
+  <nav :class="['acu-v2-sidebar', `acu-v2-sidebar--${variant}`]" aria-label="Điều hướng trang cấp một">
     <div class="acu-v2-sidebar__brand">
       <img
         class="acu-v2-sidebar__brand-mark"
@@ -13,7 +13,7 @@
         <button
           type="button"
           class="acu-v2-sidebar__brand-title"
-          :aria-label="`${productDisplayName}（连续点击五次打开功能档位设置）`"
+          :aria-label="`${productDisplayName}(bấm liên tục năm lần để mở cài đặt cấp tính năng)`"
           @click="onBrandTitleClick"
         >{{ productDisplayName }}</button>
         <span class="acu-v2-sidebar__brand-tag">{{ uiMode.modeLabel }}</span>
@@ -83,13 +83,13 @@ const brandImages: Record<AcuUiTier, string> = {
 const brandClickCount = ref(0);
 let brandClickTimer: AcuTimerHandle | undefined;
 
-const HIGH_TIER_PHRASE = '开启高级功能';
+const HIGH_TIER_PHRASE = 'Bật tính năng nâng cao';
 const TIER_ORDER: readonly AcuUiTier[] = ['low', 'medium', 'high'];
 
 const tierDescriptions: Record<AcuUiTier, string> = {
-  low: '显示填表工作台、填表模式、剧情推进、API、数据管理与高级工具里的运行日志。剧情推进页按当前填表模式显示配置或说明。',
-  medium: '在轻量模式基础上再显示 Agent、智能续写与外部导入。',
-  high: '在进阶模式基础上再显示格林推演、正文替换、SQL 控制台与开发者选项。',
+  low: 'Hiển thị bàn làm việc điền bảng, chế độ điền bảng, đẩy cốt truyện, API, quản lý dữ liệu và nhật ký chạy trong công cụ nâng cao. Trang đẩy cốt truyện hiển thị cấu hình hoặc giải thích theo chế độ điền bảng hiện tại.',
+  medium: 'Ngoài chế độ gọn nhẹ, hiển thị thêm Agent, viết tiếp thông minh và nhập từ bên ngoài.',
+  high: 'Ngoài chế độ tiến cấp, hiển thị thêm Mô phỏng thế giới, thay thế nội dung, bảng điều khiển SQL và tùy chọn nhà phát triển.',
 };
 
 function resetBrandClickSequence(): void {
@@ -112,13 +112,13 @@ function onBrandTitleClick(): void {
 async function openTierDialog(): Promise<void> {
   const currentTier = uiMode.tier;
   const selected = await dialogStore.choose<AcuUiTier>({
-    title: '功能档位设置',
-    badge: { label: `当前：${ACU_UI_TIER_LABELS[currentTier]}`, variant: 'accent' },
+    title: 'Cài đặt cấp tính năng',
+    badge: { label: `Hiện tại: ${ACU_UI_TIER_LABELS[currentTier]}`, variant: 'accent' },
     message: [
       ...TIER_ORDER.map((tier) => `${ACU_UI_TIER_LABELS[tier]}：${tierDescriptions[tier]}`),
       '',
-      '如果你只是想要记忆功能，轻量模式已经足够，完全没有必要打开进阶或高级模式里的功能，也不需要对它们进行配置。',
-      '档位只影响界面显示，不会改变填表模式或已保存的参数。',
+      'Nếu bạn chỉ cần chức năng ghi nhớ thì chế độ gọn nhẹ là đủ, hoàn toàn không cần bật các tính năng của chế độ tiến cấp hay nâng cao, cũng không cần cấu hình chúng.',
+      'Cấp tính năng chỉ ảnh hưởng hiển thị giao diện, không thay đổi chế độ điền bảng hay các tham số đã lưu.',
     ].join('\n'),
     actions: TIER_ORDER.map((tier) => ({
       value: tier,
@@ -131,19 +131,19 @@ async function openTierDialog(): Promise<void> {
   // 只有切到高级模式需要倒计时与口令确认；轻量 / 进阶之间直接生效。
   if (selected === 'high') {
     const confirmed = await dialogStore.confirm({
-      title: '准备开启高级模式',
-      message: '高级模式会显示 SQL 控制台和开发者选项等入口。显示这些入口不会自动执行危险操作。',
-      confirmLabel: '继续',
+      title: 'Chuẩn bị bật chế độ nâng cao',
+      message: 'Chế độ nâng cao sẽ hiển thị các lối vào như bảng điều khiển SQL và tùy chọn nhà phát triển. Việc hiển thị này không tự động thực hiện thao tác nguy hiểm.',
+      confirmLabel: 'Tiếp tục',
       confirmVariant: 'danger',
       confirmCountdownSeconds: 2,
     });
     if (!confirmed) return;
     const phrase = await dialogStore.prompt({
-      title: '确认开启高级模式',
-      message: `请输入“${HIGH_TIER_PHRASE}”以完成解锁。`,
-      label: '确认短语',
+      title: 'Xác nhận bật chế độ nâng cao',
+      message: `Vui lòng nhập “${HIGH_TIER_PHRASE}” để hoàn tất mở khóa.`,
+      label: 'Cụm xác nhận',
       placeholder: HIGH_TIER_PHRASE,
-      confirmLabel: '解锁高级模式',
+      confirmLabel: 'Mở khóa chế độ nâng cao',
       confirmVariant: 'danger',
     });
     if (phrase !== HIGH_TIER_PHRASE) return;

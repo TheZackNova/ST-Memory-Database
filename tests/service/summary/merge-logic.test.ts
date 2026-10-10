@@ -195,7 +195,7 @@ describe('prepareAutoMergeBatches_ACU', () => {
       batchSize: 3,
       promptTemplate: '',
       isAutoMode: true,
-    })).toThrow('未找到纪要表');
+    })).toThrow('Không tìm thấy bảng kỷ yếu');
   });
   it('startIndex/endIndex 控制范围', () => {
     const result = prepareAutoMergeBatches_ACU({
@@ -267,7 +267,7 @@ describe('executeAutoMergeBatch_ACU', () => {
     await vi.runAllTimersAsync();
     await promise;
     expect(caughtError).not.toBeNull();
-    expect(caughtError!.message).toContain('均失败');
+    expect(caughtError!.message).toContain('đều thất bại');
   }, 30000);
 });
 

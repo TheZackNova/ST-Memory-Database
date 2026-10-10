@@ -164,7 +164,7 @@ describe('createDataAdminApi', () => {
     const result = await api.injectImportedSelected({ selectedSheetKeys: 'sheet_0' });
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('字符串数组');
+    expect(result.error).toContain('mảng chuỗi');
     expect(mockInjectImportedSelectedCore).not.toHaveBeenCalled();
   });
 

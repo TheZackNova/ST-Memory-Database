@@ -26,7 +26,7 @@ export function applyExitAssignments_ACU(chat: Record<string, unknown>[],
   for (const item of assignments) {
     const message = chat[item.messageIndex];
     if (!message || !ZERO_LAYER_EXIT_FIELDS_ACU.includes(item.field)) {
-      throw new ZeroLayerError_ACU('corrupt-data', '退出候选包含非法写入位置或字段。');
+      throw new ZeroLayerError_ACU('corrupt-data', 'Ứng viên thoát chứa vị trí hoặc trường ghi không hợp lệ.');
     }
     const value = item[side];
     if (value.exists) message[item.field] = structuredClone(value.value);

@@ -92,7 +92,7 @@ export function setFeatureApiPreset_ACU(
   if (normalized) {
     const preset = findPresetByName_ACU(settings_ACU.apiPresets, normalized);
     if (!preset) {
-      return { ok: false, code: 'not_found', changed: false, message: `API 预设 "${normalized}" 不存在。` };
+      return { ok: false, code: 'not_found', changed: false, message: `Preset API "${normalized}" không tồn tại.` };
     }
   }
 
@@ -107,7 +107,7 @@ export function setFeatureApiPreset_ACU(
     case 'plot_task': {
       const taskId = String(options.taskId || '').trim();
       if (!taskId) {
-        return { ok: false, code: 'invalid_input', changed: false, message: '任务 ID 不能为空。' };
+        return { ok: false, code: 'invalid_input', changed: false, message: 'ID tác vụ không được để trống.' };
       }
       if (normalized) {
         settings_ACU.plotTaskApiPresetOverridesById[taskId] = normalized;
@@ -133,7 +133,7 @@ export function setFeatureApiPreset_ACU(
       code: saveResult.code === 'settings_loading' ? 'settings_loading' : 'save_failed',
       changed: true,
       saveResult,
-      message: saveResult.warning || saveResult.error || '保存失败，已回滚。',
+      message: saveResult.warning || saveResult.error || 'Lưu thất bại, đã khôi phục.',
     };
   }
   logDebug_ACU(`[预设引用] ${target} 的 API 预设已更新: ${normalized || '(当前配置)'}`);

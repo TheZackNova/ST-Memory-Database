@@ -115,7 +115,7 @@ function taskFromRaw(raw: any, index = 0): PlotTaskDraft {
   const normalized = normalizePlotTask_ACU(raw, { index });
   return {
     id: String(normalized.id || `plotTask${index + 1}`),
-    name: String(normalized.name || `剧情任务${index + 1}`),
+    name: String(normalized.name || `Tác vụ cốt truyện ${index + 1}`),
     enabled: normalized.enabled !== false,
     promptGroup: cloneSegments(normalized.promptGroup),
     extractTags: typeof normalized.extractTags === 'string' ? normalized.extractTags : '',
@@ -142,7 +142,7 @@ function tasksFromRaw(rawList: any[]): PlotTaskDraft[] {
 function makeDefaultTask(index: number): PlotTaskDraft {
   return {
     id: `plotTask${Date.now()}`,
-    name: `剧情任务${index + 1}`,
+    name: `Tác vụ cốt truyện ${index + 1}`,
     enabled: true,
     promptGroup: cloneSegments(buildDefaultPlotPromptGroup_ACU()),
     extractTags: '',

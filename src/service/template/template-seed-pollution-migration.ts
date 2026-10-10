@@ -214,13 +214,13 @@ export function prepareSeedMigration_ACU(
   options: { isolationKey?: string; chat?: any[] } = {},
 ): PrepareSeedMigrationResult_ACU {
   if (!isSeedMigrationEnabled_ACU()) {
-    return { status: 'no_issue', isolationKey: options.isolationKey ?? getCurrentIsolationKey_ACU(), message: 'seed 迁移开关已关闭（诊断观察模式），不生成计划。' };
+    return { status: 'no_issue', isolationKey: options.isolationKey ?? getCurrentIsolationKey_ACU(), message: 'Công tắc di chuyển seed đã tắt (chế độ chỉ quan sát chẩn đoán), không tạo kế hoạch.' };
   }
   const chat = options.chat || getChatArray_ACU();
   const isolationKey = options.isolationKey ?? getCurrentIsolationKey_ACU();
   const guideData = getChatSheetGuideDataForIsolationKey_ACU(isolationKey);
   if (!guideData || typeof guideData !== 'object') {
-    return { status: 'no_issue', isolationKey, message: '当前聊天不存在 guide 数据，无需迁移。' };
+    return { status: 'no_issue', isolationKey, message: 'Cuộc trò chuyện hiện tại không có dữ liệu guide, không cần di chuyển.' };
   }
 
   const actions: SeedMigrationAction_ACU[] = [];
@@ -251,7 +251,7 @@ export function prepareSeedMigration_ACU(
   }
 
   if (!hasAction) {
-    return { status: 'no_issue', isolationKey, message: '当前 guide 无 seed 双池污染，无需迁移。' };
+    return { status: 'no_issue', isolationKey, message: 'guide hiện tại không bị nhiễm seed hai pool, không cần di chuyển.' };
   }
 
   const plan: SeedMigrationPlan_ACU = {
@@ -283,17 +283,17 @@ export async function commitSeedMigration_ACU(
   options: { confirm?: boolean } = {},
 ): Promise<SeedMigrationCommitResult_ACU> {
   if (!isSeedMigrationEnabled_ACU()) {
-    return { status: 'commit_failed_rolled_back', planId, error: 'seed 迁移开关已关闭（诊断观察模式），拒绝提交。' };
+    return { status: 'commit_failed_rolled_back', planId, error: 'Công tắc di chuyển seed đã tắt (chế độ chỉ quan sát chẩn đoán), từ chối gửi.' };
   }
   const plan = seedMigrationPlans_ACU.get(planId);
   const failure = (error: string): SeedMigrationCommitResult_ACU => ({ status: 'commit_failed_rolled_back', planId, error });
-  if (!plan) return failure('迁移计划不存在或已失效，请重新准备。');
+  if (!plan) return failure('Kế hoạch di chuyển không tồn tại hoặc đã mất hiệu lực, hãy chuẩn bị lại.');
   if (plan.requiresConfirmation && options.confirm !== true) {
-    return failure('迁移包含清理动作，必须显式确认（confirm: true）后才能执行。');
+    return failure('Di chuyển có thao tác dọn dẹp, phải xác nhận rõ ràng (confirm: true) mới thực thi được.');
   }
   if (!currentScopeMatches_ACU(plan)) {
     seedMigrationPlans_ACU.delete(planId);
-    return failure('迁移计划作用域已变化，请重新准备。');
+    return failure('Phạm vi kế hoạch di chuyển đã thay đổi, hãy chuẩn bị lại.');
   }
 
   const appliedActions: SeedMigrationAction_ACU[] = [];
@@ -308,7 +308,7 @@ export async function commitSeedMigration_ACU(
       return await ctx.runCommit(async () => {
         if (!currentScopeMatches_ACU(plan)) {
           seedMigrationPlans_ACU.delete(planId);
-          return failure('迁移计划作用域已变化，请重新准备。');
+          return failure('Phạm vi kế hoạch di chuyển đã thay đổi, hãy chuẩn bị lại.');
         }
 
         // 基于 plan.backup 重建修正后的 guide，保证幂等：重复 commit 以备份为基准重算，不叠加。
@@ -316,7 +316,7 @@ export async function commitSeedMigration_ACU(
         const guideData = (baseGuide?.tags?.[plan.isolationKey]?.data) ?? null;
         if (!guideData || typeof guideData !== 'object') {
           seedMigrationPlans_ACU.delete(planId);
-          return failure('备份 guide 数据缺失，无法执行迁移。');
+          return failure('Thiếu dữ liệu guide sao lưu, không thể thực hiện di chuyển.');
         }
         const nextGuide = clone_ACU(guideData);
         const runtimeData: any = (globalThis as any).currentJsonTableData_ACU ?? (globalThis as any).__currentJsonTableData_ACU;
@@ -348,13 +348,13 @@ export async function commitSeedMigration_ACU(
           presetName: String((globalThis as any).currentTemplatePresetName_ACU ?? ''),
         });
         if (!saved) {
-          return failure('guide 写入被拒绝（normalize 失败或空数据），已回滚内存。');
+          return failure('Ghi guide bị từ chối (normalize thất bại hoặc dữ liệu rỗng), đã khôi phục bộ nhớ.');
         }
         try {
           await saveChatToHostStrict_ACU();
         } catch (error) {
           plan.chat.splice(0, plan.chat.length, ...beforeChat);
-          return failure(`宿主保存失败，已恢复内存聊天：${getErrorMessage_ACU(error)}`);
+          return failure(`Host lưu thất bại, đã khôi phục cuộc trò chuyện trong bộ nhớ: ${getErrorMessage_ACU(error)}`);
         }
 
         seedMigrationPlans_ACU.delete(planId);
@@ -371,7 +371,7 @@ export async function commitSeedMigration_ACU(
     if (expectedStorageMode === 'sqlite') {
       await reloadStorageProvider();
       if (didSqliteFallbackAfterReload_ACU(expectedStorageMode)) {
-        throw new Error('SQLite 运行时重载后已静默回退到 native provider。');
+        throw new Error('Sau khi tải lại runtime SQLite đã âm thầm quay về native provider.');
       }
     }
     return commitResult;
@@ -386,13 +386,13 @@ export async function commitSeedMigration_ACU(
  */
 export async function rollbackSeedMigration_ACU(planId: string): Promise<SeedMigrationCommitResult_ACU> {
   if (!isSeedMigrationEnabled_ACU()) {
-    return { status: 'commit_failed_rolled_back', planId, error: 'seed 迁移开关已关闭（诊断观察模式），拒绝回滚。' };
+    return { status: 'commit_failed_rolled_back', planId, error: 'Công tắc di chuyển seed đã tắt (chế độ chỉ quan sát chẩn đoán), từ chối khôi phục.' };
   }
   const plan = seedMigrationPlans_ACU.get(planId);
-  if (!plan) return { status: 'commit_failed_rolled_back', planId, error: '迁移计划不存在或已失效。' };
+  if (!plan) return { status: 'commit_failed_rolled_back', planId, error: 'Kế hoạch di chuyển không tồn tại hoặc đã mất hiệu lực.' };
   if (!currentScopeMatches_ACU(plan)) {
     seedMigrationPlans_ACU.delete(planId);
-    return { status: 'commit_failed_rolled_back', planId, error: '迁移计划作用域已变化，无法回滚。' };
+    return { status: 'commit_failed_rolled_back', planId, error: 'Phạm vi kế hoạch di chuyển đã thay đổi, không thể khôi phục.' };
   }
 
   const beforeChat = clone_ACU(plan.chat);
@@ -406,7 +406,7 @@ export async function rollbackSeedMigration_ACU(planId: string): Promise<SeedMig
     seedMigrationPlans_ACU.delete(planId);
   } catch (error) {
     plan.chat.splice(0, plan.chat.length, ...beforeChat);
-    return { status: 'commit_failed_rolled_back', planId, error: `回滚保存失败，已恢复内存：${getErrorMessage_ACU(error)}` };
+    return { status: 'commit_failed_rolled_back', planId, error: `Lưu khôi phục thất bại, đã khôi phục bộ nhớ: ${getErrorMessage_ACU(error)}` };
   }
 
   try {
@@ -415,7 +415,7 @@ export async function rollbackSeedMigration_ACU(planId: string): Promise<SeedMig
     }
     return { status: 'committed', planId, error: 'rollback_applied' };
   } catch (error) {
-    return { status: 'committed_postcondition_failed', planId, error: `回滚后 reload 失败：${getErrorMessage_ACU(error)}` };
+    return { status: 'committed_postcondition_failed', planId, error: `Reload sau khi khôi phục thất bại: ${getErrorMessage_ACU(error)}` };
   }
 }
 

@@ -1008,7 +1008,7 @@ describe('runPlotTasksRuntime_ACU', () => {
     expect(mockCallApiWithPlotPreset).toHaveBeenCalledTimes(1);
     expect(result.successfulResults).toHaveLength(1);
     expect(result.apiRetriesExhausted).not.toBe(true);
-    expect(reportWarning).toHaveBeenCalledWith('世界书绿灯清理异常，继续剧情任务。');
+    expect(reportWarning).toHaveBeenCalledWith('Dọn dẹp đèn xanh Sổ thế giới gặp lỗi, tiếp tục tác vụ cốt truyện.');
   });
 
   it('清绿灯条目更新失败时提示并继续本轮剧情任务', async () => {
@@ -1082,7 +1082,7 @@ describe('runPlotTasksRuntime_ACU', () => {
     expect(result.successfulResults).toHaveLength(1);
     expect(result.apiRetriesExhausted).not.toBe(true);
     expect(mockCallApiWithPlotPreset).toHaveBeenCalledTimes(1);
-    expect(reportWarning).toHaveBeenCalledWith('世界书绿灯清理未完成，继续剧情任务。');
+    expect(reportWarning).toHaveBeenCalledWith('Dọn dẹp đèn xanh Sổ thế giới chưa hoàn tất, tiếp tục tác vụ cốt truyện.');
   });
 
   it('清绿灯预检 failed 时继续且不泄露宿主正文或堆栈到提示', async () => {
@@ -1578,7 +1578,7 @@ describe('runPlotTasksRuntime_ACU', () => {
     expect(result.apiRetriesExhausted).not.toBe(true);
     expect(mockCallApiWithPlotPreset).toHaveBeenCalledTimes(1);
     if (outcome === 'exception') {
-      expect(reportWarning).toHaveBeenCalledWith('正文世界书绿灯写入异常，保留剧情结果并继续。');
+      expect(reportWarning).toHaveBeenCalledWith('Ghi đèn xanh Sổ thế giới cho nội dung chính gặp lỗi, giữ kết quả cốt truyện và tiếp tục.');
    }
     const availabilityReadContext = mockResolveAgentWorldbookFilterAvailability.mock.calls[0][0];
     const decisionReadContext = mockRunAgentDecisionForPlot.mock.calls[0][0].sharedContext.worldbookReadContext;
@@ -2489,16 +2489,16 @@ describe('runPlotTasksRuntime_ACU', () => {
     expect(firstMessages).toEqual([{ role: 'user', content: 'tag-retry-prompt' }]);
     expect(retryMessages.slice(0, -1)).toEqual(firstMessages);
     expect(retryMessages.at(-1)).toMatchObject({ role: 'system' });
-    expect(retryMessages.at(-1).content).toContain('第 2/3 次尝试');
-    expect(retryMessages.at(-1).content).toContain(`实际 ${shortResponse.length}，最低要求 100`);
-    expect(retryMessages.at(-1).content).toContain('不要编造记忆或事实');
-    expect(retryMessages.at(-1).content).not.toContain('未提取到');
+    expect(retryMessages.at(-1).content).toContain('lần thử thứ 2/3');
+    expect(retryMessages.at(-1).content).toContain(`thực tế ${shortResponse.length}, yêu cầu tối thiểu 100`);
+    expect(retryMessages.at(-1).content).toContain('đừng bịa ký ức hay sự thật');
+    expect(retryMessages.at(-1).content).not.toContain('không trích xuất được');
     expect(finalMessages.slice(0, -1)).toEqual(firstMessages);
     expect(finalMessages).toHaveLength(2);
-    expect(finalMessages.at(-1).content).toContain('第 3/3 次尝试');
-    expect(finalMessages.at(-1).content).toContain('未提取到任何完整闭合的配置标签（可选：plot、unused、memory）');
-    expect(finalMessages.at(-1).content).toContain('至少完整闭合一对配置标签');
-    expect(finalMessages.at(-1).content).toContain('无需补齐所有配置标签');
+    expect(finalMessages.at(-1).content).toContain('lần thử thứ 3/3');
+    expect(finalMessages.at(-1).content).toContain('không trích xuất được thẻ cấu hình nào được đóng đầy đủ (tùy chọn: plot, unused, memory)');
+    expect(finalMessages.at(-1).content).toContain('đóng đầy đủ ít nhất một cặp thẻ cấu hình');
+    expect(finalMessages.at(-1).content).toContain('không cần bổ sung tất cả thẻ cấu hình');
     expect(finalMessages.at(-1).content).not.toContain(`实际 ${shortResponse.length}，最低要求 100`);
     expect(finalMessages.at(-1).content).not.toContain('回复长度不足');
     expect(mockExtractPlotTagsFromResponse).toHaveBeenCalledTimes(2);
@@ -2548,11 +2548,11 @@ describe('runPlotTasksRuntime_ACU', () => {
     expect(mockCallApiWithPlotPreset.mock.calls[0][0]).toHaveLength(1);
     expect(retryMessages).toHaveLength(2);
     expect(retryMessages.at(-1)).toMatchObject({ role: 'system' });
-    expect(retryMessages.at(-1).content).toContain('未提取到任何完整闭合的配置标签（可选：plot）');
-    expect(retryMessages.at(-1).content).toContain('至少完整闭合一对配置标签');
+    expect(retryMessages.at(-1).content).toContain('không trích xuất được thẻ cấu hình nào được đóng đầy đủ (tùy chọn: plot)');
+    expect(retryMessages.at(-1).content).toContain('đóng đầy đủ ít nhất một cặp thẻ cấu hình');
     expect(retryMessages.at(-1).content).toContain('<plot></plot>');
-    expect(retryMessages.at(-1).content).toContain('保留对应的闭合空标签');
-    expect(retryMessages.at(-1).content).toContain('不要只补写残片');
+    expect(retryMessages.at(-1).content).toContain('giữ thẻ rỗng đã đóng tương ứng');
+    expect(retryMessages.at(-1).content).toContain('đừng chỉ viết thêm mảnh vụn');
     expect(mockCallApiWithPlotPreset.mock.calls.some((call: any[]) => call[0][0].content === 'stage-2-continue')).toBe(false);
     expect(mockSetTempPlotToSave).not.toHaveBeenCalled();
   });
@@ -2586,21 +2586,21 @@ describe('runPlotTasksRuntime_ACU', () => {
 
   it.each([
     { kind: 'success', expected: '' },
-    { kind: 'empty', expected: '上一轮没有返回非空文本' },
-    { kind: 'extraction', expected: '标签提取发生异常' },
-    { kind: 'api', error: { status: 401 }, expected: '鉴权或访问权限失败（HTTP 401）' },
-    { kind: 'api', error: { status: 403 }, expected: '鉴权或访问权限失败（HTTP 403）' },
-    { kind: 'api', error: { status: 408 }, expected: '请求超时（HTTP 408）' },
-    { kind: 'api', error: { status: 504 }, expected: '请求超时（HTTP 504）' },
-    { kind: 'api', error: { status: 413 }, expected: '请求体超过服务允许的大小（HTTP 413）' },
-    { kind: 'api', error: { status: 429 }, expected: '限流或配额受限（HTTP 429）' },
-    { kind: 'api', error: { status: 503 }, expected: '服务端异常（HTTP 503）' },
-    { kind: 'api', error: { status: 400 }, expected: '拒绝了请求（HTTP 400）' },
-    { kind: 'api', error: { code: 'API_PRESET_UNRESOLVED' }, expected: '预设无法解析' },
-    { kind: 'api', error: { name: 'TimeoutError' }, expected: '请求超时，未取得有效响应' },
-    { kind: 'api', error: { name: 'AbortError' }, expected: '被上游中断' },
-    { kind: 'api', error: { name: 'TypeError' }, expected: '网络或传输异常' },
-    { kind: 'api', error: {}, expected: '具体原因尚未确认' },
+    { kind: 'empty', expected: 'lượt trước không trả về văn bản không rỗng' },
+    { kind: 'extraction', expected: 'việc trích xuất thẻ của phản hồi lượt trước gặp lỗi' },
+    { kind: 'api', error: { status: 401 }, expected: 'Xác thực hoặc quyền truy cập API thất bại (HTTP 401)' },
+    { kind: 'api', error: { status: 403 }, expected: 'Xác thực hoặc quyền truy cập API thất bại (HTTP 403)' },
+    { kind: 'api', error: { status: 408 }, expected: 'Yêu cầu API hết thời gian (HTTP 408)' },
+    { kind: 'api', error: { status: 504 }, expected: 'Yêu cầu API hết thời gian (HTTP 504)' },
+    { kind: 'api', error: { status: 413 }, expected: 'Phần thân yêu cầu API vượt quá kích thước dịch vụ cho phép (HTTP 413)' },
+    { kind: 'api', error: { status: 429 }, expected: 'giới hạn tốc độ hoặc hết hạn mức (HTTP 429)' },
+    { kind: 'api', error: { status: 503 }, expected: 'Lỗi phía máy chủ API (HTTP 503)' },
+    { kind: 'api', error: { status: 400 }, expected: 'API đã từ chối yêu cầu (HTTP 400)' },
+    { kind: 'api', error: { code: 'API_PRESET_UNRESOLVED' }, expected: 'Không thể phân tích preset API' },
+    { kind: 'api', error: { name: 'TimeoutError' }, expected: 'Yêu cầu API hết thời gian, chưa nhận được phản hồi hợp lệ' },
+    { kind: 'api', error: { name: 'AbortError' }, expected: 'bị ngắt từ phía thượng nguồn' },
+    { kind: 'api', error: { name: 'TypeError' }, expected: 'lỗi mạng hoặc truyền tải' },
+    { kind: 'api', error: {}, expected: 'nguyên nhân cụ thể chưa được xác nhận' },
   ])('未配置标签时按长度验收，重试区分 $kind：$expected', async ({ kind, error, expected }) => {
     const plotSettings = {
       tasks: [{
@@ -2640,12 +2640,12 @@ describe('runPlotTasksRuntime_ACU', () => {
       expect(retryMessages.slice(0, -1)).toEqual(firstMessages);
       expect(retryMessages).toHaveLength(2);
       expect(retryMessages.at(-1)).toMatchObject({ role: 'system' });
-      expect(retryMessages.at(-1).content).toContain('失败原因：');
+      expect(retryMessages.at(-1).content).toContain('Nguyên nhân thất bại: ');
       expect(retryMessages.at(-1).content).toContain(expected);
-      expect(retryMessages.at(-1).content).toContain(kind === 'api' ? '处理要求：' : '修正要求：');
+      expect(retryMessages.at(-1).content).toContain(kind === 'api' ? 'Yêu cầu xử lý: ' : 'Yêu cầu sửa: ');
       expect(JSON.stringify(retryMessages)).not.toContain(sensitiveText);
       expect(JSON.stringify(mockLogWarn.mock.calls)).not.toContain(sensitiveText);
-      if (kind === 'api') expect(retryMessages.at(-1).content).toContain('不是回复内容验收失败');
+      if (kind === 'api') expect(retryMessages.at(-1).content).toContain('không phải nội dung phản hồi không qua nghiệm thu');
       expect(mockAbortableDelay).toHaveBeenCalledTimes(1);
     }
   });

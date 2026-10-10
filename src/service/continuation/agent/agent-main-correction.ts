@@ -8,11 +8,11 @@ export function renderAgentCorrectionGuide_ACU(conversation: AgentConversationSn
   const users = conversation.messages.filter(message => message.kind === 'user');
   const user = users[users.length - 1];
   return [
-    '【主会话纠正权限】可用 correct_materials 的 sql 直接纠正 hooks、info_gap、chronology、story_arc；按正文证据和当前修订号提交，只有 committed 回执证明保存。不能写用户要求、结算水位或其它表。',
-    '用户明确要求跳过旧历史、从指定 AI 楼层开始时，单独给 settlementStartIndex（包含该楼）、userMessageId 与 reason。不得仅因容量失败自行跳过。旧缺口保留为跳过记录，不算已结算；成功后再 open_round，不重发同一超限范围。',
-    'hooks 只写 summary、status、importance、planted_index、planned_payoff；recent_floor 不写，expected_revision 只用于 WHERE。错误操作已拒绝不等于业务资料损坏；只有回执 operationOnlyConfirmed 明确核实的同一条目才能无业务修改收口，不能靠一句无变化清除真实缺栏。',
-    `最新真实用户消息 ID：${user?.id ?? '无'}；模块修订号：${JSON.stringify(snapshot.revisions)}。`,
-    snapshot.settlementBoundary ? `当前追溯起点：${snapshot.settlementBoundary.startIndex}；此前历史未结算。` : '',
+    '【主会话纠正权限】Có thể dùng sql của correct_materials để trực tiếp chỉnh hooks, info_gap, chronology, story_arc; nộp theo bằng chứng chính văn và số hiệu chỉnh hiện tại, chỉ biên nhận committed mới chứng minh đã lưu. Không được ghi yêu cầu người dùng, mức nước quyết toán hay các bảng khác.',
+    'Khi người dùng rõ ràng yêu cầu bỏ qua lịch sử cũ và bắt đầu từ tầng AI chỉ định, hãy đưa riêng settlementStartIndex (bao gồm tầng đó), userMessageId và reason. Không được tự bỏ qua chỉ vì thất bại về dung lượng. Chỗ thiếu cũ được giữ làm bản ghi bỏ qua, không tính là đã quyết toán; thành công rồi mới open_round, không gửi lại cùng phạm vi vượt giới hạn.',
+    'hooks chỉ ghi summary, status, importance, planted_index, planned_payoff; không ghi recent_floor, expected_revision chỉ dùng trong WHERE. Thao tác sai đã bị từ chối không có nghĩa là tư liệu nghiệp vụ hỏng; chỉ mục cùng được biên nhận operationOnlyConfirmed xác minh rõ ràng mới có thể khép lại mà không sửa nghiệp vụ, không thể chỉ dựa một câu "không có thay đổi" để xóa chỗ thiếu cột thật.',
+    `ID tin nhắn người dùng thật mới nhất: ${user?.id ?? 'không có'}; số hiệu chỉnh mô-đun: ${JSON.stringify(snapshot.revisions)}.`,
+    snapshot.settlementBoundary ? `Điểm truy ngược hiện tại: ${snapshot.settlementBoundary.startIndex}; lịch sử trước đó chưa quyết toán.` : '',
   ].filter(Boolean).join('\n');
 }
 
@@ -40,9 +40,9 @@ export async function correctAgentMaterials_ACU(input: {
   const dispatchTarget = { message: target, swipeId: readMessageSwipeId_ACU(target) };
   const current = () => input.isCurrent() && storage.isActive(chat) && chat.length - 1 === targetIndex
     && chat[targetIndex] === target && readMessageSwipeId_ACU(target) === dispatchTarget.swipeId;
-  if (!current() || !agentStoryEvidenceFloorIndexes_ACU(chat).has(targetIndex)) return reject('当前聊天或承载正文楼层不可用');
+  if (!current() || !agentStoryEvidenceFloorIndexes_ACU(chat).has(targetIndex)) return reject('Cuộc trò chuyện hiện tại hoặc tầng chính văn chứa nó không khả dụng');
   let folded = storage.readFold(chat);
-  if (folded.salvaged || folded.candidates.some(item => !item.valid)) return reject('资料帧损坏，不能在抢救结果上纠正');
+  if (folded.salvaged || folded.candidates.some(item => !item.valid)) return reject('Khung tư liệu bị hỏng, không thể chỉnh sửa trên kết quả cứu hộ');
   const revisionWindow: AgentModuleRevisionWindow_ACU = {};
   for (const module of ['hooks', 'infoGap', 'chronology', 'storyArc'] as const) {
     revisionWindow[module] = { base: folded.snapshot.revisions[module], head: folded.snapshot.revisions[module] };
@@ -50,9 +50,9 @@ export async function correctAgentMaterials_ACU(input: {
   if (action.settlementStartIndex !== undefined) {
     const users = input.conversation.messages.filter(message => message.kind === 'user');
     const user = users[users.length - 1];
-    if (!user || user.id !== action.userMessageId) return reject('追溯起点必须依据最新真实用户消息');
-    if (!agentStoryEvidenceFloorIndexes_ACU(chat).has(action.settlementStartIndex)) return reject('追溯起点必须是已存在的 AI 正文楼层');
-    if (action.settlementStartIndex < (folded.snapshot.settlementBoundary?.startIndex ?? 0)) return reject('不能把已跳过历史隐式恢复为待结算，请先明确恢复范围');
+    if (!user || user.id !== action.userMessageId) return reject('Điểm truy ngược phải dựa trên tin nhắn người dùng thật mới nhất');
+    if (!agentStoryEvidenceFloorIndexes_ACU(chat).has(action.settlementStartIndex)) return reject('Điểm truy ngược phải là tầng chính văn AI đã tồn tại');
+    if (action.settlementStartIndex < (folded.snapshot.settlementBoundary?.startIndex ?? 0)) return reject('Không thể ngầm khôi phục lịch sử đã bỏ qua thành chờ quyết toán, hãy nêu rõ phạm vi khôi phục trước');
   }
   if (action.sql) {
     sqlReceipt = await commitAgentModuleFieldWrites_ACU({ chat, targetIndex, dispatchTarget,
@@ -63,9 +63,9 @@ export async function correctAgentMaterials_ACU(input: {
       && sqlReceipt.rejected.every(item => operationPaths.has(item.path));
     if (sqlReceipt.status !== 'committed' && !operationOnly) return { status: sqlReceipt.status, sqlReceipt };
     folded = storage.readFold(chat);
-    if (!current() || folded.salvaged || folded.candidates.some(item => !item.valid)) return reject('纠正后权威资料状态无法确认');
+    if (!current() || folded.salvaged || folded.candidates.some(item => !item.valid)) return reject('Không thể xác nhận trạng thái tư liệu chuẩn sau khi chỉnh sửa');
     if (operationOnly && sqlReceipt.operationOnlyConfirmed?.some(proof => folded.snapshot.revisions[proof.module] !== proof.revision)) {
-      return reject('系统字段操作核实后资料版本已变化，不能关闭旧问题');
+      return reject('Sau khi xác minh thao tác trường hệ thống, phiên bản tư liệu đã thay đổi, không thể đóng vấn đề cũ');
     }
   }
   const before = folded.snapshot;
@@ -94,7 +94,7 @@ export async function correctAgentMaterials_ACU(input: {
       if (!skipped.some(item => JSON.stringify(item) === JSON.stringify(historical))) skipped.push(historical);
       if (fix.rangeEndIndex >= startIndex) active.push({ ...fix, rangeStartIndex: startIndex });
     }
-    if (skipped.length > 128) return reject('跳过记录超过可保存上限，未改变追溯起点');
+    if (skipped.length > 128) return reject('Bản ghi bỏ qua vượt giới hạn có thể lưu, chưa thay đổi điểm truy ngược');
     pendingFixes = active;
     settlementBoundary = { startIndex, userMessageId: action.userMessageId!, reason: action.reason, updatedAt: now, skippedPendingFixes: skipped };
   }

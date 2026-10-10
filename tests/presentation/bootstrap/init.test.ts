@@ -1130,7 +1130,7 @@ describe('发送前处理楼层生命周期', () => {
     expect(JSON.stringify(vi.mocked(logError_ACU).mock.calls)).not.toContain(finalMessage);
     expect(JSON.stringify(vi.mocked(logError_ACU).mock.calls)).not.toContain('敏感载荷');
     const { showToastr_ACU } = await import('../../../src/presentation/theme/toast');
-    expect(showToastr_ACU).toHaveBeenCalledWith('warning', '剧情最终指令未能写入输入框，正文发送已停止。', '剧情推进');
+    expect(showToastr_ACU).toHaveBeenCalledWith('warning', 'Chỉ thị cuối của cốt truyện chưa ghi được vào ô nhập, đã dừng gửi nội dung chính.', 'Đẩy cốt truyện');
   });
 
   it.each(['textarea', 'floor'])('伪装建不起来（%s）时按解除伪装继续：原文留在输入框，规划照常沿原请求发送', async failure => {
@@ -1333,7 +1333,7 @@ describe('向量模式宿主普通发送', () => {
     expect(m.input).toBe('下一轮草稿');
     expect(m.processBeforeGen.mock.calls[0][0].signal.aborted).toBe(true);
     const { showToastr_ACU } = await import('../../../src/presentation/theme/toast');
-    expect(showToastr_ACU).toHaveBeenCalledWith('error', '纪要召回失败，本次生成已停止。', '向量表格');
+    expect(showToastr_ACU).toHaveBeenCalledWith('error', 'Truy hồi kỷ yếu thất bại, đã dừng lần tạo này.', 'Bảng vector');
     expect(m.generate).not.toHaveBeenCalled();
     expect(m.beginDisguise).not.toHaveBeenCalled();
     expect(m.hostEmit).not.toHaveBeenCalledWith('deleted', expect.anything());

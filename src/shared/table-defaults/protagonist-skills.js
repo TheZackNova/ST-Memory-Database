@@ -5,11 +5,11 @@ export const protagonistSkillsSheet = {
   uid: "sheet_lEARaBa8",
   name: "主角技能表",
   sourceData: {
-    note: "记录主角获得的所有技能项目。（列号为 0 基，与表格数据中的列标一致）\n- 列0: 技能名称 - 技能的名称，不得与表中已有技能重名。\n- 列1: 技能类型 - 技能的类别（如：\u201C被动\u201D、\u201C主动\u201D）。\n- 列2: 等级/阶段 - 技能的当前等级或阶段。\n- 列3: 效果描述 - 技能在当前等级下的具体效果。",
-    initNode: "游戏初始化时，根据设定为主角添加初始技能。",
-    deleteNode: "技能因剧情被剥夺或替换时删除。\nSQL示例: DELETE FROM protagonist_skills WHERE skill_name = '被剥夺的技能';",
-    updateNode: "已有技能被升级时更新其等级/阶段和效果描述。\nSQL示例: UPDATE protagonist_skills SET skill_level = 'Lv.3', effect_desc = '新效果描述' WHERE skill_name = '火球术';",
-    insertNode: "主角获得新的技能时添加。\nSQL示例: INSERT INTO protagonist_skills (skill_name, skill_type, skill_level, effect_desc) VALUES ('新技能', '主动', 'Lv.1', '效果描述');",
+    note: "Ghi lại tất cả kỹ năng mà nhân vật chính có được. (Số cột đánh số từ 0, khớp với chỉ số cột trong dữ liệu bảng)\n- Cột 0: 技能名称 (Tên kỹ năng) - Tên của kỹ năng, không được trùng với kỹ năng đã có trong bảng.\n- Cột 1: 技能类型 (Loại kỹ năng) - Loại của kỹ năng (ví dụ: \u201C被动\u201D, \u201C主动\u201D).\n- Cột 2: 等级/阶段 (Cấp độ/Giai đoạn) - Cấp độ hoặc giai đoạn hiện tại của kỹ năng.\n- Cột 3: 效果描述 (Mô tả hiệu quả) - Hiệu quả cụ thể của kỹ năng ở cấp độ hiện tại.",
+    initNode: "Khi khởi tạo game, dựa theo thiết lập để thêm kỹ năng ban đầu cho nhân vật chính.",
+    deleteNode: "Xóa khi kỹ năng bị tước đoạt hoặc thay thế vì cốt truyện.\nVí dụ SQL: DELETE FROM protagonist_skills WHERE skill_name = 'Kỹ năng bị tước đoạt';",
+    updateNode: "Cập nhật cấp độ/giai đoạn và mô tả hiệu quả khi kỹ năng đã có được nâng cấp.\nVí dụ SQL: UPDATE protagonist_skills SET skill_level = 'Lv.3', effect_desc = 'Mô tả hiệu quả mới' WHERE skill_name = 'Hỏa cầu thuật';",
+    insertNode: "Thêm khi nhân vật chính có được kỹ năng mới.\nVí dụ SQL: INSERT INTO protagonist_skills (skill_name, skill_type, skill_level, effect_desc) VALUES ('Kỹ năng mới', '主动', 'Lv.1', 'Mô tả hiệu quả');",
     ddl: `CREATE TABLE protagonist_skills ( -- 主角技能表
   row_id INTEGER PRIMARY KEY, -- 行号
   skill_name TEXT NOT NULL UNIQUE, -- 技能名称

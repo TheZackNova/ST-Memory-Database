@@ -48,7 +48,7 @@ const DEFAULT_DURATION_BY_KIND: Record<ToastKind, number> = {
 };
 
 const DEFAULT_MAX_ITEMS = 4;
-const DEFAULT_TASK_FEATURE = "任务";
+const DEFAULT_TASK_FEATURE = "Tác vụ";
 
 let nextToastId = 1;
 const dismissTimers = new Map<string, AcuTimerHandle>();

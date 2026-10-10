@@ -95,13 +95,13 @@ import { _acuVisState } from './visualizer';
                       <span class="acu-table-name" title="${escapeHtml_ACU(sheet.name)}">${escapeHtml_ACU(sheet.name)}</span>
                   </div>
                   <div class="acu-table-nav-actions">
-                      <button class="acu-table-order-btn acu-move-up-btn" data-key="${key}" title="上移" ${isFirst ? 'disabled' : ''}>
+                      <button class="acu-table-order-btn acu-move-up-btn" data-key="${key}" title="Lên" ${isFirst ? 'disabled' : ''}>
                           <i class="fa-solid fa-chevron-up"></i>
                       </button>
-                      <button class="acu-table-order-btn acu-move-down-btn" data-key="${key}" title="下移" ${isLast ? 'disabled' : ''}>
+                      <button class="acu-table-order-btn acu-move-down-btn" data-key="${key}" title="Xuống" ${isLast ? 'disabled' : ''}>
                           <i class="fa-solid fa-chevron-down"></i>
                       </button>
-                      <button class="acu-vis-del-table-btn" data-key="${key}" title="删除表格">
+                      <button class="acu-vis-del-table-btn" data-key="${key}" title="Xóa bảng">
                       <i class="fa-solid fa-trash"></i>
                   </button>
                   </div>
@@ -132,8 +132,8 @@ import { _acuVisState } from './visualizer';
           $item.find('.acu-vis-del-table-btn').on('click', function(e) {
               e.stopPropagation();
               const keyToDelete = jQuery_API_ACU(this).data('key');
-              const tableName = _acuVisState.tempData[keyToDelete] ? _acuVisState.tempData[keyToDelete].name : '未知';
-              if (confirm(`确定要删除表格 "${tableName}" 吗？此操作不可撤销。\n\n注意：删除后保存，该表格的数据和模板配置都将被移除。`)) {
+              const tableName = _acuVisState.tempData[keyToDelete] ? _acuVisState.tempData[keyToDelete].name : 'Không rõ';
+              if (confirm(`Xác nhận xóa bảng "${tableName}"? Thao tác này không thể hoàn tác.\n\nLưu ý: sau khi xóa và lưu, dữ liệu và cấu hình mẫu của bảng này đều sẽ bị gỡ bỏ.`)) {
                   // 记录删除队列：保存时会追溯整个聊天记录清除所有本地表格数据
                   if (!_acuVisState.deletedSheetKeys || !Array.isArray(_acuVisState.deletedSheetKeys)) {
                       _acuVisState.deletedSheetKeys = [];
@@ -159,20 +159,20 @@ import { _acuVisState } from './visualizer';
       // 新增表格按钮
       const $addBtn = jQuery_API_ACU(`
           <button class="acu-add-table-btn">
-              <i class="fa-solid fa-plus"></i> 新增表格
+              <i class="fa-solid fa-plus"></i> Thêm bảng
           </button>
       `);
 
       $addBtn.on('click', function() {
-          const newName = prompt("请输入新表格的名称:", "新建表格");
+          const newName = prompt("Nhập tên của bảng mới:", "Bảng mới");
           if (newName) {
               const newKey = 'sheet_' + Math.random().toString(36).substr(2, 9);
               _acuVisState.tempData[newKey] = {
                   uid: newKey,
                   name: newName,
                   domain: "chat", type: "dynamic", enable: true, required: false,
-                  content: [[null, "列1", "列2"]],
-                  sourceData: { note: "新表格说明", initNode: "", insertNode: "", updateNode: "", deleteNode: "" },
+                  content: [[null, "Cột 1", "Cột 2"]],
+                  sourceData: { note: "Mô tả bảng mới", initNode: "", insertNode: "", updateNode: "", deleteNode: "" },
                   // -1 = 沿用UI全局（新版默认）；updateFrequency=0 可用于"禁用该表自动更新"；groupId=-1 视为默认同组
                   updateConfig: { uiSentinel: -1, contextDepth: -1, updateFrequency: -1, batchSize: -1, skipFloors: -1, sendLatestRows: -1, groupId: -1 },
                   exportConfig: buildDefaultExportConfig_ACU(newName),

@@ -43,5 +43,5 @@ export function renderStopButton_ACU(id: string, label: string): string {
  * 生成正文替换 toast 中的"重新优化"按钮 HTML
  */
 export function renderReoptButton_ACU(): string {
-  return `<button id="acu-opt-toast-reoptimize" style="border: 1px solid var(--acu-accent, #7d4940); color: var(--acu-accent, #7d4940); background: transparent; padding: 5px 10px; border-radius: 1px; cursor: pointer; float: right; margin-left: 15px; font-size: 0.85em; font-family: inherit;" onmouseover="this.style.backgroundColor='var(--acu-accent, #7d4940)'; this.style.color='var(--acu-bg-0, #24221f)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--acu-accent, #7d4940)';">🔄 重新优化</button>`;
+  return `<button id="acu-opt-toast-reoptimize" style="border: 1px solid var(--acu-accent, #7d4940); color: var(--acu-accent, #7d4940); background: transparent; padding: 5px 10px; border-radius: 1px; cursor: pointer; float: right; margin-left: 15px; font-size: 0.85em; font-family: inherit;" onmouseover="this.style.backgroundColor='var(--acu-accent, #7d4940)'; this.style.color='var(--acu-bg-0, #24221f)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--acu-accent, #7d4940)';">🔄 Tối ưu lại</button>`;
 }

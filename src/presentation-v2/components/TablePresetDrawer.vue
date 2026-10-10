@@ -9,7 +9,7 @@
 
     <div class="acu-v2-table-drawer__top-actions">
       <AcuButton variant="primary" :disabled="busy" @click="$emit('create-blank')">
-        <i class="fa-solid fa-plus"></i> 从默认新建
+        <i class="fa-solid fa-plus"></i> Tạo mới từ mặc định
       </AcuButton>
     </div>
 
@@ -18,36 +18,36 @@
         <div class="acu-v2-manage-item__info">
           <AcuText as="span" variant="list-title" class="acu-v2-manage-item__name">{{ meta.label ?? meta.name }}</AcuText>
           <AcuText as="span" variant="caption" class="acu-v2-manage-item__meta">
-            <template v-if="meta.kind === 'runtime'">{{ meta.meta ?? '当前生效（内存）' }}</template>
-            <template v-else-if="meta.name === defaultPresetName">全局默认</template>
-            <template v-else>全局预设</template>
+            <template v-if="meta.kind === 'runtime'">{{ meta.meta ?? 'Đang có hiệu lực (bộ nhớ)' }}</template>
+            <template v-else-if="meta.name === defaultPresetName">Mặc định toàn cục</template>
+            <template v-else>Preset toàn cục</template>
           </AcuText>
         </div>
         <div class="acu-v2-manage-item__actions">
           <template v-if="meta.kind === 'runtime'">
             <!-- 只读 runtime 项：仅导出，不渲染 star/rename/edit/delete -->
-            <AcuIconButton icon="fa-solid fa-upload" title="导出当前生效模板" :disabled="busy" @click="$emit('export', meta.name)" />
+            <AcuIconButton icon="fa-solid fa-upload" title="Xuất mẫu đang có hiệu lực" :disabled="busy" @click="$emit('export', meta.name)" />
           </template>
           <template v-else>
             <AcuIconButton
               :icon="meta.name === defaultPresetName ? 'fa-solid fa-star' : 'fa-regular fa-star'"
-              title="设为全局默认"
+              title="Đặt làm mặc định toàn cục"
               :variant="meta.name === defaultPresetName ? 'accent' : 'default'"
               :disabled="busy"
               @click="$emit('set-default', meta.name)"
             />
-            <AcuIconButton icon="fa-solid fa-upload" title="导出 JSON" :disabled="busy" @click="$emit('export', meta.name)" />
-            <AcuIconButton icon="fa-solid fa-i-cursor" title="重命名" :disabled="busy" @click="$emit('rename', meta.name)" />
-            <AcuIconButton icon="fa-solid fa-pen" title="编辑（打开可视化表格编辑器）" :disabled="busy" @click="$emit('edit', meta.name)" />
-            <AcuIconButton icon="fa-solid fa-trash-can" variant="danger" title="删除" :disabled="busy" @click="$emit('delete', meta.name)" />
+            <AcuIconButton icon="fa-solid fa-upload" title="Xuất JSON" :disabled="busy" @click="$emit('export', meta.name)" />
+            <AcuIconButton icon="fa-solid fa-i-cursor" title="Đổi tên" :disabled="busy" @click="$emit('rename', meta.name)" />
+            <AcuIconButton icon="fa-solid fa-pen" title="Sửa (mở trình chỉnh sửa bảng trực quan)" :disabled="busy" @click="$emit('edit', meta.name)" />
+            <AcuIconButton icon="fa-solid fa-trash-can" variant="danger" title="Xóa" :disabled="busy" @click="$emit('delete', meta.name)" />
           </template>
         </div>
       </li>
     </ul>
-    <AcuText v-else variant="empty" class="acu-v2-table-drawer__empty">暂无全局预设。点击上方"从默认新建"，或使用面板下拉栏右侧的导入按钮创建。</AcuText>
+    <AcuText v-else variant="empty" class="acu-v2-table-drawer__empty">Chưa có preset toàn cục. Bấm "Tạo mới từ mặc định" ở trên, hoặc dùng nút nhập bên phải danh sách thả của bảng để tạo.</AcuText>
 
     <AcuText variant="hint" class="acu-v2-table-drawer__hint">
-      提示：表格模板的实际内容、表头与表级参数仍在「可视化表格编辑器」中编辑。点击行内的"编辑"会先把当前聊天切换到该预设，然后打开编辑器。
+      Gợi ý: nội dung thực tế, tiêu đề cột và tham số cấp bảng của mẫu bảng vẫn được sửa trong «Trình chỉnh sửa bảng trực quan». Bấm "Sửa" trên hàng sẽ chuyển cuộc trò chuyện hiện tại sang preset này rồi mở trình chỉnh sửa.
     </AcuText>
   </AcuDrawer>
 </template>

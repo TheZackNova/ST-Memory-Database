@@ -143,7 +143,7 @@ import { resetPlotAgentWorldbookSessionSnapshot_ACU } from '../agent/agent-world
   function warnMissingInjectionTarget_ACU(name: string): void {
     if (warnedMissingInjectionTargets_ACU.has(name)) return;
     warnedMissingInjectionTargets_ACU.add(name);
-    const message = `注入目标世界书「${name}」不存在，本次注入已跳过。请在设置中重新选择。`;
+    const message = `Sổ thế giới đích để chèn "${name}" không tồn tại, lần chèn này đã bị bỏ qua. Hãy chọn lại trong Cài đặt.`;
     logWarn_ACU(`[Worldbook] ${message}`);
     try {
       notify_ACU('warning', message);

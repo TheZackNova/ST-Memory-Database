@@ -56,7 +56,7 @@ describe('AutoCardUpdaterAPI 格林推演 / 智能续写 / 功能开关', () => 
     expect(api.getLedger()).toEqual({ revision: 3 });
     expect(api.getUserRequirements()).toBe('只推演北境');
     h.sim.envelope = null;
-    await expect(api.updateSettings({})).rejects.toThrow('还没有格林推演资料');
+    await expect(api.updateSettings({})).rejects.toThrow('chưa có dữ liệu mô phỏng thế giới');
     await expect(createFeatureRuntimeApi_ACU().worldSimulation.updateSettings([] as any)).rejects.toThrow();
   });
 
@@ -80,7 +80,7 @@ describe('AutoCardUpdaterAPI 格林推演 / 智能续写 / 功能开关', () => 
     expect(h.notify).toHaveBeenCalledOnce();
     features.set('autoUpdateEnabled', false);
     expect(h.setAutoUpdate).toHaveBeenCalledWith(false);
-    expect(() => features.set('unknownToggle', true)).toThrow('不支持的功能开关');
-    expect(() => features.set('desktopPetEnabled', 'yes')).toThrow('true 或 false');
+    expect(() => features.set('unknownToggle', true)).toThrow('Công tắc chức năng không được hỗ trợ');
+    expect(() => features.set('desktopPetEnabled', 'yes')).toThrow('true hoặc false');
   });
 });

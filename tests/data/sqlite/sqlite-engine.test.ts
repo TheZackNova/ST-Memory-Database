@@ -46,17 +46,17 @@ describe('SqliteEngine', () => {
 
     it('未初始化时调用 query 抛出错误', () => {
       const freshEngine = new SqliteEngine();
-      expect(() => freshEngine.query('SELECT 1')).toThrow('未初始化');
+      expect(() => freshEngine.query('SELECT 1')).toThrow('chưa được khởi tạo');
     });
 
     it('未初始化时调用 run 抛出错误', () => {
       const freshEngine = new SqliteEngine();
-      expect(() => freshEngine.run('SELECT 1')).toThrow('未初始化');
+      expect(() => freshEngine.run('SELECT 1')).toThrow('chưa được khởi tạo');
     });
 
     it('未初始化时调用 runBatch 抛出错误', () => {
       const freshEngine = new SqliteEngine();
-      expect(() => freshEngine.runBatch(['SELECT 1'])).toThrow('未初始化');
+      expect(() => freshEngine.runBatch(['SELECT 1'])).toThrow('chưa được khởi tạo');
     });
   });
 
@@ -167,7 +167,7 @@ describe('SqliteEngine', () => {
         "INSERT INTO test VALUES (2, '李四');",
         "INSERT INTO test VALUES (1, '重复');",  // 主键冲突
         "INSERT INTO test VALUES (3, '王五');",
-      ])).toThrow('第 2 条语句失败');
+      ])).toThrow('Câu lệnh thứ 2 thất bại');
 
       // 事务回滚，只有最初的张三
       const query = engine.query('SELECT COUNT(*) FROM test;');
@@ -183,7 +183,7 @@ describe('SqliteEngine', () => {
         ]);
         expect.unreachable('应该抛出错误');
       } catch (e: any) {
-        expect(e.message).toContain('第 2 条语句失败');
+        expect(e.message).toContain('Câu lệnh thứ 2 thất bại');
         expect(e.message).toContain('nonexistent_table');
       }
     });
@@ -287,7 +287,7 @@ describe('SqliteEngine', () => {
     });
 
     it('非法表名抛出错误', () => {
-      expect(() => engine.getTableInfo('DROP TABLE; --')).toThrow('非法表名');
+      expect(() => engine.getTableInfo('DROP TABLE; --')).toThrow('Tên bảng không hợp lệ');
     });
 
     it('不存在的表返回空数组', () => {
@@ -313,7 +313,7 @@ describe('SqliteEngine', () => {
     });
 
     it('非法表名抛出错误', () => {
-      expect(() => engine.getTableDDL('1invalid')).toThrow('非法表名');
+      expect(() => engine.getTableDDL('1invalid')).toThrow('Tên bảng không hợp lệ');
     });
   });
 

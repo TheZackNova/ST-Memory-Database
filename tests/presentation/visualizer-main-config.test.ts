@@ -183,26 +183,26 @@ describe('validateDDLText', () => {
   it('空字符串返回警告', () => {
     const result = validateDDLText('', headers);
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('DDL 为空');
+    expect(result.message).toContain('DDL trống');
   });
 
   it('null 返回警告', () => {
     const result = validateDDLText(null as any, headers);
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('DDL 为空');
+    expect(result.message).toContain('DDL trống');
   });
 
   it('纯空白返回警告', () => {
     const result = validateDDLText('   \n\t  ', headers);
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('DDL 为空');
+    expect(result.message).toContain('DDL trống');
   });
 
   // ─── 无 CREATE TABLE ───
   it('不是 CREATE TABLE 语句', () => {
     const result = validateDDLText('ALTER TABLE inventory ADD COLUMN x TEXT;', headers);
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('不是有效的 CREATE TABLE 语句');
+    expect(result.message).toContain('Không phải câu lệnh CREATE TABLE hợp lệ');
   });
 
   // ─── 无 row_id ───
@@ -210,7 +210,7 @@ describe('validateDDLText', () => {
     const ddl = 'CREATE TABLE inventory (id INTEGER PRIMARY KEY, 物品名 TEXT);';
     const result = validateDDLText(ddl, headers);
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('缺少 row_id INTEGER PRIMARY KEY');
+    expect(result.message).toContain('Thiếu cột row_id INTEGER PRIMARY KEY');
   });
 
   // ─── 列名不匹配 ───
@@ -218,21 +218,21 @@ describe('validateDDLText', () => {
     const ddl = 'CREATE TABLE inventory (row_id INTEGER PRIMARY KEY, 物品名 TEXT, 数量 INTEGER, 描述 TEXT, 额外列 TEXT);';
     const result = validateDDLText(ddl, headers);
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('列数不匹配');
+    expect(result.message).toContain('Số cột không khớp');
   });
 
   it('表头多出列', () => {
     const ddl = 'CREATE TABLE inventory (row_id INTEGER PRIMARY KEY, 物品名 TEXT);';
     const result = validateDDLText(ddl, ['row_id', '物品名', '数量']);
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('列数不匹配');
+    expect(result.message).toContain('Số cột không khớp');
   });
 
   it('DDL 和表头都有多出', () => {
     const ddl = 'CREATE TABLE inventory (row_id INTEGER PRIMARY KEY, 物品名 TEXT, 额外列 TEXT);';
     const result = validateDDLText(ddl, ['row_id', '物品名', '数量']);
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('第 2 列不匹配');
+    expect(result.message).toContain('Cột thứ 2 không khớp');
   });
 
   // ─── 空表头 ───
@@ -240,7 +240,7 @@ describe('validateDDLText', () => {
     const ddl = 'CREATE TABLE inventory (row_id INTEGER PRIMARY KEY);';
     const result = validateDDLText(ddl, []);
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('表头为空');
+    expect(result.message).toContain('Hàng tiêu đề cột trống');
   });
 
   it('null 占位表头 + 有效 DDL（只有 row_id）通过', () => {
@@ -306,8 +306,8 @@ describe('validateDDLText', () => {
     const result = validateDDLText(ddl, ['row_id', 'HP/RP', 'EN']);
 
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('第 1 列不匹配');
-    expect(result.message).toContain('第 2 列不匹配');
+    expect(result.message).toContain('Cột thứ 1 không khớp');
+    expect(result.message).toContain('Cột thứ 2 không khớp');
   });
 
   it('ASCII 展示表头不会仅凭大小写差异匹配物理列名', () => {
@@ -329,8 +329,8 @@ describe('validateDDLText', () => {
     const result = validateDDLText(ddl, ['row_id', 'EN', 'HP/RP']);
 
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('第 1 列不匹配');
-    expect(result.message).toContain('第 2 列不匹配');
+    expect(result.message).toContain('Cột thứ 1 không khớp');
+    expect(result.message).toContain('Cột thứ 2 không khớp');
   });
 
   it('英文物理列名缺少中文注释时校验失败', () => {
@@ -342,6 +342,6 @@ describe('validateDDLText', () => {
     );`;
     const result = validateDDLText(ddl, headers);
     expect(result.valid).toBe(false);
-    expect(result.message).toContain('第 1 列不匹配');
+    expect(result.message).toContain('Cột thứ 1 không khớp');
   });
 });

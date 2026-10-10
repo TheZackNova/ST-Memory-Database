@@ -71,12 +71,12 @@ function call_ACU(overrides: Partial<AgentSearchCall_ACU> = {}): AgentSearchCall
 describe('五域搜索', () => {
   it('每条命中附带可直接复制进 read 的读取地址', () => {
     const result = runAgentSearch_ACU(call_ACU(), context_ACU());
-    expect(result).toContain('读取地址 $STORY_RANGE:1-1');
-    expect(result).toContain('读取地址 $STORY_RANGE:2-2');
-    expect(result).toContain('读取地址 $TABLE:角色表:1-1');
-    expect(result).toContain('读取地址 $HOOKS_LEDGER:H1');
-    expect(result).toContain('读取地址 $OUTLINE_WINDOW');
-    expect(result).toContain('读取地址 $WORLDBOOK:设定集:7');
+    expect(result).toContain('địa chỉ đọc $STORY_RANGE:1-1');
+    expect(result).toContain('địa chỉ đọc $STORY_RANGE:2-2');
+    expect(result).toContain('địa chỉ đọc $TABLE:角色表:1-1');
+    expect(result).toContain('địa chỉ đọc $HOOKS_LEDGER:H1');
+    expect(result).toContain('địa chỉ đọc $OUTLINE_WINDOW');
+    expect(result).toContain('địa chỉ đọc $WORLDBOOK:设定集:7');
     // 用户楼层不是正文，不进搜索。
     expect(result).not.toContain('我要进禁区');
   });
@@ -108,15 +108,15 @@ describe('五域搜索', () => {
     expect(byAnchor).toContain('$CHRONOLOGY:T1');
     expect(runAgentSearch_ACU(call_ACU({ query: '约十七日', scope: ['modules'] }), context)).toContain('$CHRONOLOGY:T1');
     expect(runAgentSearch_ACU(call_ACU({ query: '休整七日', scope: ['modules'] }), context)).toContain('$CHRONOLOGY:T1');
-    expect(runAgentSearch_ACU(call_ACU({ query: '证据楼层=1、2', scope: ['modules'] }), context)).toContain('$CHRONOLOGY:T1');
+    expect(runAgentSearch_ACU(call_ACU({ query: 'tầng bằng chứng=1, 2', scope: ['modules'] }), context)).toContain('$CHRONOLOGY:T1');
     const retired = runAgentSearch_ACU(call_ACU({ query: '证据被删除', scope: ['modules'] }), context);
-    expect(retired).toContain('[T0]（已作废）');
+    expect(retired).toContain('[T0] (đã vô hiệu)');
     expect(retired).toContain('$CHRONOLOGY:T0');
   });
 
   it('退休模块条目也可被搜到并标注状态', () => {
     const result = runAgentSearch_ACU(call_ACU({ query: '低语', scope: ['modules'] }), context_ACU());
-    expect(result).toContain('[H2]（已退休）');
+    expect(result).toContain('[H2] (đã cho nghỉ)');
     expect(result).toContain('$HOOKS_LEDGER:H2');
   });
 
@@ -129,29 +129,29 @@ describe('五域搜索', () => {
 
   it('默认按字面关键词匹配（正则元字符被转义），isRegex 打开后按正则', () => {
     const literal = runAgentSearch_ACU(call_ACU({ query: '晶屑.', scope: ['story'] }), context_ACU());
-    expect(literal).toContain('没有命中');
+    expect(literal).toContain('không có kết quả khớp');
     const regex = runAgentSearch_ACU(call_ACU({ query: '晶屑.', scope: ['story'], isRegex: true }), context_ACU());
-    expect(regex).toContain('命中');
+    expect(regex).toContain('khớp');
   });
 
   it('非法正则返回可修正的编译失败说明而不是抛错', () => {
     const result = runAgentSearch_ACU(call_ACU({ query: '([未闭合', isRegex: true }), context_ACU());
-    expect(result).toContain('编译失败');
-    expect(result).toContain('去掉 isRegex');
+    expect(result).toContain('biên dịch thất bại');
+    expect(result).toContain('bỏ isRegex');
   });
 
   it('无命中时给出可执行的调整建议', () => {
     const result = runAgentSearch_ACU(call_ACU({ query: '不存在的词汇' }), context_ACU());
-    expect(result).toContain('没有命中');
+    expect(result).toContain('không có kết quả khớp');
     // 无命中指引：更早剧情走事件概览与纪要表行区间，不再有独立的纪要域。
-    expect(result).toContain('事件概览');
+    expect(result).toContain('tổng quan sự kiện');
     expect(result).toContain('$TABLE:纪要表');
   });
 
   it('达到条数上限时停止收集并如实标注截断', () => {
     const result = runAgentSearch_ACU(call_ACU({ maxResults: 2 }), context_ACU());
-    expect(result).toContain('命中 2 处');
-    expect(result).toContain('结果已截断');
+    expect(result).toContain('khớp 2 chỗ');
+    expect(result).toContain('Kết quả đã bị cắt');
   });
 });
 

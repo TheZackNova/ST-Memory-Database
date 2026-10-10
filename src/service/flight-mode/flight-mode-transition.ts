@@ -122,7 +122,7 @@ function isPlainObject_ACU(value: unknown): value is Record<string, any> {
 }
 
 function describeError_ACU(error: any): string {
-  return String(error?.message || error || '未知错误');
+  return String(error?.message || error || 'Lỗi không xác định');
 }
 
 function readPendingEnable_ACU(): FlightModePendingEnable_ACU | null {
@@ -213,7 +213,7 @@ export async function enableFlightMode_ACU(): Promise<FlightModeTransitionResult
           archive: { ...pending.archive, enabledTemplateStr: getCurrentEffectiveTemplateText_ACU() || undefined },
         });
       } catch (error: any) {
-        return { ok: false, reason: 'state_persist_failed', error: `经典表格模式开关状态保存失败：${describeError_ACU(error)}` };
+        return { ok: false, reason: 'state_persist_failed', error: `Lưu trạng thái công tắc chế độ bảng cổ điển thất bại: ${describeError_ACU(error)}` };
       }
       setSpecialIndexLockEnabled_ACU(existing.key, false);
       return { ok: true, reason: 'recovered_pending_enable', visibleChronicleRowCount: check.visibleChronicleRowCount };
@@ -252,7 +252,7 @@ export async function enableFlightMode_ACU(): Promise<FlightModeTransitionResult
     await saveChatToHostStrict_ACU();
   } catch (error: any) {
     updateScopedContainer_ACU(container => setPendingEnableSlot_ACU(container, null));
-    return { ok: false, reason: 'commit_failed', error: `启用前归档保存失败：${describeError_ACU(error)}` };
+    return { ok: false, reason: 'commit_failed', error: `Lưu bản lưu trữ trước khi bật thất bại: ${describeError_ACU(error)}` };
   }
 
   const committed: any = await applyChatTemplateSnapshotWithReconciliation_ACU(nextTemplate, {
@@ -289,7 +289,7 @@ export async function enableFlightMode_ACU(): Promise<FlightModeTransitionResult
       ok: false,
       reason: 'state_persist_failed',
       visibleChronicleRowCount: check.visibleChronicleRowCount,
-      error: `大总结表已写入，但经典表格模式开关状态保存失败：${describeError_ACU(error)}。下次打开对话会自动补完。`,
+      error: `Bảng tóm tắt lớn đã được ghi, nhưng lưu trạng thái công tắc chế độ bảng cổ điển thất bại: ${describeError_ACU(error)}. Lần mở cuộc trò chuyện tới sẽ tự động hoàn tất phần còn lại.`,
     };
   }
   setSpecialIndexLockEnabled_ACU(resolved.key, false);
@@ -315,7 +315,7 @@ export async function disableFlightMode_ACU(options: DisableFlightModeOptions_AC
     return {
       ok: false,
       reason: 'restore_archive_missing',
-      error: '飞行模式缺少可验证的启用前模板归档，无法安全恢复纪要配置并删除大总结表。',
+      error: 'Chế độ máy bay thiếu bản lưu trữ mẫu trước khi bật có thể kiểm chứng, không thể khôi phục cấu hình kỷ yếu và xóa bảng tóm tắt lớn một cách an toàn.',
     };
   }
 
@@ -351,7 +351,7 @@ export async function disableFlightMode_ACU(options: DisableFlightModeOptions_AC
       bigSummarySheetKey: bigSummaryKey,
     }, options.fillMode || 'llm');
   } catch (error: any) {
-    return { ok: false, reason: 'state_persist_failed', error: `模板已恢复，但经典表格模式开关状态保存失败：${describeError_ACU(error)}` };
+    return { ok: false, reason: 'state_persist_failed', error: `Mẫu đã được khôi phục, nhưng lưu trạng thái công tắc chế độ bảng cổ điển thất bại: ${describeError_ACU(error)}` };
   }
   deleteTableLocksForSheet_ACU(bigSummaryKey);
   return { ok: true };

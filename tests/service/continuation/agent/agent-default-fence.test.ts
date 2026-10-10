@@ -140,7 +140,7 @@ describe('批次内 60% 默认上围栏分配', () => {
     expect(upper).toBeLessThan(9);
     // 注入正文 = 收窄地址独立解析的全文 + 如实标注，不是对原正文的截断。
     expect(read.text.endsWith(`\n${resolve(read.address).text}`)).toBe(true);
-    expect(read.text).toContain(`原地址「$STORY_RANGE:1-9」`);
+    expect(read.text).toContain(`Địa chỉ gốc "$STORY_RANGE:1-9"`);
     for (let floor = 1; floor <= 9; floor += 2) {
       if (floor <= upper) expect(read.text).toContain(floorText_ACU(floor));
       else expect(read.text).not.toContain(floorText_ACU(floor));

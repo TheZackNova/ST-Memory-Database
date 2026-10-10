@@ -369,23 +369,23 @@ describe('DataMgmtPage', () => {
     const page = document.querySelector('.acu-v2-data-mgmt-page');
     expect(page).not.toBeNull();
     const text = page!.textContent || '';
-    expect(document.querySelector('.acu-v2-app__page-title')?.textContent?.trim()).toBe('数据管理');
-    expect(text).toContain('备份与恢复');
-    expect(text).toContain('删除与清理');
-    expect(text).toContain('当前聊天 Checkpoint');
-    expect(text).not.toContain('数据隔离');
-    expect(text).not.toContain('删除当前标识注入条目');
-    expect(text).not.toContain('SQLite 运行时诊断');
-    expect(text).not.toContain('加载序号');
-    expect(text).not.toContain('删除当前标识本地数据');
-    expect(text).not.toContain('合并导入（模板+指令）');
+    expect(document.querySelector('.acu-v2-app__page-title')?.textContent?.trim()).toBe('Quản lý dữ liệu');
+    expect(text).toContain('Sao lưu và khôi phục');
+    expect(text).toContain('Xóa và dọn dẹp');
+    expect(text).toContain('Checkpoint của cuộc trò chuyện hiện tại');
+    expect(text).not.toContain('Cô lập dữ liệu');
+    expect(text).not.toContain('Xóa mục chèn của định danh hiện tại');
+    expect(text).not.toContain('Chẩn đoán runtime SQLite');
+    expect(text).not.toContain('Số thứ tự tải');
+    expect(text).not.toContain('Xóa dữ liệu cục bộ của định danh hiện tại');
+    expect(text).not.toContain('Nhập gộp (mẫu + chỉ dẫn)');
     // V2 恢复入口不受 legacy UI 开关控制：写入门闸的错误文案会把用户引导到这里。
-    expect(text).toContain('扫描全部 V2 隔离域');
-    expect(text).toContain('诊断 V2 数据恢复');
-    expect(text).not.toContain('交火模式索引管理');
-    expect(text).not.toContain('删除当前交火索引');
-    expect(text).not.toContain('清空临时缓存');
-    expect(text).toContain('全局旧隔离标签清理');
+    expect(text).toContain('Quét tất cả miền cô lập V2');
+    expect(text).toContain('Chẩn đoán khôi phục dữ liệu V2');
+    expect(text).not.toContain('Quản lý chỉ mục chế độ giao hỏa');
+    expect(text).not.toContain('Xóa chỉ mục giao hỏa hiện tại');
+    expect(text).not.toContain('Xóa bộ nhớ đệm tạm');
+    expect(text).toContain('Dọn nhãn cô lập cũ toàn cục');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -419,9 +419,9 @@ describe('DataMgmtPage', () => {
     const rightTitles = Array.from(columns[1].querySelectorAll<HTMLElement>('.acu-panel__title'))
       .map(title => title.textContent?.trim() || '');
 
-    expect(leftTitles).toEqual(['备份与恢复']);
+    expect(leftTitles).toEqual(['Sao lưu và khôi phục']);
     // 休眠数据面板已移除：切回含该表/列的模板即自动唤醒（协调器 reveal 链路），无需单独入口。
-    expect(rightTitles).toEqual(['删除与清理']);
+    expect(rightTitles).toEqual(['Xóa và dọn dẹp']);
 
     mount.__resetAcuV2MountForTests();
   });
@@ -430,15 +430,15 @@ describe('DataMgmtPage', () => {
     const { mount } = await mountDataMgmtPage();
 
     const cleanupPanel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-data-mgmt-page .acu-panel'))
-      .find(el => el.querySelector('.acu-panel__title')?.textContent?.includes('删除与清理'))!;
+      .find(el => el.querySelector('.acu-panel__title')?.textContent?.includes('Xóa và dọn dẹp'))!;
     const sectionTitles = Array.from(cleanupPanel.querySelectorAll<HTMLElement>('.acu-v2-data-mgmt-page__section-title'))
       .map(title => title.textContent?.trim() || '');
 
-    expect(sectionTitles).toEqual(['自动清理', '手动删除']);
-    expect(cleanupPanel.textContent || '').toContain('保留数据层数');
-    expect(cleanupPanel.textContent || '').not.toContain('删除当前标识本地数据');
-    expect(cleanupPanel.textContent || '').toContain('恢复默认配置');
-    expect(cleanupPanel.textContent || '').toContain('全局旧隔离标签清理');
+    expect(sectionTitles).toEqual(['Dọn dẹp tự động', 'Xóa thủ công']);
+    expect(cleanupPanel.textContent || '').toContain('Số tầng dữ liệu giữ lại');
+    expect(cleanupPanel.textContent || '').not.toContain('Xóa dữ liệu cục bộ của định danh hiện tại');
+    expect(cleanupPanel.textContent || '').toContain('Khôi phục cấu hình mặc định');
+    expect(cleanupPanel.textContent || '').toContain('Dọn nhãn cô lập cũ toàn cục');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -447,14 +447,14 @@ describe('DataMgmtPage', () => {
     const { mount, cleanupLegacyIsolation } = await mountDataMgmtPage();
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('全局旧隔离标签清理'));
+      .find(item => item.textContent?.includes('Dọn nhãn cô lập cũ toàn cục'));
     expect(button).not.toBeUndefined();
     button!.click();
     await new Promise(r => setTimeout(r, 0));
     expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('alpha、beta');
-    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('不会删除聊天正文');
+    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('Không xóa nội dung chat');
 
-    await clickDialogButton('取消');
+    await clickDialogButton('Hủy');
     expect(cleanupLegacyIsolation).not.toHaveBeenCalled();
 
     mount.__resetAcuV2MountForTests();
@@ -464,15 +464,15 @@ describe('DataMgmtPage', () => {
     const { mount, cleanupLegacyIsolation, settings } = await mountDataMgmtPage();
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('全局旧隔离标签清理'));
+      .find(item => item.textContent?.includes('Dọn nhãn cô lập cũ toàn cục'));
     button!.click();
-    await clickDialogButton('清理旧隔离标签');
+    await clickDialogButton('Dọn nhãn cô lập cũ');
     await new Promise(r => setTimeout(r, 0));
 
     expect(cleanupLegacyIsolation).toHaveBeenCalledOnce();
     expect(settings.dataIsolationCode).toBe('');
     expect(settings.dataIsolationEnabled).toBe(false);
-    expect(toastText('success')).toContain('已清理 2 个旧隔离标签');
+    expect(toastText('success')).toContain('Đã dọn 2 nhãn cô lập cũ');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -483,7 +483,7 @@ describe('DataMgmtPage', () => {
 
     expect(document.querySelector('.acu-v2-data-mgmt-page .acu-page-header')).toBeNull();
     const globalTitle = document.querySelector('.acu-v2-app__page-title');
-    expect(globalTitle?.textContent?.trim()).toBe('数据管理');
+    expect(globalTitle?.textContent?.trim()).toBe('Quản lý dữ liệu');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -497,11 +497,11 @@ describe('DataMgmtPage', () => {
     const { mount, deleteLocalDataWithScope } = await mountDataMgmtPage();
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('删除所有本地数据'));
+      .find(item => item.textContent?.includes('Xóa tất cả dữ liệu cục bộ'));
     expect(button).not.toBeUndefined();
     button!.click();
-    await clickDialogButton('删除所有本地数据');
-    await clickDialogButton('确认硬清空');
+    await clickDialogButton('Xóa tất cả dữ liệu cục bộ');
+    await clickDialogButton('Xác nhận xóa sạch cứng');
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
 
@@ -515,10 +515,10 @@ describe('DataMgmtPage', () => {
     const { mount, deleteLocalDataWithScope, loadOrCreate, reloadStorageProvider } = await mountDataMgmtPage();
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('删除所有本地数据'));
+      .find(item => item.textContent?.includes('Xóa tất cả dữ liệu cục bộ'));
     button!.click();
-    await clickDialogButton('删除所有本地数据');
-    await clickDialogButton('确认硬清空');
+    await clickDialogButton('Xóa tất cả dữ liệu cục bộ');
+    await clickDialogButton('Xác nhận xóa sạch cứng');
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
 
@@ -533,10 +533,10 @@ describe('DataMgmtPage', () => {
     const { mount, deleteLocalDataWithScope, cleanupWorldbook } = await mountDataMgmtPage();
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('删除所有本地数据'));
+      .find(item => item.textContent?.includes('Xóa tất cả dữ liệu cục bộ'));
     button!.click();
-    await clickDialogButton('删除所有本地数据');
-    await clickDialogButton('确认硬清空');
+    await clickDialogButton('Xóa tất cả dữ liệu cục bộ');
+    await clickDialogButton('Xác nhận xóa sạch cứng');
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
 
@@ -551,10 +551,10 @@ describe('DataMgmtPage', () => {
     deleteLocalDataWithScope.mockResolvedValueOnce({ path: 'purge', result: { saved: false, clearedMessageCount: 0, removedMetadata: [], error: '当前聊天记录为空。' } });
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('删除所有本地数据'));
+      .find(item => item.textContent?.includes('Xóa tất cả dữ liệu cục bộ'));
     button!.click();
-    await clickDialogButton('删除所有本地数据');
-    await clickDialogButton('确认硬清空');
+    await clickDialogButton('Xóa tất cả dữ liệu cục bộ');
+    await clickDialogButton('Xác nhận xóa sạch cứng');
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
 
@@ -572,14 +572,14 @@ describe('DataMgmtPage', () => {
     });
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('删除所有本地数据'));
+      .find(item => item.textContent?.includes('Xóa tất cả dữ liệu cục bộ'));
     button!.click();
-    await clickDialogButton('删除所有本地数据');
-    await clickDialogButton('确认硬清空');
+    await clickDialogButton('Xóa tất cả dữ liệu cục bộ');
+    await clickDialogButton('Xác nhận xóa sạch cứng');
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
 
-    expect(toastText('warning')).toContain('本地数据已全部硬清空');
+    expect(toastText('warning')).toContain('Toàn bộ dữ liệu cục bộ đã bị hard clear');
     expect(document.body.textContent || '').toContain('世界书清理失败');
 
     mount.__resetAcuV2MountForTests();
@@ -589,13 +589,13 @@ describe('DataMgmtPage', () => {
     const { mount, deleteLocalDataWithScope } = await mountDataMgmtPage();
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('删除所有本地数据'));
+      .find(item => item.textContent?.includes('Xóa tất cả dữ liệu cục bộ'));
     button!.click();
-    await clickDialogButton('删除所有本地数据');
+    await clickDialogButton('Xóa tất cả dữ liệu cục bộ');
     // 第二级点取消（关闭对话框）
     const layer = document.querySelector<HTMLElement>('.acu-dialog-layer');
     const cancelButton = Array.from(layer!.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('取消'));
+      .find(item => item.textContent?.includes('Hủy'));
     expect(cancelButton).toBeDefined();
     cancelButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -609,16 +609,16 @@ describe('DataMgmtPage', () => {
     const { mount, deleteLocalDataWithScope, loadOrCreate, cleanupWorldbook, reloadStorageProvider, refreshMerged } = await mountDataMgmtPage('chat-data', null, true);
     // 通过起始楼层输入框驱动 deleteRange.startFloor = 2 → 未覆盖第 1 层 → range
     const startFloorInput = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="number"]'))
-      .find(input => input.closest('.acu-form-row')?.textContent?.includes('起始楼层'))!;
+      .find(input => input.closest('.acu-form-row')?.textContent?.includes('Tầng bắt đầu'))!;
     startFloorInput.value = '2';
     startFloorInput.dispatchEvent(new Event('input', { bubbles: true }));
     await new Promise(r => setTimeout(r, 0));
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('删除所有本地数据'));
+      .find(item => item.textContent?.includes('Xóa tất cả dữ liệu cục bộ'));
     button!.click();
     // range 分支是单级确认：点「删除数据」即执行
-    await clickDialogButton('删除数据');
+    await clickDialogButton('Xóa dữ liệu');
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
 
@@ -636,25 +636,25 @@ describe('DataMgmtPage', () => {
     const { mount } = await mountDataMgmtPage();
     // 通过起始楼层输入框驱动 deleteRange.startFloor = 2 → 局部范围
     const startFloorInput = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="number"]'))
-      .find(input => input.closest('.acu-form-row')?.textContent?.includes('起始楼层'))!;
+      .find(input => input.closest('.acu-form-row')?.textContent?.includes('Tầng bắt đầu'))!;
     startFloorInput.value = '2';
     startFloorInput.dispatchEvent(new Event('input', { bubbles: true }));
     await new Promise(r => setTimeout(r, 0));
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('删除所有本地数据'));
+      .find(item => item.textContent?.includes('Xóa tất cả dữ liệu cục bộ'));
     button!.click();
     await new Promise(r => setTimeout(r, 0));
 
     // range 分支单级确认弹窗出现（标题「删除指定楼层本地数据」，无「再次确认删除」第二级）
-    expect(document.body.textContent || '').toContain('删除指定楼层本地数据');
-    expect(document.body.textContent || '').toContain('仅清除该范围内楼层的填表数据');
-    expect(document.body.textContent || '').not.toContain('再次确认删除');
+    expect(document.body.textContent || '').toContain('Xóa dữ liệu cục bộ của các tầng chỉ định');
+    expect(document.body.textContent || '').toContain('Chỉ xóa dữ liệu điền bảng của các tầng trong phạm vi đó');
+    expect(document.body.textContent || '').not.toContain('Xác nhận xóa lần nữa');
 
     // 关闭弹窗
     const layer = document.querySelector<HTMLElement>('.acu-dialog-layer');
     const cancelButton = Array.from(layer!.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('取消'));
+      .find(item => item.textContent?.includes('Hủy'));
     cancelButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
@@ -666,21 +666,21 @@ describe('DataMgmtPage', () => {
     // 运行时有 sheet_a(A) / sheet_b(B)：限定表格列表按表名展示。
     const checkbox = document.querySelector<HTMLButtonElement>('.acu-v2-data-mgmt-page__sheet-filter [data-sheet-key="sheet_a"]');
     expect(checkbox).toBeTruthy();
-    expect(document.body.textContent || '').toContain('限定表格（可选）');
+    expect(document.body.textContent || '').toContain('Giới hạn bảng (tùy chọn)');
     checkbox!.click();
     await new Promise(r => setTimeout(r, 0));
 
     // 危险按钮文案随选表变化；范围留空（覆盖全部楼层）也不再是硬清空语义。
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('删除所选 1 张表的数据'));
+      .find(item => item.textContent?.includes('Xóa dữ liệu của 1 bảng đã chọn'));
     expect(button).toBeTruthy();
-    expect(document.body.textContent || '').toContain('当前已限定 1 张表：A');
+    expect(document.body.textContent || '').toContain('Hiện đã giới hạn 1 bảng: A');
     button!.click();
     await new Promise(r => setTimeout(r, 0));
-    expect(document.body.textContent || '').toContain('删除所选表格数据');
-    expect(document.body.textContent || '').toContain('表「A」');
-    expect(document.body.textContent || '').not.toContain('再次确认删除');
-    await clickDialogButton('删除所选表格数据');
+    expect(document.body.textContent || '').toContain('Xóa dữ liệu bảng đã chọn');
+    expect(document.body.textContent || '').toContain('bảng 「A」');
+    expect(document.body.textContent || '').not.toContain('Xác nhận xóa lần nữa');
+    await clickDialogButton('Xóa dữ liệu bảng đã chọn');
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
 
@@ -688,7 +688,7 @@ describe('DataMgmtPage', () => {
     expect(loadOrCreate).toHaveBeenCalled();
     expect(reloadStorageProvider).toHaveBeenCalled();
     expect(cleanupWorldbook).toHaveBeenCalled();
-    expect(document.body.textContent || '').toContain('表「A」在');
+    expect(document.body.textContent || '').toContain('bảng 「A」 trong');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -696,14 +696,14 @@ describe('DataMgmtPage', () => {
   it('T12c 未勾选任何表时整楼层删除调用形态不变（不带第 5 参）', async () => {
     const { mount, deleteLocalDataWithScope } = await mountDataMgmtPage('chat-data', null, true);
     const startFloorInput = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="number"]'))
-      .find(input => input.closest('.acu-form-row')?.textContent?.includes('起始楼层'))!;
+      .find(input => input.closest('.acu-form-row')?.textContent?.includes('Tầng bắt đầu'))!;
     startFloorInput.value = '2';
     startFloorInput.dispatchEvent(new Event('input', { bubbles: true }));
     await new Promise(r => setTimeout(r, 0));
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('删除所有本地数据'));
+      .find(item => item.textContent?.includes('Xóa tất cả dữ liệu cục bộ'));
     button!.click();
-    await clickDialogButton('删除数据');
+    await clickDialogButton('Xóa dữ liệu');
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
     expect(deleteLocalDataWithScope).toHaveBeenCalledTimes(1);
@@ -719,10 +719,10 @@ describe('DataMgmtPage', () => {
     });
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('删除所有本地数据'));
+      .find(item => item.textContent?.includes('Xóa tất cả dữ liệu cục bộ'));
     button!.click();
-    await clickDialogButton('删除所有本地数据');
-    await clickDialogButton('确认硬清空');
+    await clickDialogButton('Xóa tất cả dữ liệu cục bộ');
+    await clickDialogButton('Xác nhận xóa sạch cứng');
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
 
@@ -738,9 +738,9 @@ describe('DataMgmtPage', () => {
     const { mount, settings, saveSettings } = await mountDataMgmtPage();
 
     const cleanupPanel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-data-mgmt-page .acu-panel'))
-      .find(el => el.querySelector('.acu-panel__title')?.textContent?.includes('删除与清理'))!;
+      .find(el => el.querySelector('.acu-panel__title')?.textContent?.includes('Xóa và dọn dẹp'))!;
     const retentionRow = Array.from(cleanupPanel.querySelectorAll<HTMLElement>('.acu-form-row'))
-      .find(row => (row.textContent || '').includes('保留数据层数'))!;
+      .find(row => (row.textContent || '').includes('Số tầng dữ liệu giữ lại'))!;
     const input = retentionRow.querySelector<HTMLInputElement>('input[type="number"]')!;
     input.value = '30';
     input.dispatchEvent(new Event('change', { bubbles: true }));
@@ -766,17 +766,17 @@ describe('DataMgmtPage', () => {
     } = await mountDataMgmtPage();
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('恢复默认配置'));
+      .find(item => item.textContent?.includes('Khôi phục cấu hình mặc định'));
     expect(button).not.toBeUndefined();
     button!.click();
     await Promise.resolve();
 
     const dialogText = document.querySelector('.acu-dialog-layer')?.textContent || '';
-    expect(dialogText).toContain('默认表格模板与提示词');
-    expect(dialogText).toContain('合并总结提示词');
-    expect(dialogText).toContain('当前聊天表格模板快照');
-    expect(dialogText).toContain('当前聊天剧情推进预设快照');
-    expect(dialogText).toContain('当前聊天表格锁');
+    expect(dialogText).toContain('Mẫu bảng và prompt mặc định');
+    expect(dialogText).toContain('prompt tóm tắt gộp');
+    expect(dialogText).toContain('Snapshot mẫu bảng của cuộc trò chuyện hiện tại');
+    expect(dialogText).toContain('Snapshot preset đẩy cốt truyện của cuộc trò chuyện hiện tại');
+    expect(dialogText).toContain('Khóa bảng của cuộc trò chuyện hiện tại');
     expect(dialogText).not.toContain('表格选择状态');
     expect(dialogText).not.toContain('手动填表选择状态');
     // 只看恢复默认弹窗里的勾选项：页面「限定表格」勾选框默认未勾选，不属于本弹窗。
@@ -784,7 +784,7 @@ describe('DataMgmtPage', () => {
     expect(dialogCheckboxes.length).toBeGreaterThan(0);
     expect(dialogCheckboxes.every(item => item.getAttribute('aria-checked') === 'true')).toBe(true);
 
-    await clickDialogButton('按所选项目恢复');
+    await clickDialogButton('Khôi phục theo mục đã chọn');
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
@@ -824,7 +824,7 @@ describe('DataMgmtPage', () => {
     expect(first.TavernDB_ACU_InternalSheetGuide.tags.beta).toBeDefined();
     expect(first.TavernDB_ACU_TableHeaderGuide.tags.alpha).toBeUndefined();
     expect(first.TavernDB_ACU_TableHeaderGuide.tags.beta).toBeDefined();
-    expect(document.body.textContent || '').toContain('已按所选项目恢复默认配置。');
+    expect(document.body.textContent || '').toContain('Đã khôi phục cấu hình mặc định theo các mục đã chọn.');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -839,12 +839,12 @@ describe('DataMgmtPage', () => {
     } = await mountDataMgmtPage();
 
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(item => item.textContent?.includes('恢复默认配置'));
+      .find(item => item.textContent?.includes('Khôi phục cấu hình mặc định'));
     expect(button).not.toBeUndefined();
     button!.click();
     await Promise.resolve();
-    await clickDialogCheckbox('当前聊天表格锁');
-    await clickDialogButton('按所选项目恢复');
+    await clickDialogCheckbox('Khóa bảng của cuộc trò chuyện hiện tại');
+    await clickDialogButton('Khôi phục theo mục đã chọn');
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
@@ -874,10 +874,10 @@ describe('DataMgmtPage', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 6, 12, 21, 18, 41));
     const panel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-data-mgmt-page .acu-panel'))
-      .find(el => el.querySelector('.acu-panel__title')?.textContent?.includes('备份与恢复'));
+      .find(el => el.querySelector('.acu-panel__title')?.textContent?.includes('Sao lưu và khôi phục'));
     const checkpointSection = panel!.querySelector('.acu-v2-data-mgmt-page__checkpoint-section');
     const exportButton = Array.from(checkpointSection!.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('导出 Checkpoint'));
+      .find(button => button.textContent?.includes('Xuất Checkpoint'));
 
     exportButton!.click();
 
@@ -907,12 +907,12 @@ describe('DataMgmtPage', () => {
     await new Promise(r => setTimeout(r, 0));
 
     expect(parseCheckpoint).toHaveBeenCalledWith('{}');
-    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('恢复当前聊天 Checkpoint');
-    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('来源模式：native；目标模式：native');
-    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('全部 AI 楼层、所有隔离标识');
-    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('当前激活隔离键的最新 AI 楼层');
-    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('后续更新将使用该模板');
-    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('全局模板和聊天正文不变');
+    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('Khôi phục Checkpoint của cuộc trò chuyện hiện tại');
+    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('Chế độ nguồn: native; chế độ đích: native');
+    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('toàn bộ tầng AI');
+    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('tầng AI mới nhất của khóa cô lập đang kích hoạt');
+    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('các lần cập nhật sau sẽ dùng mẫu này');
+    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('Mẫu toàn cục và nội dung chat không đổi');
     expect(restoreCheckpoint).not.toHaveBeenCalled();
 
     mount.__resetAcuV2MountForTests();
@@ -937,8 +937,8 @@ describe('DataMgmtPage', () => {
     Object.defineProperty(input!, 'files', { configurable: true, value: [file] });
     input!.dispatchEvent(new Event('change', { bubbles: true }));
     await new Promise(r => setTimeout(r, 0));
-    await clickDialogButton('恢复 Checkpoint');
-    expect(toastText('success')).toContain('实际存储：native');
+    await clickDialogButton('Khôi phục Checkpoint');
+    expect(toastText('success')).toContain('Lưu trữ thực tế: native');
 
     restoreCheckpoint.mockResolvedValueOnce({
       success: true, restoredMessageIndex: 1, derivedRefreshWarnings: ['世界书刷新失败'], cleanupWarnings: ['向量 manifest 清理失败'],
@@ -948,12 +948,12 @@ describe('DataMgmtPage', () => {
     Object.defineProperty(partialInput!, 'files', { configurable: true, value: [file] });
     partialInput!.dispatchEvent(new Event('change', { bubbles: true }));
     await new Promise(r => setTimeout(r, 0));
-    await clickDialogButton('恢复 Checkpoint');
-    expect(toastText('warning')).toContain('部分成功');
-    expect(toastText('warning')).toContain('运行时数据不一致');
-    expect(toastText('warning')).toContain('聊天模板快照不一致');
-    expect(toastText('warning')).toContain('派生刷新：世界书刷新失败');
-    expect(toastText('warning')).toContain('清理：向量 manifest 清理失败');
+    await clickDialogButton('Khôi phục Checkpoint');
+    expect(toastText('warning')).toContain('thành công một phần');
+    expect(toastText('warning')).toContain('Dữ liệu runtime không nhất quán');
+    expect(toastText('warning')).toContain('Snapshot mẫu của cuộc trò chuyện không nhất quán');
+    expect(toastText('warning')).toContain('Làm mới phái sinh: 世界书刷新失败');
+    expect(toastText('warning')).toContain('Dọn dẹp: 向量 manifest 清理失败');
 
     settings.storageMode = 'sqlite';
     restoreCheckpoint.mockResolvedValueOnce({
@@ -964,26 +964,26 @@ describe('DataMgmtPage', () => {
     Object.defineProperty(fallbackInput!, 'files', { configurable: true, value: [file] });
     fallbackInput!.dispatchEvent(new Event('change', { bubbles: true }));
     await new Promise(r => setTimeout(r, 0));
-    await clickDialogButton('恢复 Checkpoint');
+    await clickDialogButton('Khôi phục Checkpoint');
     const warningToasts = toastTexts('warning');
-    expect(warningToasts.at(-1)).toContain('目标设置为 SQLite，实际存储 fallback 为 native');
+    expect(warningToasts.at(-1)).toContain('Mục tiêu đặt là SQLite, lưu trữ thực tế fallback về native');
 
     restoreCheckpoint.mockResolvedValueOnce({ success: true, restoredMessageIndex: 1 });
     const missingConditionInput = Array.from(document.querySelectorAll<HTMLInputElement>('.acu-v2-data-mgmt-page__checkpoint-section input[type="file"]'))[0];
     Object.defineProperty(missingConditionInput!, 'files', { configurable: true, value: [file] });
     missingConditionInput!.dispatchEvent(new Event('change', { bubbles: true }));
     await new Promise(r => setTimeout(r, 0));
-    await clickDialogButton('恢复 Checkpoint');
+    await clickDialogButton('Khôi phục Checkpoint');
     const finalWarningToasts = toastTexts('warning');
-    expect(finalWarningToasts.at(-1)).toContain('恢复后置条件缺失');
+    expect(finalWarningToasts.at(-1)).toContain('Thiếu hậu điều kiện khôi phục');
 
     restoreCheckpoint.mockResolvedValueOnce({ success: false, error: 'strict failed' });
     const failedInput = Array.from(document.querySelectorAll<HTMLInputElement>('.acu-v2-data-mgmt-page__checkpoint-section input[type="file"]'))[0];
     Object.defineProperty(failedInput!, 'files', { configurable: true, value: [file] });
     failedInput!.dispatchEvent(new Event('change', { bubbles: true }));
     await new Promise(r => setTimeout(r, 0));
-    await clickDialogButton('恢复 Checkpoint');
-    expect(toastText('error')).toContain('恢复 Checkpoint 失败：strict failed');
+    await clickDialogButton('Khôi phục Checkpoint');
+    expect(toastText('error')).toContain('Khôi phục Checkpoint thất bại: strict failed');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -998,14 +998,14 @@ describe('DataMgmtPage', () => {
     });
 
     const section = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-data-mgmt-page__checkpoint-section'))
-      .find(item => item.textContent?.includes('混合存储决议'));
+      .find(item => item.textContent?.includes('Quyết định lưu trữ hỗn hợp'));
     expect(section).toBeDefined();
-    expect(section!.textContent).toContain('混合存储决议');
+    expect(section!.textContent).toContain('Quyết định lưu trữ hỗn hợp');
     expect(section?.textContent).toContain('conflict_requires_user_choice');
-    expect(section?.textContent).not.toContain('保留 V2 并清理 legacy');
-    expect(section?.textContent).not.toContain('提交受限合并候选');
+    expect(section?.textContent).not.toContain('Giữ V2 và dọn legacy');
+    expect(section?.textContent).not.toContain('Nộp ứng viên gộp có giới hạn');
     const downloadButton = Array.from(section!.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('导出 legacy/V2 快照'))!;
+      .find(button => button.textContent?.includes('Xuất snapshot legacy/V2'))!;
     downloadButton.click();
 
     expect(buildMixedSnapshots).toHaveBeenCalledWith('decision-test');
@@ -1026,13 +1026,13 @@ describe('DataMgmtPage', () => {
     });
 
     const section = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-data-mgmt-page__checkpoint-section'))
-      .find(item => item.textContent?.includes('混合存储决议'))!;
+      .find(item => item.textContent?.includes('Quyết định lưu trữ hỗn hợp'))!;
 
     expect(section.textContent).toContain('blocked_checkpoint_convergence');
     expect(section.textContent).toContain('v2_requires_checkpoint_convergence');
-    expect(section.textContent).not.toContain('保留 V2 并清理 legacy');
-    expect(section.textContent).not.toContain('提交受限合并候选');
-    expect(section.textContent).toContain('导出 legacy/V2 快照');
+    expect(section.textContent).not.toContain('Giữ V2 và dọn legacy');
+    expect(section.textContent).not.toContain('Nộp ứng viên gộp có giới hạn');
+    expect(section.textContent).toContain('Xuất snapshot legacy/V2');
     mount.__resetAcuV2MountForTests();
   });
 
@@ -1045,18 +1045,18 @@ describe('DataMgmtPage', () => {
       createdAt: 1,
     });
     const section = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-data-mgmt-page__checkpoint-section'))
-      .find(item => item.textContent?.includes('混合存储决议'))!;
+      .find(item => item.textContent?.includes('Quyết định lưu trữ hỗn hợp'))!;
     const commitButton = Array.from(section.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('提交受限合并候选'))!;
+      .find(button => button.textContent?.includes('Nộp ứng viên gộp có giới hạn'))!;
 
     commitButton.click();
     await new Promise(r => setTimeout(r, 0));
-    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('提交混合存储合并候选');
+    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('Nộp ứng viên gộp lưu trữ hỗn hợp');
     expect(commitMixedDecision).not.toHaveBeenCalled();
-    await clickDialogButton('继续提交候选');
-    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('再次确认合并候选');
+    await clickDialogButton('Tiếp tục nộp ứng viên');
+    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('Xác nhận lại ứng viên gộp');
     expect(commitMixedDecision).not.toHaveBeenCalled();
-    await clickDialogButton('确认提交候选');
+    await clickDialogButton('Xác nhận nộp ứng viên');
 
     expect(commitMixedDecision).toHaveBeenCalledWith('decision-test', 'commit_merge_candidate');
     expect(commitMixedDecision.mock.calls[0]).toHaveLength(2);
@@ -1072,16 +1072,16 @@ describe('DataMgmtPage', () => {
       planId: 'compat-plan', status: 'recoverable_compat_tolerant_replay', isolationKey: 'alpha',
       requiresConfirmation: false, message: 'V2 严格回放失败，当前数据经 Tier-1 兼容宽容回放读出。固化方案：在楼层 #2 写入兼容过渡根。',
     });
-    pageButtons().find(button => button.textContent?.includes('诊断 V2 数据恢复'))!.click();
+    pageButtons().find(button => button.textContent?.includes('Chẩn đoán khôi phục dữ liệu V2'))!.click();
     await new Promise(r => setTimeout(r, 0));
-    const fixButton = pageButtons().find(button => button.textContent?.includes('固化兼容回放为过渡根'));
+    const fixButton = pageButtons().find(button => button.textContent?.includes('Cố định phát lại tương thích thành gốc chuyển tiếp'));
     expect(fixButton).not.toBeUndefined();
-    expect(fixButton!.textContent).not.toContain('确认身份归并');
+    expect(fixButton!.textContent).not.toContain('Xác nhận gộp định danh');
     fixButton!.click();
     await new Promise(r => setTimeout(r, 0));
-    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('固化兼容回放为过渡根');
+    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('Cố định phát lại tương thích thành gốc chuyển tiếp');
     expect(commitV2Recovery).not.toHaveBeenCalled();
-    await clickDialogButton('固化');
+    await clickDialogButton('Cố định');
     expect(commitV2Recovery).toHaveBeenCalledWith('compat-plan', { confirmOrphanDataReplace: false, confirmCompatTolerantFixation: false });
 
     // 场景 2：含身份归并 → 两次确认，confirmCompatTolerantFixation=true。
@@ -1090,16 +1090,16 @@ describe('DataMgmtPage', () => {
       planId: 'compat-plan-remap', status: 'recoverable_compat_tolerant_replay', isolationKey: 'alpha',
       requiresConfirmation: true, message: '身份归并=sheet_a→sheet_b。固化方案：在楼层 #2 写入兼容过渡根。',
     });
-    pageButtons().find(button => button.textContent?.includes('诊断 V2 数据恢复'))!.click();
+    pageButtons().find(button => button.textContent?.includes('Chẩn đoán khôi phục dữ liệu V2'))!.click();
     await new Promise(r => setTimeout(r, 0));
-    const remapButton = pageButtons().find(button => button.textContent?.includes('确认身份归并并固化兼容回放为过渡根'));
+    const remapButton = pageButtons().find(button => button.textContent?.includes('Xác nhận gộp định danh và cố định phát lại tương thích thành gốc chuyển tiếp'));
     expect(remapButton).not.toBeUndefined();
     remapButton!.click();
     await new Promise(r => setTimeout(r, 0));
-    await clickDialogButton('固化');
-    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('再次确认 sheetKey 身份归并');
+    await clickDialogButton('Cố định');
+    expect(document.querySelector('.acu-dialog-layer')?.textContent).toContain('Xác nhận lại việc gộp định danh sheetKey');
     expect(commitV2Recovery).not.toHaveBeenCalled();
-    await clickDialogButton('确认归并并固化');
+    await clickDialogButton('Xác nhận gộp và cố định');
     expect(commitV2Recovery).toHaveBeenCalledWith('compat-plan-remap', { confirmOrphanDataReplace: false, confirmCompatTolerantFixation: true });
 
     // 场景 3：诊断结果无 plan（不可自动固化）→ 不出现固化按钮。
@@ -1107,9 +1107,9 @@ describe('DataMgmtPage', () => {
       status: 'recoverable_compat_tolerant_replay', isolationKey: 'alpha',
       requiresConfirmation: false, message: '自动固化不可用：放置过渡根后严格探针仍失败。',
     });
-    pageButtons().find(button => button.textContent?.includes('诊断 V2 数据恢复'))!.click();
+    pageButtons().find(button => button.textContent?.includes('Chẩn đoán khôi phục dữ liệu V2'))!.click();
     await new Promise(r => setTimeout(r, 0));
-    expect(pageButtons().some(button => button.textContent?.includes('固化兼容回放为过渡根'))).toBe(false);
+    expect(pageButtons().some(button => button.textContent?.includes('Cố định phát lại tương thích thành gốc chuyển tiếp'))).toBe(false);
     expect(document.querySelector('.acu-v2-data-mgmt-page')?.textContent).toContain('自动固化不可用');
     mount.__resetAcuV2MountForTests();
   });
@@ -1128,16 +1128,16 @@ describe('DataMgmtPage', () => {
       error: 'reload failed',
     });
     const section = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-data-mgmt-page__checkpoint-section'))
-      .find(item => item.textContent?.includes('混合存储决议'))!;
+      .find(item => item.textContent?.includes('Quyết định lưu trữ hỗn hợp'))!;
     const commitButton = Array.from(section.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('保留 V2 并清理 legacy'))!;
+      .find(button => button.textContent?.includes('Giữ V2 và dọn legacy'))!;
 
     commitButton.click();
     await new Promise(r => setTimeout(r, 0));
-    await clickDialogButton('保留 V2');
+    await clickDialogButton('Giữ V2');
 
     expect(commitMixedDecision).toHaveBeenCalledWith('decision-test', 'keep_v2');
-    expect(toastText('warning')).toContain('数据已保存，但后置校验失败：reload failed');
+    expect(toastText('warning')).toContain('Dữ liệu đã được lưu nhưng kiểm tra hậu điều kiện thất bại: reload failed');
     mount.__resetAcuV2MountForTests();
   });
 
@@ -1150,7 +1150,7 @@ describe('DataMgmtPage', () => {
     const { mount } = await mountDataMgmtPage();
 
     const dangerButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.acu-v2-data-mgmt-page button.acu-btn--danger'));
-    expect(dangerButtons.map(button => button.textContent?.trim())).toEqual(['删除所有本地数据', '全局旧隔离标签清理']);
+    expect(dangerButtons.map(button => button.textContent?.trim())).toEqual(['Xóa tất cả dữ liệu cục bộ', 'Dọn nhãn cô lập cũ toàn cục']);
 
     mount.__resetAcuV2MountForTests();
   });

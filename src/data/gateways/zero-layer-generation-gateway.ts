@@ -25,14 +25,14 @@ export function isZeroLayerHostInvocation_ACU(value: unknown): boolean {
 export function requireZeroLayerHostGeneration_ACU(): SillyTavernAPI_Type {
   const api = getZeroLayerHostContext_ACU();
   if (!api || typeof api.generate !== 'function' || api.mainApi !== 'openai') {
-    throw new Error('零层生成需要酒馆原生 Chat Completion 生成入口。');
+    throw new Error('Tạo Tầng 0 cần entry tạo Chat Completion gốc của SillyTavern.');
   }
   if (api.groupId != null && api.groupId !== '') {
-    throw new Error('群聊生成会转入成员调度，当前零层适配尚未验证该路径。');
+    throw new Error('Tạo trong nhóm chat sẽ chuyển sang điều phối thành viên, phần tương thích Tầng 0 hiện chưa xác minh đường này.');
   }
   const events = api.eventTypes as Record<string, string>;
   if (!events?.CHAT_COMPLETION_PROMPT_READY || !events?.CHAT_COMPLETION_SETTINGS_READY) {
-    throw new Error('宿主缺少零层请求绑定所需的提示词与设置事件。');
+    throw new Error('Host thiếu sự kiện prompt và cài đặt cần cho việc ràng buộc yêu cầu Tầng 0.');
   }
   return api;
 }
@@ -42,7 +42,7 @@ const WORLD_INFO_SCAN_PROMPT_KEY_ACU = 'acu_zero_layer_world_info_scan';
 /** 只请求装配并走宿主实际 fetch；最终原请求由零层拦截器阻断。 */
 export async function invokeZeroLayerHostGeneration_ACU(quietPrompt: string, signal: AbortSignal, worldInfoScanText = ''): Promise<void> {
   const api = requireZeroLayerHostGeneration_ACU();
-  if (signal.aborted) throw new DOMException('本轮已停止。', 'AbortError');
+  if (signal.aborted) throw new DOMException('Lượt này đã dừng.', 'AbortError');
   const options = {
     quiet_prompt: quietPrompt, quietToLoud: false, signal,
   };

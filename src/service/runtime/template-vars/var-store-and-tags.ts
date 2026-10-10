@@ -119,7 +119,7 @@ import { getCellValue_ACU } from './cell-utils';
    */
   export function parseCalcExpressionValue_ACU(expr: string, context: Record<string, any>) {
     if (!expr || typeof expr !== 'string') {
-      return { success: false, value: null as number | null, error: '表达式为空' };
+      return { success: false, value: null as number | null, error: 'Biểu thức trống' };
     }
 
     const trimmed = expr.trim();
@@ -132,16 +132,16 @@ import { getCellValue_ACU } from './cell-utils';
       const cellPath = trimmed.substring(5).trim();
       const parts = cellPath.split('/');
       if (parts.length !== 3) {
-        return { success: false, value: null, error: `cell 路径格式错误: ${cellPath}` };
+        return { success: false, value: null, error: `Định dạng đường dẫn cell sai: ${cellPath}` };
       }
     const [tableName, rowName, colName] = parts.map((p: string) => p.trim());
       const cellValue: any = getCellValue_ACU(tableName, rowName, colName, context.allTablesJson);
       if (cellValue === null || cellValue === undefined || cellValue === '') {
-        return { success: false, value: null, error: `cell 值不存在: ${cellPath}` };
+        return { success: false, value: null, error: `Giá trị cell không tồn tại: ${cellPath}` };
       }
       const numValue = parseFloat(cellValue);
       if (isNaN(numValue)) {
-        return { success: false, value: null, error: `cell 值不是数字: ${cellPath} = ${cellValue}` };
+        return { success: false, value: null, error: `Giá trị cell không phải số: ${cellPath} = ${cellValue}` };
       }
       return { success: true, value: numValue, error: null };
     }
@@ -151,7 +151,7 @@ import { getCellValue_ACU } from './cell-utils';
       const randomId = randomMatch[1];
       const randomValue = getRandomVariable_ACU(randomId);
       if (randomValue === null) {
-        return { success: false, value: null, error: `随机数变量不存在: ${randomId}` };
+        return { success: false, value: null, error: `Biến số ngẫu nhiên không tồn tại: ${randomId}` };
       }
       return { success: true, value: randomValue, error: null as string | null };
     }
@@ -161,7 +161,7 @@ import { getCellValue_ACU } from './cell-utils';
       if (calcVariables_ACU.hasOwnProperty(calcId)) {
         return { success: true, value: calcVariables_ACU[calcId], error: null };
       }
-      return { success: false, value: null, error: `计算变量不存在: ${calcId}` };
+      return { success: false, value: null, error: `Biến tính toán không tồn tại: ${calcId}` };
     }
 
     const maxMatch = trimmed.match(/^\$max:([a-zA-Z_][a-zA-Z0-9_]*)$/i);
@@ -170,7 +170,7 @@ import { getCellValue_ACU } from './cell-utils';
       if (maxVariables_ACU.hasOwnProperty(maxId)) {
         return { success: true, value: maxVariables_ACU[maxId], error: null };
       }
-      return { success: false, value: null, error: `最大值变量不存在: ${maxId}` };
+      return { success: false, value: null, error: `Biến giá trị lớn nhất không tồn tại: ${maxId}` };
     }
 
     const minMatch = trimmed.match(/^\$min:([a-zA-Z_][a-zA-Z0-9_]*)$/i);
@@ -179,10 +179,10 @@ import { getCellValue_ACU } from './cell-utils';
       if (minVariables_ACU.hasOwnProperty(minId)) {
         return { success: true, value: minVariables_ACU[minId], error: null };
       }
-      return { success: false, value: null, error: `最小值变量不存在: ${minId}` };
+      return { success: false, value: null, error: `Biến giá trị nhỏ nhất không tồn tại: ${minId}` };
     }
 
-    return { success: false, value: null, error: `无法解析表达式: ${trimmed}` };
+    return { success: false, value: null, error: `Không thể phân tích biểu thức: ${trimmed}` };
   }
 
   /**
@@ -190,7 +190,7 @@ import { getCellValue_ACU } from './cell-utils';
    */
   function evaluateCalcExpression_ACU(expr: string, context: Record<string, any>) {
     if (!expr || typeof expr !== 'string') {
-      return { success: false, value: null as number | null, error: '表达式为空' };
+      return { success: false, value: null as number | null, error: 'Biểu thức trống' };
     }
 
     let processedExpr = expr.trim();
@@ -236,28 +236,28 @@ import { getCellValue_ACU } from './cell-utils';
     });
 
     if (processedExpr.includes('NaN')) {
-      return { success: false, value: null, error: `表达式包含无效变量: ${processedExpr}` };
+      return { success: false, value: null, error: `Biểu thức chứa biến không hợp lệ: ${processedExpr}` };
     }
 
     if (/\/\s*0(?![.\d])/.test(processedExpr)) {
-      return { success: false, value: null, error: '除数为零' };
+      return { success: false, value: null, error: 'Chia cho không' };
     }
 
     try {
       if (!/^[\d+\-*/%().\s]+$/.test(processedExpr)) {
-        return { success: false, value: null, error: `表达式包含非法字符: ${processedExpr}` };
+        return { success: false, value: null, error: `Biểu thức chứa ký tự không hợp lệ: ${processedExpr}` };
       }
       
       const result = new Function('return ' + processedExpr)();
       
       if (typeof result !== 'number' || isNaN(result) || !isFinite(result)) {
-        return { success: false, value: null, error: `计算结果无效: ${result}` };
+        return { success: false, value: null, error: `Kết quả tính toán không hợp lệ: ${result}` };
       }
 
       const intResult = Math.floor(result);
       return { success: true, value: intResult, error: null };
     } catch (e) {
-      return { success: false, value: null, error: `计算错误: ${e.message}` };
+      return { success: false, value: null, error: `Lỗi tính toán: ${e.message}` };
     }
   }
 

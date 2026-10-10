@@ -19,7 +19,7 @@ export function applyZeroLayerBridgeCommand_ACU(source: ZeroLayerEnvelope_ACU,
   const branch = next.branches.find(item => item.branchId === next.activeBranchId)!;
   if (command.type === 'begin-bridge') {
     if (next.enabled || next.turns.length || branch.bridge || branch.continuation || branch.simulation || branch.checkpoints) {
-      throw new ZeroLayerError_ACU('migration-conflict', '已有逻辑工作状态，禁止覆盖首基线。');
+      throw new ZeroLayerError_ACU('migration-conflict', 'Đã có trạng thái làm việc logic, cấm ghi đè đường cơ sở đầu tiên.');
     }
     const sourceFingerprint = bridgeSourceFingerprint_ACU(context.chat);
     const config = captureBridgeConfig_ACU(context.chat);
@@ -32,13 +32,13 @@ export function applyZeroLayerBridgeCommand_ACU(source: ZeroLayerEnvelope_ACU,
   } else {
     const bridge = branch.bridge;
     if (!bridge || bridge.migrationId !== command.migrationId) {
-      throw new ZeroLayerError_ACU('migration-conflict', '桥接迁移身份不匹配。');
+      throw new ZeroLayerError_ACU('migration-conflict', 'Danh tính di chuyển cầu nối không khớp.');
     }
     assertBridgeSource_ACU(context.chat, bridge.sourceFingerprint);
     assertBridgeConfig_ACU(context.chat, bridge.configFingerprint);
     const index = ZERO_LAYER_BRIDGE_PHASES_ACU.indexOf(bridge.phase);
     if (ZERO_LAYER_BRIDGE_PHASES_ACU[index + 1] !== command.phase) {
-      throw new ZeroLayerError_ACU('invalid-transition', '桥接阶段不能跳过或重复提交。');
+      throw new ZeroLayerError_ACU('invalid-transition', 'Giai đoạn cầu nối không thể bỏ qua hoặc gửi lặp.');
     }
     if (command.phase === 'normalized') {
       validateBridgeCandidate_ACU(command.candidate, next, bridge.activationCut);
@@ -47,18 +47,18 @@ export function applyZeroLayerBridgeCommand_ACU(source: ZeroLayerEnvelope_ACU,
       if (command.phase === 'candidate') {
         validateBridgeCandidate_ACU(command.candidate, next, bridge.activationCut);
         if (command.candidate.fingerprint !== bridge.normalizedFingerprint) {
-          throw new ZeroLayerError_ACU('migration-conflict', '候选回放与已确认规范化指纹不一致。');
+          throw new ZeroLayerError_ACU('migration-conflict', 'Phát lại ứng viên không khớp với dấu vân tay chuẩn hóa đã xác nhận.');
         }
         bridge.candidate = structuredClone(command.candidate);
       }
       if (!bridge.candidate) {
-        throw new ZeroLayerError_ACU('corrupt-data', '桥接阶段缺少已保存候选。');
+        throw new ZeroLayerError_ACU('corrupt-data', 'Giai đoạn cầu nối thiếu ứng viên đã lưu.');
       }
       validateBridgeCandidate_ACU(bridge.candidate, next, bridge.activationCut);
       if (command.phase === 'verified') {
         validateBridgeCandidate_ACU(command.candidate, next, bridge.activationCut);
         if (command.candidate.fingerprint !== bridge.candidate.fingerprint) {
-          throw new ZeroLayerError_ACU('migration-conflict', '源回放与已保存桥接候选不一致。');
+          throw new ZeroLayerError_ACU('migration-conflict', 'Phát lại nguồn không khớp với ứng viên cầu nối đã lưu.');
         }
       }
       if (command.phase === 'reconciled') {

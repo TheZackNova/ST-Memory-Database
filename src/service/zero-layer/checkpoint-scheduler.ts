@@ -27,13 +27,13 @@ export async function synchronizeZeroLayerCheckpoints_ACU(store: ZeroLayerStore_
     assertZeroLayerCarrier_ACU(context);
     if (signal.aborted || getCurrentIsolationKey_ACU() !== isolationKey || !value?.enabled
       || value.sessionId !== sessionId || value.activeBranchId !== branchId) {
-      throw new ZeroLayerError_ACU('scope-changed', '逻辑 checkpoint 作用域或租约已变化。');
+      throw new ZeroLayerError_ACU('scope-changed', 'Phạm vi hoặc lease của checkpoint logic đã thay đổi.');
     }
     return value;
   };
   let current = assertCurrent(await store.read());
   if (current.turns.some(turn => !['published', 'failed', 'cancelled'].includes(turn.phase))) {
-    throw new ZeroLayerError_ACU('pending-turn', '逻辑 checkpoint 必须在完整发布后调度。');
+    throw new ZeroLayerError_ACU('pending-turn', 'Checkpoint logic phải được lập lịch sau khi phát hành hoàn chỉnh.');
   }
   const readState = () => current.branches.find(branch => branch.branchId === branchId)!.checkpoints;
   // 恢复只能续跑已确认的阶段；保存未知由 store.read 阻断，不在此重试保存。
@@ -49,12 +49,12 @@ export async function synchronizeZeroLayerCheckpoints_ACU(store: ZeroLayerStore_
 
   const cadence = readTableCheckpointCadence_ACU();
   requireValue(Object.values(cadence).every(integer) && cadence.bufferLayers > 0
-    && cadence.periodicStepLayers > 0, 'checkpoint 实时节奏配置无效。');
+    && cadence.periodicStepLayers > 0, 'Cấu hình nhịp thời gian thực của checkpoint không hợp lệ.');
   const timeline = buildZeroLayerTimeline_ACU(current, context.chat as Record<string, unknown>[]);
   const aiCount = timeline.completedAiCount;
   const active = readState()?.active;
   if (active && active.isolationKey !== isolationKey) {
-    throw new ZeroLayerError_ACU('scope-changed', '活动 checkpoint 不属于当前 isolation。');
+    throw new ZeroLayerError_ACU('scope-changed', 'Checkpoint đang hoạt động không thuộc isolation hiện tại.');
   }
   const retain = cadence.retainRecentLayers;
   const retainedOrdinal = aiCount - retain + 1;
@@ -78,16 +78,16 @@ export async function synchronizeZeroLayerCheckpoints_ACU(store: ZeroLayerStore_
   validateZeroLayerTableResult_ACU(table, floor.ref.floorId);
   const simulation = turn.assistantFloor.data.simulation;
   validateZeroLayerSimulationResult_ACU(simulation);
-  requireValue(turn.tableInput?.isolationKey === isolationKey, 'checkpoint 表格切点作用域不一致。');
+  requireValue(turn.tableInput?.isolationKey === isolationKey, 'Phạm vi điểm cắt bảng của checkpoint không nhất quán.');
   const built = buildCanonicalFullCheckpoint_ACU({ createdAt: Date.now(), reason, data: table.tableData });
-  requireValue(built.checkpoint, '逻辑表格 checkpoint 未通过 canonical 校验。');
+  requireValue(built.checkpoint, 'Checkpoint bảng logic chưa qua kiểm tra canonical.');
   const replay = structuredClone(built.checkpoint.data);
   await applyTableOperationV2_ACU(replay, { kind: 'data_replace', data: table.tableData, reason: 'checkpoint_fallback' });
   assertCurrent(current);
-  requireValue(fingerprint(replay) === fingerprint(built.checkpoint.data), '逻辑表格 checkpoint 纯回放不等价。');
+  requireValue(fingerprint(replay) === fingerprint(built.checkpoint.data), 'Phát lại thuần của checkpoint bảng logic không tương đương.');
 
   const captured = captureCheckpointSource_ACU(current, timeline, cut);
-  requireValue(timeline.headTurnId, 'checkpoint 缺少已发布的源 head。');
+  requireValue(timeline.headTurnId, 'Checkpoint thiếu head nguồn đã phát hành.');
   const set: ZeroLayerCheckpointSet_ACU = {
     schemaVersion: 1, checkpointId: crypto.randomUUID(), sessionId, branchId, isolationKey,
     position: { schemaVersion: 1, ref: structuredClone(floor.ref), aiOrdinal: targetOrdinal },

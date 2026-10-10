@@ -77,12 +77,12 @@ import { resetVisualizerPendingDataOps_ACU } from './visualizer-data-ops';
       const $indicator = jQuery_API_ACU('#acu-vis-template-preset-indicator');
       if (!$indicator.length) return;
       const activeTemplateMeta_ACU = getActiveTemplatePresetMeta_ACU();
-      $indicator.text(`当前生效模板预设：${activeTemplateMeta_ACU.displayName}（${activeTemplateMeta_ACU.scopeLabel}）`);
+      $indicator.text(`Preset mẫu đang có hiệu lực: ${activeTemplateMeta_ACU.displayName} (${activeTemplateMeta_ACU.scopeLabel})`);
   }
 
   export function openNewVisualizer_ACU() {
       if (!currentJsonTableData_ACU) {
-          showToastr_ACU('warning', '数据未加载，请先进行一次对话或初始化。');
+          showToastr_ACU('warning', 'Dữ liệu chưa được tải, hãy trò chuyện một lần hoặc khởi tạo trước.');
           return;
       }
 
@@ -91,7 +91,7 @@ import { resetVisualizerPendingDataOps_ACU } from './visualizer-data-ops';
       resetVisualizerPendingDataOps_ACU(_acuVisState);
       _acuVisState.currentSheetKey = getSortedSheetKeys_ACU(_acuVisState.tempData)[0] || null; // Default to first sheet
       const activeTemplateMeta_ACU = getActiveTemplatePresetMeta_ACU();
-      const activeTemplatePresetText_ACU = `当前生效模板预设：${activeTemplateMeta_ACU.displayName}（${activeTemplateMeta_ACU.scopeLabel}）`;
+      const activeTemplatePresetText_ACU = `Preset mẫu đang có hiệu lực: ${activeTemplateMeta_ACU.displayName} (${activeTemplateMeta_ACU.scopeLabel})`;
       
       // 构建可视化编辑器内容（不含外层容器，由独立窗口系统提供）
       const visualizerContent = `
@@ -99,21 +99,21 @@ import { resetVisualizerPendingDataOps_ACU } from './visualizer-data-ops';
               <style>${VISUALIZER_CSS_ACU}</style>
               <div class="acu-vis-toolbar" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: transparent; border-bottom: 1px solid var(--vis-border-color); flex-shrink: 0;">
                   <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                      <span class="seal" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid var(--vis-accent); color: var(--vis-accent); font-size: 12px; border-radius: 1px; opacity: 0.85; letter-spacing: 1px;">墨</span>
+                      <span class="seal" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid var(--vis-accent); color: var(--vis-accent); font-size: 12px; border-radius: 1px; opacity: 0.85; letter-spacing: 1px;">Mực</span>
                       <div style="display: flex; flex-direction: column; gap: 6px;">
                           <div class="acu-mode-switch">
-                              <button class="acu-mode-btn active" data-mode="data">数据编辑</button>
-                              <button class="acu-mode-btn" data-mode="config">结构/参数配置</button>
-                              <button class="acu-mode-btn" data-mode="globalConfig">全局注入配置</button>
+                              <button class="acu-mode-btn active" data-mode="data">Sửa dữ liệu</button>
+                              <button class="acu-mode-btn" data-mode="config">Cấu hình cấu trúc/tham số</button>
+                              <button class="acu-mode-btn" data-mode="globalConfig">Cấu hình chèn toàn cục</button>
                           </div>
                           <div id="acu-vis-template-preset-indicator" class="acu-hint" style="font-size: 12px; color: var(--vis-text-mute);">${escapeHtml_ACU(activeTemplatePresetText_ACU)}</div>
                       </div>
                   </div>
                   <div class="acu-vis-actions" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
-                      <button id="acu-vis-theme-btn" class="acu-btn-secondary acu-vis-theme-btn" title="切换主题"><span class="acu-theme-toggle-text">素纱</span></button>
-                      <button id="acu-vis-save-data-btn" class="acu-btn-primary"><i class="fa-solid fa-database"></i> 保存数据到当前消息</button>
-                      <button id="acu-vis-save-template-chat-btn" class="acu-btn-secondary"><i class="fa-solid fa-layer-group"></i> 保存模板到当前聊天</button>
-                      <button id="acu-vis-save-template-global-btn" class="acu-btn-secondary"><i class="fa-solid fa-globe"></i> 保存模板到全局</button>
+                      <button id="acu-vis-theme-btn" class="acu-btn-secondary acu-vis-theme-btn" title="Đổi giao diện"><span class="acu-theme-toggle-text">Lụa</span></button>
+                      <button id="acu-vis-save-data-btn" class="acu-btn-primary"><i class="fa-solid fa-database"></i> Lưu dữ liệu vào tin nhắn hiện tại</button>
+                      <button id="acu-vis-save-template-chat-btn" class="acu-btn-secondary"><i class="fa-solid fa-layer-group"></i> Lưu mẫu vào cuộc trò chuyện hiện tại</button>
+                      <button id="acu-vis-save-template-global-btn" class="acu-btn-secondary"><i class="fa-solid fa-globe"></i> Lưu mẫu vào toàn cục</button>
                   </div>
               </div>
               <div class="acu-vis-content" style="flex: 1; display: flex; overflow: hidden;">
@@ -134,7 +134,7 @@ import { resetVisualizerPendingDataOps_ACU } from './visualizer-data-ops';
       // 创建独立窗口
       createACUWindow({
           id: windowId,
-          title: '数据库编辑器',
+          title: 'Trình chỉnh sửa cơ sở dữ liệu',
           content: visualizerContent,
           width: 1400,  // 基础宽度
           height: 900,  // 基础高度
@@ -144,7 +144,7 @@ import { resetVisualizerPendingDataOps_ACU } from './visualizer-data-ops';
           startMaximized: false, // 由 rememberState 自动管理，首次打开时不全屏
           forcePhoneFullscreen: true,
           onClose: () => {
-              if (!confirm('确定要关闭吗？未保存的修改将丢失。')) {
+              if (!confirm('Xác nhận đóng? Các thay đổi chưa lưu sẽ bị mất.')) {
                   return false; // 阻止关闭（注意：当前实现会立即关闭，后续可优化）
               }
           },
@@ -174,7 +174,7 @@ import { resetVisualizerPendingDataOps_ACU } from './visualizer-data-ops';
                   e.preventDefault();
                   e.stopPropagation();
                   const nextTheme = toggleACUTheme_ACU(document);
-                  const nextLabel = nextTheme === 'silk' ? '墨纸' : '素纱';
+                  const nextLabel = nextTheme === 'silk' ? 'Mực' : 'Lụa';
                   $window.find('#acu-vis-theme-btn .acu-theme-toggle-text').text(nextLabel);
               });
 

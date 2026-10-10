@@ -15,15 +15,15 @@ describe('格林推演阶段 runtime', () => {
       now: 42,
     });
     expect(revision).toMatchObject({ revision: 1, createdAt: 42, frozen: false, reason: 'initial' });
-    expect(revision.plan.title).toBe('本轮幕后推演');
+    expect(revision.plan.title).toBe('Mô phỏng hậu trường lượt này');
     expect(revision.plan.objective).toBe('推进北岭暗流');
     expect(revision.plan.plannedSpecialists).toEqual(['timekeeper', 'undercurrent-analyst', 'dramatis-keeper']);
     expect(revision.plan.plannedSpecialists).not.toContain('chronicler');
     expect(revision.plan.expectedLedgerChanges).toEqual(['clock', 'dimensions', 'seeds', 'actors', 'rumors', 'player']);
     expect(revision.plan.factsToVerify).toEqual(expect.arrayContaining([
-      '碰撞暗流：seed-border',
-      '成熟传闻：rumor-bell',
-      '正文时间跨度',
+      'Dòng ngầm va chạm: seed-border',
+      'Tin đồn chín muồi: rumor-bell',
+      'Khoảng thời gian của chính văn',
     ]));
   });
   it('确认后阶段 revision 冻结，不能再替换计划', () => {

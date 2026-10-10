@@ -27,25 +27,25 @@ const MESSAGE_FIELDS = ['TavernDB_ACU_IsolatedData', 'TavernDB_ACU_Data', 'Taver
 function clone<T>(value: T): T { return value === undefined ? value : JSON.parse(JSON.stringify(value)); }
 
 function prepareTemplate(templateData: Record<string, any>): PreparedTemplate {
-  if (!templateData || typeof templateData !== 'object' || Array.isArray(templateData)) throw new Error('初始化模板必须是对象。');
+  if (!templateData || typeof templateData !== 'object' || Array.isArray(templateData)) throw new Error('Mẫu khởi tạo phải là đối tượng.');
   const normalization = normalizeTemplateRowIds_ACU(templateData, {
     syncDdl: getCurrentStorageMode() === 'sqlite',
   });
   if (normalization.blockers.length > 0) {
-    throw new Error(`初始化模板 row_id 规范化失败：${normalization.blockers.map(item => item.message).join('；')}`);
+    throw new Error(`Chuẩn hóa row_id của mẫu khởi tạo thất bại: ${normalization.blockers.map(item => item.message).join('; ')}`);
   }
   const normalizedTemplateData = normalization.templateData;
   const entries = Object.entries(normalizedTemplateData).filter(([key]) => key.startsWith('sheet_'));
-  if (entries.length === 0) throw new Error('初始化模板不包含任何 Sheet。');
+  if (entries.length === 0) throw new Error('Mẫu khởi tạo không chứa Sheet nào.');
   const allocation = allocateStableSheetKeys_ACU(entries.map(([, sheet]) => sheet?.name));
-  if (allocation.diagnostics.length || allocation.keys.some(key => !key)) throw new Error(`初始化模板无法分配稳定 Sheet key：${allocation.diagnostics.map(item => item.code).join('；')}`);
+  if (allocation.diagnostics.length || allocation.keys.some(key => !key)) throw new Error(`Mẫu khởi tạo không thể cấp phát Sheet key ổn định: ${allocation.diagnostics.map(item => item.code).join('; ')}`);
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(normalizedTemplateData)) if (!key.startsWith('sheet_')) result[key] = clone(value);
   entries.forEach(([oldKey, source], index) => {
-    if (!source || typeof source !== 'object' || Array.isArray(source)) throw new Error(`初始化模板 Sheet 无效：${oldKey}`);
+    if (!source || typeof source !== 'object' || Array.isArray(source)) throw new Error(`Sheet của mẫu khởi tạo không hợp lệ: ${oldKey}`);
     const sheet = clone(source);
-    if (!Array.isArray(sheet.content) || !Array.isArray(sheet.content[0]) || sheet.content[0][0] !== 'row_id') throw new Error(`初始化模板 Sheet 缺少 row_id 表头：${oldKey}`);
-    if (sheet.content.slice(1).some((row: unknown) => !Array.isArray(row))) throw new Error(`初始化模板 Sheet 包含非法数据行：${oldKey}`);
+    if (!Array.isArray(sheet.content) || !Array.isArray(sheet.content[0]) || sheet.content[0][0] !== 'row_id') throw new Error(`Sheet của mẫu khởi tạo thiếu tiêu đề row_id: ${oldKey}`);
+    if (sheet.content.slice(1).some((row: unknown) => !Array.isArray(row))) throw new Error(`Sheet của mẫu khởi tạo chứa hàng dữ liệu không hợp lệ: ${oldKey}`);
     const previousUid = String(sheet.uid || '').trim();
     const declaredAliases = Array.isArray(sheet.sourceData?.tableAliases) ? sheet.sourceData.tableAliases : [];
     sheet.sourceData = sheet.sourceData && typeof sheet.sourceData === 'object' && !Array.isArray(sheet.sourceData)
@@ -61,11 +61,11 @@ function prepareTemplate(templateData: Record<string, any>): PreparedTemplate {
     result[allocation.keys[index]!] = sheet;
   });
   const normalized = normalizeCanonicalTableRows_ACU(result);
-  if (normalized.errors.length) throw new Error('初始化模板包含重复或非法 row_id。');
+  if (normalized.errors.length) throw new Error('Mẫu khởi tạo chứa row_id trùng hoặc không hợp lệ.');
   assertNoPhysicalTableNameCollision_ACU(result);
   const aliasRegistry = buildSheetTableAliasMap_ACU([result], { includeExtendedAliases: true });
   if (aliasRegistry.conflicts.size > 0) {
-    throw new Error(`初始化模板存在歧义表别名：${[...aliasRegistry.conflicts].join('、')}。`);
+    throw new Error(`Mẫu khởi tạo có bí danh bảng mơ hồ: ${[...aliasRegistry.conflicts].join(', ')}.`);
   }
   return { templateData: result, normalizationAudit: normalization.audits };
 }
@@ -90,7 +90,7 @@ export async function resetCurrentChatTableStateFromTemplate_ACU(
     prepared = preparedResult.templateData;
     normalizationAudit = preparedResult.normalizationAudit;
     guideData = buildChatSheetGuideDataFromTemplateObj_ACU(prepared, { stripSeedRows: false });
-    if (!guideData) throw new Error('无法从初始化模板生成聊天指导表。');
+    if (!guideData) throw new Error('Không thể tạo bảng hướng dẫn cuộc trò chuyện từ mẫu khởi tạo.');
     if (getCurrentStorageMode() === 'sqlite') {
       // 运行时模板注入路径（initGameSession/模板面板）与 table-import-service.ts:132 语义一致：
       // 非法显式 DDL 允许降级为 fallback schema，避免「导入面板能过、API 注入被硬拦」的不一致。
@@ -108,9 +108,9 @@ export async function resetCurrentChatTableStateFromTemplate_ACU(
       writeSet: [{ kind: 'all' }], maintenanceMode: 'exclusive',
     }, async (transactionContext) => transactionContext.runCommit(async () => {
       const chat = getChatArray_ACU();
-      if (!Array.isArray(chat)) throw new Error('当前聊天记录不可用，已取消初始化提交。');
+      if (!Array.isArray(chat)) throw new Error('Lịch sử trò chuyện hiện tại không khả dụng, đã hủy commit khởi tạo.');
       const targetIndex = chat.findIndex(message => message && !message.is_user);
-      if (targetIndex < 0) throw new Error('当前聊天不存在可写入初始化 checkpoint 的 AI 楼层。');
+      if (targetIndex < 0) throw new Error('Cuộc trò chuyện hiện tại không có tầng AI nào có thể ghi checkpoint khởi tạo.');
       const firstMessage = chat[0];
       const chatIdentity = getActiveChatStorageIdentity_ACU(chat);
       const messageSnapshots = snapshotMessages(chat);
@@ -150,8 +150,8 @@ export async function resetCurrentChatTableStateFromTemplate_ACU(
           reason: options.reason || 'game_init', syncTemplateScope: true, templateSource: prepared,
           presetName: options.presetName || '', source: options.source || 'game_init',
         });
-        if (!guideUpdated) throw new Error('初始化模板无法原子写入 guide 与 template scope。');
-        if (getChatArray_ACU() !== chat || chat[0] !== firstMessage || getActiveChatStorageIdentity_ACU(chat) !== chatIdentity) throw new Error('目标聊天已切换，已取消初始化提交。');
+        if (!guideUpdated) throw new Error('Mẫu khởi tạo không thể ghi nguyên tử guide và template scope.');
+        if (getChatArray_ACU() !== chat || chat[0] !== firstMessage || getActiveChatStorageIdentity_ACU(chat) !== chatIdentity) throw new Error('Cuộc trò chuyện đích đã chuyển, đã hủy commit khởi tạo.');
         primarySaveAttempted = true;
         await saveChatToHostStrict_ACU();
         _set_currentJsonTableData_ACU(clone(prepared));
@@ -162,7 +162,7 @@ export async function resetCurrentChatTableStateFromTemplate_ACU(
         setChatSheetGuideContainer_ACU(chat, previousGuide);
         if (primarySaveAttempted) {
           try { await saveChatToHostStrict_ACU(); }
-          catch (rollbackError: any) { throw new Error(`${error?.message || String(error)}；回滚保存也失败：${rollbackError?.message || String(rollbackError)}`); }
+          catch (rollbackError: any) { throw new Error(`${error?.message || String(error)}; lưu hoàn tác cũng thất bại: ${rollbackError?.message || String(rollbackError)}`); }
         }
         throw error;
       }

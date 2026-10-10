@@ -256,7 +256,7 @@ describe('mixed-storage-commit', () => {
 
     const result = await commitMixedStorageDecision_ACU({ decision, action: 'keep_v2', isolationConfig: { enabled: false, code: '' } });
 
-    expect(result).toMatchObject({ status: 'committed_postcondition_failed', error: expect.stringContaining('静默回退') });
+    expect(result).toMatchObject({ status: 'committed_postcondition_failed', error: expect.stringContaining('âm thầm lùi về native provider') });
     expect(saveStrict).toHaveBeenCalledTimes(1);
     expect(reload).toHaveBeenCalledTimes(1);
     expect(didFallback).toHaveBeenCalledWith('sqlite');

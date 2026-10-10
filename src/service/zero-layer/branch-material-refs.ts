@@ -7,7 +7,7 @@ import { validateZeroLayerWorkingFrameScope_ACU } from './continuation-working-f
 /** 恢复资料只能引用目标父链及已确认的宿主启用前缀，不授予写租约。 */
 export function validatePublishedMaterialRefs_ACU(source: ZeroLayerEnvelope_ACU,
   branch: ZeroLayerBranch_ACU): void {
-  const fail = (): never => { throw new ZeroLayerError_ACU('corrupt-data', '恢复资料引用越过所选切点或缺少来源证明。'); };
+  const fail = (): never => { throw new ZeroLayerError_ACU('corrupt-data', 'Tham chiếu tài liệu khôi phục vượt quá điểm cắt đã chọn hoặc thiếu bằng chứng nguồn.'); };
   validateZeroLayerWorkingFrameScope_ACU(source, branch);
   const path = checkpointPath_ACU(source, branch.branchId);
   const allowed = new Set(path.flatMap(turn => [turn.userFloor, turn.assistantFloor].map(floor =>

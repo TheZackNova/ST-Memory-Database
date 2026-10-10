@@ -81,11 +81,11 @@ export function useSqlConsole() {
   const history = computed(() => sqlHistory.value);
   const hasSqlText = computed(() => sqlText.value.trim().length > 0);
   const statusLabel = computed(() => {
-    if (busyAction.value === 'execute') return '执行中...';
-    if (result.value.kind === 'query') return `${result.value.rowCount} 行 · ${result.value.elapsedMs}ms`;
-    if (result.value.kind === 'mutation') return `${result.value.changes} 行受影响 · ${result.value.elapsedMs}ms`;
-    if (result.value.kind === 'error') return `失败 · ${result.value.elapsedMs}ms`;
-    return '等待执行';
+    if (busyAction.value === 'execute') return 'Đang thực thi...';
+    if (result.value.kind === 'query') return `${result.value.rowCount} hàng · ${result.value.elapsedMs}ms`;
+    if (result.value.kind === 'mutation') return `${result.value.changes} hàng bị ảnh hưởng · ${result.value.elapsedMs}ms`;
+    if (result.value.kind === 'error') return `Thất bại · ${result.value.elapsedMs}ms`;
+    return 'Chờ thực thi';
   });
   const statusKind = computed<SqlConsoleMessageKind>(() => {
     if (result.value.kind === 'error') return 'error';
@@ -117,20 +117,20 @@ export function useSqlConsole() {
 
   function useHistoryItem(item: SqlHistoryItem): void {
     sqlText.value = item.sql;
-    toast.info('已把历史 SQL 填入编辑器。');
+    toast.info('Đã điền SQL lịch sử vào trình soạn thảo.');
   }
 
   async function executeCurrent(): Promise<void> {
     const sql = sqlText.value.trim();
     if (!sql) {
-      toast.warning('SQL 语句不能为空。');
+      toast.warning('Câu lệnh SQL không được để trống.');
       return;
     }
 
     refresh();
     if (!isSqliteAvailable.value) {
-      result.value = { ...emptyResult(), kind: 'error', error: 'SQL 控制台仅在 SQLite 模式下可用。' };
-      toast.error('SQL 控制台仅在 SQLite 模式下可用。');
+      result.value = { ...emptyResult(), kind: 'error', error: 'Bảng điều khiển SQL chỉ khả dụng ở chế độ SQLite.' };
+      toast.error('Bảng điều khiển SQL chỉ khả dụng ở chế độ SQLite.');
       return;
     }
 
@@ -151,7 +151,7 @@ export function useSqlConsole() {
           elapsedMs,
         };
         addHistory(sql, true);
-        toast.success(queryResult.rowCount === 0 ? '查询成功，没有返回行。' : `查询成功，返回 ${queryResult.rowCount} 行。`);
+        toast.success(queryResult.rowCount === 0 ? 'Truy vấn thành công, không trả về hàng nào.' : `Truy vấn thành công, trả về ${queryResult.rowCount} hàng.`);
         logDebug_ACU(`[ACU-V2 SQL Console] query ok: ${queryResult.rowCount} rows, ${elapsedMs}ms`);
         return;
       }
@@ -174,10 +174,10 @@ export function useSqlConsole() {
       const mutationResult = commitResult.mutationResult || { changes: 0, errors: commitResult.error ? [commitResult.error] : [] };
       const elapsedMs = (performance.now() - startTime).toFixed(1);
       if (!commitResult.success || mutationResult.errors.length > 0) {
-        const error = mutationResult.errors.join('\n') || commitResult.error || '执行失败';
+        const error = mutationResult.errors.join('\n') || commitResult.error || 'Thực thi thất bại';
         result.value = { ...emptyResult(), kind: 'error', elapsedMs, error };
         addHistory(sql, false);
-        toast.error('执行失败，请检查结果区中的错误信息。');
+        toast.error('Thực thi thất bại, vui lòng kiểm tra thông báo lỗi trong vùng kết quả.');
         return;
       }
 
@@ -188,14 +188,14 @@ export function useSqlConsole() {
         elapsedMs,
       };
       addHistory(sql, true);
-      toast.success(`执行成功，${mutationResult.changes} 行受影响。`);
+      toast.success(`Thực thi thành công, ${mutationResult.changes} hàng bị ảnh hưởng.`);
       logDebug_ACU(`[ACU-V2 SQL Console] mutation ok: ${mutationResult.changes} changes, ${elapsedMs}ms`);
     } catch (e: any) {
       const elapsedMs = (performance.now() - startTime).toFixed(1);
       const error = e?.message || String(e);
       result.value = { ...emptyResult(), kind: 'error', elapsedMs, error };
       addHistory(sql, false);
-      toast.error('执行失败，请检查结果区中的错误信息。');
+      toast.error('Thực thi thất bại, vui lòng kiểm tra thông báo lỗi trong vùng kết quả.');
       logError_ACU(`[ACU-V2 SQL Console] execute failed: ${error}`);
     } finally {
       busyAction.value = '';

@@ -83,7 +83,7 @@ export function useVectorApiConfig() {
     errors.value = [];
     saveSettings_ACU();
     savedAt.value = Date.now();
-    toast.success("向量服务配置已保存。");
+    toast.success("Đã lưu cấu hình dịch vụ vector.");
     return true;
   }
 
@@ -101,13 +101,13 @@ export function useVectorApiConfig() {
 function formatVectorApiErrors(rawErrors: string[]): string[] {
   return rawErrors.map((error) => {
     if (error.includes("embeddingEndpoint")) {
-      return "缺少“向量化URL”";
+      return "Thiếu “URL vector hóa”";
     }
     if (error.includes("embeddingModel")) {
-      return "缺少“向量化模型名”";
+      return "Thiếu “tên mô hình vector hóa”";
     }
     if (error.includes("rerankEndpoint") || error.includes("rerankModel")) {
-      return "“重排URL”和“重排模型名”需要同时填写，或者同时留空";
+      return "“URL rerank” và “tên mô hình rerank” cần điền cùng nhau, hoặc để trống cả hai";
     }
     return error;
   });

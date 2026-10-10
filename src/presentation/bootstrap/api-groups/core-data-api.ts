@@ -40,7 +40,7 @@ export function createCoreDataApi(ctx: ApiGroupContext): Record<string, Function
         importTableAsJson: async function(jsonString: any, options?: any) {
             if (typeof jsonString !== 'string' || jsonString.trim() === '') {
                 logError_ACU('importTableAsJson received invalid input.');
-                showToastr_ACU('error', '导入数据失败：输入为空。');
+                showToastr_ACU('error', 'Nhập dữ liệu thất bại: đầu vào rỗng.');
                 return false;
             }
             try {
@@ -79,11 +79,11 @@ export function createCoreDataApi(ctx: ApiGroupContext): Record<string, Function
 
                     return true;
                 } else {
-                    throw new Error(commitResult.error || '导入数据提交失败。');
+                    throw new Error(commitResult.error || 'Commit dữ liệu nhập thất bại.');
                 }
             } catch (error: any) {
                 logError_ACU('Failed to import table data from JSON:', error);
-                showToastr_ACU('error', `导入数据失败: ${error?.message || String(error)}`);
+                showToastr_ACU('error', `Nhập dữ liệu thất bại: ${error?.message || String(error)}`);
                 return false;
             }
         },
@@ -97,7 +97,7 @@ export function createCoreDataApi(ctx: ApiGroupContext): Record<string, Function
         triggerUpdate: async function() {
             logDebug_ACU('External trigger for database update received.');
             if (isAutoUpdatingCard_ACU) {
-                showToastr_ACU('info', '已有更新任务在后台进行中。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.MANUAL_TABLE });
+                showToastr_ACU('info', 'Đã có tác vụ cập nhật đang chạy ở nền.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.MANUAL_TABLE });
                 return false;
             }
             _set_isAutoUpdatingCard_ACU(true);

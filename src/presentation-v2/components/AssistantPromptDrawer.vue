@@ -1,7 +1,7 @@
 <template>
   <AcuDrawer
     :is-open="isOpen"
-    title="编辑 AI 改表助手提示词"
+    title="Sửa prompt trợ lý AI sửa bảng"
     width="720px"
     :before-close="confirmIfDirty"
     @close="emit('close')"
@@ -11,11 +11,11 @@
     </AcuMessage>
 
     <details class="acu-assistant-prompt-drawer__placeholders">
-      <summary>可用占位符（{{ placeholderDocs.length }}）</summary>
+      <summary>Placeholder khả dụng ({{ placeholderDocs.length }})</summary>
       <div class="acu-assistant-prompt-drawer__placeholder-group">
         <p class="acu-assistant-prompt-drawer__placeholder-note">
-          提示词中出现任一数据占位符即视为你接管数据注入，系统不再自动追加数据消息；真实历史上下文会插入在最后一个
-          <code>{{ userRequestToken }}</code> 之前。
+          Khi prompt có bất kỳ placeholder dữ liệu nào, coi như bạn tự quản việc chèn dữ liệu, hệ thống không tự thêm tin nhắn dữ liệu nữa; ngữ cảnh lịch sử thực sẽ được chèn trước lần xuất hiện cuối cùng của
+          <code>{{ userRequestToken }}</code>.
         </p>
         <ul class="acu-assistant-prompt-drawer__placeholder-list">
           <li
@@ -46,27 +46,27 @@
 
     <div class="acu-assistant-prompt-drawer__toolbar">
       <AcuFileButton size="sm" accept="application/json,.json" @file="$emit('import-file', $event)">
-        <i class="fa-solid fa-download"></i> 导入 JSON
+        <i class="fa-solid fa-download"></i> Nhập JSON
       </AcuFileButton>
       <AcuButton size="sm" @click="$emit('export')">
-        <i class="fa-solid fa-upload"></i> 导出 JSON
+        <i class="fa-solid fa-upload"></i> Xuất JSON
       </AcuButton>
-      <AcuButton size="sm" variant="primary" @click="$emit('reset')">载入默认提示词</AcuButton>
+      <AcuButton size="sm" variant="primary" @click="$emit('reset')">Nạp prompt mặc định</AcuButton>
     </div>
 
     <AcuPromptSegments
       :segments="segments"
       :show-slot="false"
       :rows="8"
-      empty-text="暂无提示词段。点击下方按钮添加第一段。"
+      empty-text="Chưa có đoạn prompt. Bấm nút bên dưới để thêm đoạn đầu tiên."
       @add="$emit('add', $event)"
       @delete="$emit('delete', $event)"
       @update="(index, patch) => $emit('update', index, patch)"
     />
 
     <footer class="acu-assistant-prompt-drawer__actions">
-      <AcuButton @click="requestClose">关闭</AcuButton>
-      <AcuButton variant="primary" :disabled="!dirty" @click="$emit('save')">保存提示词</AcuButton>
+      <AcuButton @click="requestClose">Đóng</AcuButton>
+      <AcuButton variant="primary" :disabled="!dirty" @click="$emit('save')">Lưu prompt</AcuButton>
     </footer>
   </AcuDrawer>
 </template>
@@ -112,9 +112,9 @@ const dialogStore = useDialogStore();
 async function confirmIfDirty(): Promise<boolean> {
   if (!props.dirty) return true;
   return dialogStore.confirm({
-    title: '关闭提示词编辑器',
-    message: '你有未保存的提示词修改，确定要关闭吗？',
-    confirmLabel: '关闭',
+    title: 'Đóng trình sửa prompt',
+    message: 'Bạn có thay đổi prompt chưa lưu, chắc chắn đóng?',
+    confirmLabel: 'Đóng',
     confirmVariant: 'danger',
   });
 }

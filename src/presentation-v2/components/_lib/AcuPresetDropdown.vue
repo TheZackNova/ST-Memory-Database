@@ -53,12 +53,12 @@ const props = withDefaults(defineProps<{
   defaultActiveTitle?: string;
   defaultInactiveTitle?: string;
 }>(), {
-  emptyText: '暂无预设',
-  placeholder: '未选择',
+  emptyText: 'Chưa có preset',
+  placeholder: 'Chưa chọn',
   disabled: false,
   showDefaultAction: true,
-  defaultActiveTitle: '全局默认',
-  defaultInactiveTitle: '设为全局默认',
+  defaultActiveTitle: 'Mặc định toàn cục',
+  defaultInactiveTitle: 'Đặt làm mặc định toàn cục',
 });
 
 const emit = defineEmits<{

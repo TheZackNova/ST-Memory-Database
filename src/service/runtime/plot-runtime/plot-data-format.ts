@@ -10,16 +10,16 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
 
   export function formatTableDataForLLM_ACU(jsonData: any) {
     if (!jsonData || typeof jsonData !== 'object' || Object.keys(jsonData).length === 0) {
-      return '当前无任何可用的表格数据。';
+      return 'Hiện không có dữ liệu bảng nào khả dụng.';
     }
 
-    let output = '以下是当前角色聊天记录中，由st-memory-enhancement插件保存的全部表格数据：\n';
+    let output = 'Sau đây là toàn bộ dữ liệu bảng do plugin st-memory-enhancement lưu trong lịch sử trò chuyện của nhân vật hiện tại:\n';
 
     for (const sheetId in jsonData) {
       if (Object.prototype.hasOwnProperty.call(jsonData, sheetId)) {
         const sheet = jsonData[sheetId];
         if (sheet && sheet.name && sheet.content && sheet.content.length > 1) {
-          output += `\n## 表格: ${sheet.name}\n`;
+          output += `\n## Bảng: ${sheet.name}\n`;
           const headers = sheet.content[0].slice(1);
           const rows = sheet.content.slice(1);
 
@@ -36,13 +36,13 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
             });
 
             if (hasContent) {
-              output += `\n### ${sheet.name} - 第 ${rowIndex + 1} 条记录\n${rowOutput}`;
+              output += `\n### ${sheet.name} - Bản ghi thứ ${rowIndex + 1}\n${rowOutput}`;
             }
           });
         }
       }
     }
-    output += '\n--- 表格数据结束 ---\n';
+    output += '\n--- Hết dữ liệu bảng ---\n';
     return output;
   }
 
@@ -97,22 +97,22 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
   export function formatOutlineTableForPlot_ACU(allTablesJson: any) {
     try {
       if (!allTablesJson || typeof allTablesJson !== 'object') {
-        return '总体大纲表：未获取到表格数据。';
+        return 'Bảng 总体大纲: không lấy được dữ liệu bảng.';
       }
       const sheets: any[] = Object.values(allTablesJson).filter((x: any) => x && typeof x === 'object' && x.name && x.content);
       const outline = sheets.find(s => String(s.name || '').trim() === '总体大纲');
       if (!outline || !Array.isArray(outline.content) || outline.content.length === 0) {
-        return '总体大纲表：未找到该表或表结构为空。';
+        return 'Bảng 总体大纲: không tìm thấy bảng này hoặc cấu trúc bảng trống.';
       }
 
       const headerRow = Array.isArray(outline.content[0]) ? outline.content[0] : [];
       const headers = headerRow.slice(1).map((h: any) => String(h ?? '').trim()).filter(Boolean);
-      let out = `## 表格: 总体大纲\n`;
-      out += headers.length ? `Columns: ${headers.join(', ')}\n` : 'Columns: (无表头)\n';
+      let out = `## Bảng: 总体大纲\n`;
+      out += headers.length ? `Columns: ${headers.join(', ')}\n` : 'Columns: (không có tiêu đề)\n';
 
       const rows = outline.content.slice(1).filter((r: any) => Array.isArray(r));
       if (rows.length === 0) {
-        out += '(无数据行)\n';
+        out += '(không có hàng dữ liệu)\n';
         return out;
       }
 
@@ -125,11 +125,11 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
             parts.push(`${headers[i]}: ${String(v)}`);
           }
         }
-        out += parts.length ? `- [${idx}] ${parts.join(' | ')}\n` : `- [${idx}] (空行)\n`;
+        out += parts.length ? `- [${idx}] ${parts.join(' | ')}\n` : `- [${idx}] (hàng trống)\n`;
       });
       return out;
     } catch (e) {
-      return '总体大纲表：格式化时发生错误。';
+      return 'Bảng 总体大纲: đã xảy ra lỗi khi định dạng.';
     }
   }
 
@@ -138,7 +138,7 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
     try {
       if (!allTablesJson || typeof allTablesJson !== 'object') {
         logDebug_ACU('[剧情推进] formatSummaryIndexForPlot_ACU: 未获取到表格数据');
-        return { success: false, content: '纪要索引：未获取到表格数据。' };
+        return { success: false, content: 'Chỉ mục kỷ yếu: không lấy được dữ liệu bảng.' };
       }
       const sheets: any[] = Object.values(allTablesJson).filter((x: any) => x && typeof x === 'object' && x.name && x.content);
       const summaryTable = sheets.find(s => {
@@ -148,12 +148,12 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
       
       if (!summaryTable) {
         logDebug_ACU('[剧情推进] formatSummaryIndexForPlot_ACU: 未找到纪要表，可用表格:', sheets.map(s => s.name));
-        return { success: false, content: '纪要索引：未找到纪要表。' };
+        return { success: false, content: 'Chỉ mục kỷ yếu: không tìm thấy bảng 纪要表.' };
       }
       
       if (!Array.isArray(summaryTable.content) || summaryTable.content.length <= 1) {
         logDebug_ACU('[剧情推进] formatSummaryIndexForPlot_ACU: 纪要表为空，content长度:', summaryTable.content?.length);
-        return { success: false, content: '纪要索引：纪要表为空。' };
+        return { success: false, content: 'Chỉ mục kỷ yếu: bảng 纪要表 trống.' };
       }
 
       const headerRow = Array.isArray(summaryTable.content[0]) ? summaryTable.content[0] : [];
@@ -167,15 +167,15 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
       
       if (summaryColIdx === -1 || indexColIdx === -1) {
         logWarn_ACU('[剧情推进] formatSummaryIndexForPlot_ACU: 未找到概要列或编码索引列，概要列索引=', summaryColIdx, ', 编码索引列索引=', indexColIdx);
-        return { success: false, content: '纪要索引：未找到概要列或编码索引列。' };
+        return { success: false, content: 'Chỉ mục kỷ yếu: không tìm thấy cột 概要 hoặc cột 编码索引.' };
       }
 
-      let out = `## 表格: 纪要索引\n`;
+      let out = `## Bảng: 纪要索引\n`;
       out += `Columns: 概要, 编码索引\n`;
 
       const rows = summaryTable.content.slice(1).filter((r: any) => Array.isArray(r));
       if (rows.length === 0) {
-        out += '(无数据行)\n';
+        out += '(không có hàng dữ liệu)\n';
         return { success: true, content: out };
       }
 
@@ -190,6 +190,6 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
       return { success: true, content: out };
     } catch (e) {
       logError_ACU('[剧情推进] 格式化纪要索引时出错:', e);
-      return { success: false, content: '纪要索引：格式化时发生错误。' };
+      return { success: false, content: 'Chỉ mục kỷ yếu: đã xảy ra lỗi khi định dạng.' };
     }
   }

@@ -40,13 +40,13 @@ describe('终审世界书证据准备', () => {
     expect(evidence.worldbookSeeds).toContain('晶屑');
     expect(evidence.worldbookEvidence).toContain('旁人不得带离铁门。');
     expect(evidence.worldbookEvidence).toContain('只知道铁门前发生的事。');
-    expect(evidence.worldbookEvidence).toContain('当前角色已授权的资料目录和工具');
+    expect(evidence.worldbookEvidence).toContain('danh mục tư liệu và công cụ mà vai trò hiện tại được cấp quyền');
     expect(evidence.worldbookEvidence).not.toContain('用 search');
     expect(evidence.fixedReadKeys).not.toContain('$WORLDBOOK:设定集:7');
     expect(evidence.fixedReadKeys).not.toContain('$WORLDBOOK:设定集:9');
-    expect(evidence.gateItems.some(item => item.label.includes('预览') && item.text.includes('旁人不得带离铁门。'))).toBe(true);
+    expect(evidence.gateItems.some(item => item.label.includes('Xem trước') && item.text.includes('旁人不得带离铁门。'))).toBe(true);
     expect(evidence.supplementalMaterials).not.toContain('晶屑设定｜关键词：晶屑、禁区');
-    expect(evidence.supplementalMaterials).toContain('世界书检索种子');
+    expect(evidence.supplementalMaterials).toContain('Hạt giống tra cứu sổ thế giới');
   });
 
   it('终审固定证据包含故事年代学账本，并把 $CHRONOLOGY 记入固定读地址', () => {
@@ -62,9 +62,9 @@ describe('终审世界书证据准备', () => {
       candidateInstruction: '一个月后主角伤愈出关。',
     });
 
-    expect(evidence.supplementalMaterials).toContain('故事年代学账本');
-    expect(evidence.supplementalMaterials).toContain('当前时间锚：入城后的第七天');
-    expect(evidence.supplementalMaterials).toContain('大纲时间字段只是计划');
+    expect(evidence.supplementalMaterials).toContain('Sổ niên đại học câu chuyện');
+    expect(evidence.supplementalMaterials).toContain('Mốc thời gian hiện tại: 入城后的第七天');
+    expect(evidence.supplementalMaterials).toContain('trường thời gian trong dàn ý chỉ là kế hoạch');
     expect(evidence.fixedReadKeys).toContain('$CHRONOLOGY');
     expect(evidence.gateItems.some(item => item.text.includes('入城后的第七天'))).toBe(true);
   });
@@ -75,7 +75,7 @@ describe('终审世界书证据准备', () => {
       currentUserInput: '',
       candidateInstruction: '观察晶屑',
     });
-    expect(evidence.supplementalMaterials).toContain('没有已结算的故事时间记录');
+    expect(evidence.supplementalMaterials).toContain('không có bản ghi thời gian truyện nào đã quyết toán');
   });
 
   it('世界书不可用时保留可诊断证据不足文本', () => {
@@ -83,10 +83,10 @@ describe('终审世界书证据准备', () => {
     context.worldbook.available = false;
     const evidence = buildAgentFinalReviewEvidence_ACU({ resolveContext: context, currentUserInput: '', candidateInstruction: '观察晶屑' });
 
-    expect(evidence.worldbookEvidence).toContain('世界书当前不可用');
-    expect(evidence.worldbookEvidence).toContain('未验证');
+    expect(evidence.worldbookEvidence).toContain('Sổ thế giới hiện không khả dụng');
+    expect(evidence.worldbookEvidence).toContain('chưa xác minh');
     expect(evidence.worldbookEvidence).not.toContain('用 search');
-    expect(evidence.worldbookEvidence).toContain('不要臆测');
+    expect(evidence.worldbookEvidence).toContain('Đừng suy đoán');
   });
 
   it('去重并限制检索种子数量', () => {

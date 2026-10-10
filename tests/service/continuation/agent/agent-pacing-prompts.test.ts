@@ -70,8 +70,8 @@ describe('continuation P0 pacing prompt contracts', () => {
 
     const settings = buildDefaultContinuationSettings_ACU();
     const composer = promptText_ACU(settings.agentPrompts.instructionComposer);
-    expect(composer).toContain('我分清客观事实、读者已知和每个角色已知');
-    expect(composer).toContain('读者看见的幕后信息不直接交给角色');
+    expect(composer).toContain('tôi phân biệt sự thật khách quan, điều độc giả đã biết và điều mỗi nhân vật đã biết');
+    expect(composer).toContain('thông tin hậu trường mà độc giả thấy không giao thẳng cho nhân vật');
   });
 
   it('enforces the V26 chronology contract across maintainer, main agent, and final reviewer defaults', () => {
@@ -109,31 +109,31 @@ describe('continuation P0 pacing prompt contracts', () => {
     const pressure = renderAgentTurnPacingGuidance_ACU('pressure');
     const turn = renderAgentTurnPacingGuidance_ACU('turn');
 
-    expect(setup).toContain('允许主线 hold');
-    expect(setup).toContain('隔夜、数日后或更久');
-    expect(setup).toContain('允许安静闭合');
+    expect(setup).toContain('cho phép mạch chính hold');
+    expect(setup).toContain('sau một đêm, vài ngày hoặc lâu hơn');
+    expect(setup).toContain('cho phép khép lại yên tĩnh');
 
-    expect(cooldown).toContain('允许主线 hold');
-    expect(cooldown).toContain('完整处理上一波');
-    expect(cooldown).toContain('允许安静闭合');
+    expect(cooldown).toContain('cho phép mạch chính hold');
+    expect(cooldown).toContain('xử lý trọn vẹn thương tích');
+    expect(cooldown).toContain('cho phép khép lại yên tĩnh');
 
-    expect(pressure).toContain('只推进一个冲突');
-    expect(turn).toContain('已经埋过的东西');
+    expect(pressure).toContain('chỉ đẩy một xung đột');
+    expect(turn).toContain('thứ đã được chôn từ trước');
   });
 
   it('本轮节奏段渲染四维标记、系统补全提示与长时间跳跃义务', () => {
     const jump = renderAgentTurnGuidance_ACU({ id: 't1', goal: 'g', pacing: 'setup', function: 'training', mainlineDelta: 'hold', timeAdvance: 'weeks', timeAnchor: '入门后第二个月', inferred: ['mainlineDelta'] });
-    expect(jump).toContain('本轮节奏：setup');
-    expect(jump).toContain('叙事功能=training');
-    expect(jump).toContain('时间锚=入门后第二个月');
-    expect(jump).toContain('mainlineDelta 是系统按节奏档保守补全的推断值');
-    expect(jump).toContain('时间跳跃义务');
+    expect(jump).toContain('Nhịp lượt này: setup');
+    expect(jump).toContain('chức năng tự sự=training');
+    expect(jump).toContain('mốc thời gian=入门后第二个月');
+    expect(jump).toContain('mainlineDelta là giá trị suy đoán do hệ thống bổ sung thận trọng theo mức nhịp');
+    expect(jump).toContain('Nghĩa vụ nhảy thời gian');
     expect(jump).toContain('read $CHRONOLOGY');
-    expect(jump).toContain('本轮主线允许停驻');
+    expect(jump).toContain('Mạch chính lượt này được phép dừng chân');
 
     const tight = renderAgentTurnGuidance_ACU({ id: 't2', goal: 'g', pacing: 'pressure', function: 'conflict', mainlineDelta: 'step', timeAdvance: 'continuous' });
-    expect(tight).not.toContain('时间跳跃义务');
+    expect(tight).not.toContain('Nghĩa vụ nhảy thời gian');
     expect(tight).not.toContain('系统');
-    expect(renderAgentTurnGuidance_ACU(null)).toContain('尚无可执行的大纲轮次');
+    expect(renderAgentTurnGuidance_ACU(null)).toContain('chưa có lượt dàn ý khả thi');
   });
 });

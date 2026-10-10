@@ -389,7 +389,7 @@ describe('persistTableMutationLogV2_ACU incremental replacement', () => {
       assumeCommitLock: true,
     });
 
-    expect(result).toEqual({ saved: false, error: expect.stringContaining('空 row_id') });
+    expect(result).toEqual({ saved: false, error: expect.stringContaining('row_id rỗng') });
     expect(message).toEqual(messageBefore);
     expect(message.TavernDB_ACU_IsolatedData).toBe(isolatedDataBefore);
     expect(mocks.saveChat).not.toHaveBeenCalled();
@@ -843,7 +843,7 @@ describe('persistTableMutationLogV2_ACU incremental replacement', () => {
       transactionContext: makeTransaction(), assumeCommitLock: true,
     });
 
-    expect(result).toEqual({ saved: false, error: expect.stringContaining('模板指纹不一致') });
+    expect(result).toEqual({ saved: false, error: expect.stringContaining('Dấu vân tay mẫu hội tụ V2 không khớp') });
     expect(message.TavernDB_ACU_IsolatedData).toBe(beforeIsolatedData);
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     expect(mocks.saveChat).not.toHaveBeenCalled();
@@ -1000,7 +1000,7 @@ describe('persistTableSheetCheckpointV2_ACU', () => {
       transactionContext: makeTransaction(),
     });
 
-    expect(result).toEqual({ saved: false, error: expect.stringContaining('空 row_id') });
+    expect(result).toEqual({ saved: false, error: expect.stringContaining('row_id rỗng') });
     expect(message).toEqual(messageBefore);
     expect(message.TavernDB_ACU_IsolatedData).toBe(isolatedDataBefore);
     expect(mocks.saveChat).not.toHaveBeenCalled();
@@ -1417,7 +1417,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
         expectedFirstMessage: message,
       });
 
-      expect(result).toMatchObject({ saved: false, error: expect.stringContaining('目标聊天已切换') });
+      expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Cuộc trò chuyện đích đã được chuyển') });
       expect(mocks.setGuide).not.toHaveBeenCalled();
       expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     });
@@ -1438,7 +1438,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
         signal: controller.signal,
       });
 
-      expect(result).toMatchObject({ saved: false, error: expect.stringContaining('已取消') });
+      expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Đã hủy commit mẫu') });
       expect(mocks.setGuide).not.toHaveBeenCalled();
       expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     });
@@ -1469,7 +1469,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
         templateSource: scopeOnlyData,
       });
 
-      expect(result).toMatchObject({ saved: false, error: expect.stringContaining('有效的 guideData') });
+      expect(result).toMatchObject({ saved: false, error: expect.stringContaining('guideData hợp lệ') });
       expect(mocks.runTransaction).not.toHaveBeenCalled();
       expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     });
@@ -1526,7 +1526,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
     resolveReplay({ mate: { type: 'acu' }, sheet_a: sheetA, sheet_b: sheetB });
     const result = await pending;
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('已取消') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Đã hủy commit mẫu') });
     expect(message.TavernDB_ACU_IsolatedData).toEqual(frameBefore);
     expect(mocks.guideContainer).toEqual(guideBefore);
     expect(mocks.scopeContainer).toEqual(scopeBefore);
@@ -1560,7 +1560,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
     resolveReplay({ mate: { type: 'acu' }, sheet_a: sheetA, sheet_b: sheetB });
     const result = await pending;
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('目标聊天已切换') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Cuộc trò chuyện đích đã được chuyển') });
     expect(message.TavernDB_ACU_IsolatedData).toEqual(frameBefore);
     expect(mocks.guideContainer).toEqual(guideBefore);
     expect(mocks.scopeContainer).toEqual(scopeBefore);
@@ -1681,7 +1681,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       templateSource: { mate: { type: 'acu' }, sheet_a: sheetA, sheet_b: sheetB },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('仍包含已删除 Sheet') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('vẫn chứa Sheet đã xóa') });
     expect(message.TavernDB_ACU_IsolatedData).toBeUndefined();
     expect(mocks.scopeContainer).toEqual(scopeBefore);
     expect(mocks.guideContainer).toEqual(guideBefore);
@@ -1718,7 +1718,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       templateSource: { mate: { type: 'acu' }, sheet_a: sheetA, sheet_b: sheetB },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('V2 存储痕迹') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('dấu vết lưu trữ V2') });
     expect(message.TavernDB_ACU_IsolatedData).toEqual(isolatedDataBefore);
     expect(mocks.scopeContainer).toEqual(scopeBefore);
     expect(mocks.guideContainer).toEqual(guideBefore);
@@ -1962,7 +1962,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       guideData: { sheet_a: { name: 'A' } },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('完整有效的 templateSource') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('templateSource đầy đủ và hợp lệ') });
     expect(message).toEqual({ is_user: false, marker: 'unchanged' });
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     expect(mocks.setGuide).not.toHaveBeenCalled();
@@ -1984,7 +1984,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       templateSource: { mate: null, sheet_a: sheetA, sheet_b: sheetB },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('templateSource.mate 无效') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('templateSource.mate của commit mẫu lần đầu V2 không hợp lệ') });
     expect(message.TavernDB_ACU_IsolatedData).toBeUndefined();
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     expect(mocks.setGuide).not.toHaveBeenCalled();
@@ -2006,7 +2006,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       templateSource: { mate: { type: 'acu' }, sheet_a: sheetA, sheet_b: { ...sheetB, content: 'invalid' } },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('无效 Sheet：sheet_b') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Sheet không hợp lệ: sheet_b') });
     expect(message.TavernDB_ACU_IsolatedData).toBeUndefined();
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
   });
@@ -2031,7 +2031,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       templateSource: { mate: { type: 'acu' }, sheet_a: sheetA, sheet_b: invalidSheetB },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('DDL 无法 strict hydrate：sheet_b') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('không thể strict hydrate: sheet_b') });
     expect(message.TavernDB_ACU_IsolatedData).toBeUndefined();
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
   });
@@ -2059,7 +2059,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
 
     expect(result).toMatchObject({
       saved: false,
-      error: expect.stringContaining('完整 templateSource 无法通过 SQLite strict hydrate'),
+      error: expect.stringContaining('không thể qua SQLite strict hydrate'),
     });
     expect(message.TavernDB_ACU_IsolatedData).toBeUndefined();
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
@@ -2077,7 +2077,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       templateSource: { mate: { type: 'acu' }, sheet_a: sheetA, sheet_b: sheetB },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Sheet 集合不一致') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Tập Sheet của templateSource và guideData') });
     expect(message.TavernDB_ACU_IsolatedData).toBeUndefined();
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
   });
@@ -2093,7 +2093,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       templateSource: { mate: { type: 'acu' }, sheet_a: sheetA, sheet_b: sheetB },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Sheet 集合不一致') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Tập Sheet của templateSource và guideData') });
     expect(message.TavernDB_ACU_IsolatedData).toBeUndefined();
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     expect(mocks.setGuide).not.toHaveBeenCalled();
@@ -2211,7 +2211,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       templateSource: { mate: { type: 'acu' }, sheet_a: sheetA, sheet_b: sheetB },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('无法原子写入 guideData 与 template scope') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('không thể ghi nguyên tử guideData và template scope') });
     expect(mocks.saveChatStrict).toHaveBeenCalledOnce();
     expect(mocks.scopeContainer).toEqual(originalScope);
     expect(mocks.guideContainer).toEqual(originalGuide);
@@ -2433,7 +2433,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
         assumeCommitLock: true,
       });
 
-      expect(result).toEqual({ saved: false, error: expect.stringContaining('初始 full checkpoint 不接受 operations') });
+      expect(result).toEqual({ saved: false, error: expect.stringContaining('full checkpoint khởi tạo V2 không nhận operations') });
       expect(rejectedInitialMessage).toEqual(initialSnapshot);
       expect(rejectedInitialMessage.TavernDB_ACU_IsolatedData).toBe(rejectedInitialIsolatedData);
       expect(mocks.saveChat).not.toHaveBeenCalled();
@@ -2605,7 +2605,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       assumeCommitLock: true,
     });
 
-    expect(result).toEqual({ saved: false, error: expect.stringContaining('afterData 不一致') });
+    expect(result).toEqual({ saved: false, error: expect.stringContaining('không khớp afterData') });
     expect(message).toEqual(before);
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
   });
@@ -2922,7 +2922,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       createdAt: 30,
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('缺少 full checkpoint 的 V2 存储痕迹') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('thiếu full checkpoint') });
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     expect(mocks.setGuide).not.toHaveBeenCalled();
     expect(message.TavernDB_ACU_IsolatedData).toBe(originalIsolatedData);
@@ -3040,7 +3040,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       createdAt: 30,
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('结构性 replay repair') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('replay repair mang tính cấu trúc') });
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     expect(mocks.setGuide).not.toHaveBeenCalled();
     expect(message.TavernDB_ACU_IsolatedData).toBe(originalIsolatedData);
@@ -3553,9 +3553,9 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
   });
 
   it.each([
-    { label: '重复', entries: [makeEntry({ seq: 7 }), makeEntry({ seq: 7, entryId: 'entry-2' })], error: '唯一且严格递增' },
-    { label: '倒序', entries: [makeEntry({ seq: 8 }), makeEntry({ seq: 7, entryId: 'entry-2' })], error: '唯一且严格递增' },
-    { label: '非法', entries: [makeEntry({ seq: -1 })], error: '非法 log seq' },
+    { label: '重复', entries: [makeEntry({ seq: 7 }), makeEntry({ seq: 7, entryId: 'entry-2' })], error: 'duy nhất và tăng chặt' },
+    { label: '倒序', entries: [makeEntry({ seq: 8 }), makeEntry({ seq: 7, entryId: 'entry-2' })], error: 'duy nhất và tăng chặt' },
+    { label: '非法', entries: [makeEntry({ seq: -1 })], error: 'log seq không hợp lệ' },
   ])('目标 frame log seq $label 时拒绝 introduction 且零写入', async ({ entries, error }) => {
     const message = seedFrame({ logEntries: entries });
     const originalIsolatedData = message.TavernDB_ACU_IsolatedData;
@@ -3693,7 +3693,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
     });
   });
 
-  it('严格保存失败时回滚 introduction shard、operation entry、headRevision、identity、guide 与 scope', async () => {
+  it('Lưu nghiêm ngặt boundary commit thất bại时回滚 introduction shard、operation entry、headRevision、identity、guide 与 scope', async () => {
     const message = seedFrame({ logEntries: [] });
     const originalIsolatedData = message.TavernDB_ACU_IsolatedData;
     const originalFrame = JSON.parse(JSON.stringify(originalIsolatedData[''].storageFrame));
@@ -3816,12 +3816,12 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       sheetChanges: [{ kind: 'operations', sheetKey: 'sheet_a', targetSheetData: sheetA, operations: [{ kind: 'meta_update', sheetKey: 'sheet_a', meta: { name: 'A' } }] }],
       guideData: { sheet_a: { name: 'A' } },
     });
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('同时删除和变更') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('vừa xóa vừa thay đổi') });
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     expect(message.TavernDB_ACU_IsolatedData[''].storageFrame.checkpoint.data.sheet_a).toEqual(sheetA);
   });
 
-  it('删表严格保存失败时恢复跨消息历史字段、guide 与 scope', async () => {
+  it('删表Lưu nghiêm ngặt boundary commit thất bại时恢复跨消息历史字段、guide 与 scope', async () => {
     const historical = seedFrame({ logEntries: [] });
     historical.TavernDB_ACU_Data = { sheet_b: { legacy: true } };
     const target = seedFrame({ logEntries: [] });
@@ -3854,7 +3854,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
   });
 
 
-  it('最新 AI 楼层不是 V2 frame 时拒绝提交，不隐式迁移或修改 guide/scope', async () => {
+  it('tầng AI mới nhất不是 V2 frame 时拒绝提交，不隐式迁移或修改 guide/scope', async () => {
     const anchor = seedFrame({ logEntries: [] });
     const legacyTarget = { is_user: false, TavernDB_ACU_IndependentData: { sheet_a: { legacy: true } } };
     mocks.chat.splice(0, mocks.chat.length, anchor, legacyTarget);
@@ -3867,7 +3867,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
       guideData: { sheet_a: { name: 'A' } },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('legacy 持久化数据') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('dữ liệu lưu trữ legacy') });
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     expect(mocks.setGuide).not.toHaveBeenCalled();
     expect(mocks.scopeContainer).toEqual(originalScope);
@@ -3877,7 +3877,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
     expect(anchor.TavernDB_ACU_IsolatedData[''].storageFrame.perSheetCheckpoints.sheet_a).toBeUndefined();
   });
 
-  it('拒绝非最新 AI 楼层且不保存', async () => {
+  it('拒绝非tầng AI mới nhất且不保存', async () => {
     seedFrame({ logEntries: [] });
     mocks.chat.push({ is_user: false });
 
@@ -3888,11 +3888,11 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
     });
 
     expect(result.saved).toBe(false);
-    expect(result.error).toContain('最新 AI 楼层');
+    expect(result.error).toContain('tầng AI mới nhất');
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
   });
 
-  it('任一 shard 的 DDL 无法 strict hydrate 时拒绝整批提交且不写 guide', async () => {
+  it('任一 shard 的 DDL không thể strict hydrate 时拒绝整批提交且不写 guide', async () => {
     const message = seedFrame({ logEntries: [] });
     const originalIsolatedData = message.TavernDB_ACU_IsolatedData;
     const invalidSheet = {
@@ -3910,7 +3910,7 @@ describe('commitCurrentFloorTemplateChanges_ACU', () => {
     });
 
     expect(result.saved).toBe(false);
-    expect(result.error).toContain('DDL 无法 strict hydrate');
+    expect(result.error).toContain('DDL không thể strict hydrate');
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     expect(mocks.setGuide).not.toHaveBeenCalled();
     expect(message.TavernDB_ACU_IsolatedData).toBe(originalIsolatedData);
@@ -4798,7 +4798,7 @@ describe('阶段0红测试：introduction history evidence 与模板提交 frame
       createdAt: 30,
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('损坏的 V2 storage frame') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('V2 storage frame bị hỏng') });
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     expect(malformedMessage).toEqual(beforeMessage);
     expect(checkpointMessage).toEqual(beforeCheckpointMessage);
@@ -4910,7 +4910,7 @@ describe('collectV2FullCheckpointIndices_ACU / assertSingleActiveFullCheckpointV
     );
     expect(collectV2FullCheckpointIndices_ACU(mocks.chat, '')).toEqual([0, 1]);
     const violation = assertSingleActiveFullCheckpointV2_ACU(mocks.chat, '', 'persist');
-    expect(violation).toContain('2 个 full checkpoint');
+    expect(violation).toContain('2 full checkpoint');
     expect(violation).toContain('#0(init)');
     expect(violation).toContain('#1(integrity_repair)');
   });
@@ -4922,7 +4922,7 @@ describe('collectV2FullCheckpointIndices_ACU / assertSingleActiveFullCheckpointV
       makeFullMessage(2, 'manual'),
     );
     expect(collectV2FullCheckpointIndices_ACU(mocks.chat, '')).toEqual([0, 1, 2]);
-    expect(assertSingleActiveFullCheckpointV2_ACU(mocks.chat, '', 'test')).toContain('3 个 full checkpoint');
+    expect(assertSingleActiveFullCheckpointV2_ACU(mocks.chat, '', 'test')).toContain('3 full checkpoint');
   });
 
   it('跨 isolationKey：只统计目标隔离键的 full', () => {
@@ -5013,19 +5013,19 @@ describe('writeInitFullCheckpointFrameV2_ACU（S2-4 init 写协议统一入口�
   it('目标楼不存在或是 user 楼时抛错且不写入', () => {
     const chat = [{ is_user: true, mes: 'user' }];
     expect(() => writeInitFullCheckpointFrameV2_ACU({ chat, targetIndex: 0, isolationKey: '', checkpoint: makeInitCheckpoint() }))
-      .toThrow(/不是 AI 楼层/);
+      .toThrow(/không phải tầng AI/);
     expect(() => writeInitFullCheckpointFrameV2_ACU({ chat, targetIndex: 5, isolationKey: '', checkpoint: makeInitCheckpoint() }))
-      .toThrow(/不存在或不是 AI 楼层/);
+      .toThrow(/không tồn tại hoặc không phải tầng AI/);
     expect((chat[0] as any).TavernDB_ACU_IsolatedData).toBeUndefined();
   });
 
   it('非 init reason 或非 full kind 时拒绝', () => {
     const chat = [{ is_user: false, mes: 'ai' }];
     expect(() => writeInitFullCheckpointFrameV2_ACU({ chat, targetIndex: 0, isolationKey: '', checkpoint: makeInitCheckpoint('manual') }))
-      .toThrow(/只接受 reason:'init'/);
+      .toThrow(/chỉ nhận full checkpoint có reason:'init'/);
     const notFull = { ...makeInitCheckpoint(), kind: 'delta' };
     expect(() => writeInitFullCheckpointFrameV2_ACU({ chat, targetIndex: 0, isolationKey: '', checkpoint: notFull }))
-      .toThrow(/只接受 reason:'init'/);
+      .toThrow(/chỉ nhận full checkpoint có reason:'init'/);
   });
 
   it('写入后同隔离键存在多个 full checkpoint 时抛单根违例', () => {
@@ -5040,7 +5040,7 @@ describe('writeInitFullCheckpointFrameV2_ACU（S2-4 init 写协议统一入口�
     const chat = [existingFull, { is_user: false, mes: 'ai-2' }];
 
     expect(() => writeInitFullCheckpointFrameV2_ACU({ chat, targetIndex: 1, isolationKey: '', checkpoint: makeInitCheckpoint() }))
-      .toThrow(/单根不变量.*2 个 full checkpoint/);
+      .toThrow(/bất biến một gốc.*2 full checkpoint/);
   });
 });
 
@@ -5385,7 +5385,7 @@ describe('demoteTemplateOnlyRootToScopeOnly_ACU 契约（四行真值表）', ()
     // 「!ok && noReplayRoot !== true → fail-closed」即阻止保存（useVisualizerSave.ts）。
     expect(demotion).toMatchObject({ ok: false, demoted: false });
     expect(demotion.noReplayRoot).toBeUndefined();
-    expect(demotion.reason).toContain('表结构不一致');
+    expect(demotion.reason).toContain('không khớp cấu trúc bảng');
     expect(demotion.reason).toContain('sheet_a.headerChanged');
     expect(mocks.saveChatStrict).not.toHaveBeenCalled();
     // 残留根仍在，full checkpoint 数保持 1。

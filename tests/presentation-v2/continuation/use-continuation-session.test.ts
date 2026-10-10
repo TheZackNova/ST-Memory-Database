@@ -113,7 +113,7 @@ describe('useContinuationSession', () => {
 
     expect(session.entries.value.map(entry => [entry.kind, entry.kind === 'thought' ? entry.title : entry.detail])).toEqual([
       ['main_action', '第一轮的规划'],
-      ['thought', '楼层已变化，会话已按现存楼层重新加载'],
+      ['thought', 'Tầng đã thay đổi, phiên đã được nạp lại theo các tầng hiện còn'],
     ]);
     expect(session.running.value).toBe(true);
 

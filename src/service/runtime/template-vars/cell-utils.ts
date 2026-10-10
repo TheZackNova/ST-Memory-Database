@@ -16,28 +16,28 @@ import { logDebug_ACU, logError_ACU, logWarn_ACU } from '../../../shared/utils';
   export function getCellValue_ACU(allTablesJson: any, tableName: string, rowName: string, colName: string) {
     try {
       if (!allTablesJson || typeof allTablesJson !== 'object') {
-        return { success: false, value: null as any, error: '表格数据为空' };
+        return { success: false, value: null as any, error: 'Dữ liệu bảng trống' };
       }
       
       const sheets: any[] = Object.values(allTablesJson).filter((x: any) => x && typeof x === 'object' && x.name && x.content);
       const targetTable = sheets.find(s => String(s.name || '').trim() === tableName.trim());
       
       if (!targetTable) {
-        return { success: false, value: null, error: `未找到表格: ${tableName}` };
+        return { success: false, value: null, error: `Không tìm thấy bảng: ${tableName}` };
       }
       
       if (!Array.isArray(targetTable.content) || targetTable.content.length < 1) {
-        return { success: false, value: null, error: `表格 ${tableName} 没有数据` };
+        return { success: false, value: null, error: `Bảng ${tableName} không có dữ liệu` };
       }
       
       const headerRow = targetTable.content[0];
       if (!Array.isArray(headerRow)) {
-        return { success: false, value: null, error: `表格 ${tableName} 表头格式错误` };
+        return { success: false, value: null, error: `Định dạng tiêu đề của bảng ${tableName} sai` };
       }
       
       const colIndex = headerRow.findIndex(h => String(h || '').trim() === colName.trim());
       if (colIndex === -1) {
-        return { success: false, value: null, error: `未找到列: ${colName}` };
+        return { success: false, value: null, error: `Không tìm thấy cột: ${colName}` };
       }
       
       const normalizedRowName = String(rowName || '').trim();
@@ -48,7 +48,7 @@ import { logDebug_ACU, logError_ACU, logWarn_ACU } from '../../../shared/utils';
       });
       
       if (!targetRow) {
-        return { success: false, value: null, error: `未找到行标识: ${rowName}` };
+        return { success: false, value: null, error: `Không tìm thấy định danh hàng: ${rowName}` };
       }
       
       const cellValue = targetRow[colIndex];

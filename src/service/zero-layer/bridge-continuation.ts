@@ -18,7 +18,7 @@ export function buildBridgeContinuation_ACU(chat: Record<string, unknown>[], cut
   const envelope = raw === undefined ? null : validateContinuationEnvelope_ACU(raw);
   const task = envelope?.activeTask;
   if (task?.pendingHostTurn || task && ['drafting', 'running', 'stopping_after_inflight'].includes(task.status)) {
-    throw new ZeroLayerError_ACU('migration-conflict', '旧续写仍有未完成宿主运行，请先在普通模式停止或收尾。');
+    throw new ZeroLayerError_ACU('migration-conflict', 'Viết tiếp cũ vẫn còn lần chạy host chưa hoàn tất, hãy dừng hoặc kết thúc ở chế độ thường trước.');
   }
   if (task) {
     const anchors = [...task.timeline, ...(task.progressSelections ?? []),
@@ -26,13 +26,13 @@ export function buildBridgeContinuation_ACU(chat: Record<string, unknown>[], cut
     for (const anchor of anchors) {
       if ('logicalRef' in anchor && anchor.logicalRef || 'logicalAnchor' in anchor && anchor.logicalAnchor
         || anchor.messageIndex !== undefined && !cut.refs.some(ref => ref.messageIndex === anchor.messageIndex)) {
-        throw new ZeroLayerError_ACU('migration-conflict', '旧续写历史锚点不在桥接来源切点内。');
+        throw new ZeroLayerError_ACU('migration-conflict', 'Neo lịch sử viết tiếp cũ không nằm trong điểm cắt nguồn cầu nối.');
       }
     }
   }
   const folded = foldAgentModuleSnapshot_ACU(chat, agentModuleFrameDeps_ACU());
   if (folded.salvaged || folded.candidates.some(item => !item.valid)) {
-    throw new ZeroLayerError_ACU('migration-conflict', '旧续写资料损坏，禁止将抢救结果当作桥接基线。');
+    throw new ZeroLayerError_ACU('migration-conflict', 'Tài liệu viết tiếp cũ bị hỏng, cấm dùng kết quả cứu hộ làm đường cơ sở cầu nối.');
   }
   const moduleFrames: Record<string, unknown> = {};
   for (const [index, message] of chat.entries()) {

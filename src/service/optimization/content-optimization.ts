@@ -84,7 +84,7 @@ import { replaceDbSqlVariables } from '../runtime/template-vars/sql-query-var';
         .slice(-10) // 最近10条AI消息
         .map(msg => `assistant："${msg.mes || ''}"`)
         .join('\n');
-      placeholders.$7 = contextMessages ? `以下是前文的故事发展（AI输出）：\n${contextMessages}` : '';
+      placeholders.$7 = contextMessages ? `Sau đây là diễn biến câu chuyện trước đó (đầu ra của AI):\n${contextMessages}` : '';
       logDebug_ACU('[正文优化] $7 前文上下文:', placeholders.$7 ? `长度=${placeholders.$7.length}` : '(空)');
     } catch (e) {
       logWarn_ACU('[正文优化] 获取前文上下文失败:', e);
@@ -205,7 +205,7 @@ import { replaceDbSqlVariables } from '../runtime/template-vars/sql-query-var';
          }
          
          // 空响应视为失败
-         lastError = new Error('AI API 返回空响应');
+         lastError = new Error('AI API trả về phản hồi rỗng');
          logDebug_ACU(`[正文优化] API返回空响应，尝试 ${attempt}/${maxRetries}`);
        } catch (error) {
          lastError = error;
@@ -225,7 +225,7 @@ import { replaceDbSqlVariables } from '../runtime/template-vars/sql-query-var';
        logError_ACU(`[正文优化] 所有重试均失败 (${maxRetries}次)`);
        return {
          success: false,
-         error: lastError ? lastError.message : 'API调用失败，已达到最大重试次数',
+         error: lastError ? lastError.message : 'Gọi API thất bại, đã đạt số lần thử lại tối đa',
          retryExhausted: true
        };
      }
@@ -239,7 +239,7 @@ import { replaceDbSqlVariables } from '../runtime/template-vars/sql-query-var';
          const parsed = parseOptimizationResponse_ACU(parseRetryResponseContent, maxLength);
          
          if (!parsed.success) {
-           throw new Error(parsed.error || '解析失败');
+           throw new Error(parsed.error || 'Phân tích thất bại');
          }
          
          // 5. 应用优化到正文
@@ -270,7 +270,7 @@ import { replaceDbSqlVariables } from '../runtime/template-vars/sql-query-var';
            logDebug_ACU(`[正文优化] 重新调用AI API以获取更干净的优化结果... (尝试 ${parseAttempt + 1}/${maxRetries})`);
            parseRetryResponseContent = await callAIWithPreset_ACU(messages, apiPreset);
            if (!parseRetryResponseContent) {
-             throw new Error('重试请求未返回有效内容');
+             throw new Error('Yêu cầu thử lại không trả về nội dung hợp lệ');
            }
          } catch (retryError) {
            parseLastError = retryError;
@@ -282,7 +282,7 @@ import { replaceDbSqlVariables } from '../runtime/template-vars/sql-query-var';
        }
      }
      
-     return { success: false, error: parseLastError?.message || '解析失败' };
+     return { success: false, error: parseLastError?.message || 'Phân tích thất bại' };
    }
   
   /**
@@ -572,7 +572,7 @@ import { replaceDbSqlVariables } from '../runtime/template-vars/sql-query-var';
       const parsed = JSON.parse(sanitizedJson);
 
       if (!parsed || !Array.isArray(parsed.optimizations)) {
-        return { success: false, error: '响应格式错误：缺少 optimizations 数组' };
+        return { success: false, error: 'Định dạng phản hồi sai: thiếu mảng optimizations' };
       }
 
       const optimizations = parsed.optimizations
@@ -593,7 +593,7 @@ import { replaceDbSqlVariables } from '../runtime/template-vars/sql-query-var';
         return salvaged;
       }
       logError_ACU('[正文优化] JSON解析失败:', error);
-      return { success: false, error: 'JSON解析失败: ' + error.message };
+      return { success: false, error: 'Phân tích JSON thất bại: ' + error.message };
     }
   }
   
@@ -635,7 +635,7 @@ import { replaceDbSqlVariables } from '../runtime/template-vars/sql-query-var';
    * @param {string} reason - 取消原因
    * @returns {{ cancelled: boolean; reason: string }}
    */
-  export function cancelContentOptimization_ACU(reason = '正文优化已由用户终止。'): { cancelled: boolean; reason: string } {
+  export function cancelContentOptimization_ACU(reason = 'Tối ưu nội dung chính đã bị người dùng chấm dứt.'): { cancelled: boolean; reason: string } {
     contentOptimizationAbortRequested_ACU = true;
     return { cancelled: true, reason };
   }

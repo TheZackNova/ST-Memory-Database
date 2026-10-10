@@ -67,7 +67,7 @@ describe('template-preset-api 结果契约', () => {
     expect(result).toEqual({
       success: false,
       scope: 'chat',
-      message: '模板预设切换失败：switch boom',
+      message: 'Chuyển preset mẫu thất bại: switch boom',
       error: 'switch boom',
     });
     expect(mocks.refreshUi).not.toHaveBeenCalled();
@@ -85,7 +85,7 @@ describe('template-preset-api 结果契约', () => {
     expect(result).toEqual({
       success: true,
       scope: 'chat',
-      message: '当前聊天模板预设已切换：preset-a',
+      message: 'Preset mẫu của cuộc trò chuyện hiện tại đã chuyển: preset-a',
       runtimeReady: false,
       warning: '模板已保存，但 SQLite 运行时重建失败。',
       postCommitWarning: '模板已保存，但 SQLite 运行时重建失败。',
@@ -127,7 +127,7 @@ describe('template-preset-api 结果契约', () => {
     expect(result).toEqual({
       success: true,
       scope: 'chat',
-      message: '当前聊天模板预设已切换：preset-a',
+      message: 'Preset mẫu của cuộc trò chuyện hiện tại đã chuyển: preset-a',
       runtimeReady: true,
     });
     expect(mocks.refreshUi).toHaveBeenCalledOnce();
@@ -141,7 +141,7 @@ describe('template-preset-api 结果契约', () => {
     expect(result).toEqual({
       success: false,
       scope: 'chat',
-      message: '模板导入失败：当前没有可绑定的目标聊天，已取消模板提交。',
+      message: 'Nhập mẫu thất bại: 当前没有可绑定的目标聊天，已取消模板提交。',
       error: '当前没有可绑定的目标聊天，已取消模板提交。',
     });
     expect(mocks.refreshUi).not.toHaveBeenCalled();
@@ -156,7 +156,7 @@ describe('template-preset-api 结果契约', () => {
     expect(result).toEqual({
       success: false,
       scope: 'chat',
-      message: `模板导入失败：${error}`,
+      message: `Nhập mẫu thất bại: ${error}`,
       error,
     });
     expect(result.message).toContain('DDL/表头预检失败');

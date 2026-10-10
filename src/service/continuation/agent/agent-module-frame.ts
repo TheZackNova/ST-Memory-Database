@@ -223,15 +223,15 @@ function parseDelta_ACU(raw: unknown, deps: AgentModuleFrameDeps_ACU): AgentModu
 
 function parseField_ACU(raw: unknown, deps: AgentModuleFrameDeps_ACU): ParsedField_ACU {
   if (raw === undefined) return { kind: 'empty' };
-  if (!isRecord_ACU(raw)) return { kind: 'broken', problems: ['资料字段不是对象'], salvaged: null };
+  if (!isRecord_ACU(raw)) return { kind: 'broken', problems: ['Trường tư liệu không phải đối tượng'], salvaged: null };
   if (raw.schemaVersion === AGENT_MODULE_FRAME_SCHEMA_VERSION_ACU) {
-    if (!Array.isArray(raw.deltas)) return { kind: 'broken', problems: ['schema 3 缺少 deltas 数组'], salvaged: null };
+    if (!Array.isArray(raw.deltas)) return { kind: 'broken', problems: ['schema 3 thiếu mảng deltas'], salvaged: null };
     const problems: string[] = [];
     const deltas: AgentModuleFloorDelta_ACU[] = [];
     raw.deltas.forEach((item, index) => {
       const delta = parseDelta_ACU(item, deps);
       if (delta) deltas.push(delta);
-      else problems.push(`deltas[${index}] 无法折叠，已跳过`);
+      else problems.push(`deltas[${index}] không thể gộp, đã bỏ qua`);
     });
     deltas.sort((left, right) => left.seq - right.seq);
     const frame: AgentModuleFloorFrame_ACU = { schemaVersion: AGENT_MODULE_FRAME_SCHEMA_VERSION_ACU, deltas };
@@ -243,20 +243,20 @@ function parseField_ACU(raw: unknown, deps: AgentModuleFrameDeps_ACU): ParsedFie
         if (raw.checkpoint.operationSeq !== undefined) {
           const seq = raw.checkpoint.operationSeq;
           if (typeof seq !== 'number' || !Number.isSafeInteger(seq) || seq < 0) {
-            problems.push('checkpoint.operationSeq 无效');
+            problems.push('checkpoint.operationSeq không hợp lệ');
           } else frame.checkpoint.operationSeq = seq;
         }
         if (raw.checkpoint.fieldSnapshot !== undefined) {
           const fields = validateAgentModuleFieldSnapshot_ACU(raw.checkpoint.fieldSnapshot, snapshot);
-          if (!fields) problems.push('checkpoint.fieldSnapshot 未通过严格校验');
+          if (!fields) problems.push('checkpoint.fieldSnapshot không qua kiểm tra nghiêm ngặt');
           else frame.checkpoint.fieldSnapshot = fields;
         }
         if (raw.checkpoint.partials !== undefined) {
           const partials = parseAgentModuleFieldUpserts_ACU(raw.checkpoint.partials);
-          if (!partials) problems.push('checkpoint.partials 结构非法，基线草稿栏目已忽略');
+          if (!partials) problems.push('checkpoint.partials có cấu trúc không hợp lệ, các cột bản nháp của đường cơ sở đã bị bỏ qua');
           else if (hasFieldUpserts_ACU(partials)) frame.checkpoint.partials = partials;
         }
-      } else problems.push('checkpoint 未通过严格校验，已忽略');
+      } else problems.push('checkpoint không qua kiểm tra nghiêm ngặt, đã bỏ qua');
     }
     return { kind: 'frame', frame, problems };
   }
@@ -265,7 +265,7 @@ function parseField_ACU(raw: unknown, deps: AgentModuleFrameDeps_ACU): ParsedFie
   const salvaged = deps.salvageSnapshot(raw);
   return {
     kind: 'broken',
-    problems: salvaged?.problems ?? ['快照不是可折叠的资料帧'],
+    problems: salvaged?.problems ?? ['Snapshot không phải khung tư liệu có thể gộp'],
     salvaged: salvaged?.snapshot ?? null,
   };
 }
@@ -954,7 +954,7 @@ export function assertSingleActiveContinuationCheckpoint_ACU(chat: readonly unkn
     if (parsed.frame.checkpoint.swipeId !== readMessageSwipeId_ACU(message)) continue;
     const swipeId = parsed.frame.checkpoint.swipeId;
     const previous = seen.get(swipeId);
-    if (previous !== undefined) return `续写资料 swipe ${swipeId} 存在多个活跃基线：楼层 ${previous} 与 ${index}`;
+    if (previous !== undefined) return `Tư liệu viết tiếp swipe ${swipeId} có nhiều đường cơ sở đang hoạt động: tầng ${previous} và ${index}`;
     seen.set(swipeId, index);
   }
   return null;

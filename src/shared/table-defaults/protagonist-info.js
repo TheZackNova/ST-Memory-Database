@@ -5,11 +5,11 @@ export const protagonistInfoSheet = {
   uid: "sheet_DpKcVGqg",
   name: "主角信息表",
   sourceData: {
-    note: "记录主角的核心身份信息。此表有且仅有一行。（列号为 0 基，与表格数据中的列标一致）\n- 列0: 人物名称 - 主角的名字。\n- 列1: 性别/年龄 - 主角的生理性别和年龄。\n- 列2: 外貌特征 - 对主角外貌的客观文字描写。\n- 列3: 职业/身份 - 主角在社会中的主要角色。\n- 列4: 过往经历 - 记录主角的背景故事和后续的关键经历，随剧情增量更新，不超过300字，超过时需压缩。\n- 列5: 性格特点 - 对主角核心性格的概括。",
-    initNode: "游戏初始化时，插入主角的唯一条目。",
-    deleteNode: "禁止删除。",
-    updateNode: "'过往经历'列会根据剧情发展持续增量更新，当主角各项状态发生改变时更新。\nSQL示例: UPDATE protagonist_info SET past_experience = '更新后的经历内容', occupation = '新职业' WHERE row_id = 1;",
-    insertNode: "禁止操作。",
+    note: "Ghi lại thông tin danh tính cốt lõi của nhân vật chính. Bảng này có đúng một hàng. (Số cột đánh số từ 0, khớp với chỉ số cột trong dữ liệu bảng)\n- Cột 0: 人物名称 (Tên nhân vật) - Tên của nhân vật chính.\n- Cột 1: 性别/年龄 (Giới tính/Tuổi) - Giới tính sinh lý và tuổi của nhân vật chính.\n- Cột 2: 外貌特征 (Đặc điểm ngoại hình) - Mô tả khách quan bằng văn bản về ngoại hình nhân vật chính.\n- Cột 3: 职业/身份 (Nghề nghiệp/Thân phận) - Vai trò chính của nhân vật chính trong xã hội.\n- Cột 4: 过往经历 (Trải nghiệm trước đây) - Ghi lại câu chuyện nền và các trải nghiệm then chốt về sau của nhân vật chính, cập nhật tăng dần theo cốt truyện, không quá 300 chữ, vượt quá thì phải nén lại.\n- Cột 5: 性格特点 (Đặc điểm tính cách) - Khái quát tính cách cốt lõi của nhân vật chính.",
+    initNode: "Khi khởi tạo game, chèn mục duy nhất của nhân vật chính.",
+    deleteNode: "Cấm xóa.",
+    updateNode: "Cột '过往经历' được cập nhật tăng dần liên tục theo diễn biến cốt truyện; cập nhật khi các trạng thái của nhân vật chính thay đổi.\nVí dụ SQL: UPDATE protagonist_info SET past_experience = 'Nội dung trải nghiệm sau khi cập nhật', occupation = 'Nghề nghiệp mới' WHERE row_id = 1;",
+    insertNode: "Cấm thao tác.",
 ddl: `CREATE TABLE protagonist_info ( -- 主角信息表
   row_id INTEGER PRIMARY KEY, -- 行号
   char_name TEXT NOT NULL, -- 人物名称

@@ -164,7 +164,7 @@ function collectManualRefillSummaryVectorCleanup_ACU(targetMessageIndices: numbe
                     if (!sourceTableKeySet.has(sheetKey)) continue;
                     const rowId = String(rowOperation.rowId || '').trim();
                     if (!rowId) {
-                        throw new Error(`手动重填清理前无法确认纪要表 ${sheetKey} 的历史 row_id。`);
+                        throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác nhận row_id lịch sử của bảng 纪要表 ${sheetKey}.`);
                     }
                     removedRowIdsBySourceTable.get(sheetKey)!.add(rowId);
                     continue;
@@ -174,7 +174,7 @@ function collectManualRefillSummaryVectorCleanup_ACU(targetMessageIndices: numbe
                     if (!sourceTableKeySet.has(sheetKey)) continue;
                     const extracted = extractRowIdsFromSqlSheetBatch_ACU(operation);
                     if (!extracted.ok) {
-                        throw new Error(`手动重填清理前无法精确识别纪要表 ${sheetKey} 的 sql_sheet_batch 操作历史 row_id。`);
+                        throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác định chính xác row_id lịch sử thao tác sql_sheet_batch của bảng 纪要表 ${sheetKey}.`);
                     }
                     extracted.rowIds.forEach((rowId) => removedRowIdsBySourceTable.get(sheetKey)!.add(rowId));
                     continue;
@@ -188,13 +188,13 @@ function collectManualRefillSummaryVectorCleanup_ACU(targetMessageIndices: numbe
                     continue;
                 }
                 if (kind === 'data_replace' || kind === 'sql_batch' || kind === 'table_edit_dsl') {
-                    throw new Error(`手动重填清理前无法精确识别操作 ${kind} 影响的纪要表历史 row_id。`);
+                    throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác định chính xác row_id lịch sử của 纪要表 bị thao tác ${kind} ảnh hưởng.`);
                 }
                 if (sourceTableKeySet.has(sheetKey)) {
-                    throw new Error(`手动重填清理前无法精确识别纪要表 ${sheetKey} 的 ${kind || 'unknown'} 操作历史 row_id。`);
+                    throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác định chính xác row_id lịch sử của 纪要表 ${sheetKey} cho thao tác ${kind || 'unknown'}.`);
                 }
                 if (!kind || !sheetKey) {
-                    throw new Error(`手动重填清理前无法确认目标范围内操作 ${kind || 'unknown'} 是否影响纪要表。`);
+                    throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác nhận thao tác ${kind || 'unknown'} trong phạm vi đích có ảnh hưởng 纪要表 hay không.`);
                 }
             }
         }
@@ -214,7 +214,7 @@ function collectManualRefillSummaryVectorCleanup_ACU(targetMessageIndices: numbe
             && Array.isArray(currentIndex.rows)
             && currentIndex.rows.some((row) => row.status !== 'removed');
         if (hasCurrentIndex && removedRowIds.length === 0 && !replaceAll) {
-            throw new Error(`手动重填清理前无法从目标范围识别纪要表 ${sourceTableKey} 的历史 row_id。`);
+            throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể nhận diện row_id lịch sử của 纪要表 ${sourceTableKey} từ phạm vi đích.`);
         }
         return [{ sourceTableKey, removedRowIds, replaceAll }];
     });
@@ -246,7 +246,7 @@ async function publishManualRefillSummaryVectors_ACU(
     if (!snapshot) return;
     const result = await publishSummaryVectorMirrorRowRemovalSnapshotNow_ACU(snapshot);
     if (!result.success) {
-        throw new Error(result.errors.join('; ') || result.reason || '纪要表清理后交火索引发布失败。');
+        throw new Error(result.errors.join('; ') || result.reason || 'Phát hành chỉ mục giao hỏa thất bại sau khi dọn dẹp 纪要表.');
     }
 }
 
@@ -568,15 +568,15 @@ async function captureFillExecutionScope_ACU(
         try {
             const provider = await ensureStorageProviderReady_ACU();
             if (provider.mode !== 'sqlite') {
-                runtimeSchemaFailure = { code: 'provider_unavailable', message: 'SQLite 模式需要 SQLite provider，当前未就绪。' };
+                runtimeSchemaFailure = { code: 'provider_unavailable', message: 'Chế độ SQLite cần SQLite provider, hiện chưa sẵn sàng.' };
             } else {
                 runtimeData = provider.getCurrentData();
                 if (!runtimeData) {
-                    runtimeSchemaFailure = { code: 'SQL_RUNTIME_SCHEMA_INVALID_ACU', message: 'SQLite runtime 未导出表格数据，无法冻结 schema。' };
+                    runtimeSchemaFailure = { code: 'SQL_RUNTIME_SCHEMA_INVALID_ACU', message: 'SQLite runtime chưa xuất dữ liệu bảng, không thể đóng băng schema.' };
                 }
             }
         } catch (e: any) {
-            runtimeSchemaFailure = { code: 'provider_unavailable', message: `SQLite 运行时未就绪，已阻止本轮填表：${String(e?.message || e)}` };
+            runtimeSchemaFailure = { code: 'provider_unavailable', message: `Runtime SQLite chưa sẵn sàng, đã chặn lượt điền bảng này: ${String(e?.message || e)}` };
         }
         sqlApplyScope = captureSqlTableApplyScope_ACU({ chat: liveChat, isolationKey, runtimeData });
         if (runtimeSchemaFailure) {
@@ -697,7 +697,7 @@ function restoreGuideStructure(mergedSheet: any, guideSheet: any): void {
     // 基底表头若存在，必须校验首列为 row_id
     const guideHeader = Array.isArray(guideSheet.content) ? guideSheet.content[0] : null;
     if (guideHeader && (!Array.isArray(guideHeader) || String(guideHeader[0] ?? '') !== 'row_id')) {
-        throw new Error(`Sheet Guide 表头缺少 row_id 首列：${String(guideSheet.uid || guideSheet.name || 'unknown')}`);
+        throw new Error(`Tiêu đề Sheet Guide thiếu cột đầu row_id: ${String(guideSheet.uid || guideSheet.name || 'unknown')}`);
     }
 
     const mergedHeader = Array.isArray(mergedSheet.content) ? mergedSheet.content[0] : null;
@@ -909,10 +909,10 @@ function buildSqlSheetBatchOperationsFromText_ACU(
         reason: 'system',
     });
     if (buildResult.ambiguousStatements.length > 0) {
-        return { success: false, error: 'SQL 表身份存在歧义，拒绝生成可回放操作。' };
+        return { success: false, error: 'Danh tính bảng SQL mơ hồ, từ chối tạo thao tác có thể phát lại.' };
     }
     if (buildResult.unknownStatements.some(statement => extractTableNamesFromStatements([statement]).length > 0)) {
-        return { success: false, error: 'SQL 显式引用了未知表名，拒绝生成可回放操作。' };
+        return { success: false, error: 'SQL tham chiếu tường minh tên bảng không xác định, từ chối tạo thao tác có thể phát lại.' };
     }
     return { success: true, operations: buildResult.operations };
 }
@@ -993,11 +993,11 @@ async function flushRuntimeOnlyChangesBeforeFill_ACU(reason: string): Promise<vo
 
 function formatAllowedSheetKeys_ACU(sheetKeys: readonly string[]): string {
     const normalized = [...new Set(sheetKeys.filter(key => typeof key === 'string' && key.startsWith('sheet_')))].sort();
-    return normalized.length > 0 ? normalized.join(', ') : '无（当前任务未授权任何目标表）';
+    return normalized.length > 0 ? normalized.join(', ') : 'không có (tác vụ hiện tại không được cấp quyền cho bảng đích nào)';
 }
 
 function findSqlFailureGroupKey_ACU(sqlTexts: string[], responses: GroupFillResponse_ACU[], errorMessage: string): string | null {
-    const match = String(errorMessage || '').match(/第\s*(\d+)\s*条语句失败/);
+    const match = String(errorMessage || '').match(/Câu lệnh thứ\s*(\d+)\s*thất bại/);
     const failedIndex = match ? Number.parseInt(match[1], 10) : NaN;
     if (!Number.isFinite(failedIndex) || failedIndex <= 0) return null;
 
@@ -1081,13 +1081,13 @@ async function loadV2ReplayMergeBase_ACU(
         // 历史修复走数据管理的显式恢复，不在写路径里隐式改历史。
         if (replayResult?.baseKind === 'compat_tolerant_replay') {
             throw new Error(
-                `V2 replay 仅可经兼容宽容回放读出（严格回放失败：${replayResult.legacyToleranceDiagnosis?.strictError || '未知错误'}），不能作为填表基底；`
-                + '请在数据管理 → 「诊断 V2 数据恢复」中把兼容回放结果固化为过渡根后重试。',
+                `V2 replay 仅可经兼容宽容回放读出 (phát lại nghiêm ngặt thất bại: ${replayResult.legacyToleranceDiagnosis?.strictError || 'Lỗi không xác định'}), không thể dùng làm nền điền bảng; `
+                + 'hãy vào Quản lý dữ liệu → 「Chẩn đoán khôi phục dữ liệu V2」 để cố định kết quả phát lại tương thích thành gốc chuyển tiếp rồi thử lại.',
             );
         }
         if (hasStructuralReplayCompatibilityRepairs_ACU(replayResult?.compatibilityRepairs)) {
             const affectedSheetKeys = [...new Set((replayResult.compatibilityRepairs || []).map(item => item.sheetKey))];
-            throw new Error(`V2 replay 存在结构性兼容修复（${affectedSheetKeys.join('、') || '未知 Sheet'}）；请先执行 V2 恢复或边界 compaction，再继续生成新表格增量。`);
+            throw new Error(`V2 replay có sửa chữa tương thích mang tính cấu trúc (${affectedSheetKeys.join(', ') || 'Sheet không xác định'}); hãy chạy khôi phục V2 hoặc compaction biên trước, rồi mới tiếp tục tạo phần tăng lượng bảng mới.`);
         }
         const cloned = cloneTableDataSnapshot_ACU(replayResult?.data as any);
         if (!hasUsableRuntimeTableData_ACU(cloned)) return { data: null, attempted: true };
@@ -1124,7 +1124,7 @@ function notifyBoundedEmptyBaseFallback_ACU(batchNumber: number): void {
         lastEmptyBaseFallbackToastAt_ACU = now;
         showUiSurfaceToast_ACU({
             kind: 'info',
-            text: `目标楼层及其之前没有可用的表格历史基底，本次填表（批次 ${batchNumber} 起）将从空白模板结构开始，不包含任何历史表格数据。`,
+            text: `Tại tầng đích và trước đó không có nền lịch sử bảng khả dụng, lần điền bảng này (từ lô ${batchNumber} ) sẽ bắt đầu từ cấu trúc mẫu trống, không chứa dữ liệu bảng lịch sử nào.`,
         });
     } catch (_) {}
 }
@@ -1225,7 +1225,7 @@ export async function buildBatchMergeBase_ACU(
                 // 与真实基底的同 row_id 冲突，把损坏继续放大。
                 return {
                     data: null,
-                    error: `历史表格数据回放失败（已自动尝试全部兼容读取层仍失败），已中止填表以避免写出冲突增量。请在数据管理中导出原始数据后执行 V2 恢复：${v2ReplayResult.failed}`,
+                    error: `Phát lại dữ liệu bảng lịch sử thất bại (đã tự thử tất cả các lớp đọc tương thích vẫn thất bại), đã hủy điền bảng để tránh ghi ra phần tăng lượng xung đột. Hãy xuất dữ liệu gốc trong Quản lý dữ liệu rồi chạy khôi phục V2: ${v2ReplayResult.failed}`,
                 };
             }
             // 有历史边界时不能让 SQLite latest runtime 越过 maxMessageIndex；
@@ -1249,7 +1249,7 @@ export async function buildBatchMergeBase_ACU(
         if (v2ReplayResult.failed) {
             return {
                 data: null,
-                error: `历史表格数据回放失败（已自动尝试全部兼容读取层仍失败），已中止填表以避免写出冲突增量。请在数据管理中导出原始数据后执行 V2 恢复：${v2ReplayResult.failed}`,
+                error: `Phát lại dữ liệu bảng lịch sử thất bại (đã tự thử tất cả các lớp đọc tương thích vẫn thất bại), đã hủy điền bảng để tránh ghi ra phần tăng lượng xung đột. Hãy xuất dữ liệu gốc trong Quản lý dữ liệu rồi chạy khôi phục V2: ${v2ReplayResult.failed}`,
             };
         }
 
@@ -1268,7 +1268,7 @@ export async function buildBatchMergeBase_ACU(
         return buildGuideOrTemplateMergeBase_ACU(batchNumber);
     } catch (e) {
         logError_ACU(`[Batch ${batchNumber}] Failed to build merge base from guide/template.`, e);
-        return { data: null, error: '无法构建合并基底，操作已终止。' };
+        return { data: null, error: 'Không thể dựng nền gộp, thao tác đã bị dừng.' };
     }
 }
 
@@ -1323,7 +1323,7 @@ export async function collectGroupFillResponse_ACU(
     const runtimeSchemaFailure = job.sqlApplyScope?.runtimeSchemaFailure;
     if (runtimeSchemaFailure) {
         diagnoseInput('runtime_schema_unavailable');
-        const error = `SQLite runtime schema 冻结失败（${runtimeSchemaFailure.code}）：${runtimeSchemaFailure.message}`;
+        const error = `Đóng băng SQLite runtime schema thất bại (${runtimeSchemaFailure.code}): ${runtimeSchemaFailure.message}`;
         return {
             job,
             success: false,
@@ -1368,7 +1368,7 @@ export async function collectGroupFillResponse_ACU(
     if (dynamicContent && typeof dynamicContent === 'object' && dynamicContent.ok === false) {
         diagnoseInput('provider_load_failed');
         const failure = dynamicContent as { failureCode?: string; message?: string };
-        const error = `无法准备AI输入（${failure.failureCode || 'provider_load_failed'}）：${failure.message || 'SQLite 运行时未就绪。'}`;
+        const error = `Không thể chuẩn bị đầu vào AI (${failure.failureCode || 'provider_load_failed'}): ${failure.message || 'Runtime SQLite chưa sẵn sàng.'}`;
         return {
             job,
             success: false,
@@ -1385,8 +1385,8 @@ export async function collectGroupFillResponse_ACU(
             job,
             success: false,
             attempt: 0,
-            error: '无法准备AI输入，数据库未加载。',
-            rawError: '无法准备AI输入，数据库未加载。',
+            error: 'Không thể chuẩn bị đầu vào AI, CSDL chưa được tải.',
+            rawError: 'Không thể chuẩn bị đầu vào AI, CSDL chưa được tải.',
             errorCategory: 'infrastructure',
         };
     }
@@ -1406,14 +1406,14 @@ export async function collectGroupFillResponse_ACU(
             if (markerIndex !== -1) {
                 dynamicContent.tableDataText = dynamicContent.tableDataText.substring(0, markerIndex);
             }
-            dynamicContent.tableDataText += `${SQL_ERROR_MARKER_ACU}[SQL执行错误，请修正后重新输出]\n错误信息: ${sanitizeRetryFeedback_ACU(feedback.lastSqlError)}`;
+            dynamicContent.tableDataText += `${SQL_ERROR_MARKER_ACU}[Lỗi thực thi SQL, hãy sửa rồi xuất lại]\nThông tin lỗi: ${sanitizeRetryFeedback_ACU(feedback.lastSqlError)}`;
         }
         if (feedback?.lastUnifiedError) {
             const markerIndex = dynamicContent.tableDataText.indexOf(UNIFIED_GROUP_ERROR_MARKER_ACU);
             if (markerIndex !== -1) {
                 dynamicContent.tableDataText = dynamicContent.tableDataText.substring(0, markerIndex);
             }
-            dynamicContent.tableDataText += `${UNIFIED_GROUP_ERROR_MARKER_ACU}[统一提交失败，请修正后重新输出]\n错误信息: ${sanitizeRetryFeedback_ACU(feedback.lastUnifiedError)}`;
+            dynamicContent.tableDataText += `${UNIFIED_GROUP_ERROR_MARKER_ACU}[Commit thống nhất thất bại, hãy sửa rồi xuất lại]\nThông tin lỗi: ${sanitizeRetryFeedback_ACU(feedback.lastUnifiedError)}`;
         }
 
         try {
@@ -1468,7 +1468,7 @@ export async function collectGroupFillResponse_ACU(
                 });
                 if (!extracted.ok) {
                     diagnoseResponse('strict_json_response_invalid');
-                    throw new ModelOutputRetryError_ACU(extracted.retryHint || extracted.error || '严格 JSON 填表响应格式无效');
+                    throw new ModelOutputRetryError_ACU(extracted.retryHint || extracted.error || 'Định dạng phản hồi điền bảng JSON nghiêm ngặt không hợp lệ');
                 }
                 normalizedAiResponse = extracted.normalizedResponse || aiResponse;
                 tableEditText = (extracted.tableEditText || '').trim();
@@ -1489,14 +1489,14 @@ export async function collectGroupFillResponse_ACU(
                     );
                 } catch (error: any) {
                     diagnoseResponse('sql_column_mutation_rejected');
-                    throw new ModelOutputRetryError_ACU(error?.message || 'SQLite 填表 SQL 无效。');
+                    throw new ModelOutputRetryError_ACU(error?.message || 'SQL điền bảng SQLite không hợp lệ.');
                 }
             }
 
             options.assertCurrent?.();
             return { job, success: true, attempt, aiResponse: normalizedAiResponse, tableEditText };
         } catch (error: any) {
-            lastErrorMessage = error?.message || '未知错误';
+            lastErrorMessage = error?.message || 'Lỗi không xác định';
             lastErrorCategory = error instanceof ModelOutputRetryError_ACU
                 || error instanceof RetryableAiResponseError_ACU
                 ? 'model'
@@ -1521,7 +1521,7 @@ export async function collectGroupFillResponse_ACU(
                 if (isSqliteMode() && error instanceof ModelOutputRetryError_ACU) {
                     const markerIndex = dynamicContent.tableDataText.indexOf(SQL_ERROR_MARKER_ACU);
                     if (markerIndex !== -1) dynamicContent.tableDataText = dynamicContent.tableDataText.substring(0, markerIndex);
-                    dynamicContent.tableDataText += `${SQL_ERROR_MARKER_ACU}[上次 SQL 输出无效，请修正后重新输出]\n错误信息: ${sanitizeRetryFeedback_ACU(lastErrorMessage)}`;
+                    dynamicContent.tableDataText += `${SQL_ERROR_MARKER_ACU}[Đầu ra SQL lần trước không hợp lệ, hãy sửa rồi xuất lại]\nThông tin lỗi: ${sanitizeRetryFeedback_ACU(lastErrorMessage)}`;
                 }
                 options.onProgress?.({ phase: 'retry', attempt, maxRetries, message: sanitizeRetryFeedback_ACU(lastErrorMessage, 50) });
                 await new Promise(resolve => setTimeout(resolve, 5000));
@@ -1534,7 +1534,7 @@ export async function collectGroupFillResponse_ACU(
         job,
         success: false,
         attempt: maxRetries,
-        error: `填表在 ${maxRetries} 次尝试后仍失败: ${safeError}`,
+        error: `Điền bảng vẫn thất bại sau ${maxRetries} lần thử: ${safeError}`,
         rawError: safeError,
         errorCategory: lastErrorCategory,
     };
@@ -1673,7 +1673,7 @@ function getMixedSqliteNonSqlResponses_ACU(responses: GroupFillResponse_ACU[]): 
 
 function buildMixedSqliteFormatError_ACU(nonSqlResponses: GroupFillResponse_ACU[]): string {
     const groupLabels = nonSqlResponses.map(formatResponseGroupReference_ACU).join(', ');
-    return `SQLite 严格模式下同一批分组填表禁止混合 SQL/非 SQL 输出；以下分组未返回 SQL tableEdit：${groupLabels}。请只重试这些分组，并输出 SQL。`;
+    return `Ở chế độ nghiêm ngặt SQLite, điền bảng theo nhóm trong cùng một lô cấm trộn đầu ra SQL/không phải SQL; các nhóm sau không trả về SQL tableEdit: ${groupLabels}. Hãy chỉ thử lại các nhóm này và xuất SQL.`;
 }
 
 async function applyUnifiedGroupFillResponsesCore_ACU(
@@ -1702,20 +1702,20 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
 ): Promise<CardUpdateResult> {
     if (options.signal?.aborted) return { success: false, modifiedKeys: [], aborted: true };
     if (!Array.isArray(responses) || responses.length === 0) {
-        return { success: false, modifiedKeys: [], error: '统一提交失败：responses 为空。', errorCategory: 'precondition' };
+        return { success: false, modifiedKeys: [], error: 'Commit thống nhất thất bại: responses rỗng.', errorCategory: 'precondition' };
     }
     if (!baseSnapshot || typeof baseSnapshot !== 'object') {
-        return { success: false, modifiedKeys: [], error: '统一提交失败：baseSnapshot 无效。', errorCategory: 'precondition' };
+        return { success: false, modifiedKeys: [], error: 'Commit thống nhất thất bại: baseSnapshot không hợp lệ.', errorCategory: 'precondition' };
     }
 
     const saveTargetIndex = options.saveTargetIndex;
     if (options.logicalTarget) {
         if (saveTargetIndex !== undefined || options.commitMode !== 'stage_only' || !options.stagingSession
             || responses.some(response => JSON.stringify(response.job.logicalTarget) !== JSON.stringify(options.logicalTarget))) {
-            return { success: false, modifiedKeys: [], error: '逻辑填表目标只允许同身份隔离暂存。', errorCategory: 'precondition' };
+            return { success: false, modifiedKeys: [], error: 'Đích điền bảng logic chỉ cho phép staging cô lập cùng danh tính.', errorCategory: 'precondition' };
         }
     } else if (!Number.isSafeInteger(saveTargetIndex) || saveTargetIndex! < 0) {
-        return { success: false, modifiedKeys: [], error: '物理填表目标下标无效。', errorCategory: 'precondition' };
+        return { success: false, modifiedKeys: [], error: 'Chỉ số đích điền bảng vật lý không hợp lệ.', errorCategory: 'precondition' };
     }
 
     const sortedResponses = sortGroupFillResponses_ACU(responses);
@@ -1738,7 +1738,7 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
         return {
             success: false,
             modifiedKeys: [],
-            error: `统一提交失败：SQLite runtime schema 冻结失败（${runtimeSchemaFailure.code}）。${sanitizeRetryFeedback_ACU(runtimeSchemaFailure.message)}`,
+            error: `Commit thống nhất thất bại: đóng băng SQLite runtime schema thất bại (${runtimeSchemaFailure.code}).${sanitizeRetryFeedback_ACU(runtimeSchemaFailure.message)}`,
             errorCategory: 'infrastructure' as const,
         };
     }
@@ -1747,11 +1747,11 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
     const allTargetSheetKeySet = new Set<string>();
     for (const response of sortedResponses) {
         if (!response.success || !response.aiResponse || response.tableEditText === undefined || response.tableEditText === null || !response.job) {
-            return { success: false, modifiedKeys: [], error: '统一提交失败：存在未完成或无效的 group 响应。', errorCategory: 'precondition' };
+            return { success: false, modifiedKeys: [], error: 'Commit thống nhất thất bại: có phản hồi group chưa hoàn tất hoặc không hợp lệ.', errorCategory: 'precondition' };
         }
         for (const sheetKey of response.job.targetSheetKeys || []) {
             if (seenTargetSheetKeys.has(sheetKey)) {
-                return { success: false, modifiedKeys: [], error: `统一提交失败：targetSheetKeys 存在重叠冲突 (${sheetKey})。`, errorCategory: 'precondition' };
+                return { success: false, modifiedKeys: [], error: `Commit thống nhất thất bại: targetSheetKeys có xung đột chồng lấn (${sheetKey}).`, errorCategory: 'precondition' };
             }
             seenTargetSheetKeys.add(sheetKey);
             allTargetSheetKeySet.add(sheetKey);
@@ -1777,7 +1777,7 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
         return {
             success: false,
             modifiedKeys: [],
-            error: 'SQLite 严格模式下 SQL 填表禁止退化为快照写入；请使用 live SQLite runtime 提交或重试本组。',
+            error: 'Ở chế độ nghiêm ngặt SQLite, điền bảng SQL cấm thoái hóa thành ghi snapshot; hãy commit bằng live SQLite runtime hoặc thử lại nhóm này.',
             errorCategory: 'model',
         };
     }
@@ -1833,8 +1833,8 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
                     success: false,
                     modifiedKeys: [],
                     error: isAliasAmbiguous || isRuntimeSchemaError
-                        ? `统一提交失败：${formatResponseGroupReference_ACU(response)} ${sanitizeRetryFeedback_ACU(error?.message || String(error))}`
-                        : `统一提交失败：${formatResponseGroupReference_ACU(response)} SQL 校验失败。${sanitizeRetryFeedback_ACU(error?.message || String(error))}`,
+                        ? `Commit thống nhất thất bại: ${formatResponseGroupReference_ACU(response)} ${sanitizeRetryFeedback_ACU(error?.message || String(error))}`
+                        : `Commit thống nhất thất bại: ${formatResponseGroupReference_ACU(response)} Kiểm tra SQL thất bại. ${sanitizeRetryFeedback_ACU(error?.message || String(error))}`,
                     errorCategory: isAliasAmbiguous || isRuntimeSchemaError ? 'precondition' : 'model',
                 };
             }
@@ -1862,7 +1862,7 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
                         return {
                             success: false,
                             modifiedKeys: [],
-                            error: `统一提交失败：${formatResponseGroupReference_ACU(response)} 越权修改了非目标表 (${unauthorizedKeys.join(', ')})。允许写入表：${formatAllowedSheetKeys_ACU(scopedTargets)}。`,
+                            error: `Commit thống nhất thất bại: ${formatResponseGroupReference_ACU(response)} đã sửa vượt quyền bảng không phải đích (${unauthorizedKeys.join(', ')}). Bảng được phép ghi: ${formatAllowedSheetKeys_ACU(scopedTargets)}. `,
                             errorCategory: 'model',
                         };
                     }
@@ -1876,7 +1876,7 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
                     return {
                         success: false,
                         modifiedKeys: [],
-                        error: `统一提交失败：${formatResponseGroupReference_ACU(response)} 的 SQL 仅修改非目标表，已全部丢弃。允许写入表：${formatAllowedSheetKeys_ACU(scopedTargets)}。请仅生成允许表的写入。`,
+                        error: `Commit thống nhất thất bại: ${formatResponseGroupReference_ACU(response)} có SQL chỉ sửa bảng không phải đích, đã loại bỏ toàn bộ. Bảng được phép ghi: ${formatAllowedSheetKeys_ACU(scopedTargets)}. Hãy chỉ tạo thao tác ghi cho các bảng được phép.`,
                         errorCategory: 'model',
                     };
                 }
@@ -1938,7 +1938,7 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
             if (typeof provider.applyEditsWithSystemRowIds !== 'function') {
                 return {
                     success: false,
-                    error: '统一提交失败：SQLite provider 不支持原子 row_id 分配。',
+                    error: 'Commit thống nhất thất bại: SQLite provider không hỗ trợ cấp row_id nguyên tử.',
                     errorCategory: 'infrastructure' as const,
                 };
             }
@@ -1955,17 +1955,17 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
                 return {
                     success: false,
                     error: error instanceof SqlRowIdMaterializationError_ACU
-                        ? `统一提交失败：AI SQL 行身份分配失败。${sanitizeRetryFeedback_ACU(rawErrorMessage)}`
+                        ? `Commit thống nhất thất bại: cấp danh tính hàng cho AI SQL thất bại. ${sanitizeRetryFeedback_ACU(rawErrorMessage)}`
                         : failedGroupKey
-                        ? `统一提交失败：${formatResponseGroupReference_ACU(sortedResponses.find(response => response.job.groupKey === failedGroupKey) || sortedResponses[0])} SQL 执行失败。${sanitizeRetryFeedback_ACU(rawErrorMessage)}`
-                        : `统一提交失败：SQL 执行失败。${sanitizeRetryFeedback_ACU(rawErrorMessage)}`,
+                        ? `Commit thống nhất thất bại: ${formatResponseGroupReference_ACU(sortedResponses.find(response => response.job.groupKey === failedGroupKey) || sortedResponses[0])} Thực thi SQL thất bại. ${sanitizeRetryFeedback_ACU(rawErrorMessage)}`
+                        : `Commit thống nhất thất bại: Thực thi SQL thất bại. ${sanitizeRetryFeedback_ACU(rawErrorMessage)}`,
                     errorCategory: isInfrastructureError ? 'infrastructure' as const : 'model' as const,
                 };
             }
             if (!parseResult?.success) {
                 return {
                     success: false,
-                    error: parseResult?.error ? `统一提交失败：SQL 执行失败。${sanitizeRetryFeedback_ACU(parseResult.error)}` : '统一提交失败：SQL 执行失败。',
+                    error: parseResult?.error ? `Commit thống nhất thất bại: Thực thi SQL thất bại. ${sanitizeRetryFeedback_ACU(parseResult.error)}` : 'Commit thống nhất thất bại: Thực thi SQL thất bại. ',
                     errorCategory: 'model',
                 };
             }
@@ -2014,7 +2014,7 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
                     if (operationBuild.success === false) {
                         return {
                             success: false,
-                            error: `统一提交失败：${formatResponseGroupReference_ACU(response)} ${sanitizeRetryFeedback_ACU(operationBuild.error)}`,
+                            error: `Commit thống nhất thất bại: ${formatResponseGroupReference_ACU(response)} ${sanitizeRetryFeedback_ACU(operationBuild.error)}`,
                             errorCategory: 'model' as const,
                         };
                     }
@@ -2057,7 +2057,7 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
                 success: false,
                 ...(commitResult.aborted ? { aborted: true } : {}),
                 modifiedKeys: [],
-                error: sanitizeRetryFeedback_ACU(commitResult.error || '统一提交失败。', MAX_WARN_ERROR_LENGTH_ACU),
+                error: sanitizeRetryFeedback_ACU(commitResult.error || 'Commit thống nhất thất bại.', MAX_WARN_ERROR_LENGTH_ACU),
                 errorCategory: commitResult.errorCategory || 'infrastructure',
             };
         }
@@ -2110,8 +2110,8 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
                 success: false,
                 modifiedKeys: [],
                 error: parseError
-                    ? `统一提交失败：${formatResponseGroupReference_ACU(response)} 解析或应用失败。${sanitizeRetryFeedback_ACU(parseError)}`
-                    : `统一提交失败：${formatResponseGroupReference_ACU(response)} 解析或应用失败。`,
+                    ? `Commit thống nhất thất bại: ${formatResponseGroupReference_ACU(response)} Phân tích hoặc áp dụng thất bại. ${sanitizeRetryFeedback_ACU(parseError)}`
+                    : `Commit thống nhất thất bại: ${formatResponseGroupReference_ACU(response)} Phân tích hoặc áp dụng thất bại.`,
                 errorCategory: 'model',
             };
         }
@@ -2122,7 +2122,7 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
                 return {
                     success: false,
                     modifiedKeys: [],
-                    error: `统一提交失败：${formatResponseGroupReference_ACU(response)} 越权修改了非目标表 (${unauthorizedKeys.join(', ')})。允许写入表：${formatAllowedSheetKeys_ACU(response.job.targetSheetKeys)}。`,
+                    error: `Commit thống nhất thất bại: ${formatResponseGroupReference_ACU(response)} đã sửa vượt quyền bảng không phải đích (${unauthorizedKeys.join(', ')}). Bảng được phép ghi: ${formatAllowedSheetKeys_ACU(response.job.targetSheetKeys)}. `,
                     errorCategory: 'model',
                 };
             }
@@ -2238,7 +2238,7 @@ async function applyUnifiedGroupFillResponsesCore_ACU(
                 success: false,
                 ...(commitResult.aborted ? { aborted: true } : {}),
                 modifiedKeys,
-                error: sanitizeRetryFeedback_ACU(commitResult.error || '统一提交失败：保存聊天记录失败。', MAX_WARN_ERROR_LENGTH_ACU),
+                error: sanitizeRetryFeedback_ACU(commitResult.error || 'Commit thống nhất thất bại: lưu lịch sử trò chuyện thất bại.', MAX_WARN_ERROR_LENGTH_ACU),
                 errorCategory: commitResult.errorCategory || 'infrastructure',
             };
         }
@@ -2370,7 +2370,7 @@ async function processGroupedRuntimeChunkCore_ACU(
         return {
             success: false,
             failedGroups: groups.map(group => group.key),
-            error: sanitizeRetryFeedback_ACU(migration.error || '旧存储迁移失败，已阻止本次填表。', MAX_WARN_ERROR_LENGTH_ACU),
+            error: sanitizeRetryFeedback_ACU(migration.error || 'Di chuyển kho cũ thất bại, đã chặn lần điền bảng này.', MAX_WARN_ERROR_LENGTH_ACU),
             committedBucketCount: 0,
         };
     }
@@ -2383,7 +2383,7 @@ async function processGroupedRuntimeChunkCore_ACU(
                 success: false,
                 failedGroups: groups.map(group => group.key),
                 error: sanitizeRetryFeedback_ACU(
-                    '手动追平执行阶段检测到 legacy→V2 迁移改变锚点拓扑；已中止，请重新执行追平。',
+                    'Giai đoạn thực thi bắt kịp thủ công phát hiện di chuyển legacy→V2 làm đổi topo neo; đã hủy, hãy chạy bắt kịp lại.',
                     MAX_WARN_ERROR_LENGTH_ACU,
                 ),
                 committedBucketCount: 0,
@@ -2526,7 +2526,7 @@ async function processGroupedRuntimeChunkCore_ACU(
             )];
             if (explicitMergeBaseBounds.length > 1) {
                 bucket.plannedJobs.forEach(job => failedGroups.add(job.group.key));
-                firstError = firstError || '同一提交批次包含不一致的表格基底边界，已中止以避免重填数据污染。';
+                firstError = firstError || 'Cùng một lô commit chứa biên nền bảng không nhất quán, đã hủy để tránh làm nhiễm dữ liệu khi điền lại.';
                 break;
             }
             // 基底边界必须随 bucket 推进：显式边界只作为下界，保证本 bucket 之前刚提交的
@@ -2557,7 +2557,7 @@ async function processGroupedRuntimeChunkCore_ACU(
                 }, replayEvidence);
             if (!baseResult.data) {
                 bucket.plannedJobs.forEach(job => failedGroups.add(job.group.key));
-                firstError = firstError || baseResult.error || '无法构建合并基底，操作已终止。';
+                firstError = firstError || baseResult.error || 'Không thể dựng nền gộp, thao tác đã bị dừng.';
                 break;
             }
 
@@ -2667,7 +2667,7 @@ async function processGroupedRuntimeChunkCore_ACU(
                     });
                     if (!writeTargetAdmission.allow) {
                         failedGroups.add(job.groupKey);
-                        firstError = firstError || `写目标早于 V2 回放根，已阻止本次填表：${writeTargetAdmission.reason}`;
+                        firstError = firstError || `Đích ghi sớm hơn gốc phát lại V2, đã chặn lần điền bảng này: ${writeTargetAdmission.reason}`;
                         logDebug_ACU(`[V2 准入] 阻止填表：${writeTargetAdmission.reason}`);
                     }
                 }
@@ -2713,12 +2713,12 @@ async function processGroupedRuntimeChunkCore_ACU(
                 const settledResponse = settledResponses[i];
                 if (settledResponse.status === 'rejected') {
                     collectFailed = true;
-                    collectError = collectError || (settledResponse.reason instanceof Error ? settledResponse.reason.message : String(settledResponse.reason || 'AI响应收集失败'));
+                    collectError = collectError || (settledResponse.reason instanceof Error ? settledResponse.reason.message : String(settledResponse.reason || 'Thu thập phản hồi AI thất bại'));
                     continue;
                 }
                 if (!settledResponse.value.success || settledResponse.value.aborted || !settledResponse.value.aiResponse) {
                     collectFailed = true;
-                    collectError = collectError || settledResponse.value.error || settledResponse.value.rawError || 'AI响应收集失败';
+                    collectError = collectError || settledResponse.value.error || settledResponse.value.rawError || 'Thu thập phản hồi AI thất bại';
                     continue;
                 }
                 responses.push(settledResponse.value);
@@ -2726,7 +2726,7 @@ async function processGroupedRuntimeChunkCore_ACU(
 
             if (collectFailed) {
                 jobs.forEach(job => failedGroups.add(job.groupKey));
-                firstError = firstError || collectError || 'AI响应收集失败';
+                firstError = firstError || collectError || 'Thu thập phản hồi AI thất bại';
                 break;
             }
 
@@ -2828,7 +2828,7 @@ async function processGroupedRuntimeChunkCore_ACU(
             }
 
             if (applyResult.aborted) { aborted = true; break; }
-            const safeApplyError = sanitizeRetryFeedback_ACU(applyResult.error || '统一提交失败。', MAX_WARN_ERROR_LENGTH_ACU);
+            const safeApplyError = sanitizeRetryFeedback_ACU(applyResult.error || 'Commit thống nhất thất bại.', MAX_WARN_ERROR_LENGTH_ACU);
             if (applyResult.errorCategory !== 'model') {
                 jobs.forEach(job => failedGroups.add(job.groupKey));
                 firstError = firstError || safeApplyError;
@@ -2837,7 +2837,7 @@ async function processGroupedRuntimeChunkCore_ACU(
             retryUnifiedError = safeApplyError;
             if (bucketAttempt >= maxBucketRetries) {
                 jobs.forEach(job => failedGroups.add(job.groupKey));
-                firstError = firstError || `统一提交在 ${maxBucketRetries} 次尝试后仍失败: ${retryUnifiedError}`;
+                firstError = firstError || `Commit thống nhất vẫn thất bại sau ${maxBucketRetries} lần thử: ${retryUnifiedError}`;
             } else {
                 emitBucketProgress(bucketIndex, {
                     phase: 'retry',
@@ -2865,7 +2865,7 @@ async function processGroupedRuntimeChunkCore_ACU(
         return { success: false, failedGroups: [...failedGroups], error: '手动更新已终止。', aborted: true, committedBucketCount };
     }
     return failedGroups.size > 0
-        ? { success: false, failedGroups: [...failedGroups], error: firstError || '统一提交失败。', committedBucketCount }
+        ? { success: false, failedGroups: [...failedGroups], error: firstError || 'Commit thống nhất thất bại.', committedBucketCount }
         : { success: true, failedGroups: [], committedBucketCount };
 }
 
@@ -2982,7 +2982,7 @@ export async function executeAutoFillStagingGroups_ACU(
         return {
             success: false,
             failedGroups: normalizedGroups.map(group => group.key),
-            error: `跨 full checkpoint 自动填表规划失败：${error?.message || String(error)}`,
+            error: `Lập kế hoạch tự động điền bảng xuyên full checkpoint thất bại: ${error?.message || String(error)}`,
             committedBucketCount: 0,
         };
     }
@@ -3034,7 +3034,7 @@ export async function executeAutoFillStagingGroups_ACU(
     try {
     for (const group of normalizedGroups) {
         if (options.abortController?.signal.aborted) {
-            return { success: false, failedGroups: [...failedGroups, ...normalizedGroups.map(g => g.key)], error: '自动填表已终止。', aborted: true, committedBucketCount };
+            return { success: false, failedGroups: [...failedGroups, ...normalizedGroups.map(g => g.key)], error: 'Điền bảng tự động đã bị dừng.', aborted: true, committedBucketCount };
         }
         const groupIndices = [...(group.indices || [])].sort((a, b) => a - b);
         const segments = splitMessageIndicesAtSchemaBoundaries_ACU(groupIndices, originalFullIndex, schemaBoundaries);
@@ -3043,7 +3043,7 @@ export async function executeAutoFillStagingGroups_ACU(
 
         for (const preSegment of preSegments) {
             if (options.abortController?.signal.aborted) {
-                return { success: false, failedGroups: [...failedGroups, ...normalizedGroups.map(g => g.key)], error: '自动填表已终止。', aborted: true, committedBucketCount };
+                return { success: false, failedGroups: [...failedGroups, ...normalizedGroups.map(g => g.key)], error: 'Điền bảng tự động đã bị dừng.', aborted: true, committedBucketCount };
             }
             const preGroups: GroupedRuntimeUpdateGroup_ACU[] = [{
                 ...group,
@@ -3065,7 +3065,7 @@ export async function executeAutoFillStagingGroups_ACU(
             if (preResult.aborted) return { success: false, failedGroups: [...failedGroups], aborted: true, committedBucketCount };
             if (!preResult.success) {
                 failedGroups.add(group.key);
-                firstError = firstError || preResult.error || '边界前 staging 提交失败。';
+                firstError = firstError || preResult.error || 'Commit staging trước biên thất bại.';
                 break;
             }
         }
@@ -3073,19 +3073,19 @@ export async function executeAutoFillStagingGroups_ACU(
         // 首个 post 段提交前收敛 staging：边界前累计快照原子折叠回原根；零 staging 则丢弃。
         if (postSegments.length > 0) {
             if (options.abortController?.signal.aborted) {
-                return { success: false, failedGroups: [...failedGroups, ...normalizedGroups.map(g => g.key)], error: '自动填表已终止。', aborted: true, committedBucketCount };
+                return { success: false, failedGroups: [...failedGroups, ...normalizedGroups.map(g => g.key)], error: 'Điền bảng tự động đã bị dừng.', aborted: true, committedBucketCount };
             }
             const settleResult = await settleStagingBoundary();
             if (!settleResult.ok) {
                 failedGroups.add(group.key);
-                firstError = firstError || `跨根 staging 汇合失败：${(settleResult as { ok: false; error: string }).error}`;
+                firstError = firstError || `Hợp nhất staging xuyên gốc thất bại: ${(settleResult as { ok: false; error: string }).error}`;
                 break;
             }
         }
 
         for (const postSegment of postSegments) {
             if (options.abortController?.signal.aborted) {
-                return { success: false, failedGroups: [...failedGroups, ...normalizedGroups.map(g => g.key)], error: '自动填表已终止。', aborted: true, committedBucketCount };
+                return { success: false, failedGroups: [...failedGroups, ...normalizedGroups.map(g => g.key)], error: 'Điền bảng tự động đã bị dừng.', aborted: true, committedBucketCount };
             }
             const postGroups: GroupedRuntimeUpdateGroup_ACU[] = [{
                 ...group,
@@ -3105,7 +3105,7 @@ export async function executeAutoFillStagingGroups_ACU(
             if (postResult.aborted) return { success: false, failedGroups: [...failedGroups], aborted: true, committedBucketCount };
             if (!postResult.success) {
                 failedGroups.add(group.key);
-                firstError = firstError || postResult.error || '边界后持久化提交失败。';
+                firstError = firstError || postResult.error || 'Commit lưu bền sau biên thất bại.';
                 break;
             }
         }
@@ -3119,11 +3119,11 @@ export async function executeAutoFillStagingGroups_ACU(
         const settleResult = await settleStagingBoundary();
         if (!settleResult.ok) {
             normalizedGroups.forEach(g => failedGroups.add(g.key));
-            firstError = firstError || `跨根 staging 收尾汇合失败：${(settleResult as { ok: false; error: string }).error}`;
+            firstError = firstError || `Hợp nhất kết thúc staging xuyên gốc thất bại: ${(settleResult as { ok: false; error: string }).error}`;
         }
     }
     return failedGroups.size > 0
-        ? { success: false, failedGroups: [...failedGroups], error: firstError || '跨根 staging 执行失败。', committedBucketCount }
+        ? { success: false, failedGroups: [...failedGroups], error: firstError || 'Thực thi staging xuyên gốc thất bại.', committedBucketCount }
         : { success: true, failedGroups: [], committedBucketCount };
     } catch (error: any) {
         if (error?.name === 'AbortError') return { success: false, failedGroups: [...failedGroups], aborted: true, committedBucketCount };
@@ -3272,7 +3272,7 @@ export async function executeCardUpdateCore_ACU(
                 }
                 if (!collectResult.success || !collectResult.aiResponse) {
                     throw new UpdateAttemptError_ACU(
-                        collectResult.rawError || collectResult.error || 'AI响应收集失败',
+                        collectResult.rawError || collectResult.error || 'Thu thập phản hồi AI thất bại',
                         collectResult.errorCategory || 'infrastructure',
                     );
                 }
@@ -3309,7 +3309,7 @@ export async function executeCardUpdateCore_ACU(
                         if (typeof provider.applyEditsWithSystemRowIds !== 'function') {
                             return {
                                 success: false,
-                                error: 'SQLite provider 不支持原子 row_id 分配。',
+                                error: 'SQLite provider không hỗ trợ cấp row_id nguyên tử.',
                                 errorCategory: 'infrastructure' as const,
                             };
                         }
@@ -3572,7 +3572,7 @@ export async function executeCardUpdateCore_ACU(
                     return {
                         success: false,
                         modifiedKeys: [],
-                        error: sanitizeRetryFeedback_ACU(updateOutcome.error || '无法将更新后的数据库保存到聊天记录。', MAX_WARN_ERROR_LENGTH_ACU),
+                        error: sanitizeRetryFeedback_ACU(updateOutcome.error || 'Không thể lưu CSDL đã cập nhật vào lịch sử trò chuyện.', MAX_WARN_ERROR_LENGTH_ACU),
                         errorCategory: updateOutcome.errorCategory || 'infrastructure',
                     };
                 }
@@ -3614,7 +3614,7 @@ export async function executeCardUpdateCore_ACU(
                     await new Promise(resolve => setTimeout(resolve, waitTime));
                     continue;
                 } else {
-                    return { success: false, modifiedKeys: [], error: `填表在 ${maxRetries} 次尝试后仍失败: ${safeError}`, errorCategory };
+                    return { success: false, modifiedKeys: [], error: `Điền bảng vẫn thất bại sau ${maxRetries} lần thử: ${safeError}`, errorCategory };
                 }
             }
             finally {
@@ -3707,7 +3707,7 @@ export async function processUpdatesBatch_ACU(
 
     const migration = await ensureLegacyStorageMigratedBeforeWrite_ACU('processUpdatesBatch');
     if (!migration.success) {
-        return { success: false, error: migration.error || '旧存储迁移失败，已阻止本次填表。' };
+        return { success: false, error: migration.error || 'Di chuyển kho cũ thất bại, đã chặn lần điền bảng này.' };
     }
     if (migration.migrated) {
         await reloadStorageProvider();
@@ -3758,7 +3758,7 @@ export async function processUpdatesBatch_ACU(
                 liveRuntimeAuthoritative: true,
             });
             if (!baseResult.data) {
-                return { success: false, failedBatch: batchNumber, error: baseResult.error || '无法构建合并基底，操作已终止。' };
+                return { success: false, failedBatch: batchNumber, error: baseResult.error || 'Không thể dựng nền gộp, thao tác đã bị dừng.' };
             }
             const mergedBatchData = baseResult.data;
             if (isStopped()) return { success: false, aborted: true };
@@ -3847,7 +3847,7 @@ export async function processUpdatesBatch_ACU(
                     success: false,
                     failedBatch: batchNumber,
                     ...(result.aborted ? { aborted: true } : {}),
-                    error: result.error || `批处理在第 ${batchNumber} 批时失败或被终止。`,
+                    error: result.error || `Xử lý hàng loạt thất bại hoặc bị dừng ở lô thứ ${batchNumber}.`,
                     ...(result.diagnosticCode ? { diagnosticCode: result.diagnosticCode } : {}),
                     ...(result.diagnostic ? { diagnostic: result.diagnostic } : {}),
                 };
@@ -3907,13 +3907,13 @@ function rebaselineManualUpdateSnapshotAfterTaskCommit_ACU(
         ? (currentJsonTableData_ACU as Record<string, any>)
         : null;
     if (!liveRuntimeTable) {
-        return { ok: false, error: `第 ${chunkIndex} 批提交后表格运行时缺失，无法继续后续批次。` };
+        return { ok: false, error: `Sau khi commit lô thứ ${chunkIndex}, runtime bảng bị thiếu, không thể tiếp tục các lô sau.` };
     }
     const liveSheetKeys = Object.keys(liveRuntimeTable).filter(key => key.startsWith('sheet_')).sort();
     const liveSet = new Set(liveSheetKeys);
     const missingTargets = targetKeys.filter(key => !liveSet.has(key));
     if (missingTargets.length > 0) {
-        return { ok: false, error: `第 ${chunkIndex} 批提交后表格运行时缺少本次目标表：${missingTargets.join('、')}，已停止后续批次。` };
+        return { ok: false, error: `Sau khi commit lô thứ ${chunkIndex}, runtime bảng thiếu các bảng đích lần này: ${missingTargets.join(', ')}, đã dừng các lô sau.` };
     }
     const previousSet = new Set(previousSnapshotKeys || []);
     const added = liveSheetKeys.filter(key => !previousSet.has(key));
@@ -3947,13 +3947,13 @@ function countCatchUpChunkBuckets_ACU(groups: ManualCatchUpPlan_ACU['waves'][num
  */
 export async function prepareManualCatchUpPlan_ACU(targetKeys: string[]): Promise<ManualCatchUpPlanningResult_ACU> {
     if (!Array.isArray(targetKeys) || targetKeys.length === 0) {
-        return { success: false, error: '未选择需要追平的表格。' };
+        return { success: false, error: 'Chưa chọn bảng cần bắt kịp.' };
     }
 
     await loadAllChatMessages_ACU();
     const chat = getChatArray_ACU();
     if (!Array.isArray(chat) || chat.length === 0) {
-        return { success: false, error: '聊天记录为空，无法执行追平。' };
+        return { success: false, error: 'Lịch sử trò chuyện trống, không thể thực hiện bắt kịp.' };
     }
 
     // 追平资格只认 runtime 真实表，绝不允许用模板兜底：
@@ -3969,7 +3969,7 @@ export async function prepareManualCatchUpPlan_ACU(targetKeys: string[]): Promis
         && Boolean(runtimeTableData?.[key])
     ))].sort();
     if (selectedSheetKeys.length === 0) {
-        return { success: false, error: '未找到可追平的已选表格。' };
+        return { success: false, error: 'Không tìm thấy bảng đã chọn có thể bắt kịp.' };
     }
 
     const effectiveAiMessageIndices = collectEffectiveAiMessageIndices_ACU(chat);
@@ -4032,8 +4032,8 @@ async function ensureStrictlyReplayableHistoryForCatchUp_ACU(
         const nextRootIndex = roots[rootOffset + 1];
         const maxMessageIndex = nextRootIndex === undefined ? undefined : nextRootIndex - 1;
         const label = nextRootIndex === undefined
-            ? `full checkpoint ${rootIndex} 至聊天末尾`
-            : `full checkpoint ${rootIndex} 至 ${maxMessageIndex}`;
+            ? `full checkpoint ${rootIndex} đến cuối cuộc trò chuyện`
+            : `full checkpoint ${rootIndex} đến ${maxMessageIndex}`;
         let replay;
         try {
             replay = await loadTableStateFromFramesV2Detailed_ACU(candidate, isolationKey, {
@@ -4043,14 +4043,14 @@ async function ensureStrictlyReplayableHistoryForCatchUp_ACU(
         } catch (error) {
             return {
                 ok: false,
-                error: `追平前无法回放聊天历史（${label}）：${error instanceof Error ? error.message : String(error)}`,
+                error: `Trước khi bắt kịp không thể phát lại lịch sử trò chuyện (${label}): ${error instanceof Error ? error.message : String(error)}`,
             };
         }
         if (replay?.baseKind === 'compat_tolerant_replay') {
             return {
                 ok: false,
-                error: `追平前检测到聊天历史（${label}）仅可经兼容宽容回放读出（严格回放失败：${replay.legacyToleranceDiagnosis?.strictError || '未知错误'}），`
-                    + '不能继续写入；请在数据管理 → 「诊断 V2 数据恢复」中把兼容回放结果固化为过渡根后重试。',
+                error: `Trước khi bắt kịp phát hiện lịch sử trò chuyện (${label}) 仅可经兼容宽容回放读出 (phát lại nghiêm ngặt thất bại: ${replay.legacyToleranceDiagnosis?.strictError || 'Lỗi không xác định'}), `
+                    + 'không thể tiếp tục ghi; hãy vào Quản lý dữ liệu → 「Chẩn đoán khôi phục dữ liệu V2」 để cố định kết quả phát lại tương thích thành gốc chuyển tiếp rồi thử lại.',
             };
         }
     }
@@ -4077,7 +4077,7 @@ export async function orchestrateManualCatchUp_ACU(
     } = {},
 ): Promise<ManualUpdateResult> {
     if (isAutoUpdatingCard_ACU) {
-        return { success: false, error: '数据库更新正在进行中，请稍候。' };
+        return { success: false, error: 'CSDL đang được cập nhật, vui lòng chờ.' };
     }
     if (!coreApisAreReady_ACU) {
         return { success: false, error: 'API未就绪。' };
@@ -4091,7 +4091,7 @@ export async function orchestrateManualCatchUp_ACU(
     if (!migration.success) {
         return {
             success: false,
-            error: migration.error || '旧存储迁移失败，已阻止手动追平。',
+            error: migration.error || 'Di chuyển kho cũ thất bại, đã chặn bắt kịp thủ công.',
             committedBucketCount: 0,
             dataCommitted: false,
             replayVerified: false,
@@ -4106,7 +4106,7 @@ export async function orchestrateManualCatchUp_ACU(
         if (!reloadResult?.ok) {
             return {
                 success: false,
-                error: reloadResult?.error || reloadResult?.failureCode || '迁移后存储运行时重载失败，已阻止手动追平。',
+                error: reloadResult?.error || reloadResult?.failureCode || 'Tải lại runtime lưu trữ sau khi di chuyển thất bại, đã chặn bắt kịp thủ công.',
                 committedBucketCount: 0,
                 dataCommitted: false,
                 replayVerified: false,
@@ -4119,7 +4119,7 @@ export async function orchestrateManualCatchUp_ACU(
 
     const planningResult = await prepareManualCatchUpPlan_ACU(targetKeys);
     if (!planningResult.success || !planningResult.plan) {
-        return { success: false, error: planningResult.error || '无法生成手动追平计划。' };
+        return { success: false, error: planningResult.error || 'Không thể tạo kế hoạch bắt kịp thủ công.' };
     }
     const plan = planningResult.plan;
     const selectedSheetKeys = [...new Set(plan.waves.flatMap(wave => wave.sheetKeys))].sort();
@@ -4138,7 +4138,7 @@ export async function orchestrateManualCatchUp_ACU(
             return {
                 success: false,
                 outcome: 'blocked',
-                error: '表格运行时在确认期间发生变化，已取消追平，请重新确认目标。',
+                error: 'Runtime bảng đã thay đổi trong lúc xác nhận, đã hủy bắt kịp, hãy xác nhận lại đích.',
                 catchUpPlan: plan,
                 committedBucketCount: 0,
                 dataCommitted: false,
@@ -4216,7 +4216,7 @@ export async function orchestrateManualCatchUp_ACU(
                     return {
                         success: false,
                         outcome: 'blocked',
-                        error: `检测到 active provisional bridge 且自动恢复失败：${(recovery as { ok: false; error: string }).error}`,
+                        error: `Phát hiện active provisional bridge và khôi phục tự động thất bại: ${(recovery as { ok: false; error: string }).error}`,
                         catchUpPlan: plan,
                         committedBucketCount: 0,
                         dataCommitted: false,
@@ -4243,7 +4243,7 @@ export async function orchestrateManualCatchUp_ACU(
                 return {
                     success: false,
                     outcome: 'blocked',
-                    error: `跨 full checkpoint 追平规划失败：${error?.message || String(error)}`,
+                    error: `Lập kế hoạch bắt kịp xuyên full checkpoint thất bại: ${error?.message || String(error)}`,
                     catchUpPlan: plan,
                     committedBucketCount: 0,
                     dataCommitted: false,
@@ -4281,7 +4281,7 @@ export async function orchestrateManualCatchUp_ACU(
             return {
                 success: false,
                 outcome: 'blocked',
-                error: '表格运行时在确认期间发生变化，已取消本次追平，请重新确认目标。',
+                error: 'Runtime bảng đã thay đổi trong lúc xác nhận, đã hủy lần bắt kịp này, hãy xác nhận lại đích.',
                 catchUpPlan: plan,
                 committedBucketCount: 0,
                 dataCommitted: false,
@@ -4355,7 +4355,7 @@ export async function orchestrateManualCatchUp_ACU(
         const safeTargetMessageIndex = resolveSafeTerminalTargetMessageIndex();
         if (safeTargetMessageIndex === undefined) {
             return {
-                error: '手动追平提交后未找到可见 full checkpoint，无法验证 V2 replay。',
+                error: 'Sau khi commit bắt kịp thủ công không tìm thấy full checkpoint hiển thị, không thể xác minh V2 replay.',
                 diagnosticCode: 'replay_anchor_missing',
             };
         }
@@ -4368,14 +4368,14 @@ export async function orchestrateManualCatchUp_ACU(
             // 不得把兼容数据当作验证通过并回写运行时视图。
             if (replay?.baseKind === 'compat_tolerant_replay') {
                 return {
-                    error: `V2 replay 仅可经兼容宽容回放读出（严格回放失败：${replay.legacyToleranceDiagnosis?.strictError || '未知错误'}）。请先执行恢复收敛。`,
+                    error: `V2 replay 仅可经兼容宽容回放读出 (phát lại nghiêm ngặt thất bại: ${replay.legacyToleranceDiagnosis?.strictError || 'Lỗi không xác định'}). Hãy chạy hội tụ khôi phục trước.`,
                     diagnosticCode: 'replay_requires_checkpoint_convergence',
                 };
             }
             if (hasStructuralReplayCompatibilityRepairs_ACU(replay?.compatibilityRepairs)) {
                 const affectedSheetKeys = [...new Set((replay.compatibilityRepairs || []).map(item => item.sheetKey))];
                 return {
-                    error: `V2 replay 存在结构性兼容修复：${affectedSheetKeys.join('、') || '未知 Sheet'}。请先执行恢复收敛。`,
+                    error: `V2 replay có sửa chữa tương thích mang tính cấu trúc: ${affectedSheetKeys.join(', ') || 'Sheet không xác định'}. Hãy chạy hội tụ khôi phục trước.`,
                     diagnosticCode: 'replay_requires_checkpoint_convergence',
                 };
             }
@@ -4383,7 +4383,7 @@ export async function orchestrateManualCatchUp_ACU(
             const missingSheetKeys = selectedSheetKeys.filter(sheetKey => !replayData?.[sheetKey]);
             if (!replayData || missingSheetKeys.length > 0) {
                 return {
-                    error: `V2 replay 未恢复所选表：${missingSheetKeys.join('、') || '无可用回放数据'}。`,
+                    error: `V2 replay chưa khôi phục các bảng đã chọn: ${missingSheetKeys.join(', ') || 'không có dữ liệu phát lại khả dụng'}. `,
                     diagnosticCode: 'replay_missing_selected_sheet',
                 };
             }
@@ -4396,7 +4396,7 @@ export async function orchestrateManualCatchUp_ACU(
             );
             if (replayMismatchSheetKeys.length > 0) {
                 return {
-                    error: `V2 replay 与本轮已提交数据不一致：${replayMismatchSheetKeys.join('、')}。`,
+                    error: `V2 replay không khớp dữ liệu đã commit lượt này: ${replayMismatchSheetKeys.join(', ')}. `,
                     diagnosticCode: 'replay_data_mismatch',
                 };
             }
@@ -4404,7 +4404,7 @@ export async function orchestrateManualCatchUp_ACU(
             return {};
         } catch (error: any) {
             return {
-                error: error?.message || String(error || 'V2 replay 验证失败。'),
+                error: error?.message || String(error || 'Xác minh V2 replay thất bại.'),
                 diagnosticCode: 'replay_failed',
             };
         }
@@ -4421,7 +4421,7 @@ export async function orchestrateManualCatchUp_ACU(
             const isolationKey = getCurrentIsolationKey_ACU();
             const safeTargetMessageIndex = resolveSafeTerminalTargetMessageIndex();
             if (safeTargetMessageIndex === undefined) {
-                return `手动追平终态 ${status} 未找到可见 full checkpoint。`;
+                return `Trạng thái cuối bắt kịp thủ công ${status} không tìm thấy full checkpoint hiển thị.`;
             }
             const progress = buildCatchUpProgress(status, lastError);
             const commitResult = await runTableUpdateCommit_ACU({
@@ -4444,9 +4444,9 @@ export async function orchestrateManualCatchUp_ACU(
                 success: true,
                 tableData: currentJsonTableData_ACU,
             }));
-            return commitResult.success ? undefined : (commitResult.error || `手动追平终态 ${status} 保存失败。`);
+            return commitResult.success ? undefined : (commitResult.error || `Trạng thái cuối bắt kịp thủ công ${status} lưu thất bại.`);
         } catch (error: any) {
-            return error?.message || String(error || `手动追平终态 ${status} 保存异常。`);
+            return error?.message || String(error || `Trạng thái cuối bắt kịp thủ công ${status} lưu gặp lỗi.`);
         }
     };
     // 跨根 staging 收敛：有 staging 快照且有已提交 bucket 则 boundary commit 原子汇合
@@ -4498,7 +4498,7 @@ export async function orchestrateManualCatchUp_ACU(
                     const settleError = (settleResult as { ok: false; error: string; diagnosticCode?: ManualUpdateResult['diagnosticCode'] });
                     return {
                         success: false, outcome: 'integrity_failed',
-                        error: `跨根 staging 收敛失败：${settleError.error}`,
+                        error: `Hội tụ staging xuyên gốc thất bại: ${settleError.error}`,
                         committedBucketCount, catchUpPlan: plan,
                         dataCommitted: committedBucketCount > 0,
                         replayVerified: false,
@@ -4506,11 +4506,11 @@ export async function orchestrateManualCatchUp_ACU(
                         diagnosticCode: settleError.diagnosticCode ?? 'boundary_commit_failed',
                     };
                 }
-                const terminalError = await persistCatchUpTerminalProgress('stopped', '手动追平已终止。');
+                const terminalError = await persistCatchUpTerminalProgress('stopped', 'Bắt kịp thủ công đã bị dừng.');
                 await refreshCommittedDataBeforeExit();
                 return {
                     success: false, outcome: 'stopped',
-                    error: terminalError ? `手动追平已终止；终态进度保存失败：${terminalError}` : '手动追平已终止。',
+                    error: terminalError ? `Bắt kịp thủ công đã bị dừng; lưu tiến độ trạng thái cuối thất bại: ${terminalError}` : 'Bắt kịp thủ công đã bị dừng.',
                     committedBucketCount, catchUpPlan: plan,
                     dataCommitted: committedBucketCount > 0,
                     replayVerified: false,
@@ -4541,7 +4541,7 @@ export async function orchestrateManualCatchUp_ACU(
                         const settleError = (settleResult as { ok: false; error: string; diagnosticCode?: ManualUpdateResult['diagnosticCode'] });
                         return {
                             success: false, outcome: 'integrity_failed',
-                            error: `跨根 staging 收敛失败：${settleError.error}`,
+                            error: `Hội tụ staging xuyên gốc thất bại: ${settleError.error}`,
                             committedBucketCount, catchUpPlan: plan,
                             dataCommitted: committedBucketCount > 0,
                             replayVerified: false,
@@ -4549,11 +4549,11 @@ export async function orchestrateManualCatchUp_ACU(
                             diagnosticCode: settleError.diagnosticCode ?? 'boundary_commit_failed',
                         };
                     }
-                    const terminalError = await persistCatchUpTerminalProgress('stopped', '手动追平已终止。');
+                    const terminalError = await persistCatchUpTerminalProgress('stopped', 'Bắt kịp thủ công đã bị dừng.');
                     await refreshCommittedDataBeforeExit();
                     return {
                         success: false, outcome: 'stopped',
-                        error: terminalError ? `手动追平已终止；终态进度保存失败：${terminalError}` : '手动追平已终止。',
+                        error: terminalError ? `Bắt kịp thủ công đã bị dừng; lưu tiến độ trạng thái cuối thất bại: ${terminalError}` : 'Bắt kịp thủ công đã bị dừng.',
                         committedBucketCount, catchUpPlan: plan,
                         dataCommitted: committedBucketCount > 0,
                         replayVerified: false,
@@ -4579,12 +4579,12 @@ export async function orchestrateManualCatchUp_ACU(
                     const settleResult = await settleStagingBoundary();
                     if (!settleResult.ok) {
                         const settleError = (settleResult as { ok: false; error: string; diagnosticCode?: ManualUpdateResult['diagnosticCode'] });
-                        const terminalError = await persistCatchUpTerminalProgress('failed', `跨根 staging 汇合失败：${settleError.error}`);
+                        const terminalError = await persistCatchUpTerminalProgress('failed', `Hợp nhất staging xuyên gốc thất bại: ${settleError.error}`);
                         await refreshCommittedDataBeforeExit();
                         return {
                             success: false,
                             outcome: 'integrity_failed',
-                            error: terminalError ? `跨根 staging 汇合失败：${settleError.error}；终态进度保存失败：${terminalError}` : `跨根 staging 汇合失败：${settleError.error}`,
+                            error: terminalError ? `Hợp nhất staging xuyên gốc thất bại: ${settleError.error}; lưu tiến độ trạng thái cuối thất bại: ${terminalError}` : `Hợp nhất staging xuyên gốc thất bại: ${settleError.error}`,
                             committedBucketCount,
                             catchUpPlan: plan,
                             dataCommitted: committedBucketCount > 0,
@@ -4645,7 +4645,7 @@ export async function orchestrateManualCatchUp_ACU(
                 committedBucketCount += result.committedBucketCount;
                 if (!result.success) {
                     const outcome = result.aborted ? 'stopped' : undefined;
-                    const primaryError = result.error || (result.aborted ? '手动追平已终止。' : '手动追平失败。');
+                    const primaryError = result.error || (result.aborted ? 'Bắt kịp thủ công đã bị dừng.' : 'Bắt kịp thủ công thất bại.');
                     // 终态不变量：stopped/failed 只能在 staging 已汇合或丢弃后写入。
                     // 已有已提交 bucket 时先收敛 staging；收敛失败则返回 integrity_failed，不写误导性终态。
                     const settleResult = await settleStagingBoundary();
@@ -4654,7 +4654,7 @@ export async function orchestrateManualCatchUp_ACU(
                         return {
                             success: false,
                             outcome: 'integrity_failed',
-                            error: `${primaryError}；跨根 staging 收敛失败：${settleError.error}`,
+                            error: `${primaryError}; hội tụ staging xuyên gốc thất bại: ${settleError.error}`,
                             committedBucketCount,
                             catchUpPlan: plan,
                             dataCommitted: committedBucketCount > 0,
@@ -4668,7 +4668,7 @@ export async function orchestrateManualCatchUp_ACU(
                     return {
                         success: false,
                         outcome,
-                        error: terminalError ? `${primaryError}；终态进度保存失败：${terminalError}` : primaryError,
+                        error: terminalError ? `${primaryError}; lưu tiến độ trạng thái cuối thất bại: ${terminalError}` : primaryError,
                         committedBucketCount,
                         catchUpPlan: plan,
                         dataCommitted: committedBucketCount > 0,
@@ -4690,7 +4690,7 @@ export async function orchestrateManualCatchUp_ACU(
                 return {
                     success: false,
                     outcome: 'integrity_failed',
-                    error: `跨根 staging 收敛失败：${settleError.error}`,
+                    error: `Hội tụ staging xuyên gốc thất bại: ${settleError.error}`,
                     committedBucketCount,
                     catchUpPlan: plan,
                     dataCommitted: committedBucketCount > 0,
@@ -4710,15 +4710,15 @@ export async function orchestrateManualCatchUp_ACU(
             try {
                 const reloadResult = await reloadStorageProvider();
                 if (!reloadResult.ok) {
-                    reloadError = reloadResult.error || reloadResult.failureCode || '存储运行时重载未完成。';
+                    reloadError = reloadResult.error || reloadResult.failureCode || 'Tải lại runtime lưu trữ chưa hoàn tất.';
                 }
             } catch (error: any) {
-                reloadError = error?.message || String(error || '存储运行时重载异常。');
+                reloadError = error?.message || String(error || 'Tải lại runtime lưu trữ gặp lỗi.');
             }
             return {
                 success: false,
                 outcome: 'integrity_failed',
-                error: `手动追平持久化完整性校验失败：${replayVerification.error}${reloadError ? `；聊天状态回载失败：${reloadError}` : '；已从聊天持久化状态回载运行时。'}`,
+                error: `Kiểm tra toàn vẹn lưu bền của bắt kịp thủ công thất bại: ${replayVerification.error}${reloadError ? `; tải lại trạng thái cuộc trò chuyện thất bại: ${reloadError}` : '; đã tải lại runtime từ trạng thái lưu bền của cuộc trò chuyện.'}`,
                 committedBucketCount,
                 dataCommitted: committedBucketCount > 0,
                 replayVerified: false,
@@ -4737,7 +4737,7 @@ export async function orchestrateManualCatchUp_ACU(
                     // 辅助元数据，不能把已提交的表数据误报成失败。
                     success: true,
                     outcome: 'progress_metadata_failed',
-                    error: `手动追平数据已提交且世界书同步待重试，但终态进度保存失败：${terminalError}`,
+                    error: `Dữ liệu bắt kịp thủ công đã commit và đồng bộ Sổ thế giới đang chờ thử lại, nhưng lưu tiến độ trạng thái cuối thất bại: ${terminalError}`,
                     committedBucketCount,
                     dataCommitted: committedBucketCount > 0,
                     replayVerified: true,
@@ -4762,7 +4762,7 @@ export async function orchestrateManualCatchUp_ACU(
                 // 反向篡改“表数据已提交”的事实。
                 success: true,
                 outcome: 'progress_metadata_failed',
-                error: `手动追平数据与世界书同步已完成，但终态进度保存失败：${terminalError}`,
+                error: `Dữ liệu bắt kịp thủ công và đồng bộ Sổ thế giới đã hoàn tất, nhưng lưu tiến độ trạng thái cuối thất bại: ${terminalError}`,
                 committedBucketCount,
                 dataCommitted: committedBucketCount > 0,
                 replayVerified: true,
@@ -4772,7 +4772,7 @@ export async function orchestrateManualCatchUp_ACU(
         }
         return { success: true, outcome: 'complete', committedBucketCount, dataCommitted: committedBucketCount > 0, replayVerified: true, terminalProgressSaved: true, catchUpPlan: plan };
     } catch (error: any) {
-        const primaryError = error?.message || String(error || '手动追平执行异常。');
+        const primaryError = error?.message || String(error || 'Thực thi bắt kịp thủ công gặp lỗi.');
         // 终态不变量：failed 只能在 staging 已汇合或丢弃后写入。
         // 异常路径同样先收敛 staging；收敛失败则返回 integrity_failed，不写误导性 failed 终态。
         const settleResult = await settleStagingBoundary();
@@ -4780,7 +4780,7 @@ export async function orchestrateManualCatchUp_ACU(
             const settleError = (settleResult as { ok: false; error: string; diagnosticCode?: ManualUpdateResult['diagnosticCode'] });
             return {
                 success: false,
-                error: `${primaryError}；跨根 staging 收敛失败：${settleError.error}`,
+                error: `${primaryError}; hội tụ staging xuyên gốc thất bại: ${settleError.error}`,
                 committedBucketCount,
                 catchUpPlan: plan,
                 dataCommitted: committedBucketCount > 0,
@@ -4793,7 +4793,7 @@ export async function orchestrateManualCatchUp_ACU(
         await refreshCommittedDataBeforeExit();
         return {
             success: false,
-            error: terminalError ? `${primaryError}；终态进度保存失败：${terminalError}` : primaryError,
+            error: terminalError ? `${primaryError}; lưu tiến độ trạng thái cuối thất bại: ${terminalError}` : primaryError,
             committedBucketCount,
             catchUpPlan: plan,
             dataCommitted: committedBucketCount > 0,
@@ -4831,7 +4831,7 @@ async function ensureManualRefillAnchorHealth_ACU(
         if (!options.checkZeroRoot) return null;
         const hasFrames = chat.some(message => message && !message.is_user && isV2TagData_ACU(readIsolatedTagData_ACU(message, isolationKey)));
         if (hasFrames && !hasAnyV2Checkpoint_ACU(chat, isolationKey)) {
-            return 'V2 orchestrateManualUpdate:anchor_preflight 检测到零根状态：该隔离键存在 V2 storage frame 但没有任何 full checkpoint 锚点，persist 层将拒绝隐式 migration checkpoint。';
+            return 'V2 orchestrateManualUpdate:anchor_preflight phát hiện trạng thái không có gốc: khóa cô lập này có V2 storage frame nhưng không có neo full checkpoint nào, tầng persist sẽ từ chối migration checkpoint ngầm.';
         }
         return null;
     };
@@ -4842,20 +4842,20 @@ async function ensureManualRefillAnchorHealth_ACU(
         const summary = await prepareV2Recovery_ACU({ chat: liveChat, isolationKey });
         if (!summary.planId || summary.requiresConfirmation) {
             logWarn_ACU('[ManualUpdate] 锚点自动收敛不可行（无恢复计划或需人工确认）：', summary.status, summary.message);
-            return { blockedError: `手动重填被锚点预检阻断：${initialViolation}`, healed: false };
+            return { blockedError: `Điền lại thủ công bị chặn bởi kiểm tra trước neo: ${initialViolation}`, healed: false };
         }
         const commitResult = await commitPreparedV2Recovery_ACU(summary.planId);
         if (commitResult.status !== 'committed') {
             logWarn_ACU('[ManualUpdate] 锚点自动收敛提交失败：', commitResult.error || commitResult.status);
-            return { blockedError: `手动重填被锚点预检阻断：${initialViolation}`, healed: false };
+            return { blockedError: `Điền lại thủ công bị chặn bởi kiểm tra trước neo: ${initialViolation}`, healed: false };
         }
         logWarn_ACU('[ManualUpdate] 锚点自动收敛完成：', summary.message);
     } catch (error) {
         logWarn_ACU('[ManualUpdate] 锚点自动收敛异常：', error);
-        return { blockedError: `手动重填被锚点预检阻断：${initialViolation}`, healed: false };
+        return { blockedError: `Điền lại thủ công bị chặn bởi kiểm tra trước neo: ${initialViolation}`, healed: false };
     }
     const postViolation = healthViolation(getChatArray_ACU());
-    if (postViolation) return { blockedError: `手动重填被锚点预检阻断（自动收敛后仍未通过）：${postViolation}`, healed: false };
+    if (postViolation) return { blockedError: `Điền lại thủ công bị chặn bởi kiểm tra trước neo (vẫn không qua sau khi tự hội tụ): ${postViolation}`, healed: false };
     return { blockedError: null, healed: true };
 }
 
@@ -4992,7 +4992,7 @@ export async function orchestrateManualUpdate_ACU(
 
     try {
         if (isAutoUpdatingCard_ACU) {
-            return { success: false, error: '数据库更新正在进行中，请稍候...' };
+            return { success: false, error: 'CSDL đang được cập nhật, vui lòng chờ...' };
         }
 
         if (!coreApisAreReady_ACU) {
@@ -5008,11 +5008,11 @@ export async function orchestrateManualUpdate_ACU(
         await refreshData();
 
         if (!currentJsonTableData_ACU) {
-            return { success: false, error: '数据库未加载。' };
+            return { success: false, error: 'CSDL chưa được tải.' };
         }
         const liveChat = getChatArray_ACU();
         if (!liveChat || liveChat.length === 0) {
-            return { success: false, error: '聊天记录为空，无法更新。' };
+            return { success: false, error: 'Lịch sử trò chuyện trống, không thể cập nhật.' };
         }
 
         const allAiMessageIndices = liveChat
@@ -5020,11 +5020,11 @@ export async function orchestrateManualUpdate_ACU(
             .filter((index: number) => index !== -1);
 
         if (allAiMessageIndices.length === 0) {
-            return { success: false, error: '尚未检测到AI回复，无法执行手动更新。' };
+            return { success: false, error: 'Chưa phát hiện phản hồi AI, không thể thực hiện cập nhật thủ công.' };
         }
 
         if (!targetKeys.length) {
-            return { success: false, error: '未选择需要更新的表格。' };
+            return { success: false, error: 'Chưa chọn bảng cần cập nhật.' };
         }
 
         // 锚点预检（健康检查 + 自动收敛）：多根 / 零根有帧两类死锁形态在首次 AI 调用
@@ -5041,7 +5041,7 @@ export async function orchestrateManualUpdate_ACU(
             // 自动收敛可能改变回放输出（如 recoveryBackup 重建根），重填基线必须基于收敛后状态。
             await refreshData();
             if (!currentJsonTableData_ACU) {
-                return { success: false, error: '锚点自动收敛后数据库未能重新加载。' };
+                return { success: false, error: 'CSDL không thể tải lại sau khi neo tự hội tụ.' };
             }
         }
 
@@ -5054,7 +5054,7 @@ export async function orchestrateManualUpdate_ACU(
         const contextScopeIndices = uiThreshold > 0 ? effectiveAiIndices.slice(-uiThreshold) : effectiveAiIndices;
 
         if (!contextScopeIndices.length) {
-            return { success: false, error: '未找到可用的上下文进行手动更新，请检查阈值或跳过楼层设置。' };
+            return { success: false, error: 'Không tìm thấy ngữ cảnh khả dụng để cập nhật thủ công, hãy kiểm tra ngưỡng hoặc cài đặt bỏ qua tầng.' };
         }
 
         const templateData = parseTableTemplateJson_ACU({ stripSeedRows: true }) || {};
@@ -5103,7 +5103,7 @@ export async function orchestrateManualUpdate_ACU(
         if (options.executionSnapshot !== undefined) {
             if (!runtimeSheetKeysMatchSnapshot_ACU(manualUpdateSnapshotKeys)) {
                 logWarn_ACU('[Manual Update] runtime 在确认期间变化，已阻止手动更新（快照未匹配）。');
-                return { success: false, error: '表格运行时在确认期间发生变化，已取消本次手动填表，请确认后重试。' };
+                return { success: false, error: 'Runtime bảng đã thay đổi trong lúc xác nhận, đã hủy lần điền bảng thủ công này, hãy xác nhận rồi thử lại.' };
             }
         }
         // 最终 commit 只能消费本次会话开始时解析出的模板，不能在 bucket 已写入后重新读取
@@ -5133,7 +5133,7 @@ export async function orchestrateManualUpdate_ACU(
             });
             if (!refillAdmission.allow && !canStageAcrossReplayRoot) {
                 logDebug_ACU(`[手动重填准入] 阻断：${refillAdmission.reason}（refillTarget=${refillTargetIndex}, isolationKey=[${currentIsolationKey || '无标签'}]）。`);
-                return { success: false, error: `手动重填被回放根准入阻断${refillAdmission.reason}` };
+                return { success: false, error: `Điền lại thủ công bị chặn bởi kiểm tra cho phép gốc phát lại: ${refillAdmission.reason}` };
             }
             if (!refillAdmission.allow && canStageAcrossReplayRoot) {
                 logDebug_ACU(`[手动重填准入] 写目标早于回放根，改走跨根 staging：${refillAdmission.reason}（refillTarget=${refillTargetIndex}, originalFull=${originalFullIndex}）。`);
@@ -5189,7 +5189,7 @@ export async function orchestrateManualUpdate_ACU(
                 try {
                     await ensureStorageProviderReady_ACU();
                 } catch (error: any) {
-                    return { success: false, error: `SQLite 运行时未就绪，已阻止重填：${error?.message || String(error)}` };
+                    return { success: false, error: `Runtime SQLite chưa sẵn sàng, đã chặn điền lại: ${error?.message || String(error)}` };
                 }
             }
 
@@ -5199,7 +5199,7 @@ export async function orchestrateManualUpdate_ACU(
             if (options.executionSnapshot !== undefined) {
                 if (!runtimeSheetKeysMatchSnapshot_ACU(manualUpdateSnapshotKeys)) {
                     logWarn_ACU('[Manual Refill] runtime 在清理前一刻变化，已阻止破坏性重填（快照未匹配）。');
-                    return { success: false, error: '表格运行时在确认期间发生变化，已取消本次手动填表，请确认后重试。' };
+                    return { success: false, error: 'Runtime bảng đã thay đổi trong lúc xác nhận, đã hủy lần điền bảng thủ công này, hãy xác nhận rồi thử lại.' };
                 }
             }
 
@@ -5215,7 +5215,7 @@ export async function orchestrateManualUpdate_ACU(
                 await clearManualRefillSheetDataInRange_ACU(contextScopeIndices, targetKeys);
             } catch (error: any) {
                 logError_ACU('[Manual Refill] 清理本次范围内选中表旧数据失败:', error);
-                const failureError = error?.message || '手动重填清理本次范围内选中表旧数据失败。';
+                const failureError = error?.message || 'Dọn dẹp dữ liệu cũ của các bảng đã chọn trong phạm vi lần này khi điền lại thủ công thất bại.';
                 return await failManualRefillSession(failureError);
             }
             logDebug_ACU(`[Manual Refill] 已清理 AI 楼层 ${contextScopeIndices.join('、')} 上选中表的 checkpoint 与增量；将在全部重填成功后提交完整单表 checkpoint。`);
@@ -5236,7 +5236,7 @@ export async function orchestrateManualUpdate_ACU(
                 });
                 if (!rootEstablish.success) {
                     logError_ACU('[Manual Refill] 清理后建立模板临时根失败:', rootEstablish.error);
-                    return await failManualRefillSession(rootEstablish.error || '手动重填清理后建立模板临时根失败。');
+                    return await failManualRefillSession(rootEstablish.error || 'Thiết lập gốc tạm của mẫu sau khi dọn dẹp để điền lại thủ công thất bại.');
                 }
                 if (rootEstablish.changed) {
                     logDebug_ACU(`[Manual Refill] 已在 AI 楼层 #${rootEstablish.targetMessageIndex} 建立模板临时根，后续 bucket 写入将有合法锚点。`);
@@ -5246,11 +5246,11 @@ export async function orchestrateManualUpdate_ACU(
             try {
                 const reloadResult = await reloadStorageProvider();
                 if (!reloadResult.ok) {
-                    throw new Error(`SQLite runtime 重载未完成: ${reloadResult.failureCode || 'unknown'}${reloadResult.error ? ` (${reloadResult.error})` : ''}`);
+                    throw new Error(`Tải lại SQLite runtime chưa hoàn tất: ${reloadResult.failureCode || 'unknown'}${reloadResult.error ? ` (${reloadResult.error})` : ''}`);
                 }
             } catch (error: any) {
                 logError_ACU('[Manual Refill] 清理后刷新运行时快照失败:', error);
-                const failureError = error?.message || '手动重填清理后刷新运行时快照失败。';
+                const failureError = error?.message || 'Làm mới snapshot runtime sau khi dọn dẹp để điền lại thủ công thất bại.';
                 return await failManualRefillSession(failureError);
             }
 
@@ -5260,7 +5260,7 @@ export async function orchestrateManualUpdate_ACU(
                 await publishManualRefillSummaryVectors_ACU(summaryVectorRemovalSnapshot);
             } catch (error: any) {
                 logError_ACU('[Manual Refill] 清理后发布交火索引失败:', error);
-                return await failManualRefillSession(error?.message || '手动重填清理后发布交火索引失败。');
+                return await failManualRefillSession(error?.message || 'Phát hành chỉ mục giao hỏa sau khi dọn dẹp để điền lại thủ công thất bại.');
             }
 
             // 跨根 staging 的 run 上下文在本任务全部前置改写（清理、模板临时根、reload）
@@ -5272,12 +5272,12 @@ export async function orchestrateManualUpdate_ACU(
                 const fullIndexAfterCleanup = getLatestV2FullCheckpointMessageIndex_ACU(liveChatAfterCleanup, currentIsolationKey);
                 if (fullIndexAfterCleanup !== originalFullIndex) {
                     logError_ACU(`[Manual Refill] 清理后原 full checkpoint 位置变化：清理前 #${originalFullIndex}，清理后 #${fullIndexAfterCleanup}；跨根 staging 失去汇合目标。`);
-                    return await failManualRefillSession(`手动重填清理后原 full checkpoint 位置发生变化（清理前 #${originalFullIndex}，清理后 #${fullIndexAfterCleanup}），无法建立跨根 staging 汇合目标；已在 AI 调用前停止。已清理的数据不可恢复，请检查该聊天的 checkpoint 布局后重试。`);
+                    return await failManualRefillSession(`Sau khi dọn dẹp để điền lại thủ công, vị trí full checkpoint ban đầu đã thay đổi (trước dọn dẹp #${originalFullIndex}, sau dọn dẹp #${fullIndexAfterCleanup}), không thể thiết lập đích hợp nhất staging xuyên gốc; đã dừng trước khi gọi AI. Dữ liệu đã dọn dẹp không thể khôi phục, hãy kiểm tra bố cục checkpoint của cuộc trò chuyện này rồi thử lại.`);
                 }
                 const fingerprintAfterCleanup = readOriginalFullFrameFingerprint_ACU(liveChatAfterCleanup, currentIsolationKey, originalFullIndex);
                 if (!fingerprintAfterCleanup) {
                     logError_ACU(`[Manual Refill] 清理后原 full checkpoint #${originalFullIndex} 不再是正式 full 根，无法读取指纹。`);
-                    return await failManualRefillSession(`手动重填清理后原 full checkpoint（#${originalFullIndex}）已不存在或不再是正式 full 根，无法建立跨根 staging；已在 AI 调用前停止。已清理的数据不可恢复，请检查该聊天的 checkpoint 布局后重试。`);
+                    return await failManualRefillSession(`Sau khi dọn dẹp để điền lại thủ công, full checkpoint ban đầu (#${originalFullIndex}) không còn tồn tại hoặc không còn là gốc full chính thức, không thể thiết lập staging xuyên gốc; đã dừng trước khi gọi AI. Dữ liệu đã dọn dẹp không thể khôi phục, hãy kiểm tra bố cục checkpoint của cuộc trò chuyện này rồi thử lại.`);
                 }
                 stagingRun = createTableFillStagingRunContext_ACU({
                     runId: boundaryPlan.scope.runId,
@@ -5305,9 +5305,9 @@ export async function orchestrateManualUpdate_ACU(
             if (!runtimeSheetKeysMatchSnapshot_ACU(manualUpdateSnapshotKeys)) {
                 logWarn_ACU('[Manual Update] runtime 在 AI 调用前一刻变化，已阻止手动更新（快照未匹配）。');
                 if (manualRefillEnabled) {
-                    return await failManualRefillSession('表格运行时在确认期间发生变化，已取消本次手动填表；已清理的数据不可恢复，请确认后重试。');
+                    return await failManualRefillSession('Runtime bảng đã thay đổi trong lúc xác nhận, đã hủy lần điền bảng thủ công này; dữ liệu đã dọn dẹp không thể khôi phục, hãy xác nhận rồi thử lại.');
                 }
-                return { success: false, error: '表格运行时在确认期间发生变化，已取消本次手动填表，请确认后重试。' };
+                return { success: false, error: 'Runtime bảng đã thay đổi trong lúc xác nhận, đã hủy lần điền bảng thủ công này, hãy xác nhận rồi thử lại.' };
             }
         }
 
@@ -5335,7 +5335,7 @@ export async function orchestrateManualUpdate_ACU(
             logDebug_ACU(`[Manual Update] 并发处理第 ${chunkIndex}/${totalChunks} 批，当前 ${groupedChunk.length} 组：${groupedChunk.map(formatGroupReference_ACU).join('; ')}`);
             options.onProgress?.({
                 phase: 'preparing',
-                message: `并发处理第 ${chunkIndex}/${totalChunks} 批，当前 ${groupedChunk.length} 组。`,
+                message: `Xử lý đồng thời lô thứ ${chunkIndex}/${totalChunks}, hiện có ${groupedChunk.length} nhóm.`,
             });
             try {
                 await loadAllChatMessages_ACU();
@@ -5344,7 +5344,7 @@ export async function orchestrateManualUpdate_ACU(
                     if (!boundaryCheckpoint.success) {
                         failedGroups.push({
                             key: chunkKeys[0] || 'manual_boundary_checkpoint',
-                            error: boundaryCheckpoint.error || 'AI 楼层边界 checkpoint 建立失败，已停止手动更新以避免跳楼推进。',
+                            error: boundaryCheckpoint.error || 'Thiết lập checkpoint biên tầng AI thất bại, đã dừng cập nhật thủ công để tránh nhảy tầng.',
                         });
                         break;
                     }
@@ -5353,7 +5353,7 @@ export async function orchestrateManualUpdate_ACU(
                 logError_ACU('[Manual Update] 继续下一批前同步聊天并建立 AI 楼层边界 checkpoint 异常详情:', checkpointError);
                 failedGroups.push({
                     key: chunkKeys[0] || 'manual_boundary_checkpoint',
-                    error: checkpointError?.message || 'AI 楼层边界 checkpoint 建立异常，已停止手动更新以避免跳楼推进。',
+                    error: checkpointError?.message || 'Thiết lập checkpoint biên tầng AI gặp lỗi, đã dừng cập nhật thủ công để tránh nhảy tầng.',
                 });
                 break;
             }
@@ -5390,7 +5390,7 @@ export async function orchestrateManualUpdate_ACU(
                     logWarn_ACU(`[Manual Update] 边界 checkpoint 后写目标已陈旧，已阻止第 ${chunkIndex} 批 AI 调用：target=${staleTarget}, ${staleReason}`);
                     return {
                         success: false,
-                        error: `手动更新在边界 checkpoint 后写目标陈旧，请重新发起更新：${staleReason}`,
+                        error: `Sau checkpoint biên, đích ghi của cập nhật thủ công đã cũ, hãy khởi động lại cập nhật: ${staleReason}`,
                         diagnosticCode: 'stale_bucket_after_boundary_checkpoint',
                     };
                 }
@@ -5406,9 +5406,9 @@ export async function orchestrateManualUpdate_ACU(
                 if (!runtimeSheetKeysMatchSnapshot_ACU(manualUpdateSnapshotKeys)) {
                     logWarn_ACU(`[Manual Update] runtime 在第 ${chunkIndex} 批 AI 调用前一刻变化，已阻止该批执行（快照未匹配）。`);
                     if (manualRefillEnabled) {
-                        return await failManualRefillSession('表格运行时在确认期间发生变化，已取消本次手动填表；已清理的数据不可恢复，请确认后重试。');
+                        return await failManualRefillSession('Runtime bảng đã thay đổi trong lúc xác nhận, đã hủy lần điền bảng thủ công này; dữ liệu đã dọn dẹp không thể khôi phục, hãy xác nhận rồi thử lại.');
                     }
-                    return { success: false, error: '表格运行时在确认期间发生变化，已取消本次手动填表，请确认后重试。' };
+                    return { success: false, error: 'Runtime bảng đã thay đổi trong lúc xác nhận, đã hủy lần điền bảng thủ công này, hãy xác nhận rồi thử lại.' };
                 }
             }
             try {
@@ -5426,7 +5426,7 @@ export async function orchestrateManualUpdate_ACU(
                     committedBucketCount += chunkResult.committedBucketCount;
                     if (!chunkResult.success) {
                         chunkResult.failedGroups.forEach(key => {
-                            failedGroups.push({ key, error: chunkResult.error || '手动更新失败或被终止。' });
+                            failedGroups.push({ key, error: chunkResult.error || 'Cập nhật thủ công thất bại hoặc bị dừng.' });
                         });
                         if (chunkResult.failedGroups.length === 0) {
                             failedGroups.push({ key: chunkKeys[0] || 'manual_refill', error: chunkResult.error || '手动更新已终止。' });
@@ -5462,7 +5462,7 @@ export async function orchestrateManualUpdate_ACU(
                             });
                             committedBucketCount += preResult.committedBucketCount;
                             if (!preResult.success) {
-                                failedGroups.push({ key: group.key, error: preResult.error || '边界前 staging 提交失败。' });
+                                failedGroups.push({ key: group.key, error: preResult.error || 'Commit staging trước biên thất bại.' });
                                 groupFailed = true;
                                 break;
                             }
@@ -5473,7 +5473,7 @@ export async function orchestrateManualUpdate_ACU(
                         if (!groupFailed && postSegments.length > 0) {
                             const settleResult = await settleStagingBoundary();
                             if (!settleResult.ok) {
-                                failedGroups.push({ key: group.key, error: `跨根 staging 汇合失败：${(settleResult as { ok: false; error: string }).error}` });
+                                failedGroups.push({ key: group.key, error: `Hợp nhất staging xuyên gốc thất bại: ${(settleResult as { ok: false; error: string }).error}` });
                                 groupFailed = true;
                                 break;
                             }
@@ -5492,7 +5492,7 @@ export async function orchestrateManualUpdate_ACU(
                             });
                             committedBucketCount += postResult.committedBucketCount;
                             if (!postResult.success) {
-                                failedGroups.push({ key: group.key, error: postResult.error || '边界后提交失败。' });
+                                failedGroups.push({ key: group.key, error: postResult.error || 'Commit sau biên thất bại.' });
                                 break;
                             }
                         }
@@ -5508,7 +5508,7 @@ export async function orchestrateManualUpdate_ACU(
                     if (rebaselined.ok === false) {
                         logWarn_ACU(`[Manual Update] ${rebaselined.error}`);
                         if (manualRefillEnabled) {
-                            return await failManualRefillSession(`${rebaselined.error}已清理的数据不可恢复，已提交的批次已保留。`);
+                            return await failManualRefillSession(`${rebaselined.error}Dữ liệu đã dọn dẹp không thể khôi phục, các lô đã commit được giữ lại.`);
                         }
                         return { success: false, error: rebaselined.error };
                     }
@@ -5519,7 +5519,7 @@ export async function orchestrateManualUpdate_ACU(
                 // 这里只同步聊天数组，避免刚保存完又通过 refreshData 触发历史回放/重建。
                 await loadAllChatMessages_ACU();
             } catch (error: any) {
-                const failureError = error?.message || String(error || '手动重填分组执行异常。');
+                const failureError = error?.message || String(error || 'Thực thi nhóm điền lại thủ công gặp lỗi.');
                 logError_ACU('[Manual Refill] 分组执行或同步聊天失败:', error);
                 return await failManualRefillSession(failureError);
             }
@@ -5536,7 +5536,7 @@ export async function orchestrateManualUpdate_ACU(
             const settleResult = await settleStagingBoundary();
             if (!settleResult.ok) {
                 logError_ACU(`[Manual Refill] 跨根 staging 收尾汇合失败: ${(settleResult as { ok: false; error: string }).error}`);
-                failedGroups.push({ key: 'manual_refill_staging_settle', error: `跨根 staging 汇合失败：${(settleResult as { ok: false; error: string }).error}` });
+                failedGroups.push({ key: 'manual_refill_staging_settle', error: `Hợp nhất staging xuyên gốc thất bại: ${(settleResult as { ok: false; error: string }).error}` });
             } else {
                 logDebug_ACU(`[Manual Refill] 跨根 staging 收尾${boundaryCommitted ? '汇合' : '丢弃'}完成：originalFull=${boundaryPlan.scope.originalFullIndex}。`);
             }
@@ -5546,7 +5546,7 @@ export async function orchestrateManualUpdate_ACU(
 
         if (failedGroups.length > 0) {
             const firstFailure = failedGroups[0];
-            const failureError = firstFailure.error || '手动更新失败或被终止。';
+            const failureError = firstFailure.error || 'Cập nhật thủ công thất bại hoặc bị dừng.';
             return await failManualRefillSession(failureError);
         }
 
@@ -5557,7 +5557,7 @@ export async function orchestrateManualUpdate_ACU(
         if (manualRefillEnabled) {
             const completedData = getRuntimeTableDataSnapshot_ACU();
             if (!completedData) {
-                return await failManualRefillSession('手动重填已完成，但无法从运行时导出完整恢复快照；已拒绝写入不完整 checkpoint。');
+                return await failManualRefillSession('Điền lại thủ công đã hoàn tất, nhưng không thể xuất snapshot khôi phục đầy đủ từ runtime; đã từ chối ghi checkpoint không đầy đủ.');
             }
             try {
                 const isolationKey = getCurrentIsolationKey_ACU();
@@ -5570,7 +5570,7 @@ export async function orchestrateManualUpdate_ACU(
                 });
                 if (!snapshotResult.success) {
                     logError_ACU('[Manual Refill] 重填完成后提交完整单表 checkpoint 失败:', snapshotResult.error);
-                    return await failManualRefillSession(snapshotResult.error || '手动重填完成后提交完整单表 checkpoint 失败。');
+                    return await failManualRefillSession(snapshotResult.error || 'Commit checkpoint đơn bảng đầy đủ sau khi điền lại thủ công hoàn tất thất bại.');
                 }
                 if (getCurrentWorldbookConfig_ACU().summaryVectorIndexModeEnabled === true) {
                     await runSummaryVectorFollowupAfterTableFill_ACU({
@@ -5581,7 +5581,7 @@ export async function orchestrateManualUpdate_ACU(
                     });
                 }
             } catch (error: any) {
-                const failureError = error?.message || String(error || '手动重填完成后提交完整单表 checkpoint 异常。');
+                const failureError = error?.message || String(error || 'Commit checkpoint đơn bảng đầy đủ sau khi điền lại thủ công hoàn tất gặp lỗi.');
                 logError_ACU('[Manual Refill] 重填完成后提交完整单表 checkpoint 异常:', error);
                 return await failManualRefillSession(failureError);
             }
@@ -5592,11 +5592,11 @@ export async function orchestrateManualUpdate_ACU(
             await loadAllChatMessages_ACU();
             const boundaryCheckpoint = await ensureV2BoundaryCheckpointForRetainedBuffer_ACU({ reason: 'manual_refill', save: true });
             if (!boundaryCheckpoint.success) {
-                checkpointWarning = boundaryCheckpoint.error || '边界 checkpoint 建立失败。';
+                checkpointWarning = boundaryCheckpoint.error || 'Thiết lập checkpoint biên thất bại.';
                 logWarn_ACU(`[Manual Update] 手动填表完成，但边界 checkpoint 建立失败: ${checkpointWarning}`);
             }
         } catch (error: any) {
-            checkpointWarning = error?.message || String(error || '边界 checkpoint 建立异常。');
+            checkpointWarning = error?.message || String(error || 'Thiết lập checkpoint biên gặp lỗi.');
             logWarn_ACU(`[Manual Update] 手动填表完成，但边界 checkpoint 建立异常: ${checkpointWarning}`);
             logError_ACU('[Manual Update] 边界 checkpoint 建立异常详情:', error);
         }
@@ -5632,7 +5632,7 @@ export async function orchestrateManualUpdate_ACU(
         if (!refillCleanupStarted) {
             throw error;
         }
-        const failureError = error?.message || String(error || '手动更新执行异常。');
+        const failureError = error?.message || String(error || 'Thực thi cập nhật thủ công gặp lỗi.');
         logError_ACU('[Manual Update] 执行过程中发生未处理异常:', error);
         return await failManualRefillSession(failureError);
     } finally {

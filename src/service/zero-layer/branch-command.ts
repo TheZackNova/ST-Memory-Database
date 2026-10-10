@@ -11,28 +11,28 @@ export type ZeroLayerBranchCommand_ACU =
 /** 受控分支切换不覆盖原分支；阶段未收尾时不能带着工作候选分叉。 */
 export function applyZeroLayerBranchCommand_ACU(source: ZeroLayerEnvelope_ACU,
   command: ZeroLayerBranchCommand_ACU): ZeroLayerEnvelope_ACU {
-  if (!source.enabled) throw new ZeroLayerError_ACU('mode-disabled', '逻辑分支操作需要已启用的载体。');
+  if (!source.enabled) throw new ZeroLayerError_ACU('mode-disabled', 'Thao tác nhánh logic cần vật mang đã được bật.');
   if (source.turns.some(turn => !['published', 'failed', 'cancelled'].includes(turn.phase))) {
-    throw new ZeroLayerError_ACU('pending-turn', '请先停止或恢复未结算回合，再切换逻辑分支。');
+    throw new ZeroLayerError_ACU('pending-turn', 'Hãy dừng hoặc khôi phục lượt chưa quyết toán trước, rồi hãy chuyển nhánh logic.');
   }
   const branch = source.branches.find(item => item.branchId === source.activeBranchId)!;
   if (branch.checkpoints?.pending || branch.checkpoints?.cleanupPending) {
-    throw new ZeroLayerError_ACU('effects-pending', '请先恢复 checkpoint 提交阶段，再切换分支。');
+    throw new ZeroLayerError_ACU('effects-pending', 'Hãy khôi phục giai đoạn gửi checkpoint trước, rồi hãy chuyển nhánh.');
   }
   if (typeof command.branchId !== 'string' || !command.branchId.trim()) {
-    throw new ZeroLayerError_ACU('corrupt-data', '逻辑分支身份无效。');
+    throw new ZeroLayerError_ACU('corrupt-data', 'Danh tính nhánh logic không hợp lệ.');
   }
   const next = structuredClone(source);
   if (command.type === 'select-branch') {
     const target = next.branches.find(item => item.branchId === command.branchId);
     if (!target || target.bridge?.phase !== 'reconciled' || target.checkpoints?.pending || target.checkpoints?.cleanupPending) {
-      throw new ZeroLayerError_ACU('history-unavailable', '所选分支不存在或恢复阶段尚未确认。');
+      throw new ZeroLayerError_ACU('history-unavailable', 'Nhánh đã chọn không tồn tại hoặc giai đoạn khôi phục chưa được xác nhận.');
     }
     if (target.branchId === next.activeBranchId) return next;
     next.activeBranchId = target.branchId;
   } else {
     if (next.branches.some(item => item.branchId === command.branchId)) {
-      throw new ZeroLayerError_ACU('revision-conflict', '分支身份已存在，禁止覆盖。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Danh tính nhánh đã tồn tại, cấm ghi đè.');
     }
     next.branches.push(restoreForkBranch_ACU(source, branch, command));
     next.activeBranchId = command.branchId;
@@ -44,7 +44,7 @@ export function applyZeroLayerBranchCommand_ACU(source: ZeroLayerEnvelope_ACU,
 function restoreForkBranch_ACU(source: ZeroLayerEnvelope_ACU, branch: ZeroLayerBranch_ACU,
   command: Extract<ZeroLayerBranchCommand_ACU, { type: 'fork-branch' }>): ZeroLayerBranch_ACU {
   const unavailable = (): never => {
-    throw new ZeroLayerError_ACU('history-unavailable', '目标切点缺少已确认的三类恢复素材，请恢复状态或继续原分支。');
+    throw new ZeroLayerError_ACU('history-unavailable', 'Điểm cắt đích thiếu ba loại tài liệu khôi phục đã xác nhận, hãy khôi phục trạng thái hoặc tiếp tục nhánh gốc.');
   };
   const bridge = branch.bridge;
   if (bridge?.phase !== 'reconciled' || !bridge.candidate) unavailable();

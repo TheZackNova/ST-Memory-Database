@@ -893,7 +893,7 @@ describe('processSummaryVectorIndexBeforeGeneration_ACU crossfire overwrite colu
     expect(result.success).toBe(true);
     expectNoSilentFallback_ACU();
     const content = createdContent_ACU();
-    expect(content).toContain('# 纪要索引');
+    expect(content).toContain('# Chỉ mục kỷ yếu');
     expect(content).toContain('| 概览 | 编码索引 |');
     expect(content).not.toContain('<已发生的事件概览>');
   });

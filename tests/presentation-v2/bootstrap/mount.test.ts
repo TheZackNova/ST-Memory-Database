@@ -79,11 +79,11 @@ describe('mount — 当前文档场景', () => {
     const text = root!.textContent || '';
     expect(text).toContain('奶·数据库 I');
     // 高手模式默认页是 dashboard，sidebar 有"概览/配置/功能/工具"四组标题
-    expect(text).toContain('仪表盘');
-    expect(text).toContain('概览');
-    expect(text).toContain('配置');
-    expect(text).toContain('功能');
-    expect(text).toContain('工具');
+    expect(text).toContain('Bảng điều khiển');
+    expect(text).toContain('Tổng quan');
+    expect(text).toContain('Cấu hình');
+    expect(text).toContain('Chức năng');
+    expect(text).toContain('Công cụ');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -129,7 +129,7 @@ describe('mount — 当前文档场景', () => {
     expect(menu).not.toBeNull();
     expect(menu!.textContent).toContain('浅色');
     expect(menu!.textContent).toContain('地雷色');
-    expect(menu!.textContent).toContain('界面缩放');
+    expect(menu!.textContent).toContain('Thu phóng giao diện');
     expect(menu!.querySelector('[title^="内置主题不可删除"]')).toBeNull();
 
     document.body.click();
@@ -198,7 +198,7 @@ describe('mount — 当前文档场景', () => {
     expect(root!.contains(bubble!)).toBe(false);
     expect(shell!.contains(bubble!)).toBe(false);
     // 任务片默认只显示「正在XXXX…」，明细需点击气泡后才展开。
-    expect(bubble!.querySelector('.acu-notice-bubble__text')!.textContent).toMatch(/正在.+…/);
+    expect(bubble!.querySelector('.acu-notice-bubble__text')!.textContent).toMatch(/Đang .+…/);
     const detail = bubble!.querySelector<HTMLElement>('.acu-notice-bubble__detail');
     expect(detail).not.toBeNull();
     expect(detail!.style.display).toBe('none');
@@ -246,7 +246,7 @@ describe('mount — 当前文档场景', () => {
     const layer = document.querySelector('.acu-v2-app__mobile-nav-layer');
     expect(layer?.classList.contains('is-closing')).toBe(true);
     expect(menuButton!.getAttribute('aria-expanded')).toBe('false');
-    expect(document.querySelector('.acu-v2-app__page-title')?.textContent?.trim()).toBe('填表工作台');
+    expect(document.querySelector('.acu-v2-app__page-title')?.textContent?.trim()).toBe('Bàn điền bảng');
 
     mount.__resetAcuV2MountForTests();
   });

@@ -263,7 +263,7 @@ describe('ContinuationOrchestrator_ACU', () => {
     expect(notice).toHaveLength(1);
     const stage = store.readPersisted()!.activeTask!.stages[0];
     expect(notice[0]).toMatchObject({ kind: 'turn', turnKey: `${stage.stageId}#1#turn-2` });
-    expect(notice[0].text).toContain('第 2 楼正文已确认');
+    expect(notice[0].text).toContain('Chính văn tầng 2 đã được xác nhận');
     expect(chat[0][AGENT_CONVERSATION_FIELD_ACU]).toBeUndefined();
     expect(chat[1][AGENT_CONVERSATION_FIELD_ACU].segment).toHaveLength(1);
     await expectCode(() => orchestrator.confirmCurrentTurn(1), 'CONTINUATION_INTERNAL_REQUEST_STALE');
@@ -625,7 +625,7 @@ describe('ContinuationOrchestrator_ACU', () => {
       { op: 'set_turn_goal', turnId: 'turn-2', goal: '守门人先露出破绽', function: 'reveal', mainlineDelta: 'step', timeAdvance: 'same_day' },
       { op: 'insert_turn', nodeId: 'node-1', afterTurnId: 'turn-3', goal: '巡查队提前到场' },
     ], 'running');
-    expect(result.summary).toContain('2 处');
+    expect(result.summary).toContain('2 chỗ');
     expect(planner).toHaveBeenCalledTimes(1);
 
     const stage = store.readPersisted()!.activeTask!.stages[0];
@@ -880,7 +880,7 @@ describe('ContinuationOrchestrator_ACU', () => {
     expect(result).toMatchObject({
       disposition: 'accepted_without_resume',
       shouldContinue: false,
-      detail: '当前大纲正在等待确认，确认后才能继续执行。',
+      detail: 'Dàn ý hiện tại đang chờ xác nhận, xác nhận xong mới có thể tiếp tục thực thi.',
     });
     expect(store.readPersisted()!.activeTask!.status).toBe('awaiting_outline_review');
   });
@@ -904,7 +904,7 @@ describe('ContinuationOrchestrator_ACU', () => {
     const stage = store.readPersisted()!.activeTask!.stages[0];
     expect(stage.activeRevision).toBe(2);
     const saved = stage.revisions.find(item => item.revision === 2)!;
-    expect(saved).toMatchObject({ frozen: true, reason: 'manual_replan', replanInstruction: '用户手动编辑' });
+    expect(saved).toMatchObject({ frozen: true, reason: 'manual_replan', replanInstruction: 'Người dùng sửa thủ công' });
     expect(saved.outline.nodes[0].turns[2].goal).toBe('用户改写的第三轮目标');
 
     // 删掉当前正在执行的轮次（已完成 1 轮，游标在第 2 轮）：拒绝，revision 不变。

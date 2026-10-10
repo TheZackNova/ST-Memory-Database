@@ -348,7 +348,7 @@ export async function collectMixedStorageEvidence_ACU(
       // 归并副作用，喂给 fingerprint/merge candidate 会产生错误等价判定。此处
       // 按 T8 矩阵既有语义归类为 failed，让 legacy 权威重建/阻塞分支照常工作。
       if (detailed && detailed.baseKind === 'compat_tolerant_replay') {
-        replay = { status: 'failed', fingerprint: null, error: 'V2 帧仅可经兼容宽容回放读出（严格回放失败），不作为混合存储写决策的可信证据' };
+        replay = { status: 'failed', fingerprint: null, error: 'Khung V2 仅可经兼容宽容回放读出 (phát lại nghiêm ngặt thất bại), không được dùng làm bằng chứng đáng tin cho quyết định ghi lưu trữ hỗn hợp' };
       } else replay = detailed ? {
         status: 'success',
         fingerprint: getTableDataFingerprint_ACU(detailed.data),
@@ -506,7 +506,7 @@ export function collectV2SheetKeyEvidenceStatically_ACU(
     if (!frame || typeof frame !== 'object' || Array.isArray(frame)) {
       // 仅版本标记残留（无 storageFrame）：没有任何表清单需要覆盖，legacy 全权重建。
       // 不视为 undecodable（无清单即无覆盖风险），记 malformed 供归档诊断。
-      malformedSlots.push({ messageIndex, reason: 'storageFrame 缺失或非对象' });
+      malformedSlots.push({ messageIndex, reason: 'storageFrame bị thiếu hoặc không phải đối tượng' });
       return;
     }
 
@@ -572,9 +572,9 @@ export function collectV2SheetKeyEvidenceStatically_ACU(
 
     if (undecodable) {
       hasUndecodableRegion = true;
-      malformedSlots.push({ messageIndex, reason: 'V2 frame 结构非法或包含无法解码区域' });
+      malformedSlots.push({ messageIndex, reason: 'Cấu trúc V2 frame không hợp lệ hoặc chứa vùng không thể giải mã' });
     } else if (malformed) {
-      malformedSlots.push({ messageIndex, reason: 'V2 frame 局部内容不可读但表清单可枚举' });
+      malformedSlots.push({ messageIndex, reason: 'Một phần nội dung V2 frame không đọc được nhưng danh sách bảng vẫn liệt kê được' });
     }
   });
 

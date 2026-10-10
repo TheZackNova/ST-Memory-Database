@@ -166,7 +166,7 @@ export function preflightTemplateDataImport_ACU(options: TemplateDataPreflightOp
   const mergePlan: Record<string, TemplateSheetMergePlan_ACU> = {};
 
   if (!templateData || typeof templateData !== 'object' || Array.isArray(templateData)) {
-    return { ok: false, blockers: [blocker_ACU('invalid_template', '', '', '模板必须是对象。')], audits: [] };
+    return { ok: false, blockers: [blocker_ACU('invalid_template', '', '', 'Mẫu phải là một đối tượng.')], audits: [] };
   }
 
   const normalization = normalizeTemplateRowIds_ACU(templateData, {
@@ -228,7 +228,7 @@ export function preflightTemplateDataImport_ACU(options: TemplateDataPreflightOp
     const oversizedRows = templateRows.filter(row => row.length > headerWidth);
     if (oversizedRows.length > 0) {
       audit.action = 'blocked';
-      audit.blocker = `表「${sheetName || sheetKey}」存在 ${oversizedRows.length} 行宽度（>${headerWidth} 列）超过表头，无法安全导入。`;
+      audit.blocker = `Bảng "${sheetName || sheetKey}" có ${oversizedRows.length} hàng rộng hơn tiêu đề (>${headerWidth} cột), không thể nhập an toàn.`;
       blockers.push(blocker_ACU('invalid_row', sheetKey, sheetName, audit.blocker));
       audits.push(audit);
       continue;
@@ -266,7 +266,7 @@ export function preflightTemplateDataImport_ACU(options: TemplateDataPreflightOp
     // merge 模式
     if (businessKeyColumns.length === 0) {
       audit.action = 'blocked';
-      audit.blocker = `表「${sheetName || sheetKey}」缺少可证明的唯一业务键（DDL UNIQUE/主键），无法安全 merge。请改用 replace 或 seed，或为 DDL 添加 UNIQUE 约束。`;
+      audit.blocker = `Bảng "${sheetName || sheetKey}" thiếu khóa nghiệp vụ duy nhất có thể chứng minh (DDL UNIQUE/khóa chính), không thể merge an toàn. Hãy dùng replace hoặc seed, hoặc thêm ràng buộc UNIQUE vào DDL.`;
       blockers.push(blocker_ACU('missing_business_key', sheetKey, sheetName, audit.blocker));
       audits.push(audit);
       continue;
@@ -291,7 +291,7 @@ export function preflightTemplateDataImport_ACU(options: TemplateDataPreflightOp
     for (const identity of audit.rowIdentities) {
       if (!identity.businessKey) {
         audit.action = 'blocked';
-        audit.blocker = `表「${sheetName || sheetKey}」存在缺少业务键值的行（row_id=${identity.rowId}），无法安全 merge。`;
+        audit.blocker = `Bảng "${sheetName || sheetKey}" có hàng thiếu giá trị khóa nghiệp vụ (row_id=${identity.rowId}), không thể merge an toàn.`;
         blockers.push(blocker_ACU('invalid_row', sheetKey, sheetName, audit.blocker));
         continue;
       }
@@ -308,7 +308,7 @@ export function preflightTemplateDataImport_ACU(options: TemplateDataPreflightOp
       if (policy === 'reject') {
         plan.rejectedRowIds.push(identity.rowId);
         audit.action = 'blocked';
-        audit.blocker = `表「${sheetName || sheetKey}」存在业务键冲突（${identity.businessKey}），conflictPolicy=reject 已阻止提交。`;
+        audit.blocker = `Bảng "${sheetName || sheetKey}" có xung đột khóa nghiệp vụ (${identity.businessKey}), conflictPolicy=reject đã chặn việc gửi.`;
         blockers.push(blocker_ACU('merge_conflict_rejected', sheetKey, sheetName, audit.blocker));
       } else {
         if (policy === 'template-wins') {

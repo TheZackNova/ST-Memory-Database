@@ -47,7 +47,7 @@ function renderPromptGroupToContainer_ACU(containerId: string, segments: any[]):
         const $deleteBtn = jQuery_API_ACU('<button>')
             .addClass('acu-btn-small')
             .text('✕')
-            .attr('title', '删除此段落')
+            .attr('title', 'Xóa đoạn này')
             .css({ fontSize: '11px', marginLeft: 'auto' });
         if (segment.deletable === false) {
             $deleteBtn.prop('disabled', true).css({ opacity: 0.4, cursor: 'not-allowed' });
@@ -119,7 +119,7 @@ export async function bindWorldbookEvents_ACU(): Promise<void> {
           // [V1 收敛] 委托 service 事务式更新（快照 → 修改 → 保存 → 失败回滚）。
           const result = updateGlobalVectorMemoryConfigFields_ACU(patch);
           if (!result.ok) {
-              showToastr_ACU('error', result.message || '保存向量记忆配置失败，已回滚。');
+              showToastr_ACU('error', result.message || 'Lưu cấu hình bộ nhớ vector thất bại, đã khôi phục.');
               return;
           }
           logVectorMemorySaveResult_ACU(Object.keys(patch), result);
@@ -496,7 +496,7 @@ export async function bindWorldbookEvents_ACU(): Promise<void> {
               setZeroTkOccupyMode_ACU(modeEnabled);
               showToastr_ACU(
                   'info',
-                  `0TK占用模式已${modeEnabled ? '启用' : '禁用'}。`,
+                  `Chế độ chiếm 0TK đã ${modeEnabled ? 'bật' : 'tắt'}.`,
               );
 
               // 尝试立即同步世界书条目 enabled 状态（不强制全量更新）
@@ -566,10 +566,10 @@ export async function bindWorldbookEvents_ACU(): Promise<void> {
                   modeEnabled
                       ? hasArchive
                           ? archivedRowCount >= summaryIndexKeywordMinRows
-                              ? `交火模式纪要索引已启用。当前纪要向量索引 ${archivedRowCount} 条，已达到 ${summaryIndexKeywordMinRows} 条门槛；发送前会召回概要列 chunk、执行可选 Rerank，并按纪要表原顺序覆盖原概要索引条目。`
-                              : `交火模式纪要索引已启用。当前纪要向量索引 ${archivedRowCount}/${summaryIndexKeywordMinRows} 条；未达到门槛前，用户发送不会触发交火召回，填表保存后仍会立即归档并继续累积。`
-                          : '交火模式纪要索引已启用。当前聊天尚无纪要向量索引归档；完成一次纪要表填写后会自动归档，也可手动构建。'
-                      : '交火模式纪要索引已禁用，概要索引将回到原本的全量纪要表流程。',
+                              ? `Chỉ mục kỷ yếu chế độ giao hỏa đã bật. Chỉ mục vector kỷ yếu hiện tại có ${archivedRowCount} mục, đã đạt ngưỡng ${summaryIndexKeywordMinRows} mục; trước khi gửi sẽ truy hồi chunk cột tóm lược, chạy Rerank tùy chọn và ghi đè mục chỉ mục tóm lược gốc theo thứ tự gốc của bảng kỷ yếu.`
+                              : `Chỉ mục kỷ yếu chế độ giao hỏa đã bật. Chỉ mục vector kỷ yếu hiện tại ${archivedRowCount}/${summaryIndexKeywordMinRows} mục; trước khi đạt ngưỡng, người dùng gửi sẽ không kích hoạt truy hồi giao hỏa, sau khi lưu điền bảng vẫn lưu trữ ngay và tiếp tục tích lũy.`
+                          : 'Chỉ mục kỷ yếu chế độ giao hỏa đã bật. Cuộc trò chuyện hiện tại chưa có bản lưu trữ chỉ mục vector kỷ yếu; sau khi điền xong bảng kỷ yếu một lần sẽ tự lưu trữ, cũng có thể dựng thủ công.'
+                      : 'Chỉ mục kỷ yếu chế độ giao hỏa đã tắt, chỉ mục tóm lược sẽ quay về quy trình bảng kỷ yếu đầy đủ ban đầu.',
               );
           });
       }
