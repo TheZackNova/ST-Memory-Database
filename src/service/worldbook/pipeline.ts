@@ -16,6 +16,7 @@ import { normalizeCanonicalTableRows_ACU, repairLegacyAutoMergedRowTails_ACU } f
 import { getSheetColumnProjection_ACU } from '../../shared/ddl-utils';
 import { persistNullRowCleanupShards_ACU, type NullRowCleanupPersistStatus_ACU } from '../table/storage-frame-v2-persist';
 import { allocConsecutiveOrderBlock_ACU, applyPlacementToEntry_ACU, buildDefaultGlobalInjectionConfig_ACU, buildUsedOrderSet_ACU, ensureExportConfigDefaults_ACU, ensureGlobalInjectionConfigDefaults_ACU, getEntryOrderNumber_ACU, getFixedPlacementDefaultsForTable_ACU, getInjectionTargetLorebook_ACU, getIsolationPrefix_ACU, isEntryPlacementMatched_ACU, normalizeLorebookPosition_ACU, normalizePlacementConfig_ACU, updateCustomTableExports_ACU, updateImportantPersonsRelatedEntries_ACU, updateOutlineTableEntry_ACU, updateSummaryTableEntries_ACU } from './injection-engine';
+import { isChronicleOrSummarySheetName_ACU, isPersonEntryComment_ACU, isSummaryEntryComment_ACU, stripImportEntryPrefix_ACU } from '../../shared/builtin-names.js';
 // pipeline.ts
 // 从 05_core_tail.js 迁入
 
@@ -574,7 +575,7 @@ function migrateLegacyAutoMergedOrderBeforeTailRepair_ACU(data: Record<string, a
         if (!sheetKey.startsWith('sheet_') || !sheet || typeof sheet !== 'object') return;
         const content = (sheet as any).content;
         const header = Array.isArray(content) ? content[0] : null;
-        if (!Array.isArray(header) || !['纪要表', '总结表'].includes(String((sheet as any).name || ''))) return;
+        if (!Array.isArray(header) || !isChronicleOrSummarySheetName_ACU((sheet as any).name)) return;
         content.slice(1).forEach((row: unknown) => {
             if (!Array.isArray(row) || row.length !== header.length + 1 || row[row.length - 1] !== 'auto_merged') return;
             const rowId = String(row[0] ?? '').trim();
@@ -1095,7 +1096,7 @@ export   function isImportTaggedLorebookEntry_ACU(entry: Record<string, any>) {
 export   function getWorldbookCommentInfo_ACU(entry: Record<string, any>) {
       const rawComment = String(entry?.comment || entry?.name || '').trim();
       let normalizedComment = rawComment.replace(/^ACU-\[[^\]]+\]-/, '');
-      normalizedComment = normalizedComment.replace(/^外部导入-(?:[^-]+-)?/, '');
+      normalizedComment = stripImportEntryPrefix_ACU(normalizedComment);
       return { rawComment, normalizedComment };
   }
 
@@ -1444,8 +1445,8 @@ export   async function getCombinedWorldbookContent_ACU(initialScanTextOverride 
                 const isAgentGreenlight = agentGreenlightKeySet.has(`${String(entry.bookName || '').trim()}\u0000${String(entry.uid || '').trim()}`);
                 if (isAgentGreenlight) return true;
                 if (!includeGeneratedEntries && comment.startsWith('TavernDB-ACU-')) return false;
-                if (!includeGeneratedEntries && comment.startsWith('重要人物条目')) return false;
-                if (!includeGeneratedEntries && comment.startsWith('总结条目')) return false;
+                if (!includeGeneratedEntries && isPersonEntryComment_ACU(comment)) return false;
+                if (!includeGeneratedEntries && isSummaryEntryComment_ACU(comment)) return false;
                 if (excludeImportTaggedEntries && isImportTaggedLorebookEntry_ACU(entry)) return false;
                 if (isEntryBlocked_ACU(entry)) return false;
                 return true;

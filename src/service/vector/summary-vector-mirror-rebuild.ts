@@ -54,6 +54,7 @@ import {
 } from './summary-vector-mirror-writer';
 import { runScopedRetentionGcAfterFlush_ACU } from './summary-vector-index-chat-deletion-gc';
 import type { SummaryVectorIndexContentPackChunk_ACU, SummaryVectorIndexExternalFileRef_ACU } from './summary-vector-index-types';
+import { isIndexCodeColumnName_ACU } from '../../shared/builtin-names.js';
 
 export type SummaryVectorMirrorRebuildReason_ACU = 'initial' | 'rebuild_user' | 'rebuild_repair';
 
@@ -82,7 +83,7 @@ function emptyResult_ACU(partial: Partial<SummaryVectorMirrorRebuildResult_ACU>)
 function inspectCheckpointRowIds_ACU(sheet: any): { rowIds: string[]; duplicates: string[]; emptyCount: number } {
     const content = Array.isArray(sheet?.content) ? sheet.content : [];
     const header = Array.isArray(content[0]) ? content[0] : [];
-    const indexColIdx = header.findIndex((cell: unknown) => String(cell ?? '').trim() === '编码索引');
+    const indexColIdx = header.findIndex((cell: unknown) => isIndexCodeColumnName_ACU(cell));
     const seen = new Set<string>();
     const rowIds: string[] = [];
     const duplicates: string[] = [];

@@ -4,6 +4,9 @@
  * defaults-json.js dựng các prompt mặc định (và các bản suy ra: công cụ, JSON nghiêm ngặt, lịch sử)
  * từ văn bản gốc tiếng Trung, sau đó gọi localizeDefaultText_ACU để thay từng dòng bằng tiếng Việt.
  * Khóa là nguyên dòng gốc; dòng không có trong bảng (thẻ <...>, placeholder, dòng tiếng Anh) giữ nguyên.
+ *
+ * Sau bước thay dòng, IDENTIFIER_MAP_ACU đổi tiếp các thẻ <...> và tên bảng/cột tiếng Trung còn sót trong bản dịch
+ * sang tiếng Việt, khớp với bảng mẫu mặc định tiếng Việt. Các thẻ này chỉ là nhãn trong prompt, code không phân tích chúng.
  */
 
 const LINE_MAP_ACU = new Map([
@@ -447,9 +450,58 @@ const LINE_MAP_ACU = new Map([
   ["请根据当前用户输入及关键词，判断每个候选纪要条目的相关性，并将最相关的条目按相关性从高到低降序排列。优先选择能够直接回答、延续或补全当前用户输入意图的条目。", "Hãy dựa vào đầu vào hiện tại của người dùng và từ khóa để đánh giá mức độ liên quan của từng mục kỷ yếu ứng viên, và sắp xếp các mục liên quan nhất theo mức độ liên quan từ cao xuống thấp. Ưu tiên chọn các mục có thể trả lời trực tiếp, tiếp nối hoặc bổ sung ý định đầu vào hiện tại của người dùng."],
 ]);
 
+/**
+ * Thẻ và tên bảng/cột tiếng Trung → tiếng Việt. Thứ tự là thứ tự thay thế: cụm dài đứng trước cụm ngắn nằm trong nó.
+ */
+const IDENTIFIER_MAP_ACU = [
+  ['纪要表 (Bảng kỷ yếu)', 'Bảng kỷ yếu'],
+  ['时间跨度 (Khoảng thời gian)', 'Khoảng thời gian'],
+  ['地点 (Địa điểm)', 'Địa điểm'],
+  ['纪要 (Kỷ yếu)', 'Kỷ yếu'],
+  ['概要 (Tóm lược)', 'Tổng quan'],
+  ['编码索引 (Mã chỉ mục)', 'Mã chỉ mục'],
+  ['需要精简的纪要数据', 'Dữ liệu kỷ yếu cần tinh giản'],
+  ['已发生的事件概览', 'Tổng quan sự kiện đã xảy ra'],
+  ['已精简的数据', 'Dữ liệu đã tinh giản'],
+  ['当前表格数据', 'Dữ liệu bảng hiện tại'],
+  ['本轮用户输入', 'Đầu vào người dùng lượt này'],
+  ['用户本轮输入', 'Đầu vào người dùng lượt này'],
+  ['User基础设定', 'Thiết lập cơ bản của User'],
+  ['前文上下文', 'Ngữ cảnh trước đó'],
+  ['背景设定', 'Bối cảnh thiết lập'],
+  ['正文数据', 'Dữ liệu chính văn'],
+  ['正文内容', 'Nội dung chính văn'],
+  ['总结大纲', 'Dàn ý tổng kết'],
+  ['前文剧情', 'Cốt truyện trước đó'],
+  ['用户输入', 'Đầu vào người dùng'],
+  ['优化要求', 'Yêu cầu tối ưu'],
+  ['纪要批次', 'Lô kỷ yếu'],
+  ['时间跨度', 'Khoảng thời gian'],
+  ['编码索引', 'Mã chỉ mục'],
+  ['纪要表', 'Bảng kỷ yếu'],
+  ['概览', 'Tổng quan'],
+];
+
+function localizeDefaultLines_ACU(text) {
+  return text.split('\n').map(line => LINE_MAP_ACU.get(line) ?? line).join('\n');
+}
+
+function localizeDefaultIdentifiers_ACU(text) {
+  return IDENTIFIER_MAP_ACU.reduce((result, [source, target]) => result.split(source).join(target), text);
+}
+
 export function localizeDefaultText_ACU(text) {
   if (typeof text !== 'string' || !text) return text;
-  return text.split('\n').map(line => LINE_MAP_ACU.get(line) ?? line).join('\n');
+  return localizeDefaultIdentifiers_ACU(localizeDefaultLines_ACU(text));
+}
+
+/**
+ * Bản dịch của đợt Việt hóa đầu: đã thay dòng nhưng thẻ và tên bảng/cột còn tiếng Trung.
+ * Chỉ dùng để nhận diện prompt mặc định của đợt đó mà người dùng chưa sửa.
+ */
+export function localizeDefaultTextKeepingZhIdentifiers_ACU(text) {
+  if (typeof text !== 'string' || !text) return text;
+  return localizeDefaultLines_ACU(text);
 }
 
 /** 原位本地化提示词段数组的 content；重复调用安全（译文不在映射键中）。 */

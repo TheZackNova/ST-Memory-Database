@@ -31,6 +31,7 @@ import {
 import { assertVisualizerDataOpsEditable_ACU } from '../../../service/visualizer/visualizer-data-ops';
 import { useToastStore } from '../../stores/toast-store';
 import { useVisualizerStore } from '../../stores/visualizer-store';
+import { buildDefaultExtraIndexEntryName_ACU, isDefaultExtraIndexEntryName_ACU } from '../../../shared/builtin-names.js';
 
 type SourceDataKey = 'note' | 'initNode' | 'insertNode' | 'updateNode' | 'deleteNode' | 'ddl';
 type UpdateConfigKey = 'contextDepth' | 'updateFrequency' | 'batchSize' | 'groupId' | 'skipFloors' | 'sendLatestRows' | 'sendRowsSqlTemplate';
@@ -227,8 +228,8 @@ export function useVisualizerConfigEditing() {
       }
       const config = ensureEditableExportConfig(sheet);
       if (!config.entryName || config.entryName === previousName) config.entryName = nextName;
-      if (!config.extraIndexEntryName || config.extraIndexEntryName === `${previousName}-索引`) {
-        config.extraIndexEntryName = `${nextName}-索引`;
+      if (!config.extraIndexEntryName || isDefaultExtraIndexEntryName_ACU(config.extraIndexEntryName, previousName)) {
+        config.extraIndexEntryName = buildDefaultExtraIndexEntryName_ACU(nextName);
       }
       if (previousName && previousName !== nextName && settings_ACU.tableApiPresetOverridesByName?.[previousName]) {
         settings_ACU.tableApiPresetOverridesByName[nextName] = settings_ACU.tableApiPresetOverridesByName[previousName];

@@ -222,7 +222,7 @@ export const VECTOR_MEMORY_RECALL_PARAM_KEYS_ACU = [
   'rerankBatchSize',
 ] as const;
 // note 列号改 0 基（与 $0 序列化对齐）+ 失效硬约束措辞改为写作规范；仍用默认模板的用户一次性刷新。
-export const TABLE_TEMPLATE_DEFAULTS_REFRESH_VERSION_ACU = 'spv8.8.5-table-note-zero-based-columns';
+export const TABLE_TEMPLATE_DEFAULTS_REFRESH_VERSION_ACU = 'vi1.2.9-table-names-vietnamese';
 // V2 writer 一次性强制开启迁移：无论用户此前是否显式关闭，
 // 迁移执行一次后写入 marker，之后用户仍可再次手动关闭并被永久保留。
 export const SUMMARY_INDEX_V2_WRITER_FORCE_ENABLE_VERSION_ACU = 'spv3.6.10-v2-writer-force-enable';

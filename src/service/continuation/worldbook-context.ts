@@ -3,6 +3,7 @@ import { getIsolationPrefix_ACU, getInjectionTargetLorebook_ACU } from '../world
 import { buildCombinedWorldbookContentByStrategy_ACU, getLorebookEntriesByNames_ACU } from '../worldbook/pipeline';
 import { getCurrentWorldbookConfig_ACU } from '../settings/settings-readers';
 import { logWarn_ACU } from '../../shared/utils';
+import { SUMMARY_INDEX_ENTRY_COMMENTS_ACU } from '../../shared/builtin-names.js';
 
 export interface ContinuationWorldbookAdapterDependencies_ACU {
   resolveRelevantBookNames: () => Promise<string[]>;
@@ -29,7 +30,8 @@ export function normalizeGeneratedComment_ACU(entry: Record<string, unknown>, is
 
 /** 纪要索引和数字分片由纪要快照负责；普通表格的索引不得误屏蔽。 */
 export function isSummaryIndexEntryComment_ACU(comment: string): boolean {
-  return /^TavernDB-ACU-CustomExport-纪要索引(?:-[1-9]\d*)?$/.test(comment);
+  return SUMMARY_INDEX_ENTRY_COMMENTS_ACU.some(base => comment === base
+    || (comment.startsWith(`${base}-`) && /^[1-9]\d*$/.test(comment.slice(base.length + 1))));
 }
 
 /** 是否为纪要（总结）条目的显示名。 */

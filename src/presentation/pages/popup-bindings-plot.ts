@@ -19,6 +19,7 @@ import { getCurrentPlotSettingsFromUI_ACU, loadPlotPresetSelect_ACU, loadPlotSet
 import { refreshPresetUIAfterSwitch_ACU } from '../components/pipeline-ui-helpers';
 import { applyWorldbookEntryFilter_ACU, applyWorldbookListFilter_ACU, getPlotWorldbookConfig_ACU, isEntryBlocked_ACU, populatePlotWorldbookEntryList_ACU, renderLazyWorldbookEntryItems_ACU, toggleLazyWorldbookEntryGroup_ACU, updateLazyWorldbookEntryCheckedState_ACU, updatePlotWorldbookSourceView_ACU } from '../components/worldbook-selector';
 import { getLorebookEntriesByNames_ACU, getWorldBooks_ACU } from '../../service/worldbook/pipeline';
+import { isPersonEntryComment_ACU, isSmallSummaryEntryComment_ACU, isSummaryEntryComment_ACU, stripImportEntryPrefix_ACU } from '../../shared/builtin-names.js';
 
 /**
  * 绑定剧情推进标签页的所有事件（含剧情推进世界书）
@@ -648,13 +649,13 @@ export async function bindPlotEvents_ACU(): Promise<void> {
           const comment = entry.comment || entry.name || '';
           // UI 不显示数据库生成条目（含隔离/外部导入前缀），因此"全选/全不选"也只作用于非数据库条目
           let normalizedComment = String(comment).replace(/^ACU-\[[^\]]+\]-/, '');
-          normalizedComment = normalizedComment.replace(/^外部导入-(?:[^-]+-)?/, '');
+          normalizedComment = stripImportEntryPrefix_ACU(normalizedComment);
           if (normalizedComment.startsWith('TavernDB-ACU-OutlineTable')) return false; // 仍需屏蔽总结大纲
           const isDbGenerated =
             normalizedComment.startsWith('TavernDB-ACU-') ||
-            normalizedComment.startsWith('总结条目') ||
-            normalizedComment.startsWith('小总结条目') ||
-            normalizedComment.startsWith('重要人物条目');
+            isSummaryEntryComment_ACU(normalizedComment) ||
+            isSmallSummaryEntryComment_ACU(normalizedComment) ||
+            isPersonEntryComment_ACU(normalizedComment);
           if (isDbGenerated) return false;
           if (isEntryBlocked_ACU(entry)) return false;
           // "启用的世界书条目"按钮应只勾选 ST 本身启用的条目（否则勾选了也不会被使用）

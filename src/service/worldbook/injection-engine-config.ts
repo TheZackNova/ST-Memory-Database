@@ -3,6 +3,8 @@
  * 从 injection-engine.ts 拆出
  */
 
+import { buildDefaultExtraIndexEntryName_ACU, isGlobalDataSheetName_ACU, isImportantPersonsSheetName_ACU, isOutlineSheetName_ACU, isSummarySheetName_ACU } from '../../shared/builtin-names.js';
+
 export const DEFAULT_ENTRY_PLACEMENT_ACU = Object.freeze({ position: 'at_depth_as_system', depth: 2, order: 10000 });
 export const DEFAULT_EXTRA_INDEX_PLACEMENT_ACU = Object.freeze({ position: 'at_depth_as_system', depth: 2, order: 10010 });
 const DEFAULT_FIXED_PLACEMENT_ACU = Object.freeze({ position: 'at_depth_as_system', depth: 2, order: 99990 });
@@ -31,20 +33,19 @@ export function normalizePlacementConfig_ACU(rawPlacement: any, fallbackPlacemen
 }
 
 export function isSummaryTableName_ACU(name: string) {
-    return String(name || '').trim() === '总结表';
+    return isSummarySheetName_ACU(name);
 }
 
 export function isOutlineTableName_ACU(name: string) {
-    return String(name || '').trim() === '总体大纲';
+    return isOutlineSheetName_ACU(name);
 }
 
 export function isImportantPersonsTableName_ACU(name: string) {
-    return String(name || '').trim() === '重要人物表';
+    return isImportantPersonsSheetName_ACU(name);
 }
 
 function isGlobalDataTableName_ACU(name: string) {
-    const n = String(name || '').trim();
-    return n === '全局数据表' || n === '全局表';
+    return isGlobalDataSheetName_ACU(name);
 }
 
 export function getFixedPlacementDefaultsForTable_ACU(tableName: string) {
@@ -91,7 +92,7 @@ export function buildDefaultExportConfig_ACU(tableName = '') {
         preventRecursion: true,
         injectionTemplate: '',
         extraIndexEnabled: false,
-        extraIndexEntryName: `${tableName || '表格'}-索引`,
+        extraIndexEntryName: buildDefaultExtraIndexEntryName_ACU(tableName || 'Bảng'),
         extraIndexColumns: [] as string[],
         extraIndexColumnModes: {},
         extraIndexInjectionTemplate: '',

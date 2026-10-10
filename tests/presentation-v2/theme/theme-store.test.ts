@@ -91,7 +91,7 @@ describe('theme-store', () => {
     m.pinia.setActivePinia(m.pinia.createPinia());
     const store = m.themeStore.useThemeStore();
     expect(store.activeId).toBe('milk-dragon');
-    expect(store.activeTheme.name).toBe('奶龙配色');
+    expect(store.activeTheme.name).toBe('Vàng Nailong');
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({ theme: { activeId: 'strawberry-dragon' } });
   });
 
@@ -235,10 +235,11 @@ describe('theme-store', () => {
     const store = m.themeStore.useThemeStore();
 
     expect(store.activeId).toBe('jirai-kei');
-    expect(store.activeTheme.name).toBe('地雷色');
+    expect(store.activeTheme.name).toBe('Jirai hồng đen');
     expect(store.activeTheme.tokens.bg0).toBe('#2B2B2B');
     expect(store.customThemes).toEqual([]);
-    expect(store.themes.filter(t => t.name === '地雷色')).toHaveLength(1);
+    expect(store.themes.filter(t => t.name === 'Jirai hồng đen')).toHaveLength(1);
+    expect(store.themes.some(t => t.name === '地雷色')).toBe(false);
   });
 
   it('localStorage 中已有自定义主题时可以恢复活动主题', async () => {
@@ -298,7 +299,7 @@ describe('theme-store', () => {
       kind: 'acu-v2-theme',
       version: 1,
       theme: {
-        name: '浅色',
+        name: 'Sáng',
         colorScheme: 'light',
       },
     });
@@ -359,7 +360,7 @@ describe('theme-store', () => {
     const store = m.themeStore.useThemeStore();
     const defaultDark = store.themes.find(t => t.id === 'default-dark');
     expect(defaultDark).toMatchObject({
-      name: '深色',
+      name: 'Tối',
       colorScheme: 'dark',
       tokens: {
         bg0: '#1F2428',
@@ -390,7 +391,7 @@ describe('theme-store', () => {
     const store = m.themeStore.useThemeStore();
     const creamyMinimal = store.themes.find(t => t.id === 'creamy-minimal');
     expect(creamyMinimal).toMatchObject({
-      name: '奶油风',
+      name: 'Kem sữa',
       colorScheme: 'light',
       tokens: {
         bg0: '#F7F0E6',
@@ -422,7 +423,7 @@ describe('theme-store', () => {
     const store = m.themeStore.useThemeStore();
     const jiraiKei = store.themes.find(t => t.id === 'jirai-kei');
     expect(jiraiKei).toMatchObject({
-      name: '地雷色',
+      name: 'Jirai hồng đen',
       colorScheme: 'dark',
       tokens: {
         bg0: '#2B2B2B',

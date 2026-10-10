@@ -20,6 +20,7 @@ import { getCurrentVectorMemoryConfig_ACU, getDefaultVectorMemoryConfig_ACU, upd
 import { getAggregatedSummaryVectorIndexSnapshot_ACU } from '../../service/vector/summary-vector-index-state-service';
 import { defaultVectorMemoryConfig_ACU } from '../../shared/defaults';
 import { syncManualUpdateButtonAvailability_ACU } from '../components/status-display';
+import { endsWithSummaryIndexEntryComment_ACU, isPersonEntryComment_ACU, isSummaryEntryComment_ACU } from '../../shared/builtin-names.js';
 
 const KEYWORD_PROMPT_SEGMENT_CLASS = 'acu-keyword-prompt-segment';
 
@@ -408,7 +409,7 @@ export async function bindWorldbookEvents_ACU(): Promise<void> {
       const isWorldbookEntryAllowedForUI_ACU = (entry: any) => {
           if (!entry) return false;
           const comment = entry.comment || '';
-          if (comment.startsWith('TavernDB-ACU-') || comment.startsWith('重要人物条目') || comment.startsWith('总结条目')) {
+          if (comment.startsWith('TavernDB-ACU-') || isPersonEntryComment_ACU(comment) || isSummaryEntryComment_ACU(comment)) {
               return false;
           }
           if (isEntryBlocked_ACU(entry)) return false;
@@ -508,7 +509,7 @@ export async function bindWorldbookEvents_ACU(): Promise<void> {
                   const primaryLorebookName = await getInjectionTargetLorebook_ACU();
                   if (primaryLorebookName && isWorldbookApiAvailable_ACU()) {
                       const allEntries = await getLorebookEntries_ACU(primaryLorebookName);
-                      const existingIndexEntry = allEntries.find(e => e.comment && e.comment.endsWith('TavernDB-ACU-CustomExport-纪要索引'));
+                      const existingIndexEntry = allEntries.find(e => e.comment && endsWithSummaryIndexEntryComment_ACU(e.comment));
                       if (existingIndexEntry) {
                           const nextEnabled = !modeEnabled;
                           if (existingIndexEntry.enabled !== nextEnabled) {
@@ -539,7 +540,7 @@ export async function bindWorldbookEvents_ACU(): Promise<void> {
                   const primaryLorebookName = await getInjectionTargetLorebook_ACU();
                   if (primaryLorebookName && isWorldbookApiAvailable_ACU()) {
                       const allEntries = await getLorebookEntries_ACU(primaryLorebookName);
-                      const existingIndexEntry = allEntries.find(e => e.comment && e.comment.endsWith('TavernDB-ACU-CustomExport-纪要索引'));
+                      const existingIndexEntry = allEntries.find(e => e.comment && endsWithSummaryIndexEntryComment_ACU(e.comment));
                       if (existingIndexEntry) {
                           const nextEnabled = getCurrentWorldbookConfig_ACU()?.zeroTkOccupyMode !== true;
                           if (existingIndexEntry.enabled !== nextEnabled) {

@@ -80,6 +80,7 @@ import {
     resolveSummaryVectorMirrorHead_ACU,
 } from './summary-vector-mirror-resolver';
 import { loadSummaryVectorMirrorManifest_ACU } from './summary-vector-mirror-storage';
+import { CHRONICLE_SHEET_NAME_ACU } from '../../shared/builtin-names.js';
 
 const DEFAULT_SHARD_CHUNK_LIMIT_ACU = 128;
 const SUMMARY_VECTOR_INDEX_PACK_CHUNK_LIMIT_ACU = 64;
@@ -690,7 +691,7 @@ export function normalizeSummaryVectorIndexManifestForRead_ACU(
                 : String(manifest.isolationKey),
         snapshotMessageId: String(manifest.snapshotMessageId || ''),
         sourceTableKey: String(manifest.sourceTableKey || 'summary'),
-        sourceTableName: String(manifest.sourceTableName || '纪要表'),
+        sourceTableName: String(manifest.sourceTableName || CHRONICLE_SHEET_NAME_ACU),
         indexedAt: String(manifest.indexedAt || manifest.updatedAt || new Date().toISOString()),
         updatedAt: String(manifest.updatedAt || manifest.indexedAt || new Date().toISOString()),
         rowCount: Math.max(0, Math.floor(Number(manifest.rowCount) || 0)),

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { reconcileChatTemplate_ACU, reconcileRevealedSheetWithTemplate_ACU } from '../../../src/service/template/chat-template-reconciler';
 import { buildDefaultTableTemplateObject_ACU, buildOriginalDefaultTableTemplateObject_ACU } from '../../../src/shared/table-defaults/index.js';
+import { legacyZhOriginalSheets, legacyZhRomanceSheets } from '../../../src/shared/table-defaults/legacy-zh-names.js';
 import { getSheetColumnProjection_ACU, parseDDLColumnInfos_ACU } from '../../../src/shared/ddl-utils';
 
 function sheet(key: string, name: string, headers: string[], ddlColumns: string, rows: Array<Array<string | null>> = [['1', '铁剑']]): any {
@@ -8,6 +9,22 @@ function sheet(key: string, name: string, headers: string[], ddlColumns: string,
     uid: key, name, orderNo: 0, content: [headers, ...rows],
     sourceData: { ddl: `CREATE TABLE inventory (\n  ${ddlColumns.replace(/ -- ([^,\n]+), /g, ', -- $1\n  ')}\n);` }, updateConfig: {}, exportConfig: {},
   };
+}
+
+/** 把当前（越南语）原默认表还原成改名前的中文表：中文表名、中文表头、中文 DDL 注释，且不带别名声明。 */
+function toLegacyZhSheet(sheetData: any, legacySheets: Record<string, { name: string; headers: string[] }> = legacyZhOriginalSheets): any {
+  const legacy = legacySheets[sheetData.name];
+  const result = structuredClone(sheetData);
+  const currentHeaders: string[] = result.content[0];
+  result.name = legacy.name;
+  result.content[0] = [...legacy.headers];
+  currentHeaders.forEach((header, index) => {
+    if (index === 0) return;
+    result.sourceData.ddl = result.sourceData.ddl.replace(`-- ${header}`, `-- ${legacy.headers[index]}`);
+  });
+  delete result.sourceData.tableAliases;
+  delete result.sourceData.columnAliases;
+  return result;
 }
 
 function state(sheets: Record<string, any>): any {
@@ -562,10 +579,13 @@ describe('reconcileChatTemplate_ACU', () => {
     const protagonistKey = 'sheet_DpKcVGqg';
     const skillsKey = 'sheet_lEARaBa8';
     const baseline = state({
-      [globalKey]: structuredClone(original[globalKey]),
-      [protagonistKey]: structuredClone(original[protagonistKey]),
-      [skillsKey]: structuredClone(original[skillsKey]),
+      [globalKey]: toLegacyZhSheet(original[globalKey]),
+      [protagonistKey]: toLegacyZhSheet(original[protagonistKey]),
+      [skillsKey]: toLegacyZhSheet(original[skillsKey]),
     });
+    expect(baseline[globalKey].name).toBe('全局数据表');
+    expect(baseline[globalKey].content[0]).toEqual(['row_id', '主角当前所在地点', '当前时间', '上轮场景时间', '经过的时间']);
+    expect(baseline[skillsKey].sourceData.ddl).toContain('-- 等级/阶段');
     baseline[globalKey].content.push(['1', '御苑', '2026-02-03 09:00', null, '0分']);
     baseline[protagonistKey].name = '主角信息';
     baseline[protagonistKey].content.push(['1', '助手', '女/18', '红发', '研究员', '旧经历', '理性']);
@@ -589,18 +609,20 @@ describe('reconcileChatTemplate_ACU', () => {
       current[skillsKey].content[0],
       ['1', '分析', '主动', 'Lv.1', '定位问题'],
     ]);
-    const introducedProtagonistKey = 'sheet_zhu_jue_xin_xi_biao';
-    expect(plan.candidateData[introducedProtagonistKey].name).toBe('主角信息表');
+    const introducedProtagonistKey = Object.keys(plan.candidateData)
+      .find(key => plan.candidateData[key]?.name === 'Bảng thông tin nhân vật chính')!;
+    expect(introducedProtagonistKey).toBeDefined();
+    expect(introducedProtagonistKey).not.toBe(protagonistKey);
     expect(getSheetColumnProjection_ACU(plan.candidateData[introducedProtagonistKey]).visibleColumns.map(column => column.header)).toEqual(current[protagonistKey].content[0]);
     expect(plan.hiddenSheetKeys).toContain(protagonistKey);
     expect(plan.deletedSheetKeys).toEqual([]);
     expect(plan.audit.find(item => item.sheetKey === globalKey)).toMatchObject({
-      inheritedColumns: expect.arrayContaining(['当前详细地点', '上轮场景时间', '经过的时间', '当前时间']),
-      addedColumns: expect.arrayContaining(['全局状态', '当前次要地区', '当前主要地区']),
+      inheritedColumns: expect.arrayContaining(['Địa điểm chi tiết hiện tại', 'Thời gian cảnh lượt trước', 'Thời gian đã trôi qua', 'Thời gian hiện tại']),
+      addedColumns: expect.arrayContaining(['Trạng thái toàn cục', 'Khu vực phụ hiện tại', 'Khu vực chính hiện tại']),
       deletedColumns: [],
     });
     expect(plan.audit.find(item => item.sheetKey === skillsKey)).toMatchObject({
-      inheritedColumns: expect.arrayContaining(['等级/阶段']),
+      inheritedColumns: expect.arrayContaining(['Cấp độ/Giai đoạn']),
       addedColumns: [],
       deletedColumns: [],
     });
@@ -610,6 +632,35 @@ describe('reconcileChatTemplate_ACU', () => {
       inheritedColumns: [],
       addedColumns: current[protagonistKey].content[0].slice(1),
     });
+  });
+
+  it('中文表名/列名的旧默认模板聊天切到越南语默认模板时，全部表按别名原位继承数据', async () => {
+    const current = buildDefaultTableTemplateObject_ACU() as any;
+    const sheetKeys = Object.keys(current).filter(key => key !== 'mate');
+    const baseline = state(Object.fromEntries(sheetKeys.map(key => [key, toLegacyZhSheet(current[key], legacyZhRomanceSheets)])));
+    const chronicleKey = sheetKeys.find(key => current[key].name === 'Bảng kỷ yếu')!;
+    const charactersKey = sheetKeys.find(key => current[key].name === 'Bảng nhân vật quan trọng')!;
+    expect(baseline[chronicleKey].name).toBe('纪要表');
+    expect(baseline[chronicleKey].content[0]).toEqual(['row_id', '编码索引', '时间跨度', '概览', '纪要', '重要对话']);
+    baseline[chronicleKey].content.push(['1', 'AM0001', '2026-02-03 09:00 ~ 2026-02-03 10:00', '初遇', '两人在御苑相遇。', null]);
+    baseline[charactersKey].content.push(['1', '爱丽丝', '女', '18', '室友', '金发', '校服', '宿舍', '在场', '主角:室友', '转校生', '打招呼']);
+    const template = state(Object.fromEntries(sheetKeys.map(key => [key, structuredClone(current[key])])));
+
+    const plan = await reconcileChatTemplate_ACU({ baselineData: baseline, templateData: template, destructiveChangeConfirmed: false });
+
+    expect(plan.blockers).toEqual([]);
+    expect(plan.deletedSheetKeys).toEqual([]);
+    expect(plan.hiddenSheetKeys).toEqual([]);
+    expect(Object.keys(plan.candidateData).filter(key => key !== 'mate').sort()).toEqual([...sheetKeys].sort());
+    for (const key of sheetKeys) {
+      expect(plan.candidateData[key].name).toBe(current[key].name);
+      expect(plan.candidateData[key].content[0]).toEqual(current[key].content[0]);
+    }
+    expect(plan.candidateData[chronicleKey].content[1]).toEqual(['1', 'AM0001', '2026-02-03 09:00 ~ 2026-02-03 10:00', '初遇', '两人在御苑相遇。', null]);
+    expect(plan.candidateData[charactersKey].content[1]).toEqual(['1', '爱丽丝', '女', '18', '室友', '金发', '校服', '宿舍', '在场', '主角:室友', '转校生', '打招呼']);
+    for (const key of [chronicleKey, charactersKey]) {
+      expect(plan.audit.find(item => item.sheetKey === key)).toMatchObject({ addedColumns: [], deletedColumns: [] });
+    }
   });
 
   it('以 V2 replay 作为 candidate 事实来源，BOOLEAN DEFAULT TRUE 使用 SQLite 单元格表示', async () => {

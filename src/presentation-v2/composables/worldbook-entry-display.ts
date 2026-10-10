@@ -1,5 +1,6 @@
 import type { WorldbookSkillMeta_ACU } from '../../service/agent/agent-worldbook-skill-meta';
 import type { AgentWorldbookControlSnapshot_ACU, AgentWorldbookControlSnapshotEntry_ACU } from '../../shared/models/agent-worldbook-model';
+import { isPersonEntryComment_ACU, isSmallSummaryEntryComment_ACU, isSummaryEntryComment_ACU, stripImportEntryPrefix_ACU } from '../../shared/builtin-names.js';
 
 export type WorldbookEntryTakeoverState_ACU =
   | 'native'
@@ -102,12 +103,12 @@ export function isWorldbookEntryVisibleForPageUI_ACU(
   const comment = String(entry?.comment || entry?.name || '');
   const commentWithoutIsolationPrefix = comment.replace(/^ACU-\[[^\]]+\]-/, '');
   if (!commentWithoutIsolationPrefix.trim().startsWith('外部导入-')) {
-    const normalized = commentWithoutIsolationPrefix.replace(/^外部导入-(?:[^-]+-)?/, '');
+    const normalized = stripImportEntryPrefix_ACU(commentWithoutIsolationPrefix);
     if (normalized.startsWith('TavernDB-ACU-OutlineTable')
       || normalized.startsWith('TavernDB-ACU-')
-      || normalized.startsWith('重要人物条目')
-      || normalized.startsWith('总结条目')
-      || normalized.startsWith('小总结条目')) return false;
+      || isPersonEntryComment_ACU(normalized)
+      || isSummaryEntryComment_ACU(normalized)
+      || isSmallSummaryEntryComment_ACU(normalized)) return false;
   }
   return !PAGE_BLOCKED_KEYWORDS_ACU.some(keyword => comment.includes(keyword));
 }

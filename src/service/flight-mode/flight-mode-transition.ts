@@ -29,6 +29,7 @@ import {
 import { stageChatFillModeRecord_ACU } from '../fill-mode/fill-mode-chat-record-fields';
 import { notifyChatConfigurationChanged_ACU } from '../../shared/chat-configuration-change';
 import type { FillMode_ACU } from '../fill-mode/fill-mode-preferences';
+import { isChronicleSheetName_ACU } from '../../shared/builtin-names.js';
 
 export type FlightModeTransitionResult_ACU = {
   ok: boolean;
@@ -50,13 +51,21 @@ function cloneValue_ACU<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-function findSheetByName_ACU(data: Record<string, any> | null | undefined, name: string): { key: string; sheet: Sheet_ACU } | null {
+function findSheet_ACU(data: Record<string, any> | null | undefined, matchesName: (name: unknown) => boolean): { key: string; sheet: Sheet_ACU } | null {
   if (!data || typeof data !== 'object') return null;
   for (const [key, sheet] of Object.entries(data)) {
     if (!key.startsWith('sheet_')) continue;
-    if ((sheet as any)?.name === name) return { key, sheet: sheet as Sheet_ACU };
+    if (matchesName((sheet as any)?.name)) return { key, sheet: sheet as Sheet_ACU };
   }
   return null;
+}
+
+function findSheetByName_ACU(data: Record<string, any> | null | undefined, name: string): { key: string; sheet: Sheet_ACU } | null {
+  return findSheet_ACU(data, candidate => candidate === name);
+}
+
+function findChronicleSheet_ACU(data: Record<string, any> | null | undefined): { key: string; sheet: Sheet_ACU } | null {
+  return findSheet_ACU(data, isChronicleSheetName_ACU);
 }
 
 function getEffectiveTemplateScope_ACU() {
@@ -89,7 +98,7 @@ function recoverRestoreTemplateFromEnabledScope_ACU(
   if (summaryKeys.length === 0) return null;
   summaryKeys.forEach(key => delete template[key]);
 
-  const chronicle = findSheetByName_ACU(template, '纪要表');
+  const chronicle = findChronicleSheet_ACU(template);
   if (!chronicle) return null;
   chronicle.sheet.exportConfig = cloneValue_ACU(archive.chronicleExportConfig);
   return { template, presetName: String((effectiveScope as any)?.presetName || '') };
@@ -223,7 +232,7 @@ export async function enableFlightMode_ACU(): Promise<FlightModeTransitionResult
   if (!check.canEnable) return { ok: false, reason: check.reason, visibleChronicleRowCount: check.visibleChronicleRowCount };
   if (!template) return { ok: false, reason: 'template_unavailable' };
 
-  const chronicleEntry = findSheetByName_ACU(template, '纪要表');
+  const chronicleEntry = findChronicleSheet_ACU(template);
   if (!chronicleEntry) return { ok: false, reason: 'chronicle_not_found', visibleChronicleRowCount: check.visibleChronicleRowCount };
   if (findSheetByName_ACU(template, FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU)) {
     return { ok: false, reason: 'big_summary_sheet_key_conflict', visibleChronicleRowCount: check.visibleChronicleRowCount };
@@ -231,7 +240,7 @@ export async function enableFlightMode_ACU(): Promise<FlightModeTransitionResult
 
   // 目标模板：改写纪要表导出配置 + 追加大总结表。key 只是占位，协调层会按显示名重派生。
   const nextTemplate = cloneValue_ACU(template);
-  const nextChronicle = findSheetByName_ACU(nextTemplate, '纪要表')!.sheet;
+  const nextChronicle = findChronicleSheet_ACU(nextTemplate)!.sheet;
   const originalExportConfig = cloneValue_ACU(nextChronicle.exportConfig);
   nextChronicle.exportConfig = {
     ...nextChronicle.exportConfig,

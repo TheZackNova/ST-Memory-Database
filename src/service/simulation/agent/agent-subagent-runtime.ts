@@ -438,6 +438,40 @@ export function inferWorldSimulationElapsedDays_ACU(anchor: string): number {
   if (repeated) return arabic(repeated[1]) || chinese[repeated[1]] || 0;
   if (/(?:一昼夜|一日一夜|一夜一天|过了一夜|隔了一夜)/.test(text)) return 1;
   if (/(?:昨日|昨天|前日|前天)/.test(text) && /(?:今日|今天|今夜|次日|翌日|第二天|第二日)/.test(text)) return 1;
+  return inferVietnameseElapsedDays_ACU(String(anchor ?? ''));
+}
+
+const VIETNAMESE_DAY_COUNT_WORDS_ACU: Record<string, number> = {
+  một: 1, hai: 2, ba: 3, bốn: 4, năm: 5, sáu: 6, bảy: 7, tám: 8, chín: 9, mười: 10,
+};
+const VI_DAY_COUNT_ACU = String.raw`(\d+|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười)`;
+// 越南语按词分隔且字母带声调，\b 不认这些字母，词界只能用 Unicode 字母/数字的前后断言。
+const VI_WORD_START_ACU = String.raw`(?<![\p{L}\p{N}])`;
+const VI_WORD_END_ACU = String.raw`(?![\p{L}\p{N}])`;
+const VI_ELAPSED_DAYS_PATTERNS_ACU = [
+  // trải qua 3 ngày / mất hai ngày đêm / kéo dài 5 ngày（对应 经过/耗时/历时 N 天）
+  new RegExp(`${VI_WORD_START_ACU}(?:trải qua|đã qua|trôi qua|mất|tốn|kéo dài) ${VI_DAY_COUNT_ACU} ngày${VI_WORD_END_ACU}`, 'u'),
+  // ba ngày trôi qua / 3 ngày đêm đã trôi qua
+  new RegExp(`${VI_WORD_START_ACU}${VI_DAY_COUNT_ACU} ngày(?: đêm)?(?: đã)? trôi qua${VI_WORD_END_ACU}`, 'u'),
+  // liên tục 3 ngày / suốt ba ngày（对应 连续/一连 N 天）
+  new RegExp(`${VI_WORD_START_ACU}(?:liên tục|liên tiếp|suốt|ròng rã) ${VI_DAY_COUNT_ACU} ngày${VI_WORD_END_ACU}`, 'u'),
+];
+const VI_ONE_NIGHT_PATTERN_ACU = new RegExp(
+  `${VI_WORD_START_ACU}(?:một ngày một đêm|một đêm một ngày|một ngày đêm|qua một đêm|sau một đêm|cách một đêm)${VI_WORD_END_ACU}`, 'u');
+const VI_PREVIOUS_DAY_PATTERN_ACU = new RegExp(`${VI_WORD_START_ACU}(?:hôm qua|hôm kia|hôm trước)${VI_WORD_END_ACU}`, 'u');
+const VI_CURRENT_DAY_PATTERN_ACU = new RegExp(
+  `${VI_WORD_START_ACU}(?:hôm nay|đêm nay|tối nay|hôm sau|ngày thứ hai)${VI_WORD_END_ACU}`, 'u');
+
+/** 越南语锚点的整日跨度，判定口径与中文分支逐条对应，同样在不确定时返回零。 */
+function inferVietnameseElapsedDays_ACU(anchor: string): number {
+  const text = anchor.normalize('NFC').toLowerCase().replace(/\s+/g, ' ').trim();
+  if (!text) return 0;
+  for (const pattern of VI_ELAPSED_DAYS_PATTERNS_ACU) {
+    const matched = text.match(pattern);
+    if (matched) return Number.parseInt(matched[1], 10) || VIETNAMESE_DAY_COUNT_WORDS_ACU[matched[1]] || 0;
+  }
+  if (VI_ONE_NIGHT_PATTERN_ACU.test(text)) return 1;
+  if (VI_PREVIOUS_DAY_PATTERN_ACU.test(text) && VI_CURRENT_DAY_PATTERN_ACU.test(text)) return 1;
   return 0;
 }
 

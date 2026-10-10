@@ -60,6 +60,7 @@ import {
     SUMMARY_TIME_SPAN_COLUMN_ALIASES_ACU,
     type SummaryVectorArchivePreparedRow_ACU,
 } from './summary-vector-index-archive-service';
+import { CHRONICLE_ENTRY_NAME_ACU, CUSTOM_EXPORT_COMMENT_PREFIX_ACU, SUMMARY_INDEX_ENTRY_COMMENTS_ACU, SUMMARY_INDEX_ENTRY_NAME_ACU, isSummaryIndexEntryName_ACU } from '../../shared/builtin-names.js';
 
 export interface SummaryVectorIndexRuntimeOptions_ACU {
     userInput?: string;
@@ -175,7 +176,7 @@ function parseKeywords_ACU(text: string): string[] {
     // 回退：从 "关键词：" 前缀提取（兼容不遵循 XML 标签的 AI 输出）
     if (!keywordContent) {
         const stripped = stripThinkingBlocks_ACU(normalized);
-        const fallbackMatch = stripped.match(/关键词[：:]\s*([\s\S]+?)$/i);
+        const fallbackMatch = stripped.match(/(?:关键词|từ khóa)[：:]\s*([\s\S]+?)$/i);
         if (fallbackMatch) {
             keywordContent = fallbackMatch[1].trim();
             logDebug_ACU('[交火模式纪要索引] AI 未使用 <keywords> 标签，已从"关键词："前缀回退提取。');
@@ -350,7 +351,7 @@ function buildFallbackSummaryIndexOverwriteContent_ACU(selectedRows: ChatSummary
     const lines = [
         '# Chỉ mục kỷ yếu',
         '',
-        '| 时间 | 地点 | 概要 | 编码索引 |',
+        '| Thời gian | Địa điểm | Tổng quan | Mã chỉ mục |',
         '|---|---|---|---|',
     ];
 
@@ -495,9 +496,14 @@ async function upsertOriginalSummaryIndexEntry_ACU(content: string): Promise<voi
     if (!targetLorebook) return;
 
     const worldbookConfig = getCurrentWorldbookConfig_ACU();
-    const comment = `${getIsolationPrefix_ACU()}TavernDB-ACU-CustomExport-纪要索引`;
+    const isoPrefix = getIsolationPrefix_ACU();
+    const candidateComments = SUMMARY_INDEX_ENTRY_COMMENTS_ACU.map(base => `${isoPrefix}${base}`);
     const entries = await getLorebookEntries_ACU(targetLorebook);
-    const existing = entries.find((entry: any) => entry?.comment === comment);
+    const existing = entries.find((entry: any) => candidateComments.includes(entry?.comment));
+    // Chưa có mục thì tạo theo tên mục chỉ mục mà mẫu hiện tại đang dùng, để lần xuất tùy chỉnh sau ghi đè đúng mục này.
+    const templateIndexName = normalizeText_ACU(findSummaryTable_ACU()?.table?.exportConfig?.extraIndexEntryName);
+    const comment = existing?.comment
+        ?? `${isoPrefix}${CUSTOM_EXPORT_COMMENT_PREFIX_ACU}${isSummaryIndexEntryName_ACU(templateIndexName) ? templateIndexName : SUMMARY_INDEX_ENTRY_NAME_ACU}`;
     const enabled = existing?.enabled ?? (worldbookConfig?.zeroTkOccupyMode !== true);
     const nextEntry = {
         ...(existing || {}),
@@ -535,7 +541,7 @@ async function applyVectorTableBlueLights_ACU(
     const summary = findSummaryTable_ACU();
     const exportConfig = summary?.table?.exportConfig || {};
     const restoreType = exportConfig.entryType === 'constant' ? 'constant' : 'keyword';
-    const entryName = normalizeText_ACU(exportConfig.entryName || summary?.table?.name || '纪要');
+    const entryName = normalizeText_ACU(exportConfig.entryName || summary?.table?.name || CHRONICLE_ENTRY_NAME_ACU);
     const rowPrefix = [getIsolationPrefix_ACU(), 'TavernDB-ACU-CustomExport-', entryName, '-'].join('');
     const isChronicleRowComment = (comment: string): boolean =>
         comment.startsWith(rowPrefix) && /^\d+$/.test(comment.slice(rowPrefix.length));

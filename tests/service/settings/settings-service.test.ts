@@ -1071,6 +1071,42 @@ describe('loadSettings_ACU', () => {
     expect(mockSettings.tableTemplateDefaultsRefreshVersion).toBe('test-table-defaults-refresh');
   });
 
+  it('一次性默认模板刷新把改名前的中文默认模板认作未改动的默认模板并覆盖', async () => {
+    const { buildLegacyZhDefaultTemplateSignatureLists_ACU } = await import('../../../src/shared/table-defaults/index.js');
+    const [currentLegacySignatures] = buildLegacyZhDefaultTemplateSignatureLists_ACU();
+    const legacyTemplate: Record<string, any> = { mate: { type: 'chatSheets', version: 1 } };
+    currentLegacySignatures.forEach((signature: string, index: number) => {
+      const [name, headers] = signature.split('::');
+      legacyTemplate[`sheet_legacy_${index}`] = { name, content: [JSON.parse(headers)], sourceData: {} };
+    });
+    expect(legacyTemplate.sheet_legacy_0.name).toMatch(/[\u4e00-\u9fff]/);
+    mockReadProfileTemplate.mockReturnValue(JSON.stringify(legacyTemplate));
+    mockGetDefaultTemplateSnapshot.mockReturnValue({ templateStr: NEW_DEFAULT_TEMPLATE_STR_ACU });
+
+    loadSettings_ACU();
+
+    expect(mockSetTableTemplate).toHaveBeenCalledWith(NEW_DEFAULT_TEMPLATE_STR_ACU);
+    expect(mockWriteProfileTemplate).toHaveBeenCalledWith('', NEW_DEFAULT_TEMPLATE_STR_ACU);
+  });
+
+  it('一次性默认模板刷新保留在中文默认模板上改过表头的用户模板', async () => {
+    const { buildLegacyZhDefaultTemplateSignatureLists_ACU } = await import('../../../src/shared/table-defaults/index.js');
+    const [currentLegacySignatures] = buildLegacyZhDefaultTemplateSignatureLists_ACU();
+    const editedTemplate: Record<string, any> = { mate: { type: 'chatSheets', version: 1 } };
+    currentLegacySignatures.forEach((signature: string, index: number) => {
+      const [name, headers] = signature.split('::');
+      editedTemplate[`sheet_legacy_${index}`] = { name, content: [[...JSON.parse(headers), ...(index === 0 ? ['用户新增列'] : [])]], sourceData: {} };
+    });
+    mockReadProfileTemplate.mockReturnValue(JSON.stringify(editedTemplate));
+    mockGetDefaultTemplateSnapshot.mockReturnValue({ templateStr: NEW_DEFAULT_TEMPLATE_STR_ACU });
+
+    loadSettings_ACU();
+
+    expect(mockWriteProfileTemplate).not.toHaveBeenCalledWith('', NEW_DEFAULT_TEMPLATE_STR_ACU);
+    expect(mockSetTableTemplate).not.toHaveBeenCalledWith(NEW_DEFAULT_TEMPLATE_STR_ACU);
+    expect(mockSettings.tableTemplateDefaultsRefreshVersion).toBe('test-table-defaults-refresh');
+  });
+
   it('一次性默认模板刷新遇到命名预设时只记录版本，不覆盖模板', () => {
     mockReadProfileSettings.mockReturnValue({ currentTemplatePresetName: '我的预设' });
     mockReadProfileTemplate.mockReturnValue(DEFAULT_TEMPLATE_STR_ACU);

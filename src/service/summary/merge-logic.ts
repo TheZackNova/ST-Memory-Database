@@ -28,6 +28,7 @@ import { updateReadableLorebookEntry_ACU } from '../worldbook/pipeline';
 import { logDebug_ACU, logError_ACU, logWarn_ACU } from '../../shared/utils';
 import { runTableUpdateCommit_ACU } from '../table/table-update-commit';
 import { extractTableEditInner_ACU } from '../ai/prompt-builder';
+import { isChronicleSheetName_ACU, isSummarySheetName_ACU } from '../../shared/builtin-names.js';
 
 // ═══ 自动合并纪要：触发检查 ═══
 
@@ -106,8 +107,8 @@ export function prepareAutoMergeBatches_ACU(options: {
     const { startIndex, endIndex, targetCount, batchSize, promptTemplate, isAutoMode } = options;
 
     const summaryKey = Object.keys(currentJsonTableData_ACU).find(k =>
-        currentJsonTableData_ACU[k].name === '纪要表' ||
-        currentJsonTableData_ACU[k].name === '总结表'
+        isChronicleSheetName_ACU(currentJsonTableData_ACU[k].name) ||
+        isSummarySheetName_ACU(currentJsonTableData_ACU[k].name)
     );
 
     if (!summaryKey) throw new Error('Không tìm thấy bảng kỷ yếu');

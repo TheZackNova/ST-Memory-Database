@@ -38,6 +38,7 @@ import { updateDDLColumnComment, parseDDLColumnNames, validateDDLTextAgainstHead
 // 循环 import — 运行时安全
 import { renderVisualizerMain_ACU } from './visualizer-main-render';
 import { recordVisualizerSheetRowsUpdate_ACU } from './visualizer-data-ops';
+import { buildDefaultExtraIndexEntryName_ACU } from '../../shared/builtin-names.js';
 
 /**
  * DDL 校验纯函数 — 从 jQuery 事件处理器中提取，方便单元测试
@@ -338,7 +339,7 @@ export function validateDDLText(ddlText: string, tableHeaders: string[]): { vali
                           <div id="cfg-extra-index-options" style="display: ${config.extraIndexEnabled ? 'block' : 'none'}; padding-left: 12px; border-left: 2px solid #eee;">
                               <div class="acu-form-group">
                                   <label>Tên mục chỉ mục:</label>
-                                  <input type="text" class="acu-form-input" id="cfg-extra-index-entry-name" value="${escapeHtml_ACU(config.extraIndexEntryName || `${config.entryName || sheet.name || ''}-索引`)}" placeholder="Ví dụ: ${escapeHtml_ACU((config.entryName || sheet.name || '表格') + '-索引')}">
+                                  <input type="text" class="acu-form-input" id="cfg-extra-index-entry-name" value="${escapeHtml_ACU(config.extraIndexEntryName || buildDefaultExtraIndexEntryName_ACU(config.entryName || sheet.name || ''))}" placeholder="Ví dụ: ${escapeHtml_ACU((config.entryName || sheet.name || '表格') + '-索引')}">
                                   <div class="acu-hint">Sẽ dùng làm tên của mục sổ thế giới chèn thêm.</div>
                               </div>
                               <div class="acu-form-group">

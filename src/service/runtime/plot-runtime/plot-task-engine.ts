@@ -32,6 +32,7 @@ import { normalizeAgentContextSettings_ACU } from '../../agent/agent-prompt-temp
 import { getWorldbookEntryKeywordsForSkillify_ACU, isDatabaseGeneratedWorldbookEntryForAgent_ACU } from '../../agent/agent-skillify-service';
 import { clearFinalGenerationGreenlights_ACU, resolvePreTakeoverWorldbookSnapshot_ACU, writeFinalGenerationGreenlights_ACU } from '../../agent/agent-worldbook-takeover';
 import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailability_ACU } from '../../agent/agent-worldbook-skill-meta';
+import { isPersonEntryComment_ACU, isSmallSummaryEntryComment_ACU, isSummaryEntryComment_ACU, startsWithSummaryIndexEntryComment_ACU } from '../../../shared/builtin-names.js';
 
   type PlotWorldbookAgentMode_ACU = 'normal' | 'agent-controlled';
 
@@ -1391,16 +1392,16 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
           const isAgentGreenlight = agentGreenlightKeySet.has(`${String(entry.bookName || '').trim()}\u0000${String(entry.uid || '').trim()}`);
           if (isAgentGreenlight) return true;
           const isOutlineEntry = normalizedComment.startsWith('TavernDB-ACU-OutlineTable');
-          const isSummaryIndexEntry = normalizedComment.startsWith('TavernDB-ACU-CustomExport-纪要索引');
+          const isSummaryIndexEntry = startsWithSummaryIndexEntryComment_ACU(normalizedComment);
           if (isOutlineEntry || isSummaryIndexEntry) {
             return false;
           }
 
           const isDbGenerated =
             normalizedComment.startsWith('TavernDB-ACU-') ||
-            normalizedComment.startsWith('总结条目') ||
-            normalizedComment.startsWith('小总结条目') ||
-            normalizedComment.startsWith('重要人物条目');
+            isSummaryEntryComment_ACU(normalizedComment) ||
+            isSmallSummaryEntryComment_ACU(normalizedComment) ||
+            isPersonEntryComment_ACU(normalizedComment);
           if (!isDbGenerated && isEntryBlocked_ACU(entry)) {
             logDebug_ACU(`[剧情推进] 条目被屏蔽: "${entry.rawComment || entry.comment || entry.name || ''}"`);
             return false;
@@ -1411,9 +1412,9 @@ import { hasUsableWorldbookSkillMeta_ACU, resolveAgentWorldbookFilterAvailabilit
           const normalizedComment = entry.normalizedComment || '';
           const isDbGenerated =
             normalizedComment.startsWith('TavernDB-ACU-') ||
-            normalizedComment.startsWith('总结条目') ||
-            normalizedComment.startsWith('小总结条目') ||
-            normalizedComment.startsWith('重要人物条目');
+            isSummaryEntryComment_ACU(normalizedComment) ||
+            isSmallSummaryEntryComment_ACU(normalizedComment) ||
+            isPersonEntryComment_ACU(normalizedComment);
           const isAgentGreenlight = agentGreenlightKeySet.has(`${String(entry.bookName || '').trim()}\u0000${String(entry.uid || '').trim()}`);
           if (isAgentGreenlight) return true;
           if (isAgentControlledWorldbook && isAgentControlledWorldbookEntryForPlot_ACU(entry)) return false;

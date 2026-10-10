@@ -164,7 +164,7 @@ function collectManualRefillSummaryVectorCleanup_ACU(targetMessageIndices: numbe
                     if (!sourceTableKeySet.has(sheetKey)) continue;
                     const rowId = String(rowOperation.rowId || '').trim();
                     if (!rowId) {
-                        throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác nhận row_id lịch sử của bảng 纪要表 ${sheetKey}.`);
+                        throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác nhận row_id lịch sử của bảng kỷ yếu ${sheetKey}.`);
                     }
                     removedRowIdsBySourceTable.get(sheetKey)!.add(rowId);
                     continue;
@@ -174,7 +174,7 @@ function collectManualRefillSummaryVectorCleanup_ACU(targetMessageIndices: numbe
                     if (!sourceTableKeySet.has(sheetKey)) continue;
                     const extracted = extractRowIdsFromSqlSheetBatch_ACU(operation);
                     if (!extracted.ok) {
-                        throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác định chính xác row_id lịch sử thao tác sql_sheet_batch của bảng 纪要表 ${sheetKey}.`);
+                        throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác định chính xác row_id lịch sử thao tác sql_sheet_batch của bảng kỷ yếu ${sheetKey}.`);
                     }
                     extracted.rowIds.forEach((rowId) => removedRowIdsBySourceTable.get(sheetKey)!.add(rowId));
                     continue;
@@ -188,13 +188,13 @@ function collectManualRefillSummaryVectorCleanup_ACU(targetMessageIndices: numbe
                     continue;
                 }
                 if (kind === 'data_replace' || kind === 'sql_batch' || kind === 'table_edit_dsl') {
-                    throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác định chính xác row_id lịch sử của 纪要表 bị thao tác ${kind} ảnh hưởng.`);
+                    throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác định chính xác row_id lịch sử của bảng kỷ yếu bị thao tác ${kind} ảnh hưởng.`);
                 }
                 if (sourceTableKeySet.has(sheetKey)) {
-                    throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác định chính xác row_id lịch sử của 纪要表 ${sheetKey} cho thao tác ${kind || 'unknown'}.`);
+                    throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác định chính xác row_id lịch sử của bảng kỷ yếu ${sheetKey} cho thao tác ${kind || 'unknown'}.`);
                 }
                 if (!kind || !sheetKey) {
-                    throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác nhận thao tác ${kind || 'unknown'} trong phạm vi đích có ảnh hưởng 纪要表 hay không.`);
+                    throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể xác nhận thao tác ${kind || 'unknown'} trong phạm vi đích có ảnh hưởng bảng kỷ yếu hay không.`);
                 }
             }
         }
@@ -214,7 +214,7 @@ function collectManualRefillSummaryVectorCleanup_ACU(targetMessageIndices: numbe
             && Array.isArray(currentIndex.rows)
             && currentIndex.rows.some((row) => row.status !== 'removed');
         if (hasCurrentIndex && removedRowIds.length === 0 && !replaceAll) {
-            throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể nhận diện row_id lịch sử của 纪要表 ${sourceTableKey} từ phạm vi đích.`);
+            throw new Error(`Trước khi dọn dẹp để điền lại thủ công, không thể nhận diện row_id lịch sử của bảng kỷ yếu ${sourceTableKey} từ phạm vi đích.`);
         }
         return [{ sourceTableKey, removedRowIds, replaceAll }];
     });
@@ -246,7 +246,7 @@ async function publishManualRefillSummaryVectors_ACU(
     if (!snapshot) return;
     const result = await publishSummaryVectorMirrorRowRemovalSnapshotNow_ACU(snapshot);
     if (!result.success) {
-        throw new Error(result.errors.join('; ') || result.reason || 'Phát hành chỉ mục giao hỏa thất bại sau khi dọn dẹp 纪要表.');
+        throw new Error(result.errors.join('; ') || result.reason || 'Phát hành chỉ mục giao hỏa thất bại sau khi dọn dẹp bảng kỷ yếu.');
     }
 }
 

@@ -11,6 +11,7 @@ import {
   type FlightModeState_ACU,
 } from '../../shared/models/flight-mode-model';
 import { getClassicRecentChronicleRows_ACU } from '../fill-mode/fill-mode-preferences';
+import { isChronicleSheetName_ACU } from '../../shared/builtin-names.js';
 
 function normalizeHiddenRowIds_ACU(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -87,7 +88,7 @@ export function isFlightModeActive_ACU(): boolean {
 
 function getChronicleSheet_ACU(tableData: any): any | null {
   if (!tableData || typeof tableData !== 'object') return null;
-  return Object.values(tableData).find((sheet: any) => sheet?.name === '纪要表') || null;
+  return Object.values(tableData).find((sheet: any) => isChronicleSheetName_ACU(sheet?.name)) || null;
 }
 
 /** 切换模式使用全部纪要（包括已被大总结隐藏的行），而不是可见窗口。 */

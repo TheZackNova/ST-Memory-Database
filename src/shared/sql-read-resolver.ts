@@ -396,6 +396,29 @@ export function buildSheetColumnAliasMap_ACU(
       addColumnAlias(columns, tableEvidence, tableConflictCandidates, tableConflicts,
         mapping.displayName, mapping.sqlName, 'display_name');
     }
+    // declared_display_alias（本表自带声明）：sourceData.columnAliases 是该表自己声明的历史显示名，
+    // 列改名后旧名仍应认回同一列。键可为物理列名（DDL 模板）或当前表头名（native 模板）。
+    // 只补空位：已被物理名/当前显示名占用的名字不覆盖、也不记冲突，绝不让历史别名遮蔽现行列。
+    const ownColumnAliases = sheet?.sourceData?.columnAliases;
+    if (ownColumnAliases && typeof ownColumnAliases === 'object' && !Array.isArray(ownColumnAliases)) {
+      const sqlNameByCanonicalKey = new Map<string, string>();
+      for (const mapping of resolved.columnMap.mappings) {
+        for (const key of [mapping.sqlName, mapping.displayName]) {
+          const canonical = canonicalizeDisplayName_ACU(key);
+          if (canonical && !sqlNameByCanonicalKey.has(canonical)) sqlNameByCanonicalKey.set(canonical, mapping.sqlName);
+        }
+      }
+      for (const [declaredKey, declaredAliases] of Object.entries(ownColumnAliases)) {
+        const targetSqlName = sqlNameByCanonicalKey.get(canonicalizeDisplayName_ACU(declaredKey));
+        if (!targetSqlName || !Array.isArray(declaredAliases)) continue;
+        for (const alias of declaredAliases) {
+          const aliasKey = String(alias ?? '').trim().toLowerCase();
+          if (!aliasKey || columns.has(aliasKey) || tableConflicts.has(aliasKey)) continue;
+          columns.set(aliasKey, targetSqlName);
+          tableEvidence.set(aliasKey, 'declared_display_alias');
+        }
+      }
+    }
     // fallback_slug：对目标完整表头调用一次 mapSqlColumnIdentifiers_ACU，
     // 按 sourceIndex 对齐（计划 6.1：必须批量计算，碰撞后缀 _2/_3 由映射器保证）。
     const headers = Array.isArray(sheet.content?.[0]) ? sheet.content[0].map((h: unknown) => String(h ?? '')) : [];
@@ -516,13 +539,20 @@ export function buildSheetColumnAliasMap_ACU(
             mappings?: Array<{ sourceIndex?: number; displayName?: string; sqlName?: string; required?: boolean }>;
           } | null | undefined;
         } | null | undefined;
-        for (const mapping of resolveSheetColumns_ACU(
+        const columnMappings = resolveSheetColumns_ACU(
           targetSheet,
           targetSheet?.uid || target.sheetKey,
           target.physicalName,
           targetDescriptor,
-        ).columnMap.mappings) {
+        ).columnMap.mappings;
+        for (const mapping of columnMappings) {
           const canonical = canonicalizeDisplayName_ACU(mapping.displayName);
+          if (canonical && !targetCanonicalToSql.has(canonical)) targetCanonicalToSql.set(canonical, mapping.sqlName);
+        }
+        // DDL 模板的 columnAliases 以 physical column name 为键（见 SheetSourceData_ACU.columnAliases），
+        // native 模板以表头名为键。表头名已登记，这里补上物理列名；二者同名时显示名优先。
+        for (const mapping of columnMappings) {
+          const canonical = canonicalizeDisplayName_ACU(mapping.sqlName);
           if (canonical && !targetCanonicalToSql.has(canonical)) targetCanonicalToSql.set(canonical, mapping.sqlName);
         }
         for (const [physicalName, aliases] of Object.entries(rawColumnAliases)) {

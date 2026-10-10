@@ -237,7 +237,7 @@ describe('buildDefaultExportConfig_ACU', () => {
     expect(config.keywords).toBe('');
     expect(config.preventRecursion).toBe(true);
     expect(config.extraIndexEnabled).toBe(false);
-    expect(config.extraIndexEntryName).toBe('测试表-索引');
+    expect(config.extraIndexEntryName).toBe('测试表-Chỉ mục');
     expect(config.entryPlacement).toEqual(DEFAULT_ENTRY_PLACEMENT_ACU);
     expect(config.extraIndexPlacement).toEqual(DEFAULT_EXTRA_INDEX_PLACEMENT_ACU);
   });
@@ -245,7 +245,7 @@ describe('buildDefaultExportConfig_ACU', () => {
   it('空表名使用空字符串', () => {
     const config = buildDefaultExportConfig_ACU();
     expect(config.entryName).toBe('');
-    expect(config.extraIndexEntryName).toBe('表格-索引');
+    expect(config.extraIndexEntryName).toBe('Bảng-Chỉ mục');
   });
 });
 

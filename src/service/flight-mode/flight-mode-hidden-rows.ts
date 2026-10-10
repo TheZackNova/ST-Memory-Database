@@ -1,4 +1,5 @@
 import type { FlightModeState_ACU } from '../../shared/models/flight-mode-model';
+import { isChronicleSheetName_ACU } from '../../shared/builtin-names.js';
 
 function collectRowIds_ACU(sheet: any): Set<string> {
   const ids = new Set<string>();
@@ -14,7 +15,7 @@ function collectRowIds_ACU(sheet: any): Set<string> {
 
 function findChronicleSheet_ACU(tableData: Record<string, any> | null | undefined): any | null {
   if (!tableData || typeof tableData !== 'object') return null;
-  return Object.values(tableData).find((sheet: any) => sheet?.name === '纪要表') || null;
+  return Object.values(tableData).find((sheet: any) => isChronicleSheetName_ACU(sheet?.name)) || null;
 }
 
 /**
@@ -64,7 +65,7 @@ export function projectFlightModeHiddenChronicleRows_ACU<T extends Record<string
   const hidden = new Set(state.hiddenRowIds.map(id => String(id).trim()).filter(Boolean));
   let chronicleKey: string | null = null;
   for (const [key, sheet] of Object.entries(tableData)) {
-    if (key.startsWith('sheet_') && (sheet as any)?.name === '纪要表') {
+    if (key.startsWith('sheet_') && isChronicleSheetName_ACU((sheet as any)?.name)) {
       chronicleKey = key;
       break;
     }

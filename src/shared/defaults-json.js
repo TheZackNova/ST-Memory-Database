@@ -7,7 +7,7 @@
  */
 
     import { USER_PREFILL_CONTENT_ACU } from "./user-prefill.js";
-    import { localizeDefaultText_ACU, localizeDefaultSegments_ACU, localizeDefaultPromptEntries_ACU } from "./defaults-json-vi.js";
+    import { localizeDefaultText_ACU, localizeDefaultTextKeepingZhIdentifiers_ACU, localizeDefaultSegments_ACU, localizeDefaultPromptEntries_ACU } from "./defaults-json-vi.js";
 
     export const DEFAULT_CHAR_CARD_PROMPT_ACU = [
   {
@@ -456,7 +456,7 @@ sql 必须是字符串，内容是按下文 DDL、Note 和 SQL 编写原则生�
   "plotTasks": [
     {
       "id": "defaultPlotTask",
-      "name": "默认任务",
+      "name": "Tác vụ mặc định",
       "enabled": true,
       "promptGroup": [
         {
@@ -541,7 +541,7 @@ sql 必须是字符串，内容是按下文 DDL、Note 和 SQL 编写原则生�
   "mainPrompt": "",
   "systemPrompt": "<task_rules>\nYou select AM from「已发生的事件概览」, group by time, output <match> then <recall>.\n\n==========================================\nHARD CONSTRAINTS\n==========================================\n- AM source: ONLY「已发生的事件概览」. Never invent. Never use AM from USER_INPUT/PREVIOUS_PLOT/背景设定.\n- required_count = min({zhaohui}, total_AM_in_概览). If 概览 empty, required_count=0.\n- <match> count = <recall> count = required_count. Same AM set.\n- Selection by content only. NEVER by time distance, NEVER by AM code order.\n- Time is computed AFTER selection is finalized.\n\n==========================================\nSTEP 1: LIST ALL AM (mandatory output)\n==========================================\nFirst output ALL AM codes from 概览, comma separated:\n\n<all_am>\nAM0001, AM0002, AM0003, ...\n</all_am>\n\nThis forces you to see the full set before picking.\n\n==========================================\nSTEP 2: SELF CHECK (mandatory output)\n==========================================\nThen output:\n\n<self_check>\ntotal_am=N\nrequired_count=N\nselection_basis=content_only\ntime_computed=after_selection\n</self_check>\n\n==========================================\nSTEP 3: SELECT (priority order)\n==========================================\n\nFor each AM, judge link type by CONTENT, not by time:\n\n[REAL LINK] — AM concretely affects current plot:\n- 因果链: cause/result/risk/obstacle/next action\n- 人物关系: trust/betrayal/promise/grudge/tension\n- 共同经历: shared past changes current interaction\n- 物品线索: evidence/clue/identity/anomaly\n- 矛盾挑战: challenges current claim/stance\n- 情感主题: trauma/fear/desire/value conflict\n- 地点延续: same place AND place still affects action\n\n[WEAK LINK] — indirect but concrete:\n- same character with known attitude/conflict\n- same relationship pair with prior tension/debt\n- same object/clue/location/organization thread\n- same unresolved plot thread\n\n[FALLBACK] — only to fill required_count:\n- same character / same pair / same object / same thread / same area\n- 类型 must be 补位召回\n\nPick order: REAL LINK > WEAK LINK > FALLBACK, until count = required_count.\n\nSame keyword/name/place ALONE is NOT REAL LINK. It is WEAK LINK at best.\n\n==========================================\nSTEP 4: TIME (only for selected AM)\n==========================================\n\ncurrent_time = USER_INPUT time | PREVIOUS_PLOT last time | max end_time in 概览.\n\nFor each selected AM:\n  end_time = time after \"~\" in 时间跨度\n  diff_min = minutes(current_time - end_time)\n\nIf current_time/end_time missing OR diff_min<0:\n  diff_min=NA, group=unknown, display=记不清时间.\n\nElse pick group by diff_min (USE MINUTES DIRECTLY):\n\n  diff_min          | group     | display\n  ------------------+-----------+----------\n  0-120             | now       | Xm\n  121-1440          | today     | XhYm\n  1441-7200         | days      | XdXhYm\n  7201-30240        | weeks     | XdXhYm\n  30241-86400       | months    | XdXhYm\n  86401-259200      | seasons   | XdXhYm\n  259201-2628000     | years     | XdXhYm\n  2628001+           | old       | XdXhYm\n\nCritical boundaries: 1440=today, 1441=days | 7200=days, 7201=weeks | 30240=weeks, 30241=months | 86400=months, 86401=seasons | 259200=seasons, 259201=years | 2628000=years, 2628001=old.\n\n==========================================\nSTEP 5: OUTPUT <match>\n==========================================\n\nFormat (one line per AM):\n<match>\nAMxxxx | 类型 | diff_min=XXXX | group | display | 理由\n</match>\n\n类型 must be one of: 因果链 / 人物关系 / 共同经历 / 物品线索 / 矛盾挑战 / 情感主题 / 地点延续 / 补位召回\n\n理由 must state: 当前剧情具体问题 + this AM's concrete effect (or weak basis, or fallback basis).\nBad 理由: only says \"相关/有关/呼应剧情\", only repeats 概览, uses time distance, invents facts.\n\nConsistency: diff_min MUST fit group by the table above. If mismatch, fix group.\n\n==========================================\nSTEP 6: OUTPUT <recall>\n==========================================\n\nCopy from <match>. For each AM line, put \"AMxxxx | display\" under its group.\nDo NOT copy 类型, diff_min, 理由. Keep all group names even if empty.\n\n<recall>\nnow =\ntoday =\ndays =\nweeks =\nmonths =\nseasons =\nyears =\nold =\nunknown =\n</recall>\n\n==========================================\nFULL OUTPUT TEMPLATE\n==========================================\n\n<all_am>\nAM0001, AM0002, ...\n</all_am>\n\n<self_check>\ntotal_am=N\nrequired_count=N\nselection_basis=content_only\ntime_computed=after_selection\n</self_check>\n\n<match>\nAMxxxx | 类型 | diff_min=XXXX | group | display | 理由\nAMxxxx | 类型 | diff_min=XXXX | group | display | 理由\n</match>\n\n<recall>\nnow =\nAMxxxx | Xm\ntoday =\nAMxxxx | XhYm\ndays =\nAMxxxx | XdXhYm\nweeks =\nAMxxxx | XdXhYm\nmonths =\nAMxxxx | XdXhYm\nseasons =\nAMxxxx | XdXhYm\nyears =\nAMxxxx | XdXhYm\nold =\nAMxxxx | XdXhYm\nunknown =\nAMxxxx | 记不清时间\n</recall>\n</task_rules>",
   "_acuBuiltinPresetId": "time-recall",
-  "_acuBuiltinPresetVersion": "v4.9"
+  "_acuBuiltinPresetVersion": "v4.9-vi2"
 };
 
   export const DEFAULT_BUILTIN_PLOT_PRESETS_ACU = [DEFAULT_TIME_RECALL_PLOT_PRESET_ACU];
@@ -871,8 +871,8 @@ $CONTENT
 
   /** 历史主段默认正文：先是当前（tiếng Việt）默认，再是工具化前后的旧默认（tiếng Trung）。仅用于一次性迁移识别「用户未改动的默认」，且 [0] 为正文格式默认。 */
   export const TABLE_FILL_MAIN_PROMPT_HISTORY_ACU = Object.freeze({
-    native: Object.freeze([...ZH_HISTORY_NATIVE_ACU.map(localizeDefaultText_ACU), ...ZH_HISTORY_NATIVE_ACU]),
-    sql: Object.freeze([...ZH_HISTORY_SQL_ACU.map(localizeDefaultText_ACU), ...ZH_HISTORY_SQL_ACU]),
+    native: Object.freeze([...ZH_HISTORY_NATIVE_ACU.map(localizeDefaultText_ACU), ...ZH_HISTORY_NATIVE_ACU.map(localizeDefaultTextKeepingZhIdentifiers_ACU), ...ZH_HISTORY_NATIVE_ACU]),
+    sql: Object.freeze([...ZH_HISTORY_SQL_ACU.map(localizeDefaultText_ACU), ...ZH_HISTORY_SQL_ACU.map(localizeDefaultTextKeepingZhIdentifiers_ACU), ...ZH_HISTORY_SQL_ACU]),
     // Main prompt phiên bản công cụ (table_edit / table_sql) bằng tiếng Trung trước khi Việt hóa; chỉ dùng để nhận diện mặc định cũ chưa chỉnh sửa.
     toolNative: Object.freeze([ZH_TOOL_MAIN_NATIVE_ACU]),
     toolSql: Object.freeze([ZH_TOOL_MAIN_SQL_ACU]),

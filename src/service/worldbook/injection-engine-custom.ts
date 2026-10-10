@@ -19,6 +19,7 @@ import { buildExternalCustomTableExportComment_ACU, type ExternalCustomTableExpo
 import { getSheetColumnProjection_ACU } from '../../shared/ddl-utils';
 import { getCurrentFlightModeState_ACU } from '../flight-mode/flight-mode-state';
 import { projectFlightModeHiddenChronicleRows_ACU } from '../flight-mode/flight-mode-hidden-rows';
+import { EXPORT_HEADER_SUFFIX_ACU, EXPORT_WRAPPER_AFTER_SUFFIX_ACU, EXPORT_WRAPPER_BEFORE_SUFFIX_ACU, SUMMARY_INDEX_ENTRY_COMMENTS_ACU, buildDefaultExtraIndexEntryName_ACU, isChronicleSheetName_ACU, isImportantPersonsSheetName_ACU, isSummaryIndexEntryName_ACU, isSummarySheetName_ACU } from '../../shared/builtin-names.js';
 
 // 仅记录当前运行期成功导出的来源行身份，用于区分真实删除与无数据变化的楼层刷新。
 // 世界书正文仍由交火负责；不同聊天、隔离环境和目标世界书不共享删除基线。
@@ -43,7 +44,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
                   // fail-closed：投影失败时本轮不导出纪要表，避免把已归纳的纪要重新注入世界书；只影响导出投影，不改运行时数据。
                   logWarn_ACU('[FlightMode] 世界书纪要隐藏行投影失败，本轮暂不导出纪要表。', error);
                   mergedData = Object.fromEntries(Object.entries(source)
-                      .filter(([key, sheet]: [string, any]) => !(key.startsWith('sheet_') && sheet?.name === '纪要表')));
+                      .filter(([key, sheet]: [string, any]) => !(key.startsWith('sheet_') && isChronicleSheetName_ACU(sheet?.name))));
               }
           }
       }
@@ -76,7 +77,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
       const extraIndexEntryEnabled = !zeroTkOccupyMode;
       logDebug_ACU(`[CustomExport] 0TK模式=${zeroTkOccupyMode}, 交火纪要索引=${summaryVectorIndexModeEnabled}, 纪要索引条目enabled=${extraIndexEntryEnabled}`);
 
-      const summaryIndexComment = `${isoPrefix}TavernDB-ACU-CustomExport-纪要索引`;
+      const summaryIndexComments = SUMMARY_INDEX_ENTRY_COMMENTS_ACU.map(base => `${isoPrefix}${base}`);
       const summaryIndexScope = JSON.stringify([
           currentChatFileIdentifier_ACU, getCurrentIsolationKey_ACU(), primaryLorebookName,
       ]);
@@ -187,7 +188,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
                   } else if (isSplitMode) {
                       // 拆分模式下，不添加条目名称，只保留内容
                       finalTemplate = `$1`;
-                  } else if (entryName === '重要人物表' || entryName === '总结表') {
+                  } else if (isImportantPersonsSheetName_ACU(entryName) || isSummarySheetName_ACU(entryName)) {
                       finalTemplate = `# ${entryName}\n\n$1`;
                   } else {
                       finalTemplate = `# ${entryName}\n\n$1`;
@@ -244,7 +245,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
               };
 
               return {
-                  entryName: String(cfg.extraIndexEntryName || `${defaultName}-索引`).trim() || `${defaultName}-索引`,
+                  entryName: String(cfg.extraIndexEntryName || buildDefaultExtraIndexEntryName_ACU(defaultName)).trim() || buildDefaultExtraIndexEntryName_ACU(defaultName),
                   indexCols,
                   indexRows: mapRowsByIndexes(rawRows, indexColIndexes),
                   mainCols,
@@ -263,7 +264,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
               // 自定义表格导出的附加索引条目：在注释名中加入统一标记，便于在世界书 UI 中识别为"数据库生成条目"并默认隐藏
               // [修复] 外部导入时只使用"外部导入-"前缀
               const mainComment = getImportEntryName(extraIndexSpec.entryName, marker ? { ...marker, role: 'index' } : undefined);
-              const isCrossfireSummaryEntry = extraIndexSpec.entryName === '纪要索引';
+              const isCrossfireSummaryEntry = isSummaryIndexEntryName_ACU(extraIndexSpec.entryName);
               if (!isImport && isCrossfireSummaryEntry && marker) {
                   const table = mergedData[marker.sheetKey];
                   const columns = getSheetColumnProjection_ACU(table).visibleColumns
@@ -287,7 +288,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
               const normalizedPlacement = normalizePlacementConfig_ACU(placement, DEFAULT_EXTRA_INDEX_PLACEMENT_ACU);
               plans.push({ comment: mainComment, order: cursor, placement: normalizedPlacement });
               // [修复] 0TK 模式仍持续控制"纪要索引"条目的 enabled；交火模式只控制内容保护，不接管 enabled。
-              const finalEnabled = extraIndexSpec.entryName === '纪要索引' ? enabled : true;
+              const finalEnabled = isSummaryIndexEntryName_ACU(extraIndexSpec.entryName) ? enabled : true;
               entries.push(applyPlacementToEntry_ACU({
                   comment: mainComment,
                   content: mainContent,
@@ -448,7 +449,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
 
                   // 在拆分模式下，如果存在包裹模板，先追加前置常量条目（包含表头）
                   if (use3DepthWrapperGroup && hasWrapperBefore) {
-                      const wrapperName = getImportEntryName(`${(config.entryName || tableName)}-包裹-上`, { ...markerBase, role: 'wrapper_before' });
+                      const wrapperName = getImportEntryName(`${(config.entryName || tableName)}${EXPORT_WRAPPER_BEFORE_SUFFIX_ACU}`, { ...markerBase, role: 'wrapper_before' });
                       newGeneratedNames.push(wrapperName);
                       postCreateOrderFixPlan.push({ comment: wrapperName, order: orderCursor, placement: entryPlacement });
                       const wrapperContent = [wrapperParts.before, headerMarkdown].filter(Boolean).join('\n\n').trim();
@@ -456,7 +457,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
                           comment: wrapperName, content: wrapperContent, keys: [], enabled: true, type: 'constant', prevent_recursion: true, order: orderCursor++
                       }, entryPlacement));
                   } else if (!useWrapperEntries && mainHeaders.length > 0) {
-                      const headerName = getImportEntryName(`${(config.entryName || tableName)}-表头`, { ...markerBase, role: 'header' });
+                      const headerName = getImportEntryName(`${(config.entryName || tableName)}${EXPORT_HEADER_SUFFIX_ACU}`, { ...markerBase, role: 'header' });
                       newGeneratedNames.push(headerName);
                       postCreateOrderFixPlan.push({ comment: headerName, order: orderCursor, placement: entryPlacement });
                       rowEntries.push(applyPlacementToEntry_ACU({
@@ -493,7 +494,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
                   });
 
                   if (use3DepthWrapperGroup && hasWrapperAfter) {
-                      const wrapperName = getImportEntryName(`${(config.entryName || tableName)}-包裹-下`, { ...markerBase, role: 'wrapper_after' });
+                      const wrapperName = getImportEntryName(`${(config.entryName || tableName)}${EXPORT_WRAPPER_AFTER_SUFFIX_ACU}`, { ...markerBase, role: 'wrapper_after' });
                       newGeneratedNames.push(wrapperName);
                       postCreateOrderFixPlan.push({ comment: wrapperName, order: orderCursor, placement: entryPlacement });
                       rowEntries.push(applyPlacementToEntry_ACU({
@@ -539,7 +540,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
                           : `# ${tableName}`;
 
                       if (useWrapperBlock && hasWrapperBefore) {
-                          const wrapperName = getImportEntryName(`${entryName}-包裹-上`, { ...markerBase, entryName, role: 'wrapper_before' });
+                          const wrapperName = getImportEntryName(`${entryName}${EXPORT_WRAPPER_BEFORE_SUFFIX_ACU}`, { ...markerBase, entryName, role: 'wrapper_before' });
                           const wrapperContent = [wrapperParts.before, tableHeader].filter(Boolean).join('\n\n').trim();
                           newGeneratedNames.push(wrapperName);
                           postCreateOrderFixPlan.push({ comment: wrapperName, order: cursor, placement: entryPlacement });
@@ -547,7 +548,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
                               comment: wrapperName, content: wrapperContent, keys: [], enabled: true, type: 'constant', prevent_recursion: true, order: cursor++
                           }, entryPlacement));
                       } else if (!useWrapperEntries && mainHeaders.length > 0) {
-                          const headerName = getImportEntryName(`${entryName}-表头`, { ...markerBase, entryName, role: 'header' });
+                          const headerName = getImportEntryName(`${entryName}${EXPORT_HEADER_SUFFIX_ACU}`, { ...markerBase, entryName, role: 'header' });
                           newGeneratedNames.push(headerName);
                           postCreateOrderFixPlan.push({ comment: headerName, order: cursor, placement: entryPlacement });
                           blockEntries.push(applyPlacementToEntry_ACU({
@@ -566,7 +567,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
                       }, entryPlacement));
 
                       if (useWrapperBlock && hasWrapperAfter) {
-                          const wrapperName = getImportEntryName(`${entryName}-包裹-下`, { ...markerBase, entryName, role: 'wrapper_after' });
+                          const wrapperName = getImportEntryName(`${entryName}${EXPORT_WRAPPER_AFTER_SUFFIX_ACU}`, { ...markerBase, entryName, role: 'wrapper_after' });
                           newGeneratedNames.push(wrapperName);
                           postCreateOrderFixPlan.push({ comment: wrapperName, order: cursor, placement: entryPlacement });
                           blockEntries.push(applyPlacementToEntry_ACU({
@@ -663,7 +664,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
                   : `${exportPrefix}${name}`;
 
               if (useWrapperEntries && wrapperParts?.before) {
-                  const wrapperName = getMergedEntryComment_ACU(`${group.entryName}-包裹-上`, 'wrapper_before');
+                  const wrapperName = getMergedEntryComment_ACU(`${group.entryName}${EXPORT_WRAPPER_BEFORE_SUFFIX_ACU}`, 'wrapper_before');
                   newGeneratedNames.push(wrapperName);
                   const wrapperContent = [wrapperParts.before, allHeadersContent].filter(Boolean).join('\n\n').trim();
                   postCreateOrderFixPlan.push({ comment: wrapperName, order: cursor, placement: groupPlacement });
@@ -671,7 +672,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
                       comment: wrapperName, content: wrapperContent, keys: [], enabled: true, type: 'constant', prevent_recursion: true, order: cursor++
                   }, groupPlacement));
               } else if (!useWrapperEntries && allHeadersContent) {
-                  const headerName = getMergedEntryComment_ACU(`${group.entryName}-表头`, 'header');
+                  const headerName = getMergedEntryComment_ACU(`${group.entryName}${EXPORT_HEADER_SUFFIX_ACU}`, 'header');
                   newGeneratedNames.push(headerName);
                   postCreateOrderFixPlan.push({ comment: headerName, order: cursor, placement: groupPlacement });
                   blockEntries.push(applyPlacementToEntry_ACU({
@@ -689,7 +690,7 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
               }, groupPlacement));
 
               if (useWrapperEntries && wrapperParts?.after) {
-                  const wrapperName = getMergedEntryComment_ACU(`${group.entryName}-包裹-下`, 'wrapper_after');
+                  const wrapperName = getMergedEntryComment_ACU(`${group.entryName}${EXPORT_WRAPPER_AFTER_SUFFIX_ACU}`, 'wrapper_after');
                   newGeneratedNames.push(wrapperName);
                   postCreateOrderFixPlan.push({ comment: wrapperName, order: cursor, placement: groupPlacement });
                   blockEntries.push(applyPlacementToEntry_ACU({
@@ -701,11 +702,11 @@ export function __resetCustomTableExportStateForTests_ACU(): void {
               nextCustomExportOrder = cursor + CUSTOM_EXPORT_ORDER_GAP;
           });
 
-          const summaryIndexPlan = entriesToCreate.find(entry => entry.comment === summaryIndexComment);
+          const summaryIndexPlan = entriesToCreate.find(entry => summaryIndexComments.includes(entry.comment));
           const previousSourceRows = summaryIndexSourceRowsByScope_ACU.get(summaryIndexScope);
           const sourceRowsRemoved = !!previousSourceRows
               && [...previousSourceRows].some(rowId => !summaryIndexSourceRows.has(rowId));
-          const existingSummaryIndex = allEntries.find(entry => entry.comment === summaryIndexComment);
+          const existingSummaryIndex = allEntries.find(entry => summaryIndexComments.includes(entry.comment));
           const protectSummaryIndex = !isImport && summaryVectorIndexModeEnabled && !!summaryIndexPlan
               && existingSummaryIndex?.uid != null && !sourceRowsRemoved;
 

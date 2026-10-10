@@ -847,7 +847,7 @@ describe('processSummaryVectorIndexBeforeGeneration_ACU crossfire overwrite colu
     expect(content).toContain('| 概览 | 编码索引 |');
     expect(content).toContain('概要一');
     expect(content).toContain('AM0002');
-    expect(content).not.toContain('| 时间 | 地点 | 概要 | 编码索引 |');
+    expect(content).not.toContain('| Thời gian | Địa điểm | Tổng quan | Mã chỉ mục |');
     expect(content).not.toContain('loc1');
   });
 
@@ -871,7 +871,7 @@ describe('processSummaryVectorIndexBeforeGeneration_ACU crossfire overwrite colu
 
     expect(result.success).toBe(true);
     expectNoSilentFallback_ACU();
-    expect(createdContent_ACU()).toContain('| 时间 | 地点 | 概要 | 编码索引 |');
+    expect(createdContent_ACU()).toContain('| Thời gian | Địa điểm | Tổng quan | Mã chỉ mục |');
   });
 
   it('无实时纪要表时跳过召回，不会用写死4列覆盖世界书', async () => {
@@ -906,7 +906,7 @@ describe('processSummaryVectorIndexBeforeGeneration_ACU crossfire overwrite colu
     expect(result.success).toBe(true);
     expectNoSilentFallback_ACU();
     const content = createdContent_ACU();
-    expect(content).toContain('| 时间 | 地点 | 概要 | 编码索引 |');
+    expect(content).toContain('| Thời gian | Địa điểm | Tổng quan | Mã chỉ mục |');
     expect(content).toContain('AM0001');
   });
 
@@ -934,7 +934,7 @@ describe('processSummaryVectorIndexBeforeGeneration_ACU crossfire overwrite colu
     expectNoSilentFallback_ACU();
     const content = createdContent_ACU();
     expect(content).toContain('| 概览 |');
-    expect(content).not.toContain('| 时间 | 地点 | 概要 | 编码索引 |');
+    expect(content).not.toContain('| Thời gian | Địa điểm | Tổng quan | Mã chỉ mục |');
     expect(content).toContain('概要一');
     expect(content).not.toContain('实时概要一');
   });

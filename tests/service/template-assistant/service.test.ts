@@ -396,7 +396,7 @@ describe('template assistant service', () => {
     expect(systemPrompt).toContain('【Nhúng nguyên văn / syntax-reference (1).md / Dẫn nhập: khác biệt khả năng giữa hai chế độ chạy】');
     expect(systemPrompt).toContain('【Nhúng nguyên văn / SQL模板语法从0开始上手教程.txt / Ví dụ dùng được đầu tiên (xem cái này trước)】');
     expect(systemPrompt).toContain('Cú pháp có hiệu lực hay không phụ thuộc vào chế độ chạy hiện tại. **Trước khi đọc từng mục, hãy đối chiếu bảng này**:');
-    expect(systemPrompt).toContain('Bạn có {[db.背包物品表.where(\'物品名称\', \'铁剑\').get(\'数量\')]} thanh kiếm sắt.');
+    expect(systemPrompt).toContain('Bạn có {[db.inventory.where(\'item_name\', \'Kiếm sắt\').get(\'quantity\')]} thanh kiếm sắt.');
     expect(systemPrompt).toContain('### 3.2 `<if cell="biểu thức">`');
     expect(systemPrompt).toContain('Biến · lưu một giá trị để dùng lại nhiều lần (as và $v:)');
     expect(systemPrompt).toContain('· Chỉ được dùng chữ cái tiếng Anh, chữ số, dấu gạch dưới');

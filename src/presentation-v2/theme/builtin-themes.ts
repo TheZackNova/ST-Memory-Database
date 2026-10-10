@@ -8,7 +8,7 @@ import type { AcuV2Theme } from "./theme-types";
 
 export const THEME_DEFAULT_LIGHT: AcuV2Theme = {
   id: "default-light",
-  name: "浅色",
+  name: "Sáng",
   colorScheme: "light",
   tokens: {
     bg0: "#f8f5ee",
@@ -39,7 +39,7 @@ export const THEME_DEFAULT_LIGHT: AcuV2Theme = {
 
 export const THEME_DEFAULT_DARK: AcuV2Theme = {
   id: "default-dark",
-  name: "深色",
+  name: "Tối",
   colorScheme: "dark",
   tokens: {
     bg0: "#1F2428",
@@ -70,7 +70,7 @@ export const THEME_DEFAULT_DARK: AcuV2Theme = {
 
 export const THEME_CREAMY_MINIMAL: AcuV2Theme = {
   id: "creamy-minimal",
-  name: "奶油风",
+  name: "Kem sữa",
   colorScheme: "light",
   tokens: {
     bg0: "#F7F0E6",
@@ -101,7 +101,7 @@ export const THEME_CREAMY_MINIMAL: AcuV2Theme = {
 
 export const THEME_JIRAI_KEI: AcuV2Theme = {
   id: "jirai-kei",
-  name: "地雷色",
+  name: "Jirai hồng đen",
   colorScheme: "dark",
   tokens: {
     bg0: "#2B2B2B",
@@ -132,7 +132,7 @@ export const THEME_JIRAI_KEI: AcuV2Theme = {
 
 export const THEME_MILK_DRAGON: AcuV2Theme = {
   id: "milk-dragon",
-  name: "奶龙配色",
+  name: "Vàng Nailong",
   colorScheme: "light",
   tokens: {
     // 浅奶黄底 + 奶油黄强调 + 暖棕灰文字；层次参照奶油风，低饱和、扁平。
@@ -160,6 +160,18 @@ export const THEME_MILK_DRAGON: AcuV2Theme = {
     radiusSm: "12px",
     shadow: "0 8px 24px rgba(120, 90, 30, 0.10)",
   },
+};
+
+/**
+ * Tên tiếng Trung cũ của các giao diện dựng sẵn. Giao diện tùy chỉnh trùng tên dựng sẵn bị thay bằng bản dựng sẵn;
+ * giao diện đã lưu hoặc tệp nhập từ bản cũ vẫn mang các tên này nên phải tiếp tục được nhận là dựng sẵn.
+ */
+export const ACU_V2_BUILTIN_THEME_LEGACY_NAMES: Readonly<Record<string, AcuV2Theme["id"]>> = {
+  "浅色": "default-light",
+  "深色": "default-dark",
+  "奶油风": "creamy-minimal",
+  "地雷色": "jirai-kei",
+  "奶龙配色": "milk-dragon",
 };
 
 export const ACU_V2_BUILTIN_THEMES: readonly AcuV2Theme[] = [

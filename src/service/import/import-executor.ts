@@ -15,6 +15,7 @@ import { getIsolationPrefix_ACU } from '../worldbook/injection-engine';
 import { logDebug_ACU, logError_ACU, logWarn_ACU, parseTableTemplateJson_ACU } from '../../shared/utils';
 import { saveSettings_ACU } from '../settings/settings-service';
 import { executeCardUpdateCore_ACU, type CardUpdateProgressEvent } from '../table/update-orchestrator';
+import { SUMMARY_INDEX_ENTRY_NAMES_ACU } from '../../shared/builtin-names.js';
 
 export interface ImportStatus {
     total: number;
@@ -501,7 +502,7 @@ export async function finalizeImportAndCleanup_ACU(
             '故事大纲',
             '大纲表',
             '重要人物条目',
-            '纪要索引',
+            ...SUMMARY_INDEX_ENTRY_NAMES_ACU,
         ];
         const allOldPrefixes = [
             ...oldEntryBasePrefixes,

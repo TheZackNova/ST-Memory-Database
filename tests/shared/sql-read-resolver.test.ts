@@ -766,6 +766,58 @@ describe('sql read resolver', () => {
     expect([...newResult.conflicts]).toEqual([...oldResult.conflicts]);
   });
 
+  it('本表自带的 columnAliases 让改名前的旧表名与旧列名继续解析到现行列', () => {
+    const data = {
+      mate: { type: 'acu', version: 1 },
+      sheet_inventory: {
+        uid: 'sheet_inventory',
+        name: 'Bảng vật phẩm hành trang',
+        sourceData: {
+          ddl: 'CREATE TABLE inventory ( -- Bảng vật phẩm hành trang\n  row_id INTEGER PRIMARY KEY, -- Số hàng\n  item_name TEXT, -- Tên vật phẩm\n  quantity TEXT -- Số lượng\n);',
+          tableAliases: ['背包物品表'],
+          columnAliases: { item_name: ['物品名称'], quantity: ['数量'] },
+        },
+        content: [['row_id', 'Tên vật phẩm', 'Số lượng'], ['1', 'Kiếm sắt', '3']],
+      },
+    } as any;
+
+    expect(resolveReadQuerySql_ACU("SELECT 数量 FROM 背包物品表 WHERE 物品名称 = '铁剑'", data, sql => sql)).toMatchObject({
+      sql: "SELECT quantity FROM bangvatphamhanhtrang WHERE item_name = '铁剑'",
+      tableRebindCount: 1,
+      columnRebindCount: 2,
+      conflicts: [],
+    });
+    expect(resolveReadQuerySql_ACU('SELECT [Số lượng] FROM [Bảng vật phẩm hành trang]', data, sql => sql).sql)
+      .toBe('SELECT [quantity] FROM [bangvatphamhanhtrang]');
+    expect(resolveReadQuerySql_ACU('SELECT quantity FROM inventory', data, sql => sql).sql)
+      .toBe('SELECT quantity FROM bangvatphamhanhtrang');
+    expect(buildSheetColumnAliasMap_ACU(data).sourceByAlias.get('bangvatphamhanhtrang')?.get('数量')).toBe('declared_display_alias');
+  });
+
+  it('本表自带的历史别名只补空位：与现行显示名或物理列名同名时不遮蔽现行列，也不记冲突', () => {
+    const data = {
+      mate: { type: 'acu', version: 1 },
+      sheet_swap: {
+        uid: 'sheet_swap',
+        name: '换名表',
+        sourceData: {
+          ddl: 'CREATE TABLE swap_table (\n  row_id INTEGER PRIMARY KEY, -- 行号\n  col_a TEXT, -- 甲\n  col_b TEXT -- 乙\n);',
+          // col_a 曾叫「乙」（现为 col_b 的显示名），也曾叫「col_b」（现为另一列的物理名），还曾叫「旧甲」。
+          columnAliases: { col_a: ['乙', 'col_b', '旧甲'], ghost: ['幽灵'] },
+        },
+        content: [['row_id', '甲', '乙'], ['1', 'a', 'b']],
+      },
+    } as any;
+
+    const result = buildSheetColumnAliasMap_ACU(data);
+    const columns = result.aliases.get('huanmingbiao')!;
+    expect(columns.get('乙')).toBe('col_b');
+    expect(columns.get('col_b')).toBe('col_b');
+    expect(columns.get('旧甲')).toBe('col_a');
+    expect(columns.has('幽灵')).toBe(false);
+    expect(result.conflicts.size).toBe(0);
+  });
+
   it('阶段 C：buildSheetColumnAliasMap_ACU 内部 target 物理名只解析一次', () => {
     const data = {
       sheet_bei_bao_wu_pin_biao: { name: '背包物品表', content: [['row_id', 'name']] },

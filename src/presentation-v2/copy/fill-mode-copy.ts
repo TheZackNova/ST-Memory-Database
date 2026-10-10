@@ -49,10 +49,10 @@ export const fillModeCopy = {
     title: 'Không thể chuyển chế độ điền bảng',
     message(reason: string, currentLabel: string, error?: string): string {
       if (reason === 'classic_locked') {
-        return `Hội thoại hiện tại đang dùng「${currentLabel}」, bảng 纪要表 sẽ tiếp tục tích lũy, chuyển về chế độ bảng cổ điển sẽ vượt quá cửa sổ kỷ yếu của chế độ cổ điển nên không thể chuyển về. Khi cần chế độ bảng cổ điển, hãy mở hội thoại mới, có thể bấm ngôi sao trước để đặt chế độ bảng cổ điển làm chế độ ưu tiên cho hội thoại mới.`;
+        return `Hội thoại hiện tại đang dùng「${currentLabel}」, bảng kỷ yếu sẽ tiếp tục tích lũy, chuyển về chế độ bảng cổ điển sẽ vượt quá cửa sổ kỷ yếu của chế độ cổ điển nên không thể chuyển về. Khi cần chế độ bảng cổ điển, hãy mở hội thoại mới, có thể bấm ngôi sao trước để đặt chế độ bảng cổ điển làm chế độ ưu tiên cho hội thoại mới.`;
       }
       if (reason === 'record_invalid') {
-        return 'Không nhận diện được bản ghi chế độ điền bảng của hội thoại hiện tại; để tránh bảng 纪要表 vượt quá cửa sổ kỷ yếu của chế độ cổ điển, đã từ chối chuyển về chế độ bảng cổ điển.';
+        return 'Không nhận diện được bản ghi chế độ điền bảng của hội thoại hiện tại; để tránh bảng kỷ yếu vượt quá cửa sổ kỷ yếu của chế độ cổ điển, đã từ chối chuyển về chế độ bảng cổ điển.';
       }
       if (reason === 'no_active_chat') {
         return 'Hiện không có hội thoại nào đang mở nên không thể chuyển chế độ điền bảng. Bấm ngôi sao để đặt chế độ ưu tiên cho hội thoại mới.';
@@ -70,7 +70,7 @@ export const fillModeCopy = {
     title: 'Thoát chế độ bảng cổ điển',
     confirmLabel: 'Xác nhận chuyển',
     message(targetLabel: string): string {
-      return `Sắp chuyển hội thoại hiện tại sang「${targetLabel}」. Sau khi chuyển sẽ xóa bảng tổng kết lớn, các kỷ yếu đã được tổng kết lớn tóm lược sẽ hiển thị lại, bảng 纪要表 khôi phục cách xuất ban đầu. Sau khi chuyển, hội thoại hiện tại không thể chuyển lại chế độ bảng cổ điển.`;
+      return `Sắp chuyển hội thoại hiện tại sang「${targetLabel}」. Sau khi chuyển sẽ xóa bảng tổng kết lớn, các kỷ yếu đã được tổng kết lớn tóm lược sẽ hiển thị lại, bảng kỷ yếu khôi phục cách xuất ban đầu. Sau khi chuyển, hội thoại hiện tại không thể chuyển lại chế độ bảng cổ điển.`;
     },
   },
   templateChanged: {

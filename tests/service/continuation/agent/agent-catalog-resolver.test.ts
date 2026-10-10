@@ -110,7 +110,7 @@ describe('Agent 表格只读投影', () => {
 
   it('表缺失时如实标注并阻止据此推断', () => {
     const text = renderAgentTableByAliases_ACU('characters', { s0: tableData_ACU.s0 });
-    expect(text).toContain('không có 角色表');
+    expect(text).toContain('không có bảng nhân vật');
     expect(text).toContain('Đừng suy diễn nội dung từ đó');
   });
 
@@ -190,7 +190,7 @@ describe('Agent 读写集解析', () => {
     expect(catalog).toContain('$STORY_RANGE:');
     expect(catalog).toContain('$TABLE:tên_bảng:hàng_đầu-hàng_cuối');
     expect(catalog).toContain('$WORLDBOOK:tên_sách:uid');
-    expect(catalog).toContain('$TABLE:纪要表:hàng_đầu-hàng_cuối');
+    expect(catalog).toContain('$TABLE:<tên bảng kỷ yếu>:hàng_đầu-hàng_cuối');
     expect(catalog).toContain('$CHRONOLOGY / $CHRONOLOGY:ID,ID');
     expect(catalog).not.toContain('$CHRONICLES');
     expect(catalog).toContain('search');
@@ -250,7 +250,7 @@ describe('正文窗口与区间读取', () => {
       expect(text).not.toContain('正文标记-998-结束');
       expect(text).toContain('498 tầng AI chưa quyết toán');
       expect(text).toContain('không thể dựa vào đó để tuyên bố chính văn cũ đã được quyết toán đầy đủ');
-      expect(text).toContain('$TABLE:纪要表');
+      expect(text).toContain('$TABLE:<tên bảng kỷ yếu>');
       const disabled = resolveAgentReadToken_ACU(token, { ...highFloorContext, storyWindowFloors: 0 }).text;
       expect(disabled).not.toContain('正文标记-');
     }
@@ -281,7 +281,7 @@ describe('正文窗口与区间读取', () => {
   it('$STORY_RANGE 只放行窗口内楼层，窗口外指引事件概览与纪要表行区间', () => {
     const context = storyContext_ACU(2, 1);
     expect(resolveAgentReadToken_ACU('$STORY_RANGE:3-4', context).text).toContain('第三楼正文内容');
-    expect(resolveAgentReadToken_ACU('$STORY_RANGE:1-1', context).text).toContain('$TABLE:纪要表');
+    expect(resolveAgentReadToken_ACU('$STORY_RANGE:1-1', context).text).toContain('$TABLE:<tên bảng kỷ yếu>');
     expect(resolveAgentReadToken_ACU('$STORY_RANGE:xx', context).text).toContain('không hợp lệ');
   });
 

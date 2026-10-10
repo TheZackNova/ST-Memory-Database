@@ -9,19 +9,20 @@
 import { currentJsonTableData_ACU } from '../../runtime/state-manager';
 import { getCurrentFlightModeState_ACU } from '../../flight-mode/flight-mode-state';
 import { projectFlightModeHiddenChronicleRows_ACU } from '../../flight-mode/flight-mode-hidden-rows';
+import { CHRONICLE_SHEET_NAMES_ACU, GLOBAL_DATA_SHEET_NAMES_ACU, IMPORTANT_CHARACTERS_SHEET_NAMES_ACU, isChronicleSheetName_ACU } from '../../../shared/builtin-names.js';
 
 export const AGENT_TABLE_ALIASES_ACU = {
-  global: ['全局数据表', '全局表', '总体大纲'],
-  characters: ['角色表', '重要人物表', '人物表'],
-  chronicles: ['纪要表', '总结表'],
-} as const;
+  global: [...GLOBAL_DATA_SHEET_NAMES_ACU, '总体大纲'],
+  characters: [...IMPORTANT_CHARACTERS_SHEET_NAMES_ACU, '角色表', '重要人物表', '人物表'],
+  chronicles: [...CHRONICLE_SHEET_NAMES_ACU, '总结表'],
+} as const satisfies Record<string, readonly string[]>;
 
 export type AgentGuaranteedTable_ACU = keyof typeof AGENT_TABLE_ALIASES_ACU;
 
 const TABLE_LABELS_ACU: Record<AgentGuaranteedTable_ACU, string> = {
-  global: '全局数据表',
-  characters: '角色表',
-  chronicles: '纪要表',
+  global: 'bảng dữ liệu toàn cục',
+  characters: 'bảng nhân vật',
+  chronicles: 'bảng kỷ yếu',
 };
 
 interface AgentSheetView_ACU {
@@ -49,7 +50,7 @@ export function readAgentTableData_ACU(tableData?: unknown): Record<string, any>
     return projectFlightModeHiddenChronicleRows_ACU(data, state);
   } catch (_) {
     return Object.fromEntries(Object.entries(data)
-      .filter(([key, sheet]: [string, any]) => !(key.startsWith('sheet_') && sheet?.name === '纪要表')));
+      .filter(([key, sheet]: [string, any]) => !(key.startsWith('sheet_') && isChronicleSheetName_ACU(sheet?.name))));
   }
 }
 

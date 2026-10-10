@@ -17,6 +17,7 @@ import { chronicleSheet } from './chronicle.js';
 import { optionsSheet } from './options.js';
 import { mateConfig } from './mate.js';
 import { romanceDefaultSheetOverrides } from './romance-overrides.js';
+import { legacyZhOriginalSheets, legacyZhRomanceSheets } from './legacy-zh-names.js';
 
 function cloneTableDefault_ACU(value) {
   return JSON.parse(JSON.stringify(value));
@@ -92,6 +93,45 @@ function relaxDefaultTableTemplateObjectDdls_ACU(templateObj) {
   return templateObj;
 }
 
+function listDefaultTableDdlColumnNames_ACU(ddl) {
+  return String(ddl || '').split('\n').slice(1)
+    .filter(line => line.trim() && !isDefaultTableDdlClosingLine_ACU(line))
+    .map(line => (line.trim().match(/^([^\s,()]+)/) || [])[1])
+    .filter(Boolean);
+}
+
+/**
+ * Khai báo tên tiếng Trung cũ của từng bảng/cột mặc định làm bí danh, để chat và mẫu lưu từ bản cũ
+ * được nhận là cùng bảng, cùng cột khi chuyển sang mẫu tiếng Việt. Gọi sau khi đã nới DDL (mỗi dòng một cột).
+ */
+function declareLegacyZhAliases_ACU(templateObj, legacySheets) {
+  Object.keys(templateObj || {}).forEach((key) => {
+    if (key === 'mate') return;
+    const sheet = templateObj[key];
+    const legacy = legacySheets[sheet?.name];
+    if (!legacy || !sheet.sourceData) return;
+    sheet.sourceData.tableAliases = [legacy.name];
+    const headers = Array.isArray(sheet.content?.[0]) ? sheet.content[0] : [];
+    const columnAliases = {};
+    listDefaultTableDdlColumnNames_ACU(sheet.sourceData.ddl).forEach((physicalName, index) => {
+      const legacyHeader = legacy.headers[index];
+      if (physicalName === 'row_id' || !legacyHeader || legacyHeader === headers[index]) return;
+      columnAliases[physicalName] = [legacyHeader];
+    });
+    if (Object.keys(columnAliases).length > 0) sheet.sourceData.columnAliases = columnAliases;
+  });
+  return templateObj;
+}
+
+/**
+ * Chữ ký (tên bảng::tiêu đề cột) của hai bảng mẫu mặc định thời còn tên tiếng Trung: bản hiện hành và bản gốc.
+ * Dùng để nhận ra mẫu đã lưu vẫn là mẫu mặc định cũ chưa bị người dùng sửa.
+ */
+export function buildLegacyZhDefaultTemplateSignatureLists_ACU() {
+  return [legacyZhRomanceSheets, legacyZhOriginalSheets].map(sheets =>
+    Object.values(sheets).map(sheet => `${sheet.name}::${JSON.stringify(sheet.headers)}`));
+}
+
 function buildOriginalDefaultTableTemplateObjectInternal_ACU() {
   return {
     [globalStateSheet.uid]: cloneTableDefault_ACU(globalStateSheet),
@@ -130,7 +170,10 @@ function applyRomanceDefaultOverrides_ACU(base) {
  * 该模板保留 8 张原默认表，仅放宽 DDL 约束，供旧用户已保存模板继续使用。
  */
 export function buildOriginalDefaultTableTemplateObject_ACU() {
-  return relaxDefaultTableTemplateObjectDdls_ACU(buildOriginalDefaultTableTemplateObjectInternal_ACU());
+  return declareLegacyZhAliases_ACU(
+    relaxDefaultTableTemplateObjectDdls_ACU(buildOriginalDefaultTableTemplateObjectInternal_ACU()),
+    legacyZhOriginalSheets,
+  );
 }
 
 /**
@@ -138,8 +181,11 @@ export function buildOriginalDefaultTableTemplateObject_ACU() {
  * 当前默认以原默认 8 张表为基础，同名表使用恋爱特化表内容覆盖，不引入恋爱表新增表。
  */
 export function buildDefaultTableTemplateObject_ACU() {
-  return relaxDefaultTableTemplateObjectDdls_ACU(
-    applyRomanceDefaultOverrides_ACU(buildOriginalDefaultTableTemplateObjectInternal_ACU())
+  return declareLegacyZhAliases_ACU(
+    relaxDefaultTableTemplateObjectDdls_ACU(
+      applyRomanceDefaultOverrides_ACU(buildOriginalDefaultTableTemplateObjectInternal_ACU())
+    ),
+    legacyZhRomanceSheets,
   );
 }
 

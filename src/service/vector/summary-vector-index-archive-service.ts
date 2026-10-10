@@ -47,6 +47,7 @@ import {
 import { hashUserInput_ACU, isSummaryOrOutlineTable_ACU, logDebug_ACU, logWarn_ACU } from '../../shared/utils';
 import { normalizeSummaryVectorIndexScope_ACU, serializeSummaryVectorIndexScope_ACU } from '../../shared/summary-vector-index-scope';
 import { buildSummaryRowFingerprint_ACU, hashSummaryVectorSourceText_ACU } from './summary-vector-row-fingerprint';
+import { CHRONICLE_SHEET_NAME_ACU } from '../../shared/builtin-names.js';
 
 type SummaryVectorIndexArchiveMode_ACU = 'append' | 'sync';
 
@@ -130,11 +131,11 @@ export interface SummaryVectorArchivePreparedRow_ACU {
  */
 export const SUMMARY_VECTOR_SOURCE_TEXT_MAX_CHARS_ACU = 1600;
 
-export const SUMMARY_CHRONICLE_COLUMN_ALIASES_ACU = ['纪要', '纪要内容', '纪要正文', '事件纪要', '详细纪要', '正文'];
-export const SUMMARY_TIME_SPAN_COLUMN_ALIASES_ACU = ['时间跨度', '时间', '阶段', '时段'];
-export const SUMMARY_LOCATION_COLUMN_ALIASES_ACU = ['地点', '位置', '场景', '场所'];
-export const SUMMARY_SUMMARY_COLUMN_ALIASES_ACU = ['概要', '概览', '概述', '摘要'];
-export const SUMMARY_INDEX_CODE_COLUMN_ALIASES_ACU = ['编码索引'];
+export const SUMMARY_CHRONICLE_COLUMN_ALIASES_ACU = ['Kỷ yếu', '纪要', '纪要内容', '纪要正文', '事件纪要', '详细纪要', '正文'];
+export const SUMMARY_TIME_SPAN_COLUMN_ALIASES_ACU = ['Khoảng thời gian', '时间跨度', '时间', '阶段', '时段'];
+export const SUMMARY_LOCATION_COLUMN_ALIASES_ACU = ['Địa điểm', '地点', '位置', '场景', '场所'];
+export const SUMMARY_SUMMARY_COLUMN_ALIASES_ACU = ['Tổng quan', 'Tóm lược', '概要', '概览', '概述', '摘要'];
+export const SUMMARY_INDEX_CODE_COLUMN_ALIASES_ACU = ['Mã chỉ mục', '编码索引'];
 
 /**
  * 概览在前保住高密度摘要信号，纪要正文补充实体与细节；两者都为空的行由调用方跳过。
@@ -550,7 +551,7 @@ function buildLayerStateWithRows_ACU(
         version: 1,
         snapshotMessageId: options.snapshotMessageId || baseState?.snapshotMessageId || '',
         sourceTableKey: options.sourceTableKey || baseState?.sourceTableKey || '',
-        sourceTableName: options.sourceTableName || baseState?.sourceTableName || '纪要表',
+        sourceTableName: options.sourceTableName || baseState?.sourceTableName || CHRONICLE_SHEET_NAME_ACU,
         indexedAt: options.indexedAt || baseState?.indexedAt || new Date().toISOString(),
         rowCount: normalizedRows.length,
         chunkCount: normalizedChunks.length,
@@ -1146,7 +1147,7 @@ export async function migrateLegacySummaryVectorIndexToContentAddressed_ACU(opti
         chunks: finalChunks,
         snapshotMessageId: manifest.snapshotMessageId || latestState.snapshotMessageId || String(latestLayer.messageIndex),
         sourceTableKey: manifest.sourceTableKey || latestState.sourceTableKey || 'summary',
-        sourceTableName: manifest.sourceTableName || latestState.sourceTableName || '纪要表',
+        sourceTableName: manifest.sourceTableName || latestState.sourceTableName || CHRONICLE_SHEET_NAME_ACU,
         indexedAt,
         skippedRowCount: latestState.skippedRowCount || manifest.skippedRowCount || 0,
         embeddingModel: manifest.embeddingModel || config.embeddingModel,
@@ -1429,7 +1430,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
                 targetMessageIndex,
                 snapshotMessageId,
                 sourceTableKey: selectedSummary.summaryKey,
-                sourceTableName: normalizeText_ACU(selectedSummary.table?.name) || '纪要表',
+                sourceTableName: normalizeText_ACU(selectedSummary.table?.name) || CHRONICLE_SHEET_NAME_ACU,
                 indexedAt: new Date().toISOString(),
                 skippedRowCount: prepared.skippedRowCount,
                 mode: 'sync',
@@ -1501,7 +1502,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
             logDebug_ACU('[纪要向量索引] force=true，强制执行归档写入（跳过无变更检测）。');
         }
         const indexedAt = new Date().toISOString();
-        const sourceTableName = normalizeText_ACU(selectedSummary.table?.name) || '纪要表';
+        const sourceTableName = normalizeText_ACU(selectedSummary.table?.name) || CHRONICLE_SHEET_NAME_ACU;
         const maxRowsPerBatch = Math.max(1, Math.floor(Number(config.summaryIndexArchiveMaxConcurrency) || 30));
         // T0b：在任何 embedding 请求之前做路径 preflight，用长度上界占位值试算。
         // 若失败（scope 本身超长），立即返回结构化失败，不发起任何 embedding 请求。

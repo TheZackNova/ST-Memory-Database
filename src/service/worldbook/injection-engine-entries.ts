@@ -10,6 +10,7 @@ import { ensureExportConfigDefaults_ACU, normalizePlacementConfig_ACU, getFixedP
 import { buildUsedOrderSet_ACU, allocOrder_ACU, allocConsecutiveOrderBlock_ACU } from './injection-engine-order';
 import { getInjectionTargetLorebook_ACU, getIsolationPrefix_ACU } from './injection-engine-state';
 import { getSheetColumnProjection_ACU } from '../../shared/ddl-utils';
+import { INDEX_CODE_COLUMN_NAMES_ACU, PERSON_NAME_COLUMN_NAMES_ACU, endsWithSummaryIndexEntryComment_ACU, findColumnIndexByNames_ACU } from '../../shared/builtin-names.js';
 
 function projectWorldbookTable_ACU(table: any): { headers: string[]; rows: any[][] } {
     const visibleColumns = getSheetColumnProjection_ACU(table).visibleColumns.filter(column => column.sourceIndex > 0);
@@ -60,7 +61,7 @@ function projectWorldbookTable_ACU(table: any): { headers: string[]; rows: any[]
             // [修复] 即使没有outlineTable数据，也要同步更新"纪要索引"条目的enabled状态。
             // 0TK 持续控制该条目是否启用；交火模式不应把它重新打开。
             try {
-                const existingIndexEntry = allEntries.find(e => e.comment && e.comment.endsWith('TavernDB-ACU-CustomExport-纪要索引'));
+                const existingIndexEntry = allEntries.find(e => e.comment && endsWithSummaryIndexEntryComment_ACU(e.comment));
                 if (existingIndexEntry) {
                     if (existingIndexEntry.enabled !== summaryIndexEntryEnabled) {
                         await setLorebookEntries_ACU(primaryLorebookName, [{
@@ -133,7 +134,7 @@ function projectWorldbookTable_ACU(table: any): { headers: string[]; rows: any[]
         // [新增] 同步更新"纪要索引"条目的enabled状态。
         // 0TK 持续控制该条目是否启用；交火模式不应把它重新打开。
         try {
-            const existingIndexEntry = allEntries.find(e => e.comment && e.comment.endsWith('TavernDB-ACU-CustomExport-纪要索引'));
+            const existingIndexEntry = allEntries.find(e => e.comment && endsWithSummaryIndexEntryComment_ACU(e.comment));
             if (existingIndexEntry) {
                 if (existingIndexEntry.enabled !== summaryIndexEntryEnabled) {
                     await setLorebookEntries_ACU(primaryLorebookName, [{
@@ -199,7 +200,7 @@ function projectWorldbookTable_ACU(table: any): { headers: string[]; rows: any[]
             getFixedPlacementDefaultsForTable_ACU(summaryTable?.name || '总结表').entry
         );
         const headers = projectedSummary.headers;
-        const keywordColumnIndex = headers.indexOf('编码索引');
+        const keywordColumnIndex = findColumnIndexByNames_ACU(headers, INDEX_CODE_COLUMN_NAMES_ACU);
         if (keywordColumnIndex === -1) {
             logError_ACU('Cannot find "编码索引" column in 总结表. Cannot process summary entries.');
             return;
@@ -311,7 +312,7 @@ function projectWorldbookTable_ACU(table: any): { headers: string[]; rows: any[]
         }
 
         const headers = projectedPersons.headers;
-        const nameColumnIndex = headers.indexOf('姓名') !== -1 ? headers.indexOf('姓名') : headers.indexOf('角色名');
+        const nameColumnIndex = findColumnIndexByNames_ACU(headers, PERSON_NAME_COLUMN_NAMES_ACU);
         if (nameColumnIndex === -1) {
             logError_ACU('Cannot find "姓名" or "角色名" column in 重要人物表. Cannot process person entries.');
             return;

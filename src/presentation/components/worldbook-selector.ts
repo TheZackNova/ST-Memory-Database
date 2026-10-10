@@ -10,6 +10,7 @@ import { SCRIPT_ID_PREFIX_ACU } from '../../shared/constants';
 import { escapeHtml_ACU } from '../../shared/html-helpers';
 import { logError_ACU } from '../../shared/utils';
 import { $popupInstance_ACU } from '../state/ui-refs';
+import { isPersonEntryComment_ACU, isSmallSummaryEntryComment_ACU, isSummaryEntryComment_ACU, stripImportEntryPrefix_ACU } from '../../shared/builtin-names.js';
 /**
  * presentation/components/worldbook-selector.ts — 世界书选择 UI
  * 从 features/worldbook/01~03 + 04 迁移而来
@@ -128,15 +129,15 @@ import { $popupInstance_ACU } from '../state/ui-refs';
                   (cfg.enabledEntries as Record<string, any>)[bookName] = bookEntries                      .filter((entry: Record<string, any>) => {
                           const comment = entry?.comment || entry?.name || '';
                           let normalizedComment = String(comment).replace(/^ACU-\[[^\]]+\]-/, '');
-                          normalizedComment = normalizedComment.replace(/^外部导入-(?:[^-]+-)?/, '');
+                          normalizedComment = stripImportEntryPrefix_ACU(normalizedComment);
 
                           // UI 不显示：数据库生成条目（含隔离/外部导入前缀），以及 OutlineTable
                           if (normalizedComment.startsWith('TavernDB-ACU-OutlineTable')) return false;
                           const isDbGenerated =
                               normalizedComment.startsWith('TavernDB-ACU-') ||
-                              normalizedComment.startsWith('重要人物条目') ||
-                              normalizedComment.startsWith('总结条目') ||
-                              normalizedComment.startsWith('小总结条目');
+                              isPersonEntryComment_ACU(normalizedComment) ||
+                              isSummaryEntryComment_ACU(normalizedComment) ||
+                              isSmallSummaryEntryComment_ACU(normalizedComment);
                           if (isDbGenerated) return false;
 
                           if (isEntryBlocked_ACU(entry)) return false;
@@ -151,15 +152,15 @@ import { $popupInstance_ACU } from '../state/ui-refs';
               bookEntries.forEach((entry: Record<string, any>) => {
                   const comment = entry?.comment || entry?.name || '';
                   let normalizedComment = String(comment).replace(/^ACU-\[[^\]]+\]-/, '');
-                  normalizedComment = normalizedComment.replace(/^外部导入-(?:[^-]+-)?/, '');
+                  normalizedComment = stripImportEntryPrefix_ACU(normalizedComment);
 
                   // UI 不显示：数据库生成条目（含隔离/外部导入前缀），以及 OutlineTable
                   if (normalizedComment.startsWith('TavernDB-ACU-OutlineTable')) return;
                   const isDbGenerated =
                       normalizedComment.startsWith('TavernDB-ACU-') ||
-                      normalizedComment.startsWith('重要人物条目') ||
-                      normalizedComment.startsWith('总结条目') ||
-                      normalizedComment.startsWith('小总结条目');
+                      isPersonEntryComment_ACU(normalizedComment) ||
+                      isSummaryEntryComment_ACU(normalizedComment) ||
+                      isSmallSummaryEntryComment_ACU(normalizedComment);
                   if (isDbGenerated) return;
 
                   if (isEntryBlocked_ACU(entry)) return;
@@ -622,7 +623,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
                       .filter((entry: Record<string, any>) => {
                           const comment = entry.comment || '';
                           // 过滤自动生成的条目
-                          if (comment.startsWith('TavernDB-ACU-') || comment.startsWith('重要人物条目') || comment.startsWith('总结条目')) {
+                          if (comment.startsWith('TavernDB-ACU-') || isPersonEntryComment_ACU(comment) || isSummaryEntryComment_ACU(comment)) {
                               return false;
                           }
                           // [新增] 过滤屏蔽词条目
@@ -640,7 +641,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
               bookEntries.forEach((entry: Record<string, any>) => {
                   // [新增] 在UI列表显示时，也过滤掉自动生成的条目，不显示给用户
                   const comment = entry.comment || '';
-                  if (comment.startsWith('TavernDB-ACU-') || comment.startsWith('重要人物条目') || comment.startsWith('总结条目')) {
+                  if (comment.startsWith('TavernDB-ACU-') || isPersonEntryComment_ACU(comment) || isSummaryEntryComment_ACU(comment)) {
                       return;
                   }
 

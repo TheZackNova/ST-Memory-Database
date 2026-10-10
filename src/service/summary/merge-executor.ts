@@ -25,6 +25,7 @@ import { loadAllChatMessages_ACU, updateReadableLorebookEntry_ACU } from '../wor
 import { loadOrCreateJsonTableFromChatHistory_ACU } from '../table/table-service';
 import { runTableUpdateCommit_ACU } from '../table/table-update-commit';
 import { getLastMessageIndex_ACU } from '../chat/chat-service';
+import { isChronicleSheetName_ACU, isSummarySheetName_ACU } from '../../shared/builtin-names.js';
 
 export interface MergeBatchConfig {
     summaryKey: string;
@@ -243,8 +244,8 @@ export function validateMergeParams_ACU(defaultMergePrompt: string): MergeValida
 
     // 查找纪要表
     const summaryKey = Object.keys(currentJsonTableData_ACU).find(k =>
-        currentJsonTableData_ACU[k].name === '纪要表' ||
-        currentJsonTableData_ACU[k].name === '总结表'
+        isChronicleSheetName_ACU(currentJsonTableData_ACU[k].name) ||
+        isSummarySheetName_ACU(currentJsonTableData_ACU[k].name)
     );
 
     if (!summaryKey) {

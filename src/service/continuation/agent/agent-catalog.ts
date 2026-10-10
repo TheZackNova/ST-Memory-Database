@@ -287,7 +287,7 @@ export function renderAgentReadCatalog_ACU(toolMode: AgentToolMode_ACU): string 
     '- $USER_REQUIREMENTS: các yêu cầu nhiệm vụ người dùng đã nêu tích lũy trong phiên Agent, chia từng dòng; do hệ thống bảo trì sau khi nén lịch sử, không phải sự thật chính văn.',
     '- $WORLDBOOK:tên_sách:uid[,uid]: toàn văn mục World Info đã bật. Nội dung đã kích hoạt xem trong ảnh chụp ở cuối, không cần read lại; mục chưa trúng có thể lấy địa chỉ từ danh mục hoặc search (scope=["worldbook"]) rồi đọc kỹ. Danh mục ghi số token để phân bổ ngân sách.',
     '- $STORY_CATALOG / $STORY_OVERVIEW / $STORY_TAIL / $OUTLINE_WINDOW / $HISTORY_UNSETTLED: chỉ mục tầng, tổng quan sự kiện, toàn văn chính văn cuối, cửa sổ dàn ý đầy đủ, toàn bộ chính văn chưa kết toán.',
-    '- Kỷ yếu chi tiết của cốt truyện sớm nằm trong bảng kỷ yếu: $TABLE:纪要表:hàng_đầu-hàng_cuối đọc kỹ theo khoảng hàng (số hàng xem trong tổng quan sự kiện và danh mục bảng).',
+    '- Kỷ yếu chi tiết của cốt truyện sớm nằm trong bảng kỷ yếu: $TABLE:<tên bảng kỷ yếu>:hàng_đầu-hàng_cuối đọc kỹ theo khoảng hàng (số hàng xem trong tổng quan sự kiện và danh mục bảng).',
     toolMode === 'tools'
       ? 'search dùng lệnh gọi hàm. Ví dụ tham số: {"query":"từ khóa hoặc regex","scope":["story","tables","modules","outline","worldbook"],"isRegex":false,"maxResults":30}.'
       : 'search xuất hành động JSON: {"action":"search","query":"từ khóa hoặc regex","scope":["story","tables","modules","outline","worldbook"],"isRegex":false,"maxResults":30}; read xuất {"action":"read","reads":["địa chỉ được ủy quyền"]}.',

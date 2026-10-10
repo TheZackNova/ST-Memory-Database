@@ -424,7 +424,7 @@ export interface TableLockIdentities_ACU {
           if (!headers.length) return -1;
           let idx = headers.findIndex(h => {
               if (typeof h !== 'string') return false;
-              return /编码|索引/.test(h);
+              return /编码|索引|mã chỉ mục|chỉ mục/i.test(h);
           });
           if (idx === -1) idx = headers.length - 1;
           return idx;

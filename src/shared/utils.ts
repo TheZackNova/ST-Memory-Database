@@ -12,6 +12,7 @@ import { TABLE_TEMPLATE_ACU } from './defaults-json.js';
 import { DEBUG_MODE_ACU, SCRIPT_ID_PREFIX_ACU, TABLE_ORDER_FIELD_ACU } from './constants';
 import { safeJsonParseWithJsoncComments_ACU } from './json-helpers';
 import { pushLog, isDebugLogEnabled, isWarnLogEnabled } from './log-buffer';
+import { isChronicleSheetName_ACU, isOutlineSheetName_ACU, isSummarySheetName_ACU } from './builtin-names.js';
 
 export function cleanChatName_ACU(fileName: string): string {
   if (!fileName || typeof fileName !== 'string') return 'unknown_chat_source';
@@ -125,7 +126,7 @@ export function normalizePositiveInteger_ACU(value: any, fallbackValue: number =
 export function isSummaryOrOutlineTable_ACU(tableName: string): boolean {
   if (!tableName || typeof tableName !== 'string') return false;
   const trimmedName = tableName.trim();
-  return trimmedName === '总结表' || trimmedName === '总体大纲' || trimmedName === '纪要表';
+  return isSummarySheetName_ACU(trimmedName) || isOutlineSheetName_ACU(trimmedName) || isChronicleSheetName_ACU(trimmedName);
 }
 
 /**

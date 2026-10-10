@@ -476,7 +476,7 @@ describe('updateCustomTableExports_ACU', () => {
 
       const createdEntries = mockCreateLorebookEntries.mock.calls[0][1];
       expect(createdEntries).toEqual(expect.arrayContaining([
-        expect.objectContaining({ comment: 'TavernDB-ACU-CustomExport-关系档案-表头', type: 'constant' }),
+        expect.objectContaining({ comment: 'TavernDB-ACU-CustomExport-关系档案-Tiêu đề', type: 'constant' }),
         expect.objectContaining({ comment: 'TavernDB-ACU-CustomExport-关系档案-1', keys: ['艾琳'], type: 'keyword', content: '| 艾琳 | 搭档 |\n' }),
         expect.objectContaining({ comment: 'TavernDB-ACU-CustomExport-关系档案-2', keys: ['布莱恩'], type: 'keyword', content: '| 布莱恩 | 对手 |\n' }),
       ]));

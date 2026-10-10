@@ -37,6 +37,7 @@ import { normalizeAmCode_ACU } from '../worldbook-context';
 import { applyContextTagFilters_ACU } from '../../runtime/helpers-context-tags';
 import { renderAgentUserRequirements_ACU } from './agent-user-requirements';
 import { isAiMessage_ACU } from '../../runtime/message-handler';
+import { CHRONICLE_TEXT_COLUMN_NAMES_ACU, INDEX_CODE_COLUMN_NAMES_ACU, OVERVIEW_COLUMN_NAMES_ACU } from '../../../shared/builtin-names.js';
 
 export const AGENT_TABLE_TOKEN_PREFIX_ACU = '$TABLE:';
 export const AGENT_STORY_RANGE_TOKEN_PREFIX_ACU = '$STORY_RANGE:';
@@ -46,7 +47,7 @@ export const AGENT_WORLDBOOK_TOKEN_PREFIX_ACU = '$WORLDBOOK:';
 const READ_TOKEN_TITLES_ACU: Record<string, string> = {
   $STORY_TEXT: 'Chính văn tiểu thuyết đã xảy ra (chỉ gồm tầng AI)',
   $STORY_CATALOG: 'Chỉ mục tầng chính văn',
-  $STORY_OVERVIEW: 'Tổng quan sự kiện (từng lượt trong 纪要表)',
+  $STORY_OVERVIEW: 'Tổng quan sự kiện (từng lượt trong bảng kỷ yếu)',
   $STORY_TAIL: 'Chính văn gần nhất (các tầng toàn văn ở cuối)',
   $HISTORY_UNSETTLED: 'Lịch sử thật chưa quyết toán',
   $OUTLINE_WINDOW: 'Cửa sổ dàn ý hiện tại',
@@ -60,9 +61,9 @@ const READ_TOKEN_TITLES_ACU: Record<string, string> = {
   $ACTIVE_CONSTRAINTS: 'Ràng buộc dài hạn',
   $CHRONOLOGY: 'Sổ niên đại học câu chuyện',
   $WEB_REFS: 'Kho tư liệu bách khoa',
-  $TABLE_GLOBAL: 'Bảng dữ liệu toàn cục (全局数据表)',
-  $TABLE_CHARACTERS: 'Bảng nhân vật (角色表)',
-  $TABLE_CHRONICLES: 'Kỷ yếu (纪要表)',
+  $TABLE_GLOBAL: 'Bảng dữ liệu toàn cục',
+  $TABLE_CHARACTERS: 'Bảng nhân vật',
+  $TABLE_CHRONICLES: 'Bảng kỷ yếu',
 };
 
 /** 续写侧的上下文标签提取/排除规则（与剧情推进共用 applyContextTagFilters_ACU 语义）。 */
@@ -203,16 +204,16 @@ export interface AgentStoryOverviewOptions_ACU {
 export function renderAgentStoryOverview_ACU(source: AgentStoryOverviewSource_ACU, options?: AgentStoryOverviewOptions_ACU): string {
   const sheets = findAgentSheetsByAliases_ACU(AGENT_TABLE_ALIASES_ACU.chronicles, source.tableData);
   if (!sheets.length) {
-    return 'Cuộc trò chuyện hiện tại không có 纪要表, không thể cung cấp tổng quan sự kiện. Mạch cốt truyện chỉ có thể dựa vào chỉ mục tầng và chính các tầng chính văn.';
+    return 'Cuộc trò chuyện hiện tại không có bảng kỷ yếu, không thể cung cấp tổng quan sự kiện. Mạch cốt truyện chỉ có thể dựa vào chỉ mục tầng và chính các tầng chính văn.';
   }
   const recall = new Set((source.recallCodes ?? []).map(code => normalizeAmCode_ACU(code)).filter(Boolean));
   const maxRows = options?.maxRows && options.maxRows > 0 ? Math.floor(options.maxRows) : null;
   let anyExpanded = false;
   const sections = sheets.map(sheet => {
     if (!sheet.rows.length) return `Bảng "${sheet.name}" tồn tại nhưng không có hàng dữ liệu.`;
-    const codeColumn = findColumnIndex_ACU(sheet.header, ['编码索引', '编码']);
-    const overviewColumn = findColumnIndex_ACU(sheet.header, ['概览', '概要']);
-    const digestColumn = sheet.header.findIndex(cell => cell.includes('纪要') && !cell.includes('概'));
+    const codeColumn = findColumnIndex_ACU(sheet.header, [...INDEX_CODE_COLUMN_NAMES_ACU, '编码']);
+    const overviewColumn = findColumnIndex_ACU(sheet.header, OVERVIEW_COLUMN_NAMES_ACU);
+    const digestColumn = sheet.header.findIndex(cell => CHRONICLE_TEXT_COLUMN_NAMES_ACU.some(name => cell.includes(name)) && !cell.includes('概'));
     const renderRow = (row: readonly string[], rowIndex: number): string => {
       const code = codeColumn >= 0 ? normalizeAmCode_ACU(row[codeColumn]) : null;
       const overview = overviewColumn >= 0 ? row[overviewColumn] : '';
@@ -248,7 +249,7 @@ export function renderAgentStoryOverview_ACU(source: AgentStoryOverviewSource_AC
     ? 'Các hàng có dấu 【纪要全文】 đã được mở rộng thành kỷ yếu chi tiết theo mã truy hồi của lượt này.'
     : '';
   return [
-    'Sau đây là tổng quan sự kiện từng lượt của 纪要表 (mỗi hàng ứng với một lượt cốt truyện, không ánh xạ một-một với số tầng; khi cần kỷ yếu chi tiết của một lượt thì đọc kỹ bằng $TABLE:纪要表:khoảng hàng):',
+    `Sau đây là tổng quan sự kiện từng lượt của bảng kỷ yếu (mỗi hàng ứng với một lượt cốt truyện, không ánh xạ một-một với số tầng; khi cần kỷ yếu chi tiết của một lượt thì đọc kỹ bằng $TABLE:${sheets[0].name}:khoảng hàng):`,
     ...sections,
     expandedNote,
   ].filter(Boolean).join('\n\n');
@@ -279,10 +280,10 @@ export function renderAgentStoryCatalog_ACU(source: AgentStoryFloorSource_ACU & 
   const allFloors = listAgentStoryFloors_ACU(source);
   if (!allFloors.length) return 'Cuộc trò chuyện hiện tại chưa có tầng chính văn do AI tạo ra.';
   const windowFloors = listAgentStoryWindowFloors_ACU(source);
-  if (!windowFloors.length) return 'Cửa sổ đọc chính văn được đặt là 0 tầng: không thể đọc trực tiếp các tầng chính văn; mạch cốt truyện hãy dựa vào tổng quan sự kiện và $TABLE:纪要表.';
+  if (!windowFloors.length) return 'Cửa sổ đọc chính văn được đặt là 0 tầng: không thể đọc trực tiếp các tầng chính văn; mạch cốt truyện hãy dựa vào tổng quan sự kiện và bảng kỷ yếu (đọc bằng $TABLE:<tên bảng kỷ yếu>).';
   const hiddenCount = allFloors.length - windowFloors.length;
   const headNote = hiddenCount > 0
-    ? `${hiddenCount} tầng AI sớm hơn nằm ngoài cửa sổ đọc được; mạch cốt truyện của chúng hãy xem ở tổng quan sự kiện, hoặc dùng $TABLE:纪要表:khoảng hàng để đọc kỹ kỷ yếu tương ứng.`
+    ? `${hiddenCount} tầng AI sớm hơn nằm ngoài cửa sổ đọc được; mạch cốt truyện của chúng hãy xem ở tổng quan sự kiện, hoặc dùng $TABLE:<tên bảng kỷ yếu>:khoảng hàng để đọc kỹ kỷ yếu tương ứng.`
     : 'Toàn bộ tầng AI hiện đều nằm trong cửa sổ đọc được.';
   const hasChronicleRows = findAgentSheetsByAliases_ACU(AGENT_TABLE_ALIASES_ACU.chronicles, source.tableData)
     .some(sheet => sheet.rows.length > 0);
@@ -310,12 +311,12 @@ export function renderAgentStoryRange_ACU(context: AgentResolveContext_ACU, star
     return `Khoảng tầng "${startRaw}-${endRaw}" không hợp lệ: cách viết là $STORY_RANGE:tầng_đầu-tầng_cuối (hai đầu đều là số tầng, đầu không lớn hơn cuối). Các tầng khả dụng xem trong danh mục chính văn.`;
   }
   const windowFloors = listAgentStoryWindowFloors_ACU(context);
-  if (!windowFloors.length) return 'Cửa sổ đọc chính văn hiện đang trống, không thể đọc chính văn; mạch cốt truyện sớm hãy xem tổng quan sự kiện hoặc dùng $TABLE:纪要表:khoảng hàng để đọc kỹ.';
+  if (!windowFloors.length) return 'Cửa sổ đọc chính văn hiện đang trống, không thể đọc chính văn; mạch cốt truyện sớm hãy xem tổng quan sự kiện hoặc dùng $TABLE:<tên bảng kỷ yếu>:khoảng hàng để đọc kỹ.';
   const hit = windowFloors.filter(floor => floor.index >= start && floor.index <= end);
   if (!hit.length) {
     const first = windowFloors[0].index;
     const last = windowFloors[windowFloors.length - 1].index;
-    return `Trong khoảng ${start}-${end} không có tầng AI nào đọc được. Cửa sổ đọc được hiện bao phủ các tầng ${first}-${last} (chỉ gồm tầng AI); mạch cốt truyện sớm hơn hãy xem tổng quan sự kiện hoặc dùng $TABLE:纪要表:khoảng hàng để đọc kỹ.`;
+    return `Trong khoảng ${start}-${end} không có tầng AI nào đọc được. Cửa sổ đọc được hiện bao phủ các tầng ${first}-${last} (chỉ gồm tầng AI); mạch cốt truyện sớm hơn hãy xem tổng quan sự kiện hoặc dùng $TABLE:<tên bảng kỷ yếu>:khoảng hàng để đọc kỹ.`;
   }
   return renderStoryFloors_ACU(hit);
 }
@@ -358,7 +359,7 @@ function renderUnsettledWindow_ACU(selection: ReturnType<typeof resolveAgentUnse
     return 'Không có lịch sử thật chưa quyết toán; chính văn hiện tại đã quyết toán xong.';
   }
   const note = selection.hiddenCount > 0
-    ? `${selection.hiddenCount} tầng AI chưa quyết toán sớm hơn nằm ngoài cửa sổ đọc chính văn, lần này không được tiêm và cũng không thuộc phạm vi quyết toán từng tầng lần này; không thể dựa vào đó để tuyên bố chính văn cũ đã được quyết toán đầy đủ. Cốt truyện sớm hơn hãy truy lại qua tổng quan sự kiện hoặc $TABLE:纪要表:khoảng hàng.`
+    ? `${selection.hiddenCount} tầng AI chưa quyết toán sớm hơn nằm ngoài cửa sổ đọc chính văn, lần này không được tiêm và cũng không thuộc phạm vi quyết toán từng tầng lần này; không thể dựa vào đó để tuyên bố chính văn cũ đã được quyết toán đầy đủ. Cốt truyện sớm hơn hãy truy lại qua tổng quan sự kiện hoặc $TABLE:<tên bảng kỷ yếu>:khoảng hàng.`
     : '';
   return [note, selection.floors.length
     ? renderStoryFloors_ACU(selection.floors)
@@ -644,7 +645,7 @@ export function resolveAgentReadToken_ACU(token: string, context: AgentResolveCo
         ? `Khoảng tầng "${normalized}" không hợp lệ: cách viết là $STORY_RANGE:tầng_đầu-tầng_cuối (hai đầu đều là số tầng, đầu không lớn hơn cuối). Các tầng khả dụng xem trong danh mục chính văn.`
         : valid
         ? renderAgentStoryRange_ACU(context, matched![1], matched![2])
-        : `Khoảng tầng "${normalized}" không thể đọc đầy đủ: cách viết là $STORY_RANGE:tầng_đầu-tầng_cuối, phạm vi phải nằm trong cửa sổ đọc chính văn hiện tại. Các tầng khả dụng xem trong danh mục chính văn; mạch cốt truyện sớm hơn hãy xem tổng quan sự kiện hoặc dùng $TABLE:纪要表:khoảng hàng để đọc kỹ.`,
+        : `Khoảng tầng "${normalized}" không thể đọc đầy đủ: cách viết là $STORY_RANGE:tầng_đầu-tầng_cuối, phạm vi phải nằm trong cửa sổ đọc chính văn hiện tại. Các tầng khả dụng xem trong danh mục chính văn; mạch cốt truyện sớm hơn hãy xem tổng quan sự kiện hoặc dùng $TABLE:<tên bảng kỷ yếu>:khoảng hàng để đọc kỹ.`,
       ...(!valid ? { status: 'failed' as const } : {}),
     };
   }

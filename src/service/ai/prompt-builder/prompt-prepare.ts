@@ -31,6 +31,7 @@ import { replaceDbSqlVariables } from '../../runtime/template-vars/sql-query-var
 import { getCurrentFlightModeState_ACU } from '../../flight-mode/flight-mode-state';
 import { projectFlightModeHiddenChronicleRows_ACU } from '../../flight-mode/flight-mode-hidden-rows';
 import { getClassicRecentChronicleRows_ACU, resolveSheetSourceDataPlaceholders_ACU } from '../../fill-mode/fill-mode-preferences';
+import { isChronicleSheetName_ACU, isSummarySheetName_ACU } from '../../../shared/builtin-names.js';
 
 const AUTHOR_SQL_TABLE_IDENTIFIER_ACU = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
@@ -46,8 +47,8 @@ function resolvePromptRowWindow_ACU(
     flightModeEnabled: boolean,
 ): PromptRowWindow_ACU {
     const tableName = String(table?.name || '').trim();
-    const isChronicleTable = tableName === '纪要表';
-    const isFixedSummaryTable = isChronicleTable || tableName === '总结表';
+    const isChronicleTable = isChronicleSheetName_ACU(tableName);
+    const isFixedSummaryTable = isChronicleTable || isSummarySheetName_ACU(tableName);
     const shouldShowAllVisibleChronicleRows = flightModeEnabled && isChronicleTable;
 
     if (isFixedSummaryTable && !shouldShowAllVisibleChronicleRows && effectiveAllRows.length > 10) {

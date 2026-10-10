@@ -7,6 +7,7 @@ import { logDebug_ACU, logError_ACU, logWarn_ACU } from '../../../shared/utils';
 import { getCharLorebooks_ACU } from '../../../data/gateways/character-gateway';
 import { getLorebookEntries_ACU } from '../../../data/gateways/worldbook-gateway';
 import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
+import { INDEX_CODE_COLUMN_NAME_ACU, OVERVIEW_COLUMN_NAME_ACU, SUMMARY_INDEX_ENTRY_COMMENTS_ACU, endsWithSummaryIndexEntryComment_ACU, isChronicleSheetName_ACU, isIndexCodeColumnName_ACU, isOutlineSheetName_ACU, isOverviewColumnName_ACU, isSummarySheetName_ACU } from '../../../shared/builtin-names.js';
 
   export function formatTableDataForLLM_ACU(jsonData: any) {
     if (!jsonData || typeof jsonData !== 'object' || Object.keys(jsonData).length === 0) {
@@ -68,15 +69,14 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
       bookNames = [...new Set(bookNames.map((name: any) => String(name || '').trim()).filter(Boolean))];
       
       const isoPrefix = getIsolationPrefix_ACU();
-      const baseComment = 'TavernDB-ACU-CustomExport-纪要索引';
-      const targetComment = isoPrefix + baseComment;
+      const targetComments = SUMMARY_INDEX_ENTRY_COMMENTS_ACU.map(base => isoPrefix + base);
       
       for (const bookName of bookNames) {
         try {
           const entries = await getLorebookEntries_ACU(bookName);
           const indexEntry = entries?.find((entry: any) => {
             const comment = String(entry?.comment || '').trim();
-            return comment === targetComment || comment.endsWith(baseComment);
+            return targetComments.includes(comment) || endsWithSummaryIndexEntryComment_ACU(comment);
           });
           if (indexEntry?.content) {
             logDebug_ACU('[剧情推进] $5 从世界书纪要索引条目获取成功' + (indexEntry.enabled ? '' : '(条目已禁用)'));
@@ -97,17 +97,17 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
   export function formatOutlineTableForPlot_ACU(allTablesJson: any) {
     try {
       if (!allTablesJson || typeof allTablesJson !== 'object') {
-        return 'Bảng 总体大纲: không lấy được dữ liệu bảng.';
+        return 'Bảng dàn ý tổng thể: không lấy được dữ liệu bảng.';
       }
       const sheets: any[] = Object.values(allTablesJson).filter((x: any) => x && typeof x === 'object' && x.name && x.content);
-      const outline = sheets.find(s => String(s.name || '').trim() === '总体大纲');
+      const outline = sheets.find(s => isOutlineSheetName_ACU(s.name));
       if (!outline || !Array.isArray(outline.content) || outline.content.length === 0) {
-        return 'Bảng 总体大纲: không tìm thấy bảng này hoặc cấu trúc bảng trống.';
+        return 'Bảng dàn ý tổng thể: không tìm thấy bảng này hoặc cấu trúc bảng trống.';
       }
 
       const headerRow = Array.isArray(outline.content[0]) ? outline.content[0] : [];
       const headers = headerRow.slice(1).map((h: any) => String(h ?? '').trim()).filter(Boolean);
-      let out = `## Bảng: 总体大纲\n`;
+      let out = `## Bảng: ${String(outline.name || '').trim()}\n`;
       out += headers.length ? `Columns: ${headers.join(', ')}\n` : 'Columns: (không có tiêu đề)\n';
 
       const rows = outline.content.slice(1).filter((r: any) => Array.isArray(r));
@@ -129,7 +129,7 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
       });
       return out;
     } catch (e) {
-      return 'Bảng 总体大纲: đã xảy ra lỗi khi định dạng.';
+      return 'Bảng dàn ý tổng thể: đã xảy ra lỗi khi định dạng.';
     }
   }
 
@@ -143,35 +143,34 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
       const sheets: any[] = Object.values(allTablesJson).filter((x: any) => x && typeof x === 'object' && x.name && x.content);
       const summaryTable = sheets.find(s => {
         const name = String(s.name || '').trim();
-        return name === '纪要表' || name === '总结表';
+        return isChronicleSheetName_ACU(name) || isSummarySheetName_ACU(name);
       });
       
       if (!summaryTable) {
         logDebug_ACU('[剧情推进] formatSummaryIndexForPlot_ACU: 未找到纪要表，可用表格:', sheets.map(s => s.name));
-        return { success: false, content: 'Chỉ mục kỷ yếu: không tìm thấy bảng 纪要表.' };
+        return { success: false, content: 'Chỉ mục kỷ yếu: không tìm thấy bảng kỷ yếu.' };
       }
       
       if (!Array.isArray(summaryTable.content) || summaryTable.content.length <= 1) {
         logDebug_ACU('[剧情推进] formatSummaryIndexForPlot_ACU: 纪要表为空，content长度:', summaryTable.content?.length);
-        return { success: false, content: 'Chỉ mục kỷ yếu: bảng 纪要表 trống.' };
+        return { success: false, content: 'Chỉ mục kỷ yếu: bảng kỷ yếu trống.' };
       }
 
       const headerRow = Array.isArray(summaryTable.content[0]) ? summaryTable.content[0] : [];
       logDebug_ACU('[剧情推进] formatSummaryIndexForPlot_ACU: 纪要表表头:', JSON.stringify(headerRow));
       
       const summaryColIdx = headerRow.findIndex((h: any) => {
-        const name = String(h ?? '').trim();
-        return name === '概览' || name === '概要';
+        return isOverviewColumnName_ACU(h);
       });
-      const indexColIdx = headerRow.findIndex((h: any) => String(h ?? '').trim() === '编码索引');
+      const indexColIdx = headerRow.findIndex((h: any) => isIndexCodeColumnName_ACU(h));
       
       if (summaryColIdx === -1 || indexColIdx === -1) {
         logWarn_ACU('[剧情推进] formatSummaryIndexForPlot_ACU: 未找到概要列或编码索引列，概要列索引=', summaryColIdx, ', 编码索引列索引=', indexColIdx);
-        return { success: false, content: 'Chỉ mục kỷ yếu: không tìm thấy cột 概要 hoặc cột 编码索引.' };
+        return { success: false, content: `Chỉ mục kỷ yếu: không tìm thấy cột ${OVERVIEW_COLUMN_NAME_ACU} hoặc cột ${INDEX_CODE_COLUMN_NAME_ACU}.` };
       }
 
-      let out = `## Bảng: 纪要索引\n`;
-      out += `Columns: 概要, 编码索引\n`;
+      let out = `## Bảng: Chỉ mục kỷ yếu\n`;
+      out += `Columns: ${OVERVIEW_COLUMN_NAME_ACU}, ${INDEX_CODE_COLUMN_NAME_ACU}\n`;
 
       const rows = summaryTable.content.slice(1).filter((r: any) => Array.isArray(r));
       if (rows.length === 0) {
@@ -183,7 +182,7 @@ import { getIsolationPrefix_ACU } from '../../worldbook/injection-engine';
         const summary = row[summaryColIdx] ? String(row[summaryColIdx]).trim() : '';
         const indexCode = row[indexColIdx] ? String(row[indexColIdx]).trim() : '';
         if (summary || indexCode) {
-          out += `- [${idx}] 概要: ${summary} | 编码索引: ${indexCode}\n`;
+          out += `- [${idx}] ${OVERVIEW_COLUMN_NAME_ACU}: ${summary} | ${INDEX_CODE_COLUMN_NAME_ACU}: ${indexCode}\n`;
         }
       });
       logDebug_ACU('[剧情推进] formatSummaryIndexForPlot_ACU: 成功生成纪要索引，行数=', rows.length);

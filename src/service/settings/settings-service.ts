@@ -11,6 +11,7 @@ import { DEFAULT_BUILTIN_PLOT_PRESETS_ACU, DEFAULT_CHAR_CARD_PROMPT_ACU, DEFAULT
 import { DEFAULT_AUTO_UPDATE_FREQUENCY_ACU, DEFAULT_AUTO_UPDATE_THRESHOLD_ACU, DEFAULT_AUTO_UPDATE_TOKEN_THRESHOLD_ACU, STRICT_JSON_TABLE_FILL_FORCE_DISABLE_VERSION_ACU, SUMMARY_INDEX_V2_WRITER_FORCE_ENABLE_VERSION_ACU, TABLE_FILL_PROMPT_FORCE_DEFAULT_VERSION_ACU, USER_PREFILL_PROFILE_FORCE_DEFAULT_VERSION_ACU, USER_PREFILL_VECTOR_FORCE_DEFAULT_VERSION_ACU, TABLE_TEMPLATE_DEFAULTS_REFRESH_VERSION_ACU, TEMPLATE_ASSISTANT_PROMPT_FORCE_DEFAULT_VERSION_ACU, VECTOR_MEMORY_DEFAULTS_REFRESH_VERSION_ACU, VECTOR_MEMORY_LEGACY_MIN_SCORE_DEFAULTS_ACU, VECTOR_MEMORY_RECALL_PARAM_KEYS_ACU, VECTOR_MEMORY_RECALL_PARAMS_FORCE_OVERRIDE_VERSION_ACU, VECTOR_MEMORY_SOURCE_TEXT_UPGRADE_VERSION_ACU, buildDefaultAgentWorldbookControl_ACU, buildDefaultAgentWorldbookPromptTemplates_ACU, buildDefaultPlotWorldbookConfig_ACU, buildDefaultContentOptimizationPromptGroup_ACU, defaultWorldbookConfig_ACU, defaultVectorMemoryConfig_ACU } from '../../shared/defaults';
 import { addDataIsolationHistory_ACU, ensureProfileExists_ACU, normalizeDataIsolationHistory_ACU } from '../../data/repositories/isolation-repo';
 import { TABLE_FILL_MAIN_PROMPT_HISTORY_ACU } from '../../shared/defaults-json.js';
+import { buildLegacyZhDefaultTemplateSignatureLists_ACU } from '../../shared/table-defaults/index.js';
 import { STREAMING_FORCE_DISABLE_VERSION_ACU, TABLE_FILL_TOOL_PROMPT_UPGRADE_VERSION_ACU, TABLE_FILL_TOOL_DEFAULT_OFF_VERSION_ACU } from '../../shared/defaults';
 import { adaptTableFillPromptSegmentsToToolMode_ACU } from '../ai/prompt-builder/table-fill-tools';
 import { CREATIVE_IDENTITY_PROMPT_UPGRADE_VERSION_ACU } from '../../shared/defaults';
@@ -199,6 +200,8 @@ function isDefaultTableTemplateCandidate_ACU(templateStr: any): boolean {
     .map(parseTableTemplateObjectFromString_ACU)
     .map(buildTemplateSignatureSet_ACU)
     .filter((signatures) => signatures.size > 0);
+  // Mẫu mặc định lưu từ bản còn tên tiếng Trung vẫn là mẫu mặc định chưa sửa, được làm mới sang bản tiếng Việt.
+  defaultCandidates.push(...buildLegacyZhDefaultTemplateSignatureLists_ACU().map((signatures: string[]) => new Set(signatures)));
   return defaultCandidates.some((signatures) => setsEqual_ACU(candidateSignatures, signatures));
 }
 

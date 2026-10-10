@@ -46,7 +46,7 @@ export function generateSqlConsoleTabHTML(): string {
                         <div style="position: relative;">
                             <textarea id="${SCRIPT_ID_PREFIX_ACU}-sql-input"
                                 style="width: 100%; min-height: 120px; font-family: monospace; font-size: 0.9em; padding: 10px; border: 1px solid var(--border-normal); border-radius: 6px; background: var(--input-background); color: var(--input-text-color); resize: vertical; white-space: pre;"
-                                placeholder="Nhập câu lệnh SQL...&#10;&#10;Ví dụ:&#10;  SELECT * FROM 背包物品表;&#10;  INSERT INTO 背包物品表 (物品名, 数量) VALUES ('药水', 3);"></textarea>
+                                placeholder="Nhập câu lệnh SQL...&#10;&#10;Ví dụ:&#10;  SELECT * FROM inventory;&#10;  INSERT INTO inventory (item_name, quantity) VALUES ('Thuốc hồi phục', 3);"></textarea>
                         </div>
 
                         <!-- 执行按钮 -->

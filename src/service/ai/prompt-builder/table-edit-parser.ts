@@ -13,6 +13,7 @@ import { isSqliteMode } from '../../table/storage-mode';
 import { extractStrictJsonTableFillResponse_ACU } from './strict-json-table-fill';
 import { stripJsonCommentsPreservingStrings_ACU } from '../../../shared/json-helpers';
 import { allocateStableRowId_ACU, createStableRowIdReservation_ACU } from '../../../shared/stable-row-id-allocator';
+import { isOutlineSheetName_ACU, isSummarySheetName_ACU } from '../../../shared/builtin-names.js';
 
   function normalizeAiResponseForTableEditParsing_ACU(text: string) {
     if (typeof text !== 'string') return '';
@@ -279,8 +280,8 @@ import { allocateStableRowId_ACU, createStableRowIdReservation_ACU } from '../..
                 const table = sheets[tableIndex];
                 if (!table || !table.name) return;
                 if (!isSummaryOrOutlineTable_ACU(table.name)) return;
-                if (table.name === '总结表') summaryInsertCount++;
-                if (table.name === '总体大纲') outlineInsertCount++;
+                if (isSummarySheetName_ACU(table.name)) summaryInsertCount++;
+                if (isOutlineSheetName_ACU(table.name)) outlineInsertCount++;
             } catch (e) {}
         });
     }

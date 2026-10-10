@@ -1,4 +1,5 @@
 import { ensureExportConfigDefaults_ACU } from './injection-engine-config';
+import { EXPORT_AUXILIARY_SUFFIX_PATTERN_ACU, hasImportEntryPrefix_ACU } from '../../shared/builtin-names.js';
 
 export const EXTERNAL_CUSTOM_TABLE_EXPORT_MARKER_VERSION_ACU = 1;
 const MARKER_PATTERN_ACU = /<!--\s*ACU_CUSTOM_TABLE_EXPORT_V1\s+({[\s\S]*?})\s*-->/;
@@ -48,7 +49,7 @@ export function parseExternalCustomTableExportMarker_ACU(comment: unknown): Exte
 
 export function isExternalImportLorebookEntry_ACU(entry: Record<string, any>): boolean {
   const raw = String(entry?.comment || entry?.name || '').trim().replace(/^ACU-\[[^\]]+\]-/, '');
-  return raw.startsWith('外部导入-');
+  return hasImportEntryPrefix_ACU(raw);
 }
 
 function normalizeInternalComment_ACU(entry: Record<string, any>): string {
@@ -119,7 +120,7 @@ export function resolveGeneratedEntriesForTable_ACU(entries: Record<string, any>
   }).length;
   if (sameEntryNameCount !== 1) return [];
   const escapedEntryName = entryName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const mainCommentPattern = new RegExp(`^TavernDB-ACU-CustomExport-${escapedEntryName}(?:-(?:表头|包裹-上|包裹-下|[1-9]\\d*))?$`);
+  const mainCommentPattern = new RegExp(`^TavernDB-ACU-CustomExport-${escapedEntryName}(?:-(?:${EXPORT_AUXILIARY_SUFFIX_PATTERN_ACU}|[1-9]\\d*))?$`);
   const extraIndexEntryName = String(config.extraIndexEntryName || '').trim();
   const escapedIndexName = extraIndexEntryName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const indexCommentPattern = config.extraIndexEnabled === true && extraIndexEntryName

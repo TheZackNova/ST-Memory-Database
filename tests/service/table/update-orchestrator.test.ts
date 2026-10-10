@@ -3104,7 +3104,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     vi.mocked(isSummaryOrOutlineTable_ACU).mockImplementation(() => false);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('không thể xác định chính xác row_id lịch sử của 纪要表 bị thao tác data_replace ảnh hưởng');
+    expect(result.error).toContain('không thể xác định chính xác row_id lịch sử của bảng kỷ yếu bị thao tác data_replace ảnh hưởng');
     expect(mockClearManualRefillSheetDataInRange).not.toHaveBeenCalled();
     expect(mockSnapshotSummaryVectorMirrorExcludingRowsNow).not.toHaveBeenCalled();
   });
@@ -3147,7 +3147,7 @@ describe('orchestrateManualUpdate_ACU', () => {
     vi.mocked(isSummaryOrOutlineTable_ACU).mockImplementation(() => false);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('không thể xác nhận row_id lịch sử của bảng 纪要表 sheet_0');
+    expect(result.error).toContain('không thể xác nhận row_id lịch sử của bảng kỷ yếu sheet_0');
     expect(mockClearManualRefillSheetDataInRange).not.toHaveBeenCalled();
     expect(mockSnapshotSummaryVectorMirrorExcludingRowsNow).not.toHaveBeenCalled();
   });

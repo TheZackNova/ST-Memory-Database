@@ -10,6 +10,7 @@
 import { defineStore } from 'pinia';
 import {
   ACU_V2_BUILTIN_THEMES,
+  ACU_V2_BUILTIN_THEME_LEGACY_NAMES,
   ACU_V2_DEFAULT_THEME_ID,
   ACU_V2_THEME_MIGRATION_VERSION,
 } from '../theme/builtin-themes';
@@ -151,7 +152,8 @@ function makeUniqueCustomThemeId(
 
 function findBuiltinThemeByName(name: string): AcuV2Theme | undefined {
   const normalizedName = sanitizeThemeName(name);
-  return ACU_V2_BUILTIN_THEMES.find(t => sanitizeThemeName(t.name) === normalizedName);
+  const legacyId = ACU_V2_BUILTIN_THEME_LEGACY_NAMES[normalizedName];
+  return ACU_V2_BUILTIN_THEMES.find(t => t.id === legacyId || sanitizeThemeName(t.name) === normalizedName);
 }
 
 function normalizeThemeSource(
