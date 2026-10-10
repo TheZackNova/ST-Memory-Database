@@ -1,10 +1,11 @@
-# 龙血玄黄·数据库 — Bản tiếng Việt
+# Long Huyết Huyền Hoàng · CSDL (龙血玄黄·数据库) — Bản tiếng Việt
 
 Tiện ích **trí nhớ dạng bảng** cho [SillyTavern](https://github.com/SillyTavern/SillyTavern). Sau mỗi lượt trả lời của AI, tiện ích tự động đọc diễn biến mới, cập nhật một bộ bảng dữ liệu (nhân vật, địa điểm, vật phẩm, nhiệm vụ, kỷ yếu…) và đưa phần liên quan trở lại ngữ cảnh. Nhờ vậy câu chuyện dài hàng trăm tầng vẫn giữ được chi tiết mà không làm phình ngữ cảnh.
 
 Đây là bản Việt hoá của dự án gốc tiếng Trung (tên gốc: 龙血玄黄·数据库 / AutoCardUpdater). Giao diện, thông báo, prompt mặc định và bảng mẫu đã được dịch sang tiếng Việt; dữ liệu và cấu hình cũ từ bản tiếng Trung vẫn dùng được (xem [Chuyển từ bản tiếng Trung](#chuyển-từ-bản-tiếng-trung)).
 
 - Phiên bản hiện tại: **1.2.9**
+- Tên hiển thị: **Long Huyết Huyền Hoàng · CSDL** (trong Manage extensions), **Nailong · CSDL I** (thanh bên và nút mở giao diện).
 - Cài được theo hai cách: **extension của SillyTavern** hoặc **script của Tavern Helper (酒馆助手)**.
 
 ---
@@ -82,7 +83,7 @@ Dùng cách này nếu bạn đã cài [Tavern Helper](https://github.com/N0VI02
 
 ## Bắt đầu nhanh
 
-1. **Mở bảng điều khiển**: bấm nút menu tiện ích (biểu tượng đũa phép ở ô nhập chat) → chọn **奶·数据库 I** (biểu tượng cơ sở dữ liệu).
+1. **Mở bảng điều khiển**: bấm nút menu tiện ích (biểu tượng đũa phép ở ô nhập chat) → chọn **Nailong · CSDL I** (biểu tượng cơ sở dữ liệu).
 2. **Cấu hình API** (trang **API**): chọn dùng kết nối hiện tại của SillyTavern, một preset kết nối, hoặc nhập API tùy chỉnh (URL + khoá + mô hình). Nên dùng mô hình rẻ, nhanh, làm theo hướng dẫn tốt cho việc điền bảng.
 3. **Mở hoặc tạo một cuộc trò chuyện** với thẻ nhân vật bất kỳ.
 4. **Chat bình thường.** Sau mỗi phản hồi của AI, tiện ích tự điền bảng; tiến độ hiện ở bong bóng thông báo (hoặc cạnh thú cưng màn hình).
@@ -214,7 +215,7 @@ Nếu bạn đã dùng bản tiếng Trung trước đó:
   - Prompt thay thế/tối ưu nội dung, prompt vector
 - **Nên sao lưu trước** (Quản lý dữ liệu → Sao lưu) khi đổi phiên bản.
 
-Một số dấu nhận diện nội bộ vẫn giữ chữ Hán vì là định danh dùng để dọn dẹp và bảo vệ dữ liệu: tiền tố mục `外部导入-`, các mục cố định của bảng kiểu cũ, tên tiện ích `龙血玄黄·数据库`.
+Một số dấu nhận diện nội bộ vẫn giữ chữ Hán vì là định danh dùng để dọn dẹp và bảo vệ dữ liệu: tiền tố mục `外部导入-`, các mục cố định của bảng kiểu cũ. Tên script trong Tavern Helper (`@name`) và tên tệp JSON vẫn là `龙血玄黄·数据库` để bản cài cũ nhận đúng script khi cập nhật.
 
 ---
 
