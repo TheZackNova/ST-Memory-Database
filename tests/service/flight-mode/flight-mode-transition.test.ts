@@ -92,7 +92,7 @@ describe('flight-mode-transition', () => {
   it('启用时经正式协调提交，且不直写模板 scope', async () => {
     // 协调层按显示名派生真实 key；运行时数据是提交后的权威来源。
     h.commit.mockImplementation(async () => {
-      h.tableData.sheet_da_zong_jie = { name: '大总结', content: [['row_id', '总结']] };
+      h.tableData.sheet_bang_tom_tat_lon = { name: 'Bảng tóm tắt lớn', content: [['row_id', 'Tóm tắt']] };
       return { saved: true, mode: 'v2_commit' };
     });
 
@@ -100,7 +100,11 @@ describe('flight-mode-transition', () => {
 
     const [submitted, options] = h.commit.mock.calls[0];
     expect(submitted.sheet_chronicle.exportConfig).toMatchObject({ entryType: 'constant', extraIndexEnabled: false });
-    expect(submitted.sheet_acu_flight_big_summary).toMatchObject({ name: '大总结' });
+    expect(submitted.sheet_acu_flight_big_summary).toMatchObject({
+      name: 'Bảng tóm tắt lớn',
+      content: [['row_id', 'Tóm tắt']],
+      sourceData: { tableAliases: ['大总结'], columnAliases: { summary_text: ['总结'] } },
+    });
     expect(submitted.sheet_acu_flight_big_summary.updateConfig).toEqual(submitted.sheet_chronicle.updateConfig);
     expect(h.container.fillModeByIsolationKey['']).toMatchObject({ mode: 'classic', recordedAt: expect.any(Number) });
     // 启用不得硬删任何表。

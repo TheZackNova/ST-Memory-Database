@@ -1,7 +1,7 @@
 /** 当前会话的模式兼容证据；只读，不修改历史表格或向量数据。 */
 import { getChatArray_ACU } from '../../data/gateways/chat-gateway';
 import { readIsolatedTagData_ACU } from '../../data/repositories/chat-message-data-repo';
-import { FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU } from '../../shared/models/flight-mode-model';
+import { isFlightModeBigSummarySheetName_ACU } from '../../shared/models/flight-mode-model';
 import { isSummaryOrOutlineTable_ACU } from '../../shared/utils';
 import { currentJsonTableData_ACU, getCurrentIsolationKey_ACU } from '../runtime/state-manager';
 
@@ -17,7 +17,7 @@ export function hasLegacyFillModeTableData_ACU(): boolean {
   const data = currentJsonTableData_ACU;
   if (!data || typeof data !== 'object' || !hasExistingTableDataForCurrentChat_ACU(data)) return false;
   return !Object.entries(data).some(([key, sheet]: [string, any]) =>
-    key.startsWith('sheet_') && sheet?.name === FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU);
+    key.startsWith('sheet_') && isFlightModeBigSummarySheetName_ACU(sheet?.name));
 }
 
 /** 只取当前 isolation 的最新旧索引；历史正计数不代表当前仍有向量。 */

@@ -5,6 +5,7 @@ import { isSummaryOrOutlineTable_ACU } from '../../../src/shared/utils';
 import { buildFlightModeBigSummarySheet_ACU } from '../../../src/service/flight-mode/big-summary-sheet-def';
 import {
   FLIGHT_MODE_BIG_SUMMARY_SHEET_KEY_ACU,
+  isFlightModeBigSummarySheetName_ACU,
 } from '../../../src/shared/models/flight-mode-model';
 import {
   RECENT_CHRONICLE_ROWS_PLACEHOLDER_ACU,
@@ -58,8 +59,15 @@ describe('buildFlightModeBigSummarySheet_ACU', () => {
     };
 
     expect(isSummaryOrOutlineTable_ACU(sheet.name)).toBe(false);
-    expect(getPhysicalTableNameForSheet_ACU(data, FLIGHT_MODE_BIG_SUMMARY_SHEET_KEY_ACU)).toBe('dazongjie');
+    expect(getPhysicalTableNameForSheet_ACU(data, FLIGHT_MODE_BIG_SUMMARY_SHEET_KEY_ACU)).toBe('bangtomtatlon');
     expect(getPhysicalTableNameForSheet_ACU(data, 'sheet_summary')).toBe('zongjiebiao');
     expect(getPhysicalTableNameForSheet_ACU(data, 'sheet_chronicle')).toBe('jiyaobiao');
+  });
+
+  it('nhận cả tên tiếng Việt hiện tại lẫn tên tiếng Trung của chat cũ', () => {
+    expect(isFlightModeBigSummarySheetName_ACU('Bảng tóm tắt lớn')).toBe(true);
+    expect(isFlightModeBigSummarySheetName_ACU(' 大总结 ')).toBe(true);
+    expect(isFlightModeBigSummarySheetName_ACU('Bảng kỷ yếu')).toBe(false);
+    expect(isFlightModeBigSummarySheetName_ACU('')).toBe(false);
   });
 });

@@ -155,7 +155,7 @@ describe.each(['native', 'sqlite'] as const)('flight mode lifecycle (%s)', (mode
     expect(summaryKey).toMatch(/^sheet_/);
     expect(summaryKey).not.toBe('sheet_acu_flight_big_summary');
     expect(h.data.sheet_chronicle.exportConfig).toMatchObject({ entryType: 'constant', extraIndexEnabled: false });
-    expect(h.data[summaryKey]).toMatchObject({ name: '大总结' });
+    expect(h.data[summaryKey]).toMatchObject({ name: 'Bảng tóm tắt lớn' });
 
     const beforeWrite = clone(h.data);
     const afterWrite = clone(h.data);
@@ -207,7 +207,7 @@ describe.each(['native', 'sqlite'] as const)('flight mode lifecycle (%s)', (mode
 
     await expect(enableFlightMode_ACU()).resolves.toEqual({ ok: true, visibleChronicleRowCount: 3 });
     expect(getCurrentFlightModeState_ACU()).toMatchObject({ enabled: true, bigSummarySheetKey: summaryKey });
-    expect(h.data[summaryKey]).toMatchObject({ name: '大总结' });
+    expect(h.data[summaryKey]).toMatchObject({ name: 'Bảng tóm tắt lớn' });
 
     await expect(disableFlightMode_ACU()).resolves.toEqual({ ok: true });
     expect(getCurrentFlightModeState_ACU()).toMatchObject({ enabled: false, hiddenRowIds: [] });
@@ -255,7 +255,7 @@ describe.each(['native', 'sqlite'] as const)('flight mode lifecycle (%s)', (mode
       const enabled = getCurrentFlightModeState_ACU();
       expect(enabled).toMatchObject({ enabled: true, hiddenRowIds: [] });
       const summaryKey = enabled.bigSummarySheetKey;
-      expect(h.data[summaryKey]).toMatchObject({ name: '大总结' });
+      expect(h.data[summaryKey]).toMatchObject({ name: 'Bảng tóm tắt lớn' });
       expect(h.data.sheet_chronicle.exportConfig).toMatchObject({ entryType: 'constant', extraIndexEnabled: false });
 
       // 原无 DDL 表在提交后的权威状态中获得合法 fallback DDL，数据保留。

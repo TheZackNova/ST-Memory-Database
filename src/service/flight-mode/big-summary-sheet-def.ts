@@ -2,7 +2,9 @@ import type { Sheet_ACU, SheetExportConfig_ACU, SheetUpdateConfig_ACU } from '..
 import {
   FLIGHT_MODE_BIG_SUMMARY_SHEET_KEY_ACU,
   FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU,
+  FLIGHT_MODE_BIG_SUMMARY_SHEET_NAMES_ACU,
 } from '../../shared/models/flight-mode-model';
+import { buildDefaultExtraIndexEntryName_ACU } from '../../shared/builtin-names.js';
 import { RECENT_CHRONICLE_ROWS_PLACEHOLDER_ACU as N_ACU } from '../fill-mode/fill-mode-preferences';
 
 const FLIGHT_MODE_BIG_SUMMARY_ENTRY_PLACEMENT_ACU = {
@@ -35,9 +37,9 @@ export function buildFlightModeBigSummarySheet_ACU(
     entryType: 'constant',
     keywords: '',
     preventRecursion: true,
-    injectionTemplate: '<大总结>\n$1\n</大总结>',
+    injectionTemplate: '<Tóm tắt lớn>\n$1\n</Tóm tắt lớn>',
     extraIndexEnabled: false,
-    extraIndexEntryName: `${FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU}-索引`,
+    extraIndexEntryName: buildDefaultExtraIndexEntryName_ACU(FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU),
     extraIndexColumns: [],
     extraIndexColumnModes: {},
     extraIndexInjectionTemplate: '',
@@ -56,9 +58,12 @@ export function buildFlightModeBigSummarySheet_ACU(
       deleteNode: 'Cấm xóa bất kỳ tóm tắt lớn nào đã có.',
       updateNode: 'Cấm sửa bất kỳ tóm tắt lớn nào đã có; tóm tắt lớn đã có là bản ghi giai đoạn lịch sử bất biến.',
       insertNode: `Chỉ khi kỷ yếu đang hiển thị đạt ${N_ACU} mục (bao gồm vượt quá), mới thêm một hàng tóm tắt đầy đủ dựa trên toàn bộ nội dung đang hiển thị của bảng kỷ yếu hiện tại, và đảm bảo mạch lạc logic với các tóm tắt lớn trước đó; ít hơn ${N_ACU} mục thì cấm thêm. Không cần ghi phạm vi tham chiếu kỷ yếu.`,
-      ddl: `CREATE TABLE flight_big_summary ( -- ${FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU}\n  row_id INTEGER PRIMARY KEY, -- 行号\n  summary_text TEXT NOT NULL -- 总结\n);`,
+      ddl: `CREATE TABLE flight_big_summary ( -- ${FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU}\n  row_id INTEGER PRIMARY KEY, -- Số hàng\n  summary_text TEXT NOT NULL -- Tóm tắt\n);`,
+      // Chat cũ tạo bảng này với tên/cột tiếng Trung; bí danh giúp đối chiếu mẫu nhận là cùng bảng, cùng cột.
+      tableAliases: FLIGHT_MODE_BIG_SUMMARY_SHEET_NAMES_ACU.slice(1),
+      columnAliases: { summary_text: ['总结'] },
     },
-    content: [['row_id', '总结']],
+    content: [['row_id', 'Tóm tắt']],
     updateConfig,
     exportConfig,
     orderNo: nextOrderNo_ACU(template),
