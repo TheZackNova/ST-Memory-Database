@@ -11,9 +11,9 @@ const escape_ACU = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/
 const OWNED_BLOCK_ACU = new RegExp(`(?:\\r?\\n)*(?:${escape_ACU(START_V1_ACU)}[\\s\\S]*?${escape_ACU(END_V1_ACU)}|${escape_ACU(START_ACU)}[\\s\\S]*?${escape_ACU(END_ACU)})(?:\\r?\\n)*`, 'g');
 const SECTION_ORDER_ACU: WorldGuidanceSignalVoice_ACU[] = ['encounter', 'rumor', 'ambient'];
 const SECTION_LABELS_ACU: Record<WorldGuidanceSignalVoice_ACU, string> = {
-  encounter: '【此地此刻】',
-  rumor: '【风闻轶事】',
-  ambient: '【世界暗流】',
+  encounter: '【Nơi đây lúc này】',
+  rumor: '【Phong văn dật sự】',
+  ambient: '【Dòng ngầm thế giới】',
 };
 
 export const WORLD_SIMULATION_PROJECTION_PLACEHOLDER_ACU = '$WORLD_SIGNALS';
@@ -23,10 +23,10 @@ export const DEFAULT_WORLD_SIMULATION_PROJECTION_TEMPLATE_ACU = `${HIDDEN_OPEN_A
 
 /** 起止标记由插件固定加在模板外层，模板里再出现会破坏剥离与替换。 */
 export function worldSimulationProjectionTemplateError_ACU(template: unknown): string | null {
-  if (typeof template !== 'string' || !template.trim()) return '格式模板不能为空';
-  if (template.length > WORLD_SIMULATION_PROJECTION_TEMPLATE_MAX_CHARS_ACU) return `格式模板不能超过 ${WORLD_SIMULATION_PROJECTION_TEMPLATE_MAX_CHARS_ACU} 字`;
-  if (template.split(WORLD_SIMULATION_PROJECTION_PLACEHOLDER_ACU).length !== 2) return `格式模板必须恰好包含一次 ${WORLD_SIMULATION_PROJECTION_PLACEHOLDER_ACU}`;
-  if (template.includes('qrf-world-simulation-projection:v')) return '格式模板不能包含插件的起止标记，它们会自动加在外层';
+  if (typeof template !== 'string' || !template.trim()) return 'Mẫu định dạng không được để trống';
+  if (template.length > WORLD_SIMULATION_PROJECTION_TEMPLATE_MAX_CHARS_ACU) return `Mẫu định dạng không được vượt quá ${WORLD_SIMULATION_PROJECTION_TEMPLATE_MAX_CHARS_ACU} ký tự`;
+  if (template.split(WORLD_SIMULATION_PROJECTION_PLACEHOLDER_ACU).length !== 2) return `Mẫu định dạng phải chứa đúng một lần ${WORLD_SIMULATION_PROJECTION_PLACEHOLDER_ACU}`;
+  if (template.includes('qrf-world-simulation-projection:v')) return 'Mẫu định dạng không được chứa dấu đánh dấu bắt đầu/kết thúc của plugin, chúng sẽ tự động được thêm vào bên ngoài';
   return null;
 }
 

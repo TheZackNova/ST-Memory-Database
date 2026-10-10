@@ -15,12 +15,12 @@ function fail_ACU(phase: WorldSimulationErrorPhase_ACU, code: 'WORLD_SIMULATION_
 export function resolveWorldSimulationApiPreset_ACU(settings: Pick<Settings_ACU, 'apiPresetMode' | 'fixedApiPresetName'>, phase: WorldSimulationErrorPhase_ACU, dependencies: WorldSimulationApiPresetDependencies_ACU = defaults_ACU): WorldSimulationResolvedApiPreset_ACU {
   if (settings.apiPresetMode === 'fixed') {
     const presetName = settings.fixedApiPresetName.trim();
-    if (!presetName) fail_ACU(phase, 'WORLD_SIMULATION_API_PRESET_MISSING', '固定格林推演 API 预设不能为空');
+    if (!presetName) fail_ACU(phase, 'WORLD_SIMULATION_API_PRESET_MISSING', 'Preset API mô phỏng thế giới cố định không được để trống');
     const resolved = dependencies.resolvePreset(presetName);
-    if (!resolved.resolved) fail_ACU(phase, 'WORLD_SIMULATION_API_PRESET_MISSING', '格林推演 API 预设不存在或已失效');
+    if (!resolved.resolved) fail_ACU(phase, 'WORLD_SIMULATION_API_PRESET_MISSING', 'Preset API mô phỏng thế giới không tồn tại hoặc đã hết hiệu lực');
     return { presetName, source: 'fixed', reason: 'fixed_preset', apiMode: resolved.apiMode, apiConfig: resolved.apiConfig, tavernProfile: resolved.tavernProfile };
   }
-  if (settings.apiPresetMode !== 'current') fail_ACU(phase, 'WORLD_SIMULATION_CONFIG_INVALID', '格林推演 API 预设模式非法');
+  if (settings.apiPresetMode !== 'current') fail_ACU(phase, 'WORLD_SIMULATION_CONFIG_INVALID', 'Chế độ preset API mô phỏng thế giới không hợp lệ');
   const resolved = dependencies.resolvePreset('');
   // 当前配置模式下渠道必须在发请求时回读：run 级捕获 + 全局写入替换引用会让定值永久陈旧。
   return withLiveCurrentChannel_ACU(

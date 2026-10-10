@@ -37,7 +37,7 @@ describe('world dynamics', () => {
     }), settings({ rumorTTLDays: 2 }));
     expect(result.sweptSeedIds).toEqual(['seed-1']);
     expect(result.ledger.seeds[0]).toMatchObject({ status: 'retired', retiredReason: 'missed', revision: 1 });
-    expect(result.ledger.chronicle[0].summary).toBe('[错过] 矿洞塌了');
+    expect(result.ledger.chronicle[0].summary).toBe('[Bỏ lỡ] 矿洞塌了');
     expect(result.deadRumorIds).toEqual(['rumor-1']);
   });
 
@@ -83,7 +83,7 @@ describe('world dynamics', () => {
     expect(open).toMatchObject({ playerRegion: '青阳城', collidedSeeds: ['seed-1'], ripeRumors: ['rumor-1'], secludedNote: null });
     const closed = detectWorldCollisions_ACU(ledger({ player: player('青阳城', 'secluded'), rumors: [rumor({ status: 'ripe' })] }));
     expect(closed.ripeRumors).toEqual([]);
-    expect(closed.secludedNote).toMatch(/传闻渠道不可用/);
+    expect(closed.secludedNote).toMatch(/kênh tin đồn không khả dụng/);
   });
 
   it('碰撞 region 规范化后匹配种子与传闻渠道', () => {
@@ -97,11 +97,11 @@ describe('world dynamics', () => {
   it('on_collision 未兑现与 latent 传闻泄露记为违规', () => {
     const report = { playerRegion: '青阳城', playerContact: 'open' as const, secludedNote: null, collidedSeeds: ['seed-1'], ripeRumors: [] };
     const base = ledger({ seeds: [seed()], rumors: [rumor()] });
-    expect(assertCollisionFulfillment_ACU(report, { signals: [], excludedFacts: [], evidenceRefs: [] }, base)).toEqual(['碰撞种子 seed-1 缺少 encounter 信号']);
+    expect(assertCollisionFulfillment_ACU(report, { signals: [], excludedFacts: [], evidenceRefs: [] }, base)).toEqual(['Hạt giống va chạm seed-1 thiếu tín hiệu encounter']);
     expect(assertCollisionFulfillment_ACU(report, {
       signals: [{ text: '铁匠死在北岭', voice: 'ambient' }, { text: '矿难', voice: 'encounter', sourceId: 'seed-1' }],
       excludedFacts: [], evidenceRefs: [],
-    }, base).join('\n')).toMatch(/latent 传闻 rumor-1/);
+    }, base).join('\n')).toMatch(/latent rumor-1/);
   });
 
   it('open 到访写入 regionVisits，secluded 不追加', () => {

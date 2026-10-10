@@ -57,9 +57,9 @@ describe('读取门禁状态机', () => {
     const decision = await gateAgentReadBatch_ACU([{ label: '$BIG', text: 'x'.repeat(301) }], state, config_ACU(), 0, countByLength_ACU);
     expect(decision.allowed).toBe(false);
     expect(decision.reason).toBe('read-batch-too-large');
-    expect(decision.report).toContain('超过单批次上限 300 tokens');
-    expect(decision.report).toContain('$BIG：实测 301 tokens');
-    expect(decision.report).toContain('修正协议');
+    expect(decision.report).toContain('vượt giới hạn mỗi lô 300 tokens');
+    expect(decision.report).toContain('$BIG: đo thực tế 301 tokens');
+    expect(decision.report).toContain('Quy ước sửa');
   });
 
   it('临近压缩阈值时只放行兜底额度内的小读取', async () => {
@@ -67,8 +67,8 @@ describe('读取门禁状态机', () => {
     // H=980，任何批次都会把上下文推过 S=1000。
     const big = await gateAgentReadBatch_ACU([{ label: '$BIG', text: 'x'.repeat(80) }], createAgentReadGateState_ACU(), nearThreshold, 980, countByLength_ACU);
     expect(big).toMatchObject({ allowed: false, reason: 'near-compaction-overflow' });
-    expect(big.report).toContain('临近总结阈值');
-    expect(big.report).toContain('精读兜底额度 50 tokens');
+    expect(big.report).toContain('gần ngưỡng tóm tắt');
+    expect(big.report).toContain('hạn mức đọc kỹ dự phòng 50 tokens');
 
     // B <= F：已经精细到最小读取，放行，随后越阈交给压缩机制。
     const small = await gateAgentReadBatch_ACU([{ label: '$SMALL', text: 'x'.repeat(40) }], createAgentReadGateState_ACU(), nearThreshold, 980, countByLength_ACU);

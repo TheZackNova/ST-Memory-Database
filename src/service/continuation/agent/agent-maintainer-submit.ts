@@ -11,12 +11,12 @@ export function maintainerDeltaSql_ACU(
   const literal = (value: unknown): string => {
     if (value === null) return 'NULL';
     if (typeof value === 'number') {
-      if (!Number.isFinite(value)) throw new Error('维护写集含非法数值');
+      if (!Number.isFinite(value)) throw new Error('Tập ghi bảo trì chứa giá trị số không hợp lệ');
       return String(value);
     }
     if (typeof value === 'boolean') return value ? '1' : '0';
     const text = typeof value === 'string' ? value : JSON.stringify(value);
-    if (text === undefined) throw new Error('维护写集含不可序列化栏目');
+    if (text === undefined) throw new Error('Tập ghi bảo trì chứa cột không thể tuần tự hóa');
     return `'${text.replace(/'/g, "''")}'`;
   };
   const column = (field: string): string => field.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);

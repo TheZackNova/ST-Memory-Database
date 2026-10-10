@@ -71,32 +71,62 @@ export function buildV51MaintainerQaPrompt_ACU(): ContinuationPromptSegment_ACU[
 export function maintainerFormatAnswer_ACU(mode: AgentToolMode_ACU): string {
   return AGENT_FORMAT_ANSWER_MARKER_ACU + [
     mode === 'tools'
-      ? '我的最终交付调用 submit，参数为：{"summary":"本次结算、轮目标达成度与尚存缺口","delta":{"hooks":[],"infoGap":[],"chronology":[],"constraintProposals":[]}}。全部维护变化放进这一次交付，不与调阅或 write_sql 同回复调用。'
-      : '我的最终交付是一个 JSON 对象：{"summary":"本次结算、轮目标达成度与尚存缺口","delta":{"hooks":[],"infoGap":[],"chronology":[],"constraintProposals":[]}}。只输出完整对象，不附加 Markdown 或解释。',
-    '优先一次交付 summary + delta：程序负责栏目映射、修订号校验、保存与回读；完整保存后任务直接结束，无需再次确认。无可证实变化时省略 delta，只交付逐项核对结果；summary 本身不是保存证明。',
-    'delta 只含 hooks、infoGap、chronology 的变化条目及 constraintProposals 文本数组，不写 storyArc 或长期约束。条目 action 为 upsert、patch 或 retire：新建用 upsert，id 可省略；修改用 patch，带真实 id 和实际变化的栏目；退役用 retire，带真实 id 与非空 reason。漏写既有条目不等于删除。',
-    '字段使用 camelCase。hooks：summary、status、importance、plantedIndex、plannedPayoff；infoGap：topic、objectiveFact、readerKnown、characterKnowledge（[{"name":"角色","knows":"有渠道的所知"}]）、revealStatus、revealIndex；chronology：anchor、elapsed、precision、transition、evidenceIndexes。新建提交完整业务字段，时间修改提交完整时间字段。真实楼层号取正文标注，不按回复顺序重编号。',
-    'hooks.status 为 planted、reinforced、misled、partially_paid、paid 或 abandoned，importance 为 high、mid 或 low；revealStatus 为 unrevealed、partial 或 revealed，未揭示时 revealIndex 为 null；precision 为 exact、approximate 或 unknown。数组直接使用数组，不编码成文本。',
+      ? 'Bàn giao cuối cùng của tôi gọi submit, tham số là: {"summary":"kết toán lần này, mức đạt mục tiêu lượt và chỗ còn thiếu","delta":{"hooks":[],"infoGap":[],"chronology":[],"constraintProposals":[]}}. Mọi thay đổi bảo trì đặt trong một lần bàn giao này, không gọi cùng phản hồi với tra cứu hay write_sql.'
+      : 'Bàn giao cuối cùng của tôi là một đối tượng JSON: {"summary":"kết toán lần này, mức đạt mục tiêu lượt và chỗ còn thiếu","delta":{"hooks":[],"infoGap":[],"chronology":[],"constraintProposals":[]}}. Chỉ xuất đối tượng đầy đủ, không kèm Markdown hay giải thích.',
+    'Ưu tiên bàn giao một lần summary + delta: chương trình lo ánh xạ cột, kiểm số sửa đổi, lưu và đọc lại; lưu đầy đủ xong là nhiệm vụ kết thúc luôn, không cần xác nhận lại. Khi không có thay đổi chứng thực được thì bỏ delta, chỉ bàn giao kết quả đối chiếu từng mục; bản thân summary không phải bằng chứng đã lưu.',
+    'delta chỉ chứa các mục thay đổi của hooks, infoGap, chronology và mảng văn bản constraintProposals, không ghi storyArc hay ràng buộc dài hạn. action của mục là upsert, patch hoặc retire: tạo mới dùng upsert, id có thể bỏ; sửa dùng patch, mang id thật và các cột thực sự thay đổi; ngừng dùng thì retire, mang id thật và reason không rỗng. Ghi thiếu mục đã có không có nghĩa là xóa.',
+    'Trường dùng camelCase. hooks: summary, status, importance, plantedIndex, plannedPayoff; infoGap: topic, objectiveFact, readerKnown, characterKnowledge ([{"name":"nhân vật","knows":"điều biết có kênh"}]), revealStatus, revealIndex; chronology: anchor, elapsed, precision, transition, evidenceIndexes. Tạo mới nộp đủ trường nghiệp vụ, sửa thời gian nộp đủ trường thời gian. Số tầng thật lấy theo nhãn trong chính văn, không đánh số lại theo thứ tự phản hồi.',
+    'hooks.status là planted, reinforced, misled, partially_paid, paid hoặc abandoned, importance là high, mid hoặc low; revealStatus là unrevealed, partial hoặc revealed, chưa tiết lộ thì revealIndex là null; precision là exact, approximate hoặc unknown. Mảng dùng trực tiếp là mảng, không mã hóa thành văn bản.',
     mode === 'tools'
-      ? '确需补读时调用 read，reads 为非空授权地址数组；全部缺口在同一次 read 读齐。不调用 search 或出网工具。'
-      : '确需补读时输出 {"action":"read","reads":["授权地址"]}；全部缺口在同一次动作读齐。不输出 search 或出网动作。',
-    '每轮至多一个成功读取批次，失败按回执修正后可重试；固定资料足够时不读。读取与交付不混在同一回复。只在本次允许写入时提交 delta。',
+      ? 'Khi thực sự cần đọc bổ sung thì gọi read, reads là mảng địa chỉ được ủy quyền không rỗng; đọc đủ mọi chỗ thiếu trong cùng một lần read. Không gọi search hay công cụ ra ngoài.'
+      : 'Khi thực sự cần đọc bổ sung thì xuất {"action":"read","reads":["địa chỉ được ủy quyền"]}; đọc đủ mọi chỗ thiếu trong cùng một hành động. Không xuất hành động search hay ra ngoài.',
+    'Mỗi lượt tối đa một lô đọc thành công, thất bại thì sửa theo biên nhận rồi có thể thử lại; tài liệu cố định đủ thì không đọc. Đọc và bàn giao không lẫn trong cùng một phản hồi. Chỉ khi lần này được phép ghi mới nộp delta.',
     mode === 'tools'
-      ? '兼容路径：写入时单独调用 write_sql，参数为 {"sql":"全部受限 SQL"}；收到回执后单独调用 submit 交付 summary，不再用 delta 重发已保存栏目。'
-      : '兼容路径：写入时单独输出 {"action":"write_sql","sql":"全部受限 SQL"}；收到回执后单独输出最终交付 summary，不再用 delta 重发已保存栏目。',
-    '兼容 SQL 仅写 hooks、info_gap、chronology、constraint_proposals，使用受限 INSERT/UPDATE/DELETE。列名 snake_case，字符串单引号加倍，数组用 JSON 文本；新行 expected_revision=0，修改/删除带真实 id 和当前模块 expected_revision，DELETE 带 reason。',
-    '局部失败时已保存内容保留；只按回执的真实 ID 提交缺栏或被拒栏的 patch，不重发 INSERT、成功模块或已保存字段。保存状态未知时不得继续猜写或宣称完成。',
+      ? 'Đường tương thích: khi ghi, gọi riêng write_sql, tham số là {"sql":"toàn bộ SQL bị hạn chế"}; nhận biên nhận rồi gọi riêng submit để bàn giao summary, không dùng delta gửi lại các cột đã lưu.'
+      : 'Đường tương thích: khi ghi, xuất riêng {"action":"write_sql","sql":"toàn bộ SQL bị hạn chế"}; nhận biên nhận rồi xuất riêng bàn giao cuối cùng summary, không dùng delta gửi lại các cột đã lưu.',
+    'SQL tương thích chỉ ghi hooks, info_gap, chronology, constraint_proposals, dùng INSERT/UPDATE/DELETE bị hạn chế. Tên cột snake_case, chuỗi có nháy đơn thì viết gấp đôi, mảng dùng văn bản JSON; dòng mới expected_revision=0, sửa/xóa mang id thật và expected_revision hiện tại của module, DELETE mang reason.',
+    'Khi thất bại cục bộ, nội dung đã lưu được giữ lại; chỉ theo ID thật trong biên nhận mà nộp patch cho cột thiếu hoặc cột bị từ chối, không gửi lại INSERT, module đã thành công hay cột đã lưu. Khi trạng thái lưu không rõ thì không được tiếp tục đoán ghi hay tuyên bố hoàn tất.',
   ].join('\n\n');
 }
 
-/** 当前默认只更新格式与保存核对段，其余职责、资料和元数据保持不变。 */
+/** 当前默认：与 V51 同样的段序，格式与保存核对段为现行写法；V51 冻结构造器仅供精确迁移。 */
 export function buildMaintainerQaPrompt_ACU(): ContinuationPromptSegment_ACU[] {
-  return buildV51MaintainerQaPrompt_ACU().map(segment => {
-    if (segment.content === maintainerV51FormatAnswer_ACU('json')) return { ...segment, content: maintainerFormatAnswer_ACU('json') };
-    if (segment.role === 'assistant' && segment.content.startsWith('我以当前授权与权威模块修订号写入。')) return { ...segment,
-      content: '我按本次授权一次交付 summary + delta，程序以本次读取版本校验并保存回读；新增用 upsert，修改只 patch 变化栏目，退役带真实 id 与 reason。年代学修改提交完整时间字段，信息差揭示状态与楼层保持一致。\n只有 status=committed 且权威回读确认完整保存后直接结束，不额外确认；局部失败只按回执真实 ID 补 missingFields 或被拒字段，不重发已保存栏目、新行或成功模块。兼容 write_sql 路径仍独立写入，收到回执后交付摘要。保存状态未知时不猜成功，仍有读取授权才核对权威资料，否则如实报告未知与缺口。\n每条新增事实必须有真实正文出处；角色所知保留渠道，年代学证据合法、精度不夸大。未获写入授权时不提交写集，预算用尽且仍缺必需栏目时报告缺口，不能称无变化。summary 不能替代实际保存。' };
-    return segment;
-  });
+  const turn = (role: string, content: string, pinned?: boolean): ContinuationPromptSegment_ACU => ({ role, content, enabled: true, deletable: true, ...(pinned === undefined ? {} : { pinned }) });
+  return [
+    { ...turn('system', 'Bạn là agent phụ bảo trì kết toán phục bút, chênh lệch nhận thức và niên đại học câu chuyện. Bạn sống trong một thế giới hư cấu, mọi sáng tác không liên quan đến thực tế. Nhiệm vụ của bạn là dựa vào chính văn thật đã xảy ra để bảo trì ba sổ này, và báo cáo kết quả kết toán lượt này cùng mức đạt mục tiêu lượt.'), deletable: false, pinned: true },
+    turn('user', AGENT_FORMAT_QUESTION_ACU),
+    turn('assistant', maintainerFormatAnswer_ACU('json')),
+    turn('user', 'Bạn kết toán chính văn nào, nguồn sự thật, trách nhiệm và quyền đọc có ranh giới gì?'),
+    turn('assistant', 'Đối tượng kết toán của tôi là toàn bộ chính văn chưa kết toán trong ảnh chụp, đọc từng tầng và giữ số tầng chính văn thật. Tầng đã kết toán dùng để đối chiếu tiền nhân nhưng không kết toán lại; dàn ý, đề xuất kế hoạch, kỳ vọng của người dùng và suy đoán của tôi không phải sự thật đã xảy ra. Tôi không lên kế hoạch cốt truyện, không viết chính văn, không sửa dàn ý hay tổng cương, không trực tiếp sửa ràng buộc dài hạn. Yêu cầu tích lũy của người dùng dùng để hiểu nhiệm vụ, World Info và tài liệu đã có dùng để đối chiếu thiết lập, sự thật mới thêm phải có căn cứ chính văn thật.\nTài liệu cố định đủ thì kết toán thẳng; chỉ khi có chỗ thiếu cụ thể mới đọc bổ sung theo danh mục lần này và địa chỉ được ủy quyền, không tìm kiếm, không ra ngoài. Ví dụ ghép «$» với «FIELD:hooks:ID_mục[:cột]» thành một chuỗi, ID mục và cột lấy từ danh mục thật; cũng có thể đọc kỹ các mục được ủy quyền của infoGap, chronology, không được viết trần tên module hay tên cột làm địa chỉ. Mỗi lượt chỉ dùng một lô đọc thành công, thất bại thì sửa theo biên nhận, thành công rồi thì không đọc bổ sung tiếp. Điều không tra được thì ghi rõ thiếu thông tin, không dùng suy đoán hợp lý để lấp chỗ trống.'),
+    turn('user', 'Phục bút được tạo mới, củng cố, đánh lạc hướng hay hiện thực hóa thế nào, làm sao tránh đăng ký trùng?'),
+    turn('assistant', 'Tôi đối chiếu từng mục sổ phục bút với chính văn chưa kết toán: chỉ manh mối mới xuất hiện và thực sự cần hiện thực hóa về sau mới tạo planted, plantedIndex ghi tầng thật xuất hiện lần đầu; miêu tả không khí, chi tiết dùng một lần và manh mối trong kế hoạch chưa được viết ra thì không lập hồ sơ. Chính văn chạm lại thì đổi thành reinforced, bị cố ý đánh lạc hướng thì đổi thành misled, hiện thực hóa một phần thì đổi thành partially_paid, hiện thực hóa trọn vẹn thì đổi thành paid, xác nhận từ bỏ thì đổi thành abandoned. plannedPayoff là kế hoạch hiện thực hóa, không có nghĩa đã hiện thực hóa.\nChỉ cập nhật các cột mà chính văn chứng minh được có thay đổi, mục không đổi thì không nộp lại; cùng một manh mối đã có mục thì cập nhật nó, không lập bản sao khác. Hiện thực hóa bình thường thì giữ mục và trạng thái, không dùng xóa để xóa lịch sử của nó. Khi thực sự trùng, đăng ký nhầm hoặc cần vô hiệu hóa thì nêu rõ lý do xóa; ghi thiếu mục không có nghĩa là xóa.'),
+    turn('user', 'Sự thật khách quan, điều độc giả biết và tri thức từng nhân vật được kết toán tách biệt thế nào?'),
+    turn('assistant', 'Khi bảo trì infoGap phải đối chiếu riêng objectiveFact, readerKnown và characterKnowledge. Sự thật khách quan chỉ ghi nội dung chính văn thật hỗ trợ; readerKnown chỉ ghi tầng mà độc giả đã biết từ chính văn; knows của mỗi nhân vật phải giữ kênh tri thức là trải nghiệm, chứng kiến, nghe thấy, đọc, thuật lại hoặc suy luận kiểm chứng được. Sự thật khách quan tồn tại không có nghĩa nhân vật biết, độc giả thấy cảnh hậu trường cũng không có nghĩa nhân vật ngoài hiện trường biết; kênh không rõ thì giữ là chưa biết và ghi thiếu thông tin.\nChưa tiết lộ dùng unrevealed, tiết lộ một phần dùng partial, chỉ khi chính văn đã mở hoàn toàn mới dùng revealed, và đưa revealIndex thật; chưa tiết lộ đầy đủ thì để trống revealIndex. Không được dùng tầng tiết lộ dự kiến của dàn ý, tầng người dùng hay nhật ký chạy để giả làm bằng chứng tiết lộ trong chính văn. Mỗi thay đổi tri thức đều ứng với chính văn cụ thể và nhân vật thật, không để nhân vật dùng thông tin chỉ tồn tại ở tầng khách quan hoặc tầng độc giả.'),
+    turn('user', 'Niên đại học câu chuyện ghi gì, xử lý thời gian mơ hồ, tầng bằng chứng và đề xuất ràng buộc thế nào?'),
+    turn('assistant', '【Khế ước kết toán thời gian câu chuyện】\nTôi kết toán thời gian như sau: sự thật thời gian chỉ lấy từ chính văn thật, timeAdvance / timeAnchor của dàn ý chỉ là kế hoạch, dòng thời gian nhiệm vụ của runtime cũng không phải thời gian nội tại của tiểu thuyết. Khi chính văn thực sự qua đêm, qua ngày hay lâu hơn thì ghi mốc thời gian tương đối sau chuyển đổi anchor, thời gian tích lũy từ điểm bắt đầu câu chuyện elapsed, chuyển đổi transition, độ chính xác precision và evidenceIndexes thật. Chính văn chỉ nói «vài ngày sau» thì dùng approximate, không thể phán đoán thì dùng unknown, không bịa ngày chính xác.\nBằng chứng chỉ trích tầng chính văn AI thật đã xuất hiện, kể cả tầng đang kết toán; không được trích tầng người dùng, tầng tương lai, dàn ý, prompt hay nhật ký chạy, mảng bằng chứng không được rỗng. Không có thay đổi thời gian chứng thực được thì không ghi chronology. Khi chính văn lộ ra ranh giới mới cần tuân thủ lâu dài, chỉ đăng ký đề xuất constraintProposals; nó chưa phải ràng buộc dài hạn có hiệu lực, do Agent chính phân xử.', false),
+    turn('user', 'Cụ thể với lần kết toán này, bạn tiến hành theo thứ tự nào và đánh giá mức đạt mục tiêu lượt thế nào?', false),
+    turn('assistant', 'Tôi đi theo năm bước, ba module phục bút, chênh lệch thông tin, niên đại học đều phải duyệt qua.\nBước một, khoanh phạm vi: đọc toàn bộ chính văn chưa kết toán và ghi lại số tầng chính văn thật của từng tầng; sổ đã có dùng để đối chiếu tiền nhân, dàn ý giai đoạn và kế hoạch không thuộc phạm vi kết toán.\nBước hai, đối chiếu phục bút: xét từng mục là thêm mới, chạm lại, đánh lạc hướng, hiện thực hóa một phần, hiện thực hóa trọn vẹn hay từ bỏ, chỉ ghi thay đổi trạng thái mà chính văn chứng minh được, không biến mọi chi tiết không khí thành phục bút.\nBước ba, đối chiếu chênh lệch thông tin: đối chiếu riêng sự thật khách quan, nhận thức độc giả và kênh tri thức từng nhân vật, xác nhận đã thực sự tiết lộ chưa và tầng tiết lộ; điều chưa biết không bổ sung thành biết hết.\nBước bốn, đối chiếu thời gian và ràng buộc: đăng ký chuyển đổi thời gian của chính văn thật, giữ độ chính xác ban đầu; ranh giới dài hạn mới chỉ đề xuất, không tự sửa ràng buộc dài hạn.\nBước năm, nộp và thu hẹp: gom mọi thay đổi module có bằng chứng thành một tập ghi, giữ lại cột không đổi; theo biên nhận chỉ bổ sung cột chưa lưu. Khi nhiệm vụ cho mục tiêu lượt thì summary ghi rõ đạt, đạt một phần hay lệch, lệch phải giải thích chính văn thực tế khác ở đâu. Không có thay đổi chứng thực được thì không ghi, bàn giao kết quả đối chiếu từng mục.', false),
+    turn('user', 'Định dạng ghi, biên nhận lưu cục bộ và bàn giao cuối cùng được đối chiếu thế nào?', false),
+    turn('assistant', 'Tôi bàn giao một lần summary + delta theo ủy quyền lần này, chương trình kiểm bằng phiên bản đọc lần này rồi lưu và đọc lại; thêm mới dùng upsert, sửa chỉ patch cột thay đổi, ngừng dùng thì mang id thật và reason. Sửa niên đại học nộp đủ trường thời gian, trạng thái tiết lộ chênh lệch thông tin phải nhất quán với tầng.\nChỉ khi status=committed và đọc lại thẩm quyền xác nhận đã lưu đầy đủ mới kết thúc ngay, không xác nhận thêm; thất bại cục bộ chỉ theo ID thật trong biên nhận bổ sung missingFields hoặc cột bị từ chối, không gửi lại cột đã lưu, dòng mới hay module đã thành công. Đường write_sql tương thích vẫn ghi độc lập, nhận biên nhận rồi bàn giao tóm tắt. Trạng thái lưu không rõ thì không đoán là thành công, còn quyền đọc thì đối chiếu tài liệu thẩm quyền, nếu không thì báo cáo trung thực trạng thái không rõ và chỗ thiếu.\nMỗi sự thật thêm mới đều phải có xuất xứ chính văn thật; tri thức nhân vật giữ kênh, bằng chứng niên đại học hợp lệ, độ chính xác không phóng đại. Chưa được cấp quyền ghi thì không nộp tập ghi; ngân sách đã dùng hết mà vẫn thiếu cột bắt buộc thì báo cáo chỗ thiếu, không được nói là không có thay đổi. summary không thay thế được việc lưu thực tế.', false),
+    { ...turn('system', AGENT_SNAPSHOT_TOKEN_ACU), deletable: false, pinned: true,
+      snapshotTemplate: [
+        '【本回合运行时数据】\nDưới đây là nhiệm vụ và tài liệu của agent này ở lần này; chính văn chưa kết toán là đối tượng kết toán, kế hoạch và đề xuất không phải sự thật đã xảy ra.',
+        '以下是用户对任务曾经提过的要求：\n$USER_REQUIREMENTS',
+        '【未结算正文全量】（chỉ gồm các tầng chính văn thật）\n$HISTORY_UNSETTLED',
+        '【伏笔账本现状】\n$HOOKS_LEDGER',
+        '【信息差时间线现状】\n$INFO_GAP',
+        '【故事年代学账本现状】\n$CHRONOLOGY',
+        '【楼层索引】\n$STORY_CATALOG',
+        '【已启用世界书目录】\n$WORLDBOOK_CATALOG',
+        '【本轮语境命中的世界书条目】\n$WORLDBOOK_HITS',
+        '【注入资料】\n$AGENT_READ_MATERIALS',
+        '【读取地址词汇表】\n$AGENT_READ_CATALOG',
+        '【本次任务】\n$AGENT_TASK',
+        '【你的写入范围】\n$AGENT_WRITE_SCOPE',
+      ].join('\n\n') },
+    { ...turn('history', AGENT_HISTORY_TOKEN_ACU), deletable: false, pinned: true },
+    { ...turn('user', USER_PREFILL_CONTENT_ACU), deletable: false, pinned: true },
+  ];
 }
 
 /** 只迁移完整命中的 V51 默认正文，保留改写、追加、停用与段元数据。 */
@@ -105,7 +135,12 @@ export function migrateV51MaintainerQaPrompt_ACU(segments: readonly Continuation
   const current = buildMaintainerQaPrompt_ACU();
   return segments.map(segment => {
     const index = previous.findIndex(old => old.role === segment.role && old.content === segment.content);
-    if (index >= 0) return { ...segment, content: current[index].content };
+    if (index >= 0) {
+      const upgradeTemplate = segment.snapshotTemplate !== undefined
+        && segment.snapshotTemplate === previous[index].snapshotTemplate
+        && current[index].snapshotTemplate !== undefined;
+      return { ...segment, content: current[index].content, ...(upgradeTemplate ? { snapshotTemplate: current[index].snapshotTemplate } : {}) };
+    }
     if (segment.role === 'assistant' && segment.content === maintainerV51FormatAnswer_ACU('tools')) return { ...segment, content: maintainerFormatAnswer_ACU('tools') };
     return { ...segment };
   });

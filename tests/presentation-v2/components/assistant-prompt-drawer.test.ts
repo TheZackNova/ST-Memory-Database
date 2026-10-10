@@ -129,7 +129,7 @@ describe('AssistantPromptDrawer 占位符清单与载入默认', () => {
     await nextTick();
 
     const button = Array.from(el.querySelectorAll('button'))
-      .find((btn) => btn.textContent?.includes('载入默认提示词'));
+      .find((btn) => btn.textContent?.includes('Nạp prompt mặc định'));
     expect(button).not.toBeNull();
     (button as HTMLButtonElement).click();
     await nextTick();
@@ -140,7 +140,7 @@ describe('AssistantPromptDrawer 占位符清单与载入默认', () => {
 
     // 工具栏应只有一个「载入默认提示词」按钮，不再有独立的伪 role 按钮
     const resetButtons = Array.from(el.querySelectorAll('button'))
-      .filter((btn) => btn.textContent?.includes('载入默认提示词'));
+      .filter((btn) => btn.textContent?.includes('Nạp prompt mặc định'));
     expect(resetButtons).toHaveLength(1);
     const pseudoButtons = Array.from(el.querySelectorAll('button'))
       .filter((btn) => btn.textContent?.includes('伪 role'));

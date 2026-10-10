@@ -57,7 +57,7 @@ export function createWorldSimulationPlaceholderResolvers_ACU(
     '$WORLD_AGENT_CATALOG': () => serialize_ACU(context.agentCatalog),
     '$WORLD_TOOL_CATALOG': () => serialize_ACU({
       addresses: context.toolCatalog,
-      hint: '世界书命中条目全文已在末尾快照；如需查阅未命中条目，用 search（scope 包含 worldbook）定位后按返回的 worldbook:entry:书名:uid 地址 read。参数 reads 是地址数组。独立 read/search 在授权与预算内同一回复并发调用；依赖搜索命中的精读等回执。',
+      hint: 'Toàn văn các mục Sổ thế giới được kích hoạt đã nằm trong snapshot ở cuối; nếu cần xem các mục chưa được kích hoạt, hãy dùng search (scope bao gồm worldbook) để định vị rồi read theo địa chỉ worldbook:entry:tên sách:uid được trả về. Tham số reads là mảng địa chỉ. Các read/search độc lập được gọi đồng thời trong cùng một phản hồi trong phạm vi ủy quyền và ngân sách; việc đọc kỹ phụ thuộc vào kết quả tìm kiếm thì chờ phiếu trả về.',
     }),
     '$WORLD_EVIDENCE': () => serialize_ACU(context.evidence),
     '$WORLD_USER_GUIDANCE': () => serialize_ACU(context.userGuidance),
@@ -119,6 +119,6 @@ export function createWorldSimulationPlaceholderResolvers_ACU(
     },
     '$CURRENT_EVIDENCE_REGISTRY': () => serialize_ACU(context.evidenceRegistry),
     '$PROJECTION_PREVIEW': () => serialize_ACU(context.projectionPreview),
-    '$READ_BUDGET': () => context.readBudgetText ?? '（实时阅读预算不可用）',
+    '$READ_BUDGET': () => context.readBudgetText ?? '(Ngân sách đọc thời gian thực không khả dụng)',
   };
 }

@@ -70,14 +70,14 @@ export async function foldSummaryVectorMirrorAtBoundary_ACU(params: {
         return { folded: false, files: [] };
     }
     if (head.status !== 'ok') {
-        throw new Error(`向量镜像折叠失败：resolver status=${head.status}`);
+        throw new Error(`Gấp bản sao vector thất bại: resolver status=${head.status}`);
     }
 
     const embedding = head.checkpoint?.embedding || buildCurrentSummaryVectorEmbeddingIdentity_ACU();
     const packByHash = new Map<string, Awaited<ReturnType<typeof loadSummaryVectorMirrorPack_ACU>>>();
     for (const packRef of head.packRefs) {
         const pack = await loadSummaryVectorMirrorPack_ACU(packRef);
-        if (!pack) throw new Error(`向量镜像折叠失败：无法读取 pack ${packRef.packHash}`);
+        if (!pack) throw new Error(`Gấp bản sao vector thất bại: không đọc được pack ${packRef.packHash}`);
         packByHash.set(packRef.packHash, pack);
     }
 
@@ -88,7 +88,7 @@ export async function foldSummaryVectorMirrorAtBoundary_ACU(params: {
         for (const ref of refs) {
             const pack = packByHash.get(ref.packHash);
             const chunk = pack?.chunks[ref.chunkIndex];
-            if (!chunk) throw new Error(`向量镜像折叠失败：rowId=${rowId} 缺少 chunk ${ref.packHash}#${ref.chunkIndex}`);
+            if (!chunk) throw new Error(`Gấp bản sao vector thất bại: rowId=${rowId} thiếu chunk ${ref.packHash}#${ref.chunkIndex}`);
             newRefs.push({ packHash: '', chunkIndex: mergedChunks.length });
             mergedChunks.push({
                 ...chunk,
@@ -150,7 +150,7 @@ export async function foldSummaryVectorMirrorAtBoundary_ACU(params: {
     };
 
     const anchorFrame = getFrame_ACU(params.chat, params.isolationKey, params.boundaryAnchorIndex);
-    if (!anchorFrame) throw new Error('向量镜像折叠失败：锚点 frame 不存在。');
+    if (!anchorFrame) throw new Error('Gấp bản sao vector thất bại: frame neo không tồn tại.');
     const existing: SummaryVectorIndexMirrorFrameV2_ACU = anchorFrame.summaryVectorIndexFrame && typeof anchorFrame.summaryVectorIndexFrame === 'object'
         ? anchorFrame.summaryVectorIndexFrame
         : { version: 3, sourceTableKey, logEntries: [] };

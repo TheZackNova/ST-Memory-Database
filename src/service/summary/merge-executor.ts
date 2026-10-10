@@ -91,7 +91,7 @@ export async function executeMergeBatches_ACU(
 
     for (let i = 0; i < totalBatches; i++) {
         if (checkAbort?.()) {
-            return { success: false, accumulatedSummary, error: '用户终止操作', failedBatchIndex: i };
+            return { success: false, accumulatedSummary, error: 'Người dùng đã chấm dứt thao tác', failedBatchIndex: i };
         }
 
         const startIdx = i * batchSize;
@@ -99,7 +99,7 @@ export async function executeMergeBatches_ACU(
         const batchSummaryRows = allSummaryRows.slice(startIdx, endIdx);
 
         const formatRows = (rows: any[], displayStartIndex: number) => rows.map((r: any, idx: number) => `[${displayStartIndex + idx}] ${r.slice(1).join(', ')}`).join('\n');
-        const textA = batchSummaryRows.length > 0 ? formatRows(batchSummaryRows, (startIndex + 1) + startIdx) : "(本批次无新增纪要数据)";
+        const textA = batchSummaryRows.length > 0 ? formatRows(batchSummaryRows, (startIndex + 1) + startIdx) : "(Lô này không có dữ liệu kỷ yếu mới)";
 
         let textBase = "";
         const summaryTableObj = currentJsonTableData_ACU[summaryKey];
@@ -118,7 +118,7 @@ export async function executeMergeBatches_ACU(
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             if (checkAbort?.()) {
-                return { success: false, accumulatedSummary, error: '用户终止操作', failedBatchIndex: i };
+                return { success: false, accumulatedSummary, error: 'Người dùng đã chấm dứt thao tác', failedBatchIndex: i };
             }
 
             onBatchProgress?.(i, totalBatches, attempt, maxRetries);
@@ -138,7 +138,7 @@ export async function executeMergeBatches_ACU(
                 if (settings_ACU.apiMode === 'tavern') {
                     const result = await sendConnectionManagerRequest_ACU(settings_ACU.tavernProfile, finalMessages, settings_ACU.apiConfig.max_tokens ?? settings_ACU.apiConfig.maxTokens ?? 4096);
                     if (result && result.ok) aiResponseText = result.result.choices[0].message.content;
-                    else throw new Error('API请求返回不成功状态');
+                    else throw new Error('Yêu cầu API trả về trạng thái không thành công');
                 } else {
                     if (settings_ACU.apiConfig.useMainApi) {
                         aiResponseText = await generateRaw_ACU({ ordered_prompts: finalMessages, should_stream: settings_ACU.streamingEnabled || false });
@@ -150,13 +150,13 @@ export async function executeMergeBatches_ACU(
                         });
                         if (!res.ok) throw new Error(`API请求失败: ${res.status} ${await res.text()}`);
                         aiResponseText = await handleApiResponse_ACU(res);
-                        if (!aiResponseText) throw new Error('API返回的数据格式不正确');
+                        if (!aiResponseText) throw new Error('Định dạng dữ liệu API trả về không đúng');
                     }
                 }
 
                 const extractResult = extractTableEditInner_ACU(aiResponseText, { allowNoTableEditTags: true });
                 if (!extractResult || !extractResult.inner) {
-                    throw new Error('AI未返回有效的 <tableEdit> 块（缺少 <tableEdit> 边界或 <!-- --> 注释块不完整）。');
+                    throw new Error('AI không trả về khối <tableEdit> hợp lệ (thiếu ranh giới <tableEdit> hoặc khối chú thích <!-- --> không đầy đủ).');
                 }
 
                 const editsString = extractResult.inner;
@@ -179,7 +179,7 @@ export async function executeMergeBatches_ACU(
                 });
 
                 if (newSummaryRows.length === 0) {
-                    throw new Error('AI返回了内容，但未能解析出任何有效的数据行。');
+                    throw new Error('AI có trả về nội dung nhưng không phân tích được hàng dữ liệu hợp lệ nào.');
                 }
 
                 accumulatedSummary = accumulatedSummary.concat(newSummaryRows);
@@ -192,7 +192,7 @@ export async function executeMergeBatches_ACU(
             }
         }
         if (lastError) {
-            return { success: false, accumulatedSummary, error: `批次 ${i + 1} 在 ${maxRetries} 次尝试后均失败: ${lastError.message}`, failedBatchIndex: i };
+            return { success: false, accumulatedSummary, error: `Lô ${i + 1} đều thất bại sau ${maxRetries} lần thử: ${lastError.message}`, failedBatchIndex: i };
         }
     }
 
@@ -224,11 +224,11 @@ export interface MergeValidationResult {
 export function validateMergeParams_ACU(defaultMergePrompt: string): MergeValidationResult {
     const apiIsConfigured = (settings_ACU.apiMode === 'custom' && (settings_ACU.apiConfig.useMainApi || (settings_ACU.apiConfig.url && settings_ACU.apiConfig.model))) || (settings_ACU.apiMode === 'tavern' && settings_ACU.tavernProfile);
     if (!apiIsConfigured) {
-        return { valid: false, error: '请先配置API连接。' };
+        return { valid: false, error: 'Hãy cấu hình kết nối API trước.' };
     }
 
     if (!currentJsonTableData_ACU) {
-        return { valid: false, error: '数据库未加载。' };
+        return { valid: false, error: 'Cơ sở dữ liệu chưa được tải.' };
     }
 
     const targetCount = settings_ACU.mergeTargetCount || 1;
@@ -238,7 +238,7 @@ export function validateMergeParams_ACU(defaultMergePrompt: string): MergeValida
     const promptTemplate = settings_ACU.mergeSummaryPrompt || defaultMergePrompt;
 
     if (!promptTemplate) {
-        return { valid: false, error: '提示词模板不能为空。' };
+        return { valid: false, error: 'Mẫu prompt không được để trống.' };
     }
 
     // 查找纪要表
@@ -248,31 +248,31 @@ export function validateMergeParams_ACU(defaultMergePrompt: string): MergeValida
     );
 
     if (!summaryKey) {
-        return { valid: false, error: '未找到"纪要表"，无法进行合并。' };
+        return { valid: false, error: 'Không tìm thấy bảng kỷ yếu, không thể gộp.' };
     }
 
     const fullSummaryRows = summaryKey ? (currentJsonTableData_ACU[summaryKey].content || []).slice(1) : [];
 
     if (fullSummaryRows.length === 0) {
-        return { valid: false, error: '当前没有纪要数据需要合并。' };
+        return { valid: false, error: 'Hiện không có dữ liệu kỷ yếu cần gộp.' };
     }
 
     const maxRows = fullSummaryRows.length;
 
     if (startIndex >= maxRows) {
-        return { valid: false, error: `起始条数超出可用数据范围。可用数据: ${maxRows} 条` };
+        return { valid: false, error: `Số mục bắt đầu vượt quá phạm vi dữ liệu khả dụng. Dữ liệu khả dụng: ${maxRows} mục` };
     }
 
     const actualEndIndex = endIndex ? Math.min(endIndex, maxRows) : maxRows;
     if (startIndex >= actualEndIndex) {
-        return { valid: false, error: '起始条数不能大于或等于终止条数。' };
+        return { valid: false, error: 'Số mục bắt đầu không được lớn hơn hoặc bằng số mục kết thúc.' };
     }
 
     const allSummaryRows = fullSummaryRows.slice(startIndex, actualEndIndex);
     const selectedRange = actualEndIndex - startIndex;
 
     if (allSummaryRows.length === 0) {
-        return { valid: false, error: `指定范围内没有纪要数据需要合并。范围: 第${startIndex + 1}条 到 第${actualEndIndex}条` };
+        return { valid: false, error: `Trong phạm vi chỉ định không có dữ liệu kỷ yếu cần gộp. Phạm vi: từ mục ${startIndex + 1} đến mục ${actualEndIndex}` };
     }
 
     return {
@@ -342,7 +342,7 @@ export async function prepareMergeSummary_ACU(defaultMergePrompt: string): Promi
     validation?: MergeValidationResult;
 }> {
     if (isAutoUpdatingCard_ACU) {
-        return { valid: false, error: '后台已有任务在运行，请稍候。' };
+        return { valid: false, error: 'Đang có tác vụ nền chạy, vui lòng chờ.' };
     }
 
     // 刷新内存数据库
@@ -406,7 +406,7 @@ export async function executeManualMergeSummary_ACU(
         );
 
         if (!mergeResult.success) {
-            return { success: false, error: mergeResult.error || '合并失败' };
+            return { success: false, error: mergeResult.error || 'Gộp thất bại' };
         }
 
         // 写入结果
@@ -440,7 +440,7 @@ export async function executeManualMergeSummary_ACU(
         return { success: true };
     } catch (e: any) {
         logError_ACU('合并过程出错:', e);
-        return { success: false, error: e.message || '合并过程出错' };
+        return { success: false, error: e.message || 'Lỗi trong quá trình gộp' };
     } finally {
         _set_isAutoUpdatingCard_ACU(false);
         _set_wasStoppedByUser_ACU(false);

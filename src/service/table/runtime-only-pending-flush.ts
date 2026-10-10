@@ -128,7 +128,7 @@ export async function flushRuntimeOnlyPendingChanges_ACU(reason: string): Promis
   const divergedSheetKeys = await resolveDivergedSheetKeys_ACU(chat, scope.isolationKey, targetMessageIndex, runtimeData, candidateSheetKeys);
   if (divergedSheetKeys === null) {
     // 保留登记：恢复收敛完成后，下次提交或构建基底前的 flush 会重试。
-    return { flushed: false, sheetKeys: [], error: '聊天历史仅可经兼容宽容回放读出（严格回放失败），已跳过 runtime-only 落盘；请先完成 V2 恢复收敛。' };
+    return { flushed: false, sheetKeys: [], error: 'Lịch sử trò chuyện 仅可经兼容宽容回放读出 (phát lại nghiêm ngặt thất bại), đã bỏ qua việc ghi runtime-only; hãy hoàn tất hội tụ khôi phục V2 trước.' };
   }
   if (divergedSheetKeys.length === 0) {
     clearRuntimeOnlyPendingSheets_ACU(scope);

@@ -79,7 +79,7 @@ describe('world simulation field commit adapter', () => {
       sql: `INSERT INTO dimensions (id, evidence_refs, expected_revision) VALUES ('dim-forged', '${forged}', 0)` });
     expect(evidence.status).toBe('rejected');
     expect(evidence.accepted).toEqual([]);
-    expect(evidence.rejected).toEqual(expect.arrayContaining([expect.objectContaining({ reason: expect.stringContaining('未声明或未授权证据') })]));
+    expect(evidence.rejected).toEqual(expect.arrayContaining([expect.objectContaining({ reason: expect.stringContaining('chưa khai báo hoặc chưa ủy quyền') })]));
     expect(saveChat).not.toHaveBeenCalled();
   });
 
@@ -102,7 +102,7 @@ describe('world simulation field commit adapter', () => {
     const third = await commitWorldSimulationFieldWrites_ACU({ ...base,
       sql: "UPDATE chronicle SET summary = '改写' WHERE id = 'chr-1' AND expected_revision = 0" });
     expect(third.status).toBe('rejected');
-    expect(third.rejected).toEqual([expect.objectContaining({ reason: expect.stringContaining('完整编年不可 UPDATE') })]);
+    expect(third.rejected).toEqual([expect.objectContaining({ reason: expect.stringContaining('Niên biểu hoàn chỉnh không thể UPDATE') })]);
     expect(saveChat).toHaveBeenCalledTimes(2);
   });
 

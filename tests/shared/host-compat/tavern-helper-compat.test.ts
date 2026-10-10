@@ -267,8 +267,8 @@ describe('能力表诊断', () => {
     const capabilities = getLastHostCapabilities_ACU();
     expect(capabilities).not.toBeNull();
     const text = formatHostCapabilities_ACU(capabilities);
-    expect(text).toContain('缺失');
+    expect(text).toContain('Thiếu');
     expect(text).toContain('getLorebookEntries');
-    expect(formatHostCapabilities_ACU(null)).toContain('尚未生成');
+    expect(formatHostCapabilities_ACU(null)).toContain('chưa được tạo');
   });
 });

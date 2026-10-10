@@ -47,7 +47,7 @@ const objectSchema_ACU = (properties: Record<string, unknown>, required: readonl
 
 export type AgentNativeToolName_ACU = 'read' | 'search' | 'write_sql' | 'encyclopedia_search' | 'encyclopedia_read' | 'web_search' | 'web_read';
 
-const notesSchema_ACU = { type: 'array', items: { type: 'string' }, description: '上一批页面里要留下的简短事实。继续调用工具时带上，网页正文不会进入历史。' };
+const notesSchema_ACU = { type: 'array', items: { type: 'string' }, description: 'Các sự kiện ngắn gọn cần giữ lại từ lô trang trước. Hãy mang theo khi tiếp tục gọi công cụ; nội dung trang web sẽ không đi vào lịch sử.' };
 
 export function agentNativeTools_ACU(names: readonly AgentNativeToolName_ACU[]): AiNativeToolDefinition_ACU[] {
   const catalog: Record<AgentNativeToolName_ACU, AiNativeToolDefinition_ACU> = {
@@ -55,7 +55,7 @@ export function agentNativeTools_ACU(names: readonly AgentNativeToolName_ACU[]):
       type: 'function',
       function: {
         name: 'read',
-        description: '按地址读取一条或一批资料的全文。何时使用：提示词里已经给出地址，或 search 命中行右侧有地址，需要正文、表格行、总纲、伏笔、世界书条目或推演账本字段时。预算与授权允许时，同一次回复把所有相互独立的读取地址放入 reads 数组并并发完成，不要分批等待；依赖 search 结果的精读留到下一轮。不要用它搜索未知内容。参数 reads 是非空字符串数组，一次可混用多种地址，例如 ["$STORY_RANGE:3-5","$STORY_ARC:VOL-01"] 或 ["ledger:current","field:seeds:seed-1:title"]。世界书命中全文通常已注入，不要对 $WORLDBOOK:... 反复 read；地址必须从当前提示词的目录或词汇表复制。',
+        description: 'Đọc toàn văn một hoặc một loạt tài liệu theo địa chỉ. Khi nào dùng: prompt đã cho sẵn địa chỉ, hoặc bên phải dòng khớp của search có địa chỉ, và cần nội dung chính, hàng bảng, tổng cương, phục bút, mục sổ thế giới hoặc trường sổ cái mô phỏng. Khi ngân sách và ủy quyền cho phép, hãy đặt tất cả địa chỉ đọc độc lập vào mảng reads trong cùng một phản hồi và hoàn tất song song, đừng chia lô rồi chờ; việc đọc kỹ phụ thuộc kết quả search để sang lượt sau. Đừng dùng nó để tìm nội dung chưa biết. Tham số reads là mảng chuỗi không rỗng, một lần có thể trộn nhiều loại địa chỉ, ví dụ ["$STORY_RANGE:3-5","$STORY_ARC:VOL-01"] hoặc ["ledger:current","field:seeds:seed-1:title"]. Toàn văn mục sổ thế giới khớp thường đã được chèn sẵn, đừng read lặp lại $WORLDBOOK:...; địa chỉ phải sao chép từ danh mục hoặc bảng từ vựng của prompt hiện tại.',
         parameters: objectSchema_ACU({
           reads: { type: 'array', items: { type: 'string' }, minItems: 1 },
           requestedFence: {
@@ -66,7 +66,7 @@ export function agentNativeTools_ACU(names: readonly AgentNativeToolName_ACU[]):
             },
             minProperties: 1,
             additionalProperties: false,
-            description: '可选读取上下围栏；未提供的边界由地址适配器或运行时上下文解析。',
+            description: 'Tùy chọn: hàng rào trên/dưới khi đọc; ranh giới không cung cấp sẽ do bộ chuyển đổi địa chỉ hoặc ngữ cảnh runtime phân giải.',
           },
         }, ['reads']),
       },
@@ -75,7 +75,7 @@ export function agentNativeTools_ACU(names: readonly AgentNativeToolName_ACU[]):
       type: 'function',
       function: {
         name: 'search',
-        description: '在资料里按关键词找位置。何时使用：知道要找什么，但还没有读取地址。预算与授权允许时，同一回复并发发出所有相互独立的 search / read，不要把独立查询拆成多批等待；只有依赖搜索结果的精读留待回执后。先 search 再按命中行里的地址 read。query 必填，用短关键词或人名，不要贴整段正文。scope 是范围数组，续写可用 story、tables、modules、outline、worldbook，推演可用 worldbook、encyclopedia、web；省略表示该角色允许的全部范围。可选 isRegex、maxResults（1 到 50）。范例：{"query":"晶屑","scope":["worldbook"],"maxResults":8}。',
+        description: 'Tìm vị trí trong tài liệu theo từ khóa. Khi nào dùng: biết cần tìm gì nhưng chưa có địa chỉ để đọc. Khi ngân sách và ủy quyền cho phép, hãy phát đồng thời trong cùng một phản hồi tất cả search / read độc lập, đừng tách truy vấn độc lập thành nhiều lô rồi chờ; chỉ việc đọc kỹ phụ thuộc kết quả tìm kiếm mới để sau biên nhận. Search trước rồi read theo địa chỉ ở dòng khớp. query bắt buộc, dùng từ khóa ngắn hoặc tên người, đừng dán cả đoạn nội dung. scope là mảng phạm vi, viết tiếp dùng được story, tables, modules, outline, worldbook, mô phỏng dùng được worldbook, encyclopedia, web; bỏ qua nghĩa là toàn bộ phạm vi mà vai trò đó được phép. Tùy chọn isRegex, maxResults (1 đến 50). Ví dụ:{"query":"晶屑","scope":["worldbook"],"maxResults":8}。',
         parameters: objectSchema_ACU({
           query: { type: 'string' },
           scope: { type: 'array', items: { type: 'string' } },
@@ -88,7 +88,7 @@ export function agentNativeTools_ACU(names: readonly AgentNativeToolName_ACU[]):
       type: 'function',
       function: {
         name: 'write_sql',
-        description: '把资料写入你负责的表。何时使用：要新增、修改或删除一条已有资料，而且系统提示里给你的表允许写。没有变化不要调用。sql 是一条或多条用分号隔开的 INSERT、UPDATE 或 DELETE。尽可能把本次要写的全部语句放进同一次调用的同一个 sql 参数里一次完成，不要拆成几批分多次调用。字符串用单引号，正文里的单引号写成两个单引号；数组和对象写成单引号包裹的 JSON。新行是否须显式给 expected_revision=0 依具体角色的表契约：推演 dimensions/seeds/actors/rumors 必须给 0，续写新行可省略；已有数组行的 WHERE 带 id 与当前条目/模块修订号，单例模块只带当前账本修订号；已保存 partial 仅按 missingFields 补未存栏目，状态不确定先 read。具体表、必填列和范例以系统提示中你这个角色的 write_sql 说明为准。范例：INSERT INTO hooks (summary, status, importance, planted_index, planned_payoff) VALUES (\'守门人藏着晶屑\', \'planted\', \'mid\', 3, \'稍后交出\');',
+        description: 'Ghi tài liệu vào bảng mà bạn phụ trách. Khi nào dùng: cần thêm, sửa hoặc xóa một tài liệu đã có, và bảng mà system prompt giao cho bạn cho phép ghi. Không có thay đổi thì đừng gọi. sql là một hoặc nhiều câu INSERT, UPDATE hoặc DELETE ngăn cách bằng dấu chấm phẩy. Cố gắng đặt toàn bộ câu lệnh cần ghi lần này vào cùng một tham số sql của cùng một lần gọi để hoàn tất một lượt, đừng tách thành nhiều lô gọi nhiều lần. Chuỗi dùng dấu nháy đơn, dấu nháy đơn trong nội dung viết thành hai dấu nháy đơn; mảng và đối tượng viết thành JSON bọc trong dấu nháy đơn. Hàng mới có phải đưa rõ expected_revision=0 hay không tùy theo hợp đồng bảng của từng vai trò: mô phỏng dimensions/seeds/actors/rumors phải đưa 0, hàng mới của viết tiếp có thể bỏ qua; WHERE của hàng mảng đã có kèm id và số sửa đổi của mục/mô-đun hiện tại, mô-đun đơn chỉ kèm số sửa đổi sổ cái hiện tại; partial đã lưu chỉ bổ sung các mục chưa lưu theo missingFields, trạng thái không chắc chắn thì read trước. Bảng cụ thể, cột bắt buộc và ví dụ lấy theo mô tả write_sql của vai trò bạn trong system prompt. Ví dụ:INSERT INTO hooks (summary, status, importance, planted_index, planned_payoff) VALUES (\'守门人藏着晶屑\', \'planted\', \'mid\', 3, \'稍后交出\');',
         parameters: objectSchema_ACU({
           sql: { type: 'string' },
           evidenceRefs: { type: 'array', items: { type: 'string' } },
@@ -99,7 +99,7 @@ export function agentNativeTools_ACU(names: readonly AgentNativeToolName_ACU[]):
       type: 'function',
       function: {
         name: 'encyclopedia_search',
-        description: '在百科里找候选词条。何时使用：要登记原作或公开设定，还不知道准确标题。query 用「角色名」或「作品名 角色名」，不要用整句剧情。sources 可省略，省略即全部启用来源；可填 moegirl、wikipedia_zh、wikipedia_en、baidu。萌娘按标题前缀匹配，百度按精确词条名匹配。范例：{"query":"守门人","sources":["moegirl","wikipedia_zh"]}。查到后再调用 encyclopedia_read。',
+        description: 'Tìm mục từ ứng viên trong bách khoa. Khi nào dùng: cần đăng ký thiết lập gốc hoặc công khai nhưng chưa biết tiêu đề chính xác. query dùng "tên nhân vật" hoặc "tên tác phẩm tên nhân vật", đừng dùng cả câu cốt truyện. sources có thể bỏ qua, bỏ qua nghĩa là toàn bộ nguồn đã bật; có thể điền moegirl, wikipedia_zh, wikipedia_en, baidu. Moegirl khớp theo tiền tố tiêu đề, Baidu khớp theo tên mục từ chính xác. Ví dụ:{"query":"守门人","sources":["moegirl","wikipedia_zh"]}。Sau khi tìm thấy hãy gọi encyclopedia_read.',
         parameters: objectSchema_ACU({
           query: { type: 'string' },
           sources: { type: 'array', items: { type: 'string' } },
@@ -111,7 +111,7 @@ export function agentNativeTools_ACU(names: readonly AgentNativeToolName_ACU[]):
       type: 'function',
       function: {
         name: 'encyclopedia_read',
-        description: '精读一条百科词条。何时使用：encyclopedia_search 已经返回候选，需要正文才能写入 web_refs。source 和 title 必须从候选里原样复制，不要改写标题。范例：{"source":"moegirl","title":"守门人"}。返回的页面句柄才能作为 web_refs.page_ref。',
+        description: 'Đọc kỹ một mục từ bách khoa. Khi nào dùng: encyclopedia_search đã trả về ứng viên và cần nội dung chính mới ghi được vào web_refs. source và title phải sao chép nguyên văn từ ứng viên, đừng sửa tiêu đề. Ví dụ:{"source":"moegirl","title":"守门人"}。Chỉ handle trang được trả về mới dùng được làm web_refs.page_ref.',
         parameters: objectSchema_ACU({
           source: { type: 'string' },
           title: { type: 'string' },
@@ -123,7 +123,7 @@ export function agentNativeTools_ACU(names: readonly AgentNativeToolName_ACU[]):
       type: 'function',
       function: {
         name: 'web_search',
-        description: '通用网页搜索。何时使用：百科没有这个实体，或只在专栏、设定站里出现。query 用短关键词加作品名。范例：{"query":"禁区 守门人 设定"}。先看标题和摘要，再对可信链接调用 web_read。论坛和自媒体只作旁证。',
+        description: 'Tìm kiếm web thông dụng. Khi nào dùng: bách khoa không có thực thể này, hoặc chỉ xuất hiện ở chuyên mục, trang thiết lập. query dùng từ khóa ngắn cộng tên tác phẩm. Ví dụ:{"query":"禁区 守门人 设定"}。Xem tiêu đề và tóm tắt trước, rồi gọi web_read cho liên kết đáng tin. Diễn đàn và truyền thông tự do chỉ làm bằng chứng phụ.',
         parameters: objectSchema_ACU({
           query: { type: 'string' },
           notes: notesSchema_ACU,
@@ -134,7 +134,7 @@ export function agentNativeTools_ACU(names: readonly AgentNativeToolName_ACU[]):
       type: 'function',
       function: {
         name: 'web_read',
-        description: '抓取一个网页的正文。何时使用：web_search 给出了可信 url，需要页面内容才能写入资料。url 必须是结果里的完整地址，不要编造。范例：{"url":"https://example.com/setting"}。内网、酒馆自身和黑名单域名会被拒绝。返回的页面句柄才能作为 web_refs.page_ref。',
+        description: 'Lấy nội dung chính của một trang web. Khi nào dùng: web_search đã đưa ra url đáng tin và cần nội dung trang mới ghi được vào tài liệu. url phải là địa chỉ đầy đủ trong kết quả, đừng bịa. Ví dụ:{"url":"https://example.com/setting"}。Mạng nội bộ, chính SillyTavern và tên miền trong danh sách đen sẽ bị từ chối. Chỉ handle trang được trả về mới dùng được làm web_refs.page_ref.',
         parameters: objectSchema_ACU({
           url: { type: 'string' },
           notes: notesSchema_ACU,
@@ -169,12 +169,12 @@ export function normalizeStoredToolCall_ACU(raw: unknown): AiNativeToolCall_ACU[
 export function nativeToolArguments_ACU(calls: readonly AiNativeToolCall_ACU[]): Array<{ call: AiNativeToolCall_ACU; payload: Record<string, unknown> }> {
   const ids = new Set<string>();
   return calls.map(call => {
-    if (!call.id.trim() || !call.name.trim() || ids.has(call.id)) throw new Error('原生工具调用 ID 或函数名无效、或 ID 重复');
+    if (!call.id.trim() || !call.name.trim() || ids.has(call.id)) throw new Error('ID hoặc tên hàm của lời gọi công cụ gốc không hợp lệ, hoặc ID bị trùng');
     ids.add(call.id);
     const args: unknown = JSON.parse(call.arguments);
-    if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error(`工具 ${call.name} 的参数必须是 JSON 对象`);
+    if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error(`Tham số của công cụ ${call.name} phải là đối tượng JSON`);
     const payload = args as Record<string, unknown>;
-    if ('action' in payload) throw new Error(`工具 ${call.name} 的参数不得包含文本协议 action`);
+    if ('action' in payload) throw new Error(`Tham số của công cụ ${call.name} không được chứa action của giao thức văn bản`);
     return { call, payload: { ...payload, action: call.name } };
   });
 }
@@ -232,12 +232,12 @@ function protocolRecord_ACU(call: AiNativeToolCall_ACU): Record<string, unknown>
   if (call.name === 'encyclopedia_search' || call.name === 'encyclopedia_read' || call.name === 'web_search' || call.name === 'web_read') {
     return { action: call.name, ...args };
   }
-  throw new Error(`未知工具 ${call.name}`);
+  throw new Error(`Công cụ không xác định ${call.name}`);
 }
 
 function parseArguments_ACU(raw: string): Record<string, unknown> {
   const parsed = JSON.parse(raw || '{}');
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('工具参数必须是 JSON 对象');
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Tham số công cụ phải là đối tượng JSON');
   return parsed as Record<string, unknown>;
 }
 
@@ -255,7 +255,7 @@ export function nativeToolExchange_ACU(content: string, calls: readonly AiNative
     ...calls.map((call, index) => ({
       role: 'tool',
       tool_call_id: call.id,
-      content: results[index] ?? '工具未返回对应结果',
+      content: results[index] ?? 'Công cụ không trả về kết quả tương ứng',
     })),
   ];
 }
@@ -503,7 +503,7 @@ export async function readFetchChatTurn_ACU(response: { headers?: { get(name: st
     const json = await response.json();
     if (signal?.aborted) throw new Error('Request aborted');
     if (requireComplete) {
-      if (!isCompleteChatResponse_ACU(json)) throw new Error('正文响应缺少完整终态，未确认正文。');
+      if (!isCompleteChatResponse_ACU(json)) throw new Error('Phản hồi nội dung chính thiếu trạng thái kết thúc đầy đủ, nội dung chính chưa được xác nhận.');
       const record = json as Record<string, any>;
       if (Array.isArray(record.content)) {
         return chatTurnFromJson_ACU({ content: record.content.filter((part: any) => part?.type === 'text').map((part: any) => part.text).join(''), usage: record.usage });
@@ -511,7 +511,7 @@ export async function readFetchChatTurn_ACU(response: { headers?: { get(name: st
     }
     return chatTurnFromJson_ACU(json);
   }
-  if (requireComplete && !response.body) throw new Error('正文流缺少响应体，未确认正文。');
+  if (requireComplete && !response.body) throw new Error('Luồng nội dung chính thiếu phần thân phản hồi, nội dung chính chưa được xác nhận.');
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
   const state = accumulator_ACU();
@@ -532,7 +532,7 @@ export async function readFetchChatTurn_ACU(response: { headers?: { get(name: st
     let json: unknown;
     try { json = JSON.parse(data); }
     catch {
-      if (requireComplete) throw new Error('正文流包含无效 JSON，未确认正文。');
+      if (requireComplete) throw new Error('Luồng nội dung chính chứa JSON không hợp lệ, nội dung chính chưa được xác nhận.');
       return;
     }
     if (requireComplete && isCompleteChatResponse_ACU(json)) completed = true;
@@ -562,7 +562,7 @@ export async function readFetchChatTurn_ACU(response: { headers?: { get(name: st
       if (buffer.trim()) consume(buffer);
       preview();
       if (signal?.aborted) throw new Error('Request aborted');
-      if (!completed) throw new Error('正文流在完整终态前结束，未确认正文。');
+      if (!completed) throw new Error('Luồng nội dung chính kết thúc trước trạng thái kết thúc đầy đủ, nội dung chính chưa được xác nhận.');
     }
   } finally {
     reader.releaseLock();
@@ -574,17 +574,17 @@ export async function readFetchChatTurn_ACU(response: { headers?: { get(name: st
 function isCompleteChatResponse_ACU(json: unknown): boolean {
   if (!json || typeof json !== 'object' || Array.isArray(json)) return false;
   const record = json as Record<string, any>;
-  if (record.error || record.type === 'error') throw new Error('正文响应包含上游错误，未确认正文。');
+  if (record.error || record.type === 'error') throw new Error('Phản hồi nội dung chính chứa lỗi từ upstream, nội dung chính chưa được xác nhận.');
   const choice = Array.isArray(record.choices) ? record.choices[0] : undefined;
   const candidate = Array.isArray(record.candidates) ? record.candidates[0] : undefined;
   const reason = choice?.finish_reason ?? record.stop_reason ?? record.delta?.stop_reason ?? candidate?.finishReason;
   if (reason !== undefined && reason !== null && !['stop', 'end_turn', 'stop_sequence', 'STOP'].includes(reason)) {
-    throw new Error('正文响应未正常完成，未确认正文。');
+    throw new Error('Phản hồi nội dung chính chưa hoàn tất bình thường, nội dung chính chưa được xác nhận.');
   }
   if (choice?.message?.tool_calls?.length || choice?.delta?.tool_calls?.length
     || record.content_block?.type === 'tool_use' || record.content?.some?.((part: any) => part?.type === 'tool_use')
     || candidate?.content?.parts?.some?.((part: any) => part?.functionCall)) {
-    throw new Error('正文响应包含未执行的工具调用，未确认正文。');
+    throw new Error('Phản hồi nội dung chính chứa lời gọi công cụ chưa thực thi, nội dung chính chưa được xác nhận.');
   }
   return record.type === 'message_stop' || ['stop', 'end_turn', 'stop_sequence', 'STOP'].includes(reason);
 }

@@ -302,7 +302,7 @@ describe('flight-mode-transition', () => {
     await expect(disableFlightMode_ACU()).resolves.toEqual({
       ok: false,
       reason: 'restore_archive_missing',
-      error: expect.stringContaining('缺少可验证的启用前模板归档'),
+      error: expect.stringContaining('thiếu bản lưu trữ mẫu trước khi bật có thể kiểm chứng'),
     });
     expect(h.commit).not.toHaveBeenCalled();
   });

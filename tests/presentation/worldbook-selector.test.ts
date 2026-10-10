@@ -62,7 +62,7 @@ describe('populatePlotWorldbookEntryList_ACU', () => {
     await populatePlotWorldbookEntryList_ACU();
 
     const list = document.querySelector('#shujuku_v120-plot-worldbook-entry-list') as HTMLElement;
-    expect(list.innerHTML).toBe('<em>加载条目失败。</em>');
+    expect(list.innerHTML).toBe('<em>Tải mục thất bại.</em>');
     expect(mocks.getEntries).not.toHaveBeenCalled();
     expect(mocks.logError).toHaveBeenCalledWith('[剧情推进] 读取角色绑定世界书失败:', {
       phase: 'plot_character_binding', error: { category: 'unknown' },
@@ -79,7 +79,7 @@ describe('populatePlotWorldbookEntryList_ACU', () => {
 
     const list = document.querySelector('#shujuku_v120-plot-worldbook-entry-list') as HTMLElement;
     expect(mocks.getEntries).toHaveBeenCalledWith(['主书']);
-    expect(list.innerHTML).toBe('<em>加载条目失败。</em>');
+    expect(list.innerHTML).toBe('<em>Tải mục thất bại.</em>');
     expect(mocks.logError).toHaveBeenCalledWith('[剧情推进] 加载剧情世界书条目失败:', {
       phase: 'plot_worldbook_entries', error: { category: 'unknown' },
     });

@@ -86,11 +86,11 @@ function onManualWorldbookToggle(name: string, checked: boolean): void {
 const currentWorldbookLabel = computed<string>(() => {
   if (plotWorldbook.source.value === 'character') {
     return worldbook.charPrimary.value
-      ? `角色卡所有世界书 · 主册 ${worldbook.charPrimary.value}`
-      : '角色卡所有世界书';
+      ? `Tất cả sổ thế giới của thẻ nhân vật · sổ chính ${worldbook.charPrimary.value}`
+      : 'Tất cả sổ thế giới của thẻ nhân vật';
   }
   const names = plotWorldbook.manualSelection.value;
-  return names.length ? names.join('、') : '（未选择）';
+  return names.length ? names.join(', ') : '(Chưa chọn)';
 });
 
 async function refreshAll(): Promise<void> {

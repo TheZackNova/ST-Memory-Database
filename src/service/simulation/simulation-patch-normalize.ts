@@ -70,15 +70,15 @@ function takeText_ACU(value: unknown, allowEmpty: boolean): string | undefined {
 function applyString_ACU(target: Record<string, unknown>, key: string, raw: unknown, path: string, notes: WorldSimulationPatchNormalizationNote_ACU[], allowEmpty: boolean): boolean {
   if (raw === undefined) return true;
   if (typeof raw !== 'string') {
-    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} 必须是字符串`);
+    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} phải là chuỗi`);
     return false;
   }
   const next = allowEmpty ? raw : raw.trim();
   if (!allowEmpty && !next) {
-    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} 必须是非空字符串`);
+    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} phải là chuỗi không rỗng`);
     return false;
   }
-  if (next !== raw) note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} 已去除首尾空白`);
+  if (next !== raw) note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} đã loại bỏ khoảng trắng đầu cuối`);
   target[key] = next;
   return true;
 }
@@ -87,10 +87,10 @@ function applyInteger_ACU(target: Record<string, unknown>, key: string, raw: unk
   if (raw === undefined) return true;
   const coerced = coerceWorldSimulationInteger_ACU(raw);
   if (!coerced.ok || coerced.value < min || coerced.value > max) {
-    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} 必须是 ${min}..${max} 的整数`, { actual: raw });
+    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} phải là số nguyên trong khoảng ${min}..${max}`, { actual: raw });
     return false;
   }
-  if (coerced.autoFixed) note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} 已从数字字符串归一为整数`);
+  if (coerced.autoFixed) note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} đã chuẩn hóa từ chuỗi số thành số nguyên`);
   target[key] = coerced.value;
   return true;
 }
@@ -99,10 +99,10 @@ function applyEnum_ACU<T extends string>(target: Record<string, unknown>, key: s
   if (raw === undefined) return true;
   const coerced = coerceWorldSimulationEnum_ACU(raw, allowed);
   if (!coerced.ok) {
-    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} 枚举非法`, { actual: raw, expected: allowed.join(' | ') });
+    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} có giá trị enum không hợp lệ`, { actual: raw, expected: allowed.join(' | ') });
     return false;
   }
-  if (coerced.autoFixed) note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} 已按 trim/大小写归一`);
+  if (coerced.autoFixed) note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} đã chuẩn hóa theo trim/chữ hoa thường`);
   target[key] = coerced.value;
   return true;
 }
@@ -111,10 +111,10 @@ function applyStringArray_ACU(target: Record<string, unknown>, key: string, raw:
   if (raw === undefined) return true;
   const coerced = coerceWorldSimulationStringArray_ACU(raw);
   if (!coerced.ok) {
-    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} 必须是字符串数组`);
+    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} phải là mảng chuỗi`);
     return false;
   }
-  if (coerced.autoFixed) note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} 已归一为字符串数组`);
+  if (coerced.autoFixed) note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} đã chuẩn hóa thành mảng chuỗi`);
   target[key] = coerced.value;
   return true;
 }
@@ -126,7 +126,7 @@ function applyNullableInteger_ACU(target: Record<string, unknown>, key: string, 
     return true;
   }
   if (raw === '') {
-    note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} 空字符串已归一为 null`);
+    note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} chuỗi rỗng đã chuẩn hóa thành null`);
     target[key] = null;
     return true;
   }
@@ -140,11 +140,11 @@ function applyNullableString_ACU(target: Record<string, unknown>, key: string, r
     return true;
   }
   if (typeof raw !== 'string') {
-    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} 必须是字符串或 null`);
+    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} phải là chuỗi hoặc null`);
     return false;
   }
   if (!raw.trim()) {
-    note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} 空字符串已归一为 null`);
+    note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} chuỗi rỗng đã chuẩn hóa thành null`);
     target[key] = null;
     return true;
   }
@@ -159,20 +159,20 @@ function applyLocation_ACU(target: Record<string, unknown>, key: string, raw: un
     return true;
   }
   if (!isRecord_ACU(raw)) {
-    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} 必须是对象或 null`);
+    note_ACU(notes, 'blocking', `${path}.${key}`, `${path}.${key} phải là đối tượng hoặc null`);
     return false;
   }
   const unknown = Object.keys(raw).filter(item => item !== 'region' && item !== 'place');
-  if (unknown.length) note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} 已丢弃未知字段：${unknown.join(',')}`, { unknownFields: unknown });
+  if (unknown.length) note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} đã loại bỏ trường không xác định: ${unknown.join(',')}`, { unknownFields: unknown });
   const region = takeText_ACU(raw.region, false);
   if (!region) {
-    note_ACU(notes, 'blocking', `${path}.${key}.region`, `${path}.${key}.region 必须是非空字符串`);
+    note_ACU(notes, 'blocking', `${path}.${key}.region`, `${path}.${key}.region phải là chuỗi không rỗng`);
     return false;
   }
   const location: WorldLocationRef_ACU = { region };
   if (raw.place !== undefined) {
     if (typeof raw.place !== 'string') {
-      note_ACU(notes, 'blocking', `${path}.${key}.place`, `${path}.${key}.place 必须是字符串`);
+      note_ACU(notes, 'blocking', `${path}.${key}.place`, `${path}.${key}.place phải là chuỗi`);
       return false;
     }
     location.place = raw.place;
@@ -193,26 +193,26 @@ function applyActorAction_ACU(target: Record<string, unknown>, field: 'currentAc
     const trimmed = raw.trim();
     if (!trimmed) { target[field] = null; return true; }
     try { raw = JSON.parse(trimmed); } catch {
-      note_ACU(notes, 'blocking', fieldPath, `${fieldPath} 必须是 JSON 对象，例如 {"text":"护送粮车南下","expected_duration":"约三日"}`);
+      note_ACU(notes, 'blocking', fieldPath, `${fieldPath} phải là đối tượng JSON, ví dụ {"text":"Hộ tống xe lương xuôi nam","expected_duration":"khoảng ba ngày"}`);
       return false;
     }
   }
   if (raw === null) { target[field] = null; return true; }
   if (!isRecord_ACU(raw)) {
-    note_ACU(notes, 'blocking', fieldPath, `${fieldPath} 必须是对象或 null`);
+    note_ACU(notes, 'blocking', fieldPath, `${fieldPath} phải là đối tượng hoặc null`);
     return false;
   }
   const text = typeof raw.text === 'string' ? raw.text.trim() : '';
   const durationRaw = raw.expectedDuration ?? raw.expected_duration;
   const expectedDuration = typeof durationRaw === 'string' ? durationRaw.trim() : '';
-  if (!text) { note_ACU(notes, 'blocking', `${fieldPath}.text`, `${fieldPath}.text 必须是非空字符串`); return false; }
-  if (!expectedDuration) { note_ACU(notes, 'blocking', `${fieldPath}.expected_duration`, `${fieldPath} 必须写明预计持续时间 expected_duration`); return false; }
+  if (!text) { note_ACU(notes, 'blocking', `${fieldPath}.text`, `${fieldPath}.text phải là chuỗi không rỗng`); return false; }
+  if (!expectedDuration) { note_ACU(notes, 'blocking', `${fieldPath}.expected_duration`, `${fieldPath} phải ghi rõ thời gian dự kiến kéo dài expected_duration`); return false; }
   const action: Record<string, unknown> = { text, expectedDuration, startedAtDay: null, startedAt: '' };
   if (field === 'longTermAction') {
     const status = raw.status === undefined || raw.status === null
       ? { ok: true as const, value: 'ongoing' as const, autoFixed: false }
       : coerceWorldSimulationEnum_ACU(raw.status, WORLD_ACTOR_LONG_TERM_STATUSES_ACU);
-    if (!status.ok) { note_ACU(notes, 'blocking', `${fieldPath}.status`, `${fieldPath}.status 只能是 ongoing、done、abandoned`, { actual: raw.status }); return false; }
+    if (!status.ok) { note_ACU(notes, 'blocking', `${fieldPath}.status`, `${fieldPath}.status chỉ được là ongoing, done, abandoned`, { actual: raw.status }); return false; }
     action.status = status.value;
     action.outcome = typeof raw.outcome === 'string' && raw.outcome.trim() ? raw.outcome.trim() : null;
   }
@@ -224,7 +224,7 @@ function fillMissing_ACU(target: Record<string, unknown>, defaults: Record<strin
   for (const [key, value] of Object.entries(defaults)) {
     if (!Object.prototype.hasOwnProperty.call(target, key)) {
       target[key] = value;
-      note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} 已按缺省补齐`);
+      note_ACU(notes, 'autoFixed', `${path}.${key}`, `${path}.${key} đã bổ sung theo mặc định`);
     }
   }
 }
@@ -233,22 +233,22 @@ function stripUnknown_ACU(target: Record<string, unknown>, allowed: readonly str
   const unknown = Object.keys(target).filter(key => !allowed.includes(key));
   if (!unknown.length) return;
   for (const key of unknown) delete target[key];
-  note_ACU(notes, 'autoFixed', path, `${path} 已丢弃未知字段：${unknown.join(',')}`, { unknownFields: unknown });
+  note_ACU(notes, 'autoFixed', path, `${path} đã loại bỏ trường không xác định: ${unknown.join(',')}`, { unknownFields: unknown });
 }
 
 function resolveExpectedRevision_ACU(raw: unknown, actual: number, path: string, notes: WorldSimulationPatchNormalizationNote_ACU[]): number | null {
   if (raw === undefined) {
-    note_ACU(notes, 'autoFixed', `${path}.expectedRevision`, `${path}.expectedRevision 已按${actual === 0 ? '新建 0' : '当前 revision'}补齐`);
+    note_ACU(notes, 'autoFixed', `${path}.expectedRevision`, `${path}.expectedRevision đã bổ sung theo ${actual === 0 ? 'tạo mới 0' : 'revision hiện tại'}`);
     return actual;
   }
   const coerced = coerceWorldSimulationInteger_ACU(raw);
   if (!coerced.ok || coerced.value < 0) {
-    note_ACU(notes, 'blocking', `${path}.expectedRevision`, `${path}.expectedRevision 非法`, { actual: raw });
+    note_ACU(notes, 'blocking', `${path}.expectedRevision`, `${path}.expectedRevision không hợp lệ`, { actual: raw });
     return null;
   }
-  if (coerced.autoFixed) note_ACU(notes, 'autoFixed', `${path}.expectedRevision`, `${path}.expectedRevision 已从数字字符串归一为整数`);
+  if (coerced.autoFixed) note_ACU(notes, 'autoFixed', `${path}.expectedRevision`, `${path}.expectedRevision đã chuẩn hóa từ chuỗi số thành số nguyên`);
   if (coerced.value !== actual) {
-    note_ACU(notes, 'blocking', path, `${path} 条目 revision 冲突`, { expectedRevision: coerced.value, actualRevision: actual, revisionConflict: true });
+    note_ACU(notes, 'blocking', path, `${path} xung đột revision của mục`, { expectedRevision: coerced.value, actualRevision: actual, revisionConflict: true });
     return null;
   }
   return coerced.value;
@@ -284,20 +284,20 @@ function beginItem_ACU(
   let id = takeText_ACU(item.id, false);
   if (!id) {
     if (existing) {
-      note_ACU(notes, 'blocking', `${path}.id`, `${path}.id 非法`);
+      note_ACU(notes, 'blocking', `${path}.id`, `${path}.id không hợp lệ`);
       return null;
     }
     if (!allocateNewId) {
-      note_ACU(notes, 'blocking', `${path}.id`, `${path}.id 非法`);
+      note_ACU(notes, 'blocking', `${path}.id`, `${path}.id không hợp lệ`);
       return null;
     }
     id = allocateNewId();
-    note_ACU(notes, 'autoFixed', `${path}.id`, `${path}.id 已按缺省编号补齐`);
+    note_ACU(notes, 'autoFixed', `${path}.id`, `${path}.id đã bổ sung theo số thứ tự mặc định`);
   }
   if (!existing) {
     const label = takeText_ACU(item[labelField], false);
     if (!label) {
-      note_ACU(notes, 'blocking', `${path}.${labelField}`, `${path}.${labelField} 必须是非空字符串`);
+      note_ACU(notes, 'blocking', `${path}.${labelField}`, `${path}.${labelField} phải là chuỗi không rỗng`);
       return null;
     }
     return { id, [labelField]: label };
@@ -359,14 +359,14 @@ function normalizeSeed_ACU(
   if (!existing) fillMissing_ACU(next, { status: 'established', level: 0, catalyst: '', visibility: 'hidden', actorIds: [], location: null, expiresAtDay: null, missedOutcome: null, exposePolicy: 'on_collision', evidenceRefs: [], retiredReason: null }, path, notes);
   if (next.status !== 'retired' && next.retiredReason === '') {
     next.retiredReason = null;
-    note_ACU(notes, 'autoFixed', `${path}.retiredReason`, `${path}.retiredReason 非退役空字符串已归一为 null`);
+    note_ACU(notes, 'autoFixed', `${path}.retiredReason`, `${path}.retiredReason chuỗi rỗng không ở trạng thái nghỉ hưu đã chuẩn hóa thành null`);
   }
   if (next.status === 'retired' && (next.retiredReason === null || next.retiredReason === '')) {
-    note_ACU(notes, 'blocking', `${path}.retiredReason`, `${path} 退役时必须提供原因`);
+    note_ACU(notes, 'blocking', `${path}.retiredReason`, `${path} khi nghỉ hưu phải cung cấp lý do`);
     return null;
   }
   if (next.status !== 'retired' && next.retiredReason !== null) {
-    note_ACU(notes, 'blocking', path, `${path} 非退役状态不能携带退役原因`);
+    note_ACU(notes, 'blocking', path, `${path} không ở trạng thái nghỉ hưu thì không được mang lý do nghỉ hưu`);
     return null;
   }
   return finishItem_ACU(next, WORLD_SIMULATION_LEDGER_REQUIRED_FIELDS_ACU.seeds, existing ? Number(existing.revision) : 0, path, notes);
@@ -398,11 +398,11 @@ function normalizeActor_ACU(
   if (!existing) fillMissing_ACU(next, { interests: [], location: '', locationRef: null, life: 'alive', diedAtDay: null, deathSummary: null, resources: [], goals: [], constraints: [], informationSources: [], knownFacts: [], visibility: 'hidden', currentAction: null, longTermAction: null, experiences: [] }, path, notes);
   if (next.life === 'dead') {
     if (next.diedAtDay === null || !next.deathSummary) {
-      note_ACU(notes, 'blocking', path, `${path} dead 状态必须提供 diedAtDay 与 deathSummary`);
+      note_ACU(notes, 'blocking', path, `${path} ở trạng thái dead phải cung cấp diedAtDay và deathSummary`);
       return null;
     }
   } else if (next.diedAtDay !== null || next.deathSummary !== null) {
-    note_ACU(notes, 'blocking', path, `${path} 非 dead 状态不能携带死亡字段`);
+    note_ACU(notes, 'blocking', path, `${path} không ở trạng thái dead thì không được mang trường tử vong`);
     return null;
   }
   return finishItem_ACU(next, WORLD_SIMULATION_LEDGER_REQUIRED_FIELDS_ACU.actors, existing ? Number(existing.revision) : 0, path, notes);
@@ -429,15 +429,15 @@ function normalizeRumor_ACU(
     fillMissing_ACU(next, { originDay, earliestRevealDay: originDay, channels: [], relatedActorIds: [], status: 'latent', revealedAtDay: null }, path, notes);
   }
   if (typeof next.earliestRevealDay === 'number' && typeof next.originDay === 'number' && next.earliestRevealDay < next.originDay) {
-    note_ACU(notes, 'blocking', path, `${path} earliestRevealDay 必须 >= originDay`, { originDay: next.originDay, earliestRevealDay: next.earliestRevealDay });
+    note_ACU(notes, 'blocking', path, `${path} earliestRevealDay phải >= originDay`, { originDay: next.originDay, earliestRevealDay: next.earliestRevealDay });
     return null;
   }
   if (next.status === 'revealed' && next.revealedAtDay === null) {
-    note_ACU(notes, 'blocking', `${path}.revealedAtDay`, `${path} revealed 状态必须提供 revealedAtDay`);
+    note_ACU(notes, 'blocking', `${path}.revealedAtDay`, `${path} ở trạng thái revealed phải cung cấp revealedAtDay`);
     return null;
   }
   if (next.status !== 'revealed' && next.revealedAtDay !== null) {
-    note_ACU(notes, 'blocking', `${path}.revealedAtDay`, `${path} 非 revealed 状态不能携带 revealedAtDay`);
+    note_ACU(notes, 'blocking', `${path}.revealedAtDay`, `${path} không ở trạng thái revealed thì không được mang revealedAtDay`);
     return null;
   }
   return finishItem_ACU(next, WORLD_SIMULATION_LEDGER_REQUIRED_FIELDS_ACU.rumors, existing ? Number(existing.revision) : 0, path, notes);
@@ -453,7 +453,7 @@ export function normalizeWorldSimulationUpsertItem_ACU(input: {
 }): WorldSimulationNormalizeUpsertResult_ACU {
   const notes: WorldSimulationPatchNormalizationNote_ACU[] = [];
   if (!isRecord_ACU(input.item)) {
-    note_ACU(notes, 'blocking', `${input.path}`, `${input.path} 必须是对象`);
+    note_ACU(notes, 'blocking', `${input.path}`, `${input.path} phải là đối tượng`);
     return { item: null, notes };
   }
   const actual = input.existing && typeof input.existing.revision === 'number' ? input.existing.revision : 0;
@@ -508,6 +508,6 @@ export function validateWorldSimulationUpsertField_ACU(
       || field === 'catalyst' && module === 'seeds' || field === 'location' && module === 'actors') && applyString_ACU(target, field, value, path, notes, true);
     return false;
   };
-  if (!apply()) return { problem: notes.find(note => note.severity === 'blocking')?.message ?? `${path}.${field} 不允许写入` };
+  if (!apply()) return { problem: notes.find(note => note.severity === 'blocking')?.message ?? `${path}.${field} không được phép ghi` };
   return { value: target[field] };
 }

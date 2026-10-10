@@ -71,7 +71,7 @@ export function useFormFillInjectionTarget() {
     try {
       const oldLorebookName = await resolveLorebookName(oldTargetSetting);
       if (oldLorebookName) {
-        toast.info(`正在从旧目标 [${oldLorebookName}] 中清除条目...`, { muteable: false });
+        toast.info(`Đang xóa mục khỏi đích cũ [${oldLorebookName}]...`, { muteable: false });
         try {
           await deleteAllGeneratedEntries_ACU(oldLorebookName);
           await waitForCleanupSettle();
@@ -90,11 +90,11 @@ export function useFormFillInjectionTarget() {
       );
 
       if (currentJsonTableData_ACU) {
-        toast.info('正在向新目标注入条目...', { muteable: false });
+        toast.info('Đang chèn mục vào đích mới...', { muteable: false });
         await updateReadableLorebookEntry_ACU(true);
-        toast.success('数据注入目标已成功切换！', { muteable: false });
+        toast.success('Đã chuyển đích chèn dữ liệu thành công!', { muteable: false });
       } else {
-        toast.warning('数据注入目标已更新，但当前无数据可注入。', { muteable: false });
+        toast.warning('Đã cập nhật đích chèn dữ liệu nhưng hiện không có dữ liệu để chèn.', { muteable: false });
       }
     } finally {
       switching.value = false;
@@ -114,13 +114,13 @@ export function useFormFillInjectionTarget() {
       try {
         const charLorebooks = await getCharLorebooks_ACU({ type: 'all' });
         return charLorebooks.primary
-          ? `角色卡绑定世界书 · ${charLorebooks.primary}`
-          : '角色卡绑定世界书（当前未解析到角色卡）';
+          ? `Sổ thế giới gắn thẻ nhân vật · ${charLorebooks.primary}`
+          : 'Sổ thế giới gắn thẻ nhân vật (hiện chưa phân tích được thẻ nhân vật)';
       } catch {
-        return '角色卡绑定世界书';
+        return 'Sổ thế giới gắn thẻ nhân vật';
       }
     }
-    return target.value || '（未选择）';
+    return target.value || '(Chưa chọn)';
   }
 
   return {

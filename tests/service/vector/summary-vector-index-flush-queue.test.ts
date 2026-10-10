@@ -539,7 +539,7 @@ describe('summary-vector-index flush queue scope', () => {
     await expect(flushSummaryVectorIndexTaskNow_ACU(scope)).resolves.toMatchObject({ success: false });
     const finalRecord = capturedUpserts.at(-1);
     expect(finalRecord).toMatchObject({ status: 'failed_terminal' });
-    expect(String(finalRecord.lastError || '')).toContain('自动重试上限');
+    expect(String(finalRecord.lastError || '')).toContain('tự động thử lại');
     // failed_terminal 不重排：推进任意时间不再触发 archive。
     expect(h.archive).toHaveBeenCalledTimes(1);
     await vi.advanceTimersByTimeAsync(10 * 60_000);

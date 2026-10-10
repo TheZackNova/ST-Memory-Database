@@ -241,18 +241,18 @@ describe('ContinuationPage', () => {
     vi.useFakeTimers();
     try {
       const { app, el } = await mountPage();
-      expect(el.textContent).toContain('Agent 会话');
+      expect(el.textContent).toContain('Phiên Agent');
       expect(initialize).toHaveBeenCalledOnce();
       // 创建任务不再是一个单独按钮：发送第一句话就是创建。
       expect(buttonByText(el, '创建续写任务')).toBeUndefined();
-      expect(el.textContent).not.toContain('循环提示词');
+      expect(el.textContent).not.toContain('Prompt lặp');
       expect(el.textContent).not.toContain('自动修复次数上限');
       expect(el.textContent).not.toContain('修复额外读取轮数');
       expect(el.textContent).not.toContain('自动修复违规模块');
 
       typeInto(chatInput(el), '让主角找到出口');
       await nextTick();
-      buttonByText(el, '发送')!.click();
+      buttonByText(el, 'Gửi')!.click();
       await nextTick();
       // 首次发送先弹确认框，确认前不派发。
       expect(sendAgentMessage).not.toHaveBeenCalled();
@@ -273,7 +273,7 @@ describe('ContinuationPage', () => {
 
     typeInto(input, '取消后应保留这句话');
     await nextTick();
-    buttonByText(el, '发送')!.click();
+    buttonByText(el, 'Gửi')!.click();
     await nextTick();
 
     const dialog = useDialogStore();
@@ -292,7 +292,7 @@ describe('ContinuationPage', () => {
 
     typeInto(chatInput(el), '继续推进剧情');
     await nextTick();
-    buttonByText(el, '发送')!.click();
+    buttonByText(el, 'Gửi')!.click();
     await nextTick();
 
     const dialog = useDialogStore();
@@ -310,7 +310,7 @@ describe('ContinuationPage', () => {
 
       typeInto(input, '持久化失败后保留这句话');
       await nextTick();
-      buttonByText(el, '发送')!.click();
+      buttonByText(el, 'Gửi')!.click();
       await nextTick();
       await passFirstSendRpmConfirm();
       await vi.waitFor(() => { expect(sendAgentMessage).toHaveBeenCalledWith('持久化失败后保留这句话'); });
@@ -331,14 +331,14 @@ describe('ContinuationPage', () => {
 
       typeInto(input, '第一条消息');
       await nextTick();
-      buttonByText(el, '发送')!.click();
+      buttonByText(el, 'Gửi')!.click();
       await nextTick();
       await passFirstSendRpmConfirm();
       await vi.waitFor(() => { expect(sendAgentMessage).toHaveBeenCalledOnce(); });
       await nextTick();
       // 点发送后同一位置切成停止，避免再点一次发送叠一条。
-      expect(buttonByText(el, '发送')).toBeUndefined();
-      const stop = buttonByText(el, '停止');
+      expect(buttonByText(el, 'Gửi')).toBeUndefined();
+      const stop = buttonByText(el, 'Dừng');
       expect(stop).not.toBeUndefined();
 
       typeInto(input, '用户随后改写的草稿');
@@ -365,10 +365,10 @@ describe('ContinuationPage', () => {
     const { app, el } = await mountPage();
     const input = chatInput(el);
 
-    expect(el.textContent).toContain('输入新指令后发送即可继续。');
+    expect(el.textContent).toContain('Nhập chỉ dẫn mới rồi gửi để tiếp tục.');
     typeInto(input, '从当前进度继续');
     await nextTick();
-    buttonByText(el, '发送')!.click();
+    buttonByText(el, 'Gửi')!.click();
     await vi.waitFor(() => { expect(sendAgentMessage).toHaveBeenCalledWith('从当前进度继续'); });
     app.unmount();
   });
@@ -401,7 +401,7 @@ describe('ContinuationPage', () => {
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true }));
     await nextTick();
     expect(sendAgentMessage).not.toHaveBeenCalled();
-    expect(buttonByText(el, '停止')).not.toBeUndefined();
+    expect(buttonByText(el, 'Dừng')).not.toBeUndefined();
     app.unmount();
   });
 
@@ -409,13 +409,13 @@ describe('ContinuationPage', () => {
     setTask();
     const { app, el } = await mountPage();
     expect(el.querySelector('.acu-v2-session-feed')).not.toBeNull();
-    expect(el.textContent).toContain('还没有运行记录');
-    expect(el.textContent).toContain('第 1 阶段');
-    expect(el.textContent).toContain('已完成 2 / 4 轮');
-    expect(el.textContent).toContain('大纲 revision 2');
+    expect(el.textContent).toContain('Chưa có bản ghi chạy');
+    expect(el.textContent).toContain('Giai đoạn 1');
+    expect(el.textContent).toContain('Đã xong 2 / 4 lượt');
+    expect(el.textContent).toContain('Dàn ý revision 2');
 
-    expect(buttonByText(el, '发送')).not.toBeUndefined();
-    expect(buttonByText(el, '停止')).toBeUndefined();
+    expect(buttonByText(el, 'Gửi')).not.toBeUndefined();
+    expect(buttonByText(el, 'Dừng')).toBeUndefined();
     expect(buttonByText(el, '继续当前轮次')).toBeUndefined();
     expect(buttonByText(el, '重试当前轮次')).toBeUndefined();
     app.unmount();
@@ -425,12 +425,12 @@ describe('ContinuationPage', () => {
     setTask();
     activeStage.value.agentTurnLabel = { revision: 2, turnId: 'turn-3', text: '暗中试探守卫' };
     const { app, el } = await mountPage();
-    expect(el.textContent).toContain('第 1 阶段 · 暗中试探守卫');
-    expect(el.textContent).toContain('已完成 2 / 4 轮');
+    expect(el.textContent).toContain('Giai đoạn 1 · 暗中试探守卫');
+    expect(el.textContent).toContain('Đã xong 2 / 4 lượt');
     activeStage.value.agentTurnLabel = { revision: 1, turnId: 'turn-3', text: '过期标注' };
     await nextTick();
     expect(el.textContent).not.toContain('过期标注');
-    expect(el.textContent).toContain('第 1 阶段');
+    expect(el.textContent).toContain('Giai đoạn 1');
     app.unmount();
   });
 
@@ -439,15 +439,15 @@ describe('ContinuationPage', () => {
     setTask();
     const { app, el } = await mountPage();
     try {
-      expect(buttonByText(el, '停止')).toBeUndefined();
+      expect(buttonByText(el, 'Dừng')).toBeUndefined();
 
       // UI 发起的循环运行期间 envelope 不刷新，task.status 停留在陈旧的 paused；
       // 会话日志的运行标志才是实时信号，停止按钮必须据它显示。
       sessionLog.beginAgentSessionRun_ACU('第 1 阶段 · 第 1/6 轮');
       await nextTick();
-      const stop = buttonByText(el, '停止');
+      const stop = buttonByText(el, 'Dừng');
       expect(stop).not.toBeUndefined();
-      expect(buttonByText(el, '发送')).toBeUndefined();
+      expect(buttonByText(el, 'Gửi')).toBeUndefined();
       stop!.click();
       await nextTick();
       expect(stopTask).toHaveBeenCalledOnce();
@@ -474,7 +474,7 @@ describe('ContinuationPage', () => {
       expect(materialsReload).toHaveBeenLastCalledWith({ preserveDirty: true });
 
       // 运行结束再兜底刷一次。
-      sessionLog.logAgentSession_ACU({ kind: 'run_completed', title: '本轮规划完成' });
+      sessionLog.logAgentSession_ACU({ kind: 'run_completed', title: 'Hoạch định lượt này hoàn tất' });
       await nextTick();
       await vi.advanceTimersByTimeAsync(400);
       expect(materialsReload).toHaveBeenCalledTimes(2);
@@ -488,17 +488,17 @@ describe('ContinuationPage', () => {
   it('运行中与等待宿主正文时都只显示停止，并在聊天切换后刷新', async () => {
     setTask('running');
     const running = await mountPage();
-    expect(buttonByText(running.el, '发送')).toBeUndefined();
-    buttonByText(running.el, '停止')!.click();
+    expect(buttonByText(running.el, 'Gửi')).toBeUndefined();
+    buttonByText(running.el, 'Dừng')!.click();
     await nextTick();
     expect(stopTask).toHaveBeenCalledOnce();
     running.app.unmount();
 
     setTask('running', true);
     const { app, el } = await mountPage();
-    expect(el.textContent).toContain('点「停止」会同时打断 Agent 和酒馆生成');
-    expect(buttonByText(el, '停止')).not.toBeUndefined();
-    expect(buttonByText(el, '发送')).toBeUndefined();
+    expect(el.textContent).toContain('Bấm «Dừng» sẽ ngắt cả Agent lẫn việc tạo của SillyTavern');
+    expect(buttonByText(el, 'Dừng')).not.toBeUndefined();
+    expect(buttonByText(el, 'Gửi')).toBeUndefined();
     expect(buttonByText(el, '继续当前轮次')).toBeUndefined();
     chatTick.value += 1;
     await nextTick();
@@ -532,7 +532,7 @@ describe('ContinuationPage', () => {
       sessionLog.beginAgentSessionRun_ACU('第 1 阶段 · 第 3 轮');
       sessionLog.logAgentSession_ACU({ kind: 'thought', title: '只存在于内存里的思考' });
       await nextTick();
-      expect(buttonByText(el, '停止')).not.toBeUndefined();
+      expect(buttonByText(el, 'Dừng')).not.toBeUndefined();
 
       chat.splice(3, 2);
       chatMutationTick.value += 1;
@@ -542,11 +542,11 @@ describe('ContinuationPage', () => {
       expect(el.textContent).toContain('第一轮的规划');
       expect(el.textContent).not.toContain('被删楼层上的规划');
       expect(el.textContent).not.toContain('只存在于内存里的思考');
-      expect(el.textContent).toContain('楼层已变化，会话已按现存楼层重新加载');
+      expect(el.textContent).toContain('Tầng đã thay đổi, phiên đã được nạp lại theo các tầng hiện còn');
       // 任务进度按现存楼层重读；运行标记保留，停止按钮不能因为重灌而消失。
       expect(refresh).toHaveBeenCalledOnce();
       expect(sessionLog.isAgentSessionRunning_ACU()).toBe(true);
-      expect(buttonByText(el, '停止')).not.toBeUndefined();
+      expect(buttonByText(el, 'Dừng')).not.toBeUndefined();
     } finally {
       app.unmount();
       sessionLog.resetAgentSessionLogForTests_ACU();
@@ -557,25 +557,25 @@ describe('ContinuationPage', () => {
   it('资料面板结构化展示当前大纲，保留 JSON 草稿保护、保存与清空确认', async () => {
     setTask();
     const { app, el } = await mountPage();
-    expect(el.textContent).toContain('已有资料');
-    expect(el.textContent).toContain('第 1 阶段：逃离计划');
-    expect(el.textContent).toContain('阶段目标：让主角找到出口');
-    expect(el.textContent).toContain('起伏型');
-    expect(el.textContent).toContain('职责：发展');
-    expect(el.textContent).toContain('故事时间目标：三日内');
-    expect(el.textContent).toContain('完成 2 / 4 轮 · 剩余 2 轮');
-    expect(el.textContent).toContain('所属 active 卷：[VOL-01]「禁区试探」');
+    expect(el.textContent).toContain('Tài liệu hiện có');
+    expect(el.textContent).toContain('Giai đoạn 1: 逃离计划');
+    expect(el.textContent).toContain('Mục tiêu giai đoạn: 让主角找到出口');
+    expect(el.textContent).toContain('Kiểu lên xuống');
+    expect(el.textContent).toContain('Vai trò: Phát triển');
+    expect(el.textContent).toContain('Mục tiêu thời gian truyện: 三日内');
+    expect(el.textContent).toContain('Xong 2 / 4 lượt · còn 2 lượt');
+    expect(el.textContent).toContain('Tập active thuộc về: [VOL-01]「禁区试探」');
     expect(el.textContent).toContain('摸清出口守卫');
-    expect(el.textContent).toContain('功能：世界日常');
-    expect(el.textContent).toContain('主线：停驻');
-    expect(el.textContent).toContain('时间：数日 · 取得钥匙后的第三日');
-    expect(el.textContent).toContain('当前执行');
+    expect(el.textContent).toContain('Chức năng: Thường nhật thế giới');
+    expect(el.textContent).toContain('Tuyến chính: Dừng');
+    expect(el.textContent).toContain('Thời gian: Vài ngày · 取得钥匙后的第三日');
+    expect(el.textContent).toContain('Đang thực thi');
     expect(el.querySelectorAll('.acu-v2-continuation-materials__turn--done')).toHaveLength(2);
     expect(el.querySelectorAll('.acu-v2-continuation-materials__turn--current')).toHaveLength(1);
     expect(el.querySelectorAll('.acu-v2-continuation-materials__turn--planned')).toHaveLength(1);
-    expect(el.textContent).toContain('第 0 阶段');
+    expect(el.textContent).toContain('Giai đoạn 0');
     const historyStage = Array.from(el.querySelectorAll<HTMLDetailsElement>('.acu-v2-continuation-materials__block'))
-      .find(block => (block.querySelector('summary')?.textContent || '').includes('第 0 阶段'));
+      .find(block => (block.querySelector('summary')?.textContent || '').includes('Giai đoạn 0'));
     expect(historyStage).toBeTruthy();
     expect(historyStage!.open).toBe(false);
     expect(el.textContent).not.toContain('最终试探');
@@ -583,7 +583,7 @@ describe('ContinuationPage', () => {
     historyStage!.dispatchEvent(new Event('toggle'));
     await nextTick();
     expect(el.textContent).toContain('最终试探');
-    expect(el.textContent).toContain('旧 revision（1）');
+    expect(el.textContent).toContain('Revision cũ (1)');
 
     const outlineJson = el.querySelector<HTMLDetailsElement>('.acu-v2-continuation-materials__outline > .acu-v2-continuation-materials__json')!;
     expect(outlineJson.open).toBe(false);
@@ -591,7 +591,7 @@ describe('ContinuationPage', () => {
     const outlineTextarea = outlineJson.querySelector<HTMLTextAreaElement>('textarea')!;
     expect(JSON.parse(outlineTextarea.value).title).toBe('逃离计划');
     // 未改动时保存按钮禁用，避免无意义写盘推进 revision。
-    expect(buttonByText(el, '保存大纲')!.disabled).toBe(true);
+    expect(buttonByText(el, 'Lưu dàn ý')!.disabled).toBe(true);
 
     const editedOutline = JSON.parse(outlineTextarea.value);
     editedOutline.title = '逃离计划 v2';
@@ -601,7 +601,7 @@ describe('ContinuationPage', () => {
     activeRevision.value = { ...activeRevision.value, revision: 3, outline: { ...activeRevision.value.outline, title: '外部 revision' } };
     await nextTick();
     expect(JSON.parse(outlineTextarea.value).title).toBe('逃离计划 v2');
-    buttonByText(el, '保存大纲')!.click();
+    buttonByText(el, 'Lưu dàn ý')!.click();
     await nextTick();
     expect(saveActiveOutline).toHaveBeenCalledOnce();
     expect(saveActiveOutline.mock.calls[0][0]).toMatchObject({ title: '逃离计划 v2' });
@@ -612,16 +612,16 @@ describe('ContinuationPage', () => {
     // JSON 写坏时就地报错，不派发给领域层。
     typeInto(outlineTextarea, '{不是 JSON');
     await nextTick();
-    buttonByText(el, '保存大纲')!.click();
+    buttonByText(el, 'Lưu dàn ý')!.click();
     await nextTick();
     expect(saveActiveOutline).toHaveBeenCalledOnce();
-    expect(el.textContent).toContain('大纲 JSON 无法解析');
+    expect(el.textContent).toContain('Không thể phân tích JSON dàn ý');
 
-    buttonByText(el, '一键清空')!.click();
+    buttonByText(el, 'Xóa sạch một chạm')!.click();
     await nextTick();
     expect(clearData).not.toHaveBeenCalled();
-    expect(el.textContent).toContain('小说正文楼层不受影响');
-    buttonByText(el, '确认清空')!.click();
+    expect(el.textContent).toContain('Các tầng nội dung tiểu thuyết không bị ảnh hưởng');
+    buttonByText(el, 'Xác nhận xóa sạch')!.click();
     await nextTick();
     expect(clearData).toHaveBeenCalledOnce();
     app.unmount();
@@ -640,7 +640,7 @@ describe('ContinuationPage', () => {
       stageSize.dispatchEvent(new Event('change', { bubbles: true }));
       await nextTick();
       const group = Array.from(el.querySelectorAll<HTMLElement>('.acu-v2-continuation-page__group'))
-        .find(item => item.querySelector('.acu-disclosure-group__label')?.textContent?.trim() === '主 Agent 提示词')!;
+        .find(item => item.querySelector('.acu-disclosure-group__label')?.textContent?.trim() === 'Prompt Agent chính')!;
       group.querySelector<HTMLButtonElement>('.acu-disclosure-group__header')!.click();
       await nextTick();
       nativeToolEnabled.value = true;
@@ -669,20 +669,20 @@ describe('ContinuationPage', () => {
       setTask();
       const { app, el } = await mountPage();
 
-      expect(el.textContent).toContain('续写设置');
-      expect(el.textContent).toContain('伪 Role 提示词');
-      expect(el.textContent).toContain('正文可读窗口楼数');
-      expect(el.textContent).toContain('会话自动总结阈值');
-      expect(el.textContent).toContain('单批次读取上限');
-      expect(el.textContent).toContain('临近总结时的精读额度');
-      expect(el.textContent).toContain('连续高压轮上限');
-      expect(el.textContent).toContain('终审单批次读取上限');
-      expect(el.textContent).toContain('关闭时不装配终审证据');
-      expect(el.textContent).toContain('不会发起终审调用');
-      expect(el.textContent).toContain('发送前终审子代理提示词');
-      expect(el.textContent).toContain('固定注入差异：主 Agent、总纲代理、两类策划代理、连续性审查、终审固定获得 $OUTLINE_WINDOW 或任务段中的 $USER_REQUIREMENTS');
-      expect(el.textContent).toContain('伏笔与认知维护代理不再注入初始要求原文，只接收累计用户要求清单');
-      expect(el.textContent).toContain('故事总纲子代理（arc-architect）提示词');
+      expect(el.textContent).toContain('Cài đặt viết tiếp');
+      expect(el.textContent).toContain('Prompt giả Role');
+      expect(el.textContent).toContain('Số tầng cửa sổ nội dung có thể đọc');
+      expect(el.textContent).toContain('Ngưỡng tự động tóm tắt phiên');
+      expect(el.textContent).toContain('Giới hạn đọc mỗi lô');
+      expect(el.textContent).toContain('Hạn mức đọc kỹ khi sắp tóm tắt');
+      expect(el.textContent).toContain('Giới hạn lượt áp lực cao liên tiếp');
+      expect(el.textContent).toContain('Giới hạn đọc mỗi lô của duyệt cuối');
+      expect(el.textContent).toContain('Khi tắt, sẽ không lắp ráp chứng cứ duyệt cuối');
+      expect(el.textContent).toContain('cũng không phát lệnh gọi duyệt cuối');
+      expect(el.textContent).toContain('Prompt Agent phụ duyệt cuối trước khi gửi');
+      expect(el.textContent).toContain('Khác biệt về chèn cố định: Agent chính, Agent tổng cương, hai loại Agent hoạch định, rà soát tính liên tục và duyệt cuối luôn nhận $OUTLINE_WINDOW hoặc $USER_REQUIREMENTS');
+      expect(el.textContent).toContain('Agent bảo trì phục bút và nhận thức không còn được chèn nguyên văn yêu cầu ban đầu, chỉ nhận danh sách yêu cầu người dùng tích lũy');
+      expect(el.textContent).toContain('Prompt Agent phụ tổng cương truyện (arc-architect)');
       expect(el.textContent).not.toContain('缓存优化');
       expect(el.textContent).not.toContain('prompt_cache_key');
       // 保存按钮已移除：修改任意设置项后由防抖自动保存。
@@ -716,8 +716,8 @@ describe('ContinuationPage', () => {
     const groups = Array.from(el.querySelectorAll<HTMLElement>('.acu-v2-continuation-page__group'));
     const labels = groups.map(group => group.querySelector('.acu-disclosure-group__label')?.textContent?.trim());
     expect(labels).toEqual(expect.arrayContaining([
-      '运行与重试', '正文读取与上下文', 'Agent 运行预算', '发送前终审', '各 Agent 渠道', '上下文提取与排除规则',
-      '主 Agent 提示词', '发送前终审子代理提示词', '占位符速查',
+      'Chạy và thử lại', 'Đọc nội dung và ngữ cảnh', 'Ngân sách chạy của Agent', 'Duyệt cuối trước khi gửi', 'Kênh từng Agent', 'Quy tắc trích xuất và loại trừ ngữ cảnh',
+      'Prompt Agent chính', 'Prompt Agent phụ duyệt cuối trước khi gửi', 'Tra nhanh placeholder',
     ]));
     // 默认全部收起。
     for (const group of groups) {
@@ -725,22 +725,22 @@ describe('ContinuationPage', () => {
     }
     // 折叠态摘要露出关键取值。
     const metas = groups.map(group => group.querySelector('.acu-disclosure-group__meta')?.textContent?.trim());
-    expect(metas).toEqual(expect.arrayContaining(['阶段上限 6 · 正文重试 3 次', '已关闭', '全部跟随默认', '1/1 段启用']));
+    expect(metas).toEqual(expect.arrayContaining(['Giới hạn giai đoạn 6 · thử lại nội dung 3 lần', 'Đã tắt', 'Tất cả theo mặc định', '1/1 đoạn được bật']));
 
     // 常用项在分组外面可直接操作；高级项（如正文可读窗口楼数）折叠在分组里。
     const topLevelLabels = Array.from(el.querySelectorAll<HTMLElement>('.acu-form-row__label'))
       .filter(label => !label.closest('.acu-v2-continuation-page__group'))
       .map(label => label.textContent?.trim());
-    expect(topLevelLabels).toContain('阶段规模');
-    expect(topLevelLabels).toContain('API 预设（全局默认）');
-    expect(topLevelLabels).not.toContain('正文可读窗口楼数');
+    expect(topLevelLabels).toContain('Quy mô giai đoạn');
+    expect(topLevelLabels).toContain('Preset API (mặc định toàn cục)');
+    expect(topLevelLabels).not.toContain('Số tầng cửa sổ nội dung có thể đọc');
     // 长说明改为 hint 小字，不再塞进 label。
     expect(el.querySelector('.acu-form-row__hint')).not.toBeNull();
     for (const label of el.querySelectorAll<HTMLElement>('.acu-form-row__label')) {
-      expect((label.textContent ?? '').length).toBeLessThan(24);
+      expect((label.textContent ?? '').length).toBeLessThan(48);
     }
 
-    const runGroup = groups.find(group => group.textContent?.includes('运行与重试'))!;
+    const runGroup = groups.find(group => group.textContent?.includes('Chạy và thử lại'))!;
     runGroup.querySelector<HTMLButtonElement>('.acu-disclosure-group__header')!.click();
     await nextTick();
     expect(runGroup.querySelector('.acu-disclosure-group__header')?.getAttribute('aria-expanded')).toBe('true');
@@ -761,13 +761,13 @@ describe('ContinuationPage', () => {
       await nextTick();
       await vi.advanceTimersByTimeAsync(900);
       expect(saveSettings).toHaveBeenCalledOnce();
-      expect(el.textContent).toContain('将在本轮空档自动保存');
+      expect(el.textContent).toContain('sẽ tự động lưu ở khoảng nghỉ của lượt này');
 
       // 第二次重试默认返回 'saved'：改动落盘，排队提示清除。
       await vi.advanceTimersByTimeAsync(900);
       expect(saveSettings).toHaveBeenCalledTimes(2);
       await nextTick();
-      expect(el.textContent).not.toContain('将在本轮空档自动保存');
+      expect(el.textContent).not.toContain('sẽ tự động lưu ở khoảng nghỉ của lượt này');
       app.unmount();
     } finally {
       vi.useRealTimers();
@@ -780,17 +780,17 @@ describe('ContinuationPage', () => {
     requirementModule.draft = JSON.stringify(['旧要求']);
     const { el } = await mountPage();
     const tab = Array.from(el.querySelectorAll<HTMLButtonElement>('.acu-v2-continuation-materials__tab'))
-      .find(item => item.textContent?.trim() === '用户要求')!;
+      .find(item => item.textContent?.trim() === 'Yêu cầu người dùng')!;
     tab.click();
     await nextTick();
     expect(el.querySelector<HTMLTextAreaElement>('.acu-requirements-editor textarea')?.value).toBe('旧要求');
-    buttonByText(el, '新增标签')!.click();
+    buttonByText(el, 'Thêm thẻ')!.click();
     await nextTick();
     const second = el.querySelectorAll<HTMLTextAreaElement>('.acu-requirements-editor textarea')[1]!;
     typeInto(second, '第二条要求');
     await nextTick();
     expect(materialsUpdateDraft).toHaveBeenLastCalledWith('userRequirements', JSON.stringify(['旧要求', '第二条要求'], null, 2));
-    buttonByText(el, '保存用户要求')!.click();
+    buttonByText(el, 'Lưu yêu cầu người dùng')!.click();
     await nextTick();
     expect(materialsSave).toHaveBeenCalledWith('userRequirements');
     expect(el.querySelectorAll<HTMLTextAreaElement>('.acu-requirements-editor textarea')[1]?.value).toBe('第二条要求');

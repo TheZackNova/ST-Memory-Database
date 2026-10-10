@@ -78,7 +78,7 @@ describe('table-v2-recovery-service', () => {
     expect(h.save).not.toHaveBeenCalled();
     expect(h.reload).not.toHaveBeenCalled();
     await expect(commitPreparedV2Recovery_ACU('not-created-by-scan')).resolves.toMatchObject({
-      status: 'commit_failed_rolled_back', error: expect.stringContaining('不存在或已失效'),
+      status: 'commit_failed_rolled_back', error: expect.stringContaining('không tồn tại hoặc đã hết hiệu lực'),
     });
   });
 
@@ -166,7 +166,7 @@ describe('table-v2-recovery-service', () => {
     });
     expect(prepared.message).toContain('sheet_global');
     expect(prepared.message).toContain('#0/seq=1/op=0');
-    expect(prepared.message).toContain('自动收敛');
+    expect(prepared.message).toContain('tự động hội tụ');
 
     await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toEqual({ status: 'committed', planId: prepared.planId });
     const tag = h.chat[0].TavernDB_ACU_IsolatedData[''];
@@ -202,7 +202,7 @@ describe('table-v2-recovery-service', () => {
     expect(summary).toMatchObject({
       status: 'unrecoverable',
       requiresConfirmation: false,
-      message: expect.stringContaining('模板临时根'),
+      message: expect.stringContaining('gốc tạm của mẫu điền lại thủ công'),
     });
     expect(summary.planId).toBeUndefined();
     expect(h.save).not.toHaveBeenCalled();
@@ -227,7 +227,7 @@ describe('table-v2-recovery-service', () => {
       status: 'unrecoverable_late_checkpoint_artifacts',
       sourceMessageIndex: 1,
       requiresConfirmation: false,
-      message: expect.stringContaining('自动前移会改变后缀回放语义'),
+      message: expect.stringContaining('tự động dời lên sẽ làm đổi ngữ nghĩa phát lại phần hậu tố'),
     });
     expect(summary.planId).toBeUndefined();
     expect(h.save).not.toHaveBeenCalled();
@@ -253,7 +253,7 @@ describe('table-v2-recovery-service', () => {
 
     expect(await prepareV2Recovery_ACU()).toMatchObject({
       status: 'unrecoverable',
-      message: expect.stringContaining('重复 row_id 修复会改变后续引用的语义'),
+      message: expect.stringContaining('Sửa row_id trùng sẽ làm đổi ngữ nghĩa của các tham chiếu phía sau'),
     });
     expect(h.save).not.toHaveBeenCalled();
   });
@@ -277,7 +277,7 @@ describe('table-v2-recovery-service', () => {
 
     expect(await prepareV2Recovery_ACU()).toMatchObject({
       status: 'unrecoverable',
-      message: expect.stringContaining('重复 row_id 修复会改变后续引用的语义'),
+      message: expect.stringContaining('Sửa row_id trùng sẽ làm đổi ngữ nghĩa của các tham chiếu phía sau'),
     });
     expect(h.save).not.toHaveBeenCalled();
   });
@@ -289,7 +289,7 @@ describe('table-v2-recovery-service', () => {
     const prepared = await prepareV2Recovery_ACU();
 
     expect(prepared).toMatchObject({ status: 'recoverable_orphan_data_replace', requiresConfirmation: true });
-    await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toMatchObject({ status: 'commit_failed_rolled_back', error: expect.stringContaining('必须显式确认') });
+    await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toMatchObject({ status: 'commit_failed_rolled_back', error: expect.stringContaining('phải được xác nhận tường minh') });
     expect(h.chat).toEqual(before);
     expect(h.save).not.toHaveBeenCalled();
   });
@@ -311,8 +311,8 @@ describe('table-v2-recovery-service', () => {
     expect(h.chat[0].TavernDB_ACU_IsolatedData[''].compatTransitionCheckpoint).toBeUndefined();
     expect(prepared).toMatchObject({ status: 'recoverable_compat_tolerant_replay', requiresConfirmation: false, sourceMessageIndex: 0 });
     expect(prepared.planId).toBeTruthy();
-    expect(prepared.message).toContain('身份归并=无');
-    expect(prepared.message).toContain('固化方案：在楼层 #0');
+    expect(prepared.message).toContain('gộp danh tính=không có');
+    expect(prepared.message).toContain('Phương án cố định: ghi gốc chuyển tiếp tương thích tại tầng #0');
 
     await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toEqual({ status: 'committed', planId: prepared.planId });
     expect(h.save).toHaveBeenCalledTimes(1);
@@ -330,7 +330,7 @@ describe('table-v2-recovery-service', () => {
     expect(strict?.baseKind).toBe('compat_transition_checkpoint');
     expect(strict?.data.sheet_0.content).toEqual([['row_id', '名称'], ['1', '铁剑'], ['2', '副本']]);
     // 再次诊断：历史已严格可回放，无需恢复。
-    await expect(prepareV2Recovery_ACU()).resolves.toMatchObject({ status: 'unrecoverable', message: expect.stringContaining('无需恢复') });
+    await expect(prepareV2Recovery_ACU()).resolves.toMatchObject({ status: 'unrecoverable', message: expect.stringContaining('không cần khôi phục') });
   });
 
   it('兼容宽容回放固化 plan：过渡根目标楼层 tagData 在诊断后变化时计划失效且零保存', async () => {
@@ -345,7 +345,7 @@ describe('table-v2-recovery-service', () => {
     h.chat[0].TavernDB_ACU_IsolatedData[''].compatTransitionCheckpoint = { version: 1, kind: 'compat_replay_transition', createdAt: 3, data: data(), cutoff: { messageIndex: 0, seq: 1, operationIndex: 0 }, tolerances: [] };
 
     await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toMatchObject({
-      status: 'commit_failed_rolled_back', error: expect.stringContaining('过渡根放置目标楼层已变化'),
+      status: 'commit_failed_rolled_back', error: expect.stringContaining('Tầng đích đặt gốc chuyển tiếp đã thay đổi'),
     });
     expect(h.save).not.toHaveBeenCalled();
   });
@@ -364,16 +364,16 @@ describe('table-v2-recovery-service', () => {
 
     const prepared = await prepareV2Recovery_ACU();
     expect(prepared).toMatchObject({ status: 'recoverable_compat_tolerant_replay', requiresConfirmation: true });
-    expect(prepared.message).toContain('身份归并=');
-    expect(prepared.message).not.toContain('身份归并=无');
+    expect(prepared.message).toContain('gộp danh tính=');
+    expect(prepared.message).not.toContain('gộp danh tính=không có');
     expect(prepared.planId).toBeTruthy();
 
     await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toMatchObject({
-      status: 'commit_failed_rolled_back', error: expect.stringContaining('身份归并的兼容回放固化必须显式确认'),
+      status: 'commit_failed_rolled_back', error: expect.stringContaining('Cố định phát lại tương thích có gộp danh tính sheetKey phải được xác nhận tường minh'),
     });
     // 错误的确认位（孤立 data_replace 的确认）不能替代。
     await expect(commitPreparedV2Recovery_ACU(prepared.planId!, { confirmOrphanDataReplace: true })).resolves.toMatchObject({
-      status: 'commit_failed_rolled_back', error: expect.stringContaining('身份归并'),
+      status: 'commit_failed_rolled_back', error: expect.stringContaining('gộp danh tính'),
     });
     expect(h.chat).toEqual(before);
     expect(h.save).not.toHaveBeenCalled();
@@ -411,7 +411,7 @@ describe('table-v2-recovery-service', () => {
 
     try {
       await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toMatchObject({
-        status: 'commit_failed_rolled_back', error: expect.stringContaining('候选 replay 校验失败'),
+        status: 'commit_failed_rolled_back', error: expect.stringContaining('Kiểm tra replay ứng viên khôi phục thất bại'),
       });
       expect(h.chat).toEqual(before);
       expect(h.save).not.toHaveBeenCalled();
@@ -456,7 +456,7 @@ describe('table-v2-recovery-service', () => {
     const prepared = await prepareV2Recovery_ACU();
 
     await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toMatchObject({
-      status: 'committed_postcondition_failed', planId: prepared.planId, error: expect.stringContaining('静默回退'),
+      status: 'committed_postcondition_failed', planId: prepared.planId, error: expect.stringContaining('âm thầm lùi về native provider'),
     });
     expect(h.save).toHaveBeenCalledTimes(1);
     expect(h.reload).toHaveBeenCalledTimes(1);
@@ -490,7 +490,7 @@ describe('table-v2-recovery-service', () => {
     expect(h.save).not.toHaveBeenCalled();
     h.scope.chatKey = 'recovery-test';
     await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toMatchObject({
-      status: 'commit_failed_rolled_back', error: expect.stringContaining('不存在或已失效'),
+      status: 'commit_failed_rolled_back', error: expect.stringContaining('không tồn tại hoặc đã hết hiệu lực'),
     });
     expect(h.save).not.toHaveBeenCalled();
   });
@@ -502,7 +502,7 @@ describe('table-v2-recovery-service', () => {
 
     expect(first.planId).not.toBe(second.planId);
     await expect(commitPreparedV2Recovery_ACU(first.planId!)).resolves.toMatchObject({
-      status: 'commit_failed_rolled_back', error: expect.stringContaining('不存在或已失效'),
+      status: 'commit_failed_rolled_back', error: expect.stringContaining('không tồn tại hoặc đã hết hiệu lực'),
     });
     await expect(commitPreparedV2Recovery_ACU(second.planId!)).resolves.toEqual({ status: 'committed', planId: second.planId });
     expect(h.save).toHaveBeenCalledTimes(1);
@@ -515,10 +515,10 @@ describe('table-v2-recovery-service', () => {
     h.chat[0].TavernDB_ACU_IsolatedData[''].storageFrame = frame({ kind: 'full', createdAt: 2, reason: 'init', data: data([['2', '新源']]) });
 
     await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toMatchObject({
-      status: 'commit_failed_rolled_back', error: expect.stringContaining('恢复源 frame 已变化'),
+      status: 'commit_failed_rolled_back', error: expect.stringContaining('frame nguồn khôi phục đã thay đổi'),
     });
     await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toMatchObject({
-      status: 'commit_failed_rolled_back', error: expect.stringContaining('不存在或已失效'),
+      status: 'commit_failed_rolled_back', error: expect.stringContaining('không tồn tại hoặc đã hết hiệu lực'),
     });
     expect(h.save).not.toHaveBeenCalled();
   });
@@ -532,7 +532,7 @@ describe('table-v2-recovery-service', () => {
     const prepared = await prepareV2Recovery_ACU();
     expect(prepared).toMatchObject({
       status: 'recoverable_repaired_checkpoint',
-      message: expect.stringContaining('保留并严格回放后缀 artifact'),
+      message: expect.stringContaining('giữ lại và phát lại nghiêm ngặt artifact hậu tố'),
     });
     await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toEqual({ status: 'committed', planId: prepared.planId });
     const tag = h.chat[0].TavernDB_ACU_IsolatedData[''];
@@ -541,7 +541,7 @@ describe('table-v2-recovery-service', () => {
     await expect(loadTableStateFromFramesV2_ACU(h.chat, '', { updateRuntimeState: false })).resolves.toEqual(data([['2', '后续']]));
 
     h.chat = chatWithFrame(frame({ kind: 'full', createdAt: 1, reason: 'init', data: data() }));
-    expect(await prepareV2Recovery_ACU()).toMatchObject({ status: 'unrecoverable', message: expect.stringContaining('无需恢复') });
+    expect(await prepareV2Recovery_ACU()).toMatchObject({ status: 'unrecoverable', message: expect.stringContaining('không cần khôi phục') });
     expect(h.save).toHaveBeenCalledTimes(1);
   });
 
@@ -588,8 +588,8 @@ describe('table-v2-recovery-service', () => {
     const prepared = await prepareV2Recovery_ACU();
     expect(prepared.status).toBe('recoverable_redundant_full_checkpoint');
     expect(prepared.planId).toBeDefined();
-    expect(prepared.message).toContain('保留末位');
-    expect(prepared.message).toContain('无损降级');
+    expect(prepared.message).toContain('sẽ giữ cái cuối');
+    expect(prepared.message).toContain('hạ cấp không mất dữ liệu');
 
     await expect(commitPreparedV2Recovery_ACU(prepared.planId!)).resolves.toEqual({ status: 'committed', planId: prepared.planId });
 
@@ -698,7 +698,7 @@ describe('table-v2-recovery-service', () => {
     const prepared = await prepareV2Recovery_ACU();
     expect(prepared.status).not.toBe('unrecoverable_identity_conflict');
     expect(prepared.status).toBe('unrecoverable');
-    expect(prepared.message).toContain('无需恢复');
+    expect(prepared.message).toContain('không cần khôi phục');
     expect(h.save).not.toHaveBeenCalled();
   });
 
@@ -718,7 +718,7 @@ describe('table-v2-recovery-service', () => {
 
     const prepared = await prepareV2Recovery_ACU();
     expect(prepared.status).toBe('unrecoverable');
-    expect(prepared.message).toContain('无需恢复');
+    expect(prepared.message).toContain('không cần khôi phục');
     expect(h.save).not.toHaveBeenCalled();
   });
 
@@ -739,7 +739,7 @@ describe('table-v2-recovery-service', () => {
 
     const prepared = await prepareV2Recovery_ACU();
     expect(prepared.status).toBe('unrecoverable');
-    expect(prepared.message).toContain('无需恢复');
+    expect(prepared.message).toContain('không cần khôi phục');
     expect(h.save).not.toHaveBeenCalled();
   });
 
@@ -761,7 +761,7 @@ describe('table-v2-recovery-service', () => {
 
     const prepared = await prepareV2Recovery_ACU();
     expect(prepared.status).toBe('unrecoverable');
-    expect(prepared.message).toContain('无需恢复');
+    expect(prepared.message).toContain('không cần khôi phục');
     expect(h.save).not.toHaveBeenCalled();
   });
 

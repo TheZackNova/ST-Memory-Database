@@ -51,7 +51,7 @@ export async function generateRaw_ACU(options: {
     [key: string]: any;
 }): Promise<string> {
     if (!isGenerateRawAvailable_ACU()) {
-        throw new Error('主API生成不可用：未检测到酒馆助手（TavernHelper.generateRaw）。请安装酒馆助手（JS-Slash-Runner），或在设置中改用自定义API。');
+        throw new Error('Không thể tạo bằng API chính: không phát hiện Tavern Helper (TavernHelper.generateRaw). Hãy cài Tavern Helper (JS-Slash-Runner) hoặc chuyển sang API tùy chỉnh trong Cài đặt.');
     }
     const log = createApiRequestLog_ACU('API主连接', '宿主 generateRaw 调用参数（非最终网络请求）', options);
     try {
@@ -80,7 +80,7 @@ export async function sendConnectionManagerRequest_ACU(
     overridePayload?: Record<string, unknown>,
 ): Promise<any> {
     if (!isConnectionManagerAvailable_ACU()) {
-        throw new Error('ConnectionManagerRequestService 不可用。请检查酒馆版本或连接管理器配置。');
+        throw new Error('ConnectionManagerRequestService không khả dụng. Hãy kiểm tra phiên bản SillyTavern hoặc cấu hình Connection Manager.');
     }
     const service = SillyTavern_API_ACU.ConnectionManagerRequestService;
     const log = createApiRequestLog_ACU('API连接预设', '宿主 ConnectionManager 调用参数（非最终网络请求）',
@@ -175,7 +175,7 @@ export async function sendMainApiChatCompletionRequest_ACU(
     options?: DirectChatCompletionOptions_ACU,
 ): Promise<any> {
     if (!isMainApiChatCompletionAvailable_ACU()) {
-        throw new Error('酒馆主 API 当前不是 Chat Completion 连接，无法携带原生工具。');
+        throw new Error('API chính của SillyTavern hiện không phải kết nối Chat Completion, không thể mang theo công cụ gốc.');
     }
     const st: any = SillyTavern_API_ACU;
     const oai: any = st.chatCompletionSettings;
@@ -233,7 +233,7 @@ export async function postChatCompletionDirect_ACU(
     logTag = 'API酒馆直发',
 ): Promise<any> {
     if (options?.streaming && !options.readResponse) {
-        throw new Error('流式直发缺少本次请求的响应解析器，未发送请求。');
+        throw new Error('Gửi trực tiếp dạng stream thiếu bộ phân tích phản hồi cho yêu cầu lần này, chưa gửi yêu cầu.');
     }
     const service: any = (SillyTavern_API_ACU as any)?.ChatCompletionService;
     const data = !options?.preservePayload && typeof service?.createRequestData === 'function'
@@ -268,11 +268,11 @@ export async function postChatCompletionDirect_ACU(
             try {
                 json = text ? JSON.parse(text) : null;
             } catch {
-                throw new Error(`生成端点返回了无法解析的响应（HTTP ${response.status}）。`);
+                throw new Error(`Endpoint tạo trả về phản hồi không thể phân tích (HTTP ${response.status}).`);
             }
             if (!response.ok || json?.error) {
                 const detail = json?.error?.message || (typeof json?.error === 'string' ? json.error : '') || text.slice(0, 300);
-                throw new Error(`API 请求失败: HTTP ${response.status}${detail ? ` ${detail}` : ''}`);
+                throw new Error(`Yêu cầu API thất bại: HTTP ${response.status}${detail ? ` ${detail}` : ''}`);
             }
             return json;
         } finally { observed.finish(); }
@@ -298,7 +298,7 @@ function resolveProfileProxy_ACU(profile: any): { url?: string; password?: strin
     if (st?.extensionSettings?.connectionManager?.selectedProfile === profile?.id) {
         return { url: oai?.reverse_proxy || undefined, password: oai?.proxy_password || undefined };
     }
-    throw new Error(`连接预设 "${profile?.name || profile?.id}" 使用反向代理 "${name}"，但当前无法读取该代理配置；请让该预设处于激活状态后重试，或改用自定义 API。`);
+    throw new Error(`Preset kết nối "${profile?.name || profile?.id}" dùng reverse proxy "${name}", nhưng hiện không đọc được cấu hình proxy đó; hãy kích hoạt preset này rồi thử lại, hoặc chuyển sang API tùy chỉnh.`);
 }
 
 /**
@@ -322,7 +322,7 @@ export async function sendProfileChatCompletionRequest_ACU(
     const st: any = SillyTavern_API_ACU;
     const entry = profile?.api ? st?.CONNECT_API_MAP?.[profile.api] : null;
     if (!entry || entry.selected !== 'openai' || !entry.source) {
-        throw new Error(`连接预设 "${profile?.name || profile?.id}" 不是 Chat Completion 类型。`);
+        throw new Error(`Preset kết nối "${profile?.name || profile?.id}" không phải loại Chat Completion.`);
     }
     const proxy = resolveProfileProxy_ACU(profile);
     let presetPayload: Record<string, unknown> = {};
@@ -332,7 +332,7 @@ export async function sendProfileChatCompletionRequest_ACU(
             presetPayload = st.ChatCompletionService.presetToGeneratePayload(preset, {}) || {};
         }
     } catch (error) {
-        if (options?.preservePayload) throw Object.assign(new Error('连接预设的生成参数读取失败，未发送零层正文请求。'), { cause: error });
+        if (options?.preservePayload) throw Object.assign(new Error('Đọc tham số tạo của preset kết nối thất bại, chưa gửi yêu cầu nội dung Tầng 0.'), { cause: error });
         logWarn_ACU('[AIGateway] 读取连接预设的生成参数失败，按默认参数发送:', error);
     }
     return await postChatCompletionDirect_ACU({

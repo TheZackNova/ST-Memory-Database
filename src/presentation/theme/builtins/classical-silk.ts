@@ -5,8 +5,8 @@ import type { ACUTheme } from '../theme-types';
 
 export const THEME_CLASSICAL_SILK: ACUTheme = {
     id: 'classical-silk',
-    name: '古典·素纱',
-    description: '淡雅浅色纱质感，暖褐色调，宋体排版',
+    name: 'Cổ điển · Lụa mỏng',
+    description: 'Tông lụa mỏng sáng thanh nhã, sắc nâu ấm, dàn trang kiểu Tống thể',
     author: '龙血玄黄·数据库',
     version: '1.0.0',
     colorScheme: 'light',
@@ -99,7 +99,7 @@ export const THEME_CLASSICAL_SILK: ACUTheme = {
     customCSS: `
         /* 素纱主题特有：header 前缀字 */
         #popup .acu-header::before {
-            content: '录';
+            content: 'Ghi';
             display: inline-flex;
             align-items: center;
             justify-content: center;

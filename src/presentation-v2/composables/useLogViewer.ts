@@ -29,8 +29,8 @@ export interface LogViewerMessage {
 }
 
 const levelOptions: { value: LogLevelFilter; label: string }[] = [
-  { value: 'all', label: '全部级别' },
-  { value: 'api', label: 'API 请求' },
+  { value: 'all', label: 'Mọi cấp độ' },
+  { value: 'api', label: 'Yêu cầu API' },
   { value: 'debug', label: 'Debug' },
   { value: 'warn', label: 'Warn' },
   { value: 'error', label: 'Error' },
@@ -67,7 +67,7 @@ export function useLogViewer() {
   let rafId: number | null = null;
 
   const tagOptions = computed(() => [
-    { value: 'all', label: '全部模块' },
+    { value: 'all', label: 'Mọi module' },
     ...knownTags.value.map(tag => ({ value: tag, label: tag })),
   ]);
 
@@ -85,12 +85,12 @@ export function useLogViewer() {
   const filteredCount = computed(() => filteredLogs.value.length);
   const pendingCount = computed(() => pendingEntries.value.length);
   const statusLabel = computed(() => {
-    if (paused.value) return pendingCount.value ? `已暂停，${pendingCount.value} 条待显示` : '已暂停';
-    return '实时更新中';
+    if (paused.value) return pendingCount.value ? `Đã tạm dừng, ${pendingCount.value} mục chờ hiển thị` : 'Đã tạm dừng';
+    return 'Đang cập nhật theo thời gian thực';
   });
-  const debugLabel = computed(() => (debugLogEnabled.value ? 'Debug 采集中' : 'Debug 未采集'));
-  const warnLabel = computed(() => (warnLogEnabled.value ? 'Warn 采集中' : 'Warn 未采集'));
-  const apiLabel = computed(() => (apiLogEnabled.value ? 'API 采集中' : 'API 未采集'));
+  const debugLabel = computed(() => (debugLogEnabled.value ? 'Đang thu thập Debug' : 'Không thu thập Debug'));
+  const warnLabel = computed(() => (warnLogEnabled.value ? 'Đang thu thập Warn' : 'Không thu thập Warn'));
+  const apiLabel = computed(() => (apiLogEnabled.value ? 'Đang thu thập API' : 'Không thu thập API'));
 
   function refresh(): void {
     logs.value = getAllLogs();
@@ -123,29 +123,29 @@ export function useLogViewer() {
     pendingEntries.value = [];
     refresh();
     message.value = null;
-    toast.success('日志缓冲区已清空。');
+    toast.success('Đã xóa trống bộ đệm nhật ký.');
   }
 
   function setDebugCollection(enabled: boolean): void {
     setDebugLogEnabled(enabled);
     debugLogEnabled.value = enabled;
     message.value = null;
-    if (enabled) toast.info('已开始采集 Debug 日志；排查完成后建议关闭。');
-    else toast.success('已停止采集 Debug 日志。');
+    if (enabled) toast.info('Đã bắt đầu thu thập nhật ký Debug; nên tắt sau khi điều tra xong.');
+    else toast.success('Đã dừng thu thập nhật ký Debug.');
   }
 
   function setApiCollection(enabled: boolean): void {
     setApiLogEnabled(enabled);
     message.value = null;
-    if (enabled) toast.info('已开始采集 API 请求与回复；分享日志前请检查隐私。');
-    else toast.success('已停止采集 API 请求与回复。');
+    if (enabled) toast.info('Đã bắt đầu thu thập yêu cầu và phản hồi API; hãy kiểm tra quyền riêng tư trước khi chia sẻ nhật ký.');
+    else toast.success('Đã dừng thu thập yêu cầu và phản hồi API.');
   }
 
   function setWarnCollection(enabled: boolean): void {
     setWarnLogEnabled(enabled);
     message.value = null;
-    if (enabled) toast.info('已开始采集 Warn 日志；排查完成后建议关闭。');
-    else toast.success('已停止采集 Warn 日志。');
+    if (enabled) toast.info('Đã bắt đầu thu thập nhật ký Warn; nên tắt sau khi điều tra xong.');
+    else toast.success('Đã dừng thu thập nhật ký Warn.');
   }
 
   function exportFiltered(): void {
@@ -158,7 +158,7 @@ export function useLogViewer() {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-');
     downloadJson(`acu-logs-${stamp}.json`, exportData);
     message.value = null;
-    toast.success(`已导出 ${exportData.length} 条日志。`);
+    toast.success(`Đã xuất ${exportData.length} mục nhật ký.`);
   }
 
   onMounted(() => {

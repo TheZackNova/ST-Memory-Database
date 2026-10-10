@@ -14,118 +14,118 @@ export function generateTableTabHTML(): string {
                 <div id="acu-tab-table" class="acu-tab-content">
                     <!-- A. 表格模板预设 -->
                     <div class="acu-card">
-                        <h3>表格模板预设</h3>
+                        <h3>Preset mẫu bảng</h3>
                         <div class="acu-template-presets" style="background: var(--acu-bg-2); padding: 12px; border-radius: 8px;">
                             <div class="acu-data-template-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start;">
                                 <div style="padding: 16px; background: var(--acu-bg-1); border-radius: 8px; border: 1px solid var(--acu-border); display: flex; flex-direction: column; gap: 12px;">
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
                                         <div>
-                                            <div style="font-weight: 600; color: var(--acu-text-1);">全局正在使用</div>
-                                            <small id="${SCRIPT_ID_PREFIX_ACU}-template-global-scope-status" class="notes">新聊天会默认继承这里的表格模板</small>
+                                            <div style="font-weight: 600; color: var(--acu-text-1);">Đang dùng toàn cục</div>
+                                            <small id="${SCRIPT_ID_PREFIX_ACU}-template-global-scope-status" class="notes">Cuộc trò chuyện mới sẽ mặc định kế thừa mẫu bảng ở đây</small>
                                         </div>
-                                        <span style="padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--accent-primary) 12%, transparent); color: var(--accent-primary); font-size: 12px; font-weight: 600;">全局</span>
+                                        <span style="padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--accent-primary) 12%, transparent); color: var(--accent-primary); font-size: 12px; font-weight: 600;">Toàn cục</span>
                                     </div>
                                     <div class="qrf_settings_block" style="margin-bottom: 0;">
-                                        <label for="${SCRIPT_ID_PREFIX_ACU}-template-preset-select" style="font-weight: 500;">全局模板预设</label>
+                                        <label for="${SCRIPT_ID_PREFIX_ACU}-template-preset-select" style="font-weight: 500;">Preset mẫu toàn cục</label>
                                         <select id="${SCRIPT_ID_PREFIX_ACU}-template-preset-select" class="text_pole" style="width: 100%; margin-top: 5px;">
-                                            <option value="${DEFAULT_TEMPLATE_PRESET_OPTION_VALUE_ACU}">默认预设</option>
+                                            <option value="${DEFAULT_TEMPLATE_PRESET_OPTION_VALUE_ACU}">Preset mặc định</option>
                                         </select>
                                     </div>
                                     <div class="acu-template-preset-toolbar" style="display: flex; flex-direction: column; gap: 10px;">
                                         <div class="acu-template-preset-left">
-                                            <button id="${SCRIPT_ID_PREFIX_ACU}-import-template" class="acu-mini-btn" title="导入模板到全局模板库，并切换为当前全局模板；已有当前聊天本地预设的聊天不会被自动清除。">
-                                                <i class="fa-solid fa-file-import"></i><span>导入</span>
+                                            <button id="${SCRIPT_ID_PREFIX_ACU}-import-template" class="acu-mini-btn" title="Nhập mẫu vào thư viện mẫu toàn cục và chuyển thành mẫu toàn cục hiện tại; các cuộc trò chuyện đã có preset cục bộ sẽ không bị tự động xóa.">
+                                                <i class="fa-solid fa-file-import"></i><span>Nhập</span>
                                             </button>
-                                            <button id="${SCRIPT_ID_PREFIX_ACU}-export-template" class="acu-mini-btn" title="导出当前全局模板（优先导出当前选中的全局预设）">
-                                                <i class="fa-solid fa-file-export"></i><span>导出</span>
+                                            <button id="${SCRIPT_ID_PREFIX_ACU}-export-template" class="acu-mini-btn" title="Xuất mẫu toàn cục hiện tại (ưu tiên xuất preset toàn cục đang chọn)">
+                                                <i class="fa-solid fa-file-export"></i><span>Xuất</span>
                                             </button>
-                                            <button id="${SCRIPT_ID_PREFIX_ACU}-reset-template" class="acu-mini-btn" title="恢复全局默认模板；未做本地保存或导入的聊天会继续跟随全局模板。">
-                                                <i class="fa-solid fa-undo"></i><span>恢复默认</span>
+                                            <button id="${SCRIPT_ID_PREFIX_ACU}-reset-template" class="acu-mini-btn" title="Khôi phục mẫu toàn cục mặc định; các cuộc trò chuyện chưa lưu cục bộ hoặc nhập sẽ tiếp tục theo mẫu toàn cục.">
+                                                <i class="fa-solid fa-undo"></i><span>Khôi phục mặc định</span>
                                             </button>
                                         </div>
                                         <div class="acu-template-preset-actions">
-                                            <button id="${SCRIPT_ID_PREFIX_ACU}-template-preset-saveas" class="acu-mini-btn" title="将当前运行中的模板另存为新的全局预设">
-                                                <i class="fa-solid fa-copy"></i><span>另存为</span>
+                                            <button id="${SCRIPT_ID_PREFIX_ACU}-template-preset-saveas" class="acu-mini-btn" title="Lưu mẫu đang chạy thành preset toàn cục mới">
+                                                <i class="fa-solid fa-copy"></i><span>Lưu thành</span>
                                             </button>
-                                            <button id="${SCRIPT_ID_PREFIX_ACU}-template-preset-rename" class="acu-mini-btn" title="重命名当前选中的全局预设">
-                                                <i class="fa-solid fa-i-cursor"></i><span>重命名</span>
+                                            <button id="${SCRIPT_ID_PREFIX_ACU}-template-preset-rename" class="acu-mini-btn" title="Đổi tên preset toàn cục đang chọn">
+                                                <i class="fa-solid fa-i-cursor"></i><span>Đổi tên</span>
                                             </button>
-                                            <button id="${SCRIPT_ID_PREFIX_ACU}-template-preset-delete" class="acu-mini-btn danger" title="删除当前选中的全局预设">
-                                                <i class="fa-solid fa-trash"></i><span>删除</span>
+                                            <button id="${SCRIPT_ID_PREFIX_ACU}-template-preset-delete" class="acu-mini-btn danger" title="Xóa preset toàn cục đang chọn">
+                                                <i class="fa-solid fa-trash"></i><span>Xóa</span>
                                             </button>
                                         </div>
                                     </div>
-                                    <small class="notes">这里仅做全局模板预设库管理（导入 / 导出 / 另存为 / 重命名 / 删除）；需要覆盖保存全局模板时，请使用可视化编辑器顶部的"保存到全局"。</small>
+                                    <small class="notes">Ở đây chỉ quản lý thư viện preset mẫu toàn cục (nhập / xuất / lưu thành / đổi tên / xóa); khi cần ghi đè lưu mẫu toàn cục, hãy dùng "Lưu vào toàn cục" ở đầu trình chỉnh sửa trực quan.</small>
                                 </div>
                                 <div style="padding: 16px; background: var(--acu-bg-1); border-radius: 8px; border: 1px solid var(--acu-border); display: flex; flex-direction: column; gap: 12px;">
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
                                         <div>
-                                            <div style="font-weight: 600; color: var(--acu-text-1);">当前聊天正在使用</div>
-                                            <small id="${SCRIPT_ID_PREFIX_ACU}-template-chat-scope-status" class="notes">未做聊天级保存时，这里会直接跟随全局模板</small>
+                                            <div style="font-weight: 600; color: var(--acu-text-1);">Cuộc trò chuyện hiện tại đang dùng</div>
+                                            <small id="${SCRIPT_ID_PREFIX_ACU}-template-chat-scope-status" class="notes">Khi chưa lưu cấp cuộc trò chuyện, phần này sẽ theo mẫu toàn cục</small>
                                         </div>
-                                        <span style="padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--acu-success) 14%, transparent); color: var(--acu-success); font-size: 12px; font-weight: 600;">聊天</span>
+                                        <span style="padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--acu-success) 14%, transparent); color: var(--acu-success); font-size: 12px; font-weight: 600;">Trò chuyện</span>
                                     </div>
                                     <div class="qrf_settings_block" style="margin-bottom: 0;">
-                                        <label for="${SCRIPT_ID_PREFIX_ACU}-template-chat-preset-select" style="font-weight: 500;">当前聊天模板预设</label>
+                                        <label for="${SCRIPT_ID_PREFIX_ACU}-template-chat-preset-select" style="font-weight: 500;">Preset mẫu cuộc trò chuyện hiện tại</label>
                                         <select id="${SCRIPT_ID_PREFIX_ACU}-template-chat-preset-select" class="text_pole" style="width: 100%; margin-top: 5px;">
-                                            <option value="${DEFAULT_TEMPLATE_PRESET_OPTION_VALUE_ACU}">默认预设</option>
+                                            <option value="${DEFAULT_TEMPLATE_PRESET_OPTION_VALUE_ACU}">Preset mặc định</option>
                                         </select>
                                     </div>
                                     <div class="acu-template-preset-actions">
-                                        <button id="${SCRIPT_ID_PREFIX_ACU}-template-chat-import-preset" class="acu-mini-btn" title="导入模板到当前聊天预设列表；同名预设会直接覆盖">
-                                            <i class="fa-solid fa-file-import"></i><span>导入到当前聊天</span>
+                                        <button id="${SCRIPT_ID_PREFIX_ACU}-template-chat-import-preset" class="acu-mini-btn" title="Nhập mẫu vào danh sách preset của cuộc trò chuyện hiện tại; preset cùng tên sẽ bị ghi đè">
+                                            <i class="fa-solid fa-file-import"></i><span>Nhập vào cuộc trò chuyện hiện tại</span>
                                         </button>
-                                        <button id="${SCRIPT_ID_PREFIX_ACU}-template-chat-export-preset" class="acu-mini-btn" title="导出当前聊天正在使用的模板预设">
-                                            <i class="fa-solid fa-download"></i><span>导出当前聊天</span>
+                                        <button id="${SCRIPT_ID_PREFIX_ACU}-template-chat-export-preset" class="acu-mini-btn" title="Xuất preset mẫu cuộc trò chuyện hiện tại đang dùng">
+                                            <i class="fa-solid fa-download"></i><span>Xuất cuộc trò chuyện hiện tại</span>
                                         </button>
                                     </div>
                                     <input type="file" id="${SCRIPT_ID_PREFIX_ACU}-template-chat-preset-file-input" style="display: none;" accept=".json">
-                                    <small id="${SCRIPT_ID_PREFIX_ACU}-template-chat-origin-status" class="notes">这里仅做当前聊天模板预设的导入 / 导出；需要覆盖保存时，请在可视化编辑器中使用"保存到当前聊天"或"保存到全局"。</small>
+                                    <small id="${SCRIPT_ID_PREFIX_ACU}-template-chat-origin-status" class="notes">Ở đây chỉ nhập / xuất preset mẫu của cuộc trò chuyện hiện tại; khi cần ghi đè lưu, hãy dùng "Lưu vào cuộc trò chuyện hiện tại" hoặc "Lưu vào toàn cục" trong trình chỉnh sửa trực quan.</small>
                                 </div>
                             </div>
                         </div>
-                        <p class="notes" style="margin-top: 10px;">模板预设分为全局和当前聊天两个作用域。新聊天默认继承全局模板，也可为每个聊天单独配置。</p>
+                        <p class="notes" style="margin-top: 10px;">Preset mẫu chia thành hai phạm vi: toàn cục và cuộc trò chuyện hiện tại. Cuộc trò chuyện mới mặc định kế thừa mẫu toàn cục, cũng có thể cấu hình riêng cho từng cuộc trò chuyện.</p>
                     </div>
 
                     <!-- B. 世界书注入（从原worldbook页迁入，不含0TK） -->
                     <div class="acu-card">
-                        <h3>世界书注入</h3>
-                        <p class="notes">配置数据库条目注入到哪个世界书，以及AI读取上下文时使用哪些世界书。</p>
+                        <h3>Chèn sổ thế giới</h3>
+                        <p class="notes">Cấu hình mục cơ sở dữ liệu được chèn vào sổ thế giới nào, và AI dùng những sổ thế giới nào khi đọc ngữ cảnh.</p>
                         <div>
-                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-injection-target">数据注入目标:</label>
-                            <input type="text" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-injection-target-filter" placeholder="筛选世界书..." style="width: 100%; margin: 6px 0 8px 0; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--acu-border-2); background: var(--acu-control-bg, var(--acu-bg-1)); color: var(--acu-control-text, var(--acu-text-1));">
+                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-injection-target">Đích chèn dữ liệu:</label>
+                            <input type="text" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-injection-target-filter" placeholder="Lọc sổ thế giới..." style="width: 100%; margin: 6px 0 8px 0; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--acu-border-2); background: var(--acu-control-bg, var(--acu-bg-1)); color: var(--acu-control-text, var(--acu-text-1));">
                             <div class="input-group">
                                 <select id="${SCRIPT_ID_PREFIX_ACU}-worldbook-injection-target" style="width: 100%;"></select>
                             </div>
-                            <small class="notes">选择数据库条目（如全局、人物、大纲等）将被创建或更新到哪个世界书里。</small>
+                            <small class="notes">Chọn sổ thế giới mà các mục cơ sở dữ liệu (như toàn cục, nhân vật, dàn ý...) sẽ được tạo hoặc cập nhật vào.</small>
                         </div>
                         <hr>
                          <div class="qrf_settings_block_radio">
-                            <label>世界书来源 (用于AI读取上下文):</label>
+                            <label>Nguồn sổ thế giới (để AI đọc ngữ cảnh):</label>
                             <div class="qrf_radio_group">
                                 <input type="radio" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-source-character" name="${SCRIPT_ID_PREFIX_ACU}-worldbook-source" value="character" checked>
-                                <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-source-character">角色卡绑定</label>
+                                <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-source-character">Gắn với thẻ nhân vật</label>
                                 <input type="radio" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-source-manual" name="${SCRIPT_ID_PREFIX_ACU}-worldbook-source" value="manual">
-                                <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-source-manual">手动选择</label>
+                                <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-source-manual">Chọn thủ công</label>
                             </div>
                         </div>
                         <div id="${SCRIPT_ID_PREFIX_ACU}-worldbook-manual-select-block" style="display: none; margin-top: 10px;">
-                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-select">选择世界书 (可多选):</label>
-                            <input type="text" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-select-filter" placeholder="筛选世界书..." style="width: 100%; margin: 6px 0 8px 0; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--acu-border-2); background: var(--acu-control-bg, var(--acu-bg-1)); color: var(--acu-control-text, var(--acu-text-1));">
+                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-select">Chọn sổ thế giới (chọn nhiều):</label>
+                            <input type="text" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-select-filter" placeholder="Lọc sổ thế giới..." style="width: 100%; margin: 6px 0 8px 0; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--acu-border-2); background: var(--acu-control-bg, var(--acu-bg-1)); color: var(--acu-control-text, var(--acu-text-1));">
                             <div class="input-group">
                                 <div id="${SCRIPT_ID_PREFIX_ACU}-worldbook-select" class="qrf_worldbook_list"></div>
-                                <button id="${SCRIPT_ID_PREFIX_ACU}-refresh-worldbooks" title="刷新世界书列表">刷新</button>
+                                <button id="${SCRIPT_ID_PREFIX_ACU}-refresh-worldbooks" title="Làm mới danh sách sổ thế giới">Làm mới</button>
                             </div>
                         </div>
                         <div style="margin-top: 15px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                <label style="margin-bottom: 0;">启用的世界书条目:</label>
+                                <label style="margin-bottom: 0;">Mục sổ thế giới được bật:</label>
                                 <div class="button-group" style="margin: 0;">
-                                    <button id="${SCRIPT_ID_PREFIX_ACU}-worldbook-select-all" class="button" style="padding: 2px 8px; font-size: 0.8em;">全选</button>
-                                    <button id="${SCRIPT_ID_PREFIX_ACU}-worldbook-deselect-all" class="button" style="padding: 2px 8px; font-size: 0.8em;">全不选</button>
+                                    <button id="${SCRIPT_ID_PREFIX_ACU}-worldbook-select-all" class="button" style="padding: 2px 8px; font-size: 0.8em;">Chọn tất cả</button>
+                                    <button id="${SCRIPT_ID_PREFIX_ACU}-worldbook-deselect-all" class="button" style="padding: 2px 8px; font-size: 0.8em;">Bỏ chọn tất cả</button>
                                 </div>
                             </div>
-                            <input type="text" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-entry-filter" placeholder="筛选条目/世界书..." style="width: 100%; margin: 6px 0 8px 0; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--acu-border-2); background: var(--acu-control-bg, var(--acu-bg-1)); color: var(--acu-control-text, var(--acu-text-1));">
+                            <input type="text" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-entry-filter" placeholder="Lọc mục/sổ thế giới..." style="width: 100%; margin: 6px 0 8px 0; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--acu-border-2); background: var(--acu-control-bg, var(--acu-bg-1)); color: var(--acu-control-text, var(--acu-text-1));">
                             <div id="${SCRIPT_ID_PREFIX_ACU}-worldbook-entry-list" class="qrf_worldbook_entry_list">
                                 <!-- 条目将动态加载于此 -->
                             </div>
@@ -136,185 +136,185 @@ export function generateTableTabHTML(): string {
                                 <div style="flex: 1 1 280px; min-width: 240px;">
                                     <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-summary-vector-index-mode-enabled" style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
                                         <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-summary-vector-index-mode-enabled" style="width: 14px; height: 14px; cursor: pointer;">
-                                        <span>启用向量混合增强交火方案</span>
+                                        <span>Bật phương án giao hỏa tăng cường vector hỗn hợp</span>
                                     </label>
-                                    <small class="notes">开启后会随纪要表更新自动累积外置向量索引；聊天记录只保存 manifest，向量分片写入 /user/files。下方配置 Embedding、Rerank 与召回参数。</small>
+                                    <small class="notes">Khi bật, chỉ mục vector ngoài sẽ tự tích lũy theo cập nhật bảng kỷ yếu; lịch sử trò chuyện chỉ lưu manifest, phân đoạn vector ghi vào /user/files. Cấu hình Embedding, Rerank và tham số truy hồi ở bên dưới.</small>
                                 </div>
                                 <label id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-enabled-toggle-row" style="display: none; align-items: center; gap: 8px; margin: 0; white-space: nowrap;">
                                     <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-enabled">
-                                    <span>启用向量记忆</span>
+                                    <span>Bật bộ nhớ vector</span>
                                 </label>
                             </div>
                             <div id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-config-block" style="display: none; margin-top: 12px;">
                                 <div class="acu-section" style="margin-bottom: 12px;">
-                                    <div class="acu-section-title">交火模式纪要索引参数</div>
+                                    <div class="acu-section-title">Tham số chỉ mục kỷ yếu chế độ giao hỏa</div>
                                     <div class="acu-grid-auto">
                                         <input type="hidden" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-threshold">
                                         <input type="hidden" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-archive-trigger-count">
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-summary-index-keyword-min-rows">发送前交火触发阈值</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-summary-index-keyword-min-rows">Ngưỡng kích hoạt giao hỏa trước khi gửi</label>
                                             <input type="number" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-summary-index-keyword-min-rows" min="1" step="1" placeholder="100">
-                                            <small class="notes">纪要表有效行数达到该值后，发送前会生成关键词并召回概要列 chunk；未达到时保留原概要索引流程。</small>
+                                            <small class="notes">Khi số hàng hợp lệ của bảng kỷ yếu đạt giá trị này, trước khi gửi sẽ tạo từ khóa và truy hồi chunk cột tóm lược; nếu chưa đạt thì giữ quy trình chỉ mục tóm lược cũ.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-topk">最终覆盖 TopK</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-topk">TopK ghi đè cuối cùng</label>
                                             <input type="number" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-topk" min="1" step="1" placeholder="10">
-                                            <small class="notes">Rerank 后选中的纪要数量上限；写入原概要索引条目时会重新按纪要表原始顺序排列。</small>
+                                            <small class="notes">Số kỷ yếu tối đa được chọn sau Rerank; khi ghi vào mục chỉ mục tóm lược gốc sẽ sắp xếp lại theo thứ tự gốc của bảng kỷ yếu.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-min-score">Embedding 预筛最小分数</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-min-score">Điểm tối thiểu lọc sơ bộ Embedding</label>
                                             <input type="number" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-min-score" min="0" max="1" step="0.01" placeholder="0.40">
-                                            <small class="notes">发送前先用 query embedding 对纪要 chunk 预筛；Rerank 只会处理通过预筛的候选。</small>
+                                            <small class="notes">Trước khi gửi, dùng query embedding để lọc sơ bộ chunk kỷ yếu; Rerank chỉ xử lý các ứng viên đã qua lọc sơ bộ.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-recall-candidate-limit">预筛候选上限</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-recall-candidate-limit">Giới hạn ứng viên lọc sơ bộ</label>
                                             <input type="number" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-recall-candidate-limit" min="1" step="1" placeholder="1000">
-                                            <small class="notes">Embedding 本地预筛后保留的候选数量，也是 Rerank 的最大输入数；不能小于 TopK。</small>
+                                            <small class="notes">Số ứng viên giữ lại sau khi lọc sơ bộ Embedding cục bộ, cũng là số đầu vào tối đa của Rerank; không được nhỏ hơn TopK.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-recent-fixed-inject-count">最近固定注入条数</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-recent-fixed-inject-count">Số mục chèn cố định gần nhất</label>
                                             <input type="number" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-recent-fixed-inject-count" min="0" step="1" placeholder="50">
-                                            <small class="notes">最近 X 条纪要固定注入，不参与排序；X 计入触发阈值但不计入 TopK。例如阈值200、X=50，则最近50条固定注入，较早的行参与向量召回。</small>
+                                            <small class="notes">X kỷ yếu gần nhất được chèn cố định, không tham gia xếp hạng; X tính vào ngưỡng kích hoạt nhưng không tính vào TopK. Ví dụ ngưỡng 200, X=50 thì 50 mục gần nhất chèn cố định, các hàng cũ hơn tham gia truy hồi vector.</small>
                                         </div>
                                         <div class="acu-col-sm">
                                             <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rolling-delta-enabled" style="display: flex; align-items: center; gap: 8px; cursor: not-allowed;">
                                                 <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rolling-delta-enabled" disabled style="width: 14px; height: 14px; cursor: not-allowed;">
-                                                <span>滚动增量写入暂不可用</span>
+                                                <span>Ghi tăng dần cuộn tạm thời không khả dụng</span>
                                             </label>
-                                            <small class="notes">因 V2 不可变发布生命周期要求而暂停。历史配置即使开启，归档仍会安全地写入 V2 单文件快照。</small>
+                                            <small class="notes">Tạm dừng do yêu cầu vòng đời phát hành bất biến của V2. Dù cấu hình cũ có bật, lưu trữ vẫn sẽ ghi an toàn vào snapshot một tệp V2.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rolling-delta-fold-threshold">滚动增量折叠阈值 K</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rolling-delta-fold-threshold">Ngưỡng gộp tăng dần cuộn K</label>
                                             <input type="number" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rolling-delta-fold-threshold" min="1" step="1" placeholder="15" disabled>
-                                            <small class="notes">仅保留历史配置兼容；滚动增量恢复 V2 安全发布语义前不生效。</small>
+                                            <small class="notes">Chỉ giữ để tương thích cấu hình cũ; không có hiệu lực cho đến khi ghi tăng dần cuộn khôi phục ngữ nghĩa phát hành an toàn của V2.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-namespace">索引命名空间前缀</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-namespace">Tiền tố không gian tên chỉ mục</label>
                                             <input type="text" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-namespace" placeholder="chat">
-                                            <small class="notes">用于区分不同聊天的外置索引缓存；会与当前聊天标识拼接。</small>
+                                            <small class="notes">Dùng để phân biệt bộ nhớ đệm chỉ mục ngoài giữa các cuộc trò chuyện; sẽ ghép với mã định danh cuộc trò chuyện hiện tại.</small>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="acu-section" style="margin-bottom: 12px;">
-                                    <div class="acu-section-title">Embedding 设置</div>
+                                    <div class="acu-section-title">Cài đặt Embedding</div>
                                     <div class="acu-grid-auto">
                                         <div class="acu-col-sm">
                                             <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-embedding-endpoint">Embedding Endpoint</label>
                                             <input type="text" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-embedding-endpoint" placeholder="https://example.com/embeddings">
-                                            <small class="notes">默认保持留空，避免把特定服务地址硬编码进全局默认配置。</small>
+                                            <small class="notes">Mặc định để trống, tránh gắn cứng địa chỉ dịch vụ cụ thể vào cấu hình mặc định toàn cục.</small>
                                         </div>
                                         <div class="acu-col-sm">
                                             <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-embedding-model">Embedding Model</label>
                                             <input type="text" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-embedding-model" placeholder="text-embedding-3-large">
-                                            <small class="notes">默认保持留空；由助手自行填写实际使用的 embedding 模型。</small>
+                                            <small class="notes">Mặc định để trống; hãy tự điền mô hình embedding thực tế sử dụng.</small>
                                         </div>
                                         <div class="acu-col-sm">
                                             <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-embedding-api-key">Embedding API Key</label>
-                                            <input type="password" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-embedding-api-key" placeholder="留空表示不附带 Authorization">
-                                            <small class="notes">敏感信息不写入默认值；需要时再单独配置。</small>
+                                            <input type="password" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-embedding-api-key" placeholder="Để trống nghĩa là không kèm Authorization">
+                                            <small class="notes">Thông tin nhạy cảm không ghi vào giá trị mặc định; khi cần hãy cấu hình riêng.</small>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="acu-section" style="margin-bottom: 12px;">
-                                    <div class="acu-section-title">Rerank 设置（可选）</div>
+                                    <div class="acu-section-title">Cài đặt Rerank (tùy chọn)</div>
                                     <div class="acu-grid-auto">
                                         <div class="acu-col-sm">
                                             <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-endpoint">Rerank Endpoint</label>
                                             <input type="text" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-endpoint" placeholder="https://example.com/rerank">
-                                            <small class="notes">留空则不启用真实 Rerank；仅使用 embedding 预筛 + 本地启发式排序。</small>
+                                            <small class="notes">Để trống thì không bật Rerank thật; chỉ dùng lọc sơ bộ embedding + xếp hạng heuristic cục bộ.</small>
                                         </div>
                                         <div class="acu-col-sm">
                                             <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-model">Rerank Model</label>
                                             <input type="text" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-model" placeholder="bge-reranker-v2-m3">
-                                            <small class="notes">必须与 Endpoint 同时填写；填写后会对预筛候选做真实重排。</small>
+                                            <small class="notes">Phải điền cùng với Endpoint; sau khi điền sẽ rerank thật các ứng viên đã lọc sơ bộ.</small>
                                         </div>
                                         <div class="acu-col-sm">
                                             <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-api-key">Rerank API Key</label>
-                                            <input type="password" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-api-key" placeholder="留空表示不附带 Authorization">
-                                            <small class="notes">可与 Embedding 使用不同鉴权；若服务不需要鉴权可留空。</small>
+                                            <input type="password" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-api-key" placeholder="Để trống nghĩa là không kèm Authorization">
+                                            <small class="notes">Có thể dùng xác thực khác với Embedding; nếu dịch vụ không cần xác thực thì để trống.</small>
                                         </div>
                                         <div class="acu-col-sm" style="grid-column: 1 / -1;">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-instruction">Rerank Instruction（重排指令）</label>
-                                            <textarea id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-instruction" rows="3" placeholder="可选：传递给 Rerank API 的 instruction / query 参数，用于引导重排方向。留空则不附带。" style="width: 100%; resize: vertical;"></textarea>
-                                            <small class="notes">部分 Rerank 模型支持 instruction 参数（如 bge-reranker-v2-m3）；填写后会作为 query/instruction 字段发送。</small>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-instruction">Rerank Instruction (chỉ thị xếp hạng lại)</label>
+                                            <textarea id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-instruction" rows="3" placeholder="Tùy chọn: tham số instruction / query gửi cho Rerank API để định hướng xếp hạng lại. Để trống thì không kèm." style="width: 100%; resize: vertical;"></textarea>
+                                            <small class="notes">Một số mô hình Rerank hỗ trợ tham số instruction (như bge-reranker-v2-m3); sau khi điền sẽ được gửi dưới dạng trường query/instruction.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-batch-size">Rerank 每批条数</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-batch-size">Số mục mỗi lô Rerank</label>
                                             <input type="number" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-rerank-batch-size" min="10" max="500" step="10" placeholder="300">
-                                            <small class="notes">候选超过该数时分批并行请求再合并分数；服务商单请求通常限 500 条以内。Rerank 的 document 为纪要正文，候选行不多于 TopK 时自动跳过。</small>
+                                            <small class="notes">Khi ứng viên vượt số này sẽ chia lô gửi song song rồi gộp điểm; nhà cung cấp thường giới hạn dưới 500 mục mỗi yêu cầu. document của Rerank là nội dung kỷ yếu, khi số hàng ứng viên không nhiều hơn TopK sẽ tự động bỏ qua.</small>
                                         </div>
 
                                     </div>
-                                    <small class="notes" style="display: block; margin-top: 8px;">启用真实 Rerank 后，Embedding 仍负责召回预筛，TopK 仍控制最终注入数量；这三者不是互相替代关系。</small>
+                                    <small class="notes" style="display: block; margin-top: 8px;">Sau khi bật Rerank thật, Embedding vẫn phụ trách lọc sơ bộ truy hồi, TopK vẫn kiểm soát số lượng chèn cuối cùng; ba thứ này không thay thế lẫn nhau.</small>
                                 </div>
                                 <div class="acu-section" style="margin-bottom: 12px;">
-                                    <div class="acu-section-title">外置索引写入参数</div>
+                                    <div class="acu-section-title">Tham số ghi chỉ mục ngoài</div>
                                     <div class="acu-grid-auto">
                                         <div class="acu-col-sm">
                                             <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-chunk-chronicle-by-sentence" style="display: flex; align-items: center; gap: 6px;">
                                                 <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-chunk-chronicle-by-sentence">
-                                                按句切分纪要正文
+                                                Chia nội dung kỷ yếu theo câu
                                             </label>
-                                            <small class="notes">默认关闭：每行一个向量（概览 + 纪要正文整体）。开启后按下方句数切分正文，召回更细但分片成倍增加；改动后需重建索引。</small>
+                                            <small class="notes">Mặc định tắt: mỗi hàng một vector (tổng quan + toàn bộ nội dung kỷ yếu). Khi bật sẽ chia nội dung theo số câu bên dưới, truy hồi chi tiết hơn nhưng số phân đoạn tăng gấp bội; sau khi thay đổi cần dựng lại chỉ mục.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-overview-sentence-limit">分块句数</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-overview-sentence-limit">Số câu mỗi khối</label>
                                             <input type="number" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-overview-sentence-limit" min="1" step="1" placeholder="2">
-                                            <small class="notes">仅在开启按句切分时生效。数值越小召回越精细，但外置分片数量会增加。</small>
+                                            <small class="notes">Chỉ có hiệu lực khi bật chia theo câu. Giá trị càng nhỏ truy hồi càng chi tiết nhưng số phân đoạn ngoài càng tăng.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-archive-max-concurrency">每批归档行数</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-archive-max-concurrency">Số hàng lưu trữ mỗi lô</label>
                                             <input type="number" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-archive-max-concurrency" min="1" step="1" placeholder="30">
-                                            <small class="notes">填表保存完成后会立即归档；多条新增/变更纪要按该数量拆分 embedding 批次。</small>
+                                            <small class="notes">Sau khi điền bảng lưu xong sẽ lưu trữ ngay; nhiều kỷ yếu mới/đổi sẽ được chia lô embedding theo số này.</small>
                                         </div>
                                     </div>
                                     <input type="hidden" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-archive-batch-size">
                                     <input type="hidden" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-archive-without-summary">
                                 </div>
                                 <div class="acu-section" style="margin-bottom: 0;">
-                                    <div class="acu-section-title">关键词生成</div>
+                                    <div class="acu-section-title">Tạo từ khóa</div>
                                     <div class="acu-grid-auto">
                                         <div class="acu-col-sm" style="grid-column: 1 / -1;">
                                             <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-generation-enabled" style="display: flex; align-items: center; gap: 6px;">
                                                 <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-generation-enabled" checked>
-                                                发送前用 AI 补充检索关键词
+                                                Dùng AI bổ sung từ khóa tìm kiếm trước khi gửi
                                             </label>
-                                            <small class="notes">默认开启。关闭后不再调用关键词 AI，只用用户输入本身做召回，省一次 LLM 往返。</small>
+                                            <small class="notes">Mặc định bật. Khi tắt sẽ không gọi AI từ khóa nữa, chỉ dùng chính nội dung người dùng nhập để truy hồi, tiết kiệm một lượt gọi LLM.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-api-preset">关键词 API 预设</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-api-preset">Preset API từ khóa</label>
                                             <select id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-api-preset" class="text_pole" style="width: 100%;">
-                                                <option value="">使用当前API配置</option>
+                                                <option value="">Dùng cấu hình API hiện tại</option>
                                             </select>
-                                            <small class="notes">仅用于发送前“关键词生成”阶段；留空则使用当前主 API 配置。</small>
+                                            <small class="notes">Chỉ dùng cho giai đoạn "tạo từ khóa" trước khi gửi; để trống thì dùng cấu hình API chính hiện tại.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-context-pair-count">关键词上下文读取层数</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-context-pair-count">Số tầng ngữ cảnh đọc cho từ khóa</label>
                                             <input type="number" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-context-pair-count" min="1" step="1" placeholder="1">
-                                            <small class="notes">关键词生成时读取的最近对话层数；1 层 = 1 条 AI 回复 + 其上方 1 条用户输入，不再截断。</small>
+                                            <small class="notes">Số tầng hội thoại gần nhất được đọc khi tạo từ khóa; 1 tầng = 1 phản hồi AI + 1 tin nhắn người dùng phía trên, không cắt bớt nữa.</small>
                                         </div>
                                         <div class="acu-col-sm">
-                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-generation-max-attempts">关键词生成最大尝试次数</label>
+                                            <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-generation-max-attempts">Số lần thử tối đa khi tạo từ khóa</label>
                                             <input type="number" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-generation-max-attempts" min="1" step="1" placeholder="3">
-                                            <small class="notes">关键词生成失败时会回退到用户输入本身参与召回，不阻断原始发送。</small>
+                                            <small class="notes">Khi tạo từ khóa thất bại sẽ quay về dùng chính nội dung người dùng nhập để truy hồi, không chặn việc gửi gốc.</small>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="acu-section" style="margin-bottom: 12px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                                        <div class="acu-section-title" style="margin-bottom: 0;">关键词生成提示词</div>
+                                        <div class="acu-section-title" style="margin-bottom: 0;">Prompt tạo từ khóa</div>
                                         <div style="display: flex; gap: 6px;">
-                                            <button id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-prompt-reset" class="acu-btn-small" style="font-size: 12px;">重置为默认</button>
-                                            <button id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-prompt-add" class="acu-btn-small" style="font-size: 12px;">添加段落</button>
+                                            <button id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-prompt-reset" class="acu-btn-small" style="font-size: 12px;">Đặt lại mặc định</button>
+                                            <button id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-prompt-add" class="acu-btn-small" style="font-size: 12px;">Thêm đoạn</button>
                                         </div>
                                     </div>
-                                    <small class="notes" style="margin-bottom: 8px; display: block;">可用占位符：$RECENT_CONTEXT（最近上下文）、$USER_INPUT（当前用户输入）。</small>
+                                    <small class="notes" style="margin-bottom: 8px; display: block;">Placeholder khả dụng: $RECENT_CONTEXT (ngữ cảnh gần nhất), $USER_INPUT (nội dung người dùng đang nhập).</small>
                                     <div id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-keyword-prompt-group" style="display: flex; flex-direction: column; gap: 8px;"></div>
                                 </div>
                                 <div id="${SCRIPT_ID_PREFIX_ACU}-worldbook-vector-memory-summary-prompt-group" style="display: none;"></div>
                                 <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
-                                    <small class="notes">交火模式发送前会依次执行：关键词生成（可关闭）→ 用户输入与关键词合并 embedding → "概览 + 纪要正文"向量与 BM25 混合召回 → 可选 Rerank（按纪要正文分批精排）→ 按纪要表原顺序覆盖原概要索引条目。</small>
-                                    <small class="notes">IndexedDB 只作为可丢弃缓存；权威向量分片保存在 /user/files，聊天记录只保存 manifest，不再把完整向量塞进聊天记录。</small>
+                                    <small class="notes">Trước khi gửi ở chế độ giao hỏa sẽ lần lượt thực hiện: tạo từ khóa (có thể tắt) → gộp nội dung người dùng nhập với từ khóa để embedding → truy hồi hỗn hợp vector "tổng quan + nội dung kỷ yếu" và BM25 → Rerank tùy chọn (xếp hạng lại theo lô trên nội dung kỷ yếu) → ghi đè mục chỉ mục tóm lược gốc theo thứ tự gốc của bảng kỷ yếu.</small>
+                                    <small class="notes">IndexedDB chỉ là bộ nhớ đệm có thể bỏ; phân đoạn vector chính thức lưu ở /user/files, lịch sử trò chuyện chỉ lưu manifest, không còn nhét toàn bộ vector vào lịch sử trò chuyện.</small>
                                 </div>
                             </div>
                         </div>
@@ -322,17 +322,17 @@ export function generateTableTabHTML(): string {
 
                     <!-- C. 表格工具入口 -->
                     <div class="acu-card">
-                        <h3>表格工具</h3>
+                        <h3>Công cụ bảng</h3>
                         <div class="button-group" style="margin-top: 0; display: flex; flex-direction: column; gap: 10px;">
                             <button id="${SCRIPT_ID_PREFIX_ACU}-open-new-visualizer" class="primary acu-btn-medium" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                                <i class="fa-solid fa-table-columns"></i> 打开可视化表格编辑器
+                                <i class="fa-solid fa-table-columns"></i> Mở trình chỉnh sửa bảng trực quan
                             </button>
                             <button id="${SCRIPT_ID_PREFIX_ACU}-build-vector-index-now" class="acu-btn-medium" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                                <i class="fa-solid fa-brain"></i> 立即构建交火纪要索引
+                                <i class="fa-solid fa-brain"></i> Dựng chỉ mục kỷ yếu giao hỏa ngay
                             </button>
                         </div>
-                        <p class="notes" style="text-align: center; margin-top: 10px;">点击上方按钮打开全新的可视化界面，支持直接编辑数据、修改表头及更新参数。</p>
-                        <p class="notes" style="text-align: center; margin-top: 6px;">“立即构建交火纪要索引”会把当前纪要表生成外置向量索引文件；后续纪要增删改会同步更新对应索引分片。</p>
+                        <p class="notes" style="text-align: center; margin-top: 10px;">Nhấn nút phía trên để mở giao diện trực quan mới, hỗ trợ sửa dữ liệu trực tiếp, đổi tiêu đề cột và cập nhật tham số.</p>
+                        <p class="notes" style="text-align: center; margin-top: 6px;">"Dựng chỉ mục kỷ yếu giao hỏa ngay" sẽ tạo tệp chỉ mục vector ngoài từ bảng kỷ yếu hiện tại; về sau thêm/xóa/sửa kỷ yếu sẽ đồng bộ cập nhật phân đoạn chỉ mục tương ứng.</p>
                     </div>
                 </div>`;
 }

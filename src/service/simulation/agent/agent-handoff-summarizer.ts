@@ -50,9 +50,9 @@ function deterministic_ACU(previous: WorldSimulationHandoffState_ACU | null, mes
     if (message.kind === 'model_agent') {
       const keys = directorReadKeys_ACU(message.text);
       state.readKeys.push(...keys);
-      state.decisions.push(keys.length ? `已调用 read：${keys.join('、')}` : '早期主会话动作已结束；必要时重新调阅权威资料');
+      state.decisions.push(keys.length ? `Đã gọi read: ${keys.join(', ')}` : 'Các thao tác phiên chính giai đoạn đầu đã kết thúc; khi cần hãy đọc lại tài liệu có thẩm quyền');
     }
-    if (message.kind === 'model_feedback') state.continuityFacts.push('早期主会话工具/工作流回执已折叠；详情需通过资料地址重新读取，未据此认定记录完整');
+    if (message.kind === 'model_feedback') state.continuityFacts.push('Phiếu công cụ/quy trình của phiên chính giai đoạn đầu đã được thu gọn; cần đọc lại chi tiết qua địa chỉ tài liệu, không coi bản ghi là đầy đủ');
     if (message.readKey) state.readKeys.push(message.readKey);
   }
   for (const field of LIST_FIELDS_ACU) state[field] = (field === 'effectiveConstraints' || field === 'readKeys'
@@ -61,9 +61,9 @@ function deterministic_ACU(previous: WorldSimulationHandoffState_ACU | null, mes
 }
 
 export function renderWorldSimulationHandoff_ACU(state: WorldSimulationHandoffState_ACU, degradationReason = ''): string {
-  const sections: Array<[string, string[]]> = [['当前目标', state.currentGoal ? [state.currentGoal] : []], ['有效约束', state.effectiveConstraints], ['已执行决策', state.decisions], ['已完成', state.completedItems], ['待办', state.pendingItems], ['阻塞', state.blockers], ['连续性事实', state.continuityFacts], ['资料地址', state.readKeys], ['近期轮次', state.recentTurns]];
+  const sections: Array<[string, string[]]> = [['Mục tiêu hiện tại', state.currentGoal ? [state.currentGoal] : []], ['Ràng buộc hiệu lực', state.effectiveConstraints], ['Quyết định đã thực hiện', state.decisions], ['Đã hoàn thành', state.completedItems], ['Việc cần làm', state.pendingItems], ['Bị chặn', state.blockers], ['Sự kiện liên tục', state.continuityFacts], ['Địa chỉ tài liệu', state.readKeys], ['Các lượt gần đây', state.recentTurns]];
   const body = sections.filter(([, items]) => items.length).map(([title, items]) => `【${title}】\n${items.map(item => `- ${item}`).join('\n')}`).join('\n');
-  return `${degradationReason ? `【摘要降级】${degradationReason}\n` : ''}【更早格林推演会话交接】\n${body || '没有可保留的早期事项。'}`;
+  return `${degradationReason ? `【Tóm tắt bị hạ cấp】${degradationReason}\n` : ''}【Bàn giao phiên mô phỏng thế giới giai đoạn trước】\n${body || 'Không có mục nào ở giai đoạn đầu cần giữ lại.'}`;
 }
 
 export async function summarizeWorldSimulationHandoff_ACU(input: { previous: WorldSimulationHandoffState_ACU | null; messages: readonly WorldSimulationConversationMessage_ACU[]; maxTokens: number; countTokens: WorldSimulationTokenCounter_ACU; semanticAdapter?: WorldSimulationHandoffSemanticAdapter_ACU }): Promise<{ state: WorldSimulationHandoffState_ACU; report: string; reportTokens: number; degraded: boolean; degradationReason?: string }> {
@@ -80,6 +80,6 @@ export async function summarizeWorldSimulationHandoff_ACU(input: { previous: Wor
     while (await input.countTokens(report) > input.maxTokens && state[field].length) { state[field] = state[field].slice(1) as never; report = renderWorldSimulationHandoff_ACU(state, degradationReason); }
   }
   const reportTokens = await input.countTokens(report);
-  if (reportTokens > input.maxTokens) throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU('WORLD_SIMULATION_CONFIG_INVALID', 'handoff_summary', '交接摘要无法压缩到预算内', false, { reportTokens, maxTokens: input.maxTokens }));
+  if (reportTokens > input.maxTokens) throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU('WORLD_SIMULATION_CONFIG_INVALID', 'handoff_summary', 'Không thể nén tóm tắt bàn giao vào trong ngân sách', false, { reportTokens, maxTokens: input.maxTokens }));
   return { state, report, reportTokens, degraded: Boolean(degradationReason), ...(degradationReason ? { degradationReason } : {}) };
 }

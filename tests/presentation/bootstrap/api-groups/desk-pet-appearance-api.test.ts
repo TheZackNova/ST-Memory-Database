@@ -69,8 +69,8 @@ describe('AutoCardUpdaterAPI.deskPet / noticeBubble 外观接口', () => {
     vi.clearAllMocks();
     const before = structuredClone(h.settings.deskPetAppearance);
     expect(() => deskPet.updateAppearance({ size: { wide: 100, narrow: 9999 } })).toThrow('deskPet.size.narrow');
-    expect(() => deskPet.updateAppearance({ images: { cat: 'https://img.test/cat.png' } })).toThrow('deskPet.images.cat：不支持的设置项');
-    expect(() => noticeBubble.updateAppearance({ size: { minWidth: 500 } })).toThrow('minWidth（500）');
+    expect(() => deskPet.updateAppearance({ images: { cat: 'https://img.test/cat.png' } })).toThrow('deskPet.images.cat: mục cài đặt không được hỗ trợ');
+    expect(() => noticeBubble.updateAppearance({ size: { minWidth: 500 } })).toThrow('minWidth (500)');
     expect(h.settings.deskPetAppearance).toEqual(before);
     expect(h.settings.noticeBubbleAppearance).toBeUndefined();
     expect(h.saveSettings).not.toHaveBeenCalled();
@@ -89,7 +89,7 @@ describe('AutoCardUpdaterAPI.deskPet / noticeBubble 外观接口', () => {
     const reset = deskPet.resetAppearance();
     expect(reset.motion.snoreAfterMs).toBe(60000);
     expect('deskPetAppearance' in h.settings).toBe(false);
-    expect(() => deskPet.resetAppearance('nope')).toThrow('deskPet.nope：不支持的设置项');
+    expect(() => deskPet.resetAppearance('nope')).toThrow('deskPet.nope: mục cài đặt không được hỗ trợ');
   });
 
   it('保存被拒绝时恢复原值并抛出保存提示，不通知刷新', () => {
@@ -143,10 +143,10 @@ describe('AutoCardUpdaterAPI.deskPet / noticeBubble 外观接口', () => {
     expect(deskPet.setPosition({ x: 0, y: 0.5, edge: 'left' }).edge).toBe('left');
     expect(deskPet.getPosition()).toEqual({ x: 0, y: 0.5, edge: 'left' });
     expect(h.notify).toHaveBeenCalledTimes(2);
-    expect(() => deskPet.setPosition({ x: 1.2, y: 0 })).toThrow('deskPet.position.x：应为 0~1 的比例');
+    expect(() => deskPet.setPosition({ x: 1.2, y: 0 })).toThrow('deskPet.position.x: phải là tỉ lệ từ 0 đến 1');
     expect(() => deskPet.setPosition({ x: 0, y: 0, edge: 'middle' })).toThrow('deskPet.position.edge');
-    expect(() => deskPet.setPosition({ x: 0, y: 0, z: 1 })).toThrow('deskPet.position.z：不支持的设置项');
-    expect(() => deskPet.setPosition(null)).toThrow('应为 { x, y, edge? } 对象');
+    expect(() => deskPet.setPosition({ x: 0, y: 0, z: 1 })).toThrow('deskPet.position.z: mục cài đặt không được hỗ trợ');
+    expect(() => deskPet.setPosition(null)).toThrow('phải là đối tượng { x, y, edge? }');
 
     h.saveSettings.mockImplementation(() => ({ saved: false, storageType: 'memory', code: 'storage_error', error: '设置持久化失败。' }));
     expect(() => deskPet.resetPosition()).toThrow('设置持久化失败。');

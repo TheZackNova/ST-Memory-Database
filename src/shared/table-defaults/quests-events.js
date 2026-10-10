@@ -5,11 +5,11 @@ export const questsEventsSheet = {
   uid: "sheet_etak47Ve",
   name: "任务与事件表",
   sourceData: {
-    note: "记录所有当前正在进行的任务。（列号为 0 基，与表格数据中的列标一致）\n- 列0: 任务名称 - 任务的标题，不得与表中已有任务重名。\n- 列1: 任务类型 - \u201C主线任务\u201D或\u201C支线任务\u201D。\n- 列2: 发布者 - 发布该任务的角色或势力。\n- 列3: 详细描述 - 任务的目标和要求。\n- 列4: 当前进度 - 对任务完成度的简要描述。\n- 列5: 任务时限 - 完成任务的剩余时间。\n- 列6: 奖励 - 完成任务可获得的奖励。\n- 列7: 惩罚 - 任务失败的后果。",
-    initNode: "游戏初始化时，根据剧情与设定添加一条主线剧情。",
-    deleteNode: "任务完成、失败或过期时删除。\nSQL示例: DELETE FROM quests_events WHERE quest_name = '已完成的任务';",
-    updateNode: "任务取得关键进展时进行更新。\nSQL示例: UPDATE quests_events SET current_progress = '已完成第一阶段', time_limit = '剩余3天' WHERE quest_name = '拯救公主';",
-    insertNode: "主角接取或触发新的主线或支线任务时添加。\nSQL示例: INSERT INTO quests_events (quest_name, quest_type, issuer, detail_desc, current_progress, time_limit, reward, penalty) VALUES ('新任务', '支线任务', '村长', '任务描述', '刚接取', '7天', '金币100', '声望降低');",
+    note: "Ghi lại tất cả nhiệm vụ đang tiến hành hiện tại. (Số cột đánh số từ 0, khớp với chỉ số cột trong dữ liệu bảng)\n- Cột 0: 任务名称 (Tên nhiệm vụ) - Tiêu đề nhiệm vụ, không được trùng với nhiệm vụ đã có trong bảng.\n- Cột 1: 任务类型 (Loại nhiệm vụ) - \u201C主线任务\u201D hoặc \u201C支线任务\u201D.\n- Cột 2: 发布者 (Người giao) - Nhân vật hoặc thế lực giao nhiệm vụ này.\n- Cột 3: 详细描述 (Mô tả chi tiết) - Mục tiêu và yêu cầu của nhiệm vụ.\n- Cột 4: 当前进度 (Tiến độ hiện tại) - Mô tả ngắn gọn mức độ hoàn thành nhiệm vụ.\n- Cột 5: 任务时限 (Thời hạn nhiệm vụ) - Thời gian còn lại để hoàn thành nhiệm vụ.\n- Cột 6: 奖励 (Phần thưởng) - Phần thưởng nhận được khi hoàn thành nhiệm vụ.\n- Cột 7: 惩罚 (Hình phạt) - Hậu quả khi nhiệm vụ thất bại.",
+    initNode: "Khi khởi tạo game, dựa theo cốt truyện và thiết lập để thêm một nhiệm vụ cốt truyện chính.",
+    deleteNode: "Xóa khi nhiệm vụ hoàn thành, thất bại hoặc hết hạn.\nVí dụ SQL: DELETE FROM quests_events WHERE quest_name = 'Nhiệm vụ đã hoàn thành';",
+    updateNode: "Cập nhật khi nhiệm vụ có tiến triển then chốt.\nVí dụ SQL: UPDATE quests_events SET current_progress = 'Đã hoàn thành giai đoạn một', time_limit = 'Còn 3 ngày' WHERE quest_name = 'Giải cứu công chúa';",
+    insertNode: "Thêm khi nhân vật chính nhận hoặc kích hoạt nhiệm vụ chính hoặc nhiệm vụ phụ mới.\nVí dụ SQL: INSERT INTO quests_events (quest_name, quest_type, issuer, detail_desc, current_progress, time_limit, reward, penalty) VALUES ('Nhiệm vụ mới', '支线任务', 'Trưởng làng', 'Mô tả nhiệm vụ', 'Vừa nhận', '7 ngày', '100 vàng', 'Giảm danh vọng');",
     ddl: `CREATE TABLE quests_events ( -- 任务与事件表
   row_id INTEGER PRIMARY KEY, -- 行号
   quest_name TEXT NOT NULL UNIQUE, -- 任务名称

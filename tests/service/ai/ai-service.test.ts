@@ -41,7 +41,7 @@ describe('fetchAvailableModels_ACU', () => {
   it('apiUrl 为空时返回错误', async () => {
     const result = await fetchAvailableModels_ACU('', 'key');
     expect(result.success).toBe(false);
-    expect(result.error).toContain('请输入API基础URL');
+    expect(result.error).toContain('Vui lòng nhập URL cơ sở của API');
   });
 
   it('正常返回模型列表（models 数组格式）', async () => {
@@ -89,7 +89,7 @@ describe('fetchAvailableModels_ACU', () => {
 
     const result = await fetchAvailableModels_ACU('http://api.test', 'key');
     expect(result.success).toBe(false);
-    expect(result.error).toContain('列表为空');
+    expect(result.error).toContain('danh sách rỗng');
   });
 
   it('无法解析模型数据时返回错误', async () => {
@@ -100,7 +100,7 @@ describe('fetchAvailableModels_ACU', () => {
 
     const result = await fetchAvailableModels_ACU('http://api.test', 'key');
     expect(result.success).toBe(false);
-    expect(result.error).toContain('未能解析');
+    expect(result.error).toContain('Không thể phân tích');
   });
 
   it('HTTP 错误时返回错误信息（JSON 错误体）', async () => {

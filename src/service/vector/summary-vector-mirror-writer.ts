@@ -205,7 +205,7 @@ export async function flushSummaryVectorMirrorNow_ACU(options: {
     }
     const selected = findSummaryTable_ACU(options.sourceTableKey);
     if (!selected?.summaryKey) {
-        return emptyResult_ACU({ reason: 'summary_table_not_found', errors: ['纪要表不可用'], retryability: 'terminal' });
+        return emptyResult_ACU({ reason: 'summary_table_not_found', errors: ['Bảng kỷ yếu không khả dụng'], retryability: 'terminal' });
     }
     const isolationKey = toChatIsolationSlotKey_ACU(
         options.isolationKey ?? getCurrentIsolationKey_ACU(),
@@ -239,7 +239,7 @@ export async function flushSummaryVectorMirrorNow_ACU(options: {
     } catch (error: any) {
         return emptyResult_ACU({
             reason: 'resolver_failed',
-            errors: [error?.message || String(error || 'resolver 失败')],
+            errors: [error?.message || String(error || 'resolver thất bại')],
             retryability: 'retryable',
         });
     }
@@ -247,7 +247,7 @@ export async function flushSummaryVectorMirrorNow_ACU(options: {
     if (head.status === 'unsupported_replay_base') {
         return emptyResult_ACU({
             reason: 'unsupported_replay_base',
-            errors: ['表格基底不是 full checkpoint，无法写向量镜像。'],
+            errors: ['Nền bảng không phải full checkpoint, không thể ghi bản sao vector.'],
             retryability: 'terminal',
         });
     }
@@ -261,7 +261,7 @@ export async function flushSummaryVectorMirrorNow_ACU(options: {
         return emptyResult_ACU({
             reason: head.status,
             needsRebuild: true,
-            errors: [`向量镜像需要重建：${head.status}`],
+            errors: [`Bản sao vector cần xây dựng lại: ${head.status}`],
             retryability: 'terminal',
         });
     }
@@ -269,7 +269,7 @@ export async function flushSummaryVectorMirrorNow_ACU(options: {
         return emptyResult_ACU({
             reason: 'chain_conflict',
             needsRebuild: true,
-            errors: ['向量镜像链冲突，需要自动修复重建。'],
+            errors: ['Chuỗi bản sao vector xung đột, cần tự động sửa và xây dựng lại.'],
             retryability: 'terminal',
         });
     }
@@ -281,7 +281,7 @@ export async function flushSummaryVectorMirrorNow_ACU(options: {
         return emptyResult_ACU({
             reason: 'embedding_identity_changed',
             needsRebuild: true,
-            errors: ['embedding 身份与 checkpoint 不一致，需要重建。'],
+            errors: ['Danh tính embedding không khớp checkpoint, cần xây dựng lại.'],
             retryability: 'terminal',
         });
     }
@@ -298,14 +298,14 @@ export async function flushSummaryVectorMirrorNow_ACU(options: {
     if (timeline.status === 'unsupported_replay_base') {
         return emptyResult_ACU({
             reason: 'unsupported_replay_base',
-            errors: ['rowId 时间线无法从非 full 基底收集。'],
+            errors: ['Không thể thu thập dòng thời gian rowId từ nền không phải full.'],
             retryability: 'terminal',
         });
     }
     if (timeline.status !== 'ok') {
         return emptyResult_ACU({
             reason: 'timeline_failed',
-            errors: [timeline.error || 'rowId 时间线收集失败'],
+            errors: [timeline.error || 'Thu thập dòng thời gian rowId thất bại'],
             retryability: 'retryable',
         });
     }
@@ -376,7 +376,7 @@ export async function flushSummaryVectorMirrorNow_ACU(options: {
             if (embeddings.some((vector) => vector.length === 0)) {
                 return emptyResult_ACU({
                     reason: 'embedding_incomplete',
-                    errors: ['批量 embedding 结果不完整'],
+                    errors: ['Kết quả embedding hàng loạt không đầy đủ'],
                     retryability: 'retryable',
                 });
             }
@@ -385,14 +385,14 @@ export async function flushSummaryVectorMirrorNow_ACU(options: {
                 return emptyResult_ACU({
                     reason: 'embedding_identity_changed',
                     needsRebuild: true,
-                    errors: [`embedding 维度从 ${embedding.dimension} 变为 ${actualDimension}，需要重建。`],
+                    errors: [`Số chiều embedding đổi từ ${embedding.dimension} thành ${actualDimension}, cần xây dựng lại.`],
                     retryability: 'terminal',
                 });
             }
             embedding.dimension = actualDimension;
         } catch (error: any) {
             const embeddingError = error instanceof EmbeddingBatchExecutionError_ACU ? (error as any).cause : error;
-            const message = error?.message || String(error || 'embedding 失败');
+            const message = error?.message || String(error || 'embedding thất bại');
             const credential = isVectorEmbeddingError_ACU(embeddingError)
                 && (Number((embeddingError as any).httpStatus) === 401 || Number((embeddingError as any).httpStatus) === 403);
             return emptyResult_ACU({
@@ -506,7 +506,7 @@ export async function flushSummaryVectorMirrorNow_ACU(options: {
         restoreIsolatedData_ACU(snapshots);
         return emptyResult_ACU({
             reason: 'vector_mirror_commit_failed',
-            errors: [error?.message || String(error || '镜像 delta 落盘失败')],
+            errors: [error?.message || String(error || 'Ghi delta bản sao xuống đĩa thất bại')],
             retryability: 'retryable',
         });
     }

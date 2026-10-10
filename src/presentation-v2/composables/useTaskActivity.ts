@@ -115,7 +115,7 @@ const warnedAppearanceIssues = new Set<string>();
 function readAppearanceForUi<T>(store: AppearanceStore_ACU<T>): T {
   try {
     const { appearance, issues } = store.read();
-    const warning = issues.join("；");
+    const warning = issues.join("; ");
     if (warning && !warnedAppearanceIssues.has(warning)) {
       warnedAppearanceIssues.add(warning);
       logWarn_ACU(`[外观设置] 已存数据有无法使用的项，已按缺省显示：${warning}`);
@@ -176,7 +176,7 @@ export function useNoticeHubState(): NoticeHubState {
 }
 
 function errorText(cause: unknown): string {
-  return cause instanceof Error ? cause.message : String(cause ?? "未知错误");
+  return cause instanceof Error ? cause.message : String(cause ?? "Lỗi không xác định");
 }
 
 /** 智能续写：以 Agent 会话运行标记为准，停止动作与续写页的停止按钮同序。 */
@@ -203,7 +203,7 @@ function useContinuationSignal(): ComputedRef<ActivityTask | null> {
 
   async function stop(): Promise<void> {
     if (isAgentSessionRunning_ACU()) {
-      logAgentSession_ACU({ kind: "run_failed", title: "已停止", detail: "用户停止", ok: false });
+      logAgentSession_ACU({ kind: "run_failed", title: "Đã dừng", detail: "Người dùng dừng", ok: false });
     }
     const runtime = getContinuationRuntime_ACU();
     const chat = getChatArray_ACU();
@@ -232,12 +232,12 @@ function useContinuationSignal(): ComputedRef<ActivityTask | null> {
   return computed(() => running.value
     ? {
         id: "signal-continuation",
-        feature: "智能续写",
+        feature: "Viết tiếp thông minh",
         detail: detail.value,
         kind: "info",
         busy: true,
         dismissible: false,
-        action: { label: "停止", variant: "danger", run: stop },
+        action: { label: "Dừng", variant: "danger", run: stop },
       }
     : null);
 }
@@ -253,18 +253,18 @@ function useWorldSimulationSignal(): ComputedRef<ActivityTask | null> {
   // 原浮动进度卡会在结束后短暂显示终态；并入气泡后改为一条结果消息。
   watch(runtime.running, (running, wasRunning) => {
     if (running || !wasRunning || !view.value.terminal) return;
-    notify_ACU(view.value.phase === "completed" ? "success" : "warning", view.value.label, { title: "格林推演" });
+    notify_ACU(view.value.phase === "completed" ? "success" : "warning", view.value.label, { title: "Mô phỏng thế giới" });
   });
 
   return computed(() => runtime.running.value
     ? {
         id: "signal-world-simulation",
-        feature: "格林推演",
+        feature: "Mô phỏng thế giới",
         detail: view.value.label,
         kind: "info",
         busy: true,
         dismissible: false,
-        action: { label: "停止", variant: "danger", run: () => runtime.stop() },
+        action: { label: "Dừng", variant: "danger", run: () => runtime.stop() },
       }
     : null);
 }

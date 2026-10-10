@@ -130,13 +130,13 @@ export async function allocateAgentDefaultReadFences_ACU(input: {
       failures: candidates.map(candidate => ({
         key: candidate.key,
         reason: 'default-fence-budget-unavailable',
-        message: `地址「${candidate.key}」未提供上围栏，但本次请求的默认上围栏预算不可用，无法解析默认读取范围；整批未注入、未消耗读取额度。`,
+        message: `Địa chỉ "${candidate.key}" chưa cung cấp hàng rào trên, nhưng ngân sách hàng rào trên mặc định của yêu cầu này không khả dụng, không thể phân giải phạm vi đọc mặc định; cả lô chưa được tiêm, chưa tốn hạn mức đọc.`,
         details: { budgetTokens: budget ?? null, reservedTokens: input.reservedTokens },
       })),
     };
   }
   const measure = async (title: string, address: string, text: string): Promise<number> => {
-    const tokens = await input.count(`### ${title}（${address}）\n${text}`);
+    const tokens = await input.count(`### ${title} (${address})\n${text}`);
     if (!Number.isFinite(tokens) || tokens < 0) throw new Error('READ_FENCE_CAPACITY_INVALID');
     return tokens;
   };
@@ -173,12 +173,12 @@ export async function allocateAgentDefaultReadFences_ACU(input: {
       throw new AgentDefaultFenceProofError_ACU({
         key: candidate.key,
         reason: 'default-fence-proof-invalid',
-        message: `地址「${candidate.key}」按默认上围栏解析出的子范围「${address}」无法证明完整，整批未注入、未消耗读取额度。`,
+        message: `Phạm vi con "${address}" phân giải từ địa chỉ "${candidate.key}" theo hàng rào trên mặc định không thể chứng minh là đầy đủ, cả lô chưa được tiêm, chưa tốn hạn mức đọc.`,
         details: { address, resolvedStatus: resolved.status ?? 'ok', proof: proof ?? null },
       });
     }
     const remainder = axes[index]!.remainderAfter(upper);
-    const notice = `【默认上围栏】原地址「${candidate.key}」未提供上围栏，按默认上围栏预算 ${budget} tokens 解析为「${address}」（resolvedFence ${JSON.stringify(proof.resolvedFence)}，revision ${proof.revision}）。以下是该围栏内的完整逐字正文，未截断；围栏之外的部分本次未读取、未注入${remainder ? `，需要时请改读「${remainder}」` : ''}。`;
+    const notice = `【默认上围栏】Địa chỉ gốc "${candidate.key}" chưa cung cấp hàng rào trên, theo ngân sách hàng rào trên mặc định ${budget} tokens được phân giải thành "${address}" (resolvedFence ${JSON.stringify(proof.resolvedFence)}, revision ${proof.revision}). Dưới đây là chính văn nguyên văn đầy đủ trong hàng rào này, không bị cắt; phần ngoài hàng rào lần này chưa đọc, chưa tiêm${remainder ? `, khi cần hãy đọc "${remainder}"` : ''}.`;
     const text = `${notice}\n${resolved.text}`;
     const read: AgentDefaultFenceRead_ACU = {
       key: candidate.key,
@@ -203,7 +203,7 @@ export async function allocateAgentDefaultReadFences_ACU(input: {
         failures: candidates.map((candidate, index) => ({
           key: candidate.key,
           reason: 'default-fence-exhausted',
-          message: `地址「${candidate.key}」未提供上围栏：默认上围栏预算 ${budget} tokens，本批其他资料已占 ${input.reservedTokens} tokens，各地址最小可证明范围合计 ${floor - input.reservedTokens} tokens（本地址 ${minimum[index]} tokens${axes[index] ? '' : '，不可再分'}），无法在预算内完整读取。整批未注入、未消耗读取额度；请改读更小的地址范围后重试。`,
+          message: `Địa chỉ "${candidate.key}" chưa cung cấp hàng rào trên: ngân sách hàng rào trên mặc định ${budget} tokens, tư liệu khác trong lô đã chiếm ${input.reservedTokens} tokens, tổng phạm vi nhỏ nhất chứng minh được của các địa chỉ là ${floor - input.reservedTokens} tokens (địa chỉ này ${minimum[index]} tokens${axes[index] ? '' : ', không thể chia nhỏ hơn'}), không thể đọc đầy đủ trong ngân sách. Cả lô chưa được tiêm, chưa tốn hạn mức đọc; hãy đọc phạm vi địa chỉ nhỏ hơn rồi thử lại.`,
           details: {
             budgetTokens: budget,
             reservedTokens: input.reservedTokens,
@@ -250,7 +250,7 @@ export async function allocateAgentDefaultReadFences_ACU(input: {
           failures: [{
             key: candidates[index].key,
             reason: 'default-fence-exhausted',
-            message: `地址「${candidates[index].key}」未提供上围栏：默认上围栏预算 ${budget} tokens 分配到本地址时仅余 ${Math.max(0, available)} tokens，最小可证明范围需要 ${outcome.measuredTokens} tokens。整批未注入、未消耗读取额度；请改读更小的地址范围后重试。`,
+            message: `Địa chỉ "${candidates[index].key}" chưa cung cấp hàng rào trên: ngân sách hàng rào trên mặc định ${budget} tokens khi phân cho địa chỉ này chỉ còn ${Math.max(0, available)} tokens, phạm vi nhỏ nhất chứng minh được cần ${outcome.measuredTokens} tokens. Cả lô chưa được tiêm, chưa tốn hạn mức đọc; hãy đọc phạm vi địa chỉ nhỏ hơn rồi thử lại.`,
             details: {
               budgetTokens: budget,
               reservedTokens: input.reservedTokens,

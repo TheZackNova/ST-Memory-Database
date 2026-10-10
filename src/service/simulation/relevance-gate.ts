@@ -68,7 +68,7 @@ export function relevanceGate_ACU(ledger: WorldSimulationLedger_ACU, storyText =
   return {
     playerRegion,
     playerContact,
-    secludedNote: secluded ? '闭关/隔绝中，传闻渠道不可用' : null,
+    secludedNote: secluded ? 'Đang bế quan/cách ly, kênh tin đồn không khả dụng' : null,
     collidedSeeds: collided,
     ripeRumors: reachable,
     collided,

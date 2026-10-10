@@ -16,7 +16,7 @@ export function isolateZeroLayerCarrierCandidate_ACU(
   context: ZeroLayerCarrierContext_ACU, before: ZeroLayerEnvelope_ACU | null,
 ): () => void {
   if (savingSnapshots_ACU.has(context.carrier)) {
-    throw new ZeroLayerError_ACU('revision-conflict', '载体已有保存候选，禁止重入。');
+    throw new ZeroLayerError_ACU('revision-conflict', 'Vật mang đã có ứng viên lưu, cấm vào lại.');
   }
   const entry = { before: structuredClone(before) };
   savingSnapshots_ACU.set(context.carrier, entry);
@@ -36,7 +36,7 @@ export function hasZeroLayerCarrierField_ACU(): boolean {
 export function carrierSwipeId_ACU(message: HostMessage_ACU): number {
   const value = message.swipe_id ?? 0;
   if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) {
-    throw new ZeroLayerError_ACU('carrier-unavailable', '载体 swipe 身份无效。');
+    throw new ZeroLayerError_ACU('carrier-unavailable', 'Danh tính swipe của vật mang không hợp lệ.');
   }
   return value;
 }
@@ -45,11 +45,11 @@ export function carrierSwipeId_ACU(message: HostMessage_ACU): number {
 export function physicalHistorySnapshot_ACU(chat: unknown[]): string {
   return JSON.stringify(chat.map(value => {
     if (!message_ACU(value) || typeof value.mes !== 'string') {
-      throw new ZeroLayerError_ACU('source-changed', '物理历史包含无效消息。');
+      throw new ZeroLayerError_ACU('source-changed', 'Lịch sử vật lý chứa tin nhắn không hợp lệ.');
     }
     const swipes = value.swipes;
     if (swipes !== undefined && (!Array.isArray(swipes) || swipes.some(body => typeof body !== 'string'))) {
-      throw new ZeroLayerError_ACU('source-changed', '物理历史包含无效 swipe 正文。');
+      throw new ZeroLayerError_ACU('source-changed', 'Lịch sử vật lý chứa nội dung swipe không hợp lệ.');
     }
     return {
       role: value.is_user === true ? 'user' : value.is_system === true ? 'system' : 'assistant',
@@ -81,17 +81,17 @@ export function captureZeroLayerCarrier_ACU(): ZeroLayerCarrierContext_ACU {
   const characterKey = getCurrentCharacterCardKey_ACU();
   if (!chatId || chatId === '__host_without_chat_id__' || !characterKey
     || characterKey.startsWith('charname:')) {
-    throw new ZeroLayerError_ACU('chat-unavailable', '当前聊天缺少稳定的聊天或角色卡身份。');
+    throw new ZeroLayerError_ACU('chat-unavailable', 'Cuộc trò chuyện hiện tại thiếu danh tính ổn định của cuộc trò chuyện hoặc thẻ nhân vật.');
   }
   const carrierIndex = chat.findIndex(value => message_ACU(value)
     && value.is_user !== true && value.is_system !== true);
   const carrier = chat[carrierIndex];
   if (!message_ACU(carrier) || typeof carrier.mes !== 'string') {
-    throw new ZeroLayerError_ACU('carrier-unavailable', '当前聊天没有可绑定的开场白载体。');
+    throw new ZeroLayerError_ACU('carrier-unavailable', 'Cuộc trò chuyện hiện tại không có vật mang lời mở đầu để gắn.');
   }
   if (chat.some((value, index) => index !== carrierIndex && message_ACU(value)
     && Object.prototype.hasOwnProperty.call(value, ZERO_LAYER_CARRIER_FIELD_ACU))) {
-    throw new ZeroLayerError_ACU('carrier-unavailable', '零层字段存在于其他物理楼层，拒绝重新绑定。');
+    throw new ZeroLayerError_ACU('carrier-unavailable', 'Trường Tầng 0 tồn tại ở tầng vật lý khác, từ chối gắn lại.');
   }
   return {
     chat, carrier, carrierIndex, swipeId: carrierSwipeId_ACU(carrier),
@@ -104,11 +104,11 @@ export function assertZeroLayerCarrier_ACU(context: ZeroLayerCarrierContext_ACU)
   const current = captureZeroLayerCarrier_ACU();
   if (current.chat !== context.chat || current.key !== context.key
     || current.carrier !== context.carrier || current.swipeId !== context.swipeId) {
-    throw new ZeroLayerError_ACU('scope-changed', '聊天、载体或 active swipe 已变化，拒绝写入。');
+    throw new ZeroLayerError_ACU('scope-changed', 'Cuộc trò chuyện, vật mang hoặc active swipe đã thay đổi, từ chối ghi.');
   }
   if (current.source !== context.source || current.chat.length !== context.messageRefs.length
     || current.chat.some((message, index) => message !== context.messageRefs[index])) {
-    throw new ZeroLayerError_ACU('source-changed', '物理源历史已变化，零层会话需要重新确认。');
+    throw new ZeroLayerError_ACU('source-changed', 'Lịch sử nguồn vật lý đã thay đổi, phiên Tầng 0 cần xác nhận lại.');
   }
 }
 
@@ -129,13 +129,13 @@ function validateCarrierValue_ACU(context: ZeroLayerCarrierContext_ACU, raw: unk
   if (envelope.scope.chatId !== context.scope.chatId
     || envelope.scope.characterKey !== context.scope.characterKey
     || envelope.carrierSwipeId !== context.swipeId) {
-    throw new ZeroLayerError_ACU('scope-changed', '零层存档与当前聊天或 swipe 不匹配。');
+    throw new ZeroLayerError_ACU('scope-changed', 'Bản lưu Tầng 0 không khớp với cuộc trò chuyện hoặc swipe hiện tại.');
   }
   const committed = envelope.exitManifest?.phase === 'committed';
   if (envelope.seedBody !== context.carrier.mes
     || (committed ? context.chat.length < envelope.activationMessageCount
       : envelope.activationMessageCount !== context.chat.length)) {
-    throw new ZeroLayerError_ACU('source-changed', '零层启用时的物理历史已变化。');
+    throw new ZeroLayerError_ACU('source-changed', 'Lịch sử vật lý lúc bật Tầng 0 đã thay đổi.');
   }
   if (committed) {
     const journal = envelope.exitManifest!;
@@ -143,7 +143,7 @@ function validateCarrierValue_ACU(context: ZeroLayerCarrierContext_ACU, raw: unk
     if (physicalHistorySnapshot_ACU(context.chat.slice(0, envelope.activationMessageCount)) !== journal.physicalPrefixSnapshot
       || !message_ACU(target) || target.is_user === true || target.is_system === true
       || carrierSwipeId_ACU(target) !== journal.target.swipeId) {
-      throw new ZeroLayerError_ACU('source-changed', '退出归档的固定物理前缀或接入点已变化。');
+      throw new ZeroLayerError_ACU('source-changed', 'Tiền tố vật lý cố định hoặc điểm tiếp nhập của bản lưu thoát đã thay đổi.');
     }
   }
   return envelope;

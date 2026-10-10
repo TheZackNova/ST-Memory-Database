@@ -15,11 +15,11 @@ const TABLE_EDIT_TOOL_ACU: AiNativeToolDefinition_ACU = {
   type: 'function',
   function: {
     name: TABLE_EDIT_TOOL_NAME_ACU,
-    description: '一次性提交本轮全部表格修改。commands 逐行填写 insertRow / updateRow / deleteRow 指令，格式与 <tableEdit> 块内完全相同；本轮没有修改时填空字符串。',
+    description: 'Gửi một lần toàn bộ chỉnh sửa bảng của lượt này. commands điền từng dòng lệnh insertRow / updateRow / deleteRow, định dạng hoàn toàn giống trong khối <tableEdit>; nếu lượt này không có chỉnh sửa thì điền chuỗi rỗng.',
     parameters: {
       type: 'object',
       properties: {
-        commands: { type: 'string', description: '每行一条 insertRow(表格ID, {...}) / updateRow(表格ID, 行号, {...}) / deleteRow(表格ID, 行号) 指令。' },
+        commands: { type: 'string', description: 'Mỗi dòng một lệnh insertRow(ID bảng, {...}) / updateRow(ID bảng, số hàng, {...}) / deleteRow(ID bảng, số hàng).' },
       },
       required: ['commands'],
       additionalProperties: false,
@@ -31,11 +31,11 @@ const TABLE_SQL_TOOL_ACU: AiNativeToolDefinition_ACU = {
   type: 'function',
   function: {
     name: TABLE_SQL_TOOL_NAME_ACU,
-    description: '一次性提交本轮全部表格修改。sql 填写完整 SQL 脚本（INSERT / UPDATE / DELETE，每条以分号结尾），格式与 <tableEdit> 块内完全相同；本轮没有修改时填空字符串。',
+    description: 'Gửi một lần toàn bộ chỉnh sửa bảng của lượt này. sql điền kịch bản SQL đầy đủ (INSERT / UPDATE / DELETE, mỗi câu kết thúc bằng dấu chấm phẩy), định dạng hoàn toàn giống trong khối <tableEdit>; nếu lượt này không có chỉnh sửa thì điền chuỗi rỗng.',
     parameters: {
       type: 'object',
       properties: {
-        sql: { type: 'string', description: '完整 SQL 脚本，多条语句换行分隔。' },
+        sql: { type: 'string', description: 'Kịch bản SQL đầy đủ, nhiều câu lệnh phân tách bằng xuống dòng.' },
       },
       required: ['sql'],
       additionalProperties: false,
@@ -69,13 +69,15 @@ export function adaptTableFillPromptSegmentsToToolMode_ACU(segments: any[], sqli
   if (!Array.isArray(segments)) return segments;
   const defaults = (sqlite ? DEFAULT_CHAR_CARD_PROMPT_SQL_ACU : DEFAULT_CHAR_CARD_PROMPT_ACU) as any[];
   const toolDefault = defaults.find(isTableFillMainSegment_ACU)?.content;
-  const history = TABLE_FILL_MAIN_PROMPT_HISTORY_ACU as unknown as { native: readonly string[]; sql: readonly string[] };
+  const history = TABLE_FILL_MAIN_PROMPT_HISTORY_ACU as unknown as { native: readonly string[]; sql: readonly string[]; toolNative?: readonly string[]; toolSql?: readonly string[] };
   const bodyDefaults = sqlite ? history.sql : history.native;
+  // 工具版默认的 Việt hóa 之前的中文原文，同样视为「未改动的工具版默认」。
+  const legacyToolDefaults = (sqlite ? history.toolSql : history.toolNative) ?? [];
   if (typeof toolDefault !== 'string' || typeof bodyDefaults[0] !== 'string') return segments;
   return segments.map(segment => {
     if (!isTableFillMainSegment_ACU(segment) || typeof segment.content !== 'string') return segment;
-    if (toolEnabled) return bodyDefaults.includes(segment.content) ? { ...segment, content: toolDefault } : segment;
-    return segment.content === toolDefault ? { ...segment, content: bodyDefaults[0] } : segment;
+    if (toolEnabled) return bodyDefaults.includes(segment.content) || legacyToolDefaults.includes(segment.content) ? { ...segment, content: toolDefault } : segment;
+    return segment.content === toolDefault || legacyToolDefaults.includes(segment.content) ? { ...segment, content: bodyDefaults[0] } : segment;
   });
 }
 
@@ -116,10 +118,10 @@ export function resolveTableFillToolTurn_ACU(turn: AiChatTurn_ACU, sqlite: boole
     try {
       parsed = JSON.parse(call.arguments || '{}');
     } catch {
-      return { ok: false, error: `${toolName} 工具参数不是合法 JSON，请重新调用并确保参数完整。` };
+      return { ok: false, error: `${toolName} tham số công cụ không phải JSON hợp lệ, hãy gọi lại và đảm bảo tham số đầy đủ.` };
     }
     const value = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>)[argName] : undefined;
-    if (typeof value !== 'string') return { ok: false, error: `${toolName} 工具参数缺少字符串字段 ${argName}。` };
+    if (typeof value !== 'string') return { ok: false, error: `${toolName} tham số công cụ thiếu trường chuỗi ${argName}.` };
     if (value.trim()) parts.push(value.trim());
   }
   const residual = content.replace(/<tableEdit>[\s\S]*?<\/tableEdit>/gi, '').trim();

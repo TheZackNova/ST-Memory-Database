@@ -948,7 +948,7 @@ describe('callCustomOpenAI_ACU — 悬挂预设 fail-closed', () => {
       tavernProfile: '',
       resolved: false,
     });
-    await expect(callCustomOpenAI_ACU({})).rejects.toThrow('API 预设「ghost」不存在，请在设置中重新选择');
+    await expect(callCustomOpenAI_ACU({})).rejects.toThrow('Preset API "ghost" không tồn tại, hãy chọn lại trong Cài đặt');
     expect(mockFetch).not.toHaveBeenCalled();
     expect(mockGenerateRaw).not.toHaveBeenCalled();
   });

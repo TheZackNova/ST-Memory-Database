@@ -5,11 +5,11 @@ export const inventorySheet = {
   uid: "sheet_in05z9vz",
   name: "背包物品表",
   sourceData: {
-    note: "记录主角拥有的所有物品、装备。（列号为 0 基，与表格数据中的列标一致）\n- 列0: 物品名称 - 物品的名称，不得与表中已有物品重名。\n- 列1: 数量 - 拥有的数量。\n- 列2: 描述/效果 - 物品的功能或背景描述。\n- 列3: 类别 - 物品的类别（如：\u201C武器\u201D、\u201C消耗品\u201D、\u201C杂物\u201D）。",
-    initNode: "游戏初始化时，根据剧情与设定添加主角的初始携带物品。",
-    deleteNode: "物品被完全消耗、丢弃或摧毁时删除。\nSQL示例: DELETE FROM inventory WHERE item_name = '已消耗物品';\nSQL示例(批量): DELETE FROM inventory WHERE quantity <= 0;",
-    updateNode: "获得已有的物品，使其数量增加时更新，已有物品状态变化时更新。\nSQL示例: UPDATE inventory SET quantity = quantity + 3 WHERE item_name = '治疗药水';\nSQL示例(多列): UPDATE inventory SET quantity = quantity - 1, description = '已损坏' WHERE item_name = '铁剑';",
-    insertNode: "主角获得背包中没有的全新物品时添加。\nSQL示例: INSERT INTO inventory (item_name, quantity, description, category) VALUES ('新物品', 1, '物品描述', '杂物');",
+    note: "Ghi lại tất cả vật phẩm, trang bị mà nhân vật chính sở hữu. (Số cột đánh số từ 0, khớp với chỉ số cột trong dữ liệu bảng)\n- Cột 0: 物品名称 (Tên vật phẩm) - Tên của vật phẩm, không được trùng với vật phẩm đã có trong bảng.\n- Cột 1: 数量 (Số lượng) - Số lượng đang sở hữu.\n- Cột 2: 描述/效果 (Mô tả/Hiệu quả) - Công dụng hoặc mô tả bối cảnh của vật phẩm.\n- Cột 3: 类别 (Loại) - Loại của vật phẩm (ví dụ: \u201Cvũ khí\u201D, \u201Cvật tiêu hao\u201D, \u201Cđồ linh tinh\u201D).",
+    initNode: "Khi khởi tạo game, dựa theo cốt truyện và thiết lập để thêm các vật phẩm mang theo ban đầu của nhân vật chính.",
+    deleteNode: "Xóa khi vật phẩm bị tiêu hao hết, vứt bỏ hoặc phá hủy.\nVí dụ SQL: DELETE FROM inventory WHERE item_name = 'Vật phẩm đã tiêu hao';\nVí dụ SQL (hàng loạt): DELETE FROM inventory WHERE quantity <= 0;",
+    updateNode: "Cập nhật khi nhận thêm vật phẩm đã có khiến số lượng tăng, hoặc khi trạng thái vật phẩm đã có thay đổi.\nVí dụ SQL: UPDATE inventory SET quantity = quantity + 3 WHERE item_name = 'Thuốc hồi phục';\nVí dụ SQL (nhiều cột): UPDATE inventory SET quantity = quantity - 1, description = 'Đã hỏng' WHERE item_name = 'Kiếm sắt';",
+    insertNode: "Thêm khi nhân vật chính nhận được vật phẩm hoàn toàn mới chưa có trong túi đồ.\nVí dụ SQL: INSERT INTO inventory (item_name, quantity, description, category) VALUES ('Vật phẩm mới', 1, 'Mô tả vật phẩm', 'Đồ linh tinh');",
     ddl: `CREATE TABLE inventory ( -- 背包物品表
   row_id INTEGER PRIMARY KEY, -- 行号
   item_name TEXT NOT NULL UNIQUE, -- 物品名称

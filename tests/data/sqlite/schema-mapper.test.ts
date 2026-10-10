@@ -301,7 +301,7 @@ describe('downgradeRowIdPrimaryKeyForLegacyReplay_ACU', () => {
   it('拒绝移除 row_id 主键后会失效的 WITHOUT ROWID 表', () => {
     expect(() => downgradeRowIdPrimaryKeyForLegacyReplay_ACU(
       'CREATE TABLE inventory (row_id INTEGER PRIMARY KEY, name TEXT) WITHOUT ROWID;',
-    )).toThrow('不支持 WITHOUT ROWID 表');
+    )).toThrow('không hỗ trợ bảng WITHOUT ROWID');
   });
 });
 
@@ -388,13 +388,13 @@ describe('hiddenPhysicalColumns projection', () => {
 
   it('非法 hiddenPhysicalColumns 配置 fail closed', () => {
     expect(() => getSheetColumnProjection_ACU({ ...sheet, sourceData: { ...sheet.sourceData, hiddenPhysicalColumns: 'legacy_note' as any } }))
-      .toThrow('必须是 physical column 字符串数组');
+      .toThrow('phải là mảng chuỗi physical column');
     expect(() => getSheetColumnProjection_ACU({ ...sheet, sourceData: { ...sheet.sourceData, hiddenPhysicalColumns: ['legacy_note', 'LEGACY_NOTE'] } }))
-      .toThrow('大小写不敏感的重复');
+      .toThrow('trùng lặp (không phân biệt hoa thường)');
     expect(() => getSheetColumnProjection_ACU({ ...sheet, sourceData: { ...sheet.sourceData, hiddenPhysicalColumns: ['row_id'] } }))
-      .toThrow('row_id 不允许隐藏');
+      .toThrow('row_id không được phép ẩn');
     expect(() => getSheetColumnProjection_ACU({ ...sheet, sourceData: { ...sheet.sourceData, hiddenPhysicalColumns: ['missing_col'] } }))
-      .toThrow('指向不存在的 physical column');
+      .toThrow('trỏ tới physical column không tồn tại');
   });
 
   it('DDL 与表头无法完整对齐时按名匹配隐藏列，而不是拒绝投影', () => {
@@ -515,17 +515,17 @@ describe('generateFallbackDDL', () => {
 
   it('重复表头 fail-closed，不再生成 col_N 掩盖重复列', () => {
     expect(() => generateFallbackDDL('test_table', ['row_id', 'name', 'name']))
-      .toThrow(/第 3 列/);
+      .toThrow(/Cột thứ 3/);
   });
 
   it('中间空列表头 fail-closed，不再生成 col_N 掩盖空列', () => {
     expect(() => generateFallbackDDL('test_table', ['row_id', '姓名', '', '状态']))
-      .toThrow(/第 3 列/);
+      .toThrow(/Cột thứ 3/);
   });
 
   it('纯空格表头 fail-closed', () => {
     expect(() => generateFallbackDDL('test_table', ['row_id', '姓名', '   ', '状态']))
-      .toThrow(/第 3 列/);
+      .toThrow(/Cột thứ 3/);
   });
 
   it('非首位 row_id fail-closed', () => {
@@ -535,7 +535,7 @@ describe('generateFallbackDDL', () => {
 
   it('规范化重名（Name/name）fail-closed', () => {
     expect(() => generateFallbackDDL('test_table', ['row_id', 'Name', 'name']))
-      .toThrow(/第 3 列/);
+      .toThrow(/Cột thứ 3/);
   });
 
   it('生成与验证共享同一份表头契约：合法表头生成后验证通过，空列生成失败且验证也失败', () => {
@@ -723,7 +723,7 @@ describe('generateInserts', () => {
       ],
     });
 
-    expect(() => generateInserts(sheet, 'inventory')).toThrow('snapshot 表头存在重复列');
+    expect(() => generateInserts(sheet, 'inventory')).toThrow('Tiêu đề snapshot có cột trùng');
   });
 
   it('未映射表头存在非空数据时拒绝静默丢弃', () => {
@@ -741,7 +741,7 @@ describe('generateInserts', () => {
       ],
     });
 
-    expect(() => generateInserts(sheet, 'inventory')).toThrow('拒绝丢弃非空数据');
+    expect(() => generateInserts(sheet, 'inventory')).toThrow('từ chối bỏ dữ liệu không rỗng');
   });
 
   it('仅 row_id 可识别时，即使等宽也拒绝猜测未知业务表头的位置', () => {
@@ -760,7 +760,7 @@ describe('generateInserts', () => {
       ],
     });
 
-    expect(() => generateInserts(sheet, 'legacy_inventory')).toThrow('缺少必需 DDL 列');
+    expect(() => generateInserts(sheet, 'legacy_inventory')).toThrow('Thiếu tiêu đề tương ứng với cột DDL bắt buộc');
   });
 
   it('未知业务表头即使看似保持 DDL 顺序也拒绝位置猜测', () => {
@@ -779,7 +779,7 @@ describe('generateInserts', () => {
       ],
     });
 
-    expect(() => generateInserts(sheet, 'legacy_inventory')).toThrow('缺少必需 DDL 列');
+    expect(() => generateInserts(sheet, 'legacy_inventory')).toThrow('Thiếu tiêu đề tương ứng với cột DDL bắt buộc');
   });
 
   it('行号别名与完整 DDL 注释表头可确定性映射', () => {
@@ -819,7 +819,7 @@ describe('generateInserts', () => {
       ],
     });
 
-    expect(() => generateInserts(sheet, 'inventory')).toThrow('DDL 必须以 row_id INTEGER PRIMARY KEY 作为首列');
+    expect(() => generateInserts(sheet, 'inventory')).toThrow('DDL phải dùng row_id INTEGER PRIMARY KEY làm cột đầu tiên');
   });
 
   it('row_id 不是 INTEGER 时拒绝 canonical hydrate', () => {
@@ -837,7 +837,7 @@ describe('generateInserts', () => {
       ],
     });
 
-    expect(() => generateInserts(sheet, 'inventory')).toThrow('DDL 必须以 row_id INTEGER PRIMARY KEY 作为首列');
+    expect(() => generateInserts(sheet, 'inventory')).toThrow('DDL phải dùng row_id INTEGER PRIMARY KEY làm cột đầu tiên');
   });
 
   it('CHECK 字符串含 DEFAULT 的 NOT NULL 列缺失表头时仍拒绝 hydrate', () => {
@@ -855,7 +855,7 @@ describe('generateInserts', () => {
       ],
     });
 
-    expect(() => generateInserts(sheet, 'inventory')).toThrow('缺少必需 DDL 列「name」');
+    expect(() => generateInserts(sheet, 'inventory')).toThrow('Thiếu tiêu đề tương ứng với cột DDL bắt buộc「name」');
   });
 
   it('块注释含 DEFAULT 的 NOT NULL 列缺失表头时仍拒绝 hydrate', () => {
@@ -873,7 +873,7 @@ describe('generateInserts', () => {
       ],
     });
 
-    expect(() => generateInserts(sheet, 'inventory')).toThrow('缺少必需 DDL 列「name」');
+    expect(() => generateInserts(sheet, 'inventory')).toThrow('Thiếu tiêu đề tương ứng với cột DDL bắt buộc「name」');
   });
 
   it('quoted row_id 不属于 canonical hydrate 支持的裸标识符契约时拒绝', () => {
@@ -891,7 +891,7 @@ describe('generateInserts', () => {
       ],
     });
 
-    expect(() => generateInserts(sheet, 'inventory')).toThrow('DDL 必须以 row_id INTEGER PRIMARY KEY 作为首列');
+    expect(() => generateInserts(sheet, 'inventory')).toThrow('DDL phải dùng row_id INTEGER PRIMARY KEY làm cột đầu tiên');
   });
 
   it('空 content 返回空数组', () => {
@@ -1033,7 +1033,7 @@ describe('validateDDLAgainstHeaders', () => {
     );`;
     const result = validateDDLAgainstHeaders(ddl, ['row_id', '姓名', '年龄']);
     expect(result.valid).toBe(false);
-    expect(result.mismatches.some(m => m.includes('列数不匹配'))).toBe(true);
+    expect(result.mismatches.some(m => m.includes('Số cột không khớp'))).toBe(true);
   });
 
   it('注释与表头不匹配时报告', () => {
@@ -1044,7 +1044,7 @@ describe('validateDDLAgainstHeaders', () => {
     );`;
     const result = validateDDLAgainstHeaders(ddl, ['row_id', '姓名', '年龄']);
     expect(result.valid).toBe(false);
-    expect(result.mismatches.some(m => m.includes('不匹配'))).toBe(true);
+    expect(result.mismatches.some(m => m.includes('không khớp'))).toBe(true);
   });
 
   it('列顺序与表头不一致时报告', () => {
@@ -1055,7 +1055,7 @@ describe('validateDDLAgainstHeaders', () => {
     );`;
     const result = validateDDLAgainstHeaders(ddl, ['row_id', '姓名', '年龄']);
     expect(result.valid).toBe(false);
-    expect(result.mismatches.some(m => m.includes('第 1 列不匹配'))).toBe(true);
+    expect(result.mismatches.some(m => m.includes('Cột thứ 1 không khớp'))).toBe(true);
   });
 });
 
@@ -1095,7 +1095,7 @@ describe('removeDDLColumnAtIndex_ACU', () => {
   CONSTRAINT note_required CHECK(note IS NOT NULL)
 );`;
 
-    expect(() => removeDDLColumnAtIndex_ACU(ddl, 1)).toThrow('表级约束');
+    expect(() => removeDDLColumnAtIndex_ACU(ddl, 1)).toThrow('ràng buộc cấp bảng');
   });
 
   it('表级约束与普通列同一物理行时仍 fail closed', () => {
@@ -1105,7 +1105,7 @@ describe('removeDDLColumnAtIndex_ACU', () => {
   keep TEXT, CONSTRAINT note_required CHECK(note IS NOT NULL)
 );`;
 
-    expect(() => removeDDLColumnAtIndex_ACU(ddl, 1)).toThrow('表级约束');
+    expect(() => removeDDLColumnAtIndex_ACU(ddl, 1)).toThrow('ràng buộc cấp bảng');
   });
 
   it('拒绝 row_id、内联约束和无法按行精确删除的 DDL', () => {
@@ -1113,7 +1113,7 @@ describe('removeDDLColumnAtIndex_ACU', () => {
     expect(() => removeDDLColumnAtIndex_ACU(`CREATE TABLE inventory (
   row_id INTEGER PRIMARY KEY,
   name TEXT UNIQUE
-);`, 1)).toThrow('带有约束');
-    expect(() => removeDDLColumnAtIndex_ACU('CREATE TABLE inventory (row_id INTEGER PRIMARY KEY, name TEXT, obsolete TEXT);', 2)).toThrow('多行列定义或表级约束');
+);`, 1)).toThrow('có ràng buộc');
+    expect(() => removeDDLColumnAtIndex_ACU('CREATE TABLE inventory (row_id INTEGER PRIMARY KEY, name TEXT, obsolete TEXT);', 2)).toThrow('định nghĩa cột nhiều dòng hoặc ràng buộc cấp bảng');
   });
 });

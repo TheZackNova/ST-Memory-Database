@@ -11,18 +11,18 @@
           :description="dataMgmtCopy.panels.isolation.description"
         >
           <div class="acu-v2-data-mgmt-page__form-stack">
-            <AcuFormRow label="标识代码" :hint="isolationCodeHint">
+            <AcuFormRow label="Mã định danh" :hint="isolationCodeHint">
               <AcuInput
                 :model-value="flow.isolationCode.value"
                 type="text"
-                placeholder="输入标识代码"
+                placeholder="Nhập mã định danh"
                 @update:model-value="flow.isolationCode.value = String($event)"
               />
             </AcuFormRow>
 
             <AcuDisclosureGroup
               class="acu-v2-data-mgmt-page__history"
-              label="历史标识"
+              label="Định danh lịch sử"
               :meta="historyMetaLabel"
               :expanded="historyExpanded"
               body-id="acu-data-isolation-history"
@@ -41,7 +41,7 @@
                   <AcuButton
                     class="acu-v2-data-mgmt-page__history-fill"
                     size="sm"
-                    :title="`填入历史标识：${code}`"
+                    :title="`Điền định danh lịch sử: ${code}`"
                     :disabled="!!flow.busyAction.value || runtimeDiagnostic.busy.value"
                     @click="selectHistory(code)"
                   >
@@ -52,21 +52,21 @@
                       v-if="code === flow.currentIsolationLabel.value"
                       class="acu-v2-data-mgmt-page__history-current"
                     >
-                      当前
+                      Hiện tại
                     </span>
                   </AcuButton>
                   <AcuIconButton
                     icon="fa-solid fa-trash-can"
                     variant="danger"
-                    :title="`删除历史标识：${code}`"
-                    :aria-label="`删除历史标识：${code}`"
+                    :title="`Xóa định danh lịch sử: ${code}`"
+                    :aria-label="`Xóa định danh lịch sử: ${code}`"
                     :disabled="!!flow.busyAction.value || runtimeDiagnostic.busy.value"
                     @click="onRemoveHistory(code)"
                   />
                 </div>
               </div>
               <p v-else class="acu-v2-data-mgmt-page__history-empty">
-                暂无历史标识。
+                Chưa có định danh lịch sử.
               </p>
             </AcuDisclosureGroup>
           </div>
@@ -77,7 +77,7 @@
               :loading="flow.busyAction.value === 'delete-isolation-entries'"
               @click="onDeleteCurrentIsolationEntries"
             >
-              删除当前标识注入条目
+              Xóa mục chèn của định danh hiện tại
             </AcuButton>
             <AcuButton
               variant="primary"
@@ -85,7 +85,7 @@
               :loading="flow.busyAction.value === 'apply-isolation'"
               @click="onApplyIsolation"
             >
-              保存并应用
+              Lưu và áp dụng
             </AcuButton>
           </div>
         </AcuPanel>
@@ -103,7 +103,7 @@
               @file="flow.importCombinedSettings"
             >
               <i class="fa-solid fa-download"></i>
-              合并导入（模板+指令）
+              Nhập gộp (mẫu + chỉ dẫn)
             </AcuFileButton>
             <AcuButton
               block
@@ -111,7 +111,7 @@
               @click="flow.exportCombinedSettings"
             >
               <i class="fa-solid fa-upload"></i>
-              合并导出（模板+指令）
+              Xuất gộp (mẫu + chỉ dẫn)
             </AcuButton>
             <AcuButton
               block
@@ -119,7 +119,7 @@
               @click="flow.exportJsonData"
             >
               <i class="fa-solid fa-upload"></i>
-              特殊导出
+              Xuất đặc biệt
             </AcuButton>
             <AcuButton
               block
@@ -127,19 +127,19 @@
               :loading="flow.busyAction.value === 'override-latest'"
               @click="onOverrideLatestLayer"
             >
-              模板覆盖最新层数据
+              Mẫu ghi đè dữ liệu tầng mới nhất
             </AcuButton>
           </div>
           <section class="acu-v2-data-mgmt-page__checkpoint-section" aria-labelledby="acu-checkpoint-title">
-            <h3 id="acu-checkpoint-title" class="acu-v2-data-mgmt-page__section-title">当前聊天 Checkpoint</h3>
+            <h3 id="acu-checkpoint-title" class="acu-v2-data-mgmt-page__section-title">Checkpoint của cuộc trò chuyện hiện tại</h3>
             <p class="acu-v2-data-mgmt-page__section-description">
-              导出当前隔离标识的表格、聊天模板和指导表。导入会清空当前聊天全部 AI 楼层、所有隔离标识的本地表格数据，
-              仅在当前激活隔离键的最新 AI 楼层重建数据；当前聊天表格模板会切换为文件模板，后续更新将使用该模板。
-              全局模板和聊天正文不变。
+              Xuất bảng, mẫu của cuộc trò chuyện và bảng chỉ dẫn của định danh cô lập hiện tại. Nhập sẽ xóa toàn bộ tầng AI của cuộc trò chuyện hiện tại và dữ liệu bảng cục bộ của mọi định danh cô lập,
+              chỉ dựng lại dữ liệu ở tầng AI mới nhất của khóa cô lập đang kích hoạt; mẫu bảng của cuộc trò chuyện hiện tại sẽ chuyển sang mẫu trong tệp, các lần cập nhật sau sẽ dùng mẫu này.
+              Mẫu toàn cục và nội dung chat không đổi.
             </p>
             <div class="acu-v2-data-mgmt-page__checkpoint-actions">
               <AcuButton block :disabled="!!flow.busyAction.value || runtimeDiagnostic.busy.value" @click="flow.exportTableCheckpoint">
-                导出 Checkpoint
+                Xuất Checkpoint
               </AcuButton>
               <AcuFileButton
                 block
@@ -147,7 +147,7 @@
                 :disabled="!!flow.busyAction.value || runtimeDiagnostic.busy.value"
                 @file="onImportTableCheckpoint"
               >
-                导入 Checkpoint
+                Nhập Checkpoint
               </AcuFileButton>
             </div>
           </section>
@@ -156,21 +156,21 @@
             class="acu-v2-data-mgmt-page__checkpoint-section"
             aria-labelledby="acu-mixed-storage-title"
           >
-            <h3 id="acu-mixed-storage-title" class="acu-v2-data-mgmt-page__section-title">混合存储决议</h3>
+            <h3 id="acu-mixed-storage-title" class="acu-v2-data-mgmt-page__section-title">Quyết định lưu trữ hỗn hợp</h3>
             <p class="acu-v2-data-mgmt-page__section-description">
-              当前聊天同时检测到 legacy-v1 与 V2 数据。决议：{{ flow.mixedStorageDecision.value.kind }}。
+              Cuộc trò chuyện hiện tại phát hiện đồng thời dữ liệu legacy-v1 và V2. Quyết định: {{ flow.mixedStorageDecision.value.kind }}.
               <template v-if="flow.mixedStorageDecision.value.diagnosticCodes.length">
-                诊断：{{ flow.mixedStorageDecision.value.diagnosticCodes.join('、') }}。
+                Chẩn đoán: {{ flow.mixedStorageDecision.value.diagnosticCodes.join(', ') }}.
               </template>
               <template v-if="flow.mixedStorageDecision.value.anchorStatus || flow.mixedStorageDecision.value.replayStatus">
-                锚点：{{ flow.mixedStorageDecision.value.anchorStatus }}；回放：{{ flow.mixedStorageDecision.value.replayStatus }}；
-                静态表数：{{ flow.mixedStorageDecision.value.staticSheetKeyCount }}。
+                Điểm neo: {{ flow.mixedStorageDecision.value.anchorStatus }}; phát lại: {{ flow.mixedStorageDecision.value.replayStatus }};
+                số bảng tĩnh: {{ flow.mixedStorageDecision.value.staticSheetKeyCount }}.
               </template>
-              可先导出两份独立快照；提交动作只引用当前决议，不会从页面接收或覆盖表格数据。
+              Có thể xuất trước hai snapshot độc lập; thao tác nộp chỉ tham chiếu quyết định hiện tại, không nhận hay ghi đè dữ liệu bảng từ trang.
             </p>
             <div class="acu-v2-data-mgmt-page__checkpoint-actions">
               <AcuButton block :disabled="runtimeDiagnostic.busy.value" :loading="flow.busyAction.value === 'export-mixed-storage-snapshots'" @click="flow.exportMixedStorageSnapshots">
-                导出 legacy/V2 快照
+                Xuất snapshot legacy/V2
               </AcuButton>
               <AcuButton
                 v-if="flow.mixedStorageDecision.value.allowedActions.includes('keep_v2')"
@@ -179,7 +179,7 @@
                 :loading="flow.busyAction.value === 'commit-mixed-storage-keep_v2'"
                 @click="onCommitMixedStorageDecision('keep_v2')"
               >
-                保留 V2 并清理 legacy
+                Giữ V2 và dọn legacy
               </AcuButton>
               <AcuButton
                 v-if="flow.mixedStorageDecision.value.allowedActions.includes('commit_merge_candidate')"
@@ -188,7 +188,7 @@
                 :loading="flow.busyAction.value === 'commit-mixed-storage-commit_merge_candidate'"
                 @click="onCommitMixedStorageDecision('commit_merge_candidate')"
               >
-                提交受限合并候选
+                Nộp ứng viên gộp có giới hạn
               </AcuButton>
             </div>
           </section>
@@ -197,14 +197,14 @@
             class="acu-v2-data-mgmt-page__checkpoint-section"
             aria-labelledby="acu-v2-recovery-title"
           >
-            <h3 id="acu-v2-recovery-title" class="acu-v2-data-mgmt-page__section-title">V2 数据恢复诊断</h3>
+            <h3 id="acu-v2-recovery-title" class="acu-v2-data-mgmt-page__section-title">Chẩn đoán khôi phục dữ liệu V2</h3>
             <p class="acu-v2-data-mgmt-page__section-description">
               {{ flow.v2RecoverySummary.value.message }}
-              恢复仅使用服务端冻结候选，不会从页面读取或提交可编辑表格数据。
+              Khôi phục chỉ dùng ứng viên đã đóng băng phía máy chủ, không đọc hay nộp dữ liệu bảng có thể chỉnh sửa từ trang.
             </p>
             <div class="acu-v2-data-mgmt-page__checkpoint-actions">
               <AcuButton block :disabled="!!flow.busyAction.value || runtimeDiagnostic.busy.value" @click="flow.exportV2RecoveryBackups">
-                导出已保存的原始 frame 备份
+                Xuất bản sao lưu frame gốc đã lưu
               </AcuButton>
               <AcuButton
                 v-if="flow.v2RecoverySummary.value.status === 'recoverable_repaired_checkpoint' || flow.v2RecoverySummary.value.status === 'recoverable_temporary_sheet_anchor' || flow.v2RecoverySummary.value.status === 'recoverable_redundant_full_checkpoint' || flow.v2RecoverySummary.value.status === 'recoverable_from_recovery_backup'"
@@ -214,7 +214,7 @@
                 :loading="flow.busyAction.value === 'commit-v2-recovery'"
                 @click="onCommitV2Recovery('checkpoint')"
               >
-                应用 Checkpoint 修复/收敛
+                Áp dụng sửa chữa/hội tụ Checkpoint
               </AcuButton>
               <AcuButton
                 v-if="flow.v2RecoverySummary.value.status === 'recoverable_orphan_data_replace'"
@@ -224,7 +224,7 @@
                 :loading="flow.busyAction.value === 'commit-v2-recovery'"
                 @click="onCommitV2Recovery('orphan-data-replace')"
               >
-                确认无锚点 data_replace 恢复
+                Xác nhận khôi phục data_replace không điểm neo
               </AcuButton>
               <AcuButton
                 v-if="flow.v2RecoverySummary.value.status === 'recoverable_compat_tolerant_replay' && flow.v2RecoverySummary.value.planId"
@@ -234,7 +234,7 @@
                 :loading="flow.busyAction.value === 'commit-v2-recovery'"
                 @click="onCommitV2Recovery('compat-fixation')"
               >
-                {{ flow.v2RecoverySummary.value.requiresConfirmation ? '确认身份归并并固化兼容回放为过渡根' : '固化兼容回放为过渡根' }}
+                {{ flow.v2RecoverySummary.value.requiresConfirmation ? 'Xác nhận gộp định danh và cố định phát lại tương thích thành gốc chuyển tiếp' : 'Cố định phát lại tương thích thành gốc chuyển tiếp' }}
               </AcuButton>
             </div>
           </section>
@@ -243,13 +243,13 @@
             class="acu-v2-data-mgmt-page__checkpoint-section"
             aria-labelledby="acu-v2-isolation-diagnostics-title"
           >
-            <h3 id="acu-v2-isolation-diagnostics-title" class="acu-v2-data-mgmt-page__section-title">V2 隔离域恢复诊断</h3>
+            <h3 id="acu-v2-isolation-diagnostics-title" class="acu-v2-data-mgmt-page__section-title">Chẩn đoán khôi phục miền cô lập V2</h3>
             <div class="acu-v2-data-mgmt-page__form-stack">
               <div v-for="diagnostic in flow.v2IsolationDiagnostics.value" :key="diagnostic.isolationKey" class="acu-v2-data-mgmt-page__history-item">
-                <strong>{{ diagnostic.isolationKey || '默认隔离域' }}</strong>
+                <strong>{{ diagnostic.isolationKey || 'Miền cô lập mặc định' }}</strong>
                 <p>{{ diagnostic.message }}</p>
-                <p v-if="!diagnostic.isCurrentIsolation">请切换到该隔离域后重新诊断；当前恢复提交不会跨隔离域执行。</p>
-                <p v-else-if="diagnostic.status.startsWith('recoverable_')">当前隔离域存在可恢复候选，请使用下方“诊断 V2 数据恢复”生成可提交计划。</p>
+                <p v-if="!diagnostic.isCurrentIsolation">Hãy chuyển sang miền cô lập đó rồi chẩn đoán lại; lần nộp khôi phục hiện tại sẽ không thực hiện xuyên miền cô lập.</p>
+                <p v-else-if="diagnostic.status.startsWith('recoverable_')">Miền cô lập hiện tại có ứng viên khôi phục được, hãy dùng “Chẩn đoán khôi phục dữ liệu V2” bên dưới để tạo kế hoạch có thể nộp.</p>
               </div>
             </div>
           </section>
@@ -285,10 +285,10 @@
           <!-- 恢复入口不受 legacy UI 开关控制：写入门闸的错误提示会把用户引导到这里。 -->
           <div class="acu-v2-data-mgmt-page__checkpoint-actions" data-testid="v2-recovery-actions">
             <AcuButton block :disabled="runtimeDiagnostic.busy.value" :loading="flow.busyAction.value === 'scan-v2-isolation-diagnostics'" @click="flow.scanV2IsolationDiagnostics">
-              扫描全部 V2 隔离域
+              Quét tất cả miền cô lập V2
             </AcuButton>
             <AcuButton block :disabled="runtimeDiagnostic.busy.value" :loading="flow.busyAction.value === 'prepare-v2-recovery'" @click="flow.prepareV2Recovery">
-              诊断 V2 数据恢复
+              Chẩn đoán khôi phục dữ liệu V2
             </AcuButton>
           </div>
         </AcuPanel>
@@ -307,12 +307,12 @@
               id="acu-cleanup-auto-title"
               class="acu-v2-data-mgmt-page__section-title"
             >
-              自动清理
+              Dọn dẹp tự động
             </h3>
             <div class="acu-v2-data-mgmt-page__form-stack">
               <AcuFormRow
-                label="保留数据层数"
-                hint="自动更新结束后，超过保留范围的旧楼层插件数据会被清理；不影响聊天正文。"
+                label="Số tầng dữ liệu giữ lại"
+                hint="Sau khi tự động cập nhật xong, dữ liệu plugin của các tầng cũ vượt phạm vi giữ lại sẽ bị dọn; không ảnh hưởng nội dung chat."
               >
                 <AcuInput
                   type="number"
@@ -334,18 +334,18 @@
               id="acu-cleanup-manual-title"
               class="acu-v2-data-mgmt-page__section-title"
             >
-              手动删除
+              Xóa thủ công
             </h3>
             <p class="acu-v2-data-mgmt-page__meta">
-              当前聊天 {{ flow.aiMessageCount.value }} 个 AI 楼层 · 将处理：{{
+              Cuộc trò chuyện hiện tại có {{ flow.aiMessageCount.value }} tầng AI · sẽ xử lý: {{
                 flow.rangeLabel.value
               }}
             </p>
 
             <div class="acu-v2-data-mgmt-page__form-grid">
               <AcuFormRow
-                label="起始楼层"
-                hint="从第N个楼层 AI 回复开始，留空为第 1 层。"
+                label="Tầng bắt đầu"
+                hint="Bắt đầu từ phản hồi AI ở tầng thứ N, để trống là tầng 1."
               >
                 <AcuInput
                   :model-value="flow.deleteRange.startFloor"
@@ -355,13 +355,13 @@
                   @update:model-value="flow.deleteRange.startFloor = $event"
                 />
               </AcuFormRow>
-              <AcuFormRow label="终止楼层" hint="留空为最新楼层。">
+              <AcuFormRow label="Tầng kết thúc" hint="Để trống là tầng mới nhất.">
                 <AcuInput
                   :model-value="flow.deleteRange.endFloor"
                   type="number"
                   :min="1"
                   :step="1"
-                  placeholder="到最后"
+                  placeholder="Đến cuối"
                   @update:model-value="flow.deleteRange.endFloor = $event"
                 />
               </AcuFormRow>
@@ -374,7 +374,7 @@
               aria-labelledby="acu-cleanup-sheet-filter-title"
             >
               <div class="acu-v2-data-mgmt-page__sheet-filter-head">
-                <span id="acu-cleanup-sheet-filter-title" class="acu-v2-data-mgmt-page__sheet-filter-title">限定表格（可选）</span>
+                <span id="acu-cleanup-sheet-filter-title" class="acu-v2-data-mgmt-page__sheet-filter-title">Giới hạn bảng (tùy chọn)</span>
                 <button
                   v-if="flow.hasDeleteSheetSelection.value"
                   type="button"
@@ -382,7 +382,7 @@
                   :disabled="runtimeDiagnostic.busy.value"
                   @click="flow.clearDeleteSheetSelection"
                 >
-                  清除选择
+                  Bỏ chọn
                 </button>
               </div>
               <div class="acu-v2-data-mgmt-page__sheet-filter-list">
@@ -397,7 +397,7 @@
                 />
               </div>
               <p class="acu-v2-data-mgmt-page__meta">
-                勾选后只删除所选表格在楼层范围内的数据（包括 checkpoint 里这些表的数据），其它表格、模板与指导表都不受影响；不勾选则按整楼层删除。
+                Khi tích, chỉ xóa dữ liệu của các bảng đã chọn trong phạm vi tầng (gồm cả dữ liệu của các bảng này trong checkpoint), các bảng khác, mẫu và bảng chỉ dẫn đều không bị ảnh hưởng; không tích thì xóa theo toàn bộ tầng.
               </p>
             </div>
 
@@ -406,8 +406,8 @@
 
             <p class="acu-v2-data-mgmt-page__meta">
               {{ flow.hasDeleteSheetSelection.value
-                ? `当前已限定 ${flow.deleteSheetKeys.value.length} 张表：${flow.selectedDeleteSheetNames.value.join('、')}。按表删除不会硬清空，即便范围覆盖全部楼层。`
-                : '楼层范围同时作用于两个删除按钮。「删除所有本地数据」在范围覆盖全部 AI 楼层时执行硬清空，范围为局部时只删除对应楼层的填表数据。' }}
+                ? `Hiện đã giới hạn ${flow.deleteSheetKeys.value.length} bảng: ${flow.selectedDeleteSheetNames.value.join(', ')}. Xóa theo bảng sẽ không xóa sạch cứng, kể cả khi phạm vi bao phủ toàn bộ tầng.`
+                : 'Phạm vi tầng áp dụng cho cả hai nút xóa. «Xóa tất cả dữ liệu cục bộ» sẽ xóa sạch cứng khi phạm vi bao phủ toàn bộ tầng AI, còn khi phạm vi chỉ là một phần thì chỉ xóa dữ liệu điền bảng của các tầng tương ứng.' }}
             </p>
 
           <div
@@ -419,7 +419,7 @@
               :loading="flow.busyAction.value === 'delete-current-local'"
               @click="onDeleteLocalData('current')"
             >
-              删除当前标识本地数据
+              Xóa dữ liệu cục bộ của định danh hiện tại
             </AcuButton>
             <AcuButton
               block
@@ -428,7 +428,7 @@
               :loading="flow.busyAction.value === 'purge-all-local' || flow.busyAction.value === 'delete-all-local'"
               @click="onDeleteLocalData('all')"
             >
-              {{ flow.hasDeleteSheetSelection.value ? `删除所选 ${flow.deleteSheetKeys.value.length} 张表的数据` : '删除所有本地数据' }}
+              {{ flow.hasDeleteSheetSelection.value ? `Xóa dữ liệu của ${flow.deleteSheetKeys.value.length} bảng đã chọn` : 'Xóa tất cả dữ liệu cục bộ' }}
             </AcuButton>
             <AcuButton
               block
@@ -436,7 +436,7 @@
               :loading="flow.busyAction.value === 'reset-defaults'"
               @click="onResetAllDefaults"
             >
-              恢复默认配置
+              Khôi phục cấu hình mặc định
             </AcuButton>
             <AcuButton
               block
@@ -445,11 +445,11 @@
               :loading="flow.busyAction.value === 'cleanup-legacy-isolation'"
               @click="onCleanupLegacyIsolationProfiles"
             >
-              全局旧隔离标签清理
+              Dọn nhãn cô lập cũ toàn cục
             </AcuButton>
           </div>
           <p class="acu-v2-data-mgmt-page__meta">
-            清理全部退役隔离标签及其全局设置/表格模板，并切回默认数据；不会删除聊天正文或各聊天已保存的历史表格数据。当前发现 {{ flow.legacyIsolationCount.value }} 个旧隔离标签。
+            Dọn toàn bộ nhãn cô lập đã ngừng dùng cùng cài đặt toàn cục/mẫu bảng của chúng, và chuyển về dữ liệu mặc định; không xóa nội dung chat hay dữ liệu bảng lịch sử đã lưu của từng cuộc trò chuyện. Hiện phát hiện {{ flow.legacyIsolationCount.value }} nhãn cô lập cũ.
           </p>
         </AcuPanel>
       </div>
@@ -501,32 +501,32 @@ const resetDefaultsCleanupOptions: Array<{
 }> = [
   {
     value: "restore-template-prompts",
-    label: "默认表格模板与提示词",
-    description: "恢复默认表格模板、填表提示词和合并总结提示词。",
+    label: "Mẫu bảng và prompt mặc định",
+    description: "Khôi phục mẫu bảng mặc định, prompt điền bảng và prompt tóm tắt gộp.",
     defaultChecked: true,
   },
   {
     value: "clear-template-snapshots",
-    label: "当前聊天表格模板快照",
-    description: "清理当前标识下由前端或角色卡导入的临时表格模板、预设快照和指导表。",
+    label: "Snapshot mẫu bảng của cuộc trò chuyện hiện tại",
+    description: "Dọn mẫu bảng tạm, snapshot preset và bảng chỉ dẫn được nhập từ giao diện hoặc thẻ nhân vật dưới định danh hiện tại.",
     defaultChecked: true,
   },
   {
     value: "clear-plot-snapshots",
-    label: "当前聊天剧情推进预设快照",
-    description: "清理当前聊天临时剧情推进覆盖，让它重新跟随全局设置。",
+    label: "Snapshot preset đẩy cốt truyện của cuộc trò chuyện hiện tại",
+    description: "Dọn phần ghi đè đẩy cốt truyện tạm của cuộc trò chuyện hiện tại để nó theo lại cài đặt toàn cục.",
     defaultChecked: true,
   },
   {
     value: "clear-table-locks",
-    label: "当前聊天表格锁",
-    description: "清理当前聊天和当前标识下的表格行、列、单元格锁定状态。",
+    label: "Khóa bảng của cuộc trò chuyện hiện tại",
+    description: "Dọn trạng thái khóa hàng, cột, ô của bảng trong cuộc trò chuyện hiện tại và định danh hiện tại.",
     defaultChecked: true,
   },
   {
     value: "clear-table-order",
-    label: "表格顺序缓存",
-    description: "清空旧的表格顺序缓存，后续按当前模板顺序重新显示。",
+    label: "Bộ nhớ đệm thứ tự bảng",
+    description: "Xóa bộ nhớ đệm thứ tự bảng cũ, về sau hiển thị lại theo thứ tự mẫu hiện tại.",
     defaultChecked: true,
   },
 ];
@@ -538,10 +538,10 @@ const historyExpanded = ref(false);
 
 const isolationCodeHint = computed(
   () =>
-    `当前正在使用：${flow.currentIsolationLabel.value}。留空表示默认数据；修改后点击“保存并应用”才会切换。`,
+    `Đang sử dụng: ${flow.currentIsolationLabel.value}. Để trống nghĩa là dữ liệu mặc định; sau khi sửa phải bấm “Lưu và áp dụng” mới chuyển.`,
 );
 const historyMetaLabel = computed(
-  () => `${flow.isolationHistory.value.length} 个`,
+  () => `${flow.isolationHistory.value.length} mục`,
 );
 
 function selectHistory(value: string): void {
@@ -561,10 +561,10 @@ async function onRemoveHistory(code: string): Promise<void> {
 async function onDeleteCurrentIsolationEntries(): Promise<void> {
   if (runtimeDiagnostic.busy.value) return;
   const confirmed = await dialogStore.confirm({
-    title: "删除注入条目",
+    title: "Xóa mục chèn",
     message:
-      "删除当前标识的数据库注入条目？这不会删除聊天正文，但会移除世界书里的插件生成条目。",
-    confirmLabel: "删除注入条目",
+      "Xóa mục chèn CSDL của định danh hiện tại? Việc này không xóa nội dung chat nhưng sẽ gỡ các mục do plugin tạo trong Sổ thế giới.",
+    confirmLabel: "Xóa mục chèn",
     confirmVariant: "danger",
   });
   if (!confirmed)
@@ -576,10 +576,10 @@ async function onDeleteCurrentIsolationEntries(): Promise<void> {
 async function onOverrideLatestLayer(): Promise<void> {
   if (runtimeDiagnostic.busy.value) return;
   const confirmed = await dialogStore.confirm({
-    title: "覆盖最新层数据",
+    title: "Ghi đè dữ liệu tầng mới nhất",
     message:
-      "用当前生效模板覆盖最新 AI 楼层的表格数据？这会清空模板内表格的数据行，只保留表头。",
-    confirmLabel: "覆盖数据",
+      "Dùng mẫu đang có hiệu lực để ghi đè dữ liệu bảng của tầng AI mới nhất? Việc này sẽ xóa các hàng dữ liệu của bảng trong mẫu, chỉ giữ tiêu đề.",
+    confirmLabel: "Ghi đè dữ liệu",
     confirmVariant: "danger",
   });
   if (!confirmed)
@@ -595,12 +595,12 @@ async function onImportTableCheckpoint(file: File): Promise<void> {
   const sourceStorageMode = checkpoint.source.storageMode;
   const targetStorageMode = flow.getCheckpointTargetStorageMode();
   const confirmed = await dialogStore.confirm({
-    title: "恢复当前聊天 Checkpoint",
-    message: `导入将清空当前聊天全部 AI 楼层、所有隔离标识的本地表格数据。
-仅在当前激活隔离键的最新 AI 楼层重建文件中的表格数据。
-当前聊天表格模板会切换为文件模板，后续更新将使用该模板。
-全局模板和聊天正文不变。来源模式：${sourceStorageMode}；目标模式：${targetStorageMode}。确认继续？`,
-    confirmLabel: "恢复 Checkpoint",
+    title: "Khôi phục Checkpoint của cuộc trò chuyện hiện tại",
+    message: `Nhập sẽ xóa toàn bộ tầng AI của cuộc trò chuyện hiện tại và dữ liệu bảng cục bộ của mọi định danh cô lập.
+Chỉ dựng lại dữ liệu bảng trong tệp ở tầng AI mới nhất của khóa cô lập đang kích hoạt.
+Mẫu bảng của cuộc trò chuyện hiện tại sẽ chuyển sang mẫu trong tệp, các lần cập nhật sau sẽ dùng mẫu này.
+Mẫu toàn cục và nội dung chat không đổi. Chế độ nguồn: ${sourceStorageMode}; chế độ đích: ${targetStorageMode}. Xác nhận tiếp tục?`,
+    confirmLabel: "Khôi phục Checkpoint",
     confirmVariant: "danger",
   });
   if (!confirmed) return;
@@ -615,13 +615,13 @@ async function onDeleteLocalData(mode: "current" | "all"): Promise<void> {
   if (flow.hasDeleteSheetSelection.value) {
     const names = flow.selectedDeleteSheetNames.value;
     const confirmed = await dialogStore.confirm({
-      title: "删除所选表格数据",
+      title: "Xóa dữ liệu bảng đã chọn",
       message:
-        `删除当前聊天中 ${flow.rangeLabel.value} 内表「${names.join("」「")}」的数据？\n` +
-        "包括该范围内 full checkpoint、单表 checkpoint 与填表日志里属于这些表的部分；\n" +
-        "其它表格的数据、聊天级模板 scope 与 guide 容器一律保留，不会执行硬清空。\n" +
-        "仅作用于当前隔离标识。此操作不可恢复。",
-      confirmLabel: "删除所选表格数据",
+        `Xóa dữ liệu của bảng 「${names.join("」「")}」 trong ${flow.rangeLabel.value} của cuộc trò chuyện hiện tại?\n` +
+        "Gồm phần thuộc các bảng này trong full checkpoint, checkpoint đơn bảng và nhật ký điền bảng trong phạm vi đó;\n" +
+        "Dữ liệu của các bảng khác, scope mẫu cấp cuộc trò chuyện và container guide đều được giữ lại, không thực hiện xóa sạch cứng.\n" +
+        "Chỉ áp dụng cho định danh cô lập hiện tại. Thao tác này không thể khôi phục.",
+      confirmLabel: "Xóa dữ liệu bảng đã chọn",
       confirmVariant: "danger",
     });
     if (!confirmed) return;
@@ -631,14 +631,14 @@ async function onDeleteLocalData(mode: "current" | "all"): Promise<void> {
   }
 
   if (path === "range") {
-    const scopeText = mode === "current" ? "属于当前标识的" : "所有标识的";
+    const scopeText = mode === "current" ? "thuộc định danh hiện tại" : "của mọi định danh";
     const confirmed = await dialogStore.confirm({
-      title: mode === "current" ? "删除当前标识本地数据" : "删除指定楼层本地数据",
+      title: mode === "current" ? "Xóa dữ liệu cục bộ của định danh hiện tại" : "Xóa dữ liệu cục bộ của các tầng chỉ định",
       message:
-        `删除当前聊天中 ${flow.rangeLabel.value} ${scopeText}数据库数据？\n` +
-        "仅清除该范围内楼层的填表数据；聊天级模板 scope 与 guide 容器保留，\n" +
-        "未覆盖的楼层数据不受影响。此操作不可恢复。",
-      confirmLabel: "删除数据",
+        `Xóa dữ liệu CSDL ${scopeText} trong ${flow.rangeLabel.value} của cuộc trò chuyện hiện tại?\n` +
+        "Chỉ xóa dữ liệu điền bảng của các tầng trong phạm vi đó; scope mẫu cấp cuộc trò chuyện và container guide được giữ lại,\n" +
+        "dữ liệu của các tầng không nằm trong phạm vi không bị ảnh hưởng. Thao tác này không thể khôi phục.",
+      confirmLabel: "Xóa dữ liệu",
       confirmVariant: "danger",
     });
     if (!confirmed) return;
@@ -649,24 +649,24 @@ async function onDeleteLocalData(mode: "current" | "all"): Promise<void> {
 
   // path === 'purge'：范围覆盖全部 AI 楼层，将执行硬清空，保留两级确认。
   const confirmed = await dialogStore.confirm({
-    title: "删除所有本地数据",
+    title: "Xóa tất cả dữ liệu cục bộ",
     message:
-      "当前删除范围覆盖全部 AI 楼层，将硬清空当前聊天的全部本地数据库状态：\n" +
-      "· 清除所有隔离标识的本地数据（不只当前标识）；\n" +
-      "· 含用户首条消息上的字段；\n" +
-      "· 清除聊天级模板 scope 与 guide 容器（模板选择回到继承全局）；\n" +
-      "· 不保留 init 锚点，重新填表时 sheetKey 会重新分配；\n" +
-      "· 结果等价于全新会话，不可恢复。\n" +
-      "若只想删除部分楼层，请先在上方设置起止楼层范围。\n" +
-      "全局模板、提示词与聊天正文不受影响。确认继续？",
-    confirmLabel: "删除所有本地数据",
+      "Phạm vi xóa hiện tại bao phủ toàn bộ tầng AI, sẽ xóa sạch cứng toàn bộ trạng thái CSDL cục bộ của cuộc trò chuyện hiện tại:\n" +
+      "· Xóa dữ liệu cục bộ của mọi định danh cô lập (không chỉ định danh hiện tại);\n" +
+      "· Gồm cả các trường trên tin nhắn đầu tiên của người dùng;\n" +
+      "· Xóa scope mẫu cấp cuộc trò chuyện và container guide (lựa chọn mẫu quay về kế thừa toàn cục);\n" +
+      "· Không giữ điểm neo init, khi điền bảng lại sheetKey sẽ được cấp phát lại;\n" +
+      "· Kết quả tương đương phiên hoàn toàn mới, không thể khôi phục.\n" +
+      "Nếu chỉ muốn xóa một số tầng, hãy đặt phạm vi tầng bắt đầu/kết thúc ở phía trên trước.\n" +
+      "Mẫu toàn cục, prompt và nội dung chat không bị ảnh hưởng. Xác nhận tiếp tục?",
+    confirmLabel: "Xóa tất cả dữ liệu cục bộ",
     confirmVariant: "danger",
   });
   if (!confirmed) return;
   if (!(await dialogStore.confirm({
-    title: "再次确认删除",
-    message: "再次确认：将当前聊天恢复到从未填表的全新状态？此操作不可撤销。",
-    confirmLabel: "确认硬清空",
+    title: "Xác nhận xóa lần nữa",
+    message: "Xác nhận lại: đưa cuộc trò chuyện hiện tại về trạng thái hoàn toàn mới chưa từng điền bảng? Thao tác này không thể hoàn tác.",
+    confirmLabel: "Xác nhận xóa sạch cứng",
     confirmVariant: "danger",
   }))) return;
   if (runtimeDiagnostic.busy.value) return;
@@ -678,15 +678,15 @@ async function onCleanupLegacyIsolationProfiles(): Promise<void> {
   const codes = flow.legacyIsolationCodes.value;
   const codeText = codes.length > 0 ? `：${codes.join("、")}` : "";
   const confirmed = await dialogStore.confirm({
-    title: "全局旧隔离标签清理",
+    title: "Dọn nhãn cô lập cũ toàn cục",
     message:
-      `将清理全部 ${codes.length} 个旧隔离标签${codeText}。\n` +
-      "· 如有当前激活标识，会切回默认数据；\n" +
-      "· 删除这些标签对应的全局设置与表格模板；\n" +
-      "· 不会删除聊天正文，也不会改写各聊天里已保存的历史表格数据；\n" +
-      "· 若单个标签删除失败，会保留登记供重试。\n" +
-      "此操作不可恢复。确认继续？",
-    confirmLabel: "清理旧隔离标签",
+      `Sẽ dọn toàn bộ ${codes.length} nhãn cô lập cũ${codeText}.\n` +
+      "· Nếu có định danh đang kích hoạt, sẽ chuyển về dữ liệu mặc định;\n" +
+      "· Xóa cài đặt toàn cục và mẫu bảng tương ứng với các nhãn này;\n" +
+      "· Không xóa nội dung chat, cũng không ghi lại dữ liệu bảng lịch sử đã lưu trong từng cuộc trò chuyện;\n" +
+      "· Nếu xóa một nhãn thất bại, bản đăng ký sẽ được giữ để thử lại.\n" +
+      "Thao tác này không thể khôi phục. Xác nhận tiếp tục?",
+    confirmLabel: "Dọn nhãn cô lập cũ",
     confirmVariant: "danger",
   });
   if (!confirmed) return;
@@ -699,19 +699,19 @@ async function onCommitMixedStorageDecision(action: MixedStorageCommitAction_ACU
   if (runtimeDiagnostic.busy.value) return;
   const isMerge = action === 'commit_merge_candidate';
   const confirmed = await dialogStore.confirm({
-    title: isMerge ? '提交混合存储合并候选' : '保留 V2 数据并清理 legacy',
+    title: isMerge ? 'Nộp ứng viên gộp lưu trữ hỗn hợp' : 'Giữ dữ liệu V2 và dọn legacy',
     message: isMerge
-      ? '将只提交服务端冻结且已审计通过的合并候。页面不会提交任何可编辑表格数据。确认继续？'
-      : '将保留已验证的 V2 数据并清理冗余 legacy-v1 数据。确认继续？',
-    confirmLabel: isMerge ? '继续提交候选' : '保留 V2',
+      ? 'Chỉ nộp ứng viên gộp đã được đóng băng phía máy chủ và qua kiểm toán. Trang sẽ không nộp bất kỳ dữ liệu bảng có thể chỉnh sửa nào. Xác nhận tiếp tục?'
+      : 'Sẽ giữ dữ liệu V2 đã xác minh và dọn dữ liệu legacy-v1 dư thừa. Xác nhận tiếp tục?',
+    confirmLabel: isMerge ? 'Tiếp tục nộp ứng viên' : 'Giữ V2',
     confirmVariant: 'danger',
   });
   if (!confirmed) return;
   if (isMerge) {
     const secondConfirmed = await dialogStore.confirm({
-      title: '再次确认合并候选',
-      message: '候选内容以服务端冻结决议为准；提交后不会用 legacy 数据覆盖 V2。确认提交？',
-      confirmLabel: '确认提交候选',
+      title: 'Xác nhận lại ứng viên gộp',
+      message: 'Nội dung ứng viên lấy quyết định đã đóng băng phía máy chủ làm chuẩn; sau khi nộp sẽ không dùng dữ liệu legacy ghi đè V2. Xác nhận nộp?',
+      confirmLabel: 'Xác nhận nộp ứng viên',
       confirmVariant: 'danger',
     });
     if (!secondConfirmed) return;
@@ -729,33 +729,33 @@ async function onCommitV2Recovery(mode: V2RecoveryCommitMode): Promise<void> {
   const compatRequiresIdentityConfirmation = isCompatFixation && !!flow.v2RecoverySummary.value?.requiresConfirmation;
   const confirmed = await dialogStore.confirm({
     title: isOrphan
-      ? '确认无锚点 data_replace 恢复'
+      ? 'Xác nhận khôi phục data_replace không điểm neo'
       : isCompatFixation
-        ? '固化兼容回放为过渡根'
-        : '应用 V2 Checkpoint 修复',
+        ? 'Cố định phát lại tương thích thành gốc chuyển tiếp'
+        : 'Áp dụng sửa chữa V2 Checkpoint',
     message: isOrphan
-      ? '将只提交服务端冻结的无锚点 data_replace 候选。原始 frame 会保留为隔离备份，页面不会提交任何可编辑表格数据。确认继续？'
+      ? 'Chỉ nộp ứng viên data_replace không điểm neo đã được đóng băng phía máy chủ. frame gốc sẽ được giữ làm bản sao lưu cô lập, trang sẽ không nộp bất kỳ dữ liệu bảng có thể chỉnh sửa nào. Xác nhận tiếp tục?'
       : isCompatFixation
-        ? '将把当前兼容宽容回放的读取结果写成严格可回放的过渡根（写在消息 tagData，不改写任何 storage frame）。固化后写入与追平恢复正常；原始历史仍完整保留。确认继续？'
-        : '将只提交服务端冻结且已审计通过的 Checkpoint 修复候选。原始 frame 会保留为隔离备份。确认继续？',
-    confirmLabel: isOrphan ? '继续恢复' : isCompatFixation ? '固化' : '应用修复',
+        ? 'Sẽ ghi kết quả đọc của phát lại tương thích khoan dung hiện tại thành gốc chuyển tiếp có thể phát lại nghiêm ngặt (ghi trong tagData của tin nhắn, không ghi lại bất kỳ storage frame nào). Sau khi cố định, việc ghi và bắt kịp trở lại bình thường; lịch sử gốc vẫn được giữ đầy đủ. Xác nhận tiếp tục?'
+        : 'Chỉ nộp ứng viên sửa chữa Checkpoint đã được đóng băng phía máy chủ và qua kiểm toán. frame gốc sẽ được giữ làm bản sao lưu cô lập. Xác nhận tiếp tục?',
+    confirmLabel: isOrphan ? 'Tiếp tục khôi phục' : isCompatFixation ? 'Cố định' : 'Áp dụng sửa chữa',
     confirmVariant: 'danger',
   });
   if (!confirmed) return;
   if (isOrphan) {
     const secondConfirmed = await dialogStore.confirm({
-      title: '再次确认无锚点恢复',
-      message: '无锚点 data_replace 会被提升为新的 full checkpoint。恢复内容完全以服务端冻结候选为准。确认提交？',
-      confirmLabel: '确认提交恢复',
+      title: 'Xác nhận lại khôi phục không điểm neo',
+      message: 'data_replace không điểm neo sẽ được nâng thành full checkpoint mới. Nội dung khôi phục hoàn toàn lấy ứng viên đã đóng băng phía máy chủ làm chuẩn. Xác nhận nộp?',
+      confirmLabel: 'Xác nhận nộp khôi phục',
       confirmVariant: 'danger',
     });
     if (!secondConfirmed) return;
   }
   if (compatRequiresIdentityConfirmation) {
     const secondConfirmed = await dialogStore.confirm({
-      title: '再次确认 sheetKey 身份归并',
-      message: '兼容回放结果按 key 优先级归并了同名不同 key 的表：同 row_id 时被覆盖的行会永久丢弃，列不做身份转换。固化后该归并结果成为持久历史的身份权威。确认提交？',
-      confirmLabel: '确认归并并固化',
+      title: 'Xác nhận lại việc gộp định danh sheetKey',
+      message: 'Kết quả phát lại tương thích đã gộp các bảng cùng tên nhưng khác key theo mức ưu tiên key: khi trùng row_id, hàng bị ghi đè sẽ bị bỏ vĩnh viễn, cột không chuyển đổi định danh. Sau khi cố định, kết quả gộp này trở thành căn cứ định danh của lịch sử bền vững. Xác nhận nộp?',
+      confirmLabel: 'Xác nhận gộp và cố định',
       confirmVariant: 'danger',
     });
     if (!secondConfirmed) return;
@@ -770,10 +770,10 @@ async function onCommitV2Recovery(mode: V2RecoveryCommitMode): Promise<void> {
 async function onReloadSqliteRuntime(): Promise<void> {
   if (runtimeDiagnostic.busy.value || flow.busyAction.value) return;
   const confirmed = await dialogStore.confirm({
-    title: "重新初始化当前聊天 SQLite 运行时",
+    title: "Khởi tạo lại runtime SQLite của cuộc trò chuyện hiện tại",
     message:
-      "这只会重建当前聊天的 SQLite 内存数据库，不会修改聊天正文、Checkpoint、模板或世界书。确认继续？",
-    confirmLabel: "重新初始化运行时",
+      "Việc này chỉ dựng lại CSDL SQLite trong bộ nhớ của cuộc trò chuyện hiện tại, không sửa nội dung chat, Checkpoint, mẫu hay Sổ thế giới. Xác nhận tiếp tục?",
+    confirmLabel: "Khởi tạo lại runtime",
     confirmVariant: "primary",
   });
   if (!confirmed) return;
@@ -784,11 +784,11 @@ async function onReloadSqliteRuntime(): Promise<void> {
 async function onResetAllDefaults(): Promise<void> {
   if (runtimeDiagnostic.busy.value) return;
   const selected = await dialogStore.selectMany<ResetDefaultsCleanupKey>({
-    title: "恢复默认配置",
+    title: "Khôi phục cấu hình mặc định",
     message:
-      "选择本次要恢复或清理的项目。默认全选；取消某一项后会保留对应内容。此流程不会删除聊天正文、本地楼层数据、API 配置或全局预设库。",
+      "Chọn các mục cần khôi phục hoặc dọn lần này. Mặc định chọn tất cả; bỏ chọn một mục thì nội dung tương ứng được giữ lại. Quy trình này không xóa nội dung chat, dữ liệu tầng cục bộ, cấu hình API hay thư viện preset toàn cục.",
     options: resetDefaultsCleanupOptions,
-    confirmLabel: "按所选项目恢复",
+    confirmLabel: "Khôi phục theo mục đã chọn",
     confirmVariant: "danger",
     requireNonEmpty: true,
   });

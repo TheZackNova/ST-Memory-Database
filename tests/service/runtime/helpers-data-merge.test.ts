@@ -795,7 +795,7 @@ describe('mergeAllIndependentTables_ACU', () => {
     // ddl 属于结构，跟随历史数据；非结构元数据（note）仍从 guide 叠加
     expect(result!.sheet_bag.sourceData.ddl).toContain('数量 int');
     expect(result!.sheet_bag.sourceData.note).toBe('新说明');
-    expect(logWarn_ACU).toHaveBeenCalledWith(expect.stringContaining('已降级保留历史结构'));
+    expect(logWarn_ACU).toHaveBeenCalledWith(expect.stringContaining('đã hạ cấp và giữ cấu trúc lịch sử'));
     expect(logError_ACU).not.toHaveBeenCalledWith(expect.stringContaining('合并失败'), expect.anything());
   });
 
@@ -818,7 +818,7 @@ describe('mergeAllIndependentTables_ACU', () => {
 
     expect(result).not.toBeNull();
     expect(result!.sheet_bag.content).toEqual([['row_id', '物品名称'], ['1', '铁剑']]);
-    expect(logWarn_ACU).toHaveBeenCalledWith(expect.stringContaining('已降级保留历史结构'));
+    expect(logWarn_ACU).toHaveBeenCalledWith(expect.stringContaining('đã hạ cấp và giữ cấu trúc lịch sử'));
   });
 
   it('legacy-v1 历史行短于 guide 表头：padding 语义不回归（guide 结构权正常路径）', async () => {
@@ -1015,7 +1015,7 @@ describe('mergeAllIndependentTables_ACU', () => {
     expect(result?.sheet_new.sourceData.ddl).toContain('数量 int');
     expect(result?.sheet_new.sourceData.note).toBe('新说明');
     // 结构不一致产生 warning
-    expect(logWarn_ACU).toHaveBeenCalledWith(expect.stringContaining('Sheet Guide 表头与历史权威数据不一致'));
+    expect(logWarn_ACU).toHaveBeenCalledWith(expect.stringContaining('tiêu đề Sheet Guide không nhất quán với dữ liệu lịch sử có thẩm quyền'));
   });
 
   it('非法 guide 表头：有历史数据时降级为保留权威结构 + warning（不再 throw）', async () => {
@@ -1040,7 +1040,7 @@ describe('mergeAllIndependentTables_ACU', () => {
 
     // 有历史数据：保留权威表头，不抛错
     expect(result?.sheet_test.content).toEqual([['row_id', '值'], ['1', '保留']]);
-    expect(logWarn_ACU).toHaveBeenCalledWith(expect.stringContaining('Sheet Guide 表头与历史权威数据不一致'));
+    expect(logWarn_ACU).toHaveBeenCalledWith(expect.stringContaining('tiêu đề Sheet Guide không nhất quán với dữ liệu lịch sử có thẩm quyền'));
   });
 
   it('V2 回放旧 key 与指导表规范显示名相同时迁入指导表 key', async () => {
@@ -1925,7 +1925,7 @@ describe('buildTemplateBaseStateDataForLocalStorage_ACU', () => {
     };
 
     expect(() => buildTemplateBaseStateDataForLocalStorage_ACU(templateObj))
-      .toThrow(/缺少 row_id 表头/);
+      .toThrow(/thiếu tiêu đề row_id/);
     expect(templateObj.sheet_invalid_header.content[0][0]).toBe('id');
   });
 
@@ -1938,7 +1938,7 @@ describe('buildTemplateBaseStateDataForLocalStorage_ACU', () => {
     };
 
     expect(() => buildTemplateBaseStateDataForLocalStorage_ACU(templateObj))
-      .toThrow(/包含非数组数据行/);
+      .toThrow(/chứa hàng dữ liệu không phải mảng/);
   });
 
   it('返回的数据是深拷贝，修改不影响原对象', () => {

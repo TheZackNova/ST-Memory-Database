@@ -123,7 +123,7 @@ const BEAT_NAME_ACU = 'beat-planner';
 const ARC_NAME_ACU = 'arc-architect';
 const WEB_NAME_ACU = 'web-researcher';
 const MAINTAINER_MODULES_ACU = ['hooks', 'infoGap', 'chronology'] as const;
-const BEAT_OBLIGATION_PATTERN_ACU = /伏笔|埋设|回收|误导|信息差|揭示/;
+const BEAT_OBLIGATION_PATTERN_ACU = /伏笔|埋设|回收|误导|信息差|揭示|phục bút|gieo|thu hồi|đánh lạc hướng|chênh lệch thông tin|tiết lộ|hook/i;
 
 export function continuationBeatObligation_ACU(turn: { goal?: string; function?: string } | null): boolean {
   if (!turn) return false;
@@ -153,8 +153,8 @@ function deltaTouched_ACU(delta: AgentMaintainerOutput_ACU['delta'] | null | und
 }
 
 function formatFixes_ACU(fixes: readonly AgentPendingFix_ACU[]): string {
-  if (!fixes.length) return '无';
-  return fixes.map(item => `${item.module} 第 ${item.attempts} 次：${item.violations.map(violation => `${violation.path}: ${violation.message}`).join('；') || item.lastError}`).join(' | ');
+  if (!fixes.length) return 'không có';
+  return fixes.map(item => `${item.module} lần ${item.attempts}: ${item.violations.map(violation => `${violation.path}: ${violation.message}`).join('; ') || item.lastError}`).join(' | ');
 }
 
 function acceptedKeysForModule_ACU(keys: readonly string[] | undefined, module: AgentWritableModule_ACU): string[] {
@@ -198,7 +198,7 @@ function recordWorkflowIssues_ACU(
       violations,
       attempts: (previous?.attempts ?? 0) + 1,
       firstFailedAtIndex: previous?.firstFailedAtIndex ?? rangeStartIndex,
-      lastError: violations.map(issue => issue.message).join('；'),
+      lastError: violations.map(issue => issue.message).join('; '),
       source: moduleIssues[0]?.source ?? 'protocol_failed',
       completion: accepted.length ? 'partial' : 'failed',
       rangeStartIndex: previous?.rangeStartIndex ?? rangeStartIndex,
@@ -244,10 +244,10 @@ function pendingWithinSettlement_ACU(item: AgentPendingFix_ACU, start: number, e
 function maintainerPrompt_ACU(focus: string, snapshot: AgentModuleSnapshot_ACU): string {
   const fixes = snapshot.pendingFixes.filter(item => (MAINTAINER_MODULES_ACU as readonly string[]).includes(item.module));
   return [
-    `本轮焦点：${focus}`,
-    '只逐楼结算 $HISTORY_UNSETTLED 实际提供的窗口内正文；窗口外省略内容不得宣称已读或已结算。有证据的变化优先用 summary + delta 一次交付，由程序保存并回读，完整成功后无需再次确认。没有可证实变化时不调用 write_sql，直接交付 summary 写明逐项核对结果；最终交付不携带 sql，不用 SELECT 1 等空操作代替核对。',
-    'hooks 只可写 summary、status、importance、planted_index、planned_payoff；recent_floor 等系统字段不写。expected_revision 只用于 UPDATE/DELETE 的 WHERE 校验，不放进 SET，也不自行递增。被拒操作不等于资料损坏；按回执区分实际缺栏、未保存业务变化、系统字段误写和任务失效。',
-    `待修复：${formatFixes_ACU(fixes)}`,
+    `Tiêu điểm lượt này: ${focus}`,
+    'Chỉ quyết toán từng tầng chính văn trong cửa sổ mà $HISTORY_UNSETTLED thực sự cung cấp; nội dung bị lược ngoài cửa sổ không được tuyên bố là đã đọc hay đã quyết toán. Thay đổi có bằng chứng ưu tiên giao một lần bằng summary + delta, chương trình lưu và đọc lại, thành công hoàn toàn thì không cần xác nhận lại. Khi không có thay đổi chứng thực được thì không gọi write_sql, giao thẳng summary ghi rõ kết quả đối chiếu từng mục; bản giao cuối cùng không kèm sql, không dùng thao tác rỗng như SELECT 1 để thay cho đối chiếu.',
+    'hooks chỉ được ghi summary, status, importance, planted_index, planned_payoff; không ghi các trường hệ thống như recent_floor. expected_revision chỉ dùng để kiểm tra trong WHERE của UPDATE/DELETE, không đặt trong SET, cũng không tự tăng. Thao tác bị từ chối không có nghĩa là tư liệu hỏng; hãy dựa vào biên nhận để phân biệt thiếu cột thực tế, thay đổi nghiệp vụ chưa lưu, ghi nhầm trường hệ thống và tác vụ hết hiệu lực.',
+    `Chờ sửa: ${formatFixes_ACU(fixes)}`,
   ].join('\n');
 }
 
@@ -290,7 +290,7 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
           rangeStartIndex: Math.min(current.rangeStartIndex, fix.rangeStartIndex),
           rangeEndIndex: Math.max(current.rangeEndIndex, fix.rangeEndIndex),
           acceptedKeys: [...new Set([...current.acceptedKeys, ...fix.acceptedKeys])],
-          lastError: violations.map(issue => issue.message).join('；') || current.lastError,
+          lastError: violations.map(issue => issue.message).join('; ') || current.lastError,
           updatedAt: Math.max(current.updatedAt, fix.updatedAt) };
       }
       snapshot = { ...committed, pendingFixes };
@@ -361,7 +361,7 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
     ? runSafe_ACU({
       agentName: WEB_NAME_ACU,
       billing: 'opening',
-      prompt: `开局要求补充外部设定。焦点：${input.opening.focus}`,
+      prompt: `Mở đầu yêu cầu bổ sung thiết lập bên ngoài. Tiêu điểm: ${input.opening.focus}`,
     })
     : null;
   const maintainerPending = snapshot.pendingFixes.some(item =>
@@ -395,7 +395,7 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
   }
 
   if (!runFirstMaintainer) {
-    steps.push({ agentName: MAINTAINER_NAME_ACU, status: 'no_change', summary: '没有未结算正文，也没有待修复的结算模块' });
+    steps.push({ agentName: MAINTAINER_NAME_ACU, status: 'no_change', summary: 'Không có chính văn chưa quyết toán, cũng không có mô-đun quyết toán nào chờ sửa' });
   } else {
     let maintainer = firstMaintainerResult!;
     let repairAttempts = 0;
@@ -421,7 +421,7 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
       }
       if (!maintainer.ok && !issues.length) {
         for (const module of writes.length ? writes : [...MAINTAINER_MODULES_ACU]) {
-          issues.push({ module, source: 'invoke_failed', path: module, message: maintainer.summary || '维护子代理调用失败' });
+          issues.push({ module, source: 'invoke_failed', path: module, message: maintainer.summary || 'Lệnh gọi agent phụ bảo trì thất bại' });
           modules[module] = 'failed';
         }
       }
@@ -501,9 +501,9 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
       if (!maintainer.ok || completion === 'failed') {
         steps.push({ agentName: MAINTAINER_NAME_ACU, status: 'failed', summary: maintainer.summary });
       } else if (completion === 'complete_no_change') {
-        steps.push({ agentName: MAINTAINER_NAME_ACU, status: 'no_change', summary: maintainer.summary || '结算没有新事实' });
+        steps.push({ agentName: MAINTAINER_NAME_ACU, status: 'no_change', summary: maintainer.summary || 'Quyết toán không có sự thật mới' });
       } else if (completion === 'partial') {
-        steps.push({ agentName: MAINTAINER_NAME_ACU, status: 'failed', summary: `${maintainer.summary || '已保留部分资料'}；仍有待补条目` });
+        steps.push({ agentName: MAINTAINER_NAME_ACU, status: 'failed', summary: `${maintainer.summary || 'Đã giữ lại một phần tư liệu'}; vẫn còn mục chờ bổ sung` });
       } else {
         steps.push({ agentName: MAINTAINER_NAME_ACU, status: 'ok', summary: maintainer.summary });
       }
@@ -519,9 +519,9 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
         billing: 'pipeline',
         targetModules: repairModules,
         prompt: [
-          `上一轮资料写入仍有待修复项（第 ${repairAttempts} 次定向修正）：`,
+          `Lần ghi tư liệu trước vẫn còn mục chờ sửa (lần sửa có định hướng thứ ${repairAttempts}):`,
           formatFixes_ACU(repairPending),
-          '只修复上述模块和字段；不要重发已成功保存的其它模块。先核对本次注入的资料与回执；确需补读且本次读取授权仍有额度时，再 read 对应权威地址。额度已用尽时不重复 read、不把读取限制解释为没有写权限；已有证据足够时用 summary + delta 只交付失败字段的 patch，否则如实交付未确认缺口。空 patch 不代表资料损坏，无业务变化时独立交付核对结果，不重发空 patch 或空操作。',
+          'Chỉ sửa các mô-đun và trường nêu trên; không gửi lại các mô-đun khác đã lưu thành công. Trước hết đối chiếu tư liệu đã tiêm lần này và biên nhận; khi thật sự cần đọc bổ sung mà quyền đọc lần này còn hạn mức thì mới read địa chỉ chuẩn tương ứng. Khi hạn mức đã dùng hết thì không read lặp, không diễn giải giới hạn đọc thành không có quyền ghi; khi đã đủ bằng chứng thì dùng summary + delta chỉ giao patch của các trường thất bại, nếu không thì giao trung thực các chỗ thiếu chưa xác nhận. Patch rỗng không có nghĩa là tư liệu hỏng, khi không có thay đổi nghiệp vụ thì giao riêng kết quả đối chiếu, không gửi lại patch rỗng hay thao tác rỗng.',
         ].join('\n'),
       });
     }
@@ -531,7 +531,7 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
   if (snapshot.pendingFixes.length) {
     return {
       outcome: 'escalate',
-      summary: `资料维护尚未完成，已保存内容保留；仅修复待修项后再进入策划与编排：${formatFixes_ACU(snapshot.pendingFixes)}`,
+      summary: `Bảo trì tư liệu chưa hoàn tất, nội dung đã lưu được giữ lại; chỉ sửa các mục chờ sửa rồi mới vào hoạch định và điều phối: ${formatFixes_ACU(snapshot.pendingFixes)}`,
       instruction: '',
       pendingFixes: snapshot.pendingFixes,
       escalated: true,
@@ -542,14 +542,14 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
   }
 
   const plannerCalls: ContinuationWorkflowAgentCall_ACU[] = [
-    { agentName: MAINLINE_NAME_ACU, billing: 'pipeline', prompt: `策划本轮场景。焦点：${input.opening.focus}` },
+    { agentName: MAINLINE_NAME_ACU, billing: 'pipeline', prompt: `Hoạch định cảnh của lượt này. Tiêu điểm: ${input.opening.focus}` },
   ];
   // 编排不变量：mainline-planner 与 beat-planner 写集不相交、判定互不依赖，属同层并发批（Promise.all）；
   // beat-planner 第二轮起保底派遣，是否操作由其 no_change 出口判断，仅首轮且无义务时跳过。
   if (input.turnNumber >= 2 || input.beatObligation) {
-    plannerCalls.push({ agentName: BEAT_NAME_ACU, billing: 'pipeline', prompt: `策划本轮伏笔操作与情绪节拍；本轮没有真实需要时明确 no_change，不虚构钩子。焦点：${input.opening.focus}` });
+    plannerCalls.push({ agentName: BEAT_NAME_ACU, billing: 'pipeline', prompt: `Hoạch định thao tác phục bút và nhịp cảm xúc của lượt này; khi lượt này không có nhu cầu thực sự thì ghi rõ no_change, không bịa móc câu. Tiêu điểm: ${input.opening.focus}` });
   } else {
-    steps.push({ agentName: BEAT_NAME_ACU, status: 'skipped', summary: '首轮且无伏笔义务，节拍策划跳过' });
+    steps.push({ agentName: BEAT_NAME_ACU, status: 'skipped', summary: 'Lượt đầu và không có nghĩa vụ phục bút, bỏ qua hoạch định nhịp' });
   }
   const planners = await Promise.all(plannerCalls.map(call => runSafe_ACU(call)));
   for (let index = 0; index < planners.length; index += 1) {
@@ -562,17 +562,17 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
       }));
     } else {
       plannerNotes.push(JSON.stringify({ agentName: plannerCalls[index].agentName, status: 'failed',
-        summary: planner.summary || '本轮没有可用策划交付', recommendation: '', mustPreserve: [], risks: [] }));
+        summary: planner.summary || 'Lượt này không có bản giao hoạch định khả dụng', recommendation: '', mustPreserve: [], risks: [] }));
     }
   }
 
   const composerBase = [
-    `本轮焦点：${input.opening.focus}`,
-    input.opening.summary ? `开局摘要：${input.opening.summary}` : '',
-    `策划建议：${plannerNotes.join('\n') || '无'}`,
-    `待修复：${formatFixes_ACU(snapshot.pendingFixes)}`,
-    '每份策划交接保留来源、summary、recommendation、mustPreserve 和 risks。逐项核对保留条件与风险，不只摘录 recommendation；失败的策划不是可用建议。它们是待核实的建议，不高于正文、权威账本或用户要求；存在冲突时在 summary 说明取舍，不能静默丢弃保留条件或补编缺失事实。',
-    '通读结算后的资料、用户要求与活跃约束，产出本轮写作指令。产出前自查：策划建议之间是否互相冲突、是否与本轮 pacing 冲突、是否与已结算的硬事实/长期约束冲突；发现冲突时取更保守的一方并在 summary 注明取舍，不得原样拼接两份矛盾建议。',
+    `Tiêu điểm lượt này: ${input.opening.focus}`,
+    input.opening.summary ? `Tóm tắt mở đầu: ${input.opening.summary}` : '',
+    `Đề xuất hoạch định: ${plannerNotes.join('\n') || 'không có'}`,
+    `Chờ sửa: ${formatFixes_ACU(snapshot.pendingFixes)}`,
+    'Mỗi bản bàn giao hoạch định giữ lại nguồn, summary, recommendation, mustPreserve và risks. Đối chiếu từng điều kiện giữ lại và rủi ro, không chỉ trích recommendation; hoạch định thất bại không phải đề xuất dùng được. Chúng là đề xuất chờ xác minh, không cao hơn chính văn, sổ chuẩn hay yêu cầu của người dùng; khi có mâu thuẫn hãy nêu rõ sự cân nhắc trong summary, không được lặng lẽ bỏ điều kiện giữ lại hay bịa thêm sự thật còn thiếu.',
+    'Đọc suốt tư liệu sau quyết toán, yêu cầu của người dùng và các ràng buộc đang hoạt động, tạo chỉ thị viết cho lượt này. Tự kiểm tra trước khi giao: các đề xuất hoạch định có mâu thuẫn nhau không, có mâu thuẫn với pacing lượt này không, có mâu thuẫn với sự thật cứng đã quyết toán/ràng buộc dài hạn không; khi phát hiện mâu thuẫn hãy chọn bên thận trọng hơn và ghi rõ sự cân nhắc trong summary, không được ghép nguyên hai đề xuất mâu thuẫn.',
   ].filter(Boolean).join('\n');
 
   const composer = await input.runComposer({ prompt: composerBase, revisionFeedback: '', priorInstruction: '' }).catch(error => {
@@ -583,7 +583,7 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
   steps.push({
     agentName: AGENT_INSTRUCTION_COMPOSER_NAME_ACU,
     status: composer.instruction.trim() ? 'ok' : 'failed',
-    summary: composer.summary || (composer.instruction.trim() ? '已产出写作指令' : 'instruction 为空'),
+    summary: composer.summary || (composer.instruction.trim() ? 'Đã tạo chỉ thị viết' : 'instruction rỗng'),
   });
   if (composer.constraints) {
     snapshot = (await applyAgentConstraintRegistrationViaSql_ACU(
@@ -596,7 +596,7 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
   }
 
   if (snapshot.pendingFixes.length) {
-    const summary = `工作流停止交付，待修复模块需要主会话处理：${snapshot.pendingFixes.map(item => `${item.module}(${item.attempts})`).join('、') || '无'}`;
+    const summary = `Quy trình dừng giao, các mô-đun chờ sửa cần phiên chính xử lý: ${snapshot.pendingFixes.map(item => `${item.module}(${item.attempts})`).join(', ') || 'không có'}`;
     return {
       outcome: 'escalate',
       summary,
@@ -613,7 +613,7 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
   if (!instruction) {
     return {
       outcome: 'escalate',
-      summary: composer.summary || 'instruction-composer 没有产出非空写作指令',
+      summary: composer.summary || 'instruction-composer không tạo ra chỉ thị viết không rỗng',
       instruction: '',
       pendingFixes: snapshot.pendingFixes,
       escalated: true,
@@ -643,13 +643,13 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
         break;
       }
       failures += 1;
-      steps.push({ agentName: 'final-reviewer', status: 'failed', summary: `${review.verdict}：${review.requiredFixes.join('；') || review.summary}` });
+      steps.push({ agentName: 'final-reviewer', status: 'failed', summary: `${review.verdict}: ${review.requiredFixes.join('; ') || review.summary}` });
       if (failures >= limit) break;
       let revised: AgentComposerOutput_ACU;
       try {
         revised = await input.runComposer({
-          prompt: `${composerBase}\n\n按反馈清单增量修订，不要全量重写。\n原指令：\n${instruction}`,
-          revisionFeedback: `修正清单：\n${review.requiredFixes.join('\n')}\n必须保留：\n${review.preserve.join('\n') || '未另列；保留原指令未被反馈涉及的内容'}`,
+          prompt: `${composerBase}\n\nHãy sửa tăng dần theo danh sách phản hồi, đừng viết lại toàn bộ.\nChỉ thị gốc:\n${instruction}`,
+          revisionFeedback: `Danh sách cần sửa:\n${review.requiredFixes.join('\n')}\nPhải giữ lại:\n${review.preserve.join('\n') || 'chưa liệt kê riêng; giữ lại phần nội dung của chỉ thị gốc không bị phản hồi đề cập'}`,
           priorInstruction: instruction,
         });
       } catch (error) {
@@ -660,7 +660,7 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
       }
       if (!revised.instruction.trim()) {
         failures += 1;
-        steps.push({ agentName: AGENT_INSTRUCTION_COMPOSER_NAME_ACU, status: 'failed', summary: '修订后的 instruction 为空' });
+        steps.push({ agentName: AGENT_INSTRUCTION_COMPOSER_NAME_ACU, status: 'failed', summary: 'instruction sau khi sửa đổi rỗng' });
         continue;
       }
       instruction = revised.instruction.trim();
@@ -673,12 +673,12 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
           tolerantOptions_ACU(AGENT_INSTRUCTION_COMPOSER_NAME_ACU),
        )).snapshot;
       }
-      steps.push({ agentName: AGENT_INSTRUCTION_COMPOSER_NAME_ACU, status: 'ok', summary: '已按反馈增量修订' });
+      steps.push({ agentName: AGENT_INSTRUCTION_COMPOSER_NAME_ACU, status: 'ok', summary: 'Đã sửa tăng dần theo phản hồi' });
     }
     if (failures >= limit) {
       return {
         outcome: 'escalate',
-        summary: `终审连续 ${limit} 次未通过，已升级主会话`,
+        summary: `Chung thẩm không đạt ${limit} lần liên tiếp, đã nâng lên phiên chính`,
         instruction: '',
         pendingFixes: snapshot.pendingFixes,
         escalated: true,
@@ -691,7 +691,7 @@ export async function runContinuationAgentWorkflow_ACU(input: ContinuationWorkfl
 
   return {
     outcome: 'deliver',
-    summary: composer.summary || input.opening.summary || '固定工作流已交付写作指令',
+    summary: composer.summary || input.opening.summary || 'Quy trình cố định đã giao chỉ thị viết',
     instruction,
     pendingFixes: snapshot.pendingFixes,
     escalated: false,

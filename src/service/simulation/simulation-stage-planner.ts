@@ -22,13 +22,13 @@ export function buildDirectorOwnedStageRevision_ACU(input: {
   now?: number;
 }): WorldSimulationStageRevision_ACU {
   const factsToVerify = [
-    ...(input.collisions.collidedSeeds.length ? [`碰撞暗流：${input.collisions.collidedSeeds.join('、')}`] : []),
-    ...(input.collisions.ripeRumors.length ? [`成熟传闻：${input.collisions.ripeRumors.join('、')}`] : []),
-    '正文时间跨度',
-    '维度压力与暗流生命周期',
-    '行动者信息边界',
+    ...(input.collisions.collidedSeeds.length ? [`Dòng ngầm va chạm: ${input.collisions.collidedSeeds.join(', ')}`] : []),
+    ...(input.collisions.ripeRumors.length ? [`Tin đồn chín muồi: ${input.collisions.ripeRumors.join(', ')}`] : []),
+    'Khoảng thời gian của chính văn',
+    'Áp lực chiều và vòng đời dòng ngầm',
+    'Ranh giới thông tin của actor',
   ];
-  const objective = input.instruction.trim() || '根据最新剧情推算幕后世界动态';
+  const objective = input.instruction.trim() || 'Mô phỏng động thái thế giới hậu trường dựa trên cốt truyện mới nhất';
   return {
     revision: 1,
     createdAt: input.now ?? Date.now(),
@@ -37,17 +37,17 @@ export function buildDirectorOwnedStageRevision_ACU(input: {
     frozen: false,
     plan: {
       schemaVersion: WORLD_SIMULATION_SCHEMA_VERSION_ACU,
-      title: '本轮幕后推演',
+      title: 'Mô phỏng hậu trường lượt này',
       objective,
-      impactScope: ['当前世界状态'],
+      impactScope: ['Trạng thái thế giới hiện tại'],
       factsToVerify,
       plannedTools: ['read'],
       plannedSpecialists: [...DIRECTOR_OWNED_SPECIALISTS_ACU],
       expectedLedgerChanges: [...DIRECTOR_OWNED_LEDGER_CHANGES_ACU],
-      convergenceConditions: ['证据与候选闭合'],
-      blockingConditions: ['缺少锚点或关键证据'],
+      convergenceConditions: ['Bằng chứng và ứng viên đã khép kín'],
+      blockingConditions: ['Thiếu neo hoặc bằng chứng then chốt'],
       completedSteps: [],
-      nextStep: '取证后同批派工',
+      nextStep: 'Giao việc cùng lô sau khi thu thập bằng chứng',
     },
   };
 }

@@ -152,8 +152,8 @@ const manualSelector = new TableSelectorComponent({
     settings_ACU.hasManualSelection = true;
     saveSettingsAndNotify_ACU();
   },
-  emptyDataText: '暂无表格可选。',
-  emptyKeysText: '暂无表格可选。',
+  emptyDataText: 'Chưa có bảng nào để chọn.',
+  emptyKeysText: 'Chưa có bảng nào để chọn.',
 });
 
 const importSelector = new TableSelectorComponent({
@@ -172,8 +172,8 @@ const importSelector = new TableSelectorComponent({
     settings_ACU.hasImportTableSelection = true;
     saveSettingsAndNotify_ACU();
   },
-  emptyDataText: '尚未加载表格结构。',
-  emptyKeysText: '暂无表格可选。',
+  emptyDataText: 'Chưa tải cấu trúc bảng.',
+  emptyKeysText: 'Chưa có bảng nào để chọn.',
 });
 
 // ─── 兼容层：保留原有导出函数签名 ─────────────────────

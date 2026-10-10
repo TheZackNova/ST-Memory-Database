@@ -20,17 +20,17 @@ export const CONTINUATION_MAX_CONSECUTIVE_PRESSURE_TURNS_MAX_UI_ACU = CONTINUATI
 
 /** 停止原因的中文文案，随状态文案一起展示（时间线 tab 已移除，这里是唯一出口）。 */
 const CONTINUATION_STOP_REASON_LABELS_ACU: Record<string, string> = {
-  manual: '用户手动停止',
-  duration_reached: '总时长已用完',
-  stage_limit_reached: '自动阶段数已达上限',
-  outline_validation_failed: '大纲校验失败',
-  internal_ai_retry_exhausted: '内部 AI 重试次数用尽',
-  generation_retry_exhausted: '正文生成重试次数用尽',
-  host_input_unavailable: '酒馆输入框不可用',
-  api_preset_missing: 'API 预设缺失',
-  state_invalid: '正文归属失败或状态异常',
-  chat_changed: '聊天已切换',
-  completed: '任务完成',
+  manual: 'Người dùng dừng thủ công',
+  duration_reached: 'Đã hết tổng thời lượng',
+  stage_limit_reached: 'Số giai đoạn tự động đã đạt giới hạn',
+  outline_validation_failed: 'Kiểm tra dàn ý thất bại',
+  internal_ai_retry_exhausted: 'Hết số lần thử lại AI nội bộ',
+  generation_retry_exhausted: 'Hết số lần thử lại tạo nội dung',
+  host_input_unavailable: 'Ô nhập của SillyTavern không khả dụng',
+  api_preset_missing: 'Thiếu preset API',
+  state_invalid: 'Gán nội dung thất bại hoặc trạng thái bất thường',
+  chat_changed: 'Đã chuyển cuộc trò chuyện',
+  completed: 'Tác vụ hoàn tất',
 };
 
 /** 提示词导入导出的文件结构：大纲组 + 六组 Agent 提示词，一次打包全部。 */
@@ -61,7 +61,7 @@ function getRuntimeActions_ACU(runtime: ContinuationRuntime_ACU): ContinuationRu
 
 function errorMessage_ACU(error: unknown): string {
   if (error instanceof ContinuationValidationError_ACU) return error.error.message;
-  return error instanceof Error ? error.message : '智能续写操作失败';
+  return error instanceof Error ? error.message : 'Thao tác viết tiếp thông minh thất bại';
 }
 
 export function useContinuationRuntime() {
@@ -96,7 +96,7 @@ export function useContinuationRuntime() {
 
   /** 动作入口重取模式；同一异步动作始终使用取得时的运行时。 */
   function resolveRuntime(): ContinuationRuntime_ACU {
-    if (disposed) throw new Error('续写页面已卸载');
+    if (disposed) throw new Error('Trang viết tiếp đã bị gỡ');
     const current = getContinuationRuntime_ACU();
     const messages = getChatArray_ACU();
     const chat = messages.length ? messages : null;
@@ -218,7 +218,7 @@ export function useContinuationRuntime() {
     let debug: ContinuationGenerationDebug_ACU | undefined;
     const completion = Promise.resolve()
       .then(() => {
-        if (!isActionCurrent()) throw new Error('续写操作所属运行时已失效');
+        if (!isActionCurrent()) throw new Error('Runtime sở hữu thao tác viết tiếp đã mất hiệu lực');
         return action(current, isActionCurrent);
       })
       .then(async result => {
@@ -235,17 +235,17 @@ export function useContinuationRuntime() {
         // 上一轮正文中断/失败后的恢复走酒馆自己的重发，不经过 Agent。此分支只由用户
         // 动作到达（自动重试链走桥内部，不经 run_ACU），必须留痕并解释消息去向——
         // 否则用户看到的是「在 Agent 输入框发消息却直接触发了主对话生成」。
-        logAgentSession_ACU({ kind: 'protocol_retry', title: '重发上一轮正文', detail: '上一轮酒馆正文未正常完成，先让酒馆直接重新生成；本次发送的消息会在正文完成后的下一轮由主 Agent 读取。' });
-        toast.info('上一轮正文未完成，已让酒馆直接重新生成；你的消息会在下一轮被主 Agent 读取。');
+        logAgentSession_ACU({ kind: 'protocol_retry', title: 'Gửi lại nội dung vòng trước', detail: 'Nội dung SillyTavern vòng trước chưa hoàn tất bình thường, trước tiên để SillyTavern tạo lại trực tiếp; tin nhắn gửi lần này sẽ được Agent chính đọc ở vòng tiếp theo sau khi nội dung hoàn tất.' });
+        toast.info('Nội dung vòng trước chưa hoàn tất, đã để SillyTavern tạo lại trực tiếp; tin nhắn của bạn sẽ được Agent chính đọc ở vòng tiếp theo.');
         const sent = await current.retryHostGeneration();
-        if (!sent) toast.error('宿主重新生成不可用，智能续写已暂停。', { muteable: false });
+        if (!sent) toast.error('Máy chủ không hỗ trợ tạo lại, viết tiếp thông minh đã tạm dừng.', { muteable: false });
       } else if ('preparedTurn' in result && result.preparedTurn) {
         debug?.step('page_handoff', { mode: current.mode });
         debug?.watch(isActionCurrent);
         const sent = await current.send(result.preparedTurn);
         debug?.step('send_returned', { sent });
         if (!sent) debug?.finish('failed', { sent: false, reason: 'input_unavailable' }, false);
-        if (!sent) toast.error('宿主输入不可用，智能续写已暂停。', { muteable: false });
+        if (!sent) toast.error('Ô nhập của máy chủ không khả dụng, viết tiếp thông minh đã tạm dừng.', { muteable: false });
       }
       if (isCurrent(current, epoch) && activeAction === completion) {
         envelope.value = 'envelope' in result ? result.envelope : result;
@@ -304,14 +304,14 @@ export function useContinuationRuntime() {
   // 事件时间线 tab 已移除，暂停/失败原因与最近错误直接并入状态文案，用户不用再翻别处找原因。
   const statusText = computed(() => {
     const current = task.value;
-    if (!current) return '尚未创建任务';
-    if (isAwaitingHostResult.value) return '等待宿主正文';
+    if (!current) return 'Chưa tạo tác vụ';
+    if (isAwaitingHostResult.value) return 'Đang chờ nội dung từ máy chủ';
     const parts: string[] = [current.status];
     if (current.stopReason && ['paused', 'completed', 'failed', 'abandoned'].includes(current.status)) {
       parts.push(CONTINUATION_STOP_REASON_LABELS_ACU[current.stopReason] ?? current.stopReason);
     }
     if (current.lastError && ['paused', 'failed'].includes(current.status)) {
-      parts.push(`最近错误：${current.lastError.message}`);
+      parts.push(`Lỗi gần nhất: ${current.lastError.message}`);
     }
     return parts.join(' · ');
   });
@@ -347,15 +347,15 @@ export function useContinuationRuntime() {
         refresh();
       }
       if (result.disposition === 'queued_after_host') {
-        toast.info('消息已排队，会在当前正文完成后生效。');
+        toast.info('Tin nhắn đã được xếp hàng, sẽ có hiệu lực sau khi nội dung hiện tại hoàn tất.');
         return true;
       }
       if (result.disposition === 'accepted_without_resume') {
-        toast.info(result.detail ?? '消息已接收，当前状态暂不能恢复。');
+        toast.info(result.detail ?? 'Tin nhắn đã được nhận, trạng thái hiện tại tạm thời không thể khôi phục.');
         return true;
       }
       if (result.disposition !== 'continue_now') {
-        toast.error('消息已保存，但返回了无法执行的后续动作。', { muteable: false });
+        toast.error('Tin nhắn đã được lưu nhưng trả về hành động tiếp theo không thể thực thi.', { muteable: false });
         return false;
       }
       if (actions.stopEpoch !== epochAtStart || actions.messageEpoch !== messageAtStart) return true;
@@ -365,8 +365,8 @@ export function useContinuationRuntime() {
       if (actions.stopEpoch !== epochAtStart || actions.messageEpoch !== messageAtStart) return true;
       if (!started) {
         // 启动失败的原因已由编排器落成 lastError（或就是被拒的异常本身）；只说「失败」用户没法判断下一步。
-        const reason = startFailure || task.value?.lastError?.message || (busy.value ? '另一项续写操作正在执行' : '');
-        toast.error(reason ? `消息已保存，但启动续写失败：${reason}` : '消息已保存，但启动续写失败。', { muteable: false });
+        const reason = startFailure || task.value?.lastError?.message || (busy.value ? 'Một thao tác viết tiếp khác đang thực thi' : '');
+        toast.error(reason ? `Tin nhắn đã được lưu nhưng khởi động viết tiếp thất bại: ${reason}` : 'Tin nhắn đã được lưu nhưng khởi động viết tiếp thất bại.', { muteable: false });
       }
       return true;
     } catch (error) {
@@ -396,7 +396,7 @@ export function useContinuationRuntime() {
     const isRuntimeCurrent = captureRuntimeScope(current);
     getRuntimeActions_ACU(current).stopEpoch += 1;
     if (isAgentSessionRunning_ACU()) {
-      logAgentSession_ACU({ kind: 'run_failed', title: '已停止', detail: '用户停止', ok: false });
+      logAgentSession_ACU({ kind: 'run_failed', title: 'Đã dừng', detail: 'Người dùng dừng', ok: false });
     }
     try {
       const result = await current.orchestrator.stopTask();
@@ -506,12 +506,12 @@ export function useContinuationRuntime() {
     try {
       raw = JSON.parse(text);
     } catch {
-      throw new Error('导入文件不是合法的 JSON。');
+      throw new Error('Tệp nhập không phải JSON hợp lệ.');
     }
-    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('提示词 JSON 必须是对象（含 outlinePrompt 与 agentPrompts）。');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('JSON prompt phải là đối tượng (gồm outlinePrompt và agentPrompts).');
     const record = raw as Record<string, unknown>;
     const agentRaw = record.agentPrompts;
-    if (!agentRaw || typeof agentRaw !== 'object' || Array.isArray(agentRaw)) throw new Error('提示词 JSON 缺少 agentPrompts 对象。');
+    if (!agentRaw || typeof agentRaw !== 'object' || Array.isArray(agentRaw)) throw new Error('JSON prompt thiếu đối tượng agentPrompts.');
     try {
       const outlinePrompt = validateContinuationPromptSegments_ACU(record.outlinePrompt, 'load');
       const agentRecord = agentRaw as Record<string, unknown>;
@@ -522,7 +522,7 @@ export function useContinuationRuntime() {
       }
       return { outlinePrompt, agentPrompts: adaptContinuationAgentPromptsToToolMode_ACU(agentPrompts, toolMode.mode.value) };
     } catch (error) {
-      throw new Error(`提示词校验失败：${errorMessage_ACU(error)}`);
+      throw new Error(`Kiểm tra prompt thất bại: ${errorMessage_ACU(error)}`);
     }
   }
 
@@ -546,7 +546,7 @@ export function useContinuationRuntime() {
       if (!isCurrent(current, epoch)) return false;
       envelope.value = result.envelope;
       refresh();
-      toast.success('已清空续写任务、会话记录与本地资料，正文未改动。');
+      toast.success('Đã xóa trống tác vụ viết tiếp, bản ghi phiên và dữ liệu cục bộ; nội dung không bị thay đổi.');
       return true;
     } catch (error) {
       if (!isCurrent(current, epoch)) return false;

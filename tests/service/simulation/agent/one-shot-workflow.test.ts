@@ -163,9 +163,9 @@ describe('两批一次性格林推演工作流', () => {
         expect(result.pendingFixes).toEqual(expect.arrayContaining([expect.objectContaining({ module: 'actors' })]));
         const entries = readWorldSimulationSessionLog_ACU('one-shot-workflow');
         expect(entries.find(item => item.agentName === 'dramatis-keeper' && item.kind === 'delegation'))
-          .toMatchObject({ status: 'failed', ok: false, title: expect.stringContaining('事务校验失败') });
+          .toMatchObject({ status: 'failed', ok: false, title: expect.stringContaining('kiểm tra giao dịch thất bại') });
         expect(entries.find(item => item.agentName === 'undercurrent-analyst' && item.kind === 'delegation'))
-          .toMatchObject({ status: 'done', ok: true, title: expect.stringContaining('已通过事务校验') });
+          .toMatchObject({ status: 'done', ok: true, title: expect.stringContaining('đã qua kiểm tra giao dịch') });
       }
     }
   });
@@ -198,7 +198,7 @@ describe('两批一次性格林推演工作流', () => {
       const text = messages.map(message => message.content).join('\n');
       if (template) expect(messages.find(message => message.content.includes('编辑推演快照：锚点正文'))?.role).toBe('system');
       expect(text).not.toContain('【你负责的资料（完整行）】');
-      expect(text).toContain('共同时间基准');
+      expect(text).toContain('Mốc thời gian chung');
       expect(messages.at(-1)).toEqual({ role: 'user', content: USER_PREFILL_CONTENT_ACU });
       expect(messages.some(message => message.role === 'history' || message.content.includes('\u0000'))).toBe(false);
     }
@@ -215,8 +215,8 @@ describe('两批一次性格林推演工作流', () => {
       countTokens: async () => 1 }).runOneShot(input)).status).toBe('no_change');
     const jsonFeedback = JSON.stringify(empty.mock.calls[1][1]);
     expect(jsonFeedback).toContain('WORLD_SIMULATION_ONE_SHOT_TOOL_REQUIRED');
-    expect(jsonFeedback).toContain('只重新调用一次 write_sql');
-    expect(jsonFeedback).toContain('不得将空回复视为无变化');
+    expect(jsonFeedback).toContain('chỉ gọi lại write_sql một lần');
+    expect(jsonFeedback).toContain('không được coi phản hồi rỗng là không đổi');
     const noJson = vi.fn(async () => ({ content: '', toolCalls: [] }));
     const noJsonResult = await new WorldSimulationSubagentRuntime_ACU({ invoke: noJson, apiPreset,
       countTokens: async () => 1 }).runOneShot(input);
@@ -234,12 +234,12 @@ describe('两批一次性格林推演工作流', () => {
     for (const [, messages] of timeInvoke.mock.calls) {
       const body = JSON.stringify(messages);
       expect(body).toContain(timeAnchor);
-      expect(body).toContain('共同时间基准');
-      expect(body).toContain('当前已提交日为 1');
-      expect(body).toContain('不把回忆或既已计入的旅程重复累加');
+      expect(body).toContain('Mốc thời gian chung');
+      expect(body).toContain('Ngày đã nộp hiện tại là 1');
+      expect(body).toContain('không cộng dồn lặp hồi ức hoặc hành trình đã được tính');
     }
-    expect(timeInvoke.mock.calls.map(([, messages]) => JSON.stringify(messages).match(/本轮共享的明确经过天数为 (\d+)/)?.[1])).toEqual(['1', '1']);
-    expect(JSON.stringify(timeInvoke.mock.calls[1][1])).toContain('dramatis-keeper 不写 clock');
+    expect(timeInvoke.mock.calls.map(([, messages]) => JSON.stringify(messages).match(/Số ngày trôi qua rõ ràng được chia sẻ trong lượt này là (\d+)/)?.[1])).toEqual(['1', '1']);
+    expect(JSON.stringify(timeInvoke.mock.calls[1][1])).toContain('dramatis-keeper không ghi clock');
     const invalid = vi.fn(async () => 'not json');
     const failed = await new WorldSimulationSubagentRuntime_ACU({ invoke: invalid, apiPreset, countTokens: async () => 1 }).runOneShot(input);
     expect(failed.status).toBe('failed');
@@ -289,8 +289,8 @@ describe('两批一次性格林推演工作流', () => {
     expect(guidanceInvoke).toHaveBeenCalledTimes(2);
     // 批次二串行读取批次一预览：直接采用已推进的 clock，不再按“已提交日 + 经过天数”叠加。
     const guidanceSent = JSON.stringify(guidanceInvoke.mock.calls[0][1]);
-    expect(guidanceSent).toContain('不再叠加经过天数');
-    expect(guidanceSent).not.toContain('当前已提交日为');
+    expect(guidanceSent).toContain('không cộng thêm số ngày trôi qua');
+    expect(guidanceSent).not.toContain('Ngày đã nộp hiện tại là');
     const invalidEnum = sqlTurn({ agentName: 'undercurrent-analyst',
       sql: "INSERT INTO dimensions (name, kind, value, trend, rationale) VALUES ('戒备', '政治', 40, 'rising', '盘查加剧'); INSERT INTO seeds (title, visibility) VALUES ('暗流', '公开')" });
     const correctEnum = sqlTurn({ agentName: 'undercurrent-analyst',
@@ -322,7 +322,7 @@ describe('两批一次性格林推演工作流', () => {
     expect((await new WorldSimulationSubagentRuntime_ACU({ invoke: actorReplies, apiPreset, countTokens: async () => 1 }).runOneShot(playerInput)).status).toBe('candidate');
     const actorRetry = actorReplies.mock.calls[1][1] as Array<{ role: string; tool_call_id?: string; content: string }>;
     const actorReceipt = actorRetry.find(message => message.role === 'tool' && message.tool_call_id === 'actor-sql-1');
-    expect(actorReceipt?.content).toContain('actors.location 是地名纯文本');
+    expect(actorReceipt?.content).toContain('actors.location là văn bản thuần tên địa danh');
     expect(actorRetry.some(message => message.role === 'user' && message.content.startsWith('上一次提交未被采纳'))).toBe(false);
     // read 超额的拒绝原因可辨认，不再只有裸错误码。
     const doubleRead = vi.fn()
@@ -336,7 +336,7 @@ describe('两批一次性格林推演工作流', () => {
     // 额度拒绝可能以 role=tool 回执给模型，也可能在纠错次数用完时成为失败摘要；两处都必须带出可辨认的原因。
     const thirdRequest = doubleRead.mock.calls[2]?.[1] as Array<{ role: string; tool_call_id?: string; content: string }> | undefined;
     const readReason = thirdRequest ? thirdRequest.find(message => message.tool_call_id === 'r2')?.content : readResult.summary;
-    expect(readReason).toContain('read 额度');
+    expect(readReason).toContain('hạn mức read');
     // 共享工具目录历史上宣传过 evidenceRefs：收到就忽略，不能判成「多余参数」失败。
     const withEvidenceRefs = vi.fn().mockResolvedValueOnce({ content: '', toolCalls: [{ id: 'ev-1', name: 'write_sql',
       arguments: JSON.stringify({ sql: "UPDATE player SET contact = 'open' WHERE expected_revision = 0", evidenceRefs: ['evidence:run-1:1'] }) }] }).mockResolvedValueOnce(submitTurn('candidate', 'dramatis-keeper', '确认交付', [ref]));
@@ -350,9 +350,9 @@ describe('两批一次性格林推演工作流', () => {
     expect(clockOnly).toHaveBeenCalledTimes(2);
     expect(coverage.status).toBe('candidate');
     expect(coverage.candidate?.patch.clock).toBeDefined();
-    expect(coverage.summary).toContain('留待下一轮补录');
+    expect(coverage.summary).toContain('để lượt sau bổ sung');
     expect(coverage.unresolvedIssues?.map(item => item.module).sort()).toEqual(['dimensions', 'seeds']);
-    expect(JSON.stringify(coverage.unresolvedIssues)).toContain('首轮建账未覆盖');
+    expect(JSON.stringify(coverage.unresolvedIssues)).toContain('Dựng sổ cái đợt đầu chưa bao phủ');
 
     // write_sql 的函数声明只暴露 sql，避免模型照着目录填 evidenceRefs 再被拒。
     const writeTool = withEvidenceRefs.mock.calls[0][3].tools.find(tool => tool.function.name === 'write_sql');
@@ -376,7 +376,7 @@ describe('两批一次性格林推演工作流', () => {
     expect(writeEntries).toHaveLength(2);
     expect(writeEntries[0].detail).toContain("UPDATE player SET location_updated_at_day = 1");
     expect(writeEntries[0].ok).toBe(false);
-    expect(writeEntries[0].title).toContain('提交被拒');
+    expect(writeEntries[0].title).toContain('Nộp bị từ chối');
     expect(writeEntries[1].detail).toContain("UPDATE player SET contact = 'open'");
     expect(writeEntries[1].ok).toBe(true);
     const retryEntry = feed.find(item => item.kind === 'protocol_retry');
@@ -391,7 +391,7 @@ describe('两批一次性格林推演工作流', () => {
     expect(mixedReplies).toHaveBeenCalledTimes(3);
     expect(partial.status).toBe('candidate');
     expect(partial.candidate?.patch.player).toMatchObject({ contact: 'open' });
-    expect(partial.summary).toContain('留待下一轮补录');
+    expect(partial.summary).toContain('để lượt sau bổ sung');
     expect(JSON.stringify(partial.unresolvedIssues)).toContain('SQL_COLUMN_FORBIDDEN');
     // 残余包含被拒的 SQL，以及首轮建账尚未覆盖的 actors。
     expect(partial.unresolvedIssues?.map(item => item.module).sort()).toEqual(['actors', 'player']);
@@ -404,7 +404,7 @@ describe('两批一次性格林推演工作流', () => {
     expect(salvageReplies).toHaveBeenCalledTimes(3);
     expect(salvaged.status).toBe('candidate');
     expect(salvaged.candidate?.patch.player).toMatchObject({ contact: 'open' });
-    expect(salvaged.summary).toContain('留待下一轮补录');
+    expect(salvaged.summary).toContain('để lượt sau bổ sung');
     expect(salvaged.unresolvedIssues?.map(item => item.module).sort()).toEqual(['actors', 'player']);
     // 全部语句非法时仍然失败，不能凭空产出候选。
     const allBad = vi.fn(async () => ({ content: '', toolCalls: [{ id: 'bad-1', name: 'write_sql', arguments: JSON.stringify({ sql: "UPDATE player SET location_updated_at_day = 1 WHERE expected_revision = 0" }) }] }));
@@ -493,7 +493,7 @@ describe('两批一次性格林推演工作流', () => {
     expect(rows.every(row => row.actorIds === undefined)).toBe(true);
     const feedback = JSON.stringify(invoke.mock.calls[1][1]);
     for (let index = 0; index < 4; index++) expect(feedback).toContain(`patch.seeds.upsert[${index}].actorIds`);
-    expect(feedback).toContain('省略 actor_ids');
+    expect(feedback).toContain('bỏ actor_ids');
     const rejected = await new WorldSimulationSubagentRuntime_ACU({ invoke: vi.fn(async () => bad), apiPreset, countTokens: async () => 1 }).runOneShot(input);
     expect(rejected.status).toBe('failed');
     expect(rejected.unresolvedIssues?.map(issue => issue.module)).toEqual(['seeds', 'seeds', 'seeds', 'seeds']);

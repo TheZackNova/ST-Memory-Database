@@ -108,7 +108,7 @@ function isRowIdAliasHeader_ACU(value: unknown): boolean {
 }
 
 function sheetLabel_ACU(sheet: SheetLike | undefined, sheetKey: string): string {
-  return `表「${String(sheet?.name ?? '') || sheetKey}」(${sheetKey})`;
+  return `Bảng "${String(sheet?.name ?? '') || sheetKey}" (${sheetKey})`;
 }
 
 function issue_ACU(
@@ -242,7 +242,7 @@ function rejectDuplicateRowIds_ACU(
     if (!rowId) continue;
     if (seen.has(rowId)) {
       blockers.push(issue_ACU('duplicate_row_id', sheetKey, sheetName,
-        `${sheetLabel_ACU({ name: sheetName }, sheetKey)} 的 ${source} 第 ${index + 1} 行 row_id「${rowId}」重复，不能安全重写身份。`, index + 1));
+        `${sheetLabel_ACU({ name: sheetName }, sheetKey)}: row_id "${rowId}" của hàng ${index + 1} trong ${source} bị trùng, không thể ghi lại danh tính an toàn.`, index + 1));
       continue;
     }
     seen.add(rowId);
@@ -264,11 +264,11 @@ function insertRowIdColumnForRows_ACU(
   for (let index = 0; index < rows.length; index += 1) {
     const row = rows[index];
     if (!Array.isArray(row)) {
-      blockers.push(issue_ACU('invalid_content_row', sheetKey, sheetName, `${sheetLabel_ACU({ name: sheetName } as any, sheetKey)} 第 ${index + 1} 行不是数组，无法自动插入 row_id。`, index + 1));
+      blockers.push(issue_ACU('invalid_content_row', sheetKey, sheetName, `${sheetLabel_ACU({ name: sheetName } as any, sheetKey)}: hàng ${index + 1} không phải mảng, không thể tự động chèn row_id.`, index + 1));
       continue;
     }
     if (row.length > businessWidth) {
-      blockers.push(issue_ACU('row_width_mismatch', sheetKey, sheetName, `${sheetLabel_ACU({ name: sheetName } as any, sheetKey)} 第 ${index + 1} 行宽度为 ${row.length}，超过原表头 ${businessWidth} 列，无法安全插入 row_id。`, index + 1));
+      blockers.push(issue_ACU('row_width_mismatch', sheetKey, sheetName, `${sheetLabel_ACU({ name: sheetName } as any, sheetKey)}: độ rộng hàng ${index + 1} là ${row.length}, vượt quá ${businessWidth} cột của tiêu đề gốc, không thể chèn row_id an toàn.`, index + 1));
       continue;
     }
     while (row.length < businessWidth) row.push(null);
@@ -292,21 +292,21 @@ function normalizeSheetRowId_ACU(
   const audit = blankAudit_ACU(sheetKey, sheetName);
 
   if (!isRecordValue_ACU(sheet)) {
-    blockers.push(issue_ACU('invalid_sheet', sheetKey, sheetName, `${label} 不是对象，无法规范化。`));
+    blockers.push(issue_ACU('invalid_sheet', sheetKey, sheetName, `${label} không phải đối tượng, không thể chuẩn hóa.`));
     return;
   }
   const content = sheet.content;
   if (!Array.isArray(content) || content.length === 0) {
-    blockers.push(issue_ACU('missing_content', sheetKey, sheetName, `${label} 缺少 content 表头行。`));
+    blockers.push(issue_ACU('missing_content', sheetKey, sheetName, `${label} thiếu hàng tiêu đề content.`));
     return;
   }
   const header = content[0];
   if (!Array.isArray(header)) {
-    blockers.push(issue_ACU('invalid_header', sheetKey, sheetName, `${label} 表头不是数组。`));
+    blockers.push(issue_ACU('invalid_header', sheetKey, sheetName, `${label} tiêu đề không phải mảng.`));
     return;
   }
   if (header.length === 0) {
-    blockers.push(issue_ACU('empty_header', sheetKey, sheetName, `${label} 表头为空。`));
+    blockers.push(issue_ACU('empty_header', sheetKey, sheetName, `${label} tiêu đề rỗng.`));
     return;
   }
 
@@ -331,13 +331,13 @@ function normalizeSheetRowId_ACU(
   }
   if (misplacedIndex >= 0) {
     blockers.push(issue_ACU('misplaced_row_id', sheetKey, sheetName,
-      `${label} 的 row_id 位于第 ${misplacedIndex + 1} 列；自动移动可能改变数据列语义，请手动调整模板列顺序。`,
+      `${label}: row_id nằm ở cột ${misplacedIndex + 1}; tự động di chuyển có thể làm đổi ngữ nghĩa cột dữ liệu, hãy tự điều chỉnh thứ tự cột của mẫu.`,
       undefined, misplacedIndex));
     return;
   }
   if (duplicateHeaderIndex >= 0) {
     blockers.push(issue_ACU('duplicate_row_id_header', sheetKey, sheetName,
-      `${label} 第 ${duplicateHeaderIndex + 1} 列也是身份列（id/rowid/行号）；不能自动决定哪一列保留，请手动调整模板列顺序。`,
+      `${label}: cột ${duplicateHeaderIndex + 1} cũng là cột danh tính (id/rowid/行号); không thể tự quyết định giữ cột nào, hãy tự điều chỉnh thứ tự cột của mẫu.`,
       undefined, duplicateHeaderIndex));
     return;
   }
@@ -345,19 +345,19 @@ function normalizeSheetRowId_ACU(
   const businessWidth = header.length;
   for (let index = 1; index < content.length; index += 1) {
     if (!Array.isArray(content[index])) {
-      blockers.push(issue_ACU('invalid_content_row', sheetKey, sheetName, `${label} 第 ${index + 1} 行不是数组，无法自动修复。`, index + 1));
+      blockers.push(issue_ACU('invalid_content_row', sheetKey, sheetName, `${label}: hàng ${index + 1} không phải mảng, không thể tự động sửa.`, index + 1));
       return;
     }
   }
   const seedRows = sheet.seedRows;
   if (seedRows !== undefined && !Array.isArray(seedRows)) {
-    blockers.push(issue_ACU('invalid_seed_rows', sheetKey, sheetName, `${label} 的 seedRows 不是数组。`));
+    blockers.push(issue_ACU('invalid_seed_rows', sheetKey, sheetName, `${label}: seedRows không phải mảng.`));
     return;
   }
   if (Array.isArray(seedRows)) {
     for (let index = 0; index < seedRows.length; index += 1) {
       if (!Array.isArray(seedRows[index])) {
-        blockers.push(issue_ACU('invalid_seed_row', sheetKey, sheetName, `${label} 的 seedRows 第 ${index + 1} 行不是数组。`, index + 1));
+        blockers.push(issue_ACU('invalid_seed_row', sheetKey, sheetName, `${label}: hàng ${index + 1} của seedRows không phải mảng.`, index + 1));
         return;
       }
     }
@@ -423,7 +423,7 @@ function normalizeSheetRowId_ACU(
         if (!firstColumn || firstColumn.sqlName.toLowerCase() !== 'row_id'
           || firstColumn.declaredType !== 'INTEGER' || !firstColumn.isPrimaryKey) {
           blockers.push(issue_ACU('invalid_ddl', sheetKey, sheetName,
-            `${label} 的 DDL 缺少首列 row_id INTEGER PRIMARY KEY，无法安全规范化。`));
+            `${label}: DDL thiếu cột đầu row_id INTEGER PRIMARY KEY, không thể chuẩn hóa an toàn.`));
           return;
         }
       } else if (firstColumn && firstColumn.sqlName.toLowerCase() === 'row_id'
@@ -438,22 +438,22 @@ function normalizeSheetRowId_ACU(
             changed = true;
           } catch (error) {
             blockers.push(issue_ACU('invalid_ddl', sheetKey, sheetName,
-              `${label} 无法在 DDL 中注入 row_id：${error instanceof Error ? error.message : String(error)}`));
+              `${label}: không thể chèn row_id vào DDL: ${error instanceof Error ? error.message : String(error)}`));
             return;
           }
         } else {
           blockers.push(issue_ACU('ambiguous_ddl', sheetKey, sheetName,
-            `${label} 的 DDL 列数（${columns.length}）与原业务表头（${businessWidth}）不一致，无法证明应注入 row_id。`));
+            `${label}: số cột DDL (${columns.length}) không khớp với tiêu đề nghiệp vụ gốc (${businessWidth}), không thể chứng minh cần chèn row_id.`));
           return;
         }
       } else {
         blockers.push(issue_ACU('invalid_ddl', sheetKey, sheetName,
-          `${label} 的 DDL 中 row_id 不是首列 INTEGER PRIMARY KEY，无法安全规范化。`));
+          `${label}: row_id trong DDL không phải cột đầu INTEGER PRIMARY KEY, không thể chuẩn hóa an toàn.`));
         return;
       }
       const validation = validateDDLTextAgainstHeaders_ACU(String(sheet.sourceData.ddl || ''), content[0]);
       if (!validation.valid) {
-        blockers.push(issue_ACU('ambiguous_ddl', sheetKey, sheetName, `${label} DDL 校验失败：${validation.message}`));
+        blockers.push(issue_ACU('ambiguous_ddl', sheetKey, sheetName, `${label}: kiểm tra DDL thất bại: ${validation.message}`));
         return;
       }
     }
@@ -472,7 +472,7 @@ export function normalizeTemplateRowIds_ACU<T>(
 ): TemplateRowIdNormalizationResult_ACU<T> {
   const input = templateData as unknown;
   if (!isRecordValue_ACU(input)) {
-    return { templateData, changed: false, audits: [], blockers: [issue_ACU('invalid_template', '', '', '模板必须是对象。')] };
+    return { templateData, changed: false, audits: [], blockers: [issue_ACU('invalid_template', '', '', 'Mẫu phải là một đối tượng.')] };
   }
   const template = cloneValue_ACU(input) as RecordValue;
   const blockers: TemplateRowIdNormalizationIssue_ACU[] = [];
@@ -481,7 +481,7 @@ export function normalizeTemplateRowIds_ACU<T>(
   for (const [key, value] of Object.entries(template)) {
     if (!key.startsWith('sheet_')) continue;
     if (!isRecordValue_ACU(value)) {
-      blockers.push(issue_ACU('invalid_sheet', key, String((value as any)?.name ?? ''), `表「${key}」不是对象，无法规范化。`));
+      blockers.push(issue_ACU('invalid_sheet', key, String((value as any)?.name ?? ''), `Bảng "${key}" không phải đối tượng, không thể chuẩn hóa.`));
       continue;
     }
     const before = JSON.stringify(value);

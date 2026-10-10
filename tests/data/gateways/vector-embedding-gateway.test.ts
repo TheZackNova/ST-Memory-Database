@@ -217,7 +217,7 @@ describe('createEmbeddings_ACU 错误结构化分类（T3）', () => {
       });
       await vi.runAllTimersAsync();
       await assertion;
-      await expect(promise.catch((error) => error.message)).resolves.toContain('超时');
+      await expect(promise.catch((error) => error.message)).resolves.toContain('hết thời gian');
       expect(fetchMock).toHaveBeenCalledTimes(2);
     } finally {
       vi.useRealTimers();

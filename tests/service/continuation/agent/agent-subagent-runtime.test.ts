@@ -30,7 +30,7 @@ it('主会话已读到的全文会附在快照后面，重复调阅提示不带�
     { id: 3, kind: 'tool', text: '{"outcome":"deliver"}', digest: '工作流状态回执', turnKey: 't', at: 1 },
   ] as any);
   expect(text).toContain('人设全文');
-  expect(text).toContain('不要再对同一地址调用 read');
+  expect(text).toContain('Không gọi read lại cho cùng một địa chỉ');
   expect(text).not.toContain('不再重注');
   expect(text).not.toContain('deliver');
 });
@@ -236,8 +236,8 @@ it.each(['json', 'tools'] as const)('%s 总纲请求在协议错误后允许检�
         expect(request.tools).toEqual([]);
         expect(request.cacheTools).toContain('mode:json');
         expect(request.messages.some(message => message.role === 'tool' || message.tool_calls || message.tool_call_id)).toBe(false);
-        expect(text).not.toMatch(/函数调用|submit|原生 write_sql/);
-        expect(text).toContain('search 输出 JSON 动作');
+        expect(text).not.toMatch(/函数调用|lệnh gọi hàm|submit|原生 write_sql/);
+        expect(text).toContain('search xuất hành động JSON');
       } else {
         expect(request.tools).toEqual(['read', 'search', 'write_sql', 'submit']);
         expect(request.cacheTools).not.toContain('mode:json');
@@ -245,8 +245,8 @@ it.each(['json', 'tools'] as const)('%s 总纲请求在协议错误后允许检�
           expect(sent[4].messages.some(message => message.role === 'tool' && message.content.includes('未授权或参数非法'))).toBe(false);
           expect(sent[4].messages.some(message => message.role === 'tool' && message.content.includes('"status":"committed"'))).toBe(true);
         }
-        expect(text).toContain('search 使用函数调用');
-        expect(text).not.toContain('我的最终交付是一个 JSON 对象');
+        expect(text).toContain('search dùng lệnh gọi hàm');
+        expect(text).not.toContain('Bàn giao cuối cùng của tôi là một đối tượng JSON');
       }
     }
     if (toolMode === 'tools') expect(sent[4].messages.some(message => message.role === 'tool')).toBe(true);
@@ -308,7 +308,7 @@ it('普通计划子代理只暴露 read，并拒绝未授权资料域', async ()
   });
   const result = await runtime.run(input);
   expect(result.expandedReads).toEqual([]);
-  expect(toolContent_ACU(sent[1], 'unauthorized-web-ref')).toContain('不在当前角色的授权读取范围');
+  expect(toolContent_ACU(sent[1], 'unauthorized-web-ref')).toContain('không nằm trong phạm vi đọc được cấp quyền của vai trò hiện tại');
 });
 
 it('普通角色伪造原生 search 时拒绝执行，保留工具回执', async () => {
@@ -323,7 +323,7 @@ it('普通角色伪造原生 search 时拒绝执行，保留工具回执', async
   const result = await runtime.run(input);
   expect(result.expandedReads).toEqual([]);
   // 原生工具调用统一由 profile 授权表拦下；「未授权本地搜索」只出现在旧 JSON 文本协议路径。
-  expect(toolContent_ACU(sent[1], 'forged-search')).toContain('未获当前角色 profile 授权');
+  expect(toolContent_ACU(sent[1], 'forged-search')).toContain('chưa được profile của vai trò hiện tại cấp quyền');
 });
 
 
@@ -371,9 +371,9 @@ it('同批重复地址的显式围栏不完整时整批失败，修正后可重�
     callInternalAi: async messages => { sent.push(messages); return replies.shift() ?? finalReply_ACU; },
   });
   const result = await runtime.run(input);
-  expect(toolContent_ACU(sent[1], 'plain-table')).toContain('实际范围超出 requestedFence');
+  expect(toolContent_ACU(sent[1], 'plain-table')).toContain('vượt quá requestedFence');
   expect(toolContent_ACU(sent[1], 'plain-table')).not.toContain('林瑶');
-  expect(toolContent_ACU(sent[1], 'fenced-table')).toContain('本逻辑读取批次已统一结算');
+  expect(toolContent_ACU(sent[1], 'fenced-table')).toContain('Lô đọc logic này đã được quyết toán thống nhất');
   expect(toolContent_ACU(sent[1], 'fenced-table')).not.toContain('fence-proof-missing');
   expect(toolContent_ACU(sent[2], 'retry-plain-table')).toContain('林瑶');
   expect(result.expandedReads).toEqual(['$TABLE:角色表']);
@@ -511,7 +511,7 @@ it('栏目地址非法或字段越权时整批不注入，修正后可读取', a
   for (const [index, tableId, fieldId] of [[1, 'table-before-invalid-field', 'invalid-field-address'], [2, 'table-before-unknown-field', 'unknown-field']] as const) {
     expect(toolContent_ACU(sent[index], tableId)).toContain('"status":"failed"');
     expect(toolContent_ACU(sent[index], tableId)).not.toContain('林瑶');
-    expect(toolContent_ACU(sent[index], fieldId)).toContain('本逻辑读取批次已统一结算');
+    expect(toolContent_ACU(sent[index], fieldId)).toContain('Lô đọc logic này đã được quyết toán thống nhất');
   }
   expect(toolContent_ACU(sent[3], 'corrected-field')).toContain('"module":"storyArc"');
   expect(result.expandedReads).toEqual(['$FIELD:storyArc:test']);
@@ -557,8 +557,8 @@ it('同一 agentName 与 roundId 的共享状态跨 runtime 只允许一次成�
   expect(first.expandedReads).toEqual(['$TABLE:角色表']);
   expect(second.expandedReads).toEqual([]);
   expect(sharedReadRound.successfulReadBatches.size).toBe(1);
-  expect(sent[2].map(message => message.content).join('\n')).toContain('本次读取额度已用尽');
-  expect(sent[2].map(message => message.content).join('\n')).toContain('读取限制不改变本次写入授权');
+  expect(sent[2].map(message => message.content).join('\n')).toContain('Hạn mức đọc lần này đã dùng hết');
+  expect(sent[2].map(message => message.content).join('\n')).toContain('Giới hạn đọc không thay đổi quyền ghi của lần này');
 });
 
 it('不同 roundId 的同名子代理不共享成功 read 额度', async () => {
@@ -629,7 +629,7 @@ it('终审实际请求仅挂 read，伪造 search 不进入检索执行', async 
   await runtime.runFinalReview({ settings: base.settings, resolveContext: base.resolveContext,
     candidateInstruction: '写作指令', currentUserInput: '继续', createIdentity: base.createIdentity, isCurrent: base.isCurrent });
   expect(seen[0].tools).toEqual(['read', 'submit']);
-  expect(toolContent_ACU(seen[1].messages, 'forged-review-search')).toContain('终审未授权该工具');
+  expect(toolContent_ACU(seen[1].messages, 'forged-review-search')).toContain('Chung thẩm chưa được cấp quyền dùng công cụ này');
 });
 
 
@@ -639,20 +639,20 @@ describe('AgentSubagentRuntime_ACU usage 累计', () => {
     settings.stageSize = 'short';
 
     const medium = renderStoryArcVolumePlanInstruction_ACU(settings);
-    expect(medium).toContain('中线：新建或全量重构总纲时规划 10–14 卷');
-    expect(medium).toContain('targetStageRange 是解释性容量锚');
-    expect(medium).toContain('约 500–750 轮的数量级检查');
-    expect(medium).toContain('不承诺固定字数或章节数');
+    expect(medium).toContain('Tuyến vừa: khi tạo mới hoặc tái cấu trúc toàn bộ tổng cương thì hoạch định 10–14 tập');
+    expect(medium).toContain('targetStageRange là mốc dung lượng mang tính diễn giải');
+    expect(medium).toContain('khoảng 500–750 lượt');
+    expect(medium).toContain('không cam kết số chữ hay số chương cố định');
     settings.storyArcVolumePlan = 'short';
-    expect(renderStoryArcVolumePlanInstruction_ACU(settings)).toContain('短线：新建或全量重构总纲时规划 7–8 卷');
+    expect(renderStoryArcVolumePlanInstruction_ACU(settings)).toContain('Tuyến ngắn: khi tạo mới hoặc tái cấu trúc toàn bộ tổng cương thì hoạch định 7–8 tập');
     settings.storyArcVolumePlan = 'long';
     const long = renderStoryArcVolumePlanInstruction_ACU(settings);
-    expect(long).toContain('长线：新建或全量重构总纲时规划 20 卷');
-    expect(long).toContain('约 500–750 轮的数量级检查');
+    expect(long).toContain('Tuyến dài: khi tạo mới hoặc tái cấu trúc toàn bộ tổng cương thì hoạch định 20 tập');
+    expect(long).toContain('khoảng 500–750 lượt');
     expect(long).not.toContain('100 章');
     settings.storyArcVolumePlan = 'custom';
     settings.customStoryArcVolumeCount = 16;
-    expect(renderStoryArcVolumePlanInstruction_ACU(settings)).toContain('自定义：新建或全量重构总纲时规划 16 卷');
+    expect(renderStoryArcVolumePlanInstruction_ACU(settings)).toContain('Tùy chỉnh: khi tạo mới hoặc tái cấu trúc toàn bộ tổng cương thì hoạch định 16 tập');
   });
 
   it('维护类派工固定写入 hooks/infoGap/chronology，提示词注入年代学账本现状', async () => {
@@ -670,9 +670,9 @@ describe('AgentSubagentRuntime_ACU usage 累计', () => {
     expect(result.writes).toEqual(['hooks', 'infoGap', 'chronology']);
     const rendered = calls[0].map(message => message.content).join('\n');
     expect(rendered).toContain('【故事年代学账本现状】');
-    expect(rendered).toContain('没有已结算的故事时间记录');
-    expect(rendered).toContain('$CHRONOLOGY 故事年代学账本');
-    expect(rendered).toContain('【故事时间结算契约】');
+    expect(rendered).toContain('không có bản ghi thời gian truyện nào đã quyết toán');
+    expect(rendered).toContain('$CHRONOLOGY sổ niên đại học câu chuyện');
+    expect(rendered).toContain('【Khế ước kết toán thời gian câu chuyện】');
   });
 
   it('renders fixed user intent and the complete current-stage outline from one resolve context', async () => {
@@ -719,7 +719,7 @@ describe('AgentSubagentRuntime_ACU usage 累计', () => {
     await runtime.run(input);
     const rendered = calls[0].map(message => message.content).join('\n');
     expect(rendered).toContain('推进剧情');
-    expect(rendered).toContain('阶段 2：禁区试探');
+    expect(rendered).toContain('Giai đoạn 2: 禁区试探');
     expect(rendered).toContain('观察守门人');
     expect(rendered).toContain('支付试探代价');
     expect(rendered).toContain('根据本轮任务校准总纲');
@@ -764,9 +764,9 @@ describe('AgentSubagentRuntime_ACU usage 累计', () => {
     expect(taskSnapshot?.content).toContain('【事件概览】');
     expect(taskSnapshot?.content).toContain('【最近正文】');
     expect(taskSnapshot?.content).toContain('【已启用世界书目录】');
-    expect(taskSnapshot?.content).toContain('不是命中清单');
-    expect(taskSnapshot?.content).toContain('总纲不注入命中条目全文');
-    expect(taskSnapshot?.content).toContain('请用已启用世界书目录自行选择 read');
+    expect(taskSnapshot?.content).toContain('không phải danh sách khớp');
+    expect(taskSnapshot?.content).toContain('Tổng cương không tiêm toàn văn các mục khớp');
+    expect(taskSnapshot?.content).toContain('Hãy tự chọn read theo danh mục sổ thế giới đã bật');
     const runtimeContent = runtimeSnapshot?.content ?? '';
     const taskMaterialStart = runtimeContent.indexOf('以下是用户对任务曾经提过的要求：');
     expect(taskMaterialStart).toBeGreaterThan(0);
@@ -848,11 +848,11 @@ describe('AgentSubagentRuntime_ACU usage 累计', () => {
     expect(firstCall).toContain('真实调阅正文');
     expect(firstCall.split('【调阅项 ')).toHaveLength(2);
     expect(firstCall).toContain('【读取预算状态】');
-    expect(firstCall).toContain('工具轮次剩余 1 / 1');
+    expect(firstCall).toContain('Số vòng công cụ còn lại 1 / 1');
     expect(secondCall).toContain('角色表');
     expect(secondCall.split(worldbookBody)).toHaveLength(2);
     expect(secondCall).toContain('真实调阅正文');
-    expect(secondCall).toContain('工具轮次剩余 0 / 1');
+    expect(secondCall).toContain('Số vòng công cụ còn lại 0 / 1');
   });
 
   it('首轮注入读取预算状态，并随工具批次刷新剩余轮次与遥测', async () => {
@@ -873,13 +873,13 @@ describe('AgentSubagentRuntime_ACU usage 累计', () => {
 
     expect(result.expandedReads).toEqual(['$TABLE:角色表']);
     const firstCall = calls[0].map(message => message.content).join('\n');
-    expect(firstCall).toContain('【读取预算状态】单批次读取上限约 300 tokens');
-    expect(firstCall).toContain('不超过 50 tokens 的精读批次');
-    expect(firstCall).toContain('工具轮次剩余 1 / 1');
+    expect(firstCall).toContain('【读取预算状态】Giới hạn mỗi lô đọc khoảng 300 tokens');
+    expect(firstCall).toContain('không quá 50 tokens mới được cho qua');
+    expect(firstCall).toContain('Số vòng công cụ còn lại 1 / 1');
     const secondCall = calls[1].map(message => message.content).join('\n');
     expect(secondCall).toContain('【工具结果】');
-    expect(secondCall).toContain('工具轮次剩余 0 / 1');
-    expect(secondCall).toContain('仅遥测、不扣减后续批次额度');
+    expect(secondCall).toContain('Số vòng công cụ còn lại 0 / 1');
+    expect(secondCall).toContain('chỉ để theo dõi, không trừ hạn mức các lô sau');
   });
 
   it('所有调用均报告字段时逐字段求和，并保留明确 0', async () => {
@@ -1005,12 +1005,12 @@ describe('子代理逐栏工具会话', () => {
       expect(saveChat).toHaveBeenCalledTimes(2);
       expect(messages[1].map(item => item.content).join('\n')).toContain('"status":"committed"');
       expect(messages[1].map(item => item.content).join('\n')).toContain('"field":"summary","fieldRevision":1');
-      expect(toolContent_ACU(messages[1], 'call-first-write')).toContain('该语句未写入');
+      expect(toolContent_ACU(messages[1], 'call-first-write')).toContain('câu lệnh này chưa được ghi');
       expect(toolContent_ACU(messages[1], 'call-first-write')).not.toContain('保存状态无法确认');
-      expect(toolContent_ACU(messages[1], 'call-first-write')).toContain('字段修订号，不是模块修订号');
+      expect(toolContent_ACU(messages[1], 'call-first-write')).toContain('là số hiệu chỉnh trường, không phải số hiệu chỉnh mô-đun');
       expect(messages[2].map(item => item.content).join('\n')).toContain('"missingFields"');
       expect(messages[3].map(item => item.content).join('\n')).toContain('"field":"status"');
-      expect(messages[2].some(item => item.content.includes('write_sql 轮次剩余 3 / 4'))).toBe(true);
+      expect(messages[2].some(item => item.content.includes('Số vòng write_sql còn lại 3 / 4'))).toBe(true);
       expect(messages[3].some(item => item.content.includes('"remainingToolRounds":0,"remainingWriteRounds":2'))).toBe(true);
       expect(readAgentModuleFieldSnapshot_ACU(chat).records.hooks?.H1.status).toBe('complete');
       expect(readAgentModuleSnapshot_ACU(chat).hooks).toHaveLength(1);
@@ -1180,7 +1180,7 @@ describe('子代理逐栏工具会话', () => {
       expect(result.usedFieldWrites).toBe(false);
       expect(result.operationOnlyConfirmed).toEqual([expect.objectContaining({ module: 'hooks', id: 'H1', revision: 1 })]);
       expect(requests).toHaveLength(2);
-      expect(requests[1].map(message => message.content).join('\n')).toContain('纯系统字段操作已拒绝且未写入');
+      expect(requests[1].map(message => message.content).join('\n')).toContain('Thao tác thuần trường hệ thống đã bị từ chối và chưa ghi');
       expect(JSON.stringify(chat)).toBe(before);
       expect(saveChat).not.toHaveBeenCalled();
       const emptyPatch = JSON.stringify({ summary: '待核对操作', delta: { hooks: [{ action: 'patch', id: 'H1' }] } });
@@ -1476,7 +1476,7 @@ describe('子代理逐栏工具会话', () => {
       const result = await runtime.run(input);
       expect(result.iterations).toBe(3);
       expect(saveChat).toHaveBeenCalledOnce();
-      expect(toolContent_ACU(sent[1], 'call-invalid-write')).toContain('工具动作未执行');
+      expect(toolContent_ACU(sent[1], 'call-invalid-write')).toContain('Hành động công cụ chưa được thực thi');
       expect(toolContent_ACU(sent[1], 'call-invalid-write')).not.toContain('"status":"committed"');
       expect(toolContent_ACU(sent[2], 'call-valid-write')).toContain('"status":"committed"');
     } finally { _set_SillyTavern_API_ACU(null as any); }
@@ -1517,7 +1517,7 @@ describe('子代理逐栏工具会话', () => {
     expect(receipt).toMatchObject({ status: 'rejected', accepted: [], partials: null, revisions: null,
       readAddresses: [], remainingToolRounds: 1, remainingWriteRounds: 3 });
     expect(receipt.reason).toContain('聊天锚点已变化');
-    expect(toolContent_ACU(sent[1], 'call-stale-write')).toContain('先 read 对应 $FIELD:模块:ID 权威帧');
+    expect(toolContent_ACU(sent[1], 'call-stale-write')).toContain('Trước hết read khung chuẩn $FIELD:mô-đun:ID');
     expect(result.usedFieldWrites).toBe(false);
   });
 
@@ -1542,7 +1542,7 @@ describe('子代理逐栏工具会话', () => {
     });
     await runtime.run(input);
     expect(toolContent_ACU(sent[1], 'call-damaged-read-1')).toContain('"status":"failed"');
-    expect(toolContent_ACU(sent[1], 'call-damaged-read-1')).toContain('资料帧校验失败');
+    expect(toolContent_ACU(sent[1], 'call-damaged-read-1')).toContain('Kiểm tra khung tư liệu thất bại');
     expect(toolContent_ACU(sent[2], 'call-damaged-read-2')).toContain('"status":"unwritten"');
     expect(toolContent_ACU(sent[2], 'call-damaged-read-2')).not.toContain('已放行');
     expect(sent[2].some(message => message.content.includes('"summary"'))).toBe(true);
@@ -1580,7 +1580,7 @@ describe('子代理逐栏工具会话', () => {
       expect(feedback).toContain('"partials":null');
       expect(feedback).toContain('"revisions":null');
       expect(feedback).toContain('"readAddresses":[]');
-      expect(feedback).toContain('保存或恢复状态不确定');
+      expect(feedback).toContain('Trạng thái lưu hoặc khôi phục không chắc chắn');
       expect(feedback).not.toContain('仅补缺栏范例：UPDATE');
       messages.length = 0;
       await runtime.run({ ...input, writeSql: undefined });
@@ -1656,10 +1656,10 @@ describe('子代理逐栏工具会话', () => {
     expect(seen[0]).toContain('INSERT INTO story_arc');
     expect(seen[1]).toContain('UPDATE story_arc');
     const follow = messages[1].map(item => item.content).join('\n');
-    expect(follow).toContain('调用 write_sql');
+    expect(follow).toContain('gọi riêng write_sql');
     expect(follow).toContain('sustainingThreads');
     expect(follow).toContain('withheld');
-    expect(follow).toContain("仅补缺栏范例：UPDATE story_arc SET withheld = '晶屑真正用途' WHERE id = 'VOL-01' AND expected_revision = 0;");
+    expect(follow).toContain("Ví dụ chỉ bổ sung cột thiếu: UPDATE story_arc SET withheld = 'Công dụng thật của mảnh tinh thể' WHERE id = 'VOL-01' AND expected_revision = 0;");
     expect(follow).not.toContain('UPDATE story_arc SET title =');
     expect(follow).not.toContain('纠错范例：INSERT INTO story_arc');
     expect(follow).not.toContain('delta 里各数组');
@@ -1695,9 +1695,9 @@ describe('子代理逐栏工具会话', () => {
     });
     const result = await runtime.run(input);
     const follow = messages[1].map(item => item.content).join('\n');
-    expect(follow).toContain('调用 write_sql');
-    expect(follow).toContain('["经营线"]');
-    expect(follow).toContain('新行 INSERT 的 expected_revision 固定写 0');
+    expect(follow).toContain('gọi riêng write_sql');
+    expect(follow).toContain('["tuyến kinh doanh"]');
+    expect(follow).toContain('INSERT hàng mới luôn ghi expected_revision là 0');
     expect(follow).not.toContain('delta.storyArc');
     expect(seen).toEqual(["INSERT INTO story_arc (id, scope, title, direction, escalation, withheld, status, expected_revision) VALUES ('STORY-01', 'story', '题', '方向', '台阶', '底牌', 'active', 0)"]);
     expect(result.usedFieldWrites).toBe(true);
@@ -1775,11 +1775,11 @@ describe('子代理最终请求容量门禁与 60% 默认上围栏', () => {
     const sent: SentMessage_ACU[][] = [];
     // 预算 floor(0.6 × (60000 − 58833)) = 700：容得下 2 个 ~210 字楼层加标注，容不下 5 个。
     const input = storyInput_ACU();
-    const result = await runtime_ACU(58833, [nativeToolTurn_ACU('read', { reads: ['$STORY_RANGE:1-9'] }, 'default-fenced'), finalReply_ACU], sent).run(input);
+    const result = await runtime_ACU(58433, [nativeToolTurn_ACU('read', { reads: ['$STORY_RANGE:1-9'] }, 'default-fenced'), finalReply_ACU], sent).run(input);
     const receipt = toolContent_ACU(sent[1], 'default-fenced');
-    expect(receipt).toContain('【默认上围栏】原地址「$STORY_RANGE:1-9」');
-    expect(receipt).toContain('默认上围栏预算 700 tokens');
-    const address = /解析为「(\$STORY_RANGE:1-(\d+))」/.exec(receipt)!;
+    expect(receipt).toContain('【默认上围栏】Địa chỉ gốc "$STORY_RANGE:1-9"');
+    expect(receipt).toContain('ngân sách hàng rào trên mặc định 940 tokens');
+    const address = /được phân giải thành "(\$STORY_RANGE:1-(\d+))"/.exec(receipt)!;
     const upper = Number(address[2]);
     expect(upper).toBeGreaterThanOrEqual(3);
     expect(upper).toBeLessThan(9);
@@ -1787,7 +1787,7 @@ describe('子代理最终请求容量门禁与 60% 默认上围栏', () => {
       if (floor <= upper) expect(receipt).toContain(floor_ACU(floor));
       else expect(receipt).not.toContain(floor_ACU(floor));
     }
-    expect(result.expandedReads).toEqual([`${address[1]}（默认上围栏，原地址 $STORY_RANGE:1-9）`]);
+    expect(result.expandedReads).toEqual([`${address[1]} (hàng rào trên mặc định, địa chỉ gốc $STORY_RANGE:1-9)`]);
   });
 
   it('默认上围栏连最小范围都放不下时整批不注入、不消耗额度，改用显式围栏后可重读', async () => {
@@ -1835,27 +1835,27 @@ describe('子代理最终请求容量门禁与 60% 默认上围栏', () => {
     const sent: SentMessage_ACU[][] = [];
     const input = storyInput_ACU();
     input.budget.maxExtraReads = 2;
-    // 预算 700：第一次宽地址被收窄；第二次重复同一宽地址不得再走分配、不得重注正文。
+    // 预算 940：第一次宽地址被收窄；第二次重复同一宽地址不得再走分配、不得重注正文。
     const replies = [
       nativeToolTurn_ACU('read', { reads: ['$STORY_RANGE:1-9'] }, 'wide-first'),
       nativeToolTurn_ACU('read', { reads: ['$STORY_RANGE:1-9'] }, 'wide-repeat'),
       finalReply_ACU,
     ];
-    const result = await runtime_ACU(58833, replies, sent).run(input);
+    const result = await runtime_ACU(58433, replies, sent).run(input);
     const first = toolContent_ACU(sent[1], 'wide-first');
-    const parsed = /解析为「(\$STORY_RANGE:1-(\d+))」/.exec(first)!;
+    const parsed = /được phân giải thành "(\$STORY_RANGE:1-(\d+))"/.exec(first)!;
     const narrowedAddress = parsed[1];
     const upper = Number(parsed[2]);
     const repeated = toolContent_ACU(sent[2], 'wide-repeat');
-    expect(repeated).toContain(`原地址「$STORY_RANGE:1-9」此前只提供了收窄子范围「${narrowedAddress}」的完整正文`);
-    expect(repeated).toContain('未声称原地址已全部注入');
+    expect(repeated).toContain(`Địa chỉ gốc "$STORY_RANGE:1-9" trước đó chỉ cung cấp toàn văn của phạm vi con thu hẹp "${narrowedAddress}"`);
+    expect(repeated).toContain('không tuyên bố địa chỉ gốc đã được đưa vào toàn bộ');
     // 坐标轴只含 AI 楼层（夹具中为奇数下标），剩余范围从 upper 之后的下一个 AI 楼层开始。
-    expect(repeated).toContain(`请改读「$STORY_RANGE:${upper + 2}-9」`);
+    expect(repeated).toContain(`hãy đọc "$STORY_RANGE:${upper + 2}-9"`);
     expect(repeated).not.toContain('完整内容已提供');
     expect(repeated).not.toContain('【默认上围栏】');
     expect(repeated).not.toContain(floor_ACU(1));
     // 收窄子范围只登记一次放行；重复请求不产生新的 expandedReads。
-    expect(result.expandedReads).toEqual([`${narrowedAddress}（默认上围栏，原地址 $STORY_RANGE:1-9）`]);
+    expect(result.expandedReads).toEqual([`${narrowedAddress} (hàng rào trên mặc định, địa chỉ gốc $STORY_RANGE:1-9)`]);
   });
 
 });

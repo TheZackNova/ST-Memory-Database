@@ -125,7 +125,7 @@ describe('resolveLogErrorHint', () => {
       message: 'schema_missing_column: sheet_a (physical_a).name 未在 SQLite runtime 中创建。',
     });
     expect(hint?.id).toBe('schema-mismatch');
-    expect(hint?.steps.join(' ')).toContain('不需要检查下载拦截');
+    expect(hint?.steps.join(' ')).toContain('không cần kiểm tra việc chặn tải');
     expect(hint?.steps.join(' ')).not.toContain('检查浏览器的广告拦截 / 安全插件是否拦截了 .wasm 文件下载');
   });
 

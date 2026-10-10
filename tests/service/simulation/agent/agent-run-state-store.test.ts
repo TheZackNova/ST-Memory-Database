@@ -28,8 +28,8 @@ describe('格林推演 run 恢复状态校验', () => {
 
   it('完成度取值非法或出现真正未知的字段时仍拒绝', () => {
     const base = { agentName: 'dramatis-keeper', status: 'no_change', summary: '无变化', evidenceRefs: [], uncertainties: [] };
-    expect(() => validateWorldSimulationRunStateRecord_ACU(record([{ ...base, completion: 'legacy_unknown' }]))).toThrow('completion 枚举非法');
-    expect(() => validateWorldSimulationRunStateRecord_ACU(record([{ ...base, moduleCompletion: { stage: 'failed' } }]))).toThrow('moduleCompletion.stage 枚举非法');
-    expect(() => validateWorldSimulationRunStateRecord_ACU(record([{ ...base, unexpected: true }]))).toThrow('unexpected 是未知字段');
+    expect(() => validateWorldSimulationRunStateRecord_ACU(record([{ ...base, completion: 'legacy_unknown' }]))).toThrow('completion có giá trị enum không hợp lệ');
+    expect(() => validateWorldSimulationRunStateRecord_ACU(record([{ ...base, moduleCompletion: { stage: 'failed' } }]))).toThrow('moduleCompletion.stage có giá trị enum không hợp lệ');
+    expect(() => validateWorldSimulationRunStateRecord_ACU(record([{ ...base, unexpected: true }]))).toThrow('unexpected là trường không xác định');
   });
 });

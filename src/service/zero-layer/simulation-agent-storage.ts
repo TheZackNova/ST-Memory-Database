@@ -20,14 +20,14 @@ export function appendZeroLayerSimulationSegment_ACU(record: WorldSimulationConv
   const usable = input.appends.filter(item => item.text.trim() || item.kind === 'model_agent' || item.toolCallId || item.toolCalls?.length);
   if (!usable.length) return false;
   const normalized = usable.map(item => ({ ...item, text: item.kind === 'model_agent' || item.kind === 'model_feedback'
-    || item.toolCallId || item.text.length <= 8000 ? item.text : `${item.text.slice(0, 8000)}\n（本条内容超出 8000 字上限，已截断）`,
+    || item.toolCallId || item.text.length <= 8000 ? item.text : `${item.text.slice(0, 8000)}\n(Nội dung này vượt quá giới hạn 8000 ký tự, đã bị cắt bớt)`,
     digest: item.digest ?? '', turnKey: item.turnKey ?? '' }));
   const fingerprint = (items: readonly WorldSimulationConversationAppend_ACU[]) => JSON.stringify(items.map(item =>
     [item.kind, item.text, item.digest ?? '', item.turnKey ?? '', item.toolCalls ?? [], item.toolCallId ?? '']));
   const sameId = record.segments.find(segment => segment.segmentId === input.segmentId);
   if (sameId) {
     if (input.idempotent && fingerprint(sameId.messages) === fingerprint(normalized)) return true;
-    throw new ZeroLayerError_ACU('revision-conflict', '推演会话段身份冲突。');
+    throw new ZeroLayerError_ACU('revision-conflict', 'Danh tính đoạn hội thoại mô phỏng xung đột.');
   }
   if (input.idempotent && record.segments.some(segment => segment.runId === input.runId
     && fingerprint(segment.messages) === fingerprint(normalized))) return true;
@@ -47,7 +47,7 @@ export function createZeroLayerSimulationAgentStorage_ACU(
 ): WorldSimulationAgentStorage_ACU {
   const chat = structuredClone(store.readChat(anchor));
   const assertCurrent = () => {
-    if (signal?.aborted) throw new ZeroLayerError_ACU('scope-changed', '逻辑推演已中止。');
+    if (signal?.aborted) throw new ZeroLayerError_ACU('scope-changed', 'Mô phỏng logic đã bị hủy.');
     store.assertAnchor(anchor);
   };
   const source = () => { assertCurrent(); return projectWorldSimulationDirectorSource_ACU(store.readState().conversation.segments); };
@@ -68,7 +68,7 @@ export function createZeroLayerSimulationAgentStorage_ACU(
         const run = current.envelope?.task?.activeRun;
         if (!run || run.taskId !== prepared.taskId
           || `${run.stageId}#${run.stageRevision}#${run.baseLedgerRevision}` !== prepared.cursorKey) {
-          throw new ZeroLayerError_ACU('revision-conflict', '推演恢复游标不属于当前运行。');
+          throw new ZeroLayerError_ACU('revision-conflict', 'Con trỏ khôi phục mô phỏng không thuộc lần chạy hiện tại.');
         }
         current.runState = prepared;
       });
@@ -85,7 +85,7 @@ export function createZeroLayerSimulationAgentStorage_ACU(
     readCompactionSource: source,
     appendDirectorHistory: async input => {
       if (!input.messages.length) return false;
-      if (!isModelExchangeSequence_ACU(input.messages)) throw new ZeroLayerError_ACU('corrupt-data', '推演模型动作与反馈必须成对保存。');
+      if (!isModelExchangeSequence_ACU(input.messages)) throw new ZeroLayerError_ACU('corrupt-data', 'Hành động và phản hồi của mô hình mô phỏng phải được lưu thành cặp.');
       const toolNames = new Map(input.messages.flatMap(item => (item.tool_calls ?? []).map(call => [call.id, call.function.name] as const)));
       await store.updateState((state, envelope) => {
         assertCurrent();
@@ -93,7 +93,7 @@ export function createZeroLayerSimulationAgentStorage_ACU(
         const run = state.envelope?.task?.activeRun;
         if (!run || run.runId !== input.runId || run.taskId !== input.taskId
           || run.stageId !== input.stageId || run.stageRevision !== input.stageRevision) {
-          throw new ZeroLayerError_ACU('revision-conflict', '推演会话保存租约已失效。');
+          throw new ZeroLayerError_ACU('revision-conflict', 'Lease lưu hội thoại mô phỏng đã mất hiệu lực.');
         }
         const prefix = `director:${input.runId}:`;
         appendZeroLayerSimulationSegment_ACU(state.conversation, { ...input,
@@ -111,14 +111,14 @@ export function createZeroLayerSimulationAgentStorage_ACU(
         assertCurrent();
         const current = projectWorldSimulationDirectorSource_ACU(state.conversation.segments);
         if (input.expectedFingerprint && current.fingerprint !== input.expectedFingerprint) {
-          throw new ZeroLayerError_ACU('revision-conflict', '推演压缩来源已变化。');
+          throw new ZeroLayerError_ACU('revision-conflict', 'Nguồn nén mô phỏng đã thay đổi.');
         }
         if ((current.view.compaction?.compactedThroughId ?? -1) >= input.compaction.compactedThroughId) return;
         const last = state.conversation.segments[state.conversation.segments.length - 1];
         if (!last) return;
         if (input.expectedStageId && last.stageId !== input.expectedStageId
           || input.expectedStageRevision !== undefined && last.stageRevision !== input.expectedStageRevision) {
-          throw new ZeroLayerError_ACU('revision-conflict', '推演压缩阶段已变化。');
+          throw new ZeroLayerError_ACU('revision-conflict', 'Giai đoạn nén mô phỏng đã thay đổi.');
         }
         last.compaction = structuredClone(input.compaction);
         last.updatedAt = state.conversation.updatedAt = Date.now();

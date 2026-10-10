@@ -15,7 +15,7 @@ export async function buildBridgeTable_ACU(chat: any[], createdAt: number, confi
   table: ZeroLayerBridgeCandidate_ACU['table']; availability: 'persisted' | 'pristine';
 }> {
   const { isolationKey, chatKey, storageMode } = config;
-  if (!chatKey || chatKey === 'unknown_chat_init') throw new ZeroLayerError_ACU('chat-unavailable', '桥接表格聊天身份尚未就绪。');
+  if (!chatKey || chatKey === 'unknown_chat_init') throw new ZeroLayerError_ACU('chat-unavailable', 'Danh tính cuộc trò chuyện của bảng cầu nối chưa sẵn sàng.');
   const settings = structuredClone(config.settings);
   const isolationConfig = { enabled: settings.dataIsolationEnabled, code: settings.dataIsolationCode };
   const guide = structuredClone(config.guideData);
@@ -30,14 +30,14 @@ export async function buildBridgeTable_ACU(chat: any[], createdAt: number, confi
       compatibilityMode: 'disabled', backgroundFixation: 'skip',
     });
     if (!replay || replay.requiresCheckpointConvergence) {
-      throw new ZeroLayerError_ACU('migration-conflict', '旧表格缺少严格回放基底，不能建立桥接。');
+      throw new ZeroLayerError_ACU('migration-conflict', 'Bảng cũ thiếu nền phát lại nghiêm ngặt, không thể thiết lập cầu nối.');
     }
     tableData = replay.data;
   } else if (strategy.mode === 'legacy-v1') {
     const legacy = await mergeAllIndependentTablesLegacyV1_ACU({ chat, isolationKey,
       sheetGuideData: guide, templateSheetKeys: Object.keys(templateData).filter(key => key.startsWith('sheet_')),
       isolationConfig, templateData });
-    if (!legacy) throw new ZeroLayerError_ACU('migration-conflict', '旧表格源存在但无法回放，禁止空基线。');
+    if (!legacy) throw new ZeroLayerError_ACU('migration-conflict', 'Nguồn bảng cũ tồn tại nhưng không thể phát lại, cấm đường cơ sở rỗng.');
     tableData = legacy as TableDataObject_ACU;
   } else {
     // 仅无持久历史证据时使用模板结构；seedRows 不冒充已有聊天的真实数据行。
@@ -57,7 +57,7 @@ export async function buildBridgeTable_ACU(chat: any[], createdAt: number, confi
       skipUpdateFloors: settings.skipUpdateFloors ?? 0, autoUpdateThreshold: settings.autoUpdateThreshold ?? 3,
       updateBatchSize: settings.updateBatchSize ?? 3 } };
   const built = buildCanonicalFullCheckpoint_ACU({ createdAt, reason: 'migration', data: tableData });
-  if (!built.checkpoint) throw new ZeroLayerError_ACU('migration-conflict', '桥接表格 canonical 基线校验失败。');
+  if (!built.checkpoint) throw new ZeroLayerError_ACU('migration-conflict', 'Kiểm tra đường cơ sở canonical của bảng cầu nối thất bại.');
   return { table: { input: JSON.parse(JSON.stringify(input)), payload: built.checkpoint },
     availability: strategy.mode === 'empty' ? 'pristine' : 'persisted' };
 }

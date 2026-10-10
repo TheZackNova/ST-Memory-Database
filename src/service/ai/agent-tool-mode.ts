@@ -35,8 +35,8 @@ export function isNativeToolChannelAvailable_ACU(preset: NativeToolChannelPreset
 }
 
 const FEATURE_LABELS_ACU: Record<AgentToolModeFeature_ACU, string> = {
-  continuation: '智能续写',
-  worldSimulation: '世界推演',
+  continuation: 'Viết tiếp thông minh',
+  worldSimulation: 'Mô phỏng thế giới',
 };
 
 /** 全局开关是否打开；只读插件全局设置，不读对话级设置。 */

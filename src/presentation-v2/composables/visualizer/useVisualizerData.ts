@@ -48,7 +48,7 @@ function createDefaultSheet(key: string, name: string): Record<string, any> {
     required: false,
     content: [['row_id', '列1', '列2']],
     sourceData: {
-      note: '新表格说明',
+      note: 'Mô tả bảng mới',
       initNode: '',
       insertNode: '',
       updateNode: '',
@@ -93,9 +93,9 @@ export function useVisualizerData() {
   function refreshTemplatePresetLabel(): void {
     try {
       const meta = getActiveTemplatePresetMeta_ACU();
-      templatePresetLabel.value = `${meta.displayName}（${meta.scopeLabel}）`;
+      templatePresetLabel.value = `${meta.displayName} (${meta.scopeLabel})`;
     } catch {
-      templatePresetLabel.value = '当前生效模板预设';
+      templatePresetLabel.value = 'Preset mẫu đang có hiệu lực';
     }
   }
 
@@ -126,7 +126,7 @@ export function useVisualizerData() {
       visualizer.loadLockDrafts(buildLockDrafts(orderedKeys, data));
       return true;
     } catch (error) {
-      const message = error instanceof Error ? error.message : '数据库编辑器载入失败。';
+      const message = error instanceof Error ? error.message : 'Tải trình chỉnh sửa CSDL thất bại.';
       visualizer.setLoadError(message);
       logWarn_ACU('[ACU-V2 Visualizer] load failed:', error);
       toastStore.warning(message, { muteable: false });
@@ -136,7 +136,7 @@ export function useVisualizerData() {
 
   async function forceReloadFromCurrentContext(): Promise<boolean> {
     const loaded = await loadFromCurrentContext();
-    if (loaded) toastStore.info('已重新载入当前聊天的数据。');
+    if (loaded) toastStore.info('Đã nạp lại dữ liệu của cuộc trò chuyện hiện tại.');
     return loaded;
   }
 
@@ -147,12 +147,12 @@ export function useVisualizerData() {
       .filter(([key, sheet]) => key.startsWith('sheet_') && !!sheet)
       .map(([sheetKey, sheet]: [string, any]) => ({ sheetKey, canonicalName: sheet.name }));
     if (existingSheets.some(sheet => canonicalizeDisplayName_ACU(sheet.canonicalName) === canonicalizeDisplayName_ACU(normalizedName))) {
-      toastStore.warning(`表名「${normalizedName}」与现有表重复，已拒绝新增。`, { muteable: false });
+      toastStore.warning(`Tên bảng「${normalizedName}」trùng với bảng hiện có, đã từ chối thêm mới.`, { muteable: false });
       return;
     }
     const allocation = allocateStableSheetKeys_ACU([normalizedName], { existing: existingSheets });
     if (allocation.diagnostics.length > 0 || !allocation.keys[0]) {
-      toastStore.warning(`无法为表「${normalizedName}」生成稳定 key。`, { muteable: false });
+      toastStore.warning(`Không thể tạo key ổn định cho bảng「${normalizedName}」.`, { muteable: false });
       return;
     }
     const key = allocation.keys[0];

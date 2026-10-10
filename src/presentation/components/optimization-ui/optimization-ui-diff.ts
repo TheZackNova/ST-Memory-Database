@@ -23,7 +23,7 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
 
   export function showOptimizationDiffDialogForLoop_ACU(messageIndex: number, result: any, callback: Function) {
     const isLastLoop = result.currentLoop >= result.totalLoops;
-    const applyButtonText = isLastLoop ? '应用并完成' : '应用并继续';
+    const applyButtonText = isLastLoop ? 'Áp dụng và hoàn tất' : 'Áp dụng và tiếp tục';
     const originalContent = getOriginalContent_ACU(messageIndex) || result.optimizedContent;
     
     const dialogHtml = `
@@ -46,9 +46,9 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
         font-family: "Noto Serif SC", "Source Han Serif CN", "Songti SC", "STSong", "SimSun", serif;
         box-sizing: border-box;
       ">
-        <h3 style="margin: 0 0 8px 0; color: var(--acu-accent, #7d4940); font-size: 1.1em; letter-spacing: 1px;">正文替换建议</h3>
+        <h3 style="margin: 0 0 8px 0; color: var(--acu-accent, #7d4940); font-size: 1.1em; letter-spacing: 1px;">Gợi ý thay thế nội dung</h3>
         <p style="margin: 0 0 12px 0; color: var(--acu-text-dim, #8a8075);">${result.summary}</p>
-        ${result.totalLoops > 1 ? `<p style="margin: 0 0 12px 0; color: var(--acu-text-mute, #6a6055); font-size: 12px;">进度: 第 ${result.currentLoop}/${result.totalLoops} 轮</p>` : ''}
+        ${result.totalLoops > 1 ? `<p style="margin: 0 0 12px 0; color: var(--acu-text-mute, #6a6055); font-size: 12px;">Tiến độ: vòng ${result.currentLoop}/${result.totalLoops}</p>` : ''}
         <div class="optimization-list" style="margin-bottom: 16px; max-height: 400px; overflow-y: auto;">
           ${result.optimizations.map((opt: any, i: number) => `
             <div class="optimization-item" style="
@@ -59,13 +59,13 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
               border-left: 2px solid var(--acu-border, #36332e);
             ">
               <div style="color: var(--acu-text-dim, #8a8075); margin-bottom: 8px; text-decoration: line-through; opacity: 0.7;">
-                <strong>原文：</strong>${escapeHtml_ACU(opt.original.substring(0, 200))}${opt.original.length > 200 ? '...' : ''}
+                <strong>Nguyên văn:</strong>${escapeHtml_ACU(opt.original.substring(0, 200))}${opt.original.length > 200 ? '...' : ''}
               </div>
               <div style="color: var(--acu-text, #c1b9ad); font-size: 12px; margin-bottom: 8px; padding: 8px; background: rgba(125, 73, 64, 0.1); border-radius: 1px; border-left: 2px solid var(--acu-accent, #7d4940);">
-                <strong>修改方案：</strong>${escapeHtml_ACU(opt.plan || opt.reason || '未说明')}
+                <strong>Phương án sửa:</strong>${escapeHtml_ACU(opt.plan || opt.reason || 'Chưa nêu rõ')}
               </div>
               <div style="color: #6a8a6a;">
-                <strong>优化：</strong>${escapeHtml_ACU(opt.optimized.substring(0, 200))}${opt.optimized.length > 200 ? '...' : ''}
+                <strong>Tối ưu:</strong>${escapeHtml_ACU(opt.optimized.substring(0, 200))}${opt.optimized.length > 200 ? '...' : ''}
               </div>
             </div>
           `).join('')}
@@ -81,7 +81,7 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
             min-width: 80px;
             flex-shrink: 0;
             font-family: inherit;
-          ">取消优化</button>
+          ">Hủy tối ưu</button>
           ${!isLastLoop ? `
           <button id="acu-opt-skip" style="
             padding: 8px 16px;
@@ -93,7 +93,7 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
             min-width: 80px;
             flex-shrink: 0;
             font-family: inherit;
-          ">跳过本轮</button>
+          ">Bỏ qua vòng này</button>
           ` : ''}
           <button id="acu-opt-reoptimize" style="
             padding: 8px 16px;
@@ -105,7 +105,7 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
             min-width: 100px;
             flex-shrink: 0;
             font-family: inherit;
-          ">🔄 重新优化</button>
+          ">🔄 Tối ưu lại</button>
           <button id="acu-opt-apply" style="
             padding: 8px 16px;
             border: none;
@@ -144,7 +144,7 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
     
     // 绑定重新优化事件
     jQuery_API_ACU('#acu-opt-reoptimize').on('click', async function() {
-      jQuery_API_ACU(this).prop('disabled', true).text('优化中...');
+      jQuery_API_ACU(this).prop('disabled', true).text('Đang tối ưu...');
       
       // 关闭当前对话框
       jQuery_API_ACU('.acu-optimization-dialog, #acu-opt-backdrop').remove();
@@ -163,7 +163,7 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
     
     // 绑定应用事件
     jQuery_API_ACU('#acu-opt-apply').on('click', async function() {
-      jQuery_API_ACU(this).prop('disabled', true).text('处理中...');
+      jQuery_API_ACU(this).prop('disabled', true).text('Đang xử lý...');
       
       logDebug_ACU(`[正文优化] 用户点击应用，isLastLoop=${isLastLoop}, messageIndex=${messageIndex}`);
       logDebug_ACU(`[正文优化] optimizedContent长度: ${result.optimizedContent?.length || 0}`);
@@ -175,7 +175,7 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
         logDebug_ACU(`[正文优化] replaceChatMessage_ACU 返回: ${success}`);
         if (!success) {
           jQuery_API_ACU(this).prop('disabled', false).text(applyButtonText);
-          showToastr_ACU('error', '应用失败');
+          showToastr_ACU('error', 'Áp dụng thất bại');
           return;
         }
       } else {
@@ -212,8 +212,8 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
         font-family: "Noto Serif SC", "Source Han Serif CN", "Songti SC", "STSong", "SimSun", serif;
         box-sizing: border-box;
       ">
-        <h3 style="margin: 0 0 16px 0; color: var(--acu-accent, #7d4940); font-size: 1.1em; letter-spacing: 1px;">正文替换建议</h3>
-        <p style="margin: 0 0 12px 0; color: var(--acu-text-dim, #8a8075);">${result.summary || `共 ${result.optimizations.length} 处替换建议`}</p>
+        <h3 style="margin: 0 0 16px 0; color: var(--acu-accent, #7d4940); font-size: 1.1em; letter-spacing: 1px;">Gợi ý thay thế nội dung</h3>
+        <p style="margin: 0 0 12px 0; color: var(--acu-text-dim, #8a8075);">${result.summary || `Tổng ${result.optimizations.length} gợi ý thay thế`}</p>
         <div class="optimization-list" style="margin-bottom: 16px;">
           ${result.optimizations.map((opt: any, i: number) => `
             <div class="optimization-item" style="
@@ -224,13 +224,13 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
               border-left: 2px solid var(--acu-border, #36332e);
             ">
               <div style="color: var(--acu-text-dim, #8a8075); margin-bottom: 8px; text-decoration: line-through; opacity: 0.7;">
-                <strong>原文：</strong>${escapeHtml_ACU(opt.original.substring(0, 200))}${opt.original.length > 200 ? '...' : ''}
+                <strong>Nguyên văn:</strong>${escapeHtml_ACU(opt.original.substring(0, 200))}${opt.original.length > 200 ? '...' : ''}
               </div>
               <div style="color: var(--acu-text, #c1b9ad); font-size: 12px; margin-bottom: 8px; padding: 8px; background: rgba(125, 73, 64, 0.1); border-radius: 1px; border-left: 2px solid var(--acu-accent, #7d4940);">
-                <strong>修改方案：</strong>${escapeHtml_ACU(opt.plan || opt.reason || '未说明')}
+                <strong>Phương án sửa:</strong>${escapeHtml_ACU(opt.plan || opt.reason || 'Chưa nêu rõ')}
               </div>
               <div style="color: #6a8a6a;">
-                <strong>优化：</strong>${escapeHtml_ACU(opt.optimized.substring(0, 200))}${opt.optimized.length > 200 ? '...' : ''}
+                <strong>Tối ưu:</strong>${escapeHtml_ACU(opt.optimized.substring(0, 200))}${opt.optimized.length > 200 ? '...' : ''}
               </div>
             </div>
           `).join('')}
@@ -246,7 +246,7 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
             min-width: 80px;
             flex-shrink: 0;
             font-family: inherit;
-          ">取消</button>
+          ">Hủy</button>
           <button id="acu-opt-reoptimize" style="
             padding: 8px 16px;
             border: 1px solid var(--acu-accent, #7d4940);
@@ -257,7 +257,7 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
             min-width: 100px;
             flex-shrink: 0;
             font-family: inherit;
-          ">🔄 重新优化</button>
+          ">🔄 Tối ưu lại</button>
           <button id="acu-opt-apply" style="
             padding: 8px 16px;
             border: none;
@@ -269,7 +269,7 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
             min-width: 100px;
             flex-shrink: 0;
             font-family: inherit;
-          ">应用优化</button>
+          ">Áp dụng tối ưu</button>
         </div>
       </div>
       <div id="acu-opt-backdrop" style="
@@ -289,7 +289,7 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
     
     // 绑定重新优化事件
     jQuery_API_ACU('#acu-opt-reoptimize').on('click', async function() {
-      jQuery_API_ACU(this).prop('disabled', true).text('优化中...');
+      jQuery_API_ACU(this).prop('disabled', true).text('Đang tối ưu...');
       
       // 关闭当前对话框
       jQuery_API_ACU('.acu-optimization-dialog, #acu-opt-backdrop').remove();
@@ -301,16 +301,16 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
     });
     
     jQuery_API_ACU('#acu-opt-apply').on('click', async function() {
-      jQuery_API_ACU(this).prop('disabled', true).text('应用中...');
+      jQuery_API_ACU(this).prop('disabled', true).text('Đang áp dụng...');
       
       const success = await replaceChatMessage_ACU(messageIndex, result.optimizedContent, { originalContent: getOriginalContent_ACU(messageIndex) || originalContent });
       
       if (success) {
         jQuery_API_ACU('.acu-optimization-dialog, #acu-opt-backdrop').remove();
-        showToastr_ACU('success', '优化已应用');
+        showToastr_ACU('success', 'Đã áp dụng tối ưu');
       } else {
-        jQuery_API_ACU(this).prop('disabled', false).text('应用优化');
-        showToastr_ACU('error', '应用失败');
+        jQuery_API_ACU(this).prop('disabled', false).text('Áp dụng tối ưu');
+        showToastr_ACU('error', 'Áp dụng thất bại');
       }
     });
     
@@ -325,10 +325,10 @@ import { getOriginalContent_ACU, reoptimizeMessage_ACU, replaceChatMessage_ACU }
    * 显示优化结果摘要
    */
   export function showOptimizationDiff_ACU(messageIndex: number, result: any) {
-    const message = `正文替换完成，共 ${result.optimizations.length} 处改进`;
+    const message = `Thay thế nội dung hoàn tất, tổng ${result.optimizations.length} chỗ cải thiện`;
     showToastr_ACU('success', result.summary ? `${message}\n${result.summary}` : message, {
       acuActions: [{
-        label: '重新优化',
+        label: 'Tối ưu lại',
         run: async () => {
           await reoptimizeMessage_ACU(messageIndex);
         },

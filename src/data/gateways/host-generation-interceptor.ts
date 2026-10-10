@@ -33,7 +33,7 @@ export class HostGenerationInterceptedError_ACU extends Error {
   readonly code = 'ACU_HOST_GENERATION_INTERCEPTED';
   readonly cause: unknown;
   constructor(cause?: unknown) {
-    super('酒馆原发送已取消，本轮由数据库处理。');
+    super('Việc gửi gốc của SillyTavern đã bị hủy, lượt này do CSDL xử lý.');
     this.name = 'AbortError';
     this.cause = cause;
   }
@@ -52,7 +52,7 @@ export function installHostGenerationInterceptor_ACU(
   host: Pick<Window, 'fetch' | 'location'> = getHostWindow(),
 ): () => void {
   const original = host.fetch;
-  if (typeof original !== 'function') throw new Error('宿主 fetch 不可用。');
+  if (typeof original !== 'function') throw new Error('fetch của host không khả dụng.');
   let disposed = false;
   const wrapper: typeof fetch = function (this: unknown, input, init) {
     const receiver = this || host;
@@ -75,7 +75,7 @@ export function installHostGenerationInterceptor_ACU(
         readPayload: createPayloadReader_ACU(request, init),
       });
       if (run) return cancelHostRequest_ACU(run, signal);
-      if (options.rejectUnclaimed) throw new Error('零层正文请求未绑定当前回合，原发送已阻断。');
+      if (options.rejectUnclaimed) throw new Error('Yêu cầu nội dung Tầng 0 chưa được ràng buộc với lượt hiện tại, việc gửi gốc đã bị chặn.');
       return forward();
     } catch (error) {
       return Promise.reject(new HostGenerationInterceptedError_ACU(error));
@@ -99,12 +99,12 @@ function createPayloadReader_ACU(request: Request | null, init?: RequestInit): I
         const text = body === undefined
           ? await copy?.text()
           : typeof body === 'string' ? body : await new Response(body).text();
-        if (!text) throw new Error('酒馆生成请求缺少 JSON 请求体。');
+        if (!text) throw new Error('Yêu cầu tạo của SillyTavern thiếu thân JSON.');
         let payload: unknown;
         try { payload = JSON.parse(text); }
-        catch { throw new Error('酒馆生成请求体不是合法 JSON。'); }
+        catch { throw new Error('Thân yêu cầu tạo của SillyTavern không phải JSON hợp lệ.'); }
         if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-          throw new Error('酒馆生成请求体必须为对象。');
+          throw new Error('Thân yêu cầu tạo của SillyTavern phải là đối tượng.');
         }
         return payload as Record<string, unknown>;
       })();
@@ -115,9 +115,9 @@ function createPayloadReader_ACU(request: Request | null, init?: RequestInit): I
 
 async function cancelHostRequest_ACU(run: () => Promise<void>, signal: AbortSignal | null): Promise<Response> {
   try {
-    if (signal?.aborted) throw new Error('本轮在数据库发送前已中止。');
+    if (signal?.aborted) throw new Error('Lượt này đã bị hủy trước khi CSDL gửi.');
     await run();
-    if (signal?.aborted) throw new Error('本轮已中止。');
+    if (signal?.aborted) throw new Error('Lượt này đã bị hủy.');
   } catch (error) {
     // 无论解析、转发还是保存失败，都不能重新发送酒馆原请求。
     throw new HostGenerationInterceptedError_ACU(error);

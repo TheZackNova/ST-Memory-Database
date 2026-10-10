@@ -108,24 +108,24 @@ describe('ContentReplacePage', () => {
     const page = document.querySelector('.acu-v2-content-replace-page');
     expect(page).not.toBeNull();
     const text = page!.textContent || '';
-    expect(text).toContain('正文替换');
-    expect(text).toContain('基础设置');
-    expect(text).toContain('替换模式');
-    expect(text).toContain('标签筛选');
-    expect(text).toContain('正文替换预设');
-    expect(text).toContain('手动测试');
-    expect(text).toContain('默认预设');
-    expect(text).not.toContain('未选择');
+    expect(text).toContain('thay thế nội dung');
+    expect(text).toContain('Cài đặt cơ bản');
+    expect(text).toContain('Chế độ thay thế');
+    expect(text).toContain('Lọc theo thẻ');
+    expect(text).toContain('Preset thay thế nội dung');
+    expect(text).toContain('Kiểm thử thủ công');
+    expect(text).toContain('Preset mặc định');
+    expect(text).not.toContain('Chưa chọn');
 
     const layout = page!.querySelector('.acu-v2-content-replace-page__layout');
     expect(layout).not.toBeNull();
     expect(layout!.querySelectorAll(':scope > .acu-panel').length).toBe(5);
     const panelTitles = Array.from(layout!.querySelectorAll<HTMLElement>(':scope > .acu-panel .acu-panel__title'))
       .map(title => title.textContent?.trim());
-    expect(panelTitles).toEqual(['基础设置', '替换模式', '正文替换预设', '标签筛选', '手动测试']);
+    expect(panelTitles).toEqual(['Cài đặt cơ bản', 'Chế độ thay thế', 'Preset thay thế nội dung', 'Lọc theo thẻ', 'Kiểm thử thủ công']);
     const mobileNavItems = Array.from(page!.querySelectorAll('.acu-mobile-panel-nav__item'))
       .map(item => item.textContent?.trim());
-    expect(mobileNavItems).toEqual(['基础设置', '替换模式', '预设', '标签筛选', '手动测试']);
+    expect(mobileNavItems).toEqual(['Cài đặt cơ bản', 'Chế độ thay thế', 'Preset', 'Lọc theo thẻ', 'Kiểm thử thủ công']);
 
     app.unmount();
   });
@@ -160,7 +160,7 @@ describe('ContentReplacePage', () => {
 
     expect(document.querySelector('.acu-v2-content-replace-page .acu-toggle')).toBeNull();
     const text = document.querySelector('.acu-v2-content-replace-page')?.textContent || '';
-    expect(text).not.toContain('启用开关在仪表盘');
+    expect(text).not.toContain('Công tắc bật ở bảng điều khiển');
 
     app.unmount();
   });
@@ -169,19 +169,19 @@ describe('ContentReplacePage', () => {
     const { app } = await mountContentReplacePage();
 
     const basicPanel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-content-replace-page .acu-panel'))
-      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('基础设置'))!;
+      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('Cài đặt cơ bản'))!;
     const apiRow = Array.from(basicPanel.querySelectorAll<HTMLElement>('.acu-form-row'))
-      .find(row => (row.textContent || '').includes('API 预设'))!;
+      .find(row => (row.textContent || '').includes('Preset API'))!;
     const acuSelect = apiRow.querySelector('.acu-select') as HTMLElement | null;
     expect(acuSelect).not.toBeNull();
     const trigger = acuSelect!.querySelector('.acu-select__trigger') as HTMLButtonElement;
-    expect(trigger.textContent).toContain('跟随当前活动 API（fast）');
+    expect(trigger.textContent).toContain('Theo API đang hoạt động (fast)');
     trigger.click();
     await Promise.resolve();
 
     const labels = Array.from(acuSelect!.querySelectorAll<HTMLElement>('.acu-select__item'))
       .map(item => (item.textContent || '').trim());
-    expect(labels[0]).toBe('跟随当前活动 API（fast）');
+    expect(labels[0]).toBe('Theo API đang hoạt động (fast)');
     expect(labels).toContain('fast');
 
     app.unmount();
@@ -192,7 +192,7 @@ describe('ContentReplacePage', () => {
 
     expect(document.querySelector('.acu-v2-content-replace-page .acu-prompt-segs')).toBeNull();
 
-    const importButtonIcon = document.querySelector<HTMLElement>('.acu-v2-content-replace-page [title="导入预设 JSON"] i');
+    const importButtonIcon = document.querySelector<HTMLElement>('.acu-v2-content-replace-page [title="Nhập JSON preset"] i');
     expect(importButtonIcon?.className || '').toContain('fa-download');
 
     const trigger = document.querySelector<HTMLButtonElement>('.acu-v2-content-replace-page .acu-preset-dd__trigger');
@@ -208,7 +208,7 @@ describe('ContentReplacePage', () => {
     customPresetItem!.click();
     await new Promise(r => setTimeout(r, 0));
 
-    const editButton = document.querySelector<HTMLButtonElement>('.acu-v2-content-replace-page button[title="编辑当前提示词"]');
+    const editButton = document.querySelector<HTMLButtonElement>('.acu-v2-content-replace-page button[title="Sửa prompt hiện tại"]');
     expect(editButton).not.toBeNull();
     expect(editButton!.disabled).toBe(false);
     editButton!.click();
@@ -225,7 +225,7 @@ describe('ContentReplacePage', () => {
     expect(settings.contentOptimizationSettings.promptGroup[0].content).toBe('预设 $CONTENT');
 
     const saveButton = Array.from(drawer.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('保存提示词'));
+      .find(button => button.textContent?.includes('Lưu prompt'));
     expect(saveButton).not.toBeUndefined();
     saveButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -246,12 +246,12 @@ describe('ContentReplacePage', () => {
     await new Promise(r => setTimeout(r, 0));
 
     const defaultItem = Array.from(document.querySelectorAll<HTMLButtonElement>('.acu-v2-content-replace-page .acu-preset-dd__item'))
-      .find(button => button.textContent?.includes('默认预设'));
+      .find(button => button.textContent?.includes('Preset mặc định'));
     expect(defaultItem).not.toBeUndefined();
     defaultItem!.click();
     await new Promise(r => setTimeout(r, 0));
 
-    expect(document.querySelector('.acu-v2-content-replace-page')?.textContent || '').toContain('当前提示词: 默认预设');
+    expect(document.querySelector('.acu-v2-content-replace-page')?.textContent || '').toContain('Prompt hiện tại: Preset mặc định');
     expect(settings.contentOptimizationSettings.promptGroup[0].content).not.toBe('预设 $CONTENT');
     expect(settings.contentOptimizationSettings.promptGroup.some((seg: any) => String(seg.content || '').includes('$CONTENT'))).toBe(true);
 
@@ -262,17 +262,17 @@ describe('ContentReplacePage', () => {
     const { app, settings, saveSettings } = await mountContentReplacePage();
 
     const tagPanel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-content-replace-page .acu-panel'))
-      .find(panel => (panel.textContent || '').includes('标签筛选')) as HTMLElement;
+      .find(panel => (panel.textContent || '').includes('Lọc theo thẻ')) as HTMLElement;
     expect(tagPanel).toBeDefined();
 
     const extractHeader = Array.from(tagPanel.querySelectorAll<HTMLButtonElement>('.acu-rule-pair-list__header'))
-      .find(button => (button.textContent || '').includes('正文标签提取规则')) as HTMLButtonElement;
+      .find(button => (button.textContent || '').includes('Quy tắc trích xuất thẻ nội dung')) as HTMLButtonElement;
     expect(extractHeader).toBeDefined();
     extractHeader.click();
     await new Promise(r => setTimeout(r, 0));
 
     const addButton = Array.from(tagPanel.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => (button.textContent || '').includes('添加提取规则')) as HTMLButtonElement;
+      .find(button => (button.textContent || '').includes('Thêm quy tắc trích xuất')) as HTMLButtonElement;
     expect(addButton).toBeDefined();
     addButton.click();
     await new Promise(r => setTimeout(r, 0));
@@ -303,7 +303,7 @@ describe('ContentReplacePage', () => {
     const { app } = await mountContentReplacePage();
 
     const gearButton = Array.from(document.querySelectorAll<HTMLButtonElement>('.acu-v2-content-replace-page button'))
-      .find(button => button.getAttribute('title') === '管理预设');
+      .find(button => button.getAttribute('title') === 'Quản lý preset');
     expect(gearButton).not.toBeUndefined();
     gearButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -311,17 +311,17 @@ describe('ContentReplacePage', () => {
     const drawer = document.querySelector('.acu-v2-drawer') as HTMLElement | null;
     expect(drawer).not.toBeNull();
     const text = drawer!.textContent || '';
-    expect(text).toContain('管理正文替换预设');
-    expect(text).not.toContain('保存当前提示词');
-    expect(text).not.toContain('载入预设');
+    expect(text).toContain('Quản lý preset thay thế nội dung');
+    expect(text).not.toContain('Lưu prompt hiện tại');
+    expect(text).not.toContain('Nạp preset');
 
     const titles = Array.from(drawer!.querySelectorAll<HTMLButtonElement>('.acu-v2-manage-item__actions button'))
       .map(button => button.getAttribute('title'));
-    expect(titles).toContain('导出 JSON');
-    expect(titles).toContain('重命名');
-    expect(titles).toContain('编辑提示词');
-    expect(titles).toContain('删除');
-    expect(titles).not.toContain('设为全局默认');
+    expect(titles).toContain('Xuất JSON');
+    expect(titles).toContain('Đổi tên');
+    expect(titles).toContain('Sửa prompt');
+    expect(titles).toContain('Xóa');
+    expect(titles).not.toContain('Đặt làm mặc định toàn cục');
 
     app.unmount();
   });
@@ -330,21 +330,21 @@ describe('ContentReplacePage', () => {
     const { app, performOptimization } = await mountContentReplacePage();
 
     const textarea = Array.from(document.querySelectorAll<HTMLTextAreaElement>('.acu-v2-content-replace-page textarea'))
-      .find(el => el.placeholder === '输入模拟正文，验证提示词与返回格式。');
+      .find(el => el.placeholder === 'Nhập nội dung mô phỏng để kiểm tra prompt và định dạng trả về.');
     expect(textarea).not.toBeUndefined();
     textarea!.value = '这是一段足够长的测试正文。';
     textarea!.dispatchEvent(new Event('input', { bubbles: true }));
     await new Promise(r => setTimeout(r, 0));
 
     const runButton = Array.from(document.querySelectorAll<HTMLButtonElement>('.acu-v2-content-replace-page button'))
-      .find(button => button.textContent?.includes('执行优化测试'));
+      .find(button => button.textContent?.includes('Chạy thử tối ưu'));
     expect(runButton).not.toBeUndefined();
     runButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
     expect(performOptimization).toHaveBeenCalledWith('这是一段足够长的测试正文。', { currentLoop: 1, userMessage: '' });
     expect(document.querySelector('.acu-v2-content-replace-page')?.textContent || '').not.toContain('测试完成');
-    expect(document.querySelector('.acu-v2-content-replace-page__test-output')?.textContent || '').toContain('优化完成：1 处建议');
+    expect(document.querySelector('.acu-v2-content-replace-page__test-output')?.textContent || '').toContain('Tối ưu hoàn tất: 1 đề xuất');
 
     app.unmount();
   });

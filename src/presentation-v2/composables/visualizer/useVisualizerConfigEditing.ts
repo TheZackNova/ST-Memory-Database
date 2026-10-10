@@ -143,7 +143,7 @@ export function useVisualizerConfigEditing() {
   });
 
   const apiPresetOptions = computed(() => [
-    { value: '', label: '使用填表整体 API 配置' },
+    { value: '', label: 'Dùng cấu hình API chung của điền bảng' },
     ...(Array.isArray(settings_ACU.apiPresets) ? settings_ACU.apiPresets : [])
       .map((preset: any) => stringValue(preset?.name).trim())
       .filter(Boolean)
@@ -163,19 +163,19 @@ export function useVisualizerConfigEditing() {
   );
 
   const placementOptions = [
-    { value: 'at_depth_as_system', label: '系统深度' },
-    { value: 'before_character_definition', label: '角色定义前' },
-    { value: 'after_character_definition', label: '角色定义后' },
+    { value: 'at_depth_as_system', label: 'Độ sâu hệ thống' },
+    { value: 'before_character_definition', label: 'Trước định nghĩa nhân vật' },
+    { value: 'after_character_definition', label: 'Sau định nghĩa nhân vật' },
   ];
 
   const entryTypeOptions = [
-    { value: 'constant', label: '常量条目' },
-    { value: 'keyword', label: '关键词触发条目' },
+    { value: 'constant', label: 'Mục hằng' },
+    { value: 'keyword', label: 'Mục kích hoạt theo từ khóa' },
   ];
 
   const extraIndexModeOptions = [
-    { value: 'both', label: '原条目和索引条目都保留' },
-    { value: 'index_only', label: '仅放到索引条目' },
+    { value: 'both', label: 'Giữ cả mục gốc và mục chỉ mục' },
+    { value: 'index_only', label: 'Chỉ đặt vào mục chỉ mục' },
   ];
 
   function markDirty(): void {
@@ -278,13 +278,13 @@ export function useVisualizerConfigEditing() {
     if (String(sheet.sourceData?.ddl || '').trim()) {
       const currentValidation = validateDDLTextAgainstHeaders_ACU(sheet.sourceData.ddl, content[0]);
       if (!currentValidation.valid) {
-        toastStore.error(`删除列已拒绝：当前 DDL 与表头不一致：${currentValidation.message}`, { muteable: false });
+        toastStore.error(`Từ chối xóa cột: DDL hiện tại không khớp với tiêu đề bảng: ${currentValidation.message}`, { muteable: false });
         return;
       }
       try {
         nextDDL = removeDDLColumnAtIndex_ACU(sheet.sourceData.ddl, targetIndex);
       } catch (error: any) {
-        toastStore.error(`删除列已拒绝：${error?.message || String(error)}`, { muteable: false });
+        toastStore.error(`Từ chối xóa cột: ${error?.message || String(error)}`, { muteable: false });
         return;
       }
     }

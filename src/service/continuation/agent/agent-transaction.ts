@@ -55,7 +55,7 @@ function nextEntryId_ACU(prefix: string, width: number, taken: Iterable<string>)
 /** 新增条目漏写 id 时由运行时补号，不再整批拒绝；retire 必须指向既有条目，仍要求 id。 */
 function withEntryId_ACU<T extends { action: string; id: string }>(item: T, label: string, prefix: string, width: number, taken: Iterable<string>): T {
   if (item.id.trim()) return item;
-  if (item.action === 'retire') reject_ACU(`retire ${label}必须指明 id`);
+  if (item.action === 'retire') reject_ACU(`retire ${label} phải chỉ rõ id`);
   return { ...item, id: nextEntryId_ACU(prefix, width, taken) };
 }
 
@@ -71,11 +71,11 @@ function collectTouchedModules_ACU(delta: AgentModuleDelta_ACU): AgentWritableMo
 function assertWritePermission_ACU(delta: AgentModuleDelta_ACU, allowedWrites: readonly string[]): void {
   for (const module of collectTouchedModules_ACU(delta)) {
     if (!allowedWrites.includes(module)) {
-      reject_ACU(`子代理试图写入未授权模块：${module}`, { module, allowedWrites: [...allowedWrites] });
+      reject_ACU(`Agent phụ cố ghi vào mô-đun chưa được cấp quyền: ${module}`, { module, allowedWrites: [...allowedWrites] });
     }
   }
   for (const key of Object.keys(delta.expectedRevisions)) {
-    if (!isAgentWritableModule_ACU(key)) reject_ACU(`expectedRevisions 含非法模块名：${key}`, { key });
+    if (!isAgentWritableModule_ACU(key)) reject_ACU(`expectedRevisions chứa tên mô-đun không hợp lệ: ${key}`, { key });
   }
 }
 
@@ -96,15 +96,15 @@ export function mergeAgentDeltaRevisions_ACU(delta: AgentModuleDelta_ACU, readRe
 function applyHookDelta_ACU(existing: AgentHookEntry_ACU[], items: AgentHookDeltaItem_ACU[], settledIndex: number): AgentHookEntry_ACU[] {
   const byId = new Map(existing.map(entry => [entry.id, entry]));
   for (const raw of items) {
-    const item = withEntryId_ACU(raw, '伏笔', 'H', 3, byId.keys());
+    const item = withEntryId_ACU(raw, 'phục bút',  'H', 3, byId.keys());
     if (item.action === 'retire') {
       const current = byId.get(item.id);
-      if (!current) reject_ACU(`retire 的伏笔不存在：${item.id}`, { id: item.id });
-      if (!item.reason.trim()) reject_ACU(`retire 伏笔 ${item.id} 必须给出理由`, { id: item.id });
+      if (!current) reject_ACU(`Phục bút của retire không tồn tại: ${item.id}`, { id: item.id });
+      if (!item.reason.trim()) reject_ACU(`retire phục bút ${item.id} phải nêu lý do`, { id: item.id });
       byId.set(item.id, { ...current!, retired: true, retiredReason: item.reason.trim(), updatedIndex: settledIndex });
       continue;
     }
-    if (!item.summary.trim()) reject_ACU(`伏笔 ${item.id} 的 summary 不能为空`, { id: item.id });
+    if (!item.summary.trim()) reject_ACU(`summary của phục bút ${item.id} không được rỗng`, { id: item.id });
     const previous = byId.get(item.id);
     byId.set(item.id, {
       id: item.id,
@@ -125,8 +125,8 @@ function applyHookPatches_ACU(entries: AgentHookEntry_ACU[], patches: AgentHookP
   const byId = new Map(entries.map(entry => [entry.id, entry]));
   for (const patch of patches) {
     const current = byId.get(patch.id);
-    if (!current) reject_ACU(`patch 的伏笔不存在：${patch.id}`, { id: patch.id });
-    if (current.retired) reject_ACU(`伏笔 ${patch.id} 已退役，不可 patch；需要恢复请用 upsert 重新登记`, { id: patch.id });
+    if (!current) reject_ACU(`Phục bút của patch không tồn tại: ${patch.id}`, { id: patch.id });
+    if (current.retired) reject_ACU(`Phục bút ${patch.id} đã cho nghỉ, không thể patch; muốn khôi phục hãy đăng ký lại bằng upsert`, { id: patch.id });
     byId.set(patch.id, {
       ...current,
       summary: patch.summary ?? current.summary,
@@ -142,24 +142,24 @@ function applyHookPatches_ACU(entries: AgentHookEntry_ACU[], patches: AgentHookP
 function applyInfoGapDelta_ACU(existing: AgentInfoGapEntry_ACU[], items: AgentInfoGapDeltaItem_ACU[], settledIndex: number): AgentInfoGapEntry_ACU[] {
   const byId = new Map(existing.map(entry => [entry.id, entry]));
   for (const raw of items) {
-    const item = withEntryId_ACU(raw, '信息差条目', 'E', 3, byId.keys());
+    const item = withEntryId_ACU(raw, 'mục chênh lệch thông tin',  'E', 3, byId.keys());
     if (item.action === 'retire') {
       const current = byId.get(item.id);
-      if (!current) reject_ACU(`retire 的信息差条目不存在：${item.id}`, { id: item.id });
-      if (!item.reason.trim()) reject_ACU(`retire 信息差条目 ${item.id} 必须给出理由`, { id: item.id });
+      if (!current) reject_ACU(`Mục chênh lệch thông tin của retire không tồn tại: ${item.id}`, { id: item.id });
+      if (!item.reason.trim()) reject_ACU(`retire mục chênh lệch thông tin ${item.id} phải nêu lý do`, { id: item.id });
       byId.set(item.id, { ...current!, retired: true, retiredReason: item.reason.trim() });
       continue;
     }
-    if (!item.topic.trim()) reject_ACU(`信息差条目 ${item.id} 的 topic 不能为空`, { id: item.id });
+    if (!item.topic.trim()) reject_ACU(`topic của mục chênh lệch thông tin ${item.id} không được rỗng`, { id: item.id });
     const current = byId.get(item.id);
     let revealIndex = item.revealIndex;
     // 仅修复既有条目已经携带的同一份历史脏楼层；新建、显式变更或混入其他状态仍拒绝。
     if (item.revealStatus === 'unrevealed' && item.revealIndex !== null) {
       if (current?.revealStatus === 'unrevealed' && current.revealIndex === item.revealIndex) revealIndex = null;
-      else reject_ACU(`信息差条目 ${item.id} 标记为未揭示，揭示楼层必须为空`, { id: item.id, revealIndex: item.revealIndex });
+      else reject_ACU(`Mục chênh lệch thông tin ${item.id} được đánh dấu chưa tiết lộ, tầng tiết lộ phải rỗng`, { id: item.id, revealIndex: item.revealIndex });
     }
     if (item.revealStatus !== 'unrevealed' && revealIndex === null) {
-      reject_ACU(`信息差条目 ${item.id} 已揭示，必须给出揭示楼层`, { id: item.id });
+      reject_ACU(`Mục chênh lệch thông tin ${item.id} đã tiết lộ, phải nêu tầng tiết lộ`, { id: item.id });
     }
     byId.set(item.id, {
       id: item.id,
@@ -181,8 +181,8 @@ function applyInfoGapPatches_ACU(entries: AgentInfoGapEntry_ACU[], patches: Agen
   const byId = new Map(entries.map(entry => [entry.id, entry]));
   for (const patch of patches) {
     const current = byId.get(patch.id);
-    if (!current) reject_ACU(`patch 的信息差条目不存在：${patch.id}`, { id: patch.id });
-    if (current.retired) reject_ACU(`信息差条目 ${patch.id} 已退役，不可 patch`, { id: patch.id });
+    if (!current) reject_ACU(`Mục chênh lệch thông tin của patch không tồn tại: ${patch.id}`, { id: patch.id });
+    if (current.retired) reject_ACU(`Mục chênh lệch thông tin ${patch.id} đã cho nghỉ, không thể patch`, { id: patch.id });
     const merged: AgentInfoGapEntry_ACU = {
       ...current,
       topic: patch.topic ?? current.topic,
@@ -201,10 +201,10 @@ function applyInfoGapPatches_ACU(entries: AgentInfoGapEntry_ACU[], patches: Agen
       merged.revealIndex = null;
     }
     if (merged.revealStatus === 'unrevealed' && merged.revealIndex !== null) {
-      reject_ACU(`信息差条目 ${patch.id} patch 后标记为未揭示，揭示楼层必须同时清空（revealIndex 传 null）`, { id: patch.id, revealIndex: merged.revealIndex });
+      reject_ACU(`Mục chênh lệch thông tin ${patch.id} sau patch được đánh dấu chưa tiết lộ, tầng tiết lộ phải đồng thời được xóa (revealIndex truyền null)`, { id: patch.id, revealIndex: merged.revealIndex });
     }
     if (merged.revealStatus !== 'unrevealed' && merged.revealIndex === null) {
-      reject_ACU(`信息差条目 ${patch.id} patch 后已揭示，必须给出揭示楼层`, { id: patch.id });
+      reject_ACU(`Mục chênh lệch thông tin ${patch.id} sau patch đã tiết lộ, phải nêu tầng tiết lộ`, { id: patch.id });
     }
     byId.set(patch.id, merged);
   }
@@ -219,7 +219,7 @@ function assertSingleActiveStoryScope_ACU(entries: readonly AgentStoryArcEntry_A
   const active = entries.filter(entry => entry.scope === 'story' && !entry.retired);
   if (active.length > 1) {
     reject_ACU(
-      `全书方向（scope=story）只能有一条活跃条目，当前会变成 ${active.length} 条：${active.map(entry => entry.id).join('、')}。修订全书方向请 patch 既有条目，或在同一份写集里先 retire 旧条目`,
+      `Hướng đi toàn truyện (scope=story) chỉ được có một mục đang hoạt động, hiện sẽ thành ${active.length} mục: ${active.map(entry => entry.id).join(', ')}. Muốn sửa hướng đi toàn truyện hãy patch mục đã có, hoặc retire mục cũ trước trong cùng một tập ghi`,
       { ids: active.map(entry => entry.id) },
     );
   }
@@ -236,18 +236,18 @@ function hasVolumeContractField_ACU(entry: AgentStoryArcEntry_ACU): boolean {
 }
 
 function assertCompleteVolumeContract_ACU(volume: AgentStoryArcEntry_ACU, context: 'new' | 'done'): void {
-  if (!volume.narrativeRole) reject_ACU(`卷台阶 ${volume.id} 缺少 narrativeRole`, { id: volume.id, context });
-  if (!volume.targetStageRange) reject_ACU(`卷台阶 ${volume.id} 缺少 targetStageRange`, { id: volume.id, context });
+  if (!volume.narrativeRole) reject_ACU(`Bậc thang tập ${volume.id} thiếu narrativeRole`, { id: volume.id, context });
+  if (!volume.targetStageRange) reject_ACU(`Bậc thang tập ${volume.id} thiếu targetStageRange`, { id: volume.id, context });
   if (!Number.isInteger(volume.targetStageRange.min) || !Number.isInteger(volume.targetStageRange.max)
     || volume.targetStageRange.min < 1 || volume.targetStageRange.max < volume.targetStageRange.min) {
-    reject_ACU(`卷台阶 ${volume.id} 的 targetStageRange 必须是 min≥1 且 max≥min 的整数范围`, { id: volume.id, context, targetStageRange: volume.targetStageRange });
+    reject_ACU(`targetStageRange của bậc thang tập ${volume.id} phải là phạm vi số nguyên với min≥1 và max≥min`, { id: volume.id, context, targetStageRange: volume.targetStageRange });
   }
-  if (!volume.targetTimeSpan?.trim()) reject_ACU(`卷台阶 ${volume.id} 缺少 targetTimeSpan`, { id: volume.id, context });
-  if (!volume.progressCeiling?.trim()) reject_ACU(`卷台阶 ${volume.id} 缺少 progressCeiling`, { id: volume.id, context });
-  if (!volume.sustainingThreads?.length) reject_ACU(`卷台阶 ${volume.id} 至少需要一条 sustainingThreads`, { id: volume.id, context });
-  if (volume.sustainingThreads.some(thread => !thread.trim())) reject_ACU(`卷台阶 ${volume.id} 的 sustainingThreads 不得包含空项`, { id: volume.id, context });
-  if (!volume.payoffTargets?.length) reject_ACU(`卷台阶 ${volume.id} 至少需要一条 payoffTargets`, { id: volume.id, context });
-  if (volume.payoffTargets.some(target => !target.trim())) reject_ACU(`卷台阶 ${volume.id} 的 payoffTargets 不得包含空项`, { id: volume.id, context });
+  if (!volume.targetTimeSpan?.trim()) reject_ACU(`Bậc thang tập ${volume.id} thiếu targetTimeSpan`, { id: volume.id, context });
+  if (!volume.progressCeiling?.trim()) reject_ACU(`Bậc thang tập ${volume.id} thiếu progressCeiling`, { id: volume.id, context });
+  if (!volume.sustainingThreads?.length) reject_ACU(`Bậc thang tập ${volume.id} cần ít nhất một sustainingThreads`, { id: volume.id, context });
+  if (volume.sustainingThreads.some(thread => !thread.trim())) reject_ACU(`sustainingThreads của bậc thang tập ${volume.id} không được chứa mục rỗng`, { id: volume.id, context });
+  if (!volume.payoffTargets?.length) reject_ACU(`Bậc thang tập ${volume.id} cần ít nhất một payoffTargets`, { id: volume.id, context });
+  if (volume.payoffTargets.some(target => !target.trim())) reject_ACU(`payoffTargets của bậc thang tập ${volume.id} không được chứa mục rỗng`, { id: volume.id, context });
 }
 
 function assertVolumeCompletionContract_ACU(volume: AgentStoryArcEntry_ACU): void {
@@ -256,16 +256,16 @@ function assertVolumeCompletionContract_ACU(volume: AgentStoryArcEntry_ACU): voi
   const stageCount = volume.stageNumbers.length;
   const withinTarget = stageCount >= volume.targetStageRange.min && stageCount <= volume.targetStageRange.max;
   if (!withinTarget && !volume.completionRationale?.trim()) {
-    reject_ACU(`卷台阶 ${volume.id} 实际承载 ${stageCount} 个阶段，偏离目标 ${volume.targetStageRange.min}–${volume.targetStageRange.max} 时必须给出 completionRationale`, { id: volume.id, stageCount, targetStageRange: volume.targetStageRange });
+    reject_ACU(`Bậc thang tập ${volume.id} thực tế đảm nhận ${stageCount} giai đoạn, khi lệch mục tiêu ${volume.targetStageRange.min}–${volume.targetStageRange.max} phải nêu completionRationale`, { id: volume.id, stageCount, targetStageRange: volume.targetStageRange });
   }
   for (const target of volume.payoffTargets ?? []) {
     if (!volume.completionState.includes(target)) {
-      reject_ACU(`卷台阶 ${volume.id} 的 completionState 必须逐项说明 payoffTargets 的兑现证据：${target}`, { id: volume.id, target });
+      reject_ACU(`completionState của bậc thang tập ${volume.id} phải giải thích từng mục bằng chứng thu hồi của payoffTargets: ${target}`, { id: volume.id, target });
     }
   }
   for (const thread of volume.sustainingThreads ?? []) {
     if (!volume.completionState.includes(thread)) {
-      reject_ACU(`卷台阶 ${volume.id} 的 completionState 必须逐项说明 sustainingThreads 的完成、转入后续卷或 retire 去向：${thread}`, { id: volume.id, thread });
+      reject_ACU(`completionState của bậc thang tập ${volume.id} phải giải thích từng mục việc hoàn thành, chuyển sang tập sau hoặc hướng retire của sustainingThreads: ${thread}`, { id: volume.id, thread });
     }
   }
 }
@@ -274,7 +274,7 @@ function assertStoryArcContractShape_ACU(entries: readonly AgentStoryArcEntry_AC
   for (const entry of entries) {
     if (entry.retired || !hasVolumeContractField_ACU(entry)) continue;
     if (entry.scope !== 'volume') {
-      reject_ACU(`全书方向 ${entry.id} 不得携带卷级容量字段`, { id: entry.id, scope: entry.scope });
+      reject_ACU(`Hướng đi toàn truyện ${entry.id} không được mang các trường dung lượng cấp tập`, { id: entry.id, scope: entry.scope });
     }
     assertCompleteVolumeContract_ACU(entry, 'new');
   }
@@ -296,38 +296,38 @@ function assertVolumeLifecycle_ACU(
     if (!prior) continue;
     const newlyRegistered = volume.stageNumbers.filter(stageNumber => !prior.stageNumbers.includes(stageNumber));
     if (newlyRegistered.length && prior.status !== 'active') {
-      reject_ACU(`阶段进度只能登记到当前 active 卷，卷 ${volume.id} 在改写前状态为 ${prior.status}`, { id: volume.id, priorStatus: prior.status, stageNumbers: newlyRegistered });
+      reject_ACU(`Tiến độ giai đoạn chỉ được đăng ký vào tập active hiện tại, tập ${volume.id} trước khi sửa có trạng thái ${prior.status}`, { id: volume.id, priorStatus: prior.status, stageNumbers: newlyRegistered });
     }
     for (const stageNumber of newlyRegistered) {
       if (!completedStageNumbers.has(stageNumber)) {
-        reject_ACU(`卷台阶 ${volume.id} 只能登记真实完成的阶段`, { id: volume.id, stageNumber });
+        reject_ACU(`Bậc thang tập ${volume.id} chỉ được đăng ký các giai đoạn đã thực sự hoàn thành`, { id: volume.id, stageNumber });
       }
     }
     if (prior.status === 'done' && volume.status !== 'done') {
-      reject_ACU(`已完成卷 ${volume.id} 不可重新激活`, { id: volume.id, from: prior.status, to: volume.status });
+      reject_ACU(`Tập đã hoàn thành ${volume.id} không thể kích hoạt lại`, { id: volume.id, from: prior.status, to: volume.status });
     }
     const order: Record<AgentStoryArcEntry_ACU['status'], number> = { planned: 0, active: 1, done: 2 };
     if (order[volume.status] < order[prior.status]) {
-      reject_ACU(`卷台阶 ${volume.id} 状态只能 planned → active → done 单向推进`, { id: volume.id, from: prior.status, to: volume.status });
+      reject_ACU(`Trạng thái bậc thang tập ${volume.id} chỉ được tiến một chiều planned → active → done`, { id: volume.id, from: prior.status, to: volume.status });
     }
     if (order[volume.status] > order[prior.status] + 1) {
-      reject_ACU(`卷台阶 ${volume.id} 不可跳过 active 直接从 ${prior.status} 变为 ${volume.status}`, { id: volume.id, from: prior.status, to: volume.status });
+      reject_ACU(`Bậc thang tập ${volume.id} không được bỏ qua active để chuyển thẳng từ ${prior.status} sang ${volume.status}`, { id: volume.id, from: prior.status, to: volume.status });
     }
   }
 
   if (previouslyActive.length > 1) {
-    reject_ACU(`写入前存在 ${previouslyActive.length} 个 active 卷，无法判定阶段承载归属`, { activeIds: previouslyActive.map(volume => volume.id) });
+    reject_ACU(`Trước khi ghi đã có ${previouslyActive.length} tập active, không thể xác định giai đoạn thuộc về tập nào`, { activeIds: previouslyActive.map(volume => volume.id) });
   }
 
   for (const volume of volumes) {
     if (previousById.has(volume.id)) continue;
     assertCompleteVolumeContract_ACU(volume, 'new');
     if (volume.status === 'done') {
-      reject_ACU(`新卷 ${volume.id} 不可直接登记为 done`, { id: volume.id });
+      reject_ACU(`Tập mới ${volume.id} không thể đăng ký thẳng là done`, { id: volume.id });
     }
     for (const stageNumber of volume.stageNumbers) {
       if (!completedStageNumbers.has(stageNumber)) {
-        reject_ACU(`新卷 ${volume.id} 只能登记真实完成的阶段`, { id: volume.id, stageNumber });
+        reject_ACU(`Tập mới ${volume.id} chỉ được đăng ký các giai đoạn đã thực sự hoàn thành`, { id: volume.id, stageNumber });
       }
     }
   }
@@ -336,16 +336,16 @@ function assertVolumeLifecycle_ACU(
     const prior = previous.find(entry => entry.id === volume.id);
     if (volume.status !== 'done') continue;
     if (volume.completionStageNumber === null) {
-      reject_ACU(`卷台阶 ${volume.id} 标记 done 时必须提供 completionStageNumber`, { id: volume.id });
+      reject_ACU(`Khi bậc thang tập ${volume.id} đánh dấu done phải cung cấp completionStageNumber`, { id: volume.id });
     }
     if (!volume.stageNumbers.includes(volume.completionStageNumber)) {
-      reject_ACU(`卷台阶 ${volume.id} 的完成阶段必须已登记进 stageNumbers`, { id: volume.id, completionStageNumber: volume.completionStageNumber });
+      reject_ACU(`Giai đoạn hoàn thành của bậc thang tập ${volume.id} phải đã được đăng ký vào stageNumbers`, { id: volume.id, completionStageNumber: volume.completionStageNumber });
     }
     if (!completedStageNumbers.has(volume.completionStageNumber)) {
-      reject_ACU(`卷台阶 ${volume.id} 的完成阶段尚未真实完成`, { id: volume.id, completionStageNumber: volume.completionStageNumber });
+      reject_ACU(`Giai đoạn hoàn thành của bậc thang tập ${volume.id} chưa thực sự hoàn thành`, { id: volume.id, completionStageNumber: volume.completionStageNumber });
     }
     if (!volume.completionState.trim()) {
-      reject_ACU(`卷台阶 ${volume.id} 标记 done 时必须说明已达到的卷末状态`, { id: volume.id });
+      reject_ACU(`Khi bậc thang tập ${volume.id} đánh dấu done phải nêu trạng thái cuối tập đã đạt được`, { id: volume.id });
     }
     assertVolumeCompletionContract_ACU(volume);
   }
@@ -353,14 +353,14 @@ function assertVolumeLifecycle_ACU(
   const unfinished = volumes.filter(volume => volume.status !== 'done');
   const active = volumes.filter(volume => volume.status === 'active');
   if (unfinished.length && active.length !== 1) {
-    reject_ACU(`存在未完成卷时必须恰有一个 active 卷，当前为 ${active.length} 个`, { activeIds: active.map(volume => volume.id) });
+    reject_ACU(`Khi còn tập chưa hoàn thành thì phải có đúng một tập active, hiện có ${active.length}`, { activeIds: active.map(volume => volume.id) });
   }
 
   const previousVolumes = previous.filter(entry => entry.scope === 'volume' && !entry.retired);
   if (previousVolumes.length && previousVolumes.every(volume => volume.status === 'done')) {
     for (const volume of active) {
       if (!volume.continuationRationale.trim()) {
-        reject_ACU(`在既有卷全部完成后追加或激活卷 ${volume.id} 时必须说明续卷依据`, { id: volume.id });
+        reject_ACU(`Khi thêm hoặc kích hoạt tập ${volume.id} sau khi tất cả tập hiện có đã hoàn thành thì phải nêu căn cứ nối tập`, { id: volume.id });
       }
     }
   }
@@ -375,27 +375,27 @@ function assertVolumeLifecycle_ACU(
 function applyChronologyDelta_ACU(existing: AgentChronologyEntry_ACU[], items: AgentChronologyDeltaItem_ACU[], settledIndex: number, evidenceFloorIndexes?: ReadonlySet<number>): AgentChronologyEntry_ACU[] {
   const byId = new Map(existing.map(entry => [entry.id, entry]));
   for (const raw of items) {
-    const item = withEntryId_ACU(raw, '年代学条目', 'T', 3, byId.keys());
+    const item = withEntryId_ACU(raw, 'mục niên đại học',  'T', 3, byId.keys());
     if (item.action === 'retire') {
       const current = byId.get(item.id);
-      if (!current) reject_ACU(`retire 的年代学条目不存在：${item.id}`, { id: item.id });
-      if (!item.reason.trim()) reject_ACU(`retire 年代学条目 ${item.id} 必须给出理由`, { id: item.id });
+      if (!current) reject_ACU(`Mục niên đại học của retire không tồn tại: ${item.id}`, { id: item.id });
+      if (!item.reason.trim()) reject_ACU(`retire mục niên đại học ${item.id} phải nêu lý do`, { id: item.id });
       byId.set(item.id, { ...current!, retired: true, retiredReason: item.reason.trim(), updatedIndex: settledIndex });
       continue;
     }
-    if (!item.anchor.trim()) reject_ACU(`年代学条目 ${item.id} 的 anchor 不能为空`, { id: item.id });
-    if (!item.elapsed.trim()) reject_ACU(`年代学条目 ${item.id} 的 elapsed 不能为空；无法可靠量化就明确写「未知」或「约……」`, { id: item.id });
-    if (!item.transition.trim()) reject_ACU(`年代学条目 ${item.id} 的 transition 不能为空`, { id: item.id });
+    if (!item.anchor.trim()) reject_ACU(`anchor của mục niên đại học ${item.id} không được rỗng`, { id: item.id });
+    if (!item.elapsed.trim()) reject_ACU(`elapsed của mục niên đại học ${item.id} không được rỗng; không thể định lượng đáng tin cậy thì ghi rõ "chưa rõ" hoặc "khoảng ..."`, { id: item.id });
+    if (!item.transition.trim()) reject_ACU(`transition của mục niên đại học ${item.id} không được rỗng`, { id: item.id });
     const evidenceIndexes = normalizeEvidenceIndexes_ACU(item.evidenceIndexes);
     if (!evidenceIndexes || !evidenceIndexes.length) {
-      reject_ACU(`年代学条目 ${item.id} 的 evidenceIndexes 必须是非空的非负整数楼层数组`, { id: item.id, evidenceIndexes: item.evidenceIndexes });
+      reject_ACU(`evidenceIndexes của mục niên đại học ${item.id} phải là mảng số tầng nguyên không âm không rỗng`, { id: item.id, evidenceIndexes: item.evidenceIndexes });
     }
     const future = evidenceIndexes.filter(index => index > settledIndex);
     if (future.length) {
-      reject_ACU(`年代学条目 ${item.id} 引用了尚未结算的未来楼层：${future.join('、')}（本次结算水位=${settledIndex}）。时间事实只能引用已发生的真实正文`, { id: item.id, future, settledIndex });
+      reject_ACU(`Mục niên đại học ${item.id} trích dẫn các tầng tương lai chưa quyết toán: ${future.join(', ')} (mức nước quyết toán lần này=${settledIndex}). Sự thật thời gian chỉ được trích dẫn chính văn thật đã xảy ra`, { id: item.id, future, settledIndex });
     }
     const missing = evidenceIndexes.filter(index => evidenceFloorIndexes !== undefined && !evidenceFloorIndexes.has(index));
-    if (missing.length) reject_ACU(`年代学条目 ${item.id} 引用了不存在的正文楼层：${missing.join('、')}`, { id: item.id, missing });
+    if (missing.length) reject_ACU(`Mục niên đại học ${item.id} trích dẫn các tầng chính văn không tồn tại: ${missing.join(', ')}`, { id: item.id, missing });
     byId.set(item.id, {
       id: item.id,
       anchor: item.anchor.trim(),
@@ -415,27 +415,27 @@ function applyChronologyPatches_ACU(existing: AgentChronologyEntry_ACU[], patche
   const byId = new Map(existing.map(entry => [entry.id, entry]));
   for (const patch of patches) {
     const current = byId.get(patch.id);
-    if (!current) reject_ACU(`patch 的年代学条目不存在：${patch.id}`, { id: patch.id });
-    if (current.retired) reject_ACU(`年代学条目 ${patch.id} 已废止，不可 patch；需要恢复请用 upsert 重新登记`, { id: patch.id });
+    if (!current) reject_ACU(`Mục niên đại học của patch không tồn tại: ${patch.id}`, { id: patch.id });
+    if (current.retired) reject_ACU(`Mục niên đại học ${patch.id} đã bãi bỏ, không thể patch; muốn khôi phục hãy đăng ký lại bằng upsert`, { id: patch.id });
     let evidenceIndexes = current.evidenceIndexes;
     if (patch.evidenceIndexes !== undefined) {
       const normalized = normalizeEvidenceIndexes_ACU(patch.evidenceIndexes);
       if (!normalized || !normalized.length) {
-        reject_ACU(`年代学条目 ${patch.id} 的 patch.evidenceIndexes 必须是非空的非负整数楼层数组`, { id: patch.id, evidenceIndexes: patch.evidenceIndexes });
+        reject_ACU(`patch.evidenceIndexes của mục niên đại học ${patch.id} phải là mảng số tầng nguyên không âm không rỗng`, { id: patch.id, evidenceIndexes: patch.evidenceIndexes });
       }
       const future = normalized.filter(index => index > settledIndex);
       if (future.length) {
-        reject_ACU(`年代学条目 ${patch.id} 引用了尚未结算的未来楼层：${future.join('、')}（本次结算水位=${settledIndex}）。时间事实只能引用已发生的真实正文`, { id: patch.id, future, settledIndex });
+        reject_ACU(`Mục niên đại học ${patch.id} trích dẫn các tầng tương lai chưa quyết toán: ${future.join(', ')} (mức nước quyết toán lần này=${settledIndex}). Sự thật thời gian chỉ được trích dẫn chính văn thật đã xảy ra`, { id: patch.id, future, settledIndex });
       }
       const missing = normalized.filter(index => evidenceFloorIndexes !== undefined && !evidenceFloorIndexes.has(index));
-      if (missing.length) reject_ACU(`年代学条目 ${patch.id} 引用了不存在的正文楼层：${missing.join('、')}`, { id: patch.id, missing });
+      if (missing.length) reject_ACU(`Mục niên đại học ${patch.id} trích dẫn các tầng chính văn không tồn tại: ${missing.join(', ')}`, { id: patch.id, missing });
       evidenceIndexes = normalized;
     }
     const anchor = patch.anchor?.trim() || current.anchor;
     const elapsed = patch.elapsed?.trim() || current.elapsed;
     const transition = patch.transition?.trim() || current.transition;
     if (!anchor || !elapsed || !transition) {
-      reject_ACU(`年代学条目 ${patch.id} 的 anchor / elapsed / transition 不能为空`, { id: patch.id });
+      reject_ACU(`anchor / elapsed / transition của mục niên đại học ${patch.id} không được rỗng`, { id: patch.id });
     }
     byId.set(patch.id, {
       ...current,
@@ -453,11 +453,11 @@ function applyChronologyPatches_ACU(existing: AgentChronologyEntry_ACU[], patche
 function applyStoryArcDelta_ACU(existing: AgentStoryArcEntry_ACU[], items: AgentStoryArcDeltaItem_ACU[]): AgentStoryArcEntry_ACU[] {
   const byId = new Map(existing.map(entry => [entry.id, entry]));
   for (const raw of items) {
-    const item = withEntryId_ACU(raw, '总纲条目', raw.scope === 'story' ? 'STORY-' : 'VOL-', 2, byId.keys());
+    const item = withEntryId_ACU(raw, 'mục tổng cương',  raw.scope === 'story' ? 'STORY-' : 'VOL-', 2, byId.keys());
     if (item.action === 'retire') {
       const current = byId.get(item.id);
-      if (!current) reject_ACU(`retire 的总纲条目不存在：${item.id}`, { id: item.id });
-      if (!item.reason.trim()) reject_ACU(`retire 总纲条目 ${item.id} 必须给出理由`, { id: item.id });
+      if (!current) reject_ACU(`Mục tổng cương của retire không tồn tại: ${item.id}`, { id: item.id });
+      if (!item.reason.trim()) reject_ACU(`retire mục tổng cương ${item.id} phải nêu lý do`, { id: item.id });
       byId.set(item.id, { ...current!, retired: true, retiredReason: item.reason.trim() });
       continue;
     }
@@ -469,14 +469,14 @@ function applyStoryArcDelta_ACU(existing: AgentStoryArcEntry_ACU[], items: Agent
     const escalation = item.escalation.trim() || previous?.escalation || '';
     const withheld = item.withheld.trim() || previous?.withheld || '';
     const status = item.statusProvided || !previous ? item.status : previous.status;
-    if (!title) reject_ACU(`总纲条目 ${item.id} 的 title 不能为空`, { id: item.id });
+    if (!title) reject_ACU(`title của mục tổng cương ${item.id} không được rỗng`, { id: item.id });
     // direction 是这个模块存在的意义：没有方向的条目只是一个标题，对大纲毫无约束力。
-    if (!direction) reject_ACU(`总纲条目 ${item.id} 的 direction 不能为空，必须写清谁追求什么、对抗什么`, { id: item.id });
+    if (!direction) reject_ACU(`direction của mục tổng cương ${item.id} không được rỗng, phải viết rõ ai theo đuổi điều gì, đối kháng với điều gì`, { id: item.id });
     if (item.scope === 'volume' && !escalation) {
-      reject_ACU(`卷台阶 ${item.id} 必须写 escalation：本卷冲突抬到什么高度、收在哪`, { id: item.id });
+      reject_ACU(`Bậc thang tập ${item.id} phải ghi escalation: xung đột của tập này được nâng lên tầm cỡ nào, khép ở đâu`, { id: item.id });
     }
     for (const [field, value] of Object.entries({ id: item.id, title, direction, escalation, withheld, completionState: item.completionState, continuationRationale: item.continuationRationale, targetTimeSpan: item.targetTimeSpan, progressCeiling: item.progressCeiling, completionRationale: item.completionRationale })) {
-      if (copiedStoryArcExample_ACU(field, value)) reject_ACU(`总纲条目 ${item.id} 的 ${field} 照抄了格式范例；请填写本故事的具体内容`);
+      if (copiedStoryArcExample_ACU(field, value)) reject_ACU(`${field} của mục tổng cương ${item.id} đã chép nguyên ví dụ định dạng; hãy điền nội dung cụ thể của câu chuyện này`);
     }
     byId.set(item.id, {
       id: item.id,
@@ -512,8 +512,8 @@ function applyStoryArcPatches_ACU(entries: AgentStoryArcEntry_ACU[], patches: Ag
   const byId = new Map(entries.map(entry => [entry.id, entry]));
   for (const patch of patches) {
     const current = byId.get(patch.id);
-    if (!current) reject_ACU(`patch 的总纲条目不存在：${patch.id}`, { id: patch.id });
-    if (current.retired) reject_ACU(`总纲条目 ${patch.id} 已废止，不可 patch；需要恢复请用 upsert 重新登记`, { id: patch.id });
+    if (!current) reject_ACU(`Mục tổng cương của patch không tồn tại: ${patch.id}`, { id: patch.id });
+    if (current.retired) reject_ACU(`Mục tổng cương ${patch.id} đã bãi bỏ, không thể patch; muốn khôi phục hãy đăng ký lại bằng upsert`, { id: patch.id });
     const merged: AgentStoryArcEntry_ACU = {
       ...current,
       title: patch.title ?? current.title,
@@ -534,10 +534,10 @@ function applyStoryArcPatches_ACU(entries: AgentStoryArcEntry_ACU[], patches: Ag
       completionRationale: patch.completionRationale ?? current.completionRationale,
     };
     for (const [field, value] of Object.entries(patch)) {
-      if (copiedStoryArcExample_ACU(field, value)) reject_ACU(`总纲条目 ${patch.id} 的 ${field} 照抄了格式范例；请填写本故事的具体内容`);
+      if (copiedStoryArcExample_ACU(field, value)) reject_ACU(`${field} của mục tổng cương ${patch.id} đã chép nguyên ví dụ định dạng; hãy điền nội dung cụ thể của câu chuyện này`);
     }
-    if (!merged.title.trim()) reject_ACU(`总纲条目 ${patch.id} patch 后 title 为空`, { id: patch.id });
-    if (!merged.direction.trim()) reject_ACU(`总纲条目 ${patch.id} patch 后 direction 为空`, { id: patch.id });
+    if (!merged.title.trim()) reject_ACU(`Sau patch, title của mục tổng cương ${patch.id} bị rỗng`, { id: patch.id });
+    if (!merged.direction.trim()) reject_ACU(`Sau patch, direction của mục tổng cương ${patch.id} bị rỗng`, { id: patch.id });
     byId.set(patch.id, merged);
   }
   const next = [...byId.values()];
@@ -612,7 +612,7 @@ function assertModuleRevision_ACU(module: keyof AgentModuleRevisions_ACU, delta:
   const expected = delta.expectedRevisions[module];
   if (expected === undefined) return;
   if (expected !== snapshot.revisions[module]) {
-    reject_ACU(`${module} 的 revision 已变化，写入被拒绝`, { module, expected, actual: snapshot.revisions[module], path: module });
+    reject_ACU(`revision của ${module} đã thay đổi, việc ghi bị từ chối`, { module, expected, actual: snapshot.revisions[module], path: module });
   }
 }
 
@@ -763,21 +763,21 @@ export function applyAgentWebRefsDelta_ACU(
   if (!output.items.length && !patches.length) return unchangedApply_ACU(snapshot);
   try {
   if (expectedRevision !== undefined && expectedRevision !== snapshot.revisions.webRefs) {
-    reject_ACU('webRefs 的 revision 已变化，写入被拒绝', { module: 'webRefs', expected: expectedRevision, actual: snapshot.revisions.webRefs, path: 'webRefs' });
+    reject_ACU('revision của webRefs đã thay đổi, việc ghi bị từ chối', { module: 'webRefs', expected: expectedRevision, actual: snapshot.revisions.webRefs, path: 'webRefs' });
   }
   const byId = new Map(snapshot.webRefs.map(entry => [entry.id, entry]));
   const taken = new Set<string>();
   for (const item of output.items) {
     if (item.action === 'retire') {
       const current = byId.get(item.id);
-      if (!current) reject_ACU(`retire 的百科条目不存在：${item.id}`, { id: item.id });
-      if (!item.reason.trim()) reject_ACU(`retire 百科条目 ${item.id} 必须给出理由`, { id: item.id });
+      if (!current) reject_ACU(`Mục bách khoa của retire không tồn tại: ${item.id}`, { id: item.id });
+      if (!item.reason.trim()) reject_ACU(`retire mục bách khoa ${item.id} phải nêu lý do`, { id: item.id });
       byId.set(item.id, { ...current!, retired: true, retiredReason: item.reason.trim() });
       continue;
     }
-    if (!item.title.trim()) reject_ACU(`百科条目 ${item.id || '(未命名)'} 的 title（名称）不能为空`, { id: item.id });
-    if (!item.brief.trim()) reject_ACU(`百科条目「${item.title}」的 brief（一句话简介）不能为空`, { id: item.id });
-    if (!item.url.trim()) reject_ACU(`百科条目 ${item.id || '(未命名)'} 缺少 url（pageRef 未能解析到已抓取页面）`, { id: item.id });
+    if (!item.title.trim()) reject_ACU(`title (tên) của mục bách khoa ${item.id || '(chưa đặt tên)'} không được rỗng`, { id: item.id });
+    if (!item.brief.trim()) reject_ACU(`brief (giới thiệu một câu) của mục bách khoa "${item.title}" không được rỗng`, { id: item.id });
+    if (!item.url.trim()) reject_ACU(`Mục bách khoa ${item.id || '(chưa đặt tên)'} thiếu url (pageRef không phân giải được tới trang đã tải)`, { id: item.id });
     const id = item.id.trim() || nextAgentWebRefId_ACU([...byId.values()], taken);
     taken.add(id);
     const previous = byId.get(id);
@@ -798,15 +798,15 @@ export function applyAgentWebRefsDelta_ACU(
   }
   for (const patch of patches) {
     const current = byId.get(patch.id);
-    if (!current) reject_ACU(`patch 的百科条目不存在：${patch.id}`, { id: patch.id });
-    if (current.retired) reject_ACU(`百科条目 ${patch.id} 已废止，不可 patch；需要恢复请用 upsert 重新登记`, { id: patch.id });
+    if (!current) reject_ACU(`Mục bách khoa của patch không tồn tại: ${patch.id}`, { id: patch.id });
+    if (current.retired) reject_ACU(`Mục bách khoa ${patch.id} đã bãi bỏ, không thể patch; muốn khôi phục hãy đăng ký lại bằng upsert`, { id: patch.id });
     const title = patch.title?.trim() || current.title;
     const brief = patch.brief?.trim() || current.brief;
-    if (!title) reject_ACU(`百科条目 ${patch.id} 的 title（名称）不能为空`, { id: patch.id });
-    if (!brief) reject_ACU(`百科条目「${title}」的 brief（一句话简介）不能为空`, { id: patch.id });
+    if (!title) reject_ACU(`title (tên) của mục bách khoa ${patch.id} không được rỗng`, { id: patch.id });
+    if (!brief) reject_ACU(`brief (giới thiệu một câu) của mục bách khoa "${title}" không được rỗng`, { id: patch.id });
     // 给了 pageRef 的 patch 已由运行时回填新来源：换源入库刷新 fetchedAt；未给的只改内容栏
     const refreshed = patch.url !== undefined;
-    if (refreshed && !patch.url!.trim()) reject_ACU(`百科条目 ${patch.id} 缺少 url（pageRef 未能解析到已抓取页面）`, { id: patch.id });
+    if (refreshed && !patch.url!.trim()) reject_ACU(`Mục bách khoa ${patch.id} thiếu url (pageRef không phân giải được tới trang đã tải)`, { id: patch.id });
     byId.set(patch.id, {
       ...current,
       title,
@@ -842,8 +842,8 @@ export function applyAgentWebRefsDelta_ACU(
 
 /** 渲染当前活跃约束清单，用于拒绝回显，让主 Agent 看到可引用的 id 与原文后自我修正。 */
 function renderActiveConstraintList_ACU(snapshot: AgentModuleSnapshot_ACU): string {
-  if (!snapshot.constraints.length) return '（当前没有任何活跃约束）';
-  return snapshot.constraints.map(item => `${item.id}：${item.text}`).join('；');
+  if (!snapshot.constraints.length) return '(hiện không có ràng buộc nào đang hoạt động)';
+  return snapshot.constraints.map(item => `${item.id}: ${item.text}`).join('; ');
 }
 
 /**
@@ -869,7 +869,7 @@ export function applyAgentConstraintRegistration_ACU(
     const matched = snapshot.constraints.find(item => item.id === key || item.text === key);
     if (!matched) {
       reject_ACU(
-        `retire 的约束不存在：「${key}」。retire 必须精确引用活跃条目的 id 或原文。当前活跃约束：${renderActiveConstraintList_ACU(snapshot)}`,
+        `Ràng buộc của retire không tồn tại: "${key}". retire phải trích dẫn chính xác id hoặc nguyên văn của mục đang hoạt động. Các ràng buộc đang hoạt động hiện tại: ${renderActiveConstraintList_ACU(snapshot)}`,
         { retireKey: key, active: snapshot.constraints.map(item => ({ id: item.id, text: item.text })) },
       );
     }
@@ -890,7 +890,7 @@ export function applyAgentConstraintRegistration_ACU(
   const added: AgentConstraintEntry_ACU[] = addTexts.map((text, order) => ({
     id: `C${String(nextRevision).padStart(2, '0')}-${order + 1}`,
     text,
-    reason: '主 Agent 本轮裁决登记',
+    reason: 'Agent chính đăng ký theo quyết định lượt này',
     createdIndex: settledIndex,
   }));
   const pending = clonePendingFixes_ACU(snapshot.pendingFixes);
@@ -957,7 +957,7 @@ async function verifyAgentModuleRowsViaSql_ACU(
       const nextRevision = view.applyRowWrite(rowWrite);
       if (nextRevision !== after.revisions[module]) {
         throw new AgentModuleSqlViewError_ACU(
-          `模块 ${module} SQL 复算 revision 不一致：视图 ${nextRevision}，事务结果 ${after.revisions[module]}`,
+          `Revision tính lại bằng SQL của mô-đun ${module} không nhất quán: khung nhìn ${nextRevision}, kết quả giao dịch ${after.revisions[module]}`,
           { module, expected: after.revisions[module], actual: nextRevision },
         );
       }
@@ -965,7 +965,7 @@ async function verifyAgentModuleRowsViaSql_ACU(
     const verified = view.readSnapshot();
     for (const module of modules) {
       if (JSON.stringify(after[module]) !== JSON.stringify(verified[module])) {
-        throw new AgentModuleSqlViewError_ACU(`模块 ${module} SQL 复算结果与事务结果不一致`, { module });
+        throw new AgentModuleSqlViewError_ACU(`Kết quả tính lại bằng SQL của mô-đun ${module} không nhất quán với kết quả giao dịch`, { module });
       }
     }
   } finally {

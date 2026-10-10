@@ -34,7 +34,7 @@ export function createTemplatePresetApi(ctx: ApiGroupContext): Record<string, Fu
                 const { scope = 'global', destructiveChangeConfirmed = false } = options || {};
                 const normalizedScope = normalizeTemplateOperationScope_ACU(scope);
                 const name = normalizeTemplatePresetSelectionValue_ACU(presetName);
-                const displayName = name || '默认预设';
+                const displayName = name || 'Preset mặc định';
                 const result = await applyTemplatePresetToCurrent_ACU(name, {
                     source: 'api',
                     updateGlobal: normalizedScope === 'global',
@@ -59,7 +59,7 @@ export function createTemplatePresetApi(ctx: ApiGroupContext): Record<string, Fu
                     return {
                         success: true,
                         scope: normalizedScope,
-                        message: `${normalizedScope === 'global' ? '全局模板预设' : '当前聊天模板预设'}已切换：${displayName}`,
+                        message: `${normalizedScope === 'global' ? 'Preset mẫu toàn cục' : 'Preset mẫu của cuộc trò chuyện hiện tại'} đã chuyển: ${displayName}`,
                         ...(runtimeReady === undefined ? {} : { runtimeReady }),
                         ...(postCommitWarning ? { warning: postCommitWarning, postCommitWarning } : {}),
                     };
@@ -73,14 +73,14 @@ export function createTemplatePresetApi(ctx: ApiGroupContext): Record<string, Fu
                 return {
                     success: false,
                     scope: normalizedScope,
-                    message: error || `${normalizedScope === 'global' ? '全局模板预设' : '当前聊天模板预设'}切换失败：${displayName}`,
+                    message: error || `${normalizedScope === 'global' ? 'Preset mẫu toàn cục' : 'Preset mẫu của cuộc trò chuyện hiện tại'} chuyển thất bại: ${displayName}`,
                     ...(error ? { error } : {}),
                     ...(blockers && blockers.length > 0 ? { blockers } : {}),
                 };
             } catch (e) {
                 logError_ACU('switchTemplatePreset failed:', e);
                 const error = e?.message || String(e);
-                return { success: false, scope: normalizeTemplateOperationScope_ACU(options?.scope || 'global'), message: `模板预设切换失败：${error}`, error };
+                return { success: false, scope: normalizeTemplateOperationScope_ACU(options?.scope || 'global'), message: `Chuyển preset mẫu thất bại: ${error}`, error };
             }
         },
 
@@ -89,7 +89,7 @@ export function createTemplatePresetApi(ctx: ApiGroupContext): Record<string, Fu
                 return await ctx.getApi().switchTemplatePreset(presetName, { scope: 'chat' });
             } catch (e) {
                 logError_ACU('injectTemplatePresetToCurrentChat failed:', e);
-                return { success: false, message: `当前聊天模板预设切换失败：${e.message}` };
+                return { success: false, message: `Chuyển preset mẫu của cuộc trò chuyện hiện tại thất bại: ${e.message}` };
             }
         },
 
@@ -100,7 +100,7 @@ export function createTemplatePresetApi(ctx: ApiGroupContext): Record<string, Fu
                 const normalizedPresetName = deriveTemplatePresetNameForImport_ACU({
                     presetName,
                     fallbackLabel: normalizedScope === 'global'
-                        ? `导入模板_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`
+                        ? `Mau_nhap_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`
                         : '',
                 });
                 const prepared = parseImportedTemplateData_ACU(templateData, { dataMode, conflictPolicy });
@@ -113,7 +113,7 @@ export function createTemplatePresetApi(ctx: ApiGroupContext): Record<string, Fu
                             return {
                                 success: false,
                                 scope: normalizedScope,
-                                message: `模板已解析，但保存全局模板预设失败：${normalizedPresetName}`,
+                                message: `Mẫu đã được phân tích nhưng lưu preset mẫu toàn cục thất bại: ${normalizedPresetName}`,
                             };
                         }
                     }
@@ -126,8 +126,8 @@ export function createTemplatePresetApi(ctx: ApiGroupContext): Record<string, Fu
                         success: true,
                         scope: normalizedScope,
                         message: normalizedPresetName
-                            ? `模板已保存为全局预设：${normalizedPresetName}。你可以在"全局模板预设"下拉中手动切换到它。`
-                            : '模板已解析，但未指定预设名称，未保存到预设库。',
+                            ? `Đã lưu mẫu thành preset toàn cục: ${normalizedPresetName}. Bạn có thể chuyển thủ công sang nó trong danh sách "Preset mẫu toàn cục".`
+                            : 'Mẫu đã được phân tích nhưng chưa chỉ định tên preset, chưa lưu vào thư viện preset.',
                         presetName: normalizedPresetName || undefined,
                         dataMode: prepared.dataMode,
                         conflictPolicy: prepared.conflictPolicy,
@@ -144,11 +144,11 @@ export function createTemplatePresetApi(ctx: ApiGroupContext): Record<string, Fu
                     conflictPolicy: prepared.conflictPolicy,
                 });
                 if (!applied.saved) {
-                    const error = applied.error || '无法应用到当前聊天。';
+                    const error = applied.error || 'Không thể áp dụng vào cuộc trò chuyện hiện tại.';
                     return {
                         success: false,
                         scope: normalizedScope,
-                        message: `模板导入失败：${error}`,
+                        message: `Nhập mẫu thất bại: ${error}`,
                         error,
                     };
                 }
@@ -162,7 +162,7 @@ export function createTemplatePresetApi(ctx: ApiGroupContext): Record<string, Fu
                 return {
                     success: true,
                     scope: normalizedScope,
-                    message: postCommitWarning || `模板已成功导入到当前聊天${normalizedPresetName ? `（预设名：${normalizedPresetName}）` : ''}！`,
+                    message: postCommitWarning || `Đã nhập mẫu vào cuộc trò chuyện hiện tại thành công${normalizedPresetName ? ` (tên preset: ${normalizedPresetName})` : ''}!`,
                     presetName: normalizedPresetName || undefined,
                     runtimeReady,
                     dataMode: prepared.dataMode,
@@ -175,7 +175,7 @@ export function createTemplatePresetApi(ctx: ApiGroupContext): Record<string, Fu
             } catch (e) {
                 logError_ACU('importTemplateFromData failed:', e);
                 const error = e?.message || String(e);
-                return { success: false, scope: normalizeTemplateOperationScope_ACU(options?.scope || 'global'), message: `导入失败: ${error}`, error };
+                return { success: false, scope: normalizeTemplateOperationScope_ACU(options?.scope || 'global'), message: `Nhập thất bại: ${error}`, error };
             }
         },
 

@@ -32,12 +32,12 @@ function revisionFail_ACU(message: string, details?: Record_ACU): never {
   throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU('WORLD_SIMULATION_REVISION_CONFLICT', 'agent_persist', message, false, details));
 }
 function exactKeys_ACU(raw: Record_ACU, allowed: readonly string[], path: string): void {
-  for (const key of Object.keys(raw)) if (!allowed.includes(key)) fail_ACU(`${path} 存在未知字段`, { path: `${path}.${key}` });
+  for (const key of Object.keys(raw)) if (!allowed.includes(key)) fail_ACU(`${path} có trường không xác định`, { path: `${path}.${key}` });
 }
 function clone_ACU<T>(value: T): T { return JSON.parse(JSON.stringify(value)) as T; }
 function refs_ACU(value: unknown, path: string): string[] {
   const coerced = coerceWorldSimulationStringArray_ACU(value);
-  if (!coerced.ok) fail_ACU(`${path} 必须是字符串数组且元素不能为空`);
+  if (!coerced.ok) fail_ACU(`${path} phải là mảng chuỗi và phần tử không được rỗng`);
   return coerced.value;
 }
 
@@ -49,9 +49,9 @@ function singletonPatch_ACU(raw: unknown, revision: number, module: string): unk
   if (!isRecord_ACU(raw) || !Object.prototype.hasOwnProperty.call(raw, 'expectedRevision')) return raw;
   const expected = raw.expectedRevision;
   if (typeof expected !== 'number' || !Number.isInteger(expected) || expected < 0) {
-    fail_ACU(`patch.${module}.expectedRevision 必须是非负整数`, { path: `patch.${module}.expectedRevision` });
+    fail_ACU(`patch.${module}.expectedRevision phải là số nguyên không âm`, { path: `patch.${module}.expectedRevision` });
   }
-  if (expected !== revision) revisionFail_ACU(`patch.${module} 账本 revision 冲突`, { expectedRevision: expected, actualRevision: revision, revisionConflict: true });
+  if (expected !== revision) revisionFail_ACU(`patch.${module} xung đột revision sổ cái`, { expectedRevision: expected, actualRevision: revision, revisionConflict: true });
   const { expectedRevision: _expectedRevision, ...patch } = raw;
   return patch;
 }
@@ -73,18 +73,18 @@ function applyUpserts_ACU<T extends { id: string; revision: number }>(
     fail_ACU(message, details);
   };
   if (!isRecord_ACU(raw)) {
-    reject(`${path} 必须是对象`);
+    reject(`${path} phải là đối tượng`);
     return current.map(item => clone_ACU(item));
   }
   if (onViolation) {
-    for (const key of Object.keys(raw)) if (key !== 'upsert' && key !== 'remove') reject(`${path} 存在未知字段`, { path: `${path}.${key}`, severity: 'blocking' });
+    for (const key of Object.keys(raw)) if (key !== 'upsert' && key !== 'remove') reject(`${path} có trường không xác định`, { path: `${path}.${key}`, severity: 'blocking' });
   } else {
     exactKeys_ACU(raw, ['upsert', 'remove'], path);
   }
   const upserts = raw.upsert === undefined ? [] : raw.upsert;
   const removals = raw.remove === undefined ? [] : raw.remove;
   if (!Array.isArray(upserts) || !Array.isArray(removals) || (!upserts.length && !removals.length)) {
-    reject(`${path} 必须包含非空 upsert 或 remove 数组`);
+    reject(`${path} phải chứa mảng upsert hoặc remove không rỗng`);
     return current.map(item => clone_ACU(item));
   }
   const result = current.map(item => clone_ACU(item));
@@ -92,7 +92,7 @@ function applyUpserts_ACU<T extends { id: string; revision: number }>(
   for (const [index, removal] of removals.entries()) {
     const itemPath = `${path}.remove[${index}]`;
     if (!isRecord_ACU(removal)) {
-      reject(`${itemPath} 必须是对象`, { path: itemPath, severity: 'blocking' });
+      reject(`${itemPath} phải là đối tượng`, { path: itemPath, severity: 'blocking' });
       continue;
     }
     const id = typeof removal.id === 'string' ? removal.id.trim() : '';
@@ -100,19 +100,19 @@ function applyUpserts_ACU<T extends { id: string; revision: number }>(
     const expected = coerceWorldSimulationInteger_ACU(removal.expectedRevision);
     const existingIndex = id ? result.findIndex(entry => entry.id === id) : -1;
     if (!id || !reason || !expected.ok || expected.value < 0) {
-      reject(`${itemPath} 必须包含非空 id/reason 与非负整数 expectedRevision`, { path: itemPath, severity: 'blocking' });
+      reject(`${itemPath} phải chứa id/reason không rỗng và expectedRevision là số nguyên không âm`, { path: itemPath, severity: 'blocking' });
       continue;
     }
     if (seen.has(id)) {
-      reject(`${path} 对同一 ID 重复写入`, { id, path: itemPath, severity: 'blocking' });
+      reject(`${path} ghi lặp cho cùng một ID`, { id, path: itemPath, severity: 'blocking' });
       continue;
     }
     if (existingIndex < 0) {
-      reject(`${itemPath}.id 不存在`, { id, path: `${itemPath}.id`, severity: 'blocking' });
+      reject(`${itemPath}.id không tồn tại`, { id, path: `${itemPath}.id`, severity: 'blocking' });
       continue;
     }
     if (result[existingIndex].revision !== expected.value) {
-      reject(`${itemPath} 条目 revision 冲突`, { id, expectedRevision: expected.value, actualRevision: result[existingIndex].revision, revisionConflict: true, path: itemPath, severity: 'blocking' });
+      reject(`${itemPath} xung đột revision của mục`, { id, expectedRevision: expected.value, actualRevision: result[existingIndex].revision, revisionConflict: true, path: itemPath, severity: 'blocking' });
       continue;
     }
     seen.add(id);
@@ -141,7 +141,7 @@ function applyUpserts_ACU<T extends { id: string; revision: number }>(
     if (blocked || !normalized.item) continue;
     const id = String(normalized.item.id);
     if (seen.has(id)) {
-      if (reject(`${path} 对同一 ID 重复写入`, { id, path: itemPath, severity: 'blocking' })) continue;
+      if (reject(`${path} ghi lặp cho cùng một ID`, { id, path: itemPath, severity: 'blocking' })) continue;
     }
     seen.add(id);
     if (existingIndex < 0) result.push(normalized.item as T);
@@ -161,50 +161,50 @@ function collectEvidenceRefs_ACU(value: unknown, output: string[] = []): string[
 }
 
 function applyClock_ACU(current: WorldSimulationLedger_ACU['clock'], raw: unknown, dynamics: WorldSimulationSettings_ACU['dynamics']): WorldSimulationLedger_ACU['clock'] {
-  if (!isRecord_ACU(raw)) fail_ACU('patch.clock 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('patch.clock phải là đối tượng');
   exactKeys_ACU(raw, ['days', 'storyTime', 'slot', 'evidenceRefs'], 'patch.clock');
-  if (!Object.keys(raw).length) fail_ACU('patch.clock 不能为空');
+  if (!Object.keys(raw).length) fail_ACU('patch.clock không được để trống');
   let days = 0;
   if (raw.days !== undefined) {
     const coerced = coerceWorldSimulationInteger_ACU(raw.days);
-    if (!coerced.ok || coerced.value < 0) fail_ACU('patch.clock.days 必须是非负整数（clockAdvance 只允许单调向前推进，禁止直接写 day）');
+    if (!coerced.ok || coerced.value < 0) fail_ACU('patch.clock.days phải là số nguyên không âm (clockAdvance chỉ cho phép đẩy tiến đơn điệu về phía trước, cấm ghi trực tiếp day)');
     days = coerced.value;
   }
   if (days > dynamics.maxClockAdvanceDays) {
     const advanceRefs = raw.evidenceRefs;
     if (!Array.isArray(advanceRefs) || !advanceRefs.length || advanceRefs.some(item => typeof item !== 'string' || !item.trim())) {
-      fail_ACU(`patch.clock.days 超过 maxClockAdvanceDays=${dynamics.maxClockAdvanceDays}，必须提供非空 evidenceRefs`);
+      fail_ACU(`patch.clock.days vượt quá maxClockAdvanceDays=${dynamics.maxClockAdvanceDays}, phải cung cấp evidenceRefs không rỗng`);
     }
   }
   return {
     day: current.day + days,
     slot: raw.slot === undefined ? current.slot
-      : typeof raw.slot === 'string' ? raw.slot : fail_ACU('patch.clock.slot 必须是字符串'),
+      : typeof raw.slot === 'string' ? raw.slot : fail_ACU('patch.clock.slot phải là chuỗi'),
     storyTime: raw.storyTime === undefined ? current.storyTime
-      : typeof raw.storyTime === 'string' ? raw.storyTime : fail_ACU('patch.clock.storyTime 必须是字符串'),
+      : typeof raw.storyTime === 'string' ? raw.storyTime : fail_ACU('patch.clock.storyTime phải là chuỗi'),
     precision: current.precision,
     evidenceRefs: raw.evidenceRefs === undefined ? [...current.evidenceRefs] : refs_ACU(raw.evidenceRefs, 'patch.clock.evidenceRefs'),
   };
 }
 
 function guidanceSignals_ACU(value: unknown, path: string): WorldGuidanceSignal_ACU[] {
-  if (!Array.isArray(value)) fail_ACU(`${path} 必须是数组`);
+  if (!Array.isArray(value)) fail_ACU(`${path} phải là mảng`);
   return value.map((item, index) => {
-    if (!isRecord_ACU(item)) fail_ACU(`${path}[${index}] 必须是对象`);
+    if (!isRecord_ACU(item)) fail_ACU(`${path}[${index}] phải là đối tượng`);
     exactKeys_ACU(item, ['text', 'voice', 'sourceId'], `${path}[${index}]`);
-    if (typeof item.text !== 'string' || !item.text.trim()) fail_ACU(`${path}[${index}].text 必须是非空字符串`);
+    if (typeof item.text !== 'string' || !item.text.trim()) fail_ACU(`${path}[${index}].text phải là chuỗi không rỗng`);
     const voice = coerceWorldSimulationGuidanceVoice_ACU(item.voice);
-    if (!voice.ok) fail_ACU(`${path}[${index}].voice 非法`, { actual: item.voice });
-    if (typeof item.sourceId !== 'string' || !item.sourceId.trim()) fail_ACU(`${path}[${index}].sourceId 必须是非空字符串`);
+    if (!voice.ok) fail_ACU(`${path}[${index}].voice không hợp lệ`, { actual: item.voice });
+    if (typeof item.sourceId !== 'string' || !item.sourceId.trim()) fail_ACU(`${path}[${index}].sourceId phải là chuỗi không rỗng`);
     const signal: WorldGuidanceSignal_ACU = { text: item.text, voice: voice.value, sourceId: item.sourceId.trim() };
     return signal;
   });
 }
 
 function applyGuidance_ACU(current: WorldSimulationLedger_ACU['guidance'], raw: unknown, ledger: WorldSimulationLedger_ACU, anchorMessage = ''): WorldSimulationLedger_ACU['guidance'] {
-  if (!isRecord_ACU(raw)) fail_ACU('patch.guidance 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('patch.guidance phải là đối tượng');
   exactKeys_ACU(raw, ['signals', 'excludedFacts', 'evidenceRefs'], 'patch.guidance');
-  if (!Object.keys(raw).length) fail_ACU('patch.guidance 不能为空');
+  if (!Object.keys(raw).length) fail_ACU('patch.guidance không được để trống');
   const signals = raw.signals === undefined ? [...current.signals] : guidanceSignals_ACU(raw.signals, 'patch.guidance.signals');
   if (raw.signals !== undefined) validateWorldSimulationGuidanceComposerSignals_ACU(signals, ledger, anchorMessage);
   return {
@@ -215,20 +215,20 @@ function applyGuidance_ACU(current: WorldSimulationLedger_ACU['guidance'], raw: 
 }
 
 function applyPlayer_ACU(current: WorldSimulationLedger_ACU['player'], raw: unknown): WorldSimulationLedger_ACU['player'] {
-  if (!isRecord_ACU(raw)) fail_ACU('patch.player 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('patch.player phải là đối tượng');
   exactKeys_ACU(raw, ['location', 'contact', 'evidenceRefs'], 'patch.player');
-  if (!Object.keys(raw).length) fail_ACU('patch.player 不能为空');
+  if (!Object.keys(raw).length) fail_ACU('patch.player không được để trống');
   let location: WorldSimulationLedger_ACU['player']['location'] = current.location ? { ...current.location } : null;
   if (raw.location !== undefined) {
     if (raw.location === null) {
       location = null;
     } else {
-      if (!isRecord_ACU(raw.location)) fail_ACU('patch.player.location 必须是对象或 null');
+      if (!isRecord_ACU(raw.location)) fail_ACU('patch.player.location phải là đối tượng hoặc null');
       exactKeys_ACU(raw.location, ['region', 'place'], 'patch.player.location');
-      if (typeof raw.location.region !== 'string' || !raw.location.region.trim()) fail_ACU('patch.player.location.region 必须是非空字符串');
+      if (typeof raw.location.region !== 'string' || !raw.location.region.trim()) fail_ACU('patch.player.location.region phải là chuỗi không rỗng');
       const nextLocation: NonNullable<WorldSimulationLedger_ACU['player']['location']> = { region: raw.location.region };
       if (raw.location.place !== undefined) {
-        if (typeof raw.location.place !== 'string') fail_ACU('patch.player.location.place 必须是字符串');
+        if (typeof raw.location.place !== 'string') fail_ACU('patch.player.location.place phải là chuỗi');
         nextLocation.place = raw.location.place;
       }
       location = nextLocation;
@@ -241,7 +241,7 @@ function applyPlayer_ACU(current: WorldSimulationLedger_ACU['player'], raw: unkn
     contact: raw.contact === undefined ? current.contact
       : (() => {
         const contact = coerceWorldSimulationContact_ACU(raw.contact);
-        return contact.ok ? contact.value : fail_ACU('patch.player.contact 非法');
+        return contact.ok ? contact.value : fail_ACU('patch.player.contact không hợp lệ');
       })(),
     evidenceRefs: raw.evidenceRefs === undefined ? [...current.evidenceRefs] : refs_ACU(raw.evidenceRefs, 'patch.player.evidenceRefs'),
   };
@@ -253,13 +253,13 @@ function checkCrossField_ACU(next: WorldSimulationLedger_ACU, onViolation?: (mes
     else fail_ACU(message, details);
   };
   for (const rumor of next.rumors) {
-    if (rumor.earliestRevealDay < rumor.originDay) reject('rumors 条目 earliestRevealDay 必须 >= originDay', { id: rumor.id, originDay: rumor.originDay, earliestRevealDay: rumor.earliestRevealDay });
-    if (rumor.status === 'revealed' && !Number.isInteger(rumor.revealedAtDay)) reject('rumors 条目 status=revealed 必须携带整数 revealedAtDay', { id: rumor.id });
+    if (rumor.earliestRevealDay < rumor.originDay) reject('Mục rumors có earliestRevealDay phải >= originDay', { id: rumor.id, originDay: rumor.originDay, earliestRevealDay: rumor.earliestRevealDay });
+    if (rumor.status === 'revealed' && !Number.isInteger(rumor.revealedAtDay)) reject('Mục rumors có status=revealed phải mang revealedAtDay là số nguyên', { id: rumor.id });
   }
   for (const actor of next.actors) {
     if (actor.life !== 'dead') continue;
     const companion = next.rumors.find(rumor => rumor.relatedActorIds.includes(actor.id) && rumor.channels.length > 0 && (actor.diedAtDay === null || rumor.earliestRevealDay >= actor.diedAtDay));
-    if (!companion) reject('actors 条目 life=dead 缺少伴随 rumor（relatedActorIds 含该 actor、channels 非空、earliestRevealDay >= diedAtDay）', { id: actor.id, diedAtDay: actor.diedAtDay });
+    if (!companion) reject('Mục actors có life=dead thiếu rumor đi kèm (relatedActorIds chứa actor đó, channels không rỗng, earliestRevealDay >= diedAtDay)', { id: actor.id, diedAtDay: actor.diedAtDay });
   }
 }
 
@@ -268,43 +268,43 @@ function applyChronicle_ACU(
   raw: unknown,
   clock: WorldSimulationLedger_ACU['clock'],
 ): WorldSimulationLedger_ACU['chronicle'] {
-  if (!isRecord_ACU(raw)) fail_ACU('patch.chronicle 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('patch.chronicle phải là đối tượng');
   exactKeys_ACU(raw, ['append', 'remove'], 'patch.chronicle');
   const append = raw.append === undefined ? [] : raw.append;
   const remove = raw.remove === undefined ? [] : raw.remove;
-  if (!Array.isArray(append) || !Array.isArray(remove) || (!append.length && !remove.length)) fail_ACU('patch.chronicle 必须包含非空 append 或 remove 数组');
+  if (!Array.isArray(append) || !Array.isArray(remove) || (!append.length && !remove.length)) fail_ACU('patch.chronicle phải chứa mảng append hoặc remove không rỗng');
   const removedIds = new Set<string>();
   for (const [index, item] of remove.entries()) {
     const path = `patch.chronicle.remove[${index}]`;
-    if (!isRecord_ACU(item)) fail_ACU(`${path} 必须是对象`);
+    if (!isRecord_ACU(item)) fail_ACU(`${path} phải là đối tượng`);
     exactKeys_ACU(item, ['id', 'reason'], path);
     const id = typeof item.id === 'string' ? item.id.trim() : '';
     const reason = typeof item.reason === 'string' ? item.reason.trim() : '';
-    if (!id || !reason) fail_ACU(`${path} 必须包含非空 id 与 reason`);
-    if (removedIds.has(id)) fail_ACU(`${path}.id 重复`, { id });
-    if (!current.some(entry => entry.id === id)) fail_ACU(`${path}.id 不存在`, { id });
+    if (!id || !reason) fail_ACU(`${path} phải chứa id và reason không rỗng`);
+    if (removedIds.has(id)) fail_ACU(`${path}.id bị trùng`, { id });
+    if (!current.some(entry => entry.id === id)) fail_ACU(`${path}.id không tồn tại`, { id });
     removedIds.add(id);
   }
   const retained = current.filter(item => !removedIds.has(item.id));
   const taken = new Set(retained.map(item => item.id));
   const appended = append.map((item, index) => {
     const path = `patch.chronicle.append[${index}]`;
-    if (!isRecord_ACU(item)) fail_ACU(`${path} 必须是对象`);
+    if (!isRecord_ACU(item)) fail_ACU(`${path} phải là đối tượng`);
     const summary = typeof item.summary === 'string' ? item.summary.trim() : '';
-    if (!summary) fail_ACU(`${path}.summary 必须是非空字符串`);
+    if (!summary) fail_ACU(`${path}.summary phải là chuỗi không rỗng`);
     let id = typeof item.id === 'string' ? item.id.trim() : '';
     if (!id) {
       id = allocateWorldSimulationPrefixedId_ACU(`chr-${clock.day}`, taken);
     }
-    if (taken.has(id)) fail_ACU(`${path}.id 与现有或本批编年冲突`, { id });
+    if (taken.has(id)) fail_ACU(`${path}.id xung đột với niên biểu hiện có hoặc cùng lô`, { id });
     taken.add(id);
     const at = typeof item.at === 'string' && item.at.trim()
       ? item.at.trim()
-      : (clock.storyTime.trim() || `第${clock.day}日`);
+      : (clock.storyTime.trim() || `Ngày ${clock.day}`);
     const related = coerceWorldSimulationStringArray_ACU(item.relatedIds === undefined ? [] : item.relatedIds);
-    if (!related.ok) fail_ACU(`${path}.relatedIds 必须是字符串数组`);
+    if (!related.ok) fail_ACU(`${path}.relatedIds phải là mảng chuỗi`);
     const evidence = coerceWorldSimulationStringArray_ACU(item.evidenceRefs === undefined ? [] : item.evidenceRefs);
-    if (!evidence.ok) fail_ACU(`${path}.evidenceRefs 必须是字符串数组`);
+    if (!evidence.ok) fail_ACU(`${path}.evidenceRefs phải là mảng chuỗi`);
     // 主角错过标记由维护 AI 判定；空串视为普通纪要。
     const missedNote = typeof item.missedNote === 'string' && item.missedNote.trim() ? item.missedNote.trim() : null;
     return { id, at, summary, relatedIds: related.value, evidenceRefs: evidence.value, missedNote };
@@ -315,30 +315,30 @@ function applyChronicle_ACU(
 const ARCHIVE_REF_RE_ACU = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 
 function archiveRef_ACU(value: unknown, path: string): string {
-  if (typeof value !== 'string' || !ARCHIVE_REF_RE_ACU.test(value)) fail_ACU(`${path} 不是合法 archiveRef`);
+  if (typeof value !== 'string' || !ARCHIVE_REF_RE_ACU.test(value)) fail_ACU(`${path} không phải archiveRef hợp lệ`);
   return value;
 }
 
 function overviewRow_ACU(raw: unknown, path: string): WorldChronicleOverviewRow_ACU {
-  if (!isRecord_ACU(raw)) fail_ACU(`${path} 必须是对象`);
+  if (!isRecord_ACU(raw)) fail_ACU(`${path} phải là đối tượng`);
   exactKeys_ACU(raw, ['fingerprint', 'day', 'oneLine', 'archiveRef'], path);
-  if (typeof raw.fingerprint !== 'string' || !raw.fingerprint.trim()) fail_ACU(`${path}.fingerprint 必须是非空字符串`);
-  if (typeof raw.oneLine !== 'string' || !raw.oneLine.trim()) fail_ACU(`${path}.oneLine 必须是非空字符串`);
+  if (typeof raw.fingerprint !== 'string' || !raw.fingerprint.trim()) fail_ACU(`${path}.fingerprint phải là chuỗi không rỗng`);
+  if (typeof raw.oneLine !== 'string' || !raw.oneLine.trim()) fail_ACU(`${path}.oneLine phải là chuỗi không rỗng`);
   const day = typeof raw.day === 'number' && Number.isInteger(raw.day) ? raw.day : NaN;
-  if (!Number.isInteger(day) || day < 1) fail_ACU(`${path}.day 必须是 >= 1 的整数`);
+  if (!Number.isInteger(day) || day < 1) fail_ACU(`${path}.day phải là số nguyên >= 1`);
   return { fingerprint: raw.fingerprint, day, oneLine: raw.oneLine, archiveRef: archiveRef_ACU(raw.archiveRef, `${path}.archiveRef`) };
 }
 
 function archiveDetail_ACU(raw: unknown, path: string): WorldChronicleArchiveDetail_ACU {
-  if (!isRecord_ACU(raw)) fail_ACU(`${path} 必须是对象`);
+  if (!isRecord_ACU(raw)) fail_ACU(`${path} phải là đối tượng`);
   exactKeys_ACU(raw, ['archiveRef', 'day', 'summary', 'fingerprints', 'relatedIds', 'sourceChronicleIds'], path);
   const stringList = (value: unknown, field: string): string[] => {
-    if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) fail_ACU(`${path}.${field} 必须是字符串数组`);
+    if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) fail_ACU(`${path}.${field} phải là mảng chuỗi`);
     return value as string[];
   };
   const day = typeof raw.day === 'number' && Number.isInteger(raw.day) ? raw.day : NaN;
-  if (!Number.isInteger(day) || day < 1) fail_ACU(`${path}.day 必须是 >= 1 的整数`);
-  if (typeof raw.summary !== 'string' || !raw.summary.trim()) fail_ACU(`${path}.summary 必须是非空字符串`);
+  if (!Number.isInteger(day) || day < 1) fail_ACU(`${path}.day phải là số nguyên >= 1`);
+  if (typeof raw.summary !== 'string' || !raw.summary.trim()) fail_ACU(`${path}.summary phải là chuỗi không rỗng`);
   return {
     archiveRef: archiveRef_ACU(raw.archiveRef, `${path}.archiveRef`),
     day,
@@ -359,19 +359,19 @@ export function applyChronicleArchive_ACU(
   raw: unknown,
   clockDay: number,
 ): WorldSimulationChronicleArchiveApply_ACU {
-  if (!isRecord_ACU(raw)) fail_ACU('patch.chronicleArchive 必须是对象');
+  if (!isRecord_ACU(raw)) fail_ACU('patch.chronicleArchive phải là đối tượng');
   exactKeys_ACU(raw, ['archiveEntries', 'overviewRows', 'collapseRefs'], 'patch.chronicleArchive');
-  if (!Array.isArray(raw.archiveEntries) || raw.archiveEntries.length === 0) fail_ACU('patch.chronicleArchive.archiveEntries 必须是非空数组');
-  if (!Array.isArray(raw.overviewRows) || raw.overviewRows.length === 0) fail_ACU('patch.chronicleArchive.overviewRows 必须是非空数组');
+  if (!Array.isArray(raw.archiveEntries) || raw.archiveEntries.length === 0) fail_ACU('patch.chronicleArchive.archiveEntries phải là mảng không rỗng');
+  if (!Array.isArray(raw.overviewRows) || raw.overviewRows.length === 0) fail_ACU('patch.chronicleArchive.overviewRows phải là mảng không rỗng');
   const collapseRefs = raw.collapseRefs === undefined
     ? []
     : Array.isArray(raw.collapseRefs) && raw.collapseRefs.every(item => typeof item === 'string')
       ? raw.collapseRefs as string[]
-      : fail_ACU('patch.chronicleArchive.collapseRefs 必须是字符串数组');
+      : fail_ACU('patch.chronicleArchive.collapseRefs phải là mảng chuỗi');
   const takenRefs = new Set(current.map(row => row.archiveRef));
   const filledEntries = raw.archiveEntries.map((item, index) => {
     const path = `patch.chronicleArchive.archiveEntries[${index}]`;
-    if (!isRecord_ACU(item)) fail_ACU(`${path} 必须是对象`);
+    if (!isRecord_ACU(item)) fail_ACU(`${path} phải là đối tượng`);
     const next = { ...item };
     const suppliedRef = typeof next.archiveRef === 'string' ? next.archiveRef.trim() : '';
     if (!suppliedRef) {
@@ -400,7 +400,7 @@ export function applyChronicleArchive_ACU(
   const writes = filledEntries.map((item, index) => archiveDetail_ACU(item, `patch.chronicleArchive.archiveEntries[${index}]`));
   const filledRows = raw.overviewRows.map((item, index) => {
     const path = `patch.chronicleArchive.overviewRows[${index}]`;
-    if (!isRecord_ACU(item)) fail_ACU(`${path} 必须是对象`);
+    if (!isRecord_ACU(item)) fail_ACU(`${path} phải là đối tượng`);
     const next = { ...item };
     const paired = writes[index];
     const suppliedRef = typeof next.archiveRef === 'string' ? next.archiveRef.trim() : '';
@@ -419,22 +419,22 @@ export function applyChronicleArchive_ACU(
   });
   const overviewRows = filledRows.map((item, index) => overviewRow_ACU(item, `patch.chronicleArchive.overviewRows[${index}]`));
   const writeRefs = new Set(writes.map(item => item.archiveRef));
-  if (writeRefs.size !== writes.length) fail_ACU('patch.chronicleArchive.archiveEntries archiveRef 必须唯一');
+  if (writeRefs.size !== writes.length) fail_ACU('patch.chronicleArchive.archiveEntries archiveRef phải là duy nhất');
   const overviewRefs = new Set(overviewRows.map(item => item.archiveRef));
-  if (overviewRefs.size !== overviewRows.length) fail_ACU('patch.chronicleArchive.overviewRows archiveRef 必须唯一');
+  if (overviewRefs.size !== overviewRows.length) fail_ACU('patch.chronicleArchive.overviewRows archiveRef phải là duy nhất');
   for (const row of overviewRows) {
-    if (!writeRefs.has(row.archiveRef)) fail_ACU('overviewRows.archiveRef 必须对应 archiveEntries', { archiveRef: row.archiveRef });
+    if (!writeRefs.has(row.archiveRef)) fail_ACU('overviewRows.archiveRef phải tương ứng với archiveEntries', { archiveRef: row.archiveRef });
   }
   const collapse = new Set(collapseRefs);
   const retained = current.filter(row => !collapse.has(row.archiveRef));
   const remainingRefs = new Set(retained.map(row => row.archiveRef));
   for (const row of overviewRows) {
-    if (remainingRefs.has(row.archiveRef)) fail_ACU('archiveRef 与现有概览目录冲突', { archiveRef: row.archiveRef });
+    if (remainingRefs.has(row.archiveRef)) fail_ACU('archiveRef xung đột với danh mục tổng quan hiện có', { archiveRef: row.archiveRef });
     remainingRefs.add(row.archiveRef);
   }
   const overview = [...retained, ...overviewRows];
   if (overview.length > WORLD_CHRONICLE_OVERVIEW_CAP_ACU) {
-    fail_ACU(`chronicleOverview 追加后超过 ${WORLD_CHRONICLE_OVERVIEW_CAP_ACU} 行，必须自带 collapseRefs 合并旧行`, {
+    fail_ACU(`chronicleOverview sau khi thêm vượt quá ${WORLD_CHRONICLE_OVERVIEW_CAP_ACU} hàng, phải tự kèm collapseRefs để gộp hàng cũ`, {
       nextCount: overview.length,
       cap: WORLD_CHRONICLE_OVERVIEW_CAP_ACU,
     });
@@ -469,7 +469,7 @@ function recordPendingFix_ACU(
   day: number,
 ): void {
   const now = Date.now();
-  const lastError = violations.map(item => item.message).join('；') || '模块入库失败';
+  const lastError = violations.map(item => item.message).join('; ') || 'Nhập kho module thất bại';
   const index = pending.findIndex(item => item.module === module);
   if (index >= 0) {
     const previous = pending[index];
@@ -508,7 +508,7 @@ function recordPendingFix_ACU(
 }
 
 function violationModule_ACU(message: string): WorldSimulationLedgerModule_ACU | null {
-  if (message.includes('缺少伴随 rumor') || message.includes('ledger.actors')) return 'actors';
+  if (message.includes('thiếu rumor đi kèm') || message.includes('ledger.actors')) return 'actors';
   if (message.includes('ledger.rumors') || message.includes('earliestRevealDay')) return 'rumors';
   if (message.includes('ledger.seeds')) return 'seeds';
   if (message.includes('ledger.dimensions')) return 'dimensions';
@@ -581,24 +581,24 @@ export function applyWorldSimulationCandidatesDetailed_ACU(
 ): WorldSimulationApplyResult_ACU {
   const dynamics = resolveDynamics_ACU(settings);
   const validatedBase = validateWorldSimulationLedger_ACU(base, 'agent_persist');
-  if (!candidates.length) fail_ACU('commit 必须包含至少一个候选');
+  if (!candidates.length) fail_ACU('commit phải chứa ít nhất một ứng viên');
   const candidateIds = new Set<string>();
   for (const candidate of candidates) {
-    if (!candidate.candidateId || candidateIds.has(candidate.candidateId)) fail_ACU('commit candidateId 缺失或重复', { candidateId: candidate.candidateId });
+    if (!candidate.candidateId || candidateIds.has(candidate.candidateId)) fail_ACU('commit candidateId bị thiếu hoặc trùng lặp', { candidateId: candidate.candidateId });
     candidateIds.add(candidate.candidateId);
-    if (!isRecord_ACU(candidate.patch) || !Object.keys(candidate.patch).length) fail_ACU('candidate.patch 必须是非空对象', { candidateId: candidate.candidateId });
+    if (!isRecord_ACU(candidate.patch) || !Object.keys(candidate.patch).length) fail_ACU('candidate.patch phải là đối tượng không rỗng', { candidateId: candidate.candidateId });
     const declared = new Set(candidate.evidenceRefs);
-    for (const ref of declared) if (!authorizedEvidenceRefs.has(ref)) fail_ACU('候选声明了未授权 evidenceRef', { candidateId: candidate.candidateId, evidenceRef: ref });
+    for (const ref of declared) if (!authorizedEvidenceRefs.has(ref)) fail_ACU('Ứng viên khai báo evidenceRef chưa được ủy quyền', { candidateId: candidate.candidateId, evidenceRef: ref });
     for (const ref of collectEvidenceRefs_ACU(candidate.patch)) {
-      if (!declared.has(ref) || !authorizedEvidenceRefs.has(ref)) fail_ACU('patch 使用了未由候选声明并授权的 evidenceRef', { candidateId: candidate.candidateId, evidenceRef: ref });
+      if (!declared.has(ref) || !authorizedEvidenceRefs.has(ref)) fail_ACU('patch dùng evidenceRef chưa được ứng viên khai báo và ủy quyền', { candidateId: candidate.candidateId, evidenceRef: ref });
     }
     const definition = findWorldSimulationAgentDefinition_ACU(candidate.agentName);
-    if (!definition) fail_ACU('候选 Agent 不在格林推演角色目录中', { candidateId: candidate.candidateId, agentName: candidate.agentName });
+    if (!definition) fail_ACU('Agent của ứng viên không nằm trong danh mục vai trò mô phỏng thế giới', { candidateId: candidate.candidateId, agentName: candidate.agentName });
     const writable = new Set<string>(definition.writableModules);
     const forgedPermissions = candidate.writableModules.filter(module => !writable.has(module));
-    if (forgedPermissions.length) fail_ACU('候选声明了角色目录未授权的写入模块', { candidateId: candidate.candidateId, forgedPermissions });
+    if (forgedPermissions.length) fail_ACU('Ứng viên khai báo module ghi mà danh mục vai trò chưa ủy quyền', { candidateId: candidate.candidateId, forgedPermissions });
     for (const [module] of orderedPatchEntries_ACU(candidate.patch)) {
-      if (!canWritePatchModule_ACU(module, writable)) fail_ACU('候选越权写入 ledger 模块', { candidateId: candidate.candidateId, module });
+      if (!canWritePatchModule_ACU(module, writable)) fail_ACU('Ứng viên ghi vượt quyền vào module ledger', { candidateId: candidate.candidateId, module });
     }
   }
 
@@ -707,7 +707,7 @@ export function applyWorldSimulationCandidatesDetailed_ACU(
     );
   }
   const remaining = crossFieldProblems_ACU(next);
-  if (remaining.length) fail_ACU(remaining.map(item => item.message).join('；'));
+  if (remaining.length) fail_ACU(remaining.map(item => item.message).join('; '));
   next.pendingFixes = pendingFixes;
   next.revision = validatedBase.revision + 1;
   const ledger = validateWorldSimulationLedger_ACU(next, 'agent_persist');
@@ -787,19 +787,19 @@ async function verifyWorldSimulationRowsViaSql_ACU(
     const verified = view.readLedger();
     for (const [module] of SQL_VERIFY_ARRAY_MODULES_ACU) {
       if (JSON.stringify(after[module]) !== JSON.stringify(verified[module])) {
-        throw new WorldSimulationSqlViewError_ACU(`模块 ${module} SQL 复算结果与事务结果不一致`, { module });
+        throw new WorldSimulationSqlViewError_ACU(`Kết quả tính lại SQL của module ${module} không khớp với kết quả giao dịch`, { module });
       }
     }
     for (const module of SQL_VERIFY_SINGLETONS_ACU) {
       if (JSON.stringify(after[module]) !== JSON.stringify(verified[module])) {
-        throw new WorldSimulationSqlViewError_ACU(`模块 ${module} SQL 复算结果与事务结果不一致`, { module });
+        throw new WorldSimulationSqlViewError_ACU(`Kết quả tính lại SQL của module ${module} không khớp với kết quả giao dịch`, { module });
       }
     }
     if (archiveWrites.length) {
       const exported = view.exportArchiveRecords();
       const expectedArchive = Object.fromEntries(archiveWrites.map(item => [item.archiveRef, item]));
       if (JSON.stringify(exported) !== JSON.stringify(expectedArchive)) {
-        throw new WorldSimulationSqlViewError_ACU('模块 chronicleArchive SQL 复算结果与事务结果不一致', {
+        throw new WorldSimulationSqlViewError_ACU('Kết quả tính lại SQL của module chronicleArchive không khớp với kết quả giao dịch', {
           module: 'chronicleArchive',
         });
       }
@@ -870,7 +870,7 @@ export function preflightWorldSimulationCandidates_ACU(
     return { blocking, autoFixed };
   }
   if (!candidates.length) {
-    blocking.push({ candidateId: '', agentName: '', module: '', path: '$', message: 'commit 必须包含至少一个候选', severity: 'blocking' });
+    blocking.push({ candidateId: '', agentName: '', module: '', path: '$', message: 'commit phải chứa ít nhất một ứng viên', severity: 'blocking' });
     return { blocking, autoFixed };
   }
   const next = clone_ACU(validatedBase);
@@ -882,34 +882,34 @@ export function preflightWorldSimulationCandidates_ACU(
       bucket.push({ candidateId: candidate.candidateId, agentName: candidate.agentName, module, path, message, severity, details });
     };
     if (!candidate.candidateId || candidateIds.has(candidate.candidateId)) {
-      push('', '$', 'commit candidateId 缺失或重复', { candidateId: candidate.candidateId });
+      push('', '$', 'commit candidateId bị thiếu hoặc trùng lặp', { candidateId: candidate.candidateId });
       continue;
     }
     candidateIds.add(candidate.candidateId);
     if (!isRecord_ACU(candidate.patch) || !Object.keys(candidate.patch).length) {
-      push('', '$.patch', 'candidate.patch 必须是非空对象');
+      push('', '$.patch', 'candidate.patch phải là đối tượng không rỗng');
       continue;
     }
     const declared = new Set(candidate.evidenceRefs);
-    for (const ref of declared) if (!authorizedEvidenceRefs.has(ref)) push('', '$.evidenceRefs', `候选声明了未授权 evidenceRef: ${ref}`, { evidenceRef: ref });
+    for (const ref of declared) if (!authorizedEvidenceRefs.has(ref)) push('', '$.evidenceRefs', `Ứng viên khai báo evidenceRef chưa được ủy quyền: ${ref}`, { evidenceRef: ref });
     try {
       for (const ref of collectEvidenceRefs_ACU(candidate.patch)) {
-        if (!declared.has(ref) || !authorizedEvidenceRefs.has(ref)) push('', '$.patch', `patch 使用了未声明或未授权的 evidenceRef: ${ref}`, { evidenceRef: ref });
+        if (!declared.has(ref) || !authorizedEvidenceRefs.has(ref)) push('', '$.patch', `patch dùng evidenceRef chưa được khai báo hoặc ủy quyền: ${ref}`, { evidenceRef: ref });
       }
     } catch (error) {
       push('', '$.patch', error instanceof Error ? error.message : String(error));
     }
     const definition = findWorldSimulationAgentDefinition_ACU(candidate.agentName);
     if (!definition) {
-      push('', '$.agentName', `候选 Agent 不在格林推演角色目录中: ${candidate.agentName}`);
+      push('', '$.agentName', `Agent của ứng viên không nằm trong danh mục vai trò mô phỏng thế giới: ${candidate.agentName}`);
       continue;
     }
     const writable = new Set<string>(definition.writableModules);
     const forgedPermissions = candidate.writableModules.filter(module => !writable.has(module));
-    if (forgedPermissions.length) push('', '$.writableModules', `候选声明了角色目录未授权的写入模块: ${forgedPermissions.join(',')}`, { forgedPermissions });
+    if (forgedPermissions.length) push('', '$.writableModules', `Ứng viên khai báo module ghi mà danh mục vai trò chưa ủy quyền: ${forgedPermissions.join(',')}`, { forgedPermissions });
     for (const [module, patch] of orderedPatchEntries_ACU(candidate.patch)) {
       if (!canWritePatchModule_ACU(module, writable)) {
-        push(module, `$.patch.${module}`, '候选越权写入 ledger 模块');
+        push(module, `$.patch.${module}`, 'Ứng viên ghi vượt quyền vào module ledger');
         continue;
       }
       const collectUpsert = (message: string, details?: Record_ACU): void => {
@@ -967,7 +967,7 @@ export function applyWorldSimulationFieldDomain_ACU(
   }
   if (!deferCrossValidation) {
     const problems = crossFieldProblems_ACU(next);
-    if (problems.length) fail_ACU(problems.map(item => item.message).join('；'));
+    if (problems.length) fail_ACU(problems.map(item => item.message).join('; '));
   }
   next.revision = ledger.revision + 1;
   return deferCrossValidation ? next : validateWorldSimulationLedger_ACU(next, 'agent_persist');

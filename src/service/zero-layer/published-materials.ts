@@ -4,14 +4,14 @@ import { readCheckpointSimulationView_ACU } from './checkpoint-materials';
 /** 正文在途时只展示开始前的已确认资料；结算端口仍消费分支工作状态。 */
 export function readZeroLayerPublishedMaterials_ACU(source: ZeroLayerEnvelope_ACU) {
   const branch = source.branches.find(item => item.branchId === source.activeBranchId);
-  if (!branch) throw new ZeroLayerError_ACU('corrupt-data', '活动资料分支不存在。');
+  if (!branch) throw new ZeroLayerError_ACU('corrupt-data', 'Nhánh tài liệu đang hoạt động không tồn tại.');
   const pending = source.turns.find(turn => turn.branchId === branch.branchId
     && !['published', 'failed', 'cancelled'].includes(turn.phase));
   const project = (materials: { continuation: typeof branch.continuation | null; simulation: typeof branch.simulation | null }) => {
     const result = structuredClone(materials);
     if (result.simulation?.envelope && branch.checkpoints?.active) {
       const view = readCheckpointSimulationView_ACU(source, result.simulation);
-      if (!view.ledger) throw new ZeroLayerError_ACU('corrupt-data', '已发布推演基线缺少账本。');
+      if (!view.ledger) throw new ZeroLayerError_ACU('corrupt-data', 'Đường cơ sở mô phỏng đã phát hành thiếu sổ cái.');
       result.simulation.envelope.ledger = view.ledger;
       result.simulation.fields = view.fields;
       result.simulation.archive = view.archive;
@@ -20,7 +20,7 @@ export function readZeroLayerPublishedMaterials_ACU(source: ZeroLayerEnvelope_AC
   };
   if (pending) {
     if (!pending.materialBaseline) {
-      throw new ZeroLayerError_ACU('effects-pending', '在途回合缺少已确认资料基底，不能展示工作候选。');
+      throw new ZeroLayerError_ACU('effects-pending', 'Lượt đang chạy thiếu nền tài liệu đã xác nhận, không thể hiển thị ứng viên làm việc.');
     }
     return project(pending.materialBaseline);
   }

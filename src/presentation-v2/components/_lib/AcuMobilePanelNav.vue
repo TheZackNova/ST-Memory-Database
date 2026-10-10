@@ -2,7 +2,7 @@
   <nav
     ref="rootRef"
     class="acu-mobile-panel-nav"
-    aria-label="页面板块"
+    aria-label="Các khối trang"
   >
     <div ref="trackRef" class="acu-mobile-panel-nav__track" role="list">
       <button

@@ -59,11 +59,11 @@ type WriteResult_ACU = { ok: true } | { ok: false; reason: 'no_active_chat' | 's
 
 function describeClassicTransitionFailure_ACU(result: FlightModeTransitionResult_ACU): string {
   if (result.reason === 'too_many_visible_chronicle_rows') {
-    return `当前可见纪要 ${result.visibleChronicleRowCount ?? '?'} 条，超过经典表格模式的纪要窗口。`;
+    return `Kỷ yếu đang hiển thị hiện có ${result.visibleChronicleRowCount ?? '?'} mục, vượt quá cửa sổ kỷ yếu của chế độ bảng cổ điển.`;
   }
-  if (result.reason === 'chronicle_not_found') return '当前表格模板没有纪要表。';
-  if (result.reason === 'template_unavailable') return '当前对话的表格模板不可用。';
-  return result.error || (result.blockers?.length ? result.blockers.join('；') : '') || result.reason || '未知原因';
+  if (result.reason === 'chronicle_not_found') return 'Mẫu bảng hiện tại không có bảng kỷ yếu.';
+  if (result.reason === 'template_unavailable') return 'Mẫu bảng của hội thoại hiện tại không khả dụng.';
+  return result.error || (result.blockers?.length ? result.blockers.join('; ') : '') || result.reason || 'Lý do không xác định';
 }
 
 async function writeCurrentChatFillMode_ACU(mode: FillMode_ACU): Promise<WriteResult_ACU> {
@@ -82,7 +82,7 @@ async function writeCurrentChatFillMode_ACU(mode: FillMode_ACU): Promise<WriteRe
   } catch (error: any) {
     // 只在仍是同一对话时回滚，避免把旧快照写进切换后的对话。
     if (getActiveChatStorageIdentity_ACU(getChatArray_ACU()) === identity) setChatScopedConfigContainer_ACU(chat, snapshot);
-    return { ok: false, reason: 'save_failed', error: String(error?.message || error || '聊天保存失败') };
+    return { ok: false, reason: 'save_failed', error: String(error?.message || error || 'Lưu cuộc trò chuyện thất bại') };
   }
 }
 

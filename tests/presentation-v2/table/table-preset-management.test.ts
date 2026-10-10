@@ -88,7 +88,7 @@ describe('useTablePresetManagement', () => {
     const promise = management.deletePreset('global-A');
     const { useDialogStore } = await import('../../../src/presentation-v2/stores/dialog-store');
     const dialog = useDialogStore();
-    expect(dialog.active?.message).toContain('确定要删除全局模板预设「global-A」吗？');
+    expect(dialog.active?.message).toContain('Bạn có chắc muốn xóa preset mẫu toàn cục「global-A」không?');
     dialog.submitActive();
     await promise;
 
@@ -183,7 +183,7 @@ describe('useTablePresetManagement', () => {
     management.exportPreset('__runtime__');
 
     expect(resolveTemplateForExport).toHaveBeenCalledWith('runtime');
-    expect(toast.items.at(-1)).toMatchObject({ kind: 'success', text: '当前生效模板已导出。' });
+    expect(toast.items.at(-1)).toMatchObject({ kind: 'success', text: 'Đã xuất mẫu đang có hiệu lực hiện tại.' });
   });
 
   it('deletePreset / renamePreset / setAsDefault 拒绝 runtime 哨兵名', async () => {
@@ -192,13 +192,13 @@ describe('useTablePresetManagement', () => {
 
     await management.deletePreset('__runtime__');
     expect(deleteTemplatePreset).not.toHaveBeenCalled();
-    expect(toast.items.at(-1)).toMatchObject({ kind: 'warning', text: '当前生效模板是只读运行时条目，不能删除。' });
+    expect(toast.items.at(-1)).toMatchObject({ kind: 'warning', text: 'Mẫu đang có hiệu lực là mục runtime chỉ đọc, không thể xóa.' });
 
     await management.renamePreset('__runtime__');
-    expect(toast.items.at(-1)).toMatchObject({ kind: 'warning', text: '当前生效模板是只读运行时条目，不能重命名。' });
+    expect(toast.items.at(-1)).toMatchObject({ kind: 'warning', text: 'Mẫu đang có hiệu lực là mục runtime chỉ đọc, không thể đổi tên.' });
 
     await management.setAsDefault('__runtime__');
-    expect(toast.items.at(-1)).toMatchObject({ kind: 'warning', text: '当前生效模板不是全局预设，不能设为默认。' });
+    expect(toast.items.at(-1)).toMatchObject({ kind: 'warning', text: 'Mẫu đang có hiệu lực không phải preset toàn cục, không thể đặt làm mặc định.' });
   });
 
   it('editPreset 在恢复守卫失败时不调用切换', async () => {
@@ -259,7 +259,7 @@ describe('useTablePresetManagement', () => {
       destructiveChangeConfirmed: true,
     }));
     const { useToastStore } = await import('../../../src/presentation-v2/stores/toast-store');
-    expect(useToastStore().items.at(-1)).toMatchObject({ kind: 'success', text: '「global-B」已设为全局默认。' });
+    expect(useToastStore().items.at(-1)).toMatchObject({ kind: 'success', text: '「global-B」đã được đặt làm mặc định toàn cục.' });
   });
 
   it('setAsDefault 协调失败（saved:false）时显示真实错误且不误报成功（S1-3）', async () => {

@@ -69,7 +69,7 @@ function stage_ACU(stageNumber: number, turnCount: number): any {
 describe('阶段历史渲染', () => {
   it('没有阶段时如实说明这是第一个阶段', async () => {
     const h = await createHarness();
-    expect(h.runtime.serializeStageHistory_ACU({ stages: [] } as any)).toContain('第一个阶段');
+    expect(h.runtime.serializeStageHistory_ACU({ stages: [] } as any)).toContain('giai đoạn đầu tiên');
   });
 
   it('只给活动 revision，最近两个阶段保留逐轮目标，更早的压到节点级', async () => {
@@ -80,16 +80,16 @@ describe('阶段历史渲染', () => {
     expect(text).not.toContain('旧计划');
     expect(text).not.toContain('作废目标');
     // 第 1 阶段较早：只到节点级。
-    expect(text).toContain('- 节点「节点 1」：节点 1 目标');
+    expect(text).toContain('- Nút "节点 1": 节点 1 目标');
     expect(text).not.toContain('阶段 1 第 1 轮目标');
-    expect(text).toContain('（该阶段较早，已省略逐轮目标；其事实已进入纪要。）');
+    expect(text).toContain('(Giai đoạn này khá sớm, đã lược bỏ mục tiêu từng lượt; sự thật của nó đã vào kỷ yếu.)');
     // 最近两个阶段：逐轮目标全给。
     expect(text).toContain('阶段 2 第 1 轮目标');
     expect(text).toContain('阶段 3 第 2 轮目标');
     // 输出是可读文本而不是 JSON，避免诱导大纲模型用 JSON 回话。
     expect(text).not.toContain('"totalTurns"');
     // 阶段纪要范围随 chronicleRange 字段一起退役，标题只保留完成进度。
-    expect(text).toContain('已完成 2/2 轮');
+    expect(text).toContain('đã hoàn thành 2/2 lượt');
     expect(text).not.toContain('纪要范围');
   });
 });

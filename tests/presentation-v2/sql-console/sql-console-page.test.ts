@@ -79,18 +79,18 @@ describe('AdvancedToolsPage SQL panel', () => {
     const page = document.querySelector('.acu-v2-advanced-tools-page');
     expect(page).not.toBeNull();
     const text = page!.textContent || '';
-    expect(text).toContain('SQL 控制台');
-    expect(text).toContain('运行日志');
-    expect(text).toContain('执行历史');
-    expect(text).toContain('结果');
-    expect(text).toContain('SQLite 模式');
+    expect(text).toContain('Bảng điều khiển SQL');
+    expect(text).toContain('Nhật ký chạy');
+    expect(text).toContain('Lịch sử thực thi');
+    expect(text).toContain('Kết quả');
+    expect(text).toContain('Chế độ SQLite');
     expect(page!.querySelectorAll('.acu-panel')).toHaveLength(2);
     expect(page!.querySelectorAll('.acu-v2-advanced-tools-page__tools-grid > .acu-panel')).toHaveLength(2);
     const mobileNavItems = Array.from(page!.querySelectorAll('.acu-mobile-panel-nav__item'))
       .map(item => item.textContent?.trim());
-    expect(mobileNavItems).toEqual(['SQL 控制台', '运行日志']);
+    expect(mobileNavItems).toEqual(['Bảng điều khiển SQL', 'Nhật ký chạy']);
 
-    expect(document.querySelector('.acu-v2-app__page-title')?.textContent?.trim()).toBe('高级工具');
+    expect(document.querySelector('.acu-v2-app__page-title')?.textContent?.trim()).toBe('Công cụ nâng cao');
     expect(page!.querySelector('.acu-page-header')).toBeNull();
 
     mount.__resetAcuV2MountForTests();
@@ -118,14 +118,14 @@ describe('AdvancedToolsPage SQL panel', () => {
       },
     });
 
-    const textarea = document.querySelector<HTMLTextAreaElement>('.acu-v2-advanced-tools-page textarea[aria-label="SQL 语句"]');
+    const textarea = document.querySelector<HTMLTextAreaElement>('.acu-v2-advanced-tools-page textarea[aria-label="Câu lệnh SQL"]');
     expect(textarea).not.toBeNull();
     textarea!.value = 'SELECT id, name FROM item;';
     textarea!.dispatchEvent(new Event('input', { bubbles: true }));
     await new Promise(r => setTimeout(r, 0));
 
     const executeButton = Array.from(document.querySelectorAll<HTMLButtonElement>('.acu-v2-advanced-tools-page button'))
-      .find(button => button.textContent?.includes('执行'));
+      .find(button => button.textContent?.includes('Thực thi'));
     expect(executeButton).not.toBeUndefined();
     executeButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -133,11 +133,11 @@ describe('AdvancedToolsPage SQL panel', () => {
     expect(executeQuery).toHaveBeenCalledWith('SELECT id, name FROM item;');
     const text = document.querySelector('.acu-v2-advanced-tools-page')?.textContent || '';
     expect(text).toContain('药水');
-    expect(text).toContain('1 行');
-    expect(text).toContain('成功');
+    expect(text).toContain('1 hàng');
+    expect(text).toContain('Thành công');
 
     const clearButton = Array.from(document.querySelectorAll<HTMLButtonElement>('.acu-v2-advanced-tools-page button'))
-      .find(button => button.textContent?.includes('清空'));
+      .find(button => button.textContent?.includes('Xóa'));
     expect(clearButton).not.toBeUndefined();
     clearButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -161,13 +161,13 @@ describe('AdvancedToolsPage SQL panel', () => {
     const { mount, executeQuery } = await mountAdvancedToolsSqlPanel();
 
     const showTablesButton = Array.from(document.querySelectorAll<HTMLButtonElement>('.acu-v2-advanced-tools-page button'))
-      .find(button => button.textContent?.includes('查看所有表'));
+      .find(button => button.textContent?.includes('Xem tất cả bảng'));
     expect(showTablesButton).not.toBeUndefined();
     showTablesButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
     expect(executeQuery).toHaveBeenCalledWith(expect.stringContaining("sqlite_master"));
-    const textarea = document.querySelector<HTMLTextAreaElement>('.acu-v2-advanced-tools-page textarea[aria-label="SQL 语句"]');
+    const textarea = document.querySelector<HTMLTextAreaElement>('.acu-v2-advanced-tools-page textarea[aria-label="Câu lệnh SQL"]');
     expect(textarea?.value).toContain("sqlite_master");
     expect(document.querySelector('.acu-v2-advanced-tools-page')?.textContent || '').toContain('背包物品表');
 
@@ -179,20 +179,20 @@ describe('AdvancedToolsPage SQL panel', () => {
       mutationResult: { changes: 0, errors: ['no such table: item'] },
     });
 
-    const textarea = document.querySelector<HTMLTextAreaElement>('.acu-v2-advanced-tools-page textarea[aria-label="SQL 语句"]')!;
+    const textarea = document.querySelector<HTMLTextAreaElement>('.acu-v2-advanced-tools-page textarea[aria-label="Câu lệnh SQL"]')!;
     textarea.value = "UPDATE item SET name = 'x';";
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
     await new Promise(r => setTimeout(r, 0));
 
     const executeButton = Array.from(document.querySelectorAll<HTMLButtonElement>('.acu-v2-advanced-tools-page button'))
-      .find(button => button.textContent?.includes('执行'));
+      .find(button => button.textContent?.includes('Thực thi'));
     executeButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
     expect(executeMutation).toHaveBeenCalledWith("UPDATE item SET name = 'x';", undefined);
     const text = document.querySelector('.acu-v2-advanced-tools-page')?.textContent || '';
     expect(text).toContain('no such table: item');
-    expect(text).toContain('失败');
+    expect(text).toContain('Thất bại');
     expect(document.querySelector('.acu-v2-advanced-tools-page__sql-history-item--failure')).not.toBeNull();
 
     mount.__resetAcuV2MountForTests();

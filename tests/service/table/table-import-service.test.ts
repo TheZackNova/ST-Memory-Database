@@ -218,7 +218,7 @@ describe('importTableJsonThroughCommit_ACU', () => {
       failureStage: 'preflight',
       auditStatus: 'requires_confirmation',
       issues: [expect.objectContaining({ code: 'upgrade_invalid_header', sheetKey: 'sheet_0' })],
-      error: '导入数据需要人工确认或无法修复：upgrade_invalid_header',
+      error: 'Dữ liệu nhập cần xác nhận thủ công hoặc không thể sửa: upgrade_invalid_header',
     });
     expect(mocks.runTableUpdateCommit).not.toHaveBeenCalled();
     expect(mocks.replaceAllData).not.toHaveBeenCalled();
@@ -237,7 +237,7 @@ describe('importTableJsonThroughCommit_ACU', () => {
       success: false,
       persisted: true,
       failureStage: 'post_commit_runtime',
-      error: '导入数据已保存，但运行时全量替换失败；已尝试重新加载运行时：SQLite hydrate failed',
+      error: 'Dữ liệu nhập đã được lưu, nhưng thay thế toàn bộ runtime thất bại; đã thử tải lại runtime: SQLite hydrate failed',
     });
     expect(mocks.runTableUpdateCommit).toHaveBeenCalledOnce();
     expect(mocks.replaceAllData).toHaveBeenCalledWith(importedData);
@@ -260,7 +260,7 @@ describe('importTableJsonThroughCommit_ACU', () => {
       failureStage: 'preflight',
       auditStatus: 'clean',
       issues: [{ code: 'sqlite_preflight_failed', message: 'DDL 与表头不一致' }],
-      error: '导入候选数据未通过 SQLite 预检：DDL 与表头不一致',
+      error: 'Dữ liệu ứng viên nhập không qua kiểm tra trước SQLite: DDL 与表头不一致',
     });
     expect(mocks.runTableUpdateCommit).not.toHaveBeenCalled();
     expect(mocks.replaceAllData).not.toHaveBeenCalled();

@@ -5,8 +5,8 @@ import type { ACUTheme } from '../theme-types';
 
 export const THEME_CLASSICAL_INK: ACUTheme = {
     id: 'classical-ink',
-    name: '古典·墨纸',
-    description: '古雅深色纸墨质感，赤褐为饰，宋体排版',
+    name: 'Cổ điển · Mực giấy',
+    description: 'Tông giấy mực tối cổ kính, điểm xuyết nâu đỏ, dàn trang kiểu Tống thể',
     author: '龙血玄黄·数据库',
     version: '1.0.0',
     colorScheme: 'dark',
@@ -99,7 +99,7 @@ export const THEME_CLASSICAL_INK: ACUTheme = {
     customCSS: `
         /* 墨纸主题特有：header 前缀字 */
         #popup .acu-header::before {
-            content: '录';
+            content: 'Ghi';
             display: inline-flex;
             align-items: center;
             justify-content: center;

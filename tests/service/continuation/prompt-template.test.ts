@@ -89,14 +89,14 @@ describe('continuation prompt templates', () => {
     const finalReviewer = buildDefaultContinuationSettings_ACU().agentPrompts.finalReviewer;
     const fixed = finalReviewer.filter(segment => segment.snapshotTemplate === undefined).map(segment => segment.content).join('\n');
     const snapshot = finalReviewer.find(segment => segment.snapshotTemplate?.includes('$USER_REQUIREMENTS'))!;
-    expect(fixed).toContain('逐个核对在场角色：按角色卡、前文剧情、事件概览的优先级核对每名角色');
-    expect(fixed).toContain('公平但不冷漠：在规则上公平对待<user>和角色，不刻意制造障碍，也不给<user>开绿灯');
-    expect(fixed).toContain('关系阶段变化需要双向互动加标志性事件');
-    expect(fixed).toContain('角色控制权（用户只能控制自己的角色）、信息边界、能力边界、世界规则与因果');
-    expect(fixed).toContain('{"verdict":"pass|revise|block","summary":"一句话结论","emotionFindings":');
+    expect(fixed).toContain('Bước hai, đối chiếu từng nhân vật có mặt: theo thứ tự ưu tiên thẻ nhân vật, cốt truyện trước đó, tổng quan sự kiện mà đối chiếu từng nhân vật');
+    expect(fixed).toContain('Công bằng nhưng không lạnh nhạt: về quy tắc đối xử công bằng với <user> và nhân vật, không cố ý tạo chướng ngại, cũng không bật đèn xanh cho <user>');
+    expect(fixed).toContain('giai đoạn quan hệ thay đổi cần tương tác hai chiều cộng sự kiện mốc');
+    expect(fixed).toContain('quyền điều khiển nhân vật (người dùng chỉ điều khiển nhân vật của mình), ranh giới thông tin, ranh giới năng lực, quy tắc thế giới và nhân quả');
+    expect(fixed).toContain('{"verdict":"pass|revise|block","summary":"kết luận một câu","emotionFindings":');
     for (const field of ['worldFindings', 'logicFindings', 'requiredFixes', 'preserve']) expect(fixed).toContain(`"${field}":`);
-    expect(fixed).toContain('我只审查候选写作指导，不写正文，不改大纲');
-    expect(fixed).toContain('不展示推理过程');
+    expect(fixed).toContain('Tôi chỉ kiểm duyệt chỉ dẫn viết ứng viên, không viết chính văn, không sửa dàn ý');
+    expect(fixed).toContain('không hiển thị quá trình suy luận');
     expect(snapshot.snapshotTemplate).toContain('$USER_REQUIREMENTS');
     expect(snapshot.snapshotTemplate).toContain('$OUTLINE_WINDOW');
   });
@@ -134,11 +134,11 @@ describe('continuation prompt templates', () => {
     expect(restoredOutline).toMatchObject({ apiPresetMode: 'current', maxAutomaticStages: 6 });
 
     const restoredMain = restoreContinuationPromptDefault_ACU(restoredOutline, 'agent_main');
-    expect(restoredMain.agentPrompts.main[0].content).toContain('主控 Agent');
+    expect(restoredMain.agentPrompts.main[0].content).toContain('Agent chính điều khiển');
     expect(restoredMain.agentPrompts.maintainer[0].content).toBe('custom maintainer');
 
     const restoredFinalReviewer = restoreContinuationPromptDefault_ACU(restoredMain, 'agent_final_reviewer');
-    expect(restoredFinalReviewer.agentPrompts.finalReviewer[0].content).toContain('发送前终审子代理');
+    expect(restoredFinalReviewer.agentPrompts.finalReviewer[0].content).toContain('agent phụ chung duyệt trước khi gửi');
     expect(restoredFinalReviewer.agentPrompts.maintainer[0].content).toBe('custom maintainer');
   });
 });

@@ -127,15 +127,15 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
           const lastOptimizedMessageIndex = getLastOptimizedMessageIndex_ACU();
 
           if (lastOptimizedMessageIndex < 0) {
-            showToastr_ACU('warning', '当前还没有"已被正文替换过"的 AI 回复可供重新优化');
+            showToastr_ACU('warning', 'Hiện chưa có phản hồi AI nào "đã được thay bằng nội dung tối ưu" để tối ưu lại');
             return;
           }
 
-          jQuery_API_ACU(this).prop('disabled', true).text('处理中...');
+          jQuery_API_ACU(this).prop('disabled', true).text('Đang xử lý...');
           try {
             await reoptimizeMessage_ACU(lastOptimizedMessageIndex);
           } finally {
-            jQuery_API_ACU(this).prop('disabled', false).html('<i class="fa-solid fa-rotate-right"></i> 重新优化最近一次被替换的AI回复');
+            jQuery_API_ACU(this).prop('disabled', false).html('<i class="fa-solid fa-rotate-right"></i> Tối ưu lại phản hồi AI được thay thế gần nhất');
           }
         });
       }
@@ -155,7 +155,7 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
       $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-optimization-extract-add-rule`).on('click', function() {
         appendExcludeRuleRow_ACU(
           `#${SCRIPT_ID_PREFIX_ACU}-optimization-extract-rules`,
-          { startPlaceholder: '开始词（例如：<think）', endPlaceholder: '结束词（例如：</think）' },
+          { startPlaceholder: 'Từ bắt đầu (ví dụ: <think)', endPlaceholder: 'Từ kết thúc (ví dụ: </think)' },
         );
       });
       $popupInstance_ACU.on('input', `#${SCRIPT_ID_PREFIX_ACU}-optimization-extract-rules .acu-exclude-rule-start, #${SCRIPT_ID_PREFIX_ACU}-optimization-extract-rules .acu-exclude-rule-end`, function() {
@@ -173,7 +173,7 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
       $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-optimization-exclude-add-rule`).on('click', function() {
         appendExcludeRuleRow_ACU(
           `#${SCRIPT_ID_PREFIX_ACU}-optimization-exclude-rules`,
-          { startPlaceholder: '开始词（例如：<think）', endPlaceholder: '结束词（例如：</think）' },
+          { startPlaceholder: 'Từ bắt đầu (ví dụ: <think)', endPlaceholder: 'Từ kết thúc (ví dụ: </think)' },
         );
       });
       $popupInstance_ACU.on('input', `#${SCRIPT_ID_PREFIX_ACU}-optimization-exclude-rules .acu-exclude-rule-start, #${SCRIPT_ID_PREFIX_ACU}-optimization-exclude-rules .acu-exclude-rule-end`, function() {
@@ -217,7 +217,7 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
             }
             $optimizationDeletePreset.show();
             saveSettingsAndNotify_ACU();
-            showToastr_ACU('success', `已加载预设 "${selectedName}"`);
+            showToastr_ACU('success', `Đã tải preset "${selectedName}"`);
           }
         });
       }
@@ -234,7 +234,7 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
         $optimizationExportPresets.on('click', function() {
           const selectedName = $optimizationPresetSelect.val();
           if (!selectedName) {
-            showToastr_ACU('info', '请先选择要导出的预设。');
+            showToastr_ACU('info', 'Hãy chọn preset cần xuất trước.');
             return;
           }
 
@@ -242,7 +242,7 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
           const selectedPreset = presets.find((p: any) => p.name === selectedName);
 
           if (!selectedPreset) {
-            showToastr_ACU('error', '找不到选中的预设。');
+            showToastr_ACU('error', 'Không tìm thấy preset đã chọn.');
             return;
           }
 
@@ -258,7 +258,7 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
 
-          showToastr_ACU('success', `预设 "${selectedName}" 已成功导出。`);
+          showToastr_ACU('success', `Đã xuất preset "${selectedName}" thành công.`);
         });
       }
 
@@ -272,7 +272,7 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
             return;
           }
 
-          if (!confirm(`确定要用当前设置覆盖预设 "${selectedName}" 吗？`)) {
+          if (!confirm(`Xác nhận dùng cài đặt hiện tại để ghi đè preset "${selectedName}"?`)) {
             return;
           }
 
@@ -280,7 +280,7 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
           const existingIndex = presets.findIndex((p: any) => p.name === selectedName);
           settings_ACU.contentOptimizationSettings.promptPresets = presets;
           saveSettingsAndNotify_ACU();
-          showToastr_ACU('success', `预设 "${selectedName}" 已被成功覆盖。`);
+          showToastr_ACU('success', `Đã ghi đè preset "${selectedName}" thành công.`);
         });
       }
 
@@ -296,11 +296,11 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
         $optimizationDeletePreset.on('click', function() {
           const selectedName = $optimizationPresetSelect.val();
           if (!selectedName) {
-            showToastr_ACU('warning', '没有选择任何预设。');
+            showToastr_ACU('warning', 'Chưa chọn preset nào.');
             return;
           }
 
-          if (!confirm(`确定要删除预设 "${selectedName}" 吗？`)) {
+          if (!confirm(`Xác nhận xóa preset "${selectedName}"?`)) {
             return;
           }
 
@@ -314,9 +314,9 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
 
             // 刷新预设选择器
             loadOptimizationPresetSelect_ACU();
-            showToastr_ACU('success', `预设 "${selectedName}" 已被删除。`);
+            showToastr_ACU('success', `Đã xóa preset "${selectedName}".`);
           } else {
-            showToastr_ACU('error', '找不到要删除的预设。');
+            showToastr_ACU('error', 'Không tìm thấy preset cần xóa.');
           }
         });
       }
@@ -324,13 +324,13 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
       // 恢复默认提示词
       if ($optimizationResetDefaults.length) {
         $optimizationResetDefaults.on('click', function() {
-          if (!confirm('确定要恢复默认的正文替换提示词吗？这将覆盖当前的提示词设置。')) {
+          if (!confirm('Xác nhận khôi phục prompt thay thế nội dung mặc định? Thao tác này sẽ ghi đè cài đặt prompt hiện tại.')) {
             return;
           }
           settings_ACU.contentOptimizationSettings.promptGroup = buildDefaultContentOptimizationPromptGroup_ACU();
           saveSettingsAndNotify_ACU();
           renderOptimizationPromptSegments_ACU(settings_ACU.contentOptimizationSettings.promptGroup);
-          showToastr_ACU('success', '正文替换提示词已恢复为默认值');
+          showToastr_ACU('success', 'Prompt thay thế nội dung đã khôi phục về mặc định');
         });
       }
 
@@ -346,7 +346,7 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
               const importedPresets = JSON.parse(e.target.result as string);
 
               if (!Array.isArray(importedPresets)) {
-                throw new Error('JSON文件格式不正确，根节点必须是一个数组。');
+                throw new Error('Định dạng tệp JSON không đúng, nút gốc phải là một mảng.');
               }
 
               let currentPresets = settings_ACU.contentOptimizationSettings.promptPresets || [];
@@ -378,8 +378,8 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
                 loadOptimizationPresetSelect_ACU();
 
                 let messages = [];
-                if (importedCount > 0) messages.push(`成功导入 ${importedCount} 个新预设。`);
-                if (overwrittenCount > 0) messages.push(`成功覆盖 ${overwrittenCount} 个同名预设。`);
+                if (importedCount > 0) messages.push(`Đã nhập ${importedCount} preset mới.`);
+                if (overwrittenCount > 0) messages.push(`Đã ghi đè ${overwrittenCount} preset cùng tên.`);
                 showToastr_ACU('success', messages.join(' '));
 
                 // 导入后：自动选择第一个有效预设并加载到UI
@@ -390,10 +390,10 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
                   }, 50);
                 }
               } else {
-                showToastr_ACU('warning', '未找到有效的预设数据。');
+                showToastr_ACU('warning', 'Không tìm thấy dữ liệu preset hợp lệ.');
               }
             } catch (err) {
-              showToastr_ACU('error', `导入失败：${err.message}`);
+              showToastr_ACU('error', `Nhập thất bại: ${err.message}`);
             }
           };
           reader.readAsText(file);
@@ -409,7 +409,7 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
           const segments = getOptimizationPromptGroupFromUI_ACU();
           settings_ACU.contentOptimizationSettings.promptGroup = segments;
           saveSettingsAndNotify_ACU();
-          showToastr_ACU('success', '正文替换提示词组已保存');
+          showToastr_ACU('success', 'Đã lưu nhóm prompt thay thế nội dung');
         });
       }
 
@@ -417,13 +417,13 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
       const $optimizationResetPromptGroup = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-optimization-reset-prompt-group`);
       if ($optimizationResetPromptGroup.length) {
         $optimizationResetPromptGroup.on('click', function() {
-          if (!confirm('确定要恢复默认的正文替换提示词吗？这将覆盖当前的提示词设置。')) {
+          if (!confirm('Xác nhận khôi phục prompt thay thế nội dung mặc định? Thao tác này sẽ ghi đè cài đặt prompt hiện tại.')) {
             return;
           }
           settings_ACU.contentOptimizationSettings.promptGroup = buildDefaultContentOptimizationPromptGroup_ACU();
           saveSettingsAndNotify_ACU();
           renderOptimizationPromptSegments_ACU(settings_ACU.contentOptimizationSettings.promptGroup);
-          showToastr_ACU('success', '正文替换提示词已恢复为默认值');
+          showToastr_ACU('success', 'Prompt thay thế nội dung đã khôi phục về mặc định');
         });
       }
 
@@ -451,37 +451,37 @@ export async function bindOptimizationEvents_ACU(): Promise<void> {
         $optimizationTestBtn.on('click', async function() {
           const testInput = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-optimization-test-input`).val() as string;
           if (!testInput || testInput.trim().length < 10) {
-            showToastr_ACU('warning', '请输入至少10个字符的测试文本');
+            showToastr_ACU('warning', 'Hãy nhập văn bản thử nghiệm ít nhất 10 ký tự');
             return;
           }
 
-          jQuery_API_ACU(this).prop('disabled', true).text('优化中...');
+          jQuery_API_ACU(this).prop('disabled', true).text('Đang tối ưu...');
           const $resultDiv = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-optimization-test-result`);
           const $outputDiv = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-optimization-test-output`);
           $resultDiv.show();
-          $outputDiv.text('正在调用AI进行优化...');
+          $outputDiv.text('Đang gọi AI để tối ưu...');
 
           try {
             const result = await performContentOptimization_ACU(testInput);
             if (result.success) {
-              let outputText = `优化完成！共 ${result.optimizations.length} 处改进\n\n`;
-              outputText += `摘要：${result.summary || '无'}\n\n`;
-              outputText += `=== 优化详情 ===\n\n`;
+              let outputText = `Tối ưu hoàn tất! Có ${result.optimizations.length} chỗ cải thiện\n\n`;
+              outputText += `Tóm tắt: ${result.summary || 'Không có'}\n\n`;
+              outputText += `=== Chi tiết tối ưu ===\n\n`;
               result.optimizations.forEach((opt: any, i: number) => {
-                outputText += `[${i + 1}] 修改方案：${opt.plan || opt.reason || '未说明'}\n`;
-                outputText += `原文：${opt.original.substring(0, 100)}${opt.original.length > 100 ? '...' : ''}\n`;
-                outputText += `优化：${opt.optimized.substring(0, 100)}${opt.optimized.length > 100 ? '...' : ''}\n\n`;
+                outputText += `[${i + 1}] Phương án sửa: ${opt.plan || opt.reason || 'Chưa nêu rõ'}\n`;
+                outputText += `Nguyên văn: ${opt.original.substring(0, 100)}${opt.original.length > 100 ? '...' : ''}\n`;
+                outputText += `Tối ưu: ${opt.optimized.substring(0, 100)}${opt.optimized.length > 100 ? '...' : ''}\n\n`;
               });
-              outputText += `=== 优化后全文 ===\n\n${result.optimizedContent}`;
+              outputText += `=== Toàn văn sau tối ưu ===\n\n${result.optimizedContent}`;
               $outputDiv.text(outputText);
             } else {
-              $outputDiv.text(`优化失败：${result.error || '未知错误'}`);
+              $outputDiv.text(`Tối ưu thất bại: ${result.error || 'Lỗi không xác định'}`);
             }
           } catch (e) {
-            $outputDiv.text(`优化出错：${e.message}`);
+            $outputDiv.text(`Lỗi khi tối ưu: ${e.message}`);
           }
 
-          jQuery_API_ACU(this).prop('disabled', false).text('执行优化测试');
+          jQuery_API_ACU(this).prop('disabled', false).text('Chạy thử tối ưu');
         });
       }
 

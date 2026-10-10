@@ -50,7 +50,7 @@ function attemptInsert(retry: number): void {
     `<div class="extension_container interactable" id="${MENU_CONTAINER_ID}" tabindex="0"></div>`;
   const itemHtml =
     `<div class="list-group-item flex-container flexGap5 interactable" id="${MENU_ITEM_ID}" ` +
-    `title="打开 ${ACU_PRODUCT_DISPLAY_NAME_ACU}">` +
+    `title="Mở ${ACU_PRODUCT_DISPLAY_NAME_ACU}">` +
     `<div class="fa-fw fa-solid fa-database extensionsMenuExtensionButton"></div>` +
     `<span>${ACU_PRODUCT_DISPLAY_NAME_ACU}</span>` +
     `</div>`;

@@ -85,7 +85,7 @@ describe('saveChatToHost_ACU', () => {
 
 describe('saveChatToHostStrict_ACU', () => {
   it('saveChat 不可用时抛错，不把未提交误认为保存成功', async () => {
-    await expect(saveChatToHostStrict_ACU()).rejects.toThrow('宿主 saveChat 不可用');
+    await expect(saveChatToHostStrict_ACU()).rejects.toThrow('saveChat của host không khả dụng');
   });
 
   it('saveChat 可用时执行真实保存', async () => {

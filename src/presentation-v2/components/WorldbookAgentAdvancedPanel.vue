@@ -22,7 +22,7 @@
           :model-value="agentControl.agentPlotExecutionMode.value"
           :options="executionModeOptions"
           size="sm"
-          aria-label="Agent 与剧情推进执行方式"
+          aria-label="Cách thực thi Agent và đẩy cốt truyện"
           :disabled="!agentControl.isReady.value"
           @update:model-value="onExecutionModeChange"
         />
@@ -351,10 +351,10 @@ async function savePromptsAsGlobalTemplate(): Promise<void> {
 async function confirmClose(): Promise<boolean> {
   if (!isPromptDraftDirty.value && !promptDraftStale.value) return true;
   const confirmed = await dialog.confirm({
-    title: '放弃未保存的提示词修改？',
-    message: '关闭后，当前草稿中的提示词修改将被放弃，当前世界书和全局模板均不会变更。',
-    dangerMessage: '只有点击对应保存按钮，草稿才会写入当前世界书或全局模板。',
-    confirmLabel: '放弃修改并关闭',
+    title: 'Bỏ các thay đổi prompt chưa lưu?',
+    message: 'Sau khi đóng, các thay đổi prompt trong bản nháp hiện tại sẽ bị bỏ, Sổ thế giới hiện tại và mẫu toàn cục đều không thay đổi.',
+    dangerMessage: 'Chỉ khi bấm nút lưu tương ứng, bản nháp mới được ghi vào Sổ thế giới hiện tại hoặc mẫu toàn cục.',
+    confirmLabel: 'Bỏ thay đổi và đóng',
     confirmVariant: 'danger',
   });
   if (!confirmed) return false;

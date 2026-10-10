@@ -68,19 +68,19 @@ describe('AgentPage', () => {
     app.mount(el);
     await Promise.resolve();
 
-    expect(el.textContent).toContain('Agent 世界书');
+    expect(el.textContent).toContain('Sổ thế giới của Agent');
     // 格林推演有独立的「格林推演」功能页；Agent 世界书页不再嵌入其工作区，右列保留空占位。
     expect(el.textContent).not.toContain('格林推演');
     expect(el.querySelector('.acu-panel-grid > [aria-hidden="true"]')).not.toBeNull();
-    expect(el.textContent).toContain('Skill 全选');
+    expect(el.textContent).toContain('Chọn tất cả Skill');
     const toolbarButtons = Array.from(el.querySelectorAll<HTMLButtonElement>('.acu-v2-wb-entry-toolbar .acu-btn'))
       .map(button => button.textContent?.trim());
-    expect(toolbarButtons).not.toContain('全选');
-    expect(toolbarButtons).not.toContain('全不选');
-    expect(toolbarButtons).toContain('Skill 全不选');
+    expect(toolbarButtons).not.toContain('Chọn tất cả');
+    expect(toolbarButtons).not.toContain('Bỏ chọn tất cả');
+    expect(toolbarButtons).toContain('Bỏ chọn tất cả Skill');
 
     const manual = Array.from(el.querySelectorAll<HTMLButtonElement>('.acu-segmented__item'))
-      .find(button => button.textContent?.trim() === '手动选择');
+      .find(button => button.textContent?.trim() === 'Chọn thủ công');
     manual!.click();
     await Promise.resolve();
     expect(harness.setScope).toHaveBeenCalledWith('manual');

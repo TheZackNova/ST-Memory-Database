@@ -117,7 +117,7 @@ import { jQuery_API_ACU } from '../dom-utils';
   export function createACUWindow(options: any) {
     const {
       id,
-      title = '窗口',
+      title = 'Cửa sổ',
       content = '',
       width = 900,
       height = 700,
@@ -208,9 +208,9 @@ import { jQuery_API_ACU } from '../dom-utils';
             <span>${title}</span>
           </div>
           <div class="acu-window-controls">
-            <button class="acu-window-btn theme-toggle" title="切换主题"><span class="acu-theme-toggle-text">素纱</span></button>
-            ${showMaximizeBtn ? '<button class="acu-window-btn maximize" title="最大化/还原"><i class="fa-solid fa-expand"></i></button>' : ''}
-            <button class="acu-window-btn close" title="关闭"><i class="fa-solid fa-times"></i></button>
+            <button class="acu-window-btn theme-toggle" title="Đổi giao diện"><span class="acu-theme-toggle-text">Lụa</span></button>
+            ${showMaximizeBtn ? '<button class="acu-window-btn maximize" title="Phóng to/Thu nhỏ"><i class="fa-solid fa-expand"></i></button>' : ''}
+            <button class="acu-window-btn close" title="Đóng"><i class="fa-solid fa-times"></i></button>
           </div>
         </div>
         <div class="acu-window-body">${content}</div>

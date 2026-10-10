@@ -59,7 +59,7 @@ function assertSafeJsonValue_ACU(value: unknown, path = '$'): void {
   if (Array.isArray(value)) { value.forEach((item, index) => assertSafeJsonValue_ACU(item, `${path}[${index}]`)); return; }
   if (!isRecord_ACU(value)) return;
   for (const [key, child] of Object.entries(value)) {
-    if (DANGEROUS_KEYS_ACU.has(key)) throw new Error(`Checkpoint 包含危险键：${path}.${key}`);
+    if (DANGEROUS_KEYS_ACU.has(key)) throw new Error(`Checkpoint chứa khóa nguy hiểm: ${path}.${key}`);
     assertSafeJsonValue_ACU(child, `${path}.${key}`);
   }
 }
@@ -71,14 +71,14 @@ function canonicalize_ACU(value: any): any {
 function payloadHash_ACU(payload: Omit<TableCheckpointFileV1_ACU, 'integrity'>): string { return hashUserInput_ACU(JSON.stringify(canonicalize_ACU(payload))); }
 
 function normalizeTableData_ACU(value: unknown, label: string): TableDataObject_ACU {
-  if (!isRecord_ACU(value)) throw new Error(`${label} 必须是对象。`);
+  if (!isRecord_ACU(value)) throw new Error(`${label} phải là đối tượng.`);
   const sanitized = sanitizeChatSheetsObject_ACU(cloneJson_ACU(value), { ensureMate: true }) as TableDataObject_ACU;
   const sheetKeys = Object.keys(sanitized).filter(key => key.startsWith('sheet_'));
-  if (sheetKeys.length === 0) throw new Error(`${label} 至少需要一张 sheet_ 表。`);
+  if (sheetKeys.length === 0) throw new Error(`${label} cần ít nhất một bảng sheet_.`);
   for (const key of sheetKeys) {
     const sheet = sanitized[key] as any;
     if (!isRecord_ACU(sheet) || typeof sheet.name !== 'string' || !Array.isArray(sheet.content) || !Array.isArray(sheet.content[0])) {
-      throw new Error(`${label}.${key} 不是有效表格。`);
+      throw new Error(`${label}.${key} không phải bảng hợp lệ.`);
     }
   }
   return sanitized;
@@ -92,23 +92,23 @@ function assertSameSheetKeys_ACU(left: Record<string, any>, right: Record<string
   const leftKeys = getSheetKeys_ACU(left);
   const rightKeys = getSheetKeys_ACU(right);
   if (leftKeys.length !== rightKeys.length || leftKeys.some((key, index) => key !== rightKeys[index])) {
-    throw new Error(`${leftLabel} 与 ${rightLabel} 的 sheet_ 集合不一致。`);
+    throw new Error(`${leftLabel} và ${rightLabel} có tập sheet_ không nhất quán.`);
   }
 }
 
 function assertMatchingSheetSchema_ACU(leftSheet: any, rightSheet: any, key: string, leftLabel: string, rightLabel: string): void {
   const leftUid = String(leftSheet?.uid || key);
   const rightUid = String(rightSheet?.uid || key);
-  if (leftUid !== rightUid) throw new Error(`${leftLabel}.${key} 与 ${rightLabel}.${key} 的 uid 不一致。`);
-  if (leftSheet?.name !== rightSheet?.name) throw new Error(`${leftLabel}.${key} 与 ${rightLabel}.${key} 的名称不一致。`);
+  if (leftUid !== rightUid) throw new Error(`${leftLabel}.${key} và ${rightLabel}.${key} có uid không nhất quán.`);
+  if (leftSheet?.name !== rightSheet?.name) throw new Error(`${leftLabel}.${key} và ${rightLabel}.${key} có tên không nhất quán.`);
   const leftHeader = leftSheet?.content?.[0];
   const rightHeader = rightSheet?.content?.[0];
   if (!Array.isArray(leftHeader) || !Array.isArray(rightHeader) || leftHeader.length !== rightHeader.length) {
-    throw new Error(`${leftLabel}.${key} 与 ${rightLabel}.${key} 的表头宽度不一致。`);
+    throw new Error(`${leftLabel}.${key} và ${rightLabel}.${key} có độ rộng tiêu đề không nhất quán.`);
   }
   for (let index = 0; index < leftHeader.length; index += 1) {
     if (leftHeader[index] !== rightHeader[index]) {
-      throw new Error(`${leftLabel}.${key} 与 ${rightLabel}.${key} 的第 ${index + 1} 列表头不一致。`);
+      throw new Error(`${leftLabel}.${key} và ${rightLabel}.${key} có tiêu đề cột thứ ${index + 1} không nhất quán.`);
     }
   }
 }
@@ -124,7 +124,7 @@ function assertCheckpointSchemaConsistency_ACU(
   assertSameSheetKeys_ACU(templateData, guideData, 'templateSnapshot.data', 'guideSnapshot.data');
   const templateSheetKeys = new Set(getSheetKeys_ACU(templateData));
   for (const key of getSheetKeys_ACU(tableSnapshot)) {
-    if (!templateSheetKeys.has(key)) throw new Error(`tableSnapshot.${key} 在 templateSnapshot.data 中不存在。`);
+    if (!templateSheetKeys.has(key)) throw new Error(`tableSnapshot.${key} không tồn tại trong templateSnapshot.data.`);
   }
   for (const key of getSheetKeys_ACU(templateData)) {
     assertMatchingSheetSchema_ACU(templateData[key], guideData[key], key, 'templateSnapshot.data', 'guideSnapshot.data');
@@ -137,8 +137,8 @@ function assertCheckpointSchemaConsistency_ACU(
 function assertCanonicalCheckpointRows_ACU(data: TableDataObject_ACU, label: string): void {
   const validation = validateCanonicalCheckpointData_ACU(data);
   if (!validation.valid) {
-    const locations = validation.issues.map(issue => `${issue.type}: ${issue.sheetKey || 'unknown'}${issue.rowIndex === undefined ? '' : ` 第 ${issue.rowIndex} 行`}`).join('；');
-    throw new Error(`${label} 行标识或结构不合法：${locations}`);
+    const locations = validation.issues.map(issue => `${issue.type}: ${issue.sheetKey || 'unknown'}${issue.rowIndex === undefined ? '' : ` hàng thứ ${issue.rowIndex}`}`).join('; ');
+    throw new Error(`${label} định danh hàng hoặc cấu trúc không hợp lệ: ${locations}`);
   }
 }
 
@@ -155,16 +155,16 @@ function repairCheckpointLegacyAutoMergedTails_ACU(
 
 function normalizeCheckpointPayload_ACU(raw: unknown): TableCheckpointFileV1_ACU {
   assertSafeJsonValue_ACU(raw);
-  if (!isRecord_ACU(raw)) throw new Error('Checkpoint 根节点必须是对象。');
-  if (raw.format !== CHECKPOINT_FORMAT_ACU) throw new Error('不支持的 Checkpoint 格式。');
-  if (raw.version !== CHECKPOINT_VERSION_ACU) throw new Error(`不支持的 Checkpoint 版本：${String(raw.version)}。`);
-  if (!Number.isFinite(raw.createdAt) || Number(raw.createdAt) <= 0) throw new Error('Checkpoint createdAt 无效。');
-  if (!isRecord_ACU(raw.source) || (raw.source.storageMode !== 'native' && raw.source.storageMode !== 'sqlite')) throw new Error('Checkpoint 来源存储模式无效。');
-  if (!isRecord_ACU(raw.templateSnapshot) || !isRecord_ACU(raw.guideSnapshot) || !isRecord_ACU(raw.integrity)) throw new Error('Checkpoint 缺少模板、指导表或完整性信息。');
+  if (!isRecord_ACU(raw)) throw new Error('Nút gốc của Checkpoint phải là đối tượng.');
+  if (raw.format !== CHECKPOINT_FORMAT_ACU) throw new Error('Định dạng Checkpoint không được hỗ trợ.');
+  if (raw.version !== CHECKPOINT_VERSION_ACU) throw new Error(`Phiên bản Checkpoint không được hỗ trợ: ${String(raw.version)}.`);
+  if (!Number.isFinite(raw.createdAt) || Number(raw.createdAt) <= 0) throw new Error('createdAt của Checkpoint không hợp lệ.');
+  if (!isRecord_ACU(raw.source) || (raw.source.storageMode !== 'native' && raw.source.storageMode !== 'sqlite')) throw new Error('Chế độ lưu trữ nguồn của Checkpoint không hợp lệ.');
+  if (!isRecord_ACU(raw.templateSnapshot) || !isRecord_ACU(raw.guideSnapshot) || !isRecord_ACU(raw.integrity)) throw new Error('Checkpoint thiếu mẫu, bảng hướng dẫn hoặc thông tin toàn vẹn.');
   const tableSnapshot = normalizeTableData_ACU(raw.tableSnapshot, 'tableSnapshot');
   const templateData = normalizeTableData_ACU(raw.templateSnapshot.data, 'templateSnapshot.data');
   const guideData = normalizeGuideData_ACU(raw.guideSnapshot.data);
-  if (!guideData || !Object.keys(guideData).some(key => key.startsWith('sheet_'))) throw new Error('guideSnapshot.data 不包含有效指导表。');
+  if (!guideData || !Object.keys(guideData).some(key => key.startsWith('sheet_'))) throw new Error('guideSnapshot.data không chứa bảng hướng dẫn hợp lệ.');
   const checkpoint: TableCheckpointFileV1_ACU = {
     format: CHECKPOINT_FORMAT_ACU,
     version: CHECKPOINT_VERSION_ACU,
@@ -173,13 +173,13 @@ function normalizeCheckpointPayload_ACU(raw: unknown): TableCheckpointFileV1_ACU
     tableSnapshot,
     templateSnapshot: { data: templateData, presetName: typeof raw.templateSnapshot.presetName === 'string' ? raw.templateSnapshot.presetName : '' },
     guideSnapshot: { data: guideData },
-    integrity: { algorithm: raw.integrity.algorithm === 'fnv1a' ? 'fnv1a' : (() => { throw new Error('不支持的完整性算法。'); })(), payloadHash: String(raw.integrity.payloadHash || '') },
+    integrity: { algorithm: raw.integrity.algorithm === 'fnv1a' ? 'fnv1a' : (() => { throw new Error('Thuật toán toàn vẹn không được hỗ trợ.'); })(), payloadHash: String(raw.integrity.payloadHash || '') },
   };
-  if (!checkpoint.integrity.payloadHash) throw new Error('Checkpoint 缺少完整性哈希。');
+  if (!checkpoint.integrity.payloadHash) throw new Error('Checkpoint thiếu hash toàn vẹn.');
   const { integrity, ...payload } = checkpoint;
   // 先验证文件原始内容的哈希，再修复历史版本错误追加的尾标记；否则会把被篡改
   // 的文件误当作可兼容旧文件。修复后重签内部对象，使 parse → restore 幂等。
-  if (payloadHash_ACU(payload) !== integrity.payloadHash) throw new Error('Checkpoint 完整性校验失败，文件可能已损坏或被篡改。');
+  if (payloadHash_ACU(payload) !== integrity.payloadHash) throw new Error('Kiểm tra toàn vẹn Checkpoint thất bại, tệp có thể đã bị hỏng hoặc bị sửa đổi.');
   const repairedLegacyAutoMergedTails = repairCheckpointLegacyAutoMergedTails_ACU(tableSnapshot, templateData, guideData);
   assertCanonicalCheckpointRows_ACU(tableSnapshot, 'tableSnapshot');
   assertCanonicalCheckpointRows_ACU(templateData, 'templateSnapshot.data');
@@ -195,25 +195,25 @@ function normalizeCheckpointPayload_ACU(raw: unknown): TableCheckpointFileV1_ACU
 
 export function parseTableCheckpointFile_ACU(text: string): TableCheckpointParseResult_ACU {
   try {
-    if (!String(text || '').trim()) throw new Error('Checkpoint 文件为空。');
+    if (!String(text || '').trim()) throw new Error('Tệp Checkpoint trống.');
     return { success: true, checkpoint: normalizeCheckpointPayload_ACU(JSON.parse(text)) };
   } catch (error: any) {
-    return { success: false, error: error?.message || 'Checkpoint 解析失败。' };
+    return { success: false, error: error?.message || 'Phân tích Checkpoint thất bại.' };
   }
 }
 
 export function buildCurrentTableCheckpoint_ACU(): TableCheckpointFileV1_ACU {
   applyTemplateScopeForCurrentChat_ACU();
   const provider = getStorageProvider();
-  const tableSnapshot = normalizeTableData_ACU(provider.getCurrentData(), '当前表格数据');
+  const tableSnapshot = normalizeTableData_ACU(provider.getCurrentData(), 'dữ liệu bảng hiện tại');
   const isolationKey = getCurrentIsolationKey_ACU();
-  const templateData = normalizeTableData_ACU(parseTableTemplateJson_ACU({ stripSeedRows: false }), '当前生效模板');
+  const templateData = normalizeTableData_ACU(parseTableTemplateJson_ACU({ stripSeedRows: false }), 'mẫu đang có hiệu lực');
   const guideData = normalizeGuideData_ACU(cloneJson_ACU(getChatSheetGuideDataForIsolationKey_ACU(isolationKey)));
-  if (!guideData || !Object.keys(guideData).some(key => key.startsWith('sheet_'))) throw new Error('当前聊天缺少可导出的指导表。');
+  if (!guideData || !Object.keys(guideData).some(key => key.startsWith('sheet_'))) throw new Error('Cuộc trò chuyện hiện tại thiếu bảng hướng dẫn có thể xuất.');
   repairCheckpointLegacyAutoMergedTails_ACU(tableSnapshot, templateData, guideData);
-  assertCanonicalCheckpointRows_ACU(tableSnapshot, '当前表格数据');
-  assertCanonicalCheckpointRows_ACU(templateData, '当前生效模板');
-  assertCanonicalCheckpointRows_ACU(guideData as TableDataObject_ACU, '当前指导表');
+  assertCanonicalCheckpointRows_ACU(tableSnapshot, 'dữ liệu bảng hiện tại');
+  assertCanonicalCheckpointRows_ACU(templateData, 'mẫu đang có hiệu lực');
+  assertCanonicalCheckpointRows_ACU(guideData as TableDataObject_ACU, 'bảng hướng dẫn hiện tại');
   assertCheckpointSchemaConsistency_ACU(tableSnapshot, templateData, guideData);
   const scope = getCurrentChatTemplateScopeState_ACU({ isolationKey });
   const payload = {
@@ -260,8 +260,8 @@ function scopeTemplateMatchesCheckpoint_ACU(scope: any, checkpointTemplate: Tabl
     const checkpointSnapshot = sanitizeTemplateSnapshotForChat_ACU(checkpointTemplate);
     if (!scopeSnapshot?.templateObj || !checkpointSnapshot?.templateObj) return false;
     return sameCheckpointData_ACU(
-      normalizeTableData_ACU(scopeSnapshot.templateObj, '恢复后的聊天模板作用域'),
-      normalizeTableData_ACU(checkpointSnapshot.templateObj, 'Checkpoint 模板快照'),
+      normalizeTableData_ACU(scopeSnapshot.templateObj, 'phạm vi mẫu cuộc trò chuyện sau khi khôi phục'),
+      normalizeTableData_ACU(checkpointSnapshot.templateObj, 'snapshot mẫu Checkpoint'),
     );
   } catch {
     return false;
@@ -278,21 +278,21 @@ async function runCheckpointDerivedRefresh_ACU(
     try {
       await task();
     } catch (error: any) {
-      derivedRefreshWarnings.push(`${label}：${error?.message || String(error)}`);
+      derivedRefreshWarnings.push(`${label}: ${error?.message || String(error)}`);
     }
   };
 
-  await runDerivedStep('模板作用域应用失败', () => { applyTemplateScopeForCurrentChat_ACU(); });
-  if (isSqliteMode()) await runDerivedStep('SQLite 运行时重载失败', async () => { await reloadStorageProvider(); });
-  await runDerivedStep('旧世界书条目清理触发失败', () => deleteAllGeneratedEntries_ACU());
-  await runDerivedStep('聊天运行时与世界书刷新失败', async () => { await refreshMergedDataAndNotify_ACU(); });
+  await runDerivedStep('Áp dụng phạm vi mẫu thất bại', () => { applyTemplateScopeForCurrentChat_ACU(); });
+  if (isSqliteMode()) await runDerivedStep('Tải lại runtime SQLite thất bại', async () => { await reloadStorageProvider(); });
+  await runDerivedStep('Kích hoạt dọn dẹp mục Sổ thế giới cũ thất bại', () => deleteAllGeneratedEntries_ACU());
+  await runDerivedStep('Làm mới runtime cuộc trò chuyện và Sổ thế giới thất bại', async () => { await refreshMergedDataAndNotify_ACU(); });
 
   let cleanupWarnings: string[] | undefined;
   try {
     const warnings = await cleanupCheckpointVectorIndexManifestsAfterCommit_ACU(vectorManifests);
     if (warnings.length) cleanupWarnings = warnings;
   } catch (error: any) {
-    derivedRefreshWarnings.push(`向量索引清理失败：${error?.message || String(error)}`);
+    derivedRefreshWarnings.push(`Dọn dẹp chỉ mục vector thất bại: ${error?.message || String(error)}`);
   }
 
   const finalProvider = getActiveStorageProvider();
@@ -305,11 +305,11 @@ async function runCheckpointDerivedRefresh_ACU(
     guideMatches: sameCheckpointData_ACU(finalGuide, checked.guideSnapshot.data),
     providerMode: finalProvider?.mode || null,
   };
-  if (!finalProvider) derivedRefreshWarnings.push('恢复后的活动表格存储不可用。');
-  if (!postCondition.runtimeMatches) derivedRefreshWarnings.push('恢复后的运行时数据与 Checkpoint 数据快照不一致。');
-  if (!postCondition.scopeIsChatOverride) derivedRefreshWarnings.push('恢复后的模板作用域不是 chat_override。');
-  if (!postCondition.templateMatches) derivedRefreshWarnings.push('恢复后的聊天模板快照与 Checkpoint 模板不一致。');
-  if (!postCondition.guideMatches) derivedRefreshWarnings.push('恢复后的指导表与 Checkpoint 指导表不一致。');
+  if (!finalProvider) derivedRefreshWarnings.push('Kho lưu trữ bảng đang hoạt động sau khi khôi phục không khả dụng.');
+  if (!postCondition.runtimeMatches) derivedRefreshWarnings.push('Dữ liệu runtime sau khi khôi phục không khớp snapshot dữ liệu Checkpoint.');
+  if (!postCondition.scopeIsChatOverride) derivedRefreshWarnings.push('Phạm vi mẫu sau khi khôi phục không phải chat_override.');
+  if (!postCondition.templateMatches) derivedRefreshWarnings.push('Snapshot mẫu cuộc trò chuyện sau khi khôi phục không khớp mẫu Checkpoint.');
+  if (!postCondition.guideMatches) derivedRefreshWarnings.push('Bảng hướng dẫn sau khi khôi phục không khớp bảng hướng dẫn Checkpoint.');
 
   return {
     ...(cleanupWarnings ? { cleanupWarnings } : {}),
@@ -332,28 +332,28 @@ export async function restoreTableCheckpointToLatestAi_ACU(parsed: TableCheckpoi
     checked = normalizeCheckpointPayload_ACU(parsed);
     chat = getChatArray_ACU();
     targetMessageIndex = getLatestAiMessageIndexFromChat_ACU(chat);
-    if (targetMessageIndex < 0) return { success: false, error: '当前聊天没有 AI 楼层，无法恢复 Checkpoint。' };
+    if (targetMessageIndex < 0) return { success: false, error: 'Cuộc trò chuyện hiện tại không có tầng AI, không thể khôi phục Checkpoint.' };
     isolationKey = getCurrentIsolationKey_ACU();
     provider = getStorageProvider();
     const currentData = provider.getCurrentData();
     const oldData = currentData === null ? null : cloneJson_ACU(currentData);
     const runtimeSnapshot = provider.createRuntimeSnapshot?.();
     if (runtimeSnapshot instanceof Uint8Array) {
-      if (typeof provider.restoreRuntimeSnapshot !== 'function') throw new Error('当前表格存储不支持 SQLite 运行时快照回滚。');
+      if (typeof provider.restoreRuntimeSnapshot !== 'function') throw new Error('Kho lưu trữ bảng hiện tại không hỗ trợ hoàn tác snapshot runtime SQLite.');
       rollbackStrategy = { kind: 'binary', snapshot: runtimeSnapshot };
     } else if (oldData !== null) {
-      if (typeof provider.replaceAllData !== 'function') throw new Error('当前表格存储不支持表格数据回滚。');
+      if (typeof provider.replaceAllData !== 'function') throw new Error('Kho lưu trữ bảng hiện tại không hỗ trợ hoàn tác dữ liệu bảng.');
       rollbackStrategy = { kind: 'data', data: oldData };
     } else {
-      if (typeof provider.clearRuntimeData !== 'function') throw new Error('当前表格存储不支持空运行时回滚。');
+      if (typeof provider.clearRuntimeData !== 'function') throw new Error('Kho lưu trữ bảng hiện tại không hỗ trợ hoàn tác về runtime rỗng.');
       rollbackStrategy = { kind: 'empty' };
     }
-    if (typeof provider.replaceAllData !== 'function') throw new Error('当前表格存储不支持 Checkpoint 数据恢复。');
+    if (typeof provider.replaceAllData !== 'function') throw new Error('Kho lưu trữ bảng hiện tại không hỗ trợ khôi phục dữ liệu Checkpoint.');
     messageSnapshots = captureMessageSnapshots_ACU(chat);
     oldScopeContainer = cloneJson_ACU(peekChatScopedConfigContainer_ACU(chat));
     oldGuideContainer = cloneJson_ACU(peekChatSheetGuideContainer_ACU(chat));
   } catch (error: any) {
-    return { success: false, error: error?.message || 'Checkpoint 恢复预检失败。' };
+    return { success: false, error: error?.message || 'Kiểm tra trước khôi phục Checkpoint thất bại.' };
   }
   let vectorManifests: any[] = [];
   try {
@@ -362,13 +362,13 @@ export async function restoreTableCheckpointToLatestAi_ACU(parsed: TableCheckpoi
         const cleared = await clearAllAiTableDataForCheckpointRestore_ACU();
         vectorManifests = cleared.vectorManifestsToDeleteAfterCommit;
         const replaced = await provider.replaceAllData(cloneJson_ACU(checked.tableSnapshot));
-        if (!replaced?.success) throw new Error(replaced?.error || 'Checkpoint 表格运行时恢复失败。');
+        if (!replaced?.success) throw new Error(replaced?.error || 'Khôi phục runtime bảng Checkpoint thất bại.');
         const templateState = buildChatTemplateScopeStateFromCurrent_ACU({ isolationKey, presetName: checked.templateSnapshot.presetName, source: 'checkpoint_import', templateSource: checked.templateSnapshot.data, guideData: checked.guideSnapshot.data });
-        if (!templateState || !setCurrentChatTemplateScopeState_ACU(templateState, { isolationKey, reason: 'checkpoint_import' })) throw new Error('Checkpoint 模板作用域恢复失败。');
-        if (!setChatSheetGuideDataForIsolationKey_ACU(isolationKey, checked.guideSnapshot.data, { reason: 'checkpoint_import', syncTemplateScope: false })) throw new Error('Checkpoint 指导表恢复失败。');
+        if (!templateState || !setCurrentChatTemplateScopeState_ACU(templateState, { isolationKey, reason: 'checkpoint_import' })) throw new Error('Khôi phục phạm vi mẫu Checkpoint thất bại.');
+        if (!setChatSheetGuideDataForIsolationKey_ACU(isolationKey, checked.guideSnapshot.data, { reason: 'checkpoint_import', syncTemplateScope: false })) throw new Error('Khôi phục bảng hướng dẫn Checkpoint thất bại.');
         const sheetKeys = Object.keys(checked.tableSnapshot).filter(key => key.startsWith('sheet_'));
         const persisted = await persistTablesToChatMessage_ACU({ targetMessageIndex, tableData: checked.tableSnapshot, targetSheetKeys: sheetKeys, trackingSheetKeys: sheetKeys, trackAsUpdate: false, source: 'import', checkpointReason: 'import', operations: [{ kind: 'data_replace', data: checked.tableSnapshot, reason: 'checkpoint_fallback' }], strictSave: true, assumeCommitLock: true, transactionContext });
-        if (!persisted.saved) throw new Error(persisted.error || 'Checkpoint 持久化失败。');
+        if (!persisted.saved) throw new Error(persisted.error || 'Lưu bền Checkpoint thất bại.');
         return { clearedCount: cleared.clearedCount, restoredMessageIndex: persisted.messageIndex ?? targetMessageIndex };
       }, [{ kind: 'all' }]);
     });
@@ -383,15 +383,15 @@ export async function restoreTableCheckpointToLatestAi_ACU(parsed: TableCheckpoi
         await provider.restoreRuntimeSnapshot!(rollbackStrategy.snapshot);
       } else if (rollbackStrategy.kind === 'data') {
         const restored = await provider.replaceAllData!(rollbackStrategy.data);
-        if (!restored.success) throw new Error(restored.error || 'Checkpoint 表格运行时回滚失败。');
+        if (!restored.success) throw new Error(restored.error || 'Hoàn tác runtime bảng Checkpoint thất bại.');
       } else {
         provider.clearRuntimeData!();
       }
       applyTemplateScopeForCurrentChat_ACU();
       await saveChatToHostStrict_ACU();
     } catch (rollbackError: any) {
-      return { success: false, error: `Checkpoint 恢复失败：${error?.message || String(error)}；回滚保存也失败：${rollbackError?.message || String(rollbackError)}` };
+      return { success: false, error: `Khôi phục Checkpoint thất bại: ${error?.message || String(error)}; lưu hoàn tác cũng thất bại: ${rollbackError?.message || String(rollbackError)}` };
     }
-    return { success: false, error: error?.message || 'Checkpoint 恢复失败。' };
+    return { success: false, error: error?.message || 'Khôi phục Checkpoint thất bại.' };
   }
 }

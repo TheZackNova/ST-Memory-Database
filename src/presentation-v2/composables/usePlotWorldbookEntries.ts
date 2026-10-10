@@ -135,13 +135,13 @@ export function usePlotWorldbookEntries() {
       status.value = 'success';
     } catch (e: any) {
       logError_ACU('[ACU-V2] usePlotWorldbookEntries loadEntries failed', e);
-      error.value = e?.message ?? '加载条目失败';
+      error.value = e?.message ?? 'Tải mục thất bại';
       status.value = 'error';
     }
   }
 
   function reportLoadFailure(): void {
-    error.value = '加载角色世界书失败';
+    error.value = 'Tải sổ thế giới nhân vật thất bại';
     status.value = 'error';
   }
 

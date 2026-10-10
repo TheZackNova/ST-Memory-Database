@@ -20,7 +20,7 @@
       :role="expandable ? 'button' : undefined"
       :tabindex="expandable ? 0 : undefined"
       :aria-expanded="expandable ? expanded : undefined"
-      :title="expandable ? (expanded ? '点击收起' : '点击查看在做什么') : undefined"
+      :title="expandable ? (expanded ? 'Bấm để thu gọn' : 'Bấm để xem đang làm gì') : undefined"
       @click="toggleDetail"
       @keydown.enter.prevent="toggleDetail"
       @keydown.space.prevent="toggleDetail"
@@ -48,8 +48,8 @@
         v-if="closable"
         type="button"
         class="acu-notice-bubble__close"
-        :title="slide.type === 'task' ? '关闭提示' : '下一条'"
-        :aria-label="slide.type === 'task' ? '关闭提示' : '下一条'"
+        :title="slide.type === 'task' ? 'Đóng thông báo' : 'Tiếp theo'"
+        :aria-label="slide.type === 'task' ? 'Đóng thông báo' : 'Tiếp theo'"
         @click="onClose"
       >
         ×
@@ -124,8 +124,8 @@ const bodyText = computed(() => {
   if (showRealContent.value) {
     return current.type === "notice" ? current.notice.text : props.task?.detail || "";
   }
-  if (current.type === "notice") return `正在${current.word}…`;
-  return props.task ? `正在${current.word}…` : "";
+  if (current.type === "notice") return `Đang ${current.word}…`;
+  return props.task ? `Đang ${current.word}…` : "";
 });
 
 const actionButtons = computed(() => {

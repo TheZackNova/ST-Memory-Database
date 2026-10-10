@@ -7,7 +7,7 @@ const record = (value: unknown): value is Record<string, unknown> =>
 const integer = (value: unknown) => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 function requireValue(value: unknown): asserts value {
   if (!value) throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-    'WORLD_SIMULATION_SNAPSHOT_INVALID', 'load', '推演完整分栏基线结构无效', false));
+    'WORLD_SIMULATION_SNAPSHOT_INVALID', 'load', 'Cấu trúc đường cơ sở phân cột đầy đủ của mô phỏng không hợp lệ', false));
 }
 function exact(value: Record<string, unknown>, keys: string[]) {
   requireValue(keys.every(key => Object.prototype.hasOwnProperty.call(value, key))

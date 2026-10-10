@@ -1,24 +1,24 @@
 export const importCopy = {
   panels: {
     worldbookTarget: {
-      title: "写入目标",
+      title: "Đích ghi",
       description:
-        "导入内容写入的世界书。建议选独立世界书，避免与角色卡混用，方便后续整理。",
+        "Sổ thế giới nơi nội dung nhập được ghi vào. Nên chọn sổ thế giới riêng, tránh dùng chung với thẻ nhân vật để dễ sắp xếp về sau.",
     },
     splitEncoding: {
-      title: "拆分与编码",
+      title: "Tách và mã hóa",
       description:
-        "文件按字符数分段，每段一条目。非 UTF-8 文件请选对编码，否则导入乱码。",
+        "Tệp được chia đoạn theo số ký tự, mỗi đoạn là một mục. Tệp không phải UTF-8 hãy chọn đúng mã hóa, nếu không nội dung nhập sẽ bị lỗi font.",
     },
     tableSelection: {
-      title: "写入表格选择",
+      title: "Chọn bảng để ghi",
       description:
-        "须使用特殊制卡表格模板，AI依表结构生成内容。生产前至少勾选一项表格，否则「写入」不可用。",
+        "Phải dùng mẫu bảng làm thẻ đặc biệt, AI sẽ tạo nội dung theo cấu trúc bảng. Trước khi tạo cần chọn ít nhất một bảng, nếu không nút \"Ghi\" sẽ không dùng được.",
     },
     operations: {
-      title: "状态 / 操作区",
+      title: "Trạng thái / Thao tác",
       description:
-        "操作顺序：先按「选择并拆分」载入txt文件，再按「写入」把内容写入世界书。「清空缓存」仅丢弃未写入内容。「删除条目」移除已写入的条目。",
+        "Thứ tự thao tác: trước tiên bấm \"Chọn và tách\" để nạp tệp txt, rồi bấm \"Ghi\" để ghi nội dung vào sổ thế giới. \"Xóa bộ nhớ đệm\" chỉ bỏ nội dung chưa ghi. \"Xóa mục\" gỡ các mục đã ghi.",
     },
   },
 };

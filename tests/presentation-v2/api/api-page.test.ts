@@ -78,8 +78,8 @@ describe('ApiPage', () => {
     settings.tableApiPreset = 'ghost';
     const { mount } = await mountApiPage(settings);
     const page = document.querySelector('.acu-v2-api-page');
-    expect(page!.textContent).toContain('填表 API 预设「ghost」已不存在');
-    expect(page!.textContent).toContain('不会自动改写已保存的设置');
+    expect(page!.textContent).toContain('Preset API điền bảng「ghost」không còn tồn tại');
+    expect(page!.textContent).toContain('cài đặt đã lưu sẽ không bị tự ghi lại');
     expect(settings.tableApiPreset).toBe('ghost');
     mount.__resetAcuV2MountForTests();
   });
@@ -89,7 +89,7 @@ describe('ApiPage', () => {
 
     const page = document.querySelector('.acu-v2-api-page');
     expect(page).not.toBeNull();
-    expect(page!.textContent).toContain('API 预设');
+    expect(page!.textContent).toContain('Preset API');
     expect(page!.querySelectorAll('.acu-panel')).toHaveLength(1);
     expect(page!.textContent).not.toContain('交火模式向量服务');
     expect(page!.textContent).not.toContain('Embedding Endpoint');
@@ -100,25 +100,25 @@ describe('ApiPage', () => {
     // Active preset shown in preset panel and opened in config panel.
     expect(page!.textContent).toContain('beta');
     expect(page!.textContent).not.toContain('流式输出');
-    expect(page!.textContent).toContain('当前聊天');
+    expect(page!.textContent).toContain('cuộc trò chuyện hiện tại');
     expect(page!.textContent).not.toContain('当前配置状态');
     expect(page!.textContent).not.toContain('已保存预设');
-    expect(page!.textContent).toContain('预设名称');
-    expect(page!.textContent).toContain('连接方式');
-    expect(page!.textContent).toContain('保存当前预设');
-    expect(page!.querySelector('button[title="编辑当前预设"]')).toBeNull();
+    expect(page!.textContent).toContain('Tên preset');
+    expect(page!.textContent).toContain('Kiểu kết nối');
+    expect(page!.textContent).toContain('Lưu preset hiện tại');
+    expect(page!.querySelector('button[title="Sửa preset hiện tại"]')).toBeNull();
 
     const apiPanel = Array.from(page!.querySelectorAll<HTMLElement>('.acu-panel'))
-      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('API 预设'))!;
+      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('Preset API'))!;
     expect(Array.from(page!.querySelectorAll<HTMLElement>('.acu-panel'))[0]).toBe(apiPanel);
     expect(apiPanel.querySelector('.acu-toggle')).toBeNull();
-    expect(apiPanel.querySelector('button[title="新建预设"]')).not.toBeNull();
-    expect(apiPanel.querySelector('button[title="删除当前预设"]')).not.toBeNull();
-    expect(document.body.textContent).not.toContain('管理 API 预设');
+    expect(apiPanel.querySelector('button[title="Tạo preset mới"]')).not.toBeNull();
+    expect(apiPanel.querySelector('button[title="Xóa preset hiện tại"]')).not.toBeNull();
+    expect(document.body.textContent).not.toContain('Quản lý preset API');
 
     // No import/export buttons (API presets are sensitive)
-    expect(page!.textContent).not.toContain('导入');
-    expect(page!.textContent).not.toContain('导出');
+    expect(page!.textContent).not.toContain('Nhập');
+    expect(page!.textContent).not.toContain('Xuất');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -128,7 +128,7 @@ describe('ApiPage', () => {
 
     const page = document.querySelector('.acu-v2-api-page') as HTMLElement;
     const nameRow = Array.from(page.querySelectorAll('.acu-form-row'))
-      .find(row => (row.textContent || '').includes('预设名称')) as HTMLElement;
+      .find(row => (row.textContent || '').includes('Tên preset')) as HTMLElement;
     const nameInput = nameRow.querySelector('input') as HTMLInputElement;
     expect(nameInput.value).toBe('beta');
 
@@ -137,15 +137,15 @@ describe('ApiPage', () => {
     await Promise.resolve();
 
     const saveButton = Array.from(page.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('保存当前预设')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Lưu preset hiện tại')) as HTMLButtonElement;
     expect(saveButton.disabled).toBe(false);
     saveButton.click();
     await Promise.resolve();
 
     expect(settings.apiPresets.some((preset: any) => preset.name === 'beta-renamed')).toBe(true);
     expect(settings.apiPresetBindingsByChat['chat-page'].presetName).toBe('beta-renamed');
-    expect(page.textContent || '').not.toContain('已保存当前 API 预设');
-    expect(document.body.textContent || '').toContain('已保存当前 API 预设');
+    expect(page.textContent || '').not.toContain('Đã lưu preset API hiện tại');
+    expect(document.body.textContent || '').toContain('Đã lưu preset API hiện tại');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -185,26 +185,26 @@ describe('ApiPage', () => {
     expect(page.querySelector('.acu-message')).not.toBeNull();
 
     const createButton = Array.from(page.querySelectorAll<HTMLButtonElement>('button'))
-      .find(btn => btn.getAttribute('title') === '新建预设')!;
+      .find(btn => btn.getAttribute('title') === 'Tạo preset mới')!;
     createButton.click();
     await Promise.resolve();
 
     const nameRow = Array.from(page.querySelectorAll('.acu-form-row'))
-      .find(row => (row.textContent || '').includes('预设名称')) as HTMLElement;
+      .find(row => (row.textContent || '').includes('Tên preset')) as HTMLElement;
     const nameInput = nameRow.querySelector('input') as HTMLInputElement;
     nameInput.value = 'first-api';
     nameInput.dispatchEvent(new Event('input', { bubbles: true }));
     await Promise.resolve();
 
     const saveButton = Array.from(page.querySelectorAll<HTMLButtonElement>('button'))
-      .find(btn => btn.textContent?.includes('保存并选中预设'))!;
+      .find(btn => btn.textContent?.includes('Lưu và chọn preset'))!;
     saveButton.click();
     await Promise.resolve();
 
     expect(settings.apiPresets.some((preset: any) => preset.name === 'first-api')).toBe(true);
     expect(settings.apiPresetBindingsByChat['chat-page'].presetName).toBe('first-api');
-    expect(page.textContent || '').not.toContain('已保存当前 API 预设');
-    expect(document.body.textContent || '').toContain('已保存当前 API 预设');
+    expect(page.textContent || '').not.toContain('Đã lưu preset API hiện tại');
+    expect(document.body.textContent || '').toContain('Đã lưu preset API hiện tại');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -213,24 +213,24 @@ describe('ApiPage', () => {
     settings.apiPresetBindingsByChat['chat-page'].presetName = 'alpha';
     const { mount } = await mountApiPage(settings);
     const page = document.querySelector('.acu-v2-api-page') as HTMLElement;
-    const toggle = page.querySelector('[aria-label="通过酒馆渠道发送"]') as HTMLButtonElement;
+    const toggle = page.querySelector('[aria-label="Gửi qua kênh SillyTavern"]') as HTMLButtonElement;
     expect(toggle.getAttribute('aria-checked')).toBe('true');
-    const timeoutRow = Array.from(page.querySelectorAll('.acu-form-row')).find(row => row.textContent?.includes('请求超时（秒）'))!;
+    const timeoutRow = Array.from(page.querySelectorAll('.acu-form-row')).find(row => row.textContent?.includes('Hết thời gian chờ (giây)'))!;
     const input = timeoutRow.querySelector('input') as HTMLInputElement;
     expect(input.value).toBe('300');
     input.value = '75';
     input.dispatchEvent(new Event('input', { bubbles: true }));
     toggle.click();
     await Promise.resolve();
-    const save = Array.from(page.querySelectorAll('button')).find(button => button.textContent?.includes('保存当前预设'))!;
+    const save = Array.from(page.querySelectorAll('button')).find(button => button.textContent?.includes('Lưu preset hiện tại'))!;
     save.click();
     await Promise.resolve();
     expect(settings.apiPresets.find(preset => preset.name === 'alpha')!.apiConfig).toMatchObject({ requestTimeoutSeconds: 75, sendViaTavern: false });
     expect(settings.apiConfig).toMatchObject({ requestTimeoutSeconds: 75, sendViaTavern: false });
     mount.__resetAcuV2MountForTests();
     const reopened = await mountApiPage(settings);
-    expect(document.querySelector('[aria-label="通过酒馆渠道发送"]')!.getAttribute('aria-checked')).toBe('false');
-    const restoredRow = Array.from(document.querySelectorAll('.acu-form-row')).find(row => row.textContent?.includes('请求超时（秒）'))!;
+    expect(document.querySelector('[aria-label="Gửi qua kênh SillyTavern"]')!.getAttribute('aria-checked')).toBe('false');
+    const restoredRow = Array.from(document.querySelectorAll('.acu-form-row')).find(row => row.textContent?.includes('Hết thời gian chờ (giây)'))!;
     expect((restoredRow.querySelector('input') as HTMLInputElement).value).toBe('75');
     reopened.mount.__resetAcuV2MountForTests();
   });

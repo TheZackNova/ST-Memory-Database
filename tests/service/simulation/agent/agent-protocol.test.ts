@@ -124,34 +124,34 @@ describe('格林推演 Agent 协议', () => {
 
   it('specialist 协议拒绝回灌包含角色、受限 SQL 写入范围与合法模板', () => {
     const message = renderWorldSimulationSpecialistProtocolRejection_ACU({ reasonCode: 'INVALID_SPECIALIST_STATUS', path: '$.status', expected: 'candidate | no_change | failed | blocked', actual: 'success' }, 'timekeeper', ['clock']);
-    expect(message).toContain('status 必须精确为 candidate、no_change、failed、blocked');
-    expect(message).toContain('agentName 必须精确为 timekeeper');
-    expect(message).toContain('sql 只允许写：clock');
+    expect(message).toContain('status phải chính xác là một trong candidate, no_change, failed, blocked');
+    expect(message).toContain('agentName phải chính xác là timekeeper');
+    expect(message).toContain('sql của candidate chỉ được ghi: clock');
     expect(message).toContain('"status":"candidate"');
     expect(message).toContain('expected_revision');
     expect(message).toContain('UPDATE clock');
     const chroniclerMessage = renderWorldSimulationSpecialistProtocolRejection_ACU({ reasonCode: 'SQL_WHERE_FORBIDDEN', path: '$.sql.where.expected_revision', expected: 'only supported WHERE conditions', actual: 'expected_revision' }, 'chronicler', ['chronicle']);
-    expect(chroniclerMessage).toContain('chronicle 仅 INSERT 新事件、UPDATE 已保存未完成的草稿缺栏');
-    expect(chroniclerMessage).toContain('数组模块 UPDATE/DELETE 的 WHERE 必须带 id、expected_revision');
+    expect(chroniclerMessage).toContain('chronicle chỉ INSERT sự kiện mới, UPDATE cột còn thiếu của bản nháp đã lưu chưa hoàn chỉnh');
+    expect(chroniclerMessage).toContain('WHERE của UPDATE/DELETE trên module mảng phải kèm id, expected_revision');
   });
 
   it('reviewer 协议拒绝回灌明确 verdict、finding 结构与三种合法模板', () => {
     const message = renderWorldSimulationReviewerProtocolRejection_ACU({ reasonCode: 'INVALID_REVIEW_VERDICT', path: '$.verdict', expected: 'accept | revise | reject', actual: 'approved' });
-    expect(message).toContain('verdict 必须精确为 accept、revise、reject');
-    expect(message).toContain('不得使用 approve、approved、pass、success、done 等别名');
-    expect(message).toContain('severity 必须精确为 blocking、major、minor');
+    expect(message).toContain('verdict phải chính xác là một trong accept, revise, reject');
+    expect(message).toContain('không được dùng các bí danh như approve, approved, pass, success, done');
+    expect(message).toContain('severity phải chính xác là một trong blocking, major, minor');
     expect(message).toContain('"verdict":"accept"');
     expect(message).toContain('"verdict":"revise"');
     expect(message).toContain('"verdict":"reject"');
-    expect(message).toContain('不得输出 guidance');
+    expect(message).toContain('không được xuất guidance');
     expect(message).toContain('WORLD_SIMULATION_ENGINE_SEAM');
   });
 
   it('planner 协议拒绝回灌包含完整 plan 字段与账本模块白名单', () => {
     const message = renderWorldSimulationPlannerProtocolRejection_ACU({ reasonCode: 'MISSING_FIELD', path: '$.plan', expected: 'required field', actual: undefined });
-    expect(message).toContain('顶层必须且只能包含 action、summary、plan');
-    expect(message).toContain('schemaVersion、title、objective、impactScope');
-    expect(message).toContain(`expectedLedgerChanges 只能使用：clock | dimensions | seeds | actors | chronicle | guidance | rumors | player`);
+    expect(message).toContain('Cấp cao nhất phải và chỉ được chứa action, summary, plan');
+    expect(message).toContain('schemaVersion, title, objective, impactScope');
+    expect(message).toContain(`expectedLedgerChanges chỉ được dùng: clock | dimensions | seeds | actors | chronicle | guidance | rumors | player`);
     expect(message).toContain('"action":"plan"');
     expect(message).toContain('WORLD_SIMULATION_ENGINE_SEAM');
   });
@@ -185,19 +185,19 @@ describe('格林推演 Agent 协议', () => {
 
   it('协议拒绝回灌明确 read/search 字段与服务端 evidenceRef 语义', () => {
     const message = renderWorldSimulationDirectorProtocolRejection_ACU({ reasonCode: 'UNKNOWN_FIELD', path: '$.evidenceRef', expected: 'no additional fields', actual: 'evidence:run:2' }, true);
-    expect(message).toContain('read 只能包含 action、reads');
-    expect(message).toContain('不要添加 evidenceRef、purpose');
+    expect(message).toContain('read chỉ được chứa action, reads');
+    expect(message).toContain('Không thêm evidenceRef, purpose');
     expect(message).toContain('field:<module>:<id>');
-    expect(message).toContain('不得使用 field:dimensions 这类裸模块地址');
-    expect(message).toContain('由服务端在读取成功后随工具结果颁发');
-    expect(message).toContain('finalize 顶层只能包含 action、outcome、summary、evidenceRefs');
-    expect(message).toContain('candidateId、acceptedCandidateIds、status、verdict 禁止出现');
-    expect(message).toContain('outcome 必须精确为 commit、no_change、blocked');
-    expect(message).toContain('不得使用 candidate、success、done、finalized 等别名');
+    expect(message).toContain('không được dùng địa chỉ module trần như field:dimensions');
+    expect(message).toContain('do phía máy chủ cấp kèm kết quả công cụ sau khi đọc thành công');
+    expect(message).toContain('finalize cấp cao nhất chỉ được chứa action, outcome, summary, evidenceRefs');
+    expect(message).toContain('cấm xuất hiện candidateId, acceptedCandidateIds, status, verdict');
+    expect(message).toContain('outcome phải chính xác là một trong commit, no_change, blocked');
+    expect(message).toContain('không được dùng các bí danh như candidate, success, done, finalized');
     expect(message).toContain('"action":"finalize","outcome":"commit"');
     expect(message).toContain('"action":"finalize","outcome":"no_change"');
-    expect(message).toContain('delegate 只能包含 action、delegations');
-    expect(message).toContain('evidenceRefs 只允许出现在 finalize 顶层');
+    expect(message).toContain('delegate chỉ được chứa action, delegations');
+    expect(message).toContain('evidenceRefs chỉ được xuất hiện ở cấp cao nhất của finalize');
   });
 
   it('初始提示词声明受限 SQL DML 与 director 动作字段白名单', () => {

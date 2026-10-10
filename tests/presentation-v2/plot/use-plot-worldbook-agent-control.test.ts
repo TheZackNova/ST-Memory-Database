@@ -196,11 +196,11 @@ describe('usePlotWorldbookAgentControl', () => {
     const result = await c.skillifyAll();
 
     expect(result).toBe(false);
-    expect(toast.info).toHaveBeenCalledWith('正在扫描当前世界书范围内可 Skill 化的条目...', {
+    expect(toast.info).toHaveBeenCalledWith('Đang quét các mục có thể Skill hóa trong phạm vi sổ thế giới hiện tại...', {
       durationMs: 0,
       muteable: false,
       dismissible: false,
-      feature: 'Skill 化',
+      feature: 'Skill hóa',
     });
     expect(toast.update).toHaveBeenCalledWith(
       'progress-1',
@@ -257,7 +257,7 @@ describe('usePlotWorldbookAgentControl', () => {
     expect(result).toBe(false);
     expect(mockSkillify).not.toHaveBeenCalled();
     expect(dialog.confirm).not.toHaveBeenCalled();
-    expect(toast.warning).toHaveBeenCalledWith('请先勾选要 Skill 化的世界书条目。', { muteable: false });
+    expect(toast.warning).toHaveBeenCalledWith('Hãy chọn trước các mục sổ thế giới cần Skill hóa.', { muteable: false });
   });
 
   it('skillifySelected 非空选择时透传 selectedEntries 并复用 Skill 化流程', async () => {
@@ -391,7 +391,7 @@ describe('usePlotWorldbookAgentControl', () => {
     expect(mockTakeover).toHaveBeenCalledTimes(1);
     expect(mockRefreshSnapshot).toHaveBeenCalled();
     expect(c.snapshot.value.active).toBe(true);
-    expect(toast.info).toHaveBeenCalledWith('Agent 世界书已切换为接管模式。', { muteable: false });
+    expect(toast.info).toHaveBeenCalledWith('Sổ thế giới của Agent đã chuyển sang chế độ tiếp quản.', { muteable: false });
     expect(toast.warning).not.toHaveBeenCalled();
   });
 
@@ -405,7 +405,7 @@ describe('usePlotWorldbookAgentControl', () => {
     expect(mockWriteControl).toHaveBeenCalledWith({ mode: 'agent', enabled: true });
     expect(mockTakeover).toHaveBeenCalledTimes(1);
     expect(toast.warning).toHaveBeenCalledWith(expect.stringContaining('snapshot_state_write_failed'), { muteable: false });
-    expect(toast.info).not.toHaveBeenCalledWith('Agent 世界书已切换为接管模式。', { muteable: false });
+    expect(toast.info).not.toHaveBeenCalledWith('Sổ thế giới của Agent đã chuyển sang chế độ tiếp quản.', { muteable: false });
   });
 
   it('setMode disabled 保存成功后执行 restore_only 恢复但保留 legacy snapshot', async () => {
@@ -435,8 +435,8 @@ describe('usePlotWorldbookAgentControl', () => {
     expect(settings.plotSettings.agentWorldbookControl.mode).toBe('disabled');
     expect(settings.plotSettings.agentWorldbookControl.enabled).toBe(false);
     expect(settings.plotSettings.agentWorldbookControlSnapshot).toBeDefined();
-    expect(toast.warning).toHaveBeenCalledWith('部分世界书条目恢复失败，已保留 Agent 快照以避免永久丢失；Agent 模式已关闭。', { muteable: false });
-    expect(toast.info).not.toHaveBeenCalledWith('Agent 世界书已关闭。', { muteable: false });
+    expect(toast.warning).toHaveBeenCalledWith('Một số mục sổ thế giới khôi phục thất bại, đã giữ snapshot của Agent để tránh mất vĩnh viễn; chế độ Agent đã tắt.', { muteable: false });
+    expect(toast.info).not.toHaveBeenCalledWith('Chế độ sổ thế giới của Agent đã tắt.', { muteable: false });
   });
 
   it('restore 取消确认时不清理也不关闭 Agent 模式', async () => {
@@ -469,7 +469,7 @@ describe('usePlotWorldbookAgentControl', () => {
     expect(settings.plotSettings.agentWorldbookControl.enabled).toBe(false);
     expect(settings.plotSettings.agentWorldbookControlSnapshot).toBeUndefined();
     expect(mockSaveSettings).toHaveBeenCalledTimes(2);
-    expect(toast.success).toHaveBeenCalledWith('已清理并初始化 Agent 世界书状态；Agent 模式已关闭，下次使用时会重新初始化。', { muteable: false });
+    expect(toast.success).toHaveBeenCalledWith('Đã dọn dẹp và khởi tạo trạng thái sổ thế giới của Agent; chế độ Agent đã tắt, lần dùng sau sẽ được khởi tạo lại.', { muteable: false });
   });
 
   it('restore 恢复失败时保留 legacy snapshot，避免丢失恢复依据', async () => {
@@ -488,7 +488,7 @@ describe('usePlotWorldbookAgentControl', () => {
     expect(settings.plotSettings.agentWorldbookControl.enabled).toBe(false);
     expect(settings.plotSettings.agentWorldbookControlSnapshot).toBeDefined();
     expect(mockSaveSettings).toHaveBeenCalledTimes(1);
-    expect(toast.warning).toHaveBeenCalledWith('部分世界书条目恢复失败，已保留 Agent 快照以避免永久丢失；Agent 模式已关闭。', { muteable: false });
+    expect(toast.warning).toHaveBeenCalledWith('Một số mục sổ thế giới khôi phục thất bại, đã giữ snapshot của Agent để tránh mất vĩnh viễn; chế độ Agent đã tắt.', { muteable: false });
     expect(toast.success).not.toHaveBeenCalled();
   });
 
@@ -514,7 +514,7 @@ describe('usePlotWorldbookAgentControl', () => {
     expect(mockClearSkillMeta).toHaveBeenCalledWith(['角色A世界书']);
     expect(mockTakeover).not.toHaveBeenCalled();
     expect(mockRestore).not.toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith('已清除 2 条世界书 Skill 元数据。', { muteable: false });
+    expect(toast.success).toHaveBeenCalledWith('Đã xóa metadata Skill của 2 mục sổ thế giới.', { muteable: false });
   });
 
   it('clearSkillMeta 无可清除条目时返回 false 并提示 noop', async () => {
@@ -522,7 +522,7 @@ describe('usePlotWorldbookAgentControl', () => {
     const c = await getComposable();
 
     await expect(c.clearSkillMeta()).resolves.toBe(false);
-    expect(toast.info).toHaveBeenCalledWith('当前 Agent 世界书范围内没有可清除的 Skill 元数据。', { muteable: false });
+    expect(toast.info).toHaveBeenCalledWith('Phạm vi sổ thế giới Agent hiện tại không có metadata Skill nào để xóa.', { muteable: false });
   });
 
   it('初始化完成前拒绝当前世界书与全局模板写入', async () => {
@@ -643,7 +643,7 @@ describe('usePlotWorldbookAgentControl', () => {
     expect(c.configBookName.value).toBe('角色A世界书');
     expect(c.writableConfigBookName.value).toBe('角色A世界书');
     expect(c.snapshot.value).toEqual({ active: false, selectionSignature: '', createdAt: 0, books: {} });
-    expect(toast.warning).toHaveBeenCalledWith('Agent 世界书配置保存状态未确认，且重新读取失败；请刷新后重试。', { muteable: false });
+    expect(toast.warning).toHaveBeenCalledWith('Trạng thái lưu cấu hình sổ thế giới Agent chưa được xác nhận và đọc lại thất bại; vui lòng làm mới rồi thử lại.', { muteable: false });
   });
 
 
@@ -674,7 +674,7 @@ describe('usePlotWorldbookAgentControl', () => {
 
     expect(readCount).toBe(2);
     expect(c.maxSkillifyConcurrency.value).toBe(3);
-    expect(toast.warning).toHaveBeenCalledWith('Agent 世界书配置保存状态未确认，且重新读取失败；请刷新后重试。', { muteable: false });
+    expect(toast.warning).toHaveBeenCalledWith('Trạng thái lưu cấu hình sổ thế giới Agent chưa được xác nhận và đọc lại thất bại; vui lòng làm mới rồi thử lại.', { muteable: false });
   });
 
   it('保存全局模板失败时显示错误且不写当前世界书', async () => {
@@ -690,7 +690,7 @@ describe('usePlotWorldbookAgentControl', () => {
       agentSkillifyPromptSegments: skillify,
     });
     expect(mockWriteControl).not.toHaveBeenCalled();
-    expect(toast.error).toHaveBeenCalledWith('全局 Agent 提示词模板保存失败。', { muteable: false });
+    expect(toast.error).toHaveBeenCalledWith('Lưu mẫu prompt Agent toàn cục thất bại.', { muteable: false });
   });
 
   it('保存当前世界书只写世界书，不写全局模板', async () => {

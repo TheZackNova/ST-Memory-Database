@@ -154,7 +154,7 @@
     }
     
     .acu-vis-sidebar::before {
-        content: '表格列表';
+        content: 'Danh sách bảng';
         display: block;
         font-size: 11px;
         color: var(--vis-text-mute);

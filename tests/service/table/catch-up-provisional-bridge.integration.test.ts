@@ -555,7 +555,7 @@ describe('manual catch-up provisional bridge 写入准入（t5）', () => {
       targetMessageIndex: 2,
     }));
     expect(normalResult.saved).toBe(false);
-    expect(normalResult.error).toContain('provisional bridge 写入被拒绝');
+    expect(normalResult.error).toContain('Ghi provisional bridge bị từ chối');
     expect(normalResult.error).toContain('runId');
   });
 
@@ -600,7 +600,7 @@ describe('manual catch-up provisional bridge 写入准入（t5）', () => {
       manualCatchUpRunId: runId,
     }));
     expect(boundaryResult.saved).toBe(false);
-    expect(boundaryResult.error).toContain('必须先执行 bridge finalize');
+    expect(boundaryResult.error).toContain('phải thực hiện bridge finalize trước');
   });
 
   it('recover（崩溃残留零提交）：自动 rollback 恢复原根并清除临时根与 bridge 元数据', async () => {
@@ -804,7 +804,7 @@ describe('manual catch-up provisional bridge 写入准入（t5）', () => {
     });
     expect(secondEstablish.ok).toBe(false);
     if (!secondEstablish.ok) {
-      expect(secondEstablish.error).toContain('当前隔离键与请求不匹配');
+      expect(secondEstablish.error).toContain('Khóa cô lập hiện tại không khớp yêu cầu');
       // 作用域不匹配不是 bridge 并发冲突，不得误报 provisional_bridge_conflict。
       expect(secondEstablish.diagnosticCode).toBeUndefined();
     }
@@ -902,7 +902,7 @@ describe('manual catch-up provisional bridge 写入准入（t5）', () => {
     expect(gate.ok).toBe(false);
     if (!gate.ok) {
       expect(gate.recoveryRequired).toBe(true);
-      expect(gate.error).toContain('其他隔离键');
+      expect(gate.error).toContain('Phát hiện khóa cô lập khác');
     }
     // 残留 bridge 未被误恢复：仍 active。
     expect(mocks.chat[0]?.TavernDB_ACU_IsolatedData?.[isolationKey]?.manualCatchUpProvisionalBridge?.phase).toBe('provisional_active');
@@ -1000,7 +1000,7 @@ describe('manual catch-up provisional bridge 写入准入（t5）', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.diagnosticCode).toBe('provisional_bridge_multiple_full_checkpoints');
-      expect(result.error).toContain('2 个 full checkpoint');
+      expect(result.error).toContain('2 full checkpoint');
     }
     // 未建立任何临时根，原 full 未被改写。
     expect(mocks.chat[0]?.TavernDB_ACU_IsolatedData?.[isolationKey]?.manualCatchUpProvisionalBridge).toBeUndefined();
@@ -1034,14 +1034,14 @@ describe('manual catch-up provisional bridge 写入准入（t5）', () => {
     expect(finalize.ok).toBe(false);
     if (!finalize.ok) {
       expect(finalize.diagnosticCode).toBe('provisional_recovery_required');
-      expect(finalize.error).toContain('临时根拓扑不匹配');
+      expect(finalize.error).toContain('Topo gốc tạm của provisional bridge không khớp');
     }
 
     // rollback：同样被 scope 校验拒绝。
     const rollback = await rollbackProvisionalBridge_ACU(runId, { isolationKey });
     expect(rollback.ok).toBe(false);
     if (!rollback.ok) {
-      expect(rollback.error).toContain('临时根拓扑不匹配');
+      expect(rollback.error).toContain('Topo gốc tạm của provisional bridge không khớp');
     }
 
     // recover：同样进入 recovery-required。
@@ -1049,7 +1049,7 @@ describe('manual catch-up provisional bridge 写入准入（t5）', () => {
     expect(recovery.ok).toBe(false);
     if (!recovery.ok) {
       expect(recovery.recoveryRequired).toBe(true);
-      expect(recovery.error).toContain('临时根拓扑不匹配');
+      expect(recovery.error).toContain('Topo gốc tạm của provisional bridge không khớp');
     }
   });
 

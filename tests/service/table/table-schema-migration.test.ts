@@ -102,7 +102,7 @@ describe('table schema migration P1 contract', () => {
     await expect(buildSheetSchemaMigrationOperation_ACU('sheet_inventory', before, makeSheet({
       content: [['row_id', '数量', '名称'], ['1', '3', '铁剑']],
       sourceData: { ddl: 'CREATE TABLE inventory (\n row_id INTEGER PRIMARY KEY, -- 行号\n quantity INTEGER, -- 数量\n item_name TEXT -- 名称\n);' },
-    }))).rejects.toThrow('retained physical column 重排');
+    }))).rejects.toThrow('sắp xếp lại retained physical column');
     await expect(buildSheetSchemaMigrationOperation_ACU('sheet_inventory', before, makeSheet({
       content: [['row_id', '名称', '数量'], ['1', '铁剑', '3']],
       sourceData: { ddl: 'CREATE TABLE inventory (\n row_id INTEGER PRIMARY KEY, -- 行号\n item_name TEXT, -- 名称\n quantity INTEGER -- 数量\n) STRICT;' },
@@ -114,7 +114,7 @@ describe('table schema migration P1 contract', () => {
     await expect(buildSheetSchemaMigrationOperation_ACU('sheet_inventory', before, makeSheet({
       content: [['row_id', '品质'], ['1', '普通']],
       sourceData: { ddl: 'CREATE TABLE inventory (\n row_id INTEGER PRIMARY KEY, -- 行号\n quality TEXT -- 品质\n);' },
-    }), { destructiveChangeConfirmed: true })).rejects.toThrow('同次新增和删除');
+    }), { destructiveChangeConfirmed: true })).rejects.toThrow('vừa thêm vừa xóa');
     await expect(buildSheetSchemaMigrationOperation_ACU('sheet_inventory', before, makeSheet({
       content: [['row_id', '名称', '品质'], ['1', '铁剑', '普通']],
       sourceData: { ddl: 'CREATE TABLE inventory (\n row_id INTEGER PRIMARY KEY, -- 行号\n item_name TEXT, -- 名称\n quality TEXT NOT NULL DEFAULT \'普通\' -- 品质\n);' },
@@ -150,7 +150,7 @@ describe('table schema migration P1 contract', () => {
     const before = makeSheet();
     await expect(buildSheetSchemaMigrationOperation_ACU('sheet_inventory', before, makeSheet({
       sourceData: { ddl: 'CREATE TABLE inventory (\n row_id INTEGER PRIMARY KEY, -- 行号\n item_name TEXT, -- 名称\n UNIQUE (item_name)\n);' },
-    }))).rejects.toThrow('表级 constraint');
+    }))).rejects.toThrow('constraint cấp bảng');
     const renamedDdl = makeSheet({
       sourceData: { ddl: 'CREATE TABLE inventory_next (\n row_id INTEGER PRIMARY KEY, -- 行号\n item_name TEXT -- 名称\n);' },
     });

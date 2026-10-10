@@ -24,32 +24,32 @@ import { logAutoFillSkip_ACU, logAutoFillStage_ACU, type AutoFillSkipContext_ACU
 
 function buildAutoUpdateProgressLabel_ACU(event: Partial<CardUpdateProgressEvent>): string {
     if (Number.isFinite(event.currentBatch) && Number.isFinite(event.totalBatches)) {
-        return `第 ${event.currentBatch}/${event.totalBatches} 批`;
+        return `Lô ${event.currentBatch}/${event.totalBatches}`;
     }
-    return '当前批次';
+    return 'Lô hiện tại';
 }
 
 function buildAutoUpdateProgressMessage_ACU(event: CardUpdateProgressEvent): string {
     const batchLabel = buildAutoUpdateProgressLabel_ACU(event);
     switch (event.phase) {
         case 'preparing':
-            return `${batchLabel}：准备AI输入...`;
+            return `${batchLabel}: Đang chuẩn bị đầu vào AI...`;
         case 'calling_ai':
-            return `${batchLabel}：第 ${event.attempt || 1}/${event.maxRetries || 1} 次调用AI进行增量更新...`;
+            return `${batchLabel}: Gọi AI cập nhật tăng dần lần ${event.attempt || 1}/${event.maxRetries || 1}...`;
         case 'parsing':
-            return `${batchLabel}：解析并应用AI返回的更新...`;
+            return `${batchLabel}: Đang phân tích và áp dụng cập nhật do AI trả về...`;
         case 'saving':
-            return `${batchLabel}：正在将更新后的数据库保存到聊天记录...`;
+            return `${batchLabel}: Đang lưu cơ sở dữ liệu đã cập nhật vào lịch sử trò chuyện...`;
         case 'chunk_done':
-            return `${batchLabel}：分块处理成功...`;
+            return `${batchLabel}: Xử lý theo khối thành công...`;
         case 'complete':
-            return `${batchLabel}：数据库增量更新成功！`;
+            return `${batchLabel}: Cập nhật tăng dần cơ sở dữ liệu thành công!`;
         case 'retry':
-            return `${batchLabel}：第 ${event.attempt || 1}/${event.maxRetries || 1} 次尝试失败，5秒后重试...${event.message ? ` (${event.message})` : ''}`;
+            return `${batchLabel}: Lần thử ${event.attempt || 1}/${event.maxRetries || 1} thất bại, thử lại sau 5 giây...${event.message ? ` (${event.message})` : ''}`;
         case 'error':
-            return `${batchLabel}：错误：更新失败。`;
+            return `${batchLabel}: Lỗi: cập nhật thất bại.`;
         default:
-            return `${batchLabel}：正在处理...`;
+            return `${batchLabel}: Đang xử lý...`;
     }
 }
 
@@ -181,18 +181,18 @@ let autoUpdateQueueId_ACU = 0;
         });
       }
       if (!autoProgressTask && event.phase === 'calling_ai') {
-        autoProgressTask = beginNoticeTask_ACU('自动填表', {
+        autoProgressTask = beginNoticeTask_ACU('Tự động điền bảng', {
             detail: buildAutoUpdateProgressMessage_ACU(event),
             action: {
-                label: '终止',
+                label: 'Dừng',
                 variant: 'danger',
                 run: () => {
                     syncManualUpdateButtonAvailability_ACU();
                     _set_wasStoppedByUser_ACU(true);
                     autoGroupedAbortController.abort();
                     abortAllActiveRequests_ACU();
-                    autoProgressTask?.update('填表任务已终止，正在停止当前任务与后续批次...', { action: null });
-                    showToastr_ACU('warning', '填表任务已由用户终止，当前任务与后续批次将立即停止。');
+                    autoProgressTask?.update('Tác vụ điền bảng đã bị dừng, đang dừng tác vụ hiện tại và các lô tiếp theo...', { action: null });
+                    showToastr_ACU('warning', 'Người dùng đã dừng tác vụ điền bảng, tác vụ hiện tại và các lô tiếp theo sẽ dừng ngay.');
                 },
             },
         });
@@ -277,11 +277,11 @@ let autoUpdateQueueId_ACU = 0;
     if (!result.aborted && result.failedGroups > 0) {
         const firstError = Array.isArray(result.errors) && result.errors.length > 0 ? result.errors[0] : '';
         showToastr_ACU('warning', firstError
-            ? `并发分组更新有 ${result.failedGroups} 组失败：${firstError}`
-            : `并发分组更新有 ${result.failedGroups} 组失败，请查看日志。`);
+            ? `Cập nhật nhóm đồng thời có ${result.failedGroups} nhóm thất bại: ${firstError}`
+            : `Cập nhật nhóm đồng thời có ${result.failedGroups} nhóm thất bại, hãy xem nhật ký.`);
     }
     if (result.autoMergeTriggered && result.autoMergeSuccess) {
-        showToastr_ACU('success', '自动合并纪要完成！');
+        showToastr_ACU('success', 'Tự động gộp kỷ yếu hoàn tất!');
         try { (topLevelWindow_ACU as any).AutoCardUpdaterAPI._notifyTableUpdate(); } catch (_) {}
     }
     if (typeof updateCardUpdateStatusDisplay_ACU === 'function') updateCardUpdateStatusDisplay_ACU();
@@ -299,11 +299,11 @@ let autoUpdateQueueId_ACU = 0;
       if (!$manualExtraHintCheckbox_ACU || !$manualExtraHintCheckbox_ACU.length) return;
       if (!$manualExtraHintCheckbox_ACU.is(':checked')) return;
 
-      const userInput = prompt('请输入本次手动填表的额外提示词（可留空）：', '');
+      const userInput = prompt('Nhập prompt bổ sung cho lần điền bảng thủ công này (có thể để trống):', '');
       const trimmed = (userInput || '').trim();
       if (!trimmed) return;
 
-      _set_manualExtraHint_ACU(`以下为用户的额外填表要求，请严格遵守：${trimmed}`);
+      _set_manualExtraHint_ACU(`Sau đây là yêu cầu điền bảng bổ sung của người dùng, hãy tuân thủ nghiêm ngặt: ${trimmed}`);
   }
 
   // [新增] 获取当前选中的手动更新表格列表（无效或为空则回退为全部表）

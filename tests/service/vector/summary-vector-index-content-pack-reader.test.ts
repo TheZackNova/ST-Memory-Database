@@ -153,7 +153,7 @@ describe('T13: content pack reader', () => {
     const pack = makePack();
     h.blobs.set(SNAPSHOT_PATH, makeBlob());
     await expect(loadSummaryVectorIndexChunksFromManifest_ACU(makePackManifest(pack)))
-      .rejects.toThrow('pack 读取失败');
+      .rejects.toThrow('Đọc pack định vị theo nội dung của vector giao hỏa thất bại');
   });
 
   it('packScope 不符 -> 抛错', async () => {
@@ -161,7 +161,7 @@ describe('T13: content pack reader', () => {
     h.blobs.set(SNAPSHOT_PATH, makeBlob());
     h.blobs.set(packRef(pack).path, pack);
     await expect(loadSummaryVectorIndexChunksFromManifest_ACU(makePackManifest(pack)))
-      .rejects.toThrow('scope 不匹配');
+      .rejects.toThrow('scope của pack định vị theo nội dung của vector giao hỏa không khớp');
   });
 
   it('packKey 不符 -> 抛错', async () => {
@@ -173,7 +173,7 @@ describe('T13: content pack reader', () => {
       contentAddressed: { version: 1, mode: 'content_addressed_packs', chunkRefs: [], activeChunkKeys: pack.chunks.map((c: any) => c.chunkKey), packRefs: [{ ...packRef(pack), packKey: 'pack_sha:100' }] },
     });
     await expect(loadSummaryVectorIndexChunksFromManifest_ACU(manifest))
-      .rejects.toThrow('packKey 不匹配');
+      .rejects.toThrow('packKey của pack định vị theo nội dung của vector giao hỏa không khớp');
   });
 
   it('checksum 不符 -> 抛错', async () => {
@@ -185,7 +185,7 @@ describe('T13: content pack reader', () => {
       contentAddressed: { version: 1, mode: 'content_addressed_packs', chunkRefs: [], activeChunkKeys: pack.chunks.map((c: any) => c.chunkKey), packRefs: [ref] },
     });
     await expect(loadSummaryVectorIndexChunksFromManifest_ACU(manifest))
-      .rejects.toThrow('checksum 不匹配');
+      .rejects.toThrow('checksum của pack định vị theo nội dung của vector giao hỏa không khớp');
   });
 
   it('缺少 activeChunkIds 中的 chunk -> 抛错', async () => {
@@ -198,7 +198,7 @@ describe('T13: content pack reader', () => {
       contentAddressed: { version: 1, mode: 'content_addressed_packs', chunkRefs: [], activeChunkKeys: pack.chunks.map((c: any) => c.chunkKey), packRefs: [packRef(pack)] },
     });
     await expect(loadSummaryVectorIndexChunksFromManifest_ACU(manifest))
-      .rejects.toThrow('缺少 activeChunkIds');
+      .rejects.toThrow('thiếu chunk trong activeChunkIds');
   });
 
   it('重复 chunkId -> 抛错', async () => {
@@ -213,7 +213,7 @@ describe('T13: content pack reader', () => {
       contentAddressed: { version: 1, mode: 'content_addressed_packs', chunkRefs: [], activeChunkKeys: ['key-c1', 'key-c2'], packRefs: [ref1, ref2] },
     });
     await expect(loadSummaryVectorIndexChunksFromManifest_ACU(manifest))
-      .rejects.toThrow('chunkId 重复');
+      .rejects.toThrow('chunkId của pack định vị theo nội dung của vector giao hỏa bị trùng');
   });
 
   it('多余 chunk（activeChunkIds 之外）-> 抛错', async () => {
@@ -226,7 +226,7 @@ describe('T13: content pack reader', () => {
       contentAddressed: { version: 1, mode: 'content_addressed_packs', chunkRefs: [], activeChunkKeys: ['key-c1'], packRefs: [packRef(pack)] },
     });
     await expect(loadSummaryVectorIndexChunksFromManifest_ACU(manifest))
-      .rejects.toThrow('activeChunkIds 之外');
+      .rejects.toThrow('chunk ngoài activeChunkIds');
   });
 
   it('维度不符 -> 抛错', async () => {
@@ -240,7 +240,7 @@ describe('T13: content pack reader', () => {
       contentAddressed: { version: 1, mode: 'content_addressed_packs', chunkRefs: [], activeChunkKeys: ['key-c1'], packRefs: [packRef(pack)] },
     });
     await expect(loadSummaryVectorIndexChunksFromManifest_ACU(manifest))
-      .rejects.toThrow('维度不符');
+      .rejects.toThrow('Số chiều chunk trong pack định vị theo nội dung của vector giao hỏa không khớp');
   });
 
   it('rowKey 悬挂（不在 snapshot rows）-> 抛错', async () => {
@@ -253,7 +253,7 @@ describe('T13: content pack reader', () => {
       contentAddressed: { version: 1, mode: 'content_addressed_packs', chunkRefs: [], activeChunkKeys: ['key-c1'], packRefs: [packRef(pack)] },
     });
     await expect(loadSummaryVectorIndexChunksFromManifest_ACU(manifest))
-      .rejects.toThrow('rowKey 不存在于快照 rows');
+      .rejects.toThrow('không tồn tại trong rows của snapshot');
   });
 
   it('缺少 activeChunkIds -> incompatible', async () => {

@@ -22,12 +22,12 @@ import type { AgentConversationMessage_ACU } from '../../service/continuation/ag
  * @returns 会话流条目输入
  */
 function projectMessage_ACU(message: AgentConversationMessage_ACU): AgentSessionEventInput_ACU {
-  if (message.kind === 'user') return { kind: 'user_message', title: message.digest || '你的消息', detail: message.text };
-  if (message.kind === 'turn') return { kind: 'run_started', title: message.digest || '新的一轮', detail: message.text };
-  if (message.kind === 'handoff') return { kind: 'handoff', title: message.digest || '早期会话交接报告', detail: message.text };
-  if (message.kind === 'tool') return { kind: 'delegation', title: message.digest || '运行时结果', detail: message.text };
-  if (message.kind === 'runtime') return { kind: 'delegation', title: message.digest || '运行时快照', detail: message.text };
-  return { kind: 'main_action', title: message.digest || '主 Agent 输出', detail: message.text };
+  if (message.kind === 'user') return { kind: 'user_message', title: message.digest || 'Tin nhắn của bạn', detail: message.text };
+  if (message.kind === 'turn') return { kind: 'run_started', title: message.digest || 'Vòng mới', detail: message.text };
+  if (message.kind === 'handoff') return { kind: 'handoff', title: message.digest || 'Báo cáo bàn giao phiên trước đó', detail: message.text };
+  if (message.kind === 'tool') return { kind: 'delegation', title: message.digest || 'Kết quả runtime', detail: message.text };
+  if (message.kind === 'runtime') return { kind: 'delegation', title: message.digest || 'Snapshot runtime', detail: message.text };
+  return { kind: 'main_action', title: message.digest || 'Đầu ra của Agent chính', detail: message.text };
 }
 
 /**
@@ -82,8 +82,8 @@ export function useContinuationSession() {
     if (hasAgentSessionEntries_ACU()) {
       logAgentSession_ACU({
         kind: 'thought',
-        title: '楼层已变化，会话已按现存楼层重新加载',
-        detail: '被删除或重新生成的楼层上的 Agent 记录已随楼层一起回退；阶段进度也按仍存在的正文楼层重算。',
+        title: 'Tầng đã thay đổi, phiên đã được nạp lại theo các tầng hiện còn',
+        detail: 'Bản ghi Agent trên các tầng bị xóa hoặc tạo lại đã được hoàn tác cùng tầng; tiến độ giai đoạn cũng được tính lại theo các tầng nội dung còn tồn tại.',
       });
     }
     sync();

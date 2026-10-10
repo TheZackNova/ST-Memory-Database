@@ -168,7 +168,7 @@ export function resolveTemplateSwitchMode_ACU(
   if (lifecycle.indeterminateSheetKeys.length > 0) {
     return {
       mode: 'blocked',
-      reason: `表格历史状态不完整或顺序异常（indeterminate: ${lifecycle.indeterminateSheetKeys.join(', ')}），已拒绝切换模板。`,
+      reason: `Trạng thái lịch sử bảng không đầy đủ hoặc sai thứ tự (indeterminate: ${lifecycle.indeterminateSheetKeys.join(', ')}), đã từ chối chuyển mẫu.`,
     };
   }
   if (lifecycle.hiddenSheetKeys.length > 0) {
@@ -179,7 +179,7 @@ export function resolveTemplateSwitchMode_ACU(
   // 2. 帧内容扫描：存在任何实质内容 → inherit；结构损坏 → blocked
   const scan = scanFramesForSubstantialContent_ACU(chatArray, isolationKey);
   if (scan.corrupt) {
-    return { mode: 'blocked', reason: '表格历史帧结构损坏，无法判定会话状态，已拒绝切换模板。' };
+    return { mode: 'blocked', reason: 'Cấu trúc khung lịch sử bảng bị hỏng, không thể xác định trạng thái phiên, đã từ chối chuyển mẫu.' };
   }
   if (scan.substantial) return { mode: 'inherit' };
 

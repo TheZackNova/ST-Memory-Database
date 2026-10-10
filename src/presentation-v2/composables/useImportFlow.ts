@@ -37,7 +37,7 @@ import { useToastStore, type ToastOptions } from '../stores/toast-store';
 export type ImportMessageKind = 'info' | 'success' | 'warning' | 'error';
 
 /** 气泡与桌宠里显示的功能名。 */
-const IMPORT_TASK_FEATURE = '外部导入';
+const IMPORT_TASK_FEATURE = 'Nhập từ ngoài';
 
 export interface UseImportFlow {
   splitFile(file: File): Promise<void>;
@@ -49,18 +49,18 @@ export interface UseImportFlow {
 
 function progressLabel(event: CardUpdateProgressEvent): string {
   const prefix = event.currentBatch && event.totalBatches
-    ? `分块 ${event.currentBatch}/${event.totalBatches}：`
+    ? `Khối ${event.currentBatch}/${event.totalBatches}: `
     : '';
   switch (event.phase) {
-    case 'preparing': return `${prefix}准备 AI 输入...`;
-    case 'calling_ai': return `${prefix}调用 AI${event.attempt ? `（${event.attempt}/${event.maxRetries || '?'}）` : ''}...`;
-    case 'parsing': return `${prefix}解析填表结果...`;
-    case 'retry': return `${prefix}本次尝试失败，正在重试${event.message ? `：${event.message}` : '...'}`;
-    case 'chunk_done': return `${prefix}分块处理完成，正在保存断点...`;
-    case 'complete': return `${prefix}完成。`;
-    case 'error': return `${prefix}出错${event.message ? `：${event.message}` : '。'}`;
-    case 'saving': return `${prefix}保存表格数据...`;
-    default: return `${prefix || '正在处理...'}`;
+    case 'preparing': return `${prefix}Chuẩn bị đầu vào AI...`;
+    case 'calling_ai': return `${prefix}Gọi AI${event.attempt ? ` (${event.attempt}/${event.maxRetries || '?'})` : ''}...`;
+    case 'parsing': return `${prefix}Phân tích kết quả điền bảng...`;
+    case 'retry': return `${prefix}Lần thử này thất bại, đang thử lại${event.message ? `: ${event.message}` : '...'}`;
+    case 'chunk_done': return `${prefix}Xử lý khối hoàn tất, đang lưu điểm dừng...`;
+    case 'complete': return `${prefix}Hoàn tất.`;
+    case 'error': return `${prefix}Gặp lỗi${event.message ? `: ${event.message}` : '.'}`;
+    case 'saving': return `${prefix}Lưu dữ liệu bảng...`;
+    default: return `${prefix || 'Đang xử lý...'}`;
   }
 }
 
@@ -71,7 +71,7 @@ async function readFileText(file: File, encoding: string): Promise<string> {
       const result = reader.result;
       resolve(typeof result === 'string' ? result : '');
     };
-    reader.onerror = () => reject(reader.error ?? new Error('文件读取失败'));
+    reader.onerror = () => reject(reader.error ?? new Error('Đọc tệp thất bại'));
     reader.readAsText(file, encoding);
   });
 }
@@ -126,7 +126,7 @@ export function useImportFlow(): UseImportFlow {
       action: abortRequested
         ? undefined
         : {
-            label: '终止',
+            label: 'Dừng',
             variant: 'danger',
             dismissOnClick: false,
             onClick: requestAbort,
@@ -147,7 +147,7 @@ export function useImportFlow(): UseImportFlow {
     _set_wasStoppedByUser_ACU(true);
     currentAbortController?.abort();
     abortAllActiveRequests_ACU();
-    const text = '外部导入已请求终止，正在停止当前分块并保存断点...';
+    const text = 'Đã yêu cầu dừng nhập từ ngoài, đang dừng khối hiện tại và lưu điểm dừng...';
     if (progressToastId) {
       toast.update(progressToastId, 'warning', text, {
         durationMs: 0,
@@ -171,7 +171,7 @@ export function useImportFlow(): UseImportFlow {
     await store.refreshStaging();
     notify(
       'warning',
-      `外部导入已终止，已保存断点：完成 ${index}/${total}。稍后可点击"继续写入"恢复。`,
+      `Nhập từ ngoài đã dừng, đã lưu điểm dừng: hoàn tất ${index}/${total}. Sau đó có thể bấm "Tiếp tục ghi" để khôi phục.`,
       { muteable: false },
     );
   }
@@ -180,7 +180,7 @@ export function useImportFlow(): UseImportFlow {
     if (!file) return;
     const splitSize = store.splitSize;
     if (!Number.isFinite(splitSize) || splitSize <= 0) {
-      notify('error', '请输入有效的字符分割数。');
+      notify('error', 'Vui lòng nhập số ký tự phân tách hợp lệ.');
       return;
     }
 
@@ -188,7 +188,7 @@ export function useImportFlow(): UseImportFlow {
     try {
       const content = await readFileText(file, store.encoding);
       if (!content) {
-        notify('warning', '文件为空或读取失败。');
+        notify('warning', 'Tệp trống hoặc đọc thất bại.');
         await store.refreshStaging();
         return;
       }
@@ -207,10 +207,10 @@ export function useImportFlow(): UseImportFlow {
       }
       await importTempSet_ACU(STORAGE_KEY_IMPORTED_ENTRIES_ACU, JSON.stringify(chunks));
       logDebug_ACU(`[ACU-V2 import] saved ${chunks.length} chunks (split=${splitSize})`);
-      notify('success', `文件已成功拆分成 ${chunks.length} 个部分。`);
+      notify('success', `Đã tách tệp thành ${chunks.length} phần thành công.`);
     } catch (e: any) {
       logError_ACU('[ACU-V2] splitFile failed', e);
-      notify('error', e?.message || '读取文件时出错。');
+      notify('error', e?.message || 'Lỗi khi đọc tệp.');
     } finally {
       await store.refreshStaging();
       store.setBusy(false);
@@ -230,11 +230,11 @@ export function useImportFlow(): UseImportFlow {
       ]);
       notify(
         before ? 'success' : 'info',
-        before ? '已成功清除导入暂存缓存。' : '没有需要清除的导入暂存缓存。',
+        before ? 'Đã xóa thành công bộ nhớ đệm tạm của nhập.' : 'Không có bộ nhớ đệm tạm của nhập cần xóa.',
       );
     } catch (e: any) {
       logError_ACU('[ACU-V2] clearStaging failed', e);
-      notify('error', '清除导入缓存时出错。');
+      notify('error', 'Lỗi khi xóa bộ nhớ đệm nhập.');
     } finally {
       await store.refreshStaging();
       store.setBusy(false);
@@ -244,20 +244,20 @@ export function useImportFlow(): UseImportFlow {
   async function clearImportedEntries(): Promise<void> {
     const target = await resolveTargetLorebook(store.worldbookTarget);
     if (!target) {
-      notify('error', '无法清除导入条目：未设置数据注入目标。');
+      notify('error', 'Không thể xóa mục nhập: chưa đặt đích chèn dữ liệu.');
       return;
     }
     store.setBusy(true);
     try {
       const result = await clearImportedEntriesCore_ACU(target);
       if (result.deletedCount > 0) {
-        notify('success', `成功清除了 ${result.deletedCount} 个导入条目。`);
+        notify('success', `Đã xóa thành công ${result.deletedCount} mục nhập.`);
       } else {
-        notify('info', '没有找到可清除的已注入世界书条目。');
+        notify('info', 'Không tìm thấy mục sổ thế giới đã chèn nào có thể xóa.');
       }
     } catch (e: any) {
       logError_ACU('[ACU-V2] clearImportedEntries failed', e);
-      notify('error', '清除导入条目时出错。');
+      notify('error', 'Lỗi khi xóa mục nhập.');
     } finally {
       await store.refreshStaging();
       store.setBusy(false);
@@ -267,20 +267,20 @@ export function useImportFlow(): UseImportFlow {
   async function deleteImportedEntries(): Promise<void> {
     const target = await resolveTargetLorebook(store.worldbookTarget);
     if (!target) {
-      notify('error', '无法删除注入条目：未设置导入数据注入目标世界书。');
+      notify('error', 'Không thể xóa mục chèn: chưa đặt sổ thế giới đích chèn dữ liệu nhập.');
       return;
     }
     store.setBusy(true);
     try {
       const deletedCount = await deleteImportedEntriesCore_ACU(target);
       if (deletedCount > 0) {
-        notify('success', `成功删除了 ${deletedCount} 个外部导入注入的条目。`);
+        notify('success', `Đã xóa thành công ${deletedCount} mục do nhập từ ngoài chèn vào.`);
       } else {
-        notify('info', `在世界书 "${target}" 中没有找到符合当前标识的外部导入条目。`);
+        notify('info', `Trong sổ thế giới "${target}" không tìm thấy mục nhập từ ngoài phù hợp với mã hiện tại.`);
       }
     } catch (e: any) {
       logError_ACU('[ACU-V2] deleteImportedEntries failed', e);
-      notify('error', '删除注入条目时出错。');
+      notify('error', 'Lỗi khi xóa mục chèn.');
     } finally {
       store.setBusy(false);
     }
@@ -291,7 +291,7 @@ export function useImportFlow(): UseImportFlow {
 
     const savedEntriesJson = await importTempGet_ACU(STORAGE_KEY_IMPORTED_ENTRIES_ACU);
     if (!savedEntriesJson) {
-      notify('warning', '尚未加载 TXT 文件。请先选择并拆分文件。');
+      notify('warning', 'Chưa tải tệp TXT. Vui lòng chọn và tách tệp trước.');
       await store.refreshStaging();
       return;
     }
@@ -307,19 +307,19 @@ export function useImportFlow(): UseImportFlow {
         importTempRemove_ACU(STORAGE_KEY_IMPORTED_STATUS_ACU),
       ]);
       await store.refreshStaging();
-      notify('error', '导入暂存数据已损坏，已清空。请重新选择 TXT 文件。');
+      notify('error', 'Dữ liệu tạm của nhập đã hỏng, đã xóa trống. Vui lòng chọn lại tệp TXT.');
       return;
     }
 
     if (allChunks.length === 0) {
       await store.refreshStaging();
-      notify('warning', '没有可注入的分块。请重新选择 TXT 文件。');
+      notify('warning', 'Không có khối nào để chèn. Vui lòng chọn lại tệp TXT.');
       return;
     }
 
     const target = await resolveTargetLorebook(store.worldbookTarget);
     if (!target) {
-      notify('error', '无法注入：未设置导入数据注入目标世界书。');
+      notify('error', 'Không thể chèn: chưa đặt sổ thế giới đích chèn dữ liệu nhập.');
       return;
     }
 
@@ -328,7 +328,7 @@ export function useImportFlow(): UseImportFlow {
       ? store.selectedSheetKeys.slice()
       : store.availableSheetKeys.slice();
     if (store.hasTableSelection && selectedSheetKeys.length === 0) {
-      notify('error', '未选择任何表格，无法注入。请先在"注入表选择"中勾选至少一个表。');
+      notify('error', 'Chưa chọn bảng nào, không thể chèn. Vui lòng tick ít nhất một bảng trong "Chọn bảng chèn" để chọn ít nhất một bảng.');
       return;
     }
 
@@ -341,7 +341,7 @@ export function useImportFlow(): UseImportFlow {
       const selectionSig = JSON.stringify(selectedSheetKeys);
       const initResult = await initImportDatabase_ACU(target, selectedSheetKeys, allChunks, selectionSig);
       if (!initResult.success || !initResult.status || !initResult.modeSuffix) {
-        notify('error', initResult.error || '导入初始化失败。');
+        notify('error', initResult.error || 'Khởi tạo nhập thất bại.');
         return;
       }
 
@@ -355,7 +355,7 @@ export function useImportFlow(): UseImportFlow {
           return;
         }
         const chunk = allChunks[i] || {};
-        const mockMessage = { is_user: false, mes: String(chunk.content || ''), name: '导入文本' };
+        const mockMessage = { is_user: false, mes: String(chunk.content || ''), name: 'Văn bản nhập' };
         let success = false;
         let lastError = '';
         const maxOuterRetries = 3;
@@ -367,7 +367,7 @@ export function useImportFlow(): UseImportFlow {
           }
           const abortController = new AbortController();
           currentAbortController = abortController;
-          notifyProgress(`正在处理分块 ${i + 1}/${allChunks.length}（尝试 ${attempt}/${maxOuterRetries}）...`);
+          notifyProgress(`Đang xử lý khối ${i + 1}/${allChunks.length} (lần thử ${attempt}/${maxOuterRetries})...`);
           const result = await withImportPromptFilterForced(() => executeCardUpdateCore_ACU(
             [mockMessage],
             -1,
@@ -388,7 +388,7 @@ export function useImportFlow(): UseImportFlow {
             return;
           }
           success = result.success;
-          lastError = result.error || (result.aborted ? '任务已终止。' : '');
+          lastError = result.error || (result.aborted ? 'Tác vụ đã bị dừng.' : '');
           if (!success && attempt < maxOuterRetries) {
             await new Promise(resolve => setTimeout(resolve, 2000));
           }
@@ -398,22 +398,22 @@ export function useImportFlow(): UseImportFlow {
           status.currentIndex = i;
           await importTempSet_ACU(STORAGE_KEY_IMPORTED_STATUS_ACU, JSON.stringify(status));
           await store.refreshStaging();
-          notify('error', `分块 ${i + 1}/${allChunks.length} 处理失败，已保存断点。${lastError || '请稍后点击继续注入。'}`, { muteable: false });
+          notify('error', `Khối ${i + 1}/${allChunks.length} xử lý thất bại, đã lưu điểm dừng. ${lastError || 'Vui lòng bấm tiếp tục chèn sau.'}`, { muteable: false });
           return;
         }
 
         const saved = await saveChunkProgress_ACU(target, modeSuffix, status, i);
         if (!saved) {
-          notify('error', `第 ${i + 1} 个分块已处理，但无法保存临时数据库条目，已停止继续导入。`, { muteable: false });
+          notify('error', `Khối thứ ${i + 1} đã được xử lý nhưng không thể lưu mục CSDL tạm, đã dừng nhập tiếp.`, { muteable: false });
           return;
         }
         await store.refreshStaging();
       }
 
-      notifyProgress('所有文本块已处理完毕，正在生成最终世界书条目...');
+      notifyProgress('Đã xử lý xong tất cả khối văn bản, đang tạo mục sổ thế giới cuối cùng...');
       const finalResult = await finalizeImportAndCleanup_ACU(target, selectedSheetKeys, modeSuffix, allChunks.length);
       if (!finalResult.success) {
-        notify('error', finalResult.error || '最终注入失败。', { muteable: false });
+        notify('error', finalResult.error || 'Chèn cuối cùng thất bại.', { muteable: false });
         return;
       }
 
@@ -421,13 +421,13 @@ export function useImportFlow(): UseImportFlow {
       notify(
         'success',
         finalResult.cleanedCount && finalResult.cleanedCount > 0
-          ? `外部导入已完成：已注入 ${allChunks.length} 个分块，并清理 ${finalResult.cleanedCount} 个旧数据库条目。`
-          : `外部导入已完成：已注入 ${allChunks.length} 个分块并解除与世界书的绑定。`,
+          ? `Nhập từ ngoài đã hoàn tất: đã chèn ${allChunks.length} khối, và dọn ${finalResult.cleanedCount} mục CSDL cũ.`
+          : `Nhập từ ngoài đã hoàn tất: đã chèn ${allChunks.length} khối và gỡ liên kết với sổ thế giới.`,
         { muteable: false },
       );
     } catch (e: any) {
       logError_ACU('[ACU-V2] injectChunks failed', e);
-      notify('error', `外部导入失败：${e?.message || '未知错误'}`, { muteable: false });
+      notify('error', `Nhập từ ngoài thất bại: ${e?.message || 'Lỗi không xác định'}`, { muteable: false });
     } finally {
       currentAbortController = null;
       _set_wasStoppedByUser_ACU(false);

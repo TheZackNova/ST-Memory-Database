@@ -67,11 +67,11 @@ describe('DanglingReferenceBanner', () => {
     };
     mockCollectApi.mockReturnValueOnce([item]).mockReturnValueOnce([]);
     const el = await mountBanner('api');
-    expect(el.textContent).toContain('API 预设');
-    expect(el.textContent).toContain('填表 API 预设「ghost」已不存在');
-    expect(el.textContent).toContain('不会自动改写已保存的设置');
+    expect(el.textContent).toContain('Preset API');
+    expect(el.textContent).toContain('填表 API 预设「ghost」không còn tồn tại');
+    expect(el.textContent).toContain('cài đặt đã lưu sẽ không bị tự ghi lại');
 
-    const button = Array.from(el.querySelectorAll('button')).find(btn => btn.textContent?.includes('清除引用'));
+    const button = Array.from(el.querySelectorAll('button')).find(btn => btn.textContent?.includes('Xóa tham chiếu'));
     expect(button).toBeTruthy();
     button!.click();
     await nextTick();
@@ -94,7 +94,7 @@ describe('DanglingReferenceBanner', () => {
     const el = await mountBanner('worldbook');
     expect(mockCollectWorldbook).toHaveBeenCalled();
     expect(mockCollectApi).not.toHaveBeenCalled();
-    expect(el.textContent).toContain('世界书');
-    expect(el.textContent).toContain('填表写入目标世界书「失踪书」已不存在');
+    expect(el.textContent).toContain('Sổ thế giới');
+    expect(el.textContent).toContain('填表写入目标世界书「失踪书」không còn tồn tại');
   });
 });

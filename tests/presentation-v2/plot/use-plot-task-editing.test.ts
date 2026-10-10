@@ -26,7 +26,7 @@ describe('usePlotTaskEditing', () => {
     expect(e.tasks.value).toHaveLength(1);
     expect(e.currentTaskId.value).toBe(e.tasks.value[0].id);
     // service 层 normalizePlotTasks_ACU 对空数组兜底为 "默认任务"
-    expect(e.currentTask.value?.name).toMatch(/任务/);
+    expect(e.currentTask.value?.name).toMatch(/Tác vụ/);
     expect(e.currentTask.value?.promptGroup.length).toBeGreaterThan(0);
   });
 

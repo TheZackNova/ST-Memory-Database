@@ -110,7 +110,7 @@ describe('剧情世界书批量选择失败边界', () => {
     expect(mocks.populate).not.toHaveBeenCalled();
     expect(mocks.logError).toHaveBeenCalledWith('[剧情推进] Plot worldbook action failed:', { phase, error: { category: 'unknown' } });
     expect(JSON.stringify(mocks.logError.mock.calls)).not.toContain('secret-stack');
-    expect(mocks.toast).toHaveBeenCalledWith('error', '剧情世界书操作失败，请重试。');
+    expect(mocks.toast).toHaveBeenCalledWith('error', 'Thao tác sổ thế giới cốt truyện thất bại, vui lòng thử lại.');
   });
 
   it.each(actions)('%s 所有读取成功时才提交新的选择并刷新条目面板', async (actionId, selected) => {

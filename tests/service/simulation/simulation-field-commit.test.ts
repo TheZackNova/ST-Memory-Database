@@ -121,7 +121,7 @@ describe('格林推演逐栏领域规划', () => {
     expect(updated.partials).toEqual([]);
     const full = plan(sql, 'chronicler', { ledger: updated.ledger });
     expect(full.accepted).toEqual([]);
-    expect(full.rejected).toEqual([expect.objectContaining({ reason: expect.stringContaining('完整编年不可 UPDATE') })]);
+    expect(full.rejected).toEqual([expect.objectContaining({ reason: expect.stringContaining('Niên biểu hoàn chỉnh không thể UPDATE') })]);
   });
 
   it('编年归档需一对一概览，单独归档不产生任何接受条目', () => {

@@ -11,7 +11,7 @@
                 v-if="!visualizer.isActive"
                 class="acu-v2-app__menu"
                 icon="fa-solid fa-bars"
-                title="打开导航"
+                title="Mở điều hướng"
                 :aria-expanded="isMobileNavOpen"
                 @click="openMobileNav"
               />
@@ -22,8 +22,8 @@
                 <AcuIconButton
                   class="acu-v2-app__theme-btn"
                   icon="fa-solid fa-gear"
-                  :title="'外观：' + themeStore.activeTheme.name + '，界面缩放 ' + appearanceStore.uiScaleLabel"
-                  aria-label="打开外观菜单"
+                  :title="'Giao diện: ' + themeStore.activeTheme.name + ', thu phóng giao diện ' + appearanceStore.uiScaleLabel"
+                  aria-label="Mở menu giao diện"
                   :aria-expanded="isThemeMenuOpen"
                   @click="toggleThemeMenu"
                 />
@@ -32,11 +32,11 @@
                   class="acu-v2-app__theme-menu"
                   :class="{ 'is-closing': isThemeMenuClosing }"
                   role="dialog"
-                  aria-label="外观设置"
+                  aria-label="Cài đặt giao diện"
                 >
                   <section class="acu-v2-app__appearance-section" aria-labelledby="acu-v2-theme-section-title">
-                    <div id="acu-v2-theme-section-title" class="acu-v2-app__appearance-section-title">主题</div>
-                    <ul class="acu-v2-app__theme-list" role="listbox" aria-label="选择主题">
+                    <div id="acu-v2-theme-section-title" class="acu-v2-app__appearance-section-title">Chủ đề</div>
+                    <ul class="acu-v2-app__theme-list" role="listbox" aria-label="Chọn chủ đề">
                       <li
                         v-for="t in themeStore.themes"
                         :key="t.id"
@@ -55,13 +55,13 @@
                             }"
                           ></span>
                           <span class="acu-v2-app__theme-name">{{ t.name }}</span>
-                          <span v-if="isCustomThemeId(t.id)" class="acu-v2-app__theme-tag">自定义</span>
+                          <span v-if="isCustomThemeId(t.id)" class="acu-v2-app__theme-tag">Tùy chỉnh</span>
                         </span>
                         <span class="acu-v2-app__theme-tools" @click.stop>
                           <AcuIconButton
                             icon="fa-solid fa-upload"
                             size="sm"
-                            :title="'导出主题：' + t.name"
+                            :title="'Xuất chủ đề: ' + t.name"
                             @click="exportTheme(t.id)"
                           />
                           <AcuIconButton
@@ -69,7 +69,7 @@
                             icon="fa-solid fa-trash"
                             size="sm"
                             variant="danger"
-                            :title="'删除自定义主题：' + t.name"
+                            :title="'Xóa chủ đề tùy chỉnh: ' + t.name"
                             @click="deleteTheme(t.id)"
                           />
                         </span>
@@ -78,13 +78,13 @@
                     <div class="acu-v2-app__theme-menu-footer">
                       <AcuFileButton size="sm" accept="application/json,.json" @file="importThemeFile">
                         <i class="fa-solid fa-download"></i>
-                        导入主题
+                        Nhập chủ đề
                       </AcuFileButton>
                     </div>
                   </section>
                   <section class="acu-v2-app__appearance-section" aria-labelledby="acu-v2-scale-section-title">
                     <div class="acu-v2-app__scale-heading">
-                      <span id="acu-v2-scale-section-title" class="acu-v2-app__appearance-section-title">界面缩放</span>
+                      <span id="acu-v2-scale-section-title" class="acu-v2-app__appearance-section-title">Thu phóng giao diện</span>
                       <span class="acu-v2-app__scale-current">{{ appearanceStore.uiScaleLabel }}</span>
                     </div>
                     <AcuSegmentedControl
@@ -92,7 +92,7 @@
                       :options="uiScaleOptions"
                       :model-value="appearanceStore.uiScale"
                       size="sm"
-                      aria-label="界面缩放"
+                      aria-label="Thu phóng giao diện"
                       @update:model-value="setUiScale"
                     />
                   </section>
@@ -101,8 +101,8 @@
               <AcuIconButton
                 class="acu-v2-app__close"
                 icon="fa-solid fa-xmark"
-                :title="visualizer.isActive ? '关闭数据库编辑器' : '关闭新 UI'"
-                :aria-label="visualizer.isActive ? '关闭数据库编辑器' : '关闭新 UI'"
+                :title="visualizer.isActive ? 'Đóng trình chỉnh sửa CSDL' : 'Đóng giao diện mới'"
+                :aria-label="visualizer.isActive ? 'Đóng trình chỉnh sửa CSDL' : 'Đóng giao diện mới'"
                 @click="closeApp"
               />
             </div>
@@ -125,7 +125,7 @@
           :style="mobileNavDrawerStyle"
           role="dialog"
           aria-modal="true"
-          aria-label="一级页导航"
+          aria-label="Điều hướng trang cấp một"
           data-acu-mobile-nav-width="var(--acu-mobile-nav-width)"
           @click.stop
         >
@@ -196,7 +196,7 @@ let themeMenuCloseTimer: AcuTimerHandle | undefined;
 let mobileNavCloseTimer: AcuTimerHandle | undefined;
 
 const shellTitle = computed(() =>
-  visualizer.isActive ? "数据库编辑器" : router.activePage?.title || ACU_PRODUCT_SHORT_NAME_ACU,
+  visualizer.isActive ? "Trình chỉnh sửa CSDL" : router.activePage?.title || ACU_PRODUCT_SHORT_NAME_ACU,
 );
 
 const uiScaleOptions = computed(() =>
@@ -224,7 +224,7 @@ function readFileText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("主题文件读取失败。"));
+    reader.onerror = () => reject(new Error("Đọc tệp chủ đề thất bại."));
     reader.readAsText(file, "utf-8");
   });
 }
@@ -235,7 +235,7 @@ async function importThemeFile(file: File): Promise<void> {
     themeStore.importCustomThemeFromJsonText(text);
     closeThemeMenu();
   } catch (error) {
-    toastStore.error(error instanceof Error ? error.message : "主题导入失败。");
+    toastStore.error(error instanceof Error ? error.message : "Nhập chủ đề thất bại.");
   }
 }
 
@@ -246,7 +246,7 @@ function exportTheme(id: AcuV2ThemeId): void {
     const filename = `acu-v2-theme-${sanitizeFilename(theme?.name || "custom-theme")}.json`;
     downloadJson(filename, file);
   } catch {
-    toastStore.error("主题导出失败。");
+    toastStore.error("Xuất chủ đề thất bại.");
   }
 }
 
@@ -256,9 +256,9 @@ async function deleteTheme(id: AcuV2ThemeId): Promise<void> {
   }
   const theme = themeStore.themes.find(t => t.id === id);
   const confirmed = await dialogStore.confirm({
-    title: "删除自定义主题",
-    message: `删除"${theme?.name || "自定义主题"}"后会从本浏览器移除；如果正在使用它，界面会切回默认深色主题。`,
-    confirmLabel: "删除主题",
+    title: "Xóa chủ đề tùy chỉnh",
+    message: `Sau khi xóa "${theme?.name || "Chủ đề tùy chỉnh"}", chủ đề sẽ bị gỡ khỏi trình duyệt này; nếu đang dùng, giao diện sẽ chuyển về chủ đề tối mặc định.`,
+    confirmLabel: "Xóa chủ đề",
     confirmVariant: "danger",
   });
   if (!confirmed) return;

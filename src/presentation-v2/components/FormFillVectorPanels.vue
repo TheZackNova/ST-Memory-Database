@@ -32,30 +32,30 @@
             >
               <i class="fa-solid fa-brain"></i>
               {{
-                vector.buildBusy.value ? "正在重建..." : "立即构建交火纪要索引"
+                vector.buildBusy.value ? "Đang xây lại..." : "Dựng chỉ mục kỷ yếu giao hỏa ngay"
               }}
             </AcuButton>
             <p class="acu-v2-vector-index-page__hint">
-              检测到旧向量方案时会提示「向量方案已优化，需要重建」。链冲突与 checkpoint 指纹不匹配会自动修复，不弹确认。
+              Khi phát hiện phương án vector cũ sẽ nhắc «Phương án vector đã được tối ưu, cần xây lại». Xung đột chuỗi và checkpoint không khớp dấu vân tay sẽ tự sửa, không hỏi xác nhận.
             </p>
             <AcuButton v-if="SHOW_LEGACY_VECTOR_MAINTENANCE_UI"
               :disabled="vector.maintenanceBusy.value || vector.buildBusy.value"
               @click="vector.migrateLegacyIndex"
             >
-              非破坏迁移旧索引
+              Di chuyển chỉ mục cũ (không phá hủy)
             </AcuButton>
             <AcuButton
               :disabled="vector.maintenanceBusy.value || vector.buildBusy.value"
               @click="vector.clearIndexCache"
             >
-              清空临时缓存
+              Xóa bộ nhớ đệm tạm
             </AcuButton>
             <AcuButton
               variant="danger"
               :disabled="vector.maintenanceBusy.value || vector.buildBusy.value"
               @click="onDeleteCurrentIndex"
             >
-              删除当前索引
+              Xóa chỉ mục hiện tại
             </AcuButton>
           </div>
         </AcuPanel>
@@ -67,20 +67,20 @@
           :description="vectorIndexCopy.panels.keyword.description"
         >
           <AcuFormRow
-            label="AI 补充关键词"
-            hint="开启时每次发送前多调用一次 AI 生成检索关键词；关闭后只用用户输入本身做召回，省一次往返。"
+            label="AI bổ sung từ khóa"
+            hint="Khi bật, trước mỗi lần gửi sẽ gọi thêm một lần AI để tạo từ khóa truy xuất; khi tắt chỉ dùng chính đầu vào của người dùng để truy hồi, tiết kiệm một lượt gọi."
           >
             <AcuToggle
               :model-value="vector.form.keywordGenerationEnabled"
-              label="发送前用 AI 补充检索关键词"
+              label="Dùng AI bổ sung từ khóa truy xuất trước khi gửi"
               @update:model-value="
                 vector.setBooleanField('keywordGenerationEnabled', $event)
               "
             />
           </AcuFormRow>
           <AcuFormRow
-            label="关键词 API 预设"
-            hint="默认使用当前的API，仅用于发送前关键词生成。"
+            label="Preset API từ khóa"
+            hint="Mặc định dùng API hiện tại, chỉ dùng để tạo từ khóa trước khi gửi."
           >
             <AcuSelect
               :options="keywordApiOptions"
@@ -93,8 +93,8 @@
           </AcuFormRow>
           <div class="acu-v2-vector-index-page__number-grid">
             <AcuFormRow
-              label="上下文读取层数"
-              hint="关键词生成时读取的最近对话层数；1 层 = 1 条 AI 回复 + 其上方 1 条用户输入。"
+              label="Số tầng ngữ cảnh đọc"
+              hint="Số tầng hội thoại gần nhất được đọc khi tạo từ khóa; 1 tầng = 1 phản hồi AI + 1 đầu vào người dùng phía trên nó."
             >
               <AcuInput
                 :model-value="vector.form.keywordContextPairCount"
@@ -107,8 +107,8 @@
               />
             </AcuFormRow>
             <AcuFormRow
-              label="最大尝试次数"
-              hint="关键词生成失败时会回退到用户输入本身参与召回，不阻断原始发送。"
+              label="Số lần thử tối đa"
+              hint="Khi tạo từ khóa thất bại sẽ quay về dùng chính đầu vào người dùng để truy hồi, không chặn việc gửi gốc."
             >
               <AcuInput
                 :model-value="vector.form.keywordGenerationMaxAttempts"
@@ -143,14 +143,14 @@
                   placeholder="https://example.com/embeddings"
                 />
               </AcuFormRow>
-              <AcuFormRow label="模型名">
+              <AcuFormRow label="Tên mô hình">
                 <AcuInput
                   v-model="vectorApiConfig.form.embeddingModel"
                   type="text"
                   placeholder="text-embedding-3-large"
                 />
               </AcuFormRow>
-              <AcuFormRow label="API 密钥">
+              <AcuFormRow label="Khóa API">
                 <AcuInput
                   v-model="vectorApiConfig.form.embeddingApiKey"
                   type="password"
@@ -168,14 +168,14 @@
                   placeholder="https://example.com/rerank"
                 />
               </AcuFormRow>
-              <AcuFormRow label="模型名">
+              <AcuFormRow label="Tên mô hình">
                 <AcuInput
                   v-model="vectorApiConfig.form.rerankModel"
                   type="text"
                   placeholder="bge-reranker-v2-m3"
                 />
               </AcuFormRow>
-              <AcuFormRow label="API 密钥">
+              <AcuFormRow label="Khóa API">
                 <AcuInput
                   v-model="vectorApiConfig.form.rerankApiKey"
                   type="password"
@@ -183,19 +183,19 @@
                 />
               </AcuFormRow>
               <AcuFormRow
-                label="重排指令"
-                hint="默认启用；清空后不向 Rerank 服务发送 instruction，可用于兼容不支持该字段的服务。"
+                label="Chỉ thị xếp hạng lại"
+                hint="Mặc định bật; khi để trống sẽ không gửi instruction tới dịch vụ Rerank, dùng để tương thích dịch vụ không hỗ trợ trường này."
               >
                 <textarea
                   v-model="vectorApiConfig.form.rerankInstruction"
                   class="acu-v2-vector-api-form__instruction-textarea"
                   rows="3"
-                  placeholder="留空则不发送 instruction"
+                  placeholder="Để trống thì không gửi instruction"
                 ></textarea>
               </AcuFormRow>
               <AcuFormRow
-                label="每批条数"
-                :hint="`候选超过该数时分批并行请求再合并分数。服务商单请求通常限 500 条以内，范围 ${RERANK_BATCH_SIZE_LIMITS.min}–${RERANK_BATCH_SIZE_LIMITS.max}，默认 ${RERANK_BATCH_SIZE_LIMITS.default}。`"
+                label="Số mục mỗi lô"
+                :hint="`Khi ứng viên vượt số này sẽ chia lô gọi song song rồi gộp điểm. Nhà cung cấp thường giới hạn dưới 500 mục mỗi yêu cầu, phạm vi ${RERANK_BATCH_SIZE_LIMITS.min}–${RERANK_BATCH_SIZE_LIMITS.max}, mặc định ${RERANK_BATCH_SIZE_LIMITS.default}.`"
               >
                 <AcuInput
                   :model-value="vectorApiConfig.form.rerankBatchSize"
@@ -214,7 +214,7 @@
               </p>
             </AcuMessage>
             <div class="acu-v2-vector-api-form__actions">
-              <AcuButton variant="primary" native-type="submit">保存</AcuButton>
+              <AcuButton variant="primary" native-type="submit">Lưu</AcuButton>
             </div>
           </form>
         </AcuPanel>
@@ -232,12 +232,12 @@
           </template>
 
           <AcuMessage v-if="keywordPromptEmpty" kind="warning">
-            关键词生成提示词为空，发送前会直接用用户输入参与召回；建议载入默认提示词后保存。
+            Prompt tạo từ khóa đang trống, trước khi gửi sẽ dùng thẳng đầu vào người dùng để truy hồi; nên nạp prompt mặc định rồi lưu.
           </AcuMessage>
 
           <div class="acu-v2-vector-index-page__prompt-actions">
             <AcuButton variant="primary" @click="promptDrawerOpen = true"
-              >编辑提示词</AcuButton
+              >Sửa prompt</AcuButton
             >
           </div>
         </AcuPanel>
@@ -255,18 +255,18 @@
       >
         <div class="acu-v2-vector-index-page__number-grid">
           <AcuFormRow
-            label="混合召回"
-            hint="开启后 BM25 稀疏召回与向量结果融合；关闭则只用向量召回。"
+            label="Truy hồi kết hợp"
+            hint="Khi bật, truy hồi thưa BM25 được hợp nhất với kết quả vector; khi tắt chỉ dùng truy hồi vector."
           >
             <AcuToggle
               :model-value="vector.form.hybridRetrievalEnabled"
-              label="启用 BM25 混合召回"
+              label="Bật truy hồi kết hợp BM25"
               @update:model-value="vector.setBooleanField('hybridRetrievalEnabled', $event)"
             />
           </AcuFormRow>
           <AcuFormRow
-            label="触发阈值"
-            hint="纪要有效行数达标后，发送前生成关键词并召回分块，未达标则保留原索引流程。"
+            label="Ngưỡng kích hoạt"
+            hint="Khi số hàng kỷ yếu hợp lệ đạt ngưỡng, trước khi gửi sẽ tạo từ khóa và truy hồi các phân đoạn; chưa đạt thì giữ quy trình chỉ mục gốc."
           >
             <AcuInput
               :model-value="vector.form.summaryIndexKeywordMinRows"
@@ -280,7 +280,7 @@
           </AcuFormRow>
           <AcuFormRow
             label="TopK"
-            hint="进入纪要索引目录的排序行数上限（最近固定注入的行另计）；候选行不多于此数时跳过 Rerank，写入时恢复原顺序。"
+            hint="Số hàng sắp xếp tối đa đưa vào mục lục chỉ mục kỷ yếu (các hàng chèn cố định gần nhất tính riêng); khi số hàng ứng viên không vượt quá số này sẽ bỏ qua Rerank, khi ghi khôi phục thứ tự gốc."
           >
             <AcuInput
               :model-value="vector.form.topK"
@@ -291,8 +291,8 @@
             />
           </AcuFormRow>
           <AcuFormRow
-            label="预筛最低分"
-            hint="Embedding 余弦分门槛，低于此分不进入候选池。源文本含纪要正文后分布整体偏低，默认 0.35。"
+            label="Điểm sàng lọc tối thiểu"
+            hint="Ngưỡng điểm cosine của Embedding, thấp hơn sẽ không vào nhóm ứng viên. Khi văn bản nguồn chứa nội dung kỷ yếu, phân bố điểm nhìn chung thấp hơn, mặc định 0.35."
           >
             <AcuInput
               :model-value="vector.form.minScore"
@@ -304,8 +304,8 @@
             />
           </AcuFormRow>
           <AcuFormRow
-            label="候选上限"
-            hint="dense/BM25 各自保留的候选分片数，融合后的候选池上限；Rerank 会按每批条数自动分批处理。不能小于 TopK。"
+            label="Giới hạn ứng viên"
+            hint="Số phân đoạn ứng viên mà dense/BM25 mỗi bên giữ lại, cũng là giới hạn nhóm ứng viên sau khi hợp nhất; Rerank tự chia lô theo số mục mỗi lô. Không được nhỏ hơn TopK."
           >
             <AcuInput
               :model-value="vector.form.recallCandidateLimit"
@@ -316,8 +316,8 @@
             />
           </AcuFormRow>
           <AcuFormRow
-            label="固定写入"
-            hint="最近 N 条纪要固定写入，不参与排序；计入触发阈值，不计入 TopK。"
+            label="Ghi cố định"
+            hint="N kỷ yếu gần nhất được ghi cố định, không tham gia xếp hạng; tính vào ngưỡng kích hoạt, không tính vào TopK."
           >
             <AcuInput
               :model-value="vector.form.recentFixedInjectCount"
@@ -329,8 +329,8 @@
             />
           </AcuFormRow>
           <AcuFormRow
-            label="命名空间"
-            hint="用于区分不同聊天的索引缓存，会拼接当前聊天标识。"
+            label="Không gian tên"
+            hint="Dùng để phân biệt bộ nhớ đệm chỉ mục của các cuộc trò chuyện khác nhau, sẽ nối với định danh cuộc trò chuyện hiện tại."
           >
             <AcuInput
               :model-value="vector.form.vectorNamespace"
@@ -349,20 +349,20 @@
       >
         <div class="acu-v2-vector-index-page__number-grid">
           <AcuFormRow
-            label="按句切分纪要正文"
-            hint="默认关闭：每行一个向量（概览 + 纪要正文整体），索引体积只随行数增长。开启后按下方句数切分正文，召回更细但分片成倍增加；改动后需重建索引。"
+            label="Chia nội dung kỷ yếu theo câu"
+            hint="Mặc định tắt: mỗi hàng một vector (tổng quan + toàn bộ nội dung kỷ yếu), dung lượng chỉ mục chỉ tăng theo số hàng. Khi bật sẽ chia nội dung theo số câu bên dưới, truy hồi mịn hơn nhưng số phân đoạn tăng gấp bội; sau khi đổi cần xây lại chỉ mục."
           >
             <AcuToggle
               :model-value="vector.form.summaryIndexChunkChronicleBySentence"
-              label="切分纪要正文为多个分片"
+              label="Chia nội dung kỷ yếu thành nhiều phân đoạn"
               @update:model-value="
                 vector.setBooleanField('summaryIndexChunkChronicleBySentence', $event)
               "
             />
           </AcuFormRow>
           <AcuFormRow
-            label="分块句数"
-            hint="仅在开启按句切分时生效：每个分片包含的句数，越小越精细，分片越多。"
+            label="Số câu mỗi khối"
+            hint="Chỉ có hiệu lực khi bật chia theo câu: số câu mỗi phân đoạn, càng nhỏ càng mịn và càng nhiều phân đoạn."
           >
             <AcuInput
               :model-value="vector.form.summaryChunkSentenceCount"
@@ -375,7 +375,7 @@
               "
             />
           </AcuFormRow>
-          <AcuFormRow label="单请求最多行数" hint="单个 embedding 请求最多覆盖的纪要行数；与字符预算共同限制请求大小。">
+          <AcuFormRow label="Số hàng tối đa mỗi yêu cầu" hint="Số hàng kỷ yếu tối đa mà một yêu cầu embedding bao phủ; cùng với ngân sách ký tự giới hạn kích thước yêu cầu.">
             <AcuInput
               :model-value="vector.form.summaryIndexArchiveMaxConcurrency"
               type="number"
@@ -389,7 +389,7 @@
               "
             />
           </AcuFormRow>
-          <AcuFormRow label="单请求字符预算" hint="单个 embedding 请求的本地输入字符上限，不等同于服务商 token 限制。单行超出时会单独请求并记录诊断。">
+          <AcuFormRow label="Ngân sách ký tự mỗi yêu cầu" hint="Giới hạn ký tự đầu vào cục bộ của một yêu cầu embedding, không đồng nghĩa với giới hạn token của nhà cung cấp. Khi một hàng vượt quá sẽ được gọi riêng và ghi chẩn đoán.">
             <AcuInput
               :model-value="vector.form.summaryIndexArchiveMaxInputChars"
               type="number"
@@ -398,7 +398,7 @@
               @change="vector.setNumberField('summaryIndexArchiveMaxInputChars', $event)"
             />
           </AcuFormRow>
-          <AcuFormRow label="同时请求数" hint="最多同时进行的 embedding HTTP 请求；设为 1 可获得串行兼容行为。">
+          <AcuFormRow label="Số yêu cầu đồng thời" hint="Số yêu cầu HTTP embedding tối đa chạy đồng thời; đặt 1 để chạy tuần tự cho tương thích.">
             <AcuInput
               :model-value="vector.form.summaryIndexArchiveEmbeddingConcurrency"
               type="number"
@@ -408,18 +408,18 @@
             />
           </AcuFormRow>
           <AcuFormRow v-if="SHOW_LEGACY_VECTOR_MAINTENANCE_UI"
-            label="滚动增量"
-            hint="当前因 V2 不可变发布生命周期要求而暂停。即使历史配置已开启，归档仍会安全地写入 V2 单文件快照。"
+            label="Gia tăng cuộn"
+            hint="Hiện đang tạm dừng do yêu cầu vòng đời phát hành bất biến của V2. Dù cấu hình cũ đã bật, việc lưu trữ vẫn ghi an toàn vào snapshot một tệp V2."
           >
             <AcuToggle
               :model-value="vector.form.summaryIndexRollingDeltaEnabled"
-              label="滚动增量写入暂不可用"
+              label="Ghi gia tăng cuộn tạm thời không khả dụng"
               :disabled="true"
             />
           </AcuFormRow>
           <AcuFormRow v-if="SHOW_LEGACY_VECTOR_MAINTENANCE_UI"
-            label="折叠阈值 K"
-            hint="仅保留历史配置兼容；滚动增量恢复 V2 安全发布语义前不生效。"
+            label="Ngưỡng gộp K"
+            hint="Chỉ giữ để tương thích cấu hình cũ; không có hiệu lực cho đến khi gia tăng cuộn khôi phục ngữ nghĩa phát hành an toàn V2."
           >
             <AcuInput
               :model-value="vector.form.summaryIndexRollingDeltaFoldThreshold || 15"
@@ -432,26 +432,26 @@
         </div>
         <AcuFormRow
           v-if="SHOW_LEGACY_VECTOR_MAINTENANCE_UI"
-          label="V2 写入闸门"
-          hint="默认开启（新装或未显式配置的用户默认走 V2 归档路径）。关闭只会阻止新的 V2 快照写入；已发布 V2 快照仍可读取，绝不会回退覆盖旧路径。"
+          label="Cổng ghi V2"
+          hint="Mặc định bật (người dùng cài mới hoặc chưa cấu hình rõ ràng mặc định đi đường lưu trữ V2). Tắt chỉ chặn ghi snapshot V2 mới; snapshot V2 đã phát hành vẫn đọc được, tuyệt đối không quay lại ghi đè đường cũ."
         >
           <AcuToggle
             :model-value="vector.form.summaryIndexV2WriteEnabled"
-            label="允许 V2 快照写入"
+            label="Cho phép ghi snapshot V2"
             @update:model-value="vector.setBooleanField('summaryIndexV2WriteEnabled', $event)"
           />
         </AcuFormRow>
         <AcuFormRow
           v-if="SHOW_LEGACY_VECTOR_MAINTENANCE_UI"
-          label="V2 写入 scope allowlist"
-          hint="每行一个 canonical scope fingerprint。留空表示不额外限制已显式开启的 writer；错误 scope 不会写入。"
+          label="Danh sách cho phép scope ghi V2"
+          hint="Mỗi dòng một canonical scope fingerprint. Để trống nghĩa là không giới hạn thêm writer đã bật rõ ràng; scope sai sẽ không được ghi."
         >
           <textarea
             :value="vector.form.summaryIndexV2WriteScopeAllowlistText"
             class="acu-v2-vector-index-page__scope-allowlist"
             rows="4"
             spellcheck="false"
-            placeholder="每行一个 scope fingerprint"
+            placeholder="Mỗi dòng một scope fingerprint"
             @change="vector.setV2WriteScopeAllowlist(($event.target as HTMLTextAreaElement).value)"
           ></textarea>
         </AcuFormRow>
@@ -515,9 +515,9 @@ import { useDialogStore } from "../stores/dialog-store";
 const SHOW_LEGACY_VECTOR_MAINTENANCE_UI = false;
 
 const CROSSFIRE_FLOW_HINT =
-  '发送前流程：关键词生成（可关闭）→ 用户输入与关键词合并 embedding → "概览 + 纪要正文"向量与 BM25 混合召回（可关闭）→ 可选 Rerank（按纪要正文分批精排，候选不多于 TopK 时跳过）→ 按纪要表原顺序覆盖原概要索引条目。';
+  'Quy trình trước khi gửi: tạo từ khóa (có thể tắt) → gộp đầu vào người dùng với từ khóa rồi embedding → truy hồi kết hợp vector "tổng quan + nội dung kỷ yếu" và BM25 (có thể tắt) → Rerank tùy chọn (xếp hạng tinh theo lô trên nội dung kỷ yếu, bỏ qua khi ứng viên không quá TopK) → ghi đè các mục chỉ mục tổng quan gốc theo thứ tự gốc của bảng kỷ yếu.';
 const VECTOR_FLOW_HINT =
-  '发送前流程：用户输入直接 embedding 召回 → Rerank 精排并按「保留相关纪要条数」截取 → 选中的纪要条目切为蓝灯（常驻）注入，其余保持原条目类型；纪要索引条目保持完整目录，不按召回结果筛选；纪要有效行数少于「保留相关纪要条数」时不召回，全部纪要条目切为蓝灯。向量表格不生成关键词、不做混合召回、不触发剧情推进；Rerank 未配置或失败时本轮召回判定失败并撤回蓝灯，不会静默退回 embedding 排序。召回参数在上方「填表模式」面板单独设置。';
+  'Quy trình trước khi gửi: đầu vào người dùng được embedding và truy hồi trực tiếp → Rerank xếp hạng tinh rồi cắt theo «số kỷ yếu liên quan cần giữ» → các mục kỷ yếu được chọn chuyển sang đèn xanh (thường trực) để chèn vào, phần còn lại giữ nguyên loại mục; mục chỉ mục kỷ yếu giữ nguyên mục lục đầy đủ, không lọc theo kết quả truy hồi; khi số hàng kỷ yếu hợp lệ ít hơn «số kỷ yếu liên quan cần giữ» thì không truy hồi, toàn bộ mục kỷ yếu chuyển sang đèn xanh. Bảng vector không tạo từ khóa, không truy hồi kết hợp, không kích hoạt đẩy cốt truyện; khi Rerank chưa cấu hình hoặc thất bại, lượt truy hồi này bị coi là thất bại và thu hồi đèn xanh, không âm thầm quay về xếp hạng embedding. Tham số truy hồi được đặt riêng ở bảng «Chế độ điền bảng» phía trên.';
 
 const props = defineProps<{
   /** 当前填表模式：向量表格只显示索引、向量服务与分块面板；交火模式显示全部参数。 */
@@ -554,8 +554,8 @@ const keywordPromptEmpty = computed(() =>
 );
 const promptTemplateBadgeLabel = computed(() =>
   vector.promptTemplateMode.value === "default"
-    ? "使用默认提示词"
-    : "已自定义提示词",
+    ? "Dùng prompt mặc định"
+    : "Đã tùy chỉnh prompt",
 );
 const promptTemplateBadgeVariant = computed<AcuBadgeVariant>(() =>
   vector.promptTemplateMode.value === "default" ? "neutral" : "accent",
@@ -564,9 +564,9 @@ const promptTemplateBadgeVariant = computed<AcuBadgeVariant>(() =>
 function confirmPromptClose(): boolean | Promise<boolean> {
   if (!promptDrawerOpen.value || !vector.promptDirty.value) return true;
   return dialogStore.confirm({
-    title: "关闭新 UI",
-    message: "你有未保存的关键词生成提示词修改，确定要关闭新 UI 吗？",
-    confirmLabel: "关闭新 UI",
+    title: "Đóng UI mới",
+    message: "Bạn có thay đổi prompt tạo từ khóa chưa lưu, chắc chắn đóng UI mới?",
+    confirmLabel: "Đóng UI mới",
     confirmVariant: "danger",
   });
 }
@@ -598,10 +598,10 @@ function onRerankBatchSizeChange(raw: string | number): void {
 
 async function onDeleteCurrentIndex(): Promise<void> {
   const confirmed = await dialogStore.confirm({
-    title: "删除当前索引",
+    title: "Xóa chỉ mục hiện tại",
     message:
-      "删除当前聊天的交火索引？这会移除索引引用并清理可回收外置资产，之后需要重新构建。",
-    confirmLabel: "删除索引",
+      "Xóa chỉ mục giao hỏa của cuộc trò chuyện hiện tại? Việc này sẽ gỡ tham chiếu chỉ mục và dọn các tài sản ngoài có thể thu hồi, sau đó cần xây lại.",
+    confirmLabel: "Xóa chỉ mục",
     confirmVariant: "danger",
   });
   if (!confirmed)

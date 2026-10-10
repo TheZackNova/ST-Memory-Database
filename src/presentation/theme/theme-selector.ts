@@ -40,18 +40,18 @@ export function generateThemeSelectorHTML(): string {
         <div class="acu-theme-selector" style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
             <select id="${SCRIPT_ID_PREFIX_ACU}-theme-select"
                     style="padding: 4px 8px !important; border-radius: 6px !important; border: 1px solid var(--acu-border-2, #c8cdd5) !important; background: var(--acu-control-bg, #ffffff) !important; color: var(--acu-text-1, #1a2332) !important; font-size: 12px !important; cursor: pointer !important; max-width: 140px !important; font-family: inherit !important;"
-                    title="切换界面主题">
+                    title="Đổi giao diện">
                 ${options}
             </select>
             <div class="acu-theme-actions" style="display: flex; gap: 4px;">
                 <button id="${SCRIPT_ID_PREFIX_ACU}-theme-import"
                         style="padding: 4px 6px !important; border-radius: 6px !important; border: 1px solid var(--acu-border-2, #c8cdd5) !important; background: var(--acu-bg-1, #ffffff) !important; color: var(--acu-text-3, #8896a8) !important; font-size: 11px !important; cursor: pointer !important; font-family: inherit !important;"
-                        title="导入自定义主题">
+                        title="Nhập giao diện tùy chỉnh">
                     <i class="fa-solid fa-upload" style="font-size: 11px;"></i>
                 </button>
                 <button id="${SCRIPT_ID_PREFIX_ACU}-theme-export"
                         style="padding: 4px 6px !important; border-radius: 6px !important; border: 1px solid var(--acu-border-2, #c8cdd5) !important; background: var(--acu-bg-1, #ffffff) !important; color: var(--acu-text-3, #8896a8) !important; font-size: 11px !important; cursor: pointer !important; font-family: inherit !important;"
-                        title="导出当前主题模板（完整可编辑版）">
+                        title="Xuất mẫu giao diện hiện tại (bản đầy đủ có thể chỉnh sửa)">
                     <i class="fa-solid fa-download" style="font-size: 11px;"></i>
                 </button>
             </div>
@@ -137,14 +137,14 @@ export function bindThemeSelectorEvents(): void {
         $chromeDelete.addEventListener('click', async () => {
             const currentId = getActiveThemeId();
             if (BUILTIN_THEME_IDS.has(currentId)) {
-                showToastr_ACU('warning', '内置主题不可删除');
+                showToastr_ACU('warning', 'Không thể xóa giao diện có sẵn');
                 return;
             }
             const theme = getThemeById(currentId);
             const confirmed = await showCustomConfirm_ACU(
-                '删除主题',
-                `确定要删除主题「${theme?.name || currentId}」吗？\n删除后将恢复为默认浅色主题。`,
-                { confirmLabel: '删除', cancelLabel: '取消' },
+                'Xóa giao diện',
+                `Xác nhận xóa giao diện "${theme?.name || currentId}"?\nSau khi xóa sẽ khôi phục về giao diện sáng mặc định.`,
+                { confirmLabel: 'Xóa', cancelLabel: 'Hủy' },
             );
             if (confirmed) {
                 removeCustomTheme(currentId);
@@ -203,5 +203,5 @@ function updateChromeDeleteButtonState(targetDoc: Document): void {
     const isBuiltin = BUILTIN_THEME_IDS.has(currentId);
     btn.style.opacity = isBuiltin ? '0.3' : '1';
     btn.style.pointerEvents = isBuiltin ? 'none' : 'auto';
-    btn.setAttribute('title', isBuiltin ? '内置主题不可删除' : '删除当前自定义主题');
+    btn.setAttribute('title', isBuiltin ? 'Không thể xóa giao diện có sẵn' : 'Xóa giao diện tùy chỉnh hiện tại');
 }

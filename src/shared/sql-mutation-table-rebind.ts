@@ -171,9 +171,9 @@ export function rebindSqlMutationTableReferences_ACU(
       const tableReferences = references(statement, values, target);
       for (const reference of tableReferences) {
         if (normalizedAmbiguous.has(reference.value.toLowerCase())) {
-          const role = reference.start === target.start ? '目标表' : '关联表';
+          const role = reference.start === target.start ? 'bảng đích' : 'bảng liên kết';
           const error = new Error(
-            `SQL 写入引用了歧义表名「${reference.value}」：该名称同时指向多张物理表，无法安全路由。请改用各表当前唯一物理表名，或只针对唯一英文表名编写 SQL。`,
+            `SQL ghi dữ liệu tham chiếu tên bảng mơ hồ “${reference.value}”: tên này cùng lúc trỏ tới nhiều bảng vật lý, không thể định tuyến an toàn. Hãy dùng tên bảng vật lý duy nhất hiện tại của từng bảng, hoặc chỉ viết SQL theo tên bảng tiếng Anh duy nhất.`,
           );
           Object.defineProperty(error, 'code', {
             value: 'SQL_ALIAS_AMBIGUOUS_ACU',
@@ -185,8 +185,8 @@ export function rebindSqlMutationTableReferences_ACU(
       if (options.requireKnownTables) {
         for (const reference of tableReferences) {
           if (!resolvedAliases.has(reference.value.toLowerCase())) {
-            const role = reference.start === target.start ? '目标表' : '关联表';
-            throw new Error(`SQL 写入包含无法识别的${role}「${reference.value}」。`);
+            const role = reference.start === target.start ? 'bảng đích' : 'bảng liên kết';
+            throw new Error(`SQL ghi dữ liệu chứa ${role} không nhận ra “${reference.value}”.`);
           }
         }
       }
@@ -279,7 +279,7 @@ export function rebindSqlMutationColumnReferences_ACU(
     if (tableReferences.length > 1) {
       throw structuredMutationColumnError_ACU(
         'SQL_COLUMN_CROSS_TABLE_REFUSED_ACU',
-        'SQL 写入包含目标表之外的关联表列归属无法在不解析 schema 的纯工具中证明，已拒绝列重绑。请改用当前物理列名直接书写。',
+        'SQL ghi dữ liệu có chứa bảng liên kết ngoài bảng đích mà việc xác định cột thuộc bảng nào không thể chứng minh được trong công cụ thuần không phân tích schema, đã từ chối gán lại cột. Hãy viết trực tiếp bằng tên cột vật lý hiện tại.',
       );
     }
 
@@ -379,11 +379,11 @@ function collectMutationColumnReplacements_ACU(
     if (ambiguous.has(key)) {
       const candidates = resolveAmbiguity?.(token.value) || [];
       const candidateText = candidates.length > 0
-        ? ` 候选列：${candidates.map(candidate => `${candidate.target}（证据：${candidate.evidence}）`).join('、')}。`
+        ? ` Cột ứng viên: ${candidates.map(candidate => `${candidate.target} (bằng chứng: ${candidate.evidence})`).join(', ')}.`
         : '';
       throw structuredMutationColumnError_ACU(
         'SQL_COLUMN_ALIAS_AMBIGUOUS_ACU',
-        `SQL 写入引用了歧义列名「${token.value}」：该名称同时映射到多列，无法安全重绑。请改用当前唯一物理列名。${candidateText}`,
+        `SQL ghi dữ liệu tham chiếu tên cột mơ hồ “${token.value}”: tên này cùng lúc ánh xạ tới nhiều cột, không thể gán lại an toàn. Hãy dùng tên cột vật lý duy nhất hiện tại.${candidateText}`,
       );
     }
     const target = aliases.get(key);
@@ -408,7 +408,7 @@ function collectMutationColumnReplacements_ACU(
           .join(', ');
         throw structuredMutationColumnError_ACU(
           'SQL_INSERT_UNKNOWN_COLUMN_ACU',
-          `目标表「${targetTableName || ''}」的 INSERT 引用了未知列「${token.value}」；请只使用允许列：${allowed}。`,
+          `INSERT của bảng đích “${targetTableName || ''}” tham chiếu cột không xác định “${token.value}”; chỉ dùng các cột được phép: ${allowed}.`,
         );
       }
       return;

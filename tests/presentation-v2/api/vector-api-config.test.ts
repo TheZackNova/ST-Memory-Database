@@ -46,8 +46,8 @@ describe("useVectorApiConfig", () => {
 
     expect(vector.save()).toBe(false);
 
-    expect(vector.errors.value).toContain("缺少“向量化URL”");
-    expect(vector.errors.value).toContain("缺少“向量化模型名”");
+    expect(vector.errors.value).toContain("Thiếu “URL vector hóa”");
+    expect(vector.errors.value).toContain("Thiếu “tên mô hình vector hóa”");
     expect(vector.errors.value.join(" ")).not.toContain("embeddingEndpoint");
     expect(vector.errors.value.join(" ")).not.toContain("embeddingModel");
     expect(saveSettings).not.toHaveBeenCalled();
@@ -65,7 +65,7 @@ describe("useVectorApiConfig", () => {
     expect(vector.save()).toBe(false);
 
     expect(vector.errors.value).toContain(
-      "“重排URL”和“重排模型名”需要同时填写，或者同时留空",
+      "“URL rerank” và “tên mô hình rerank” cần điền cùng nhau, hoặc để trống cả hai",
     );
     expect(vector.errors.value.join(" ")).not.toContain("rerankEndpoint");
     expect(vector.errors.value.join(" ")).not.toContain("rerankModel");

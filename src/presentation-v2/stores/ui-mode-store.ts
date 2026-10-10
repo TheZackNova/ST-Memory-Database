@@ -20,9 +20,9 @@ interface PersistedTier {
 }
 
 export const ACU_UI_TIER_LABELS: Record<AcuUiTier, string> = {
-  low: '轻量模式',
-  medium: '进阶模式',
-  high: '高级模式',
+  low: 'Chế độ nhẹ',
+  medium: 'Chế độ nâng cao',
+  high: 'Chế độ cao cấp',
 };
 
 export const ACU_UI_TIER_RANK: Record<AcuUiTier, number> = {

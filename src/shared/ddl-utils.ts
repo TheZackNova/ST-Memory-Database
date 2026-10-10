@@ -31,10 +31,10 @@ export function rebindCreateTableName_ACU(ddl: string, tableName: string): strin
   const value = String(ddl || '');
   const replacement = String(tableName || '').trim();
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(replacement)) {
-    throw new Error(`无效的 SQLite runtime 表名：${replacement || '(empty)'}`);
+    throw new Error(`Tên bảng runtime SQLite không hợp lệ: ${replacement || '(empty)'}`);
   }
   const bounds = findCreateTableDefinitionBounds_ACU(value);
-  if (!bounds) throw new Error('无法解析 CREATE TABLE 语句，不能重绑定 runtime 表名。');
+  if (!bounds) throw new Error('Không thể phân tích câu lệnh CREATE TABLE, không thể gán lại tên bảng runtime.');
   return `${value.slice(0, bounds.tableNameStart)}${replacement}${value.slice(bounds.tableNameEnd)}`;
 }
 
@@ -246,14 +246,14 @@ export function getSheetColumnProjection_ACU(sheet: Sheet_ACU): {
   const ddlColumns = parseDDLColumnInfos_ACU(String(sheet?.sourceData?.ddl || ''));
   const rawHidden = sheet?.sourceData?.hiddenPhysicalColumns;
   if (rawHidden !== undefined && !Array.isArray(rawHidden)) {
-    throw new Error('hiddenPhysicalColumns 必须是 physical column 字符串数组。');
+    throw new Error('hiddenPhysicalColumns phải là mảng chuỗi physical column.');
   }
   const hidden = (rawHidden || []).map(value => String(value ?? '').trim()).filter(Boolean);
   const hiddenCanonical = hidden.map(value => value.toLowerCase());
   if (new Set(hiddenCanonical).size !== hiddenCanonical.length) {
-    throw new Error('hiddenPhysicalColumns 包含大小写不敏感的重复 physical column。');
+    throw new Error('hiddenPhysicalColumns chứa physical column trùng lặp (không phân biệt hoa thường).');
   }
-  if (hiddenCanonical.includes('row_id')) throw new Error('row_id 不允许隐藏。');
+  if (hiddenCanonical.includes('row_id')) throw new Error('row_id không được phép ẩn.');
   // DDL 与 content[0] 列数不一致时无法按下标推出物理列名，只能退化为按表头名判定隐藏。
   // 这不是错误：模板范围投影会在「模板列少于运行时列」时构造这种形态；
   // native 模式（无 DDL）的隐藏列本就以表头名为身份（S0-3），属契约行为，静默处理。
@@ -272,7 +272,7 @@ export function getSheetColumnProjection_ACU(sheet: Sheet_ACU): {
   ]);
   const unknown = hidden.filter(value => !physicalCanonical.has(value.toLowerCase()));
   if (unknown.length > 0) {
-    throw new Error(`hiddenPhysicalColumns 指向不存在的 physical column「${unknown.join('、')}」。`);
+    throw new Error(`hiddenPhysicalColumns trỏ tới physical column không tồn tại “${unknown.join(', ')}”.`);
   }
   const hiddenSet = new Set(hiddenCanonical);
   const columns = headers.map((header, sourceIndex): SheetColumnProjectionItem_ACU => {
@@ -299,12 +299,12 @@ export function projectSheetDDLForVisibleColumns_ACU(sheet: Sheet_ACU, ddlOverri
   const bounds = findCreateTableDefinitionBounds_ACU(ddl);
   const infos = parseDDLColumnInfos_ACU(ddl);
   if (!bounds || infos.length !== projection.columns.length) {
-    throw new Error('无法为隐藏列构建安全的可见 DDL 投影。');
+    throw new Error('Không thể xây dựng phép chiếu DDL hiển thị an toàn cho cột bị ẩn.');
   }
   const visibleIndexes = new Set(projection.visibleColumns.map(column => column.sourceIndex));
   const visible = infos.filter(info => visibleIndexes.has(info.index));
   if (visible.length === 0 || infos[0]?.sqlName.toLowerCase() !== 'row_id') {
-    throw new Error('可见 DDL 投影必须保留 row_id。');
+    throw new Error('Phép chiếu DDL hiển thị phải giữ row_id.');
   }
   // 必须把列注释带回投影结果：注释是中文表头与 SQL 列名的唯一映射依据。
   // 丢掉它会让 resolveInsertColumnMappings 无法把中文表头匹配到任何 DDL 列，
@@ -327,13 +327,13 @@ export function projectSheetDDLForVisibleColumns_ACU(sheet: Sheet_ACU, ddlOverri
 export function downgradeRowIdPrimaryKeyForLegacyReplay_ACU(ddl: string): string {
   const value = String(ddl || '');
   const bounds = findCreateTableDefinitionBounds_ACU(value);
-  if (!bounds) throw new Error('无法解析 CREATE TABLE 语句，不能降级 row_id 主键。');
+  if (!bounds) throw new Error('Không thể phân tích câu lệnh CREATE TABLE, không thể hạ cấp khóa chính row_id.');
   if (/\bWITHOUT\s+ROWID\b/i.test(parseDDLTableSuffix_ACU(value))) {
-    throw new Error('SPv7.9 旧语义 SQL 回放不支持 WITHOUT ROWID 表。');
+    throw new Error('Phát lại SQL theo ngữ nghĩa cũ SPv7.9 không hỗ trợ bảng WITHOUT ROWID.');
   }
   const body = value.slice(bounds.openingIndex + 1, bounds.closingIndex);
   const definitions = splitColumnDefinitions(body);
-  if (definitions.length === 0) throw new Error('DDL 缺少可降级的 row_id 列。');
+  if (definitions.length === 0) throw new Error('DDL thiếu cột row_id có thể hạ cấp.');
 
   const first = definitions[0];
   // 首列可能带前置空白、`--` 行注释或 `/* ... */` 块注释。
@@ -346,17 +346,17 @@ export function downgradeRowIdPrimaryKeyForLegacyReplay_ACU(ddl: string): string
   const comment = commentIndex < 0 ? '' : firstBody.slice(commentIndex);
   const match = definition.match(/^(\s*)((?:"(?:[^"]|"")*"|`(?:[^`]|``)*`|\[(?:[^\]]|\]\])*\]|[A-Za-z_][A-Za-z0-9_]*))(\s+INTEGER\b)([\s\S]*)$/i);
   if (!match || canonicalSqlIdentifier_ACU(match[2]) !== 'row_id') {
-    throw new Error('SPv7.9 旧语义 SQL 回放缺少首列 row_id INTEGER PRIMARY KEY。');
+    throw new Error('Phát lại SQL theo ngữ nghĩa cũ SPv7.9 thiếu cột đầu tiên row_id INTEGER PRIMARY KEY.');
   }
   const tail = match[4];
   if (!/\bPRIMARY\s+KEY\b/i.test(tail)) {
-    throw new Error('SPv7.9 旧语义 SQL 回放缺少可降级的 row_id PRIMARY KEY 约束。');
+    throw new Error('Phát lại SQL theo ngữ nghĩa cũ SPv7.9 thiếu ràng buộc row_id PRIMARY KEY có thể hạ cấp.');
   }
   const downgradedTail = tail
     .replace(/\s+PRIMARY\s+KEY\b/i, '')
     .replace(/\s+AUTOINCREMENT\b/i, '');
   if (/\b(?:PRIMARY\s+KEY|AUTOINCREMENT)\b/i.test(downgradedTail)) {
-    throw new Error('SPv7.9 旧语义 SQL 回放无法安全降级 row_id 约束。');
+    throw new Error('Phát lại SQL theo ngữ nghĩa cũ SPv7.9 không thể hạ cấp ràng buộc row_id một cách an toàn.');
   }
   definitions[0] = `${leadingTrivia}${match[1]}${match[2]}${match[3]}${downgradedTail}${comment}`;
   const next = `${value.slice(0, bounds.openingIndex + 1)}${definitions.join(',')}${value.slice(bounds.closingIndex)}`;
@@ -365,7 +365,7 @@ export function downgradeRowIdPrimaryKeyForLegacyReplay_ACU(ddl: string): string
   if (!firstColumn || canonicalSqlIdentifier_ACU(firstColumn.sqlName) !== 'row_id'
     || firstColumn.declaredType !== 'INTEGER' || firstColumn.isPrimaryKey
     || parseDDLTableName(next) !== bounds.tableName) {
-    throw new Error('SPv7.9 旧语义 SQL 回放生成的降级 DDL 未通过结构校验。');
+    throw new Error('DDL đã hạ cấp do phát lại SQL theo ngữ nghĩa cũ SPv7.9 tạo ra không qua được kiểm tra cấu trúc.');
   }
   return next;
 }
@@ -702,8 +702,8 @@ export function matchesDDLColumnHeader_ACU(sqlName: string, comment: string | nu
 
 function buildDDLHeaderMismatchMessage_ACU(index: number, ddlColumn: DDLColumnInfo_ACU, header: string): string {
   return ddlColumn.comment
-    ? `第 ${index + 1} 列不匹配：DDL 列名为「${ddlColumn.sqlName}」，注释为「${ddlColumn.comment}」，表头为「${header}」`
-    : `第 ${index + 1} 列不匹配：DDL 列名为「${ddlColumn.sqlName}」，表头为「${header}」`;
+    ? `Cột thứ ${index + 1} không khớp: tên cột DDL là “${ddlColumn.sqlName}”, chú thích là “${ddlColumn.comment}”, tiêu đề cột là “${header}”`
+    : `Cột thứ ${index + 1} không khớp: tên cột DDL là “${ddlColumn.sqlName}”, tiêu đề cột là “${header}”`;
 }
 
 
@@ -716,9 +716,9 @@ function buildDDLHeaderMismatchMessage_ACU(index: number, ddlColumn: DDLColumnIn
  */
 export function injectRowIdPrimaryKeyColumn_ACU(ddl: string): string {
   const value = String(ddl || '').trim();
-  if (!value) throw new Error('无法在空 DDL 中注入 row_id。');
+  if (!value) throw new Error('Không thể chèn row_id vào DDL rỗng.');
   const bounds = findCreateTableDefinitionBounds_ACU(value);
-  if (!bounds) throw new Error('无法解析 CREATE TABLE 语句，不能注入 row_id。');
+  if (!bounds) throw new Error('Không thể phân tích câu lệnh CREATE TABLE, không thể chèn row_id.');
   const after = value.slice(bounds.openingIndex + 1);
   const injected = `\n  row_id INTEGER PRIMARY KEY, -- 行号`;
   const separator = after.startsWith('\n') || after.startsWith('\r') ? '' : '\n  ';
@@ -732,17 +732,17 @@ export function validateDDLTextAgainstHeaders_ACU(
   const rawHeaders = Array.isArray(tableHeaders) ? tableHeaders : [];
   const trimmed = String(ddlText || '').trim();
   if (!trimmed) {
-    return { valid: false, message: '⚠ DDL 为空' };
+    return { valid: false, message: '⚠ DDL trống' };
   }
   if (!/CREATE\s+TABLE/i.test(trimmed)) {
-    return { valid: false, message: '✗ 不是有效的 CREATE TABLE 语句' };
+    return { valid: false, message: '✗ Không phải câu lệnh CREATE TABLE hợp lệ' };
   }
 
   const columnInfos = parseDDLColumnInfos_ACU(trimmed);
   const firstColumn = columnInfos[0];
   if (!firstColumn || firstColumn.sqlName.toLowerCase() !== 'row_id'
     || firstColumn.declaredType !== 'INTEGER' || !firstColumn.isPrimaryKey) {
-    return { valid: false, message: '✗ 缺少 row_id INTEGER PRIMARY KEY 列（必须作为第一列）' };
+    return { valid: false, message: '✗ Thiếu cột row_id INTEGER PRIMARY KEY (bắt buộc là cột đầu tiên)' };
   }
 
   // 统一列身份契约：tableHeaders 必须是「完整表头」（首列为 row_id 位置）。
@@ -751,7 +751,7 @@ export function validateDDLTextAgainstHeaders_ACU(
   // 表头规范化（NFKC/trim）后保留全部列（保序），业务列空/空白/重复
   // fail-closed，绝不通过 filter 剔除空列来“对齐”列数。
   if (rawHeaders.length === 0) {
-    return { valid: false, message: '✗ 表头为空，无法校验 DDL' };
+    return { valid: false, message: '✗ Hàng tiêu đề cột trống, không thể kiểm tra DDL' };
   }
   // 真实 visualizer 的不可编辑 row_id 占位是 null（不是空串）。`String(item ?? '')`
   // 会把 null 也拍扁成空串，导致无法区分「null 占位」与「空串/空白表头」，
@@ -762,7 +762,7 @@ export function validateDDLTextAgainstHeaders_ACU(
   const firstHeader = normalizedHeaders[0];
   const isRowIdHeader = firstHeader === 'row_id' || firstHeader === '行号' || isNullRowIdPlaceholder;
   if (!isRowIdHeader) {
-    return { valid: false, message: '✗ 表头第一列必须为 row_id（或 行号 / 不可编辑的 row_id 占位）' };
+    return { valid: false, message: '✗ Cột đầu tiên của tiêu đề phải là row_id (hoặc 行号 / chỗ giữ chỗ row_id không thể sửa)' };
   }
   const comparableHeaders = normalizedHeaders.slice(1);
   const seenCanonical = new Set<string>();
@@ -773,24 +773,24 @@ export function validateDDLTextAgainstHeaders_ACU(
       return;
     }
     if (!header) {
-      headerIssues.push(`第 ${index + 1} 列表头为空`);
+      headerIssues.push(`Tiêu đề cột thứ ${index + 1} trống`);
       return;
     }
     const canonical = header.toLocaleLowerCase('en-US').replace(/\s+/g, ' ');
     if (seenCanonical.has(canonical)) {
-      headerIssues.push(`第 ${index + 1} 列表头「${header}」重复`);
+      headerIssues.push(`Tiêu đề cột thứ ${index + 1} “${header}” bị trùng`);
     }
     seenCanonical.add(canonical);
   });
   if (headerIssues.length > 0) {
-    return { valid: false, message: `⚠ DDL 表头不合法：${headerIssues.join('；')}` };
+    return { valid: false, message: `⚠ Tiêu đề cột DDL không hợp lệ: ${headerIssues.join('; ')}` };
   }
 
   const comparableColumns = columnInfos.filter((item) => item.sqlName.toLowerCase() !== 'row_id');
   const issues: string[] = [];
 
   if (comparableColumns.length !== comparableHeaders.length) {
-    issues.push(`列数不匹配：DDL 有 ${comparableColumns.length} 列，表头有 ${comparableHeaders.length} 列`);
+    issues.push(`Số cột không khớp: DDL có ${comparableColumns.length} cột, tiêu đề có ${comparableHeaders.length} cột`);
   }
 
   const compareLength = Math.min(comparableColumns.length, comparableHeaders.length);
@@ -806,16 +806,16 @@ export function validateDDLTextAgainstHeaders_ACU(
 
     if (!isAsciiOnly_ACU(header) && !sqlNameIsAscii) {
       issues.push(
-        `第 ${index + 1} 列不匹配：表头为「${header}」时，DDL 物理列名必须使用英文/ASCII，当前 DDL 列名为「${ddlColumn.sqlName}」，注释为「${ddlColumn.comment}」`,
+        `Cột thứ ${index + 1} không khớp: khi tiêu đề là “${header}”, tên cột vật lý trong DDL phải dùng tiếng Anh/ASCII, tên cột DDL hiện tại là “${ddlColumn.sqlName}”, chú thích là “${ddlColumn.comment}”`,
       );
     }
   }
 
   if (issues.length > 0) {
-    return { valid: false, message: `⚠ DDL 列名与表头不完全匹配：${issues.join('；')}` };
+    return { valid: false, message: `⚠ Tên cột DDL và tiêu đề cột không hoàn toàn khớp: ${issues.join('; ')}` };
   }
 
-  return { valid: true, message: '✓ DDL 格式正确，列名与表头匹配' };
+  return { valid: true, message: '✓ Định dạng DDL đúng, tên cột khớp với tiêu đề cột' };
 }
 
 /**
@@ -841,19 +841,19 @@ export function removeDDLColumnAtIndex_ACU(ddl: string, sourceIndex: number): st
   const value = String(ddl || '');
   const targetIndex = Math.trunc(Number(sourceIndex));
   const bounds = findCreateTableDefinitionBounds_ACU(value);
-  if (!bounds) throw new Error('无法解析 CREATE TABLE 语句，不能安全删除列。');
+  if (!bounds) throw new Error('Không thể phân tích câu lệnh CREATE TABLE, không thể xóa cột an toàn.');
   const columns = parseDDLColumnInfos_ACU(value);
   if (!Number.isInteger(targetIndex) || targetIndex < 0 || targetIndex >= columns.length) {
-    throw new Error('目标列不在可解析的 DDL 列定义中。');
+    throw new Error('Cột mục tiêu không nằm trong định nghĩa cột DDL có thể phân tích.');
   }
   const target = columns[targetIndex];
-  if (!target || target.sqlName.toLowerCase() === 'row_id') throw new Error('row_id 不允许删除。');
+  if (!target || target.sqlName.toLowerCase() === 'row_id') throw new Error('row_id không được phép xóa.');
 
   const body = value.slice(bounds.openingIndex + 1, bounds.closingIndex);
   const hasTableConstraint = splitColumnDefinitions(body).some(definition =>
     /^(?:PRIMARY\s+KEY|FOREIGN\s+KEY|UNIQUE|CHECK|CONSTRAINT)\b/i.test(stripSqlLineComments_ACU(definition).trim()),
   );
-  if (hasTableConstraint) throw new Error('DDL 含表级约束，不能安全自动删除列。');
+  if (hasTableConstraint) throw new Error('DDL có ràng buộc cấp bảng, không thể tự động xóa cột an toàn.');
   const lines = body.split('\n');
   const columnLines = lines.map((line, index) => {
     const withoutLineComment = stripSqlLineComments_ACU(line).trim();
@@ -861,14 +861,14 @@ export function removeDDLColumnAtIndex_ACU(ddl: string, sourceIndex: number): st
     return name ? { index, name } : null;
   }).filter((item): item is { index: number; name: string } => item !== null);
   if (columnLines.length !== columns.length) {
-    throw new Error('DDL 含多行列定义或表级约束，不能安全自动删除列。');
+    throw new Error('DDL có định nghĩa cột nhiều dòng hoặc ràng buộc cấp bảng, không thể tự động xóa cột an toàn.');
   }
   const targetName = canonicalSqlIdentifier_ACU(target.sqlName);
   const targetLinePosition = columnLines.findIndex(item => canonicalSqlIdentifier_ACU(item.name) === targetName);
-  if (targetLinePosition < 0) throw new Error(`无法定位 DDL 列定义「${target.sqlName}」。`);
+  if (targetLinePosition < 0) throw new Error(`Không thể định vị định nghĩa cột DDL “${target.sqlName}”.`);
   const targetLine = lines[columnLines[targetLinePosition].index];
   if (/\b(?:PRIMARY\s+KEY|UNIQUE|REFERENCES|CHECK|CONSTRAINT)\b/i.test(stripSqlLineComments_ACU(targetLine))) {
-    throw new Error(`列「${target.sqlName}」带有约束，不能安全自动删除。`);
+    throw new Error(`Cột “${target.sqlName}” có ràng buộc, không thể tự động xóa an toàn.`);
   }
 
   // This transformer deliberately accepts only one-column-per-line DDL. That
@@ -883,7 +883,7 @@ export function removeDDLColumnAtIndex_ACU(ddl: string, sourceIndex: number): st
   const validation = validateDDLTextAgainstHeaders_ACU(next, columns
     .filter((_, index) => index !== targetIndex)
     .map(column => column.sqlName.toLowerCase() === 'row_id' ? 'row_id' : (column.comment || column.sqlName)));
-  if (!validation.valid) throw new Error(`删除列后的 DDL 非法：${validation.message}`);
+  if (!validation.valid) throw new Error(`DDL sau khi xóa cột không hợp lệ: ${validation.message}`);
   return next;
 }
 

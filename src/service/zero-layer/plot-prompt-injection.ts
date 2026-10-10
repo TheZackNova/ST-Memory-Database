@@ -13,7 +13,7 @@ export function injectZeroLayerFinalPrompts_ACU(
     let index: number;
     if (prompt.position === 'at_depth') {
       if (!Number.isSafeInteger(prompt.depth) || prompt.depth < 0 || prompt.depth > historyIndices.length) {
-        throw new ZeroLayerError_ACU('effects-pending', '正文世界书深度超出本轮可定位历史。');
+        throw new ZeroLayerError_ACU('effects-pending', 'Độ sâu sổ thế giới của nội dung chính vượt quá lịch sử có thể định vị của lượt này.');
       }
       index = prompt.depth === 0 ? messages.length : historyIndices[historyIndices.length - prompt.depth];
     } else {
@@ -21,7 +21,7 @@ export function injectZeroLayerFinalPrompts_ACU(
       const anchors = messages.flatMap((message, at) =>
         [message?.identifier, message?.id, message?.name].includes(identifier) ? [at] : []);
       if (anchors.length !== 1) {
-        throw new ZeroLayerError_ACU('effects-pending', '正文世界书缺少唯一的角色卡位置锚点，拒绝猜测。');
+        throw new ZeroLayerError_ACU('effects-pending', 'Sổ thế giới của nội dung chính thiếu neo vị trí thẻ nhân vật duy nhất, từ chối đoán.');
       }
       index = anchors[0] + 1;
     }

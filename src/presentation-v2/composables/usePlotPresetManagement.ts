@@ -43,7 +43,7 @@ interface DraftContextRules {
 
 type PlotRateDraft = Record<PlotRateField, number>;
 
-const DEFAULT_NEW_PRESET_NAME = '新预设';
+const DEFAULT_NEW_PRESET_NAME = 'Preset mới';
 
 function emptyDraftMeta(): DraftMeta {
   return { name: '', taskApiPreset: '' };
@@ -133,11 +133,11 @@ export function usePlotPresetManagement() {
   const title = computed(() => {
     switch (drawerView.value) {
       case 'manage':
-        return '管理剧情推进预设';
+        return 'Quản lý preset đẩy cốt truyện';
       case 'edit':
-        return '编辑剧情推进预设';
+        return 'Sửa preset đẩy cốt truyện';
       case 'create':
-        return '从默认新建剧情推进预设';
+        return 'Tạo preset đẩy cốt truyện từ mặc định';
       default:
         return '';
     }
@@ -172,9 +172,9 @@ export function usePlotPresetManagement() {
   function confirmIfDirty(): boolean | Promise<boolean> {
     if (!isDirty.value) return true;
     return dialogStore.confirm({
-      title: '退出预设编辑',
-      message: '你有未保存的修改，确定要退出吗？',
-      confirmLabel: '退出',
+      title: 'Thoát chỉnh sửa preset',
+      message: 'Bạn có thay đổi chưa lưu, chắc chắn muốn thoát?',
+      confirmLabel: 'Thoát',
       confirmVariant: 'danger',
     });
   }
@@ -252,11 +252,11 @@ export function usePlotPresetManagement() {
   function validate(): boolean {
     const name = String(draftMeta.name || '').trim();
     if (!name) {
-      error.value = '预设名称不能为空。';
+      error.value = 'Tên preset không được để trống.';
       return false;
     }
     if (taskEditing.tasks.value.length === 0) {
-      error.value = '至少需要一个任务。';
+      error.value = 'Cần ít nhất một tác vụ.';
       return false;
     }
     error.value = '';
@@ -286,12 +286,12 @@ export function usePlotPresetManagement() {
     delete merged.contextExcludeTags;
     const ok = store.savePreset({ name: merged.name, raw: merged }, originalName.value);
     if (!ok) {
-      error.value = '预设保存失败。';
+      error.value = 'Lưu preset thất bại.';
       return false;
     }
     drawerView.value = 'manage';
     resetDraft();
-    toast.success('剧情推进预设已保存。');
+    toast.success('Đã lưu preset đẩy cốt truyện.');
     return true;
   }
 
@@ -302,14 +302,14 @@ export function usePlotPresetManagement() {
   function importFromJsonText(text: string): boolean {
     const result = store.importPresetFromJson(text);
     if (!result) {
-      error.value = '导入失败：JSON 无效或缺少 name 字段。';
+      error.value = 'Nhập thất bại: JSON không hợp lệ hoặc thiếu trường name.';
       return false;
     }
     if (!store.setActivePresetForCurrentChat(result)) {
-      error.value = '已保存到预设库，但无法切换为当前聊天预设。可在下拉框手动选择。';
+      error.value = 'Đã lưu vào thư viện preset nhưng không thể chuyển thành preset của cuộc trò chuyện hiện tại. Có thể chọn thủ công trong danh sách thả xuống.';
       return false;
     }
-    toast.success('剧情推进预设 JSON 已导入。', { muteable: false });
+    toast.success('Đã nhập JSON preset đẩy cốt truyện.', { muteable: false });
     return true;
   }
 

@@ -1259,7 +1259,7 @@ export function writeIsolatedTagData_ACU(msg: any, isolationKey: string, tagData
     if (!msg) return;
     if (isV1TablePayloadCandidate_ACU(tagData)) {
         const error = new Error(
-            `[write-barrier] 拒绝写入 Legacy-V1 表格 payload：${LEGACY_V1_TABLE_WRITE_FORBIDDEN_ACU} `
+            `[write-barrier] từ chối ghi payload bảng Legacy-V1: ${LEGACY_V1_TABLE_WRITE_FORBIDDEN_ACU} `
             + `isolationKey=${String(isolationKey)}`,
         );
         (error as any).code = LEGACY_V1_TABLE_WRITE_FORBIDDEN_ACU;
@@ -1749,7 +1749,7 @@ export function patchIsolatedTagMetadata_ACU(
     if (!msg || !isUsableIsolationSlotKey_ACU(isolationKey)) return { changed: false, tagData: null };
     if (!isObjectRecord_ACU(patch)) {
         const error = new Error(
-            `[metadata-patch] patch 必须是对象：${ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU} isolationKey=${String(isolationKey)}`,
+            `[metadata-patch] patch phải là đối tượng: ${ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU} isolationKey=${String(isolationKey)}`,
         );
         (error as any).code = ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU;
         throw error;
@@ -1760,7 +1760,7 @@ export function patchIsolatedTagMetadata_ACU(
     const forbiddenKeys = patchKeys.filter((key) => !ISOLATED_TAG_METADATA_PATCH_ALLOWLIST_ACU.includes(key as any));
     if (forbiddenKeys.length > 0) {
         const error = new Error(
-            `[metadata-patch] 越权修改非批准字段：${ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU} `
+            `[metadata-patch] sửa vượt quyền các trường không được phê duyệt: ${ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU} `
             + `isolationKey=${String(isolationKey)} fields=${forbiddenKeys.join(',')}`,
         );
         (error as any).code = ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU;
@@ -1780,7 +1780,7 @@ export function patchIsolatedTagMetadata_ACU(
         const currentIndexId = currentManifest?.indexId ?? currentTagData?.summaryVectorIndexState?.indexId;
         if (String(currentIndexId || '') !== String(expectedIndexId)) {
             const error = new Error(
-                `[metadata-patch] 预期 indexId 冲突：${ISOLATED_TAG_METADATA_PATCH_CONFLICT_ACU} `
+                `[metadata-patch] xung đột indexId mong đợi: ${ISOLATED_TAG_METADATA_PATCH_CONFLICT_ACU} `
                 + `isolationKey=${String(isolationKey)} expected=${String(expectedIndexId)} actual=${String(currentIndexId || '')}`,
             );
             (error as any).code = ISOLATED_TAG_METADATA_PATCH_CONFLICT_ACU;
@@ -1804,7 +1804,7 @@ export function patchIsolatedTagMetadata_ACU(
     if (currentTagData) {
         if (!hasEquivalentTableProjection_ACU(currentTagData, candidateTagData)) {
             const error = new Error(
-                `[metadata-patch] 表存储投影不得被 metadata patch 修改：${ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU} `
+                `[metadata-patch] phép chiếu lưu trữ bảng không được sửa bởi metadata patch: ${ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU} `
                 + `isolationKey=${String(isolationKey)}`,
             );
             (error as any).code = ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU;
@@ -1815,7 +1815,7 @@ export function patchIsolatedTagMetadata_ACU(
         const nonAllowlisted = collectNonAllowlistedTagFields_ACU(candidateTagData);
         if (nonAllowlisted.length > 0) {
             const error = new Error(
-                `[metadata-patch] 新槽不得携带表字段：${ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU} `
+                `[metadata-patch] slot mới không được mang trường bảng: ${ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU} `
                 + `isolationKey=${String(isolationKey)} fields=${nonAllowlisted.join(',')}`,
             );
             (error as any).code = ISOLATED_TAG_METADATA_PATCH_FORBIDDEN_ACU;

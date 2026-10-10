@@ -333,7 +333,7 @@ function preflightVectorIndexSnapshotPath_ACU(parts: {
         });
         return { ok: true };
     } catch (error: any) {
-        return { ok: false, error: String(error?.message || error || '快照路径长度超出宿主安全上限') };
+        return { ok: false, error: String(error?.message || error || 'Độ dài đường dẫn snapshot vượt quá giới hạn an toàn của host') };
     }
 }
 
@@ -429,10 +429,10 @@ export function buildPreparedRows_ACU(table: any, summaryKey: string): {
     const indexColIdx = resolveColumnIndexByAliases_ACU(headerRow, SUMMARY_INDEX_CODE_COLUMN_ALIASES_ACU);
     const chronicleColIdx = resolveColumnIndexByAliases_ACU(headerRow, SUMMARY_CHRONICLE_COLUMN_ALIASES_ACU);
     if (summaryColIdx < 0) {
-        return { rows: [], skippedRowCount: 0, error: '纪要表缺少概要列，无法构建纪要向量索引。' };
+        return { rows: [], skippedRowCount: 0, error: 'Bảng kỷ yếu thiếu cột tóm lược, không thể xây dựng chỉ mục vector kỷ yếu.' };
     }
     if (indexColIdx < 0) {
-        return { rows: [], skippedRowCount: 0, error: '纪要表缺少编码索引列，无法构建纪要向量索引。' };
+        return { rows: [], skippedRowCount: 0, error: 'Bảng kỷ yếu thiếu cột chỉ mục mã hóa, không thể xây dựng chỉ mục vector kỷ yếu.' };
     }
 
     const dataRows = content.slice(1).filter((row: any) => Array.isArray(row));
@@ -476,7 +476,7 @@ export function buildPreparedRows_ACU(table: any, summaryKey: string): {
     });
 
     if (duplicateRowId) {
-        return { rows: [], skippedRowCount, error: `纪要表存在重复 row_id=${duplicateRowId}，无法建立唯一向量身份。` };
+        return { rows: [], skippedRowCount, error: `Bảng kỷ yếu có row_id trùng lặp ${duplicateRowId}, không thể thiết lập danh tính vector duy nhất.` };
     }
     return { rows: preparedRows, skippedRowCount, error: '' };
 }
@@ -1053,7 +1053,7 @@ export async function migrateLegacySummaryVectorIndexToContentAddressed_ACU(opti
         return buildResult_ACU({
             success: false,
             reason: 'summary_vector_index_delayed_publish_unsupported',
-            errors: ['纪要向量索引不支持延迟保存：没有可跨调用边界确认 durable publish 的安全句柄。'],
+            errors: ['Chỉ mục vector kỷ yếu không hỗ trợ lưu trì hoãn: không có handle an toàn nào có thể xác nhận durable publish xuyên ranh giới lời gọi.'],
         });
     }
     const config = getEffectiveSummaryVectorIndexConfig_ACU();
@@ -1114,7 +1114,7 @@ export async function migrateLegacySummaryVectorIndexToContentAddressed_ACU(opti
             messageIndex: latestLayer.messageIndex,
             summaryKey: manifest.sourceTableKey,
             reason: 'legacy_manifest_missing_rows_or_chunks',
-            errors: ['旧交火索引可读取外置分片，但楼层缺少可迁移的行状态；为避免破坏旧数据，已拒绝半迁移。'],
+            errors: ['Chỉ mục giao hỏa cũ đọc được phân mảnh bên ngoài, nhưng tầng thiếu trạng thái hàng có thể di chuyển; để tránh phá hỏng dữ liệu cũ, đã từ chối di chuyển nửa vời.'],
         });
     }
 
@@ -1124,7 +1124,7 @@ export async function migrateLegacySummaryVectorIndexToContentAddressed_ACU(opti
         return buildResult_ACU({
             success: false,
             reason: 'target_message_invalid',
-            errors: ['旧交火索引所在楼层不存在或不是 AI 楼层，无法安全写入迁移 manifest。'],
+            errors: ['Tầng chứa chỉ mục giao hỏa cũ không tồn tại hoặc không phải tầng AI, không thể ghi manifest di chuyển một cách an toàn.'],
         });
     }
 
@@ -1200,7 +1200,7 @@ export async function archiveSummaryVectorIndexNow_ACU(options: SummaryVectorInd
         return buildResult_ACU({
             success: false,
             reason: 'summary_vector_index_delayed_publish_unsupported',
-            errors: ['纪要向量索引不支持延迟保存：没有可跨调用边界确认 durable publish 的安全句柄。'],
+            errors: ['Chỉ mục vector kỷ yếu không hỗ trợ lưu trì hoãn: không có handle an toàn nào có thể xác nhận durable publish xuyên ranh giới lời gọi.'],
         });
     }
     const config = getEffectiveSummaryVectorIndexConfig_ACU();
@@ -1219,7 +1219,7 @@ export async function archiveSummaryVectorIndexNow_ACU(options: SummaryVectorInd
         ? activeIsolationKey
         : normalizeSummaryVectorIndexScope_ACU({ isolationKey: options.isolationKey }).isolationKey;
     if (requestedIsolationKey !== activeIsolationKey) {
-        return buildResult_ACU({ success: false, reason: 'archive_scope_not_active', errors: ['归档只能处理当前激活的 isolation scope。'] });
+        return buildResult_ACU({ success: false, reason: 'archive_scope_not_active', errors: ['Lưu trữ chỉ xử lý được isolation scope đang kích hoạt.'] });
     }
     const isolationKey = requestedIsolationKey;
     const tagIsolationKey = options.tagIsolationKey ?? activeTagIsolationKey;
@@ -1237,7 +1237,7 @@ export async function archiveSummaryVectorIndexNow_ACU(options: SummaryVectorInd
         return buildResult_ACU({
             success: false,
             reason: 'target_message_not_found',
-            errors: ['未找到可写入纪要向量索引的 AI 楼层。'],
+            errors: ['Không tìm thấy tầng AI để ghi chỉ mục vector kỷ yếu.'],
         });
     }
 
@@ -1247,7 +1247,7 @@ export async function archiveSummaryVectorIndexNow_ACU(options: SummaryVectorInd
         return buildResult_ACU({
             success: false,
             reason: 'target_message_invalid',
-            errors: ['目标楼层不是可写入的 AI 消息。'],
+            errors: ['Tầng đích không phải là tin nhắn AI có thể ghi.'],
         });
     }
 
@@ -1281,7 +1281,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
         ? activeIsolationKey
         : normalizeSummaryVectorIndexScope_ACU({ isolationKey: options.isolationKey }).isolationKey;
     if (requestedIsolationKey !== activeIsolationKey) {
-        return buildResult_ACU({ success: false, reason: 'archive_scope_not_active', errors: ['归档只能处理当前激活的 isolation scope。'] });
+        return buildResult_ACU({ success: false, reason: 'archive_scope_not_active', errors: ['Lưu trữ chỉ xử lý được isolation scope đang kích hoạt.'] });
     }
     const isolationKey = requestedIsolationKey;
     const tagIsolationKey = options.tagIsolationKey ?? activeTagIsolationKey;
@@ -1299,7 +1299,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
         return buildResult_ACU({
             success: false,
             reason: 'target_message_not_found',
-            errors: ['未找到可写入纪要向量索引的 AI 楼层。'],
+            errors: ['Không tìm thấy tầng AI để ghi chỉ mục vector kỷ yếu.'],
         });
     }
 
@@ -1309,7 +1309,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
         return buildResult_ACU({
             success: false,
             reason: 'target_message_invalid',
-            errors: ['目标楼层不是可写入的 AI 消息。'],
+            errors: ['Tầng đích không phải là tin nhắn AI có thể ghi.'],
         });
     }
 
@@ -1318,7 +1318,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
         return buildResult_ACU({
             success: false,
             reason: 'snapshot_anchor_unresolved',
-            errors: ['目标楼层缺少可用的本地聊天记录锚点，无法写入纪要向量索引。'],
+            errors: ['Tầng đích thiếu neo bản ghi cuộc trò chuyện cục bộ khả dụng, không thể ghi chỉ mục vector kỷ yếu.'],
         });
     }
     const snapshotMessageId = snapshotAnchor.anchor;
@@ -1365,7 +1365,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
                     messageIndex: targetMessageIndex,
                     skippedRowCount: prepared.skippedRowCount,
                     reason: 'summary_vector_index_clear_failed',
-                    errors: [normalizeText_ACU(error?.message) || '纪要向量索引清理失败'],
+                    errors: [normalizeText_ACU(error?.message) || 'Dọn chỉ mục vector kỷ yếu thất bại'],
                 });
             }
         }
@@ -1416,7 +1416,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
                     summaryKey: selectedSummary.summaryKey,
                     messageIndex: targetMessageIndex,
                     reason: 'row_identity_migration_required',
-                    errors: ['当前交火索引缺少可验证的 retained rows/chunks，无法安全执行行级向量清理。'],
+                    errors: ['Chỉ mục giao hỏa hiện tại thiếu retained rows/chunks có thể kiểm chứng, không thể dọn vector cấp hàng một cách an toàn.'],
                 });
             }
             await writeSummaryVectorIndexCheckpoint_ACU({
@@ -1476,7 +1476,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
                 summaryKey: selectedSummary.summaryKey,
                 messageIndex: targetMessageIndex,
                 reason: 'row_identity_migration_required',
-                errors: ['当前交火索引缺少可验证的唯一 rowId 映射；请使用“立即构建”执行显式全量重建。'],
+                errors: ['Chỉ mục giao hỏa hiện tại thiếu ánh xạ rowId duy nhất có thể kiểm chứng; hãy dùng "Xây dựng ngay" để xây dựng lại toàn bộ một cách rõ ràng.'],
             });
         }
         const preparedRows = reusable.preparedRows;
@@ -1519,7 +1519,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
                 messageIndex: targetMessageIndex,
                 reason: 'vector_index_path_too_long',
                 retryability: 'terminal',
-                errors: [pathPreflight.error || '快照路径长度超出宿主安全上限'],
+                errors: [pathPreflight.error || 'Độ dài đường dẫn snapshot vượt quá giới hạn an toàn của host'],
             });
         }
         const embeddedRows: ChatSummaryVectorIndexRow_ACU[] = [];
@@ -1549,7 +1549,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
                 summaryKey: selectedSummary.summaryKey,
                 messageIndex: targetMessageIndex,
                 reason: 'embedding_empty',
-                errors: ['纪要向量索引 embedding 结果为空。'],
+                errors: ['Kết quả embedding của chỉ mục vector kỷ yếu rỗng.'],
             });
         }
 
@@ -1660,7 +1660,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
                 reason: 'embedding_request_failed',
                 retryability: embeddingRetryability,
                 ...(credentialFingerprint ? { credentialFingerprint } : {}),
-                errors: [`Embedding 请求失败（${error.kind}${error.httpStatus != null ? `, HTTP ${error.httpStatus}` : ''}）: ${detail}`],
+                errors: [`Yêu cầu Embedding thất bại (${error.kind}${error.httpStatus != null ? `, HTTP ${error.httpStatus}` : ''}): ${detail}`],
             });
         }
         return buildResult_ACU({
@@ -1669,7 +1669,7 @@ async function archiveSummaryVectorIndexNowUnlocked_ACU(options: SummaryVectorIn
             summaryKey: selectedSummary.summaryKey,
             messageIndex: targetMessageIndex,
             reason: 'summary_vector_index_archive_failed',
-            errors: [normalizeText_ACU(error?.message) || '纪要向量索引归档失败'],
+            errors: [normalizeText_ACU(error?.message) || 'Lưu trữ chỉ mục vector kỷ yếu thất bại'],
         });
     }
 }

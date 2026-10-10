@@ -14,12 +14,12 @@ import { ensureSheetOrderNumbers_ACU, logError_ACU, parseTableTemplateJson_ACU }
 
   // 手动合并纪要功能已从主界面隐藏并停用；保留导出函数形状，防止旧调用方直接报错。
   export async function handleManualMergeSummary_ACU() {
-      showToastr_ACU('info', '合并总结功能已停用。');
+      showToastr_ACU('info', 'Chức năng gộp tóm tắt đã ngừng dùng.');
   }
 
   export function exportCombinedSettings_ACU() {    const promptSegments = getCharCardPromptFromUI_ACU();
     if (!promptSegments || promptSegments.length === 0) {
-      showToastr_ACU('warning', '没有可导出的提示词。');
+      showToastr_ACU('warning', 'Không có prompt để xuất.');
       return;
     }
 
@@ -27,7 +27,7 @@ import { ensureSheetOrderNumbers_ACU, logError_ACU, parseTableTemplateJson_ACU }
         // [修复] 合并导出应导出“当前模板”（localStorage/内存中的模板），并兼容旧模板缺少顺序编号的情况
         const templateObj = parseTableTemplateJson_ACU({ stripSeedRows: false });
         if (!templateObj || typeof templateObj !== 'object') {
-            throw new Error('无法解析当前模板。');
+            throw new Error('Không thể phân tích mẫu hiện tại.');
         }
         const sheetKeys = Object.keys(templateObj).filter(k => k.startsWith('sheet_'));
         ensureSheetOrderNumbers_ACU(templateObj, { baseOrderKeys: sheetKeys, forceRebuild: false });
@@ -57,9 +57,9 @@ import { ensureSheetOrderNumbers_ACU, logError_ACU, parseTableTemplateJson_ACU }
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showToastr_ACU('success', '合并配置已成功导出！');
+        showToastr_ACU('success', 'Đã xuất cấu hình gộp thành công!');
     } catch (error) {
         logError_ACU('导出合并配置失败:', error);
-        showToastr_ACU('error', '导出合并配置失败，请检查控制台获取详情。');
+        showToastr_ACU('error', 'Xuất cấu hình gộp thất bại, hãy kiểm tra console để biết chi tiết.');
     }
   }

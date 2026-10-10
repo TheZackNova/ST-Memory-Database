@@ -66,7 +66,7 @@ async function readFileText(file: File): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
-    reader.onerror = () => reject(reader.error ?? new Error('文件读取失败'));
+    reader.onerror = () => reject(reader.error ?? new Error('Đọc tệp thất bại'));
     reader.readAsText(file, 'UTF-8');
   });
 }
@@ -101,7 +101,7 @@ function getAiMessageCount(): number {
 function buildCombinedExportPayload(): Record<string, unknown> {
   const templateObj = parseTableTemplateJson_ACU({ stripSeedRows: false });
   if (!templateObj || typeof templateObj !== 'object') {
-    throw new Error('无法解析当前模板。');
+    throw new Error('Không thể phân tích mẫu hiện tại.');
   }
 
   const sheetKeys = Object.keys(templateObj).filter(k => k.startsWith('sheet_'));
@@ -143,9 +143,9 @@ export function useDataManagement() {
 
   const currentIsolationLabel = computed(() => {
     const code = activeIsolationCode.value;
-    return code || '默认数据（未隔离）';
+    return code || 'Dữ liệu mặc định (không cô lập)';
   });
-  const isolationModeLabel = computed(() => (activeIsolationCode.value ? '已启用隔离' : '未启用隔离'));
+  const isolationModeLabel = computed(() => (activeIsolationCode.value ? 'Đã bật cô lập' : 'Chưa bật cô lập'));
   const isolationHistoryOptions = computed(() =>
     isolationHistory.value.map(code => ({ value: code, label: code })),
   );
@@ -158,10 +158,10 @@ export function useDataManagement() {
   const rangeLabel = computed(() => {
     const start = normalizeFloorValue(deleteRange.startFloor);
     const end = normalizeFloorValue(deleteRange.endFloor);
-    if (start && end) return `第 ${start} 到 ${end} 个 AI 楼层`;
-    if (start) return `从第 ${start} 个 AI 楼层开始`;
-    if (end) return `到第 ${end} 个 AI 楼层结束`;
-    return '全部 AI 楼层';
+    if (start && end) return `Từ tầng AI thứ ${start} đến ${end}`;
+    if (start) return `Từ tầng AI thứ ${start} trở đi`;
+    if (end) return `Đến tầng AI thứ ${end}`;
+    return 'Tất cả tầng AI';
   });
   const tableCount = computed(() =>
     currentJsonTableData_ACU && typeof currentJsonTableData_ACU === 'object'
@@ -236,11 +236,11 @@ export function useDataManagement() {
       isolationCode.value = targetCode;
       isolationHistory.value = getDataIsolationHistory_ACU();
       message.value = null;
-      toast.success(`已切换到 ${targetCode || '默认数据（未隔离）'}。`);
+      toast.success(`Đã chuyển sang ${targetCode || 'Dữ liệu mặc định (không cô lập)'}.`);
     } catch (e: any) {
       logError_ACU('[ACU-V2] applyIsolation failed', e);
       message.value = null;
-      toast.error('切换隔离标识失败，详情见运行日志。');
+      toast.error('Chuyển mã cô lập thất bại, xem chi tiết trong nhật ký chạy.');
     } finally {
       busyAction.value = '';
     }
@@ -262,15 +262,15 @@ export function useDataManagement() {
         isolationCode.value = '';
         isolationHistory.value = getDataIsolationHistory_ACU();
         message.value = null;
-        toast.success(`已从历史记录移除标识：${target}；当前已切换到默认数据（未隔离）。`);
+        toast.success(`Đã xóa mã khỏi lịch sử: ${target}; hiện đã chuyển sang dữ liệu mặc định (không cô lập).`);
       } else {
         message.value = null;
-        toast.success(`已从历史记录移除标识：${target}`);
+        toast.success(`Đã xóa mã khỏi lịch sử: ${target}`);
       }
     } catch (e: any) {
       logError_ACU('[ACU-V2] removeHistory failed', e);
       message.value = null;
-      toast.error('移除历史标识失败，详情见运行日志。');
+      toast.error('Xóa mã lịch sử thất bại, xem chi tiết trong nhật ký chạy.');
     } finally {
       busyAction.value = '';
     }
@@ -284,16 +284,16 @@ export function useDataManagement() {
       refresh();
       message.value = null;
       if (result.failedCodes.length > 0) {
-        toast.warning(`已清理 ${result.removedCodes.length} 个旧隔离标签；${result.failedCodes.length} 个删除失败，已保留登记，可重试。`);
+        toast.warning(`Đã dọn ${result.removedCodes.length} nhãn cô lập cũ; ${result.failedCodes.length} lần xóa thất bại, đã giữ lại đăng ký, có thể thử lại.`);
       } else if (result.removedCodes.length === 0) {
-        toast.info('没有发现可清理的旧隔离标签。');
+        toast.info('Không tìm thấy nhãn cô lập cũ nào có thể dọn.');
       } else {
-        toast.success(`已清理 ${result.removedCodes.length} 个旧隔离标签，并切换到默认数据。`);
+        toast.success(`Đã dọn ${result.removedCodes.length} nhãn cô lập cũ và chuyển sang dữ liệu mặc định.`);
       }
     } catch (e: any) {
       logError_ACU('[ACU-V2] cleanupLegacyIsolationProfiles failed', e);
       message.value = null;
-      toast.error('清理旧隔离标签失败，详情见运行日志。');
+      toast.error('Dọn nhãn cô lập cũ thất bại, xem chi tiết trong nhật ký chạy.');
     } finally {
       busyAction.value = '';
     }
@@ -304,11 +304,11 @@ export function useDataManagement() {
     try {
       await deleteAllGeneratedEntries_ACU();
       message.value = null;
-      toast.success('已删除当前标识对应的数据库注入条目。');
+      toast.success('Đã xóa các mục chèn CSDL tương ứng với mã hiện tại.');
     } catch (e: any) {
       logError_ACU('[ACU-V2] deleteCurrentIsolationEntries failed', e);
       message.value = null;
-      toast.error('删除注入条目失败，详情见运行日志。');
+      toast.error('Xóa mục chèn thất bại, xem chi tiết trong nhật ký chạy.');
     } finally {
       busyAction.value = '';
     }
@@ -319,8 +319,8 @@ export function useDataManagement() {
     try {
       const text = await readFileText(file);
       const combinedData = JSON.parse(text);
-      if (!Array.isArray(combinedData?.prompt)) throw new Error('"prompt" 的值必须是数组。');
-      if (!combinedData?.template || typeof combinedData.template !== 'object') throw new Error('缺少有效的 "template" 对象。');
+      if (!Array.isArray(combinedData?.prompt)) throw new Error('"prompt" có giá trị phải là mảng.');
+      if (!combinedData?.template || typeof combinedData.template !== 'object') throw new Error('Thiếu đối tượng "template" hợp lệ.');
 
       applyCombinedSettingsImport_ACU(combinedData);
       const applied = await applyTemplateSnapshotToScope_ACU(combinedData.template, {
@@ -330,16 +330,16 @@ export function useDataManagement() {
         save: true,
         persistChatScope: false,
       });
-      if (!applied) throw new Error('模板结构无效，无法应用到当前全局模板。');
+      if (!applied) throw new Error('Cấu trúc mẫu không hợp lệ, không thể áp dụng vào mẫu toàn cục hiện tại.');
       if (typeof applied === 'object' && 'saved' in applied && applied.saved === false) {
-        throw new Error((applied as any).error || '模板已解析，但应用到当前全局模板失败（当前聊天协调提交被拒绝）。');
+        throw new Error((applied as any).error || 'Mẫu đã được phân tích nhưng áp dụng vào mẫu toàn cục hiện tại thất bại (bản cam kết điều phối của cuộc trò chuyện hiện tại bị từ chối).');
       }
       refresh();
       message.value = null;
-      toast.success('合并配置已导入：提示词、合并设置和全局模板已更新。', { muteable: false });
+      toast.success('Đã nhập cấu hình gộp: prompt, cài đặt gộp và mẫu toàn cục đã được cập nhật.', { muteable: false });
     } catch (e: any) {
       logError_ACU('[ACU-V2] importCombinedSettings failed', e);
-      setMessage(message, 'error', `合并导入失败：${e?.message || '未知错误'}`);
+      setMessage(message, 'error', `Nhập gộp thất bại: ${e?.message || 'Lỗi không xác định'}`);
     } finally {
       busyAction.value = '';
     }
@@ -350,18 +350,18 @@ export function useDataManagement() {
       const payload = buildCombinedExportPayload();
       downloadJson('TavernDB_Combined_Settings.json', payload);
       message.value = null;
-      toast.success('合并配置已导出。');
+      toast.success('Đã xuất cấu hình gộp.');
     } catch (e: any) {
       logError_ACU('[ACU-V2] exportCombinedSettings failed', e);
       message.value = null;
-      toast.error('合并配置导出失败，详情见运行日志。');
+      toast.error('Xuất cấu hình gộp thất bại, xem chi tiết trong nhật ký chạy.');
     }
   }
 
   function exportJsonData(): void {
     if (!currentJsonTableData_ACU) {
       message.value = null;
-      toast.warning('没有可导出的数据库。请先开始一个对话或加载当前聊天数据。');
+      toast.warning('Không có CSDL để xuất. Hãy bắt đầu một cuộc trò chuyện hoặc nạp dữ liệu cuộc trò chuyện hiện tại trước.');
       return;
     }
     try {
@@ -369,11 +369,11 @@ export function useDataManagement() {
       const chatName = String(currentChatFileIdentifier_ACU || 'current_chat').replace(/[\\/:*?"<>|]+/g, '_');
       downloadJson(`TavernDB_data_${chatName}.json`, sanitized);
       message.value = null;
-      toast.success('当前聊天数据库 JSON 已导出。');
+      toast.success('Đã xuất JSON CSDL của cuộc trò chuyện hiện tại.');
     } catch (e: any) {
       logError_ACU('[ACU-V2] exportJsonData failed', e);
       message.value = null;
-      toast.error('导出 JSON 失败，详情见运行日志。');
+      toast.error('Xuất JSON thất bại, xem chi tiết trong nhật ký chạy.');
     }
   }
 
@@ -383,18 +383,18 @@ export function useDataManagement() {
       const chatName = String(currentChatFileIdentifier_ACU || 'current_chat').replace(/[\\/:*?"<>|]+/g, '_');
       downloadJson(`TavernDB_checkpoint_${chatName}_${formatCheckpointExportTimestamp()}.json`, checkpoint);
       message.value = null;
-      toast.success('当前聊天 Checkpoint 已导出。');
+      toast.success('Đã xuất Checkpoint của cuộc trò chuyện hiện tại.');
     } catch (e: any) {
       logError_ACU('[ACU-V2] exportTableCheckpoint failed', e);
       message.value = null;
-      toast.error(`导出 Checkpoint 失败：${e?.message || '未知错误'}`);
+      toast.error(`Xuất Checkpoint thất bại: ${e?.message || 'Lỗi không xác định'}`);
     }
   }
 
   function exportMixedStorageSnapshots(): void {
     const decision = mixedStorageDecision.value;
     if (!decision) {
-      toast.warning('当前没有可导出的混合存储决议。');
+      toast.warning('Hiện không có quyết định lưu trữ hỗn hợp nào để xuất.');
       return;
     }
     busyAction.value = 'export-mixed-storage-snapshots';
@@ -402,11 +402,11 @@ export function useDataManagement() {
       const transfer = buildRegisteredMixedStorageSnapshotTransfer_ACU(decision.decisionId);
       downloadJson(transfer.legacy.filename, transfer.legacy.payload);
       downloadJson(transfer.v2.filename, transfer.v2.payload);
-      toast.success('已导出 legacy-v1 与 V2 两份混合存储快照。');
+      toast.success('Đã xuất hai snapshot lưu trữ hỗn hợp legacy-v1 và V2.');
     } catch (e: any) {
       logError_ACU('[ACU-V2] exportMixedStorageSnapshots failed', e);
       mixedStorageDecision.value = getActiveMixedStorageDecisionSummary_ACU();
-      toast.error(`导出混合存储快照失败：${e?.message || '未知错误'}`);
+      toast.error(`Xuất snapshot lưu trữ hỗn hợp thất bại: ${e?.message || 'Lỗi không xác định'}`);
     } finally {
       busyAction.value = '';
     }
@@ -415,7 +415,7 @@ export function useDataManagement() {
   async function commitMixedStorageDecision(action: MixedStorageCommitAction_ACU): Promise<void> {
     const decision = mixedStorageDecision.value;
     if (!decision) {
-      toast.warning('混合存储决议已失效，请重新加载当前聊天。');
+      toast.warning('Quyết định lưu trữ hỗn hợp đã hết hiệu lực, vui lòng nạp lại cuộc trò chuyện hiện tại.');
       return;
     }
     busyAction.value = `commit-mixed-storage-${action}`;
@@ -423,16 +423,16 @@ export function useDataManagement() {
       const result = await commitRegisteredMixedStorageDecision_ACU(decision.decisionId, action);
       mixedStorageDecision.value = getActiveMixedStorageDecisionSummary_ACU();
       if (result.status === 'committed') {
-        toast.success(action === 'keep_v2' ? '已保留 V2 数据并清理冗余 legacy 数据。' : '已提交经验证的混合存储合并候选。');
+        toast.success(action === 'keep_v2' ? 'Đã giữ dữ liệu V2 và dọn dữ liệu legacy dư thừa.' : 'Đã cam kết ứng viên gộp lưu trữ hỗn hợp đã được xác minh.');
       } else if (result.status === 'committed_postcondition_failed') {
-        toast.warning(`数据已保存，但后置校验失败：${result.error || '未知错误'}。请重新加载当前聊天后核对数据。`, { muteable: false, durationMs: 6000 });
+        toast.warning(`Dữ liệu đã được lưu nhưng kiểm tra hậu điều kiện thất bại: ${result.error || 'Lỗi không xác định'}. Vui lòng nạp lại cuộc trò chuyện hiện tại rồi đối chiếu dữ liệu.`, { muteable: false, durationMs: 6000 });
       } else {
-        toast.error(`混合存储提交失败：${result.error || '未知错误'}`);
+        toast.error(`Cam kết lưu trữ hỗn hợp thất bại: ${result.error || 'Lỗi không xác định'}`);
       }
     } catch (e: any) {
       logError_ACU('[ACU-V2] commitMixedStorageDecision failed', e);
       mixedStorageDecision.value = getActiveMixedStorageDecisionSummary_ACU();
-      toast.error(`混合存储决议已失效：${e?.message || '未知错误'}`);
+      toast.error(`Quyết định lưu trữ hỗn hợp đã hết hiệu lực: ${e?.message || 'Lỗi không xác định'}`);
     } finally {
       busyAction.value = '';
     }
@@ -443,14 +443,14 @@ export function useDataManagement() {
     try {
       v2IsolationDiagnostics.value = await scanV2IsolationDiagnostics_ACU();
       if (v2IsolationDiagnostics.value.length === 0) {
-        toast.warning('当前聊天不存在 V2 storage frame，无法生成隔离域恢复诊断。');
+        toast.warning('Cuộc trò chuyện hiện tại không có V2 storage frame, không thể tạo chẩn đoán khôi phục miền cô lập.');
       } else {
-        toast.info(`已完成 ${v2IsolationDiagnostics.value.length} 个 V2 隔离域的只读诊断。`);
+        toast.info(`Đã hoàn tất chẩn đoán chỉ đọc cho ${v2IsolationDiagnostics.value.length} miền cô lập V2.`);
       }
     } catch (e: any) {
       logError_ACU('[ACU-V2] scanV2IsolationDiagnostics failed', e);
       v2IsolationDiagnostics.value = [];
-      toast.error(`V2 隔离域诊断失败：${e?.message || '未知错误'}`);
+      toast.error(`Chẩn đoán miền cô lập V2 thất bại: ${e?.message || 'Lỗi không xác định'}`);
     } finally {
       busyAction.value = '';
     }
@@ -462,33 +462,33 @@ export function useDataManagement() {
       v2RecoverySummary.value = await prepareV2Recovery_ACU();
       const summary = v2RecoverySummary.value;
       if (summary.status === 'recoverable_repaired_checkpoint') {
-        toast.warning('检测到可修复的 V2 full checkpoint。请先导出原始 frame 备份，再确认提交。', { muteable: false, durationMs: 6000 });
+        toast.warning('Phát hiện V2 full checkpoint có thể sửa. Hãy xuất bản sao lưu frame gốc trước, rồi xác nhận cam kết.', { muteable: false, durationMs: 6000 });
       } else if (summary.status === 'recoverable_orphan_data_replace') {
-        toast.warning('检测到无锚点 data_replace。该恢复必须经过两次明确确认。', { muteable: false, durationMs: 6000 });
+        toast.warning('Phát hiện data_replace không có mốc neo. Việc khôi phục này phải được xác nhận rõ ràng hai lần.', { muteable: false, durationMs: 6000 });
       } else if (summary.status === 'recoverable_temporary_sheet_anchor') {
-        toast.warning('检测到历史回放依赖临时 Sheet 补锚。请提交恢复，将兼容状态固化为 integrity_repair checkpoint。', { muteable: false, durationMs: 6000 });
+        toast.warning('Phát hiện phát lại lịch sử phụ thuộc vào việc bổ sung mốc neo bằng Sheet tạm. Hãy cam kết khôi phục để cố định trạng thái tương thích thành integrity_repair checkpoint.', { muteable: false, durationMs: 6000 });
       } else if (summary.status === 'recoverable_redundant_full_checkpoint') {
-        toast.warning('检测到同一隔离键下存在多个 full checkpoint（回放只认最后一个，之前增量已失效）。请先导出原始 frame 备份，再提交收敛。', { muteable: false, durationMs: 6000 });
+        toast.warning('Phát hiện nhiều full checkpoint dưới cùng một khóa cô lập (phát lại chỉ nhận cái cuối cùng, các phần tăng thêm trước đó đã mất hiệu lực). Hãy xuất bản sao lưu frame gốc trước, rồi cam kết hội tụ.', { muteable: false, durationMs: 6000 });
       } else if (summary.status === 'recoverable_compat_tolerant_replay') {
         if (summary.planId) {
           toast.warning(
             summary.requiresConfirmation
-              ? '检测到聊天历史仅可经兼容宽容回放读出，且兼容结果含 sheetKey 身份归并。确认后可固化为过渡根，恢复写入与追平。'
-              : '检测到聊天历史仅可经兼容宽容回放读出（写入/追平被拒绝）。请提交固化，把兼容回放结果写成严格可回放的过渡根。',
+              ? 'Phát hiện lịch sử trò chuyện chỉ đọc được qua phát lại tương thích khoan dung, và kết quả tương thích có gộp danh tính sheetKey. Sau khi xác nhận có thể cố định thành gốc chuyển tiếp, khôi phục ghi và bắt kịp.'
+              : 'Phát hiện lịch sử trò chuyện chỉ đọc được qua phát lại tương thích khoan dung (ghi/bắt kịp bị từ chối). Hãy cam kết cố định để ghi kết quả phát lại tương thích thành gốc chuyển tiếp có thể phát lại nghiêm ngặt.',
             { muteable: false, durationMs: 6000 },
           );
         } else {
           toast.warning(summary.message, { muteable: false, durationMs: 8000 });
         }
       } else if (summary.status === 'unrecoverable_late_checkpoint_artifacts') {
-        toast.warning('检测到较晚 checkpoint 两侧均有 V2 artifact。自动前移会改变后缀回放语义；请先导出恢复备份，再人工核对。', { muteable: false, durationMs: 6000 });
+        toast.warning('Phát hiện cả hai phía của checkpoint muộn hơn đều có V2 artifact. Tự động dời lên sẽ thay đổi ngữ nghĩa phát lại hậu tố; hãy xuất bản sao lưu khôi phục trước rồi đối chiếu thủ công.', { muteable: false, durationMs: 6000 });
       } else {
         toast.warning(summary.message, { muteable: false, durationMs: 6000 });
       }
     } catch (e: any) {
       logError_ACU('[ACU-V2] prepareV2Recovery failed', e);
       v2RecoverySummary.value = null;
-      toast.error(`V2 恢复诊断失败：${e?.message || '未知错误'}`);
+      toast.error(`Chẩn đoán khôi phục V2 thất bại: ${e?.message || 'Lỗi không xác định'}`);
     } finally {
       busyAction.value = '';
     }
@@ -502,23 +502,23 @@ export function useDataManagement() {
       return backup ? [{ messageIndex, backup: JSON.parse(JSON.stringify(backup)) }] : [];
     });
     if (backups.length === 0) {
-      toast.warning('当前隔离标识没有可导出的 V2 恢复原始 frame 备份。');
+      toast.warning('Mã cô lập hiện tại không có bản sao lưu frame gốc khôi phục V2 nào để xuất.');
       return;
     }
     try {
       const chatName = String(currentChatFileIdentifier_ACU || 'current_chat').replace(/[\/:*?"<>|]+/g, '_');
       downloadJson(`TavernDB_v2_recovery_backups_${chatName}_${formatCheckpointExportTimestamp()}.json`, { version: 1, isolationKey, backups });
-      toast.success(`已导出 ${backups.length} 份 V2 恢复原始 frame 备份。`);
+      toast.success(`Đã xuất ${backups.length} bản sao lưu frame gốc khôi phục V2.`);
     } catch (e: any) {
       logError_ACU('[ACU-V2] exportV2RecoveryBackups failed', e);
-      toast.error(`导出 V2 恢复备份失败：${e?.message || '未知错误'}`);
+      toast.error(`Xuất sao lưu khôi phục V2 thất bại: ${e?.message || 'Lỗi không xác định'}`);
     }
   }
 
   async function commitV2Recovery(options: CommitPreparedV2RecoveryOptions_ACU = {}): Promise<void> {
     const summary = v2RecoverySummary.value;
     if (!summary?.planId || !summary.status.startsWith('recoverable_')) {
-      toast.warning('V2 恢复计划已失效，请重新诊断。');
+      toast.warning('Kế hoạch khôi phục V2 đã hết hiệu lực, vui lòng chẩn đoán lại.');
       return;
     }
     const isCompatFixation = summary.status === 'recoverable_compat_tolerant_replay';
@@ -528,17 +528,17 @@ export function useDataManagement() {
       if (result.status === 'committed') {
         v2RecoverySummary.value = null;
         toast.success(isCompatFixation
-          ? '兼容回放结果已固化为过渡根；原始 storage frame 未改写，写入与追平已恢复。'
-          : 'V2 恢复已保存；原始 frame 已写入隔离备份。');
+          ? 'Kết quả phát lại tương thích đã được cố định thành gốc chuyển tiếp; storage frame gốc không bị ghi đè, ghi và bắt kịp đã khôi phục.'
+          : 'Đã lưu khôi phục V2; frame gốc đã được ghi vào bản sao lưu cô lập.');
       } else if (result.status === 'committed_postcondition_failed') {
         v2RecoverySummary.value = null;
-        toast.warning(`V2 恢复已保存，但后置校验失败：${result.error || '未知错误'}。请重新加载当前聊天核对数据。`, { muteable: false, durationMs: 6000 });
+        toast.warning(`Đã lưu khôi phục V2 nhưng kiểm tra hậu điều kiện thất bại: ${result.error || 'Lỗi không xác định'}. Vui lòng nạp lại cuộc trò chuyện hiện tại để đối chiếu dữ liệu.`, { muteable: false, durationMs: 6000 });
       } else {
-        toast.error(`V2 恢复提交失败：${result.error || '未知错误'}`);
+        toast.error(`Cam kết khôi phục V2 thất bại: ${result.error || 'Lỗi không xác định'}`);
       }
     } catch (e: any) {
       logError_ACU('[ACU-V2] commitV2Recovery failed', e);
-      toast.error(`V2 恢复提交异常：${e?.message || '未知错误'}`);
+      toast.error(`Cam kết khôi phục V2 bất thường: ${e?.message || 'Lỗi không xác định'}`);
     } finally {
       busyAction.value = '';
     }
@@ -553,7 +553,7 @@ export function useDataManagement() {
     } catch (e: any) {
       logError_ACU('[ACU-V2] parseTableCheckpoint failed', e);
       message.value = null;
-      toast.error(`Checkpoint 文件无效：${e?.message || '未知错误'}`);
+      toast.error(`Tệp Checkpoint không hợp lệ: ${e?.message || 'Lỗi không xác định'}`);
       return null;
     } finally {
       busyAction.value = '';
@@ -564,43 +564,43 @@ export function useDataManagement() {
     busyAction.value = 'restore-checkpoint';
     try {
       const result = await restoreTableCheckpointToLatestAi_ACU(checkpoint);
-      if (!result.success) throw new Error(result.error || 'Checkpoint 恢复失败。');
+      if (!result.success) throw new Error(result.error || 'Khôi phục Checkpoint thất bại.');
       refresh();
       message.value = null;
       const cleanupWarnings = result.cleanupWarnings || [];
       const derivedRefreshWarnings = result.derivedRefreshWarnings || [];
       const postCondition = result.postCondition;
       const postConditionFailures = !postCondition
-        ? ['恢复后置条件缺失']
+        ? ['Thiếu hậu điều kiện khôi phục']
         : [
-            !postCondition.runtimeMatches ? '运行时数据不一致' : '',
-            !postCondition.scopeIsChatOverride ? '模板作用域不是 chat_override' : '',
-            !postCondition.templateMatches ? '聊天模板快照不一致' : '',
-            !postCondition.guideMatches ? '指导表不一致' : '',
+            !postCondition.runtimeMatches ? 'Dữ liệu runtime không nhất quán' : '',
+            !postCondition.scopeIsChatOverride ? 'Phạm vi mẫu không phải chat_override' : '',
+            !postCondition.templateMatches ? 'Snapshot mẫu của cuộc trò chuyện không nhất quán' : '',
+            !postCondition.guideMatches ? 'Bảng hướng dẫn không nhất quán' : '',
           ].filter(Boolean);
       const providerFallback = getCurrentStorageMode() === 'sqlite' && postCondition?.providerMode === 'native';
       const warnings = [
-        ...derivedRefreshWarnings.map(warning => `派生刷新：${warning}`),
-        ...cleanupWarnings.map(warning => `清理：${warning}`),
+        ...derivedRefreshWarnings.map(warning => `Làm mới phái sinh: ${warning}`),
+        ...cleanupWarnings.map(warning => `Dọn dẹp: ${warning}`),
       ];
-      const targetMessage = `第 ${result.restoredMessageIndex! + 1} 条消息`;
-      const providerMessage = `实际存储：${postCondition?.providerMode || '不可用'}`;
+      const targetMessage = `tin nhắn thứ ${result.restoredMessageIndex! + 1}`;
+      const providerMessage = `Lưu trữ thực tế: ${postCondition?.providerMode || 'Không khả dụng'}`;
       if (warnings.length || postConditionFailures.length || providerFallback) {
         const reasons = [
           ...postConditionFailures,
-          providerFallback ? '目标设置为 SQLite，实际存储 fallback 为 native' : '',
+          providerFallback ? 'Mục tiêu đặt là SQLite, lưu trữ thực tế fallback về native' : '',
           ...warnings,
-        ].filter(Boolean).join('；');
-        toast.warning(`Checkpoint 已恢复到${targetMessage}，但属于部分成功：${providerMessage}；${reasons}。`, { muteable: false, durationMs: 6000 });
+        ].filter(Boolean).join('; ');
+        toast.warning(`Checkpoint đã khôi phục về ${targetMessage}, nhưng chỉ thành công một phần: ${providerMessage}; ${reasons}.`, { muteable: false, durationMs: 6000 });
       } else {
-        toast.success(`Checkpoint 已恢复到${targetMessage}；${providerMessage}。`, { muteable: false });
+        toast.success(`Checkpoint đã khôi phục về ${targetMessage}; ${providerMessage}.`, { muteable: false });
       }
       for (const warning of cleanupWarnings) logError_ACU('[ACU-V2] Checkpoint cleanup warning', warning);
       for (const warning of derivedRefreshWarnings) logError_ACU('[ACU-V2] Checkpoint derived refresh warning', warning);
     } catch (e: any) {
       logError_ACU('[ACU-V2] restoreTableCheckpoint failed', e);
       message.value = null;
-      toast.error(`恢复 Checkpoint 失败：${e?.message || '未知错误'}`, { muteable: false });
+      toast.error(`Khôi phục Checkpoint thất bại: ${e?.message || 'Lỗi không xác định'}`, { muteable: false });
     } finally {
       busyAction.value = '';
     }
@@ -609,7 +609,7 @@ export function useDataManagement() {
   async function resetAllDefaults(options: ResetDefaultsCleanupOptions = {}): Promise<void> {
     const cleanup = normalizeResetDefaultsOptions(options);
     if (!hasSelectedResetDefaultsOption(cleanup)) {
-      toast.warning('未选择需要恢复或清理的项目。');
+      toast.warning('Chưa chọn mục cần khôi phục hoặc dọn.');
       return;
     }
 
@@ -618,33 +618,33 @@ export function useDataManagement() {
       const outcome = await resetAllDefaults_ACU(cleanup);
       if (outcome.skipped) {
         message.value = null;
-        toast.warning(outcome.failures[0]?.error || '未选择需要恢复或清理的项目。');
+        toast.warning(outcome.failures[0]?.error || 'Chưa chọn mục cần khôi phục hoặc dọn.');
         return;
       }
       if (!outcome.success) {
         const hardFailures = outcome.failures.filter(f => f.step !== 'derived_refresh');
-        const summary = outcome.failures.map(f => `${f.step}: ${f.error}`).join('；');
+        const summary = outcome.failures.map(f => `${f.step}: ${f.error}`).join('; ');
         message.value = null;
         if (hardFailures.length > 0) {
           toast.error(hardFailures.some(f => f.compensated)
-            ? `恢复默认部分失败：${summary}`
-            : `恢复默认失败：${summary}`);
+            ? `Khôi phục mặc định thất bại một phần: ${summary}`
+            : `Khôi phục mặc định thất bại: ${summary}`);
         } else {
-          toast.warning(`已按所选项目恢复默认配置，但后续刷新未完成：${summary}`);
+          toast.warning(`Đã khôi phục cấu hình mặc định theo các mục đã chọn, nhưng việc làm mới sau đó chưa hoàn tất: ${summary}`);
         }
         return;
       }
       if (outcome.warnings.length) {
-        toast.warning(`已按所选项目恢复默认配置，但部分后续刷新未完成：${outcome.warnings.join('；')}`);
+        toast.warning(`Đã khôi phục cấu hình mặc định theo các mục đã chọn, nhưng một phần việc làm mới sau đó chưa hoàn tất: ${outcome.warnings.join('; ')}`);
       } else {
-        toast.success('已按所选项目恢复默认配置。');
+        toast.success('Đã khôi phục cấu hình mặc định theo các mục đã chọn.');
       }
       refresh();
       message.value = null;
     } catch (e: any) {
       logError_ACU('[ACU-V2] resetAllDefaults failed', e);
       message.value = null;
-      toast.error('恢复默认失败，详情见运行日志。');
+      toast.error('Khôi phục mặc định thất bại, xem chi tiết trong nhật ký chạy.');
     } finally {
       busyAction.value = '';
     }
@@ -655,21 +655,21 @@ export function useDataManagement() {
     try {
       applyTemplateScopeForCurrentChat_ACU();
       const templateData = parseTableTemplateJson_ACU({ stripSeedRows: true });
-      if (!templateData) throw new Error('无法解析当前生效模板。');
+      if (!templateData) throw new Error('Không thể phân tích mẫu đang có hiệu lực hiện tại.');
       const modifiedCount = await overrideLatestLayerWithTemplateCore_ACU(templateData);
       if (modifiedCount > 0) {
         await loadOrCreateJsonTableFromChatHistory_ACU();
         await refreshMergedDataAndNotify_ACU();
         message.value = null;
-        toast.success(`已使用当前生效模板覆盖最新 AI 楼层的 ${modifiedCount} 个表格。`, { muteable: false });
+        toast.success(`Đã dùng mẫu đang có hiệu lực hiện tại để ghi đè ${modifiedCount} bảng của tầng AI mới nhất.`, { muteable: false });
       } else {
         message.value = null;
-        toast.info('没有找到可覆盖的最新 AI 楼层表格数据。', { muteable: false });
+        toast.info('Không tìm thấy dữ liệu bảng của tầng AI mới nhất có thể ghi đè.', { muteable: false });
       }
     } catch (e: any) {
       logError_ACU('[ACU-V2] overrideLatestLayerWithTemplate failed', e);
       message.value = null;
-      toast.error('模板覆盖失败，详情见运行日志。');
+      toast.error('Ghi đè mẫu thất bại, xem chi tiết trong nhật ký chạy.');
     } finally {
       busyAction.value = '';
     }
@@ -719,7 +719,7 @@ export function useDataManagement() {
     } catch (e: any) {
       logError_ACU('[ACU-V2] deleteLocalData failed', e);
       message.value = null;
-      toast.error('删除本地数据失败，详情见运行日志。');
+      toast.error('Xóa dữ liệu cục bộ thất bại, xem chi tiết trong nhật ký chạy.');
     } finally {
       busyAction.value = '';
     }
@@ -733,19 +733,19 @@ export function useDataManagement() {
       const worldbookDeleted = await cleanupWorldbookEntriesAfterDataDeletion_ACU();
       refresh();
       const scopeText = sheetNames && sheetNames.length > 0
-        ? `表「${sheetNames.join('」「')}」在 ${deletedCount} 条消息中的数据`
-        : `${deletedCount} 条消息中的本地数据`;
+        ? `Bảng「${sheetNames.join('」「')}」trong ${deletedCount} tin nhắn có dữ liệu`
+        : `${deletedCount} tin nhắn chứa dữ liệu cục bộ`;
       setMessage(
         message,
         'success',
-        `已删除 ${scopeText}${worldbookDeleted ? `，并清理 ${worldbookDeleted} 个世界书条目` : ''}。`,
+        `Đã xóa ${scopeText}${worldbookDeleted ? `, đồng thời dọn ${worldbookDeleted} mục sổ thế giới` : ''}.`,
       );
       const text = message.value?.text || '';
       message.value = null;
       toast.success(text, { muteable: false });
     } else {
       message.value = null;
-      toast.info('没有发现符合当前范围的数据。', { muteable: false });
+      toast.info('Không tìm thấy dữ liệu phù hợp với phạm vi hiện tại.', { muteable: false });
     }
   }
 
@@ -766,16 +766,16 @@ export function useDataManagement() {
   async function applyPurgeOutcome(result: { saved: boolean; clearedMessageCount: number; removedMetadata: string[]; cleanupWarnings?: string[]; error?: string }): Promise<void> {
     if (!result.saved) {
       message.value = null;
-      toast.error(result.error || '硬清空失败，详情见运行日志。', { muteable: false });
+      toast.error(result.error || 'Hard clear thất bại, xem chi tiết trong nhật ký chạy.', { muteable: false });
       return;
     }
     await refreshMergedDataAndNotify_ACU();
     refresh();
     if (result.cleanupWarnings?.length) {
-      toast.warning(`本地数据已全部硬清空（${result.clearedMessageCount} 条消息）。警告：${result.cleanupWarnings[0]}`, { muteable: false, durationMs: 6000 });
+      toast.warning(`Toàn bộ dữ liệu cục bộ đã bị hard clear (${result.clearedMessageCount} tin nhắn). Cảnh báo: ${result.cleanupWarnings[0]}`, { muteable: false, durationMs: 6000 });
     } else {
-      const removed = result.removedMetadata.length ? `，移除元数据：${result.removedMetadata.join('、')}` : '';
-      toast.success(`已删除所有本地数据（${result.clearedMessageCount} 条消息）${removed}。`, { muteable: false });
+      const removed = result.removedMetadata.length ? `, xóa siêu dữ liệu: ${result.removedMetadata.join(', ')}` : '';
+      toast.success(`Đã xóa toàn bộ dữ liệu cục bộ (${result.clearedMessageCount} tin nhắn)${removed}.`, { muteable: false });
     }
   }
 

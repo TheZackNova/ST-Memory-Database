@@ -37,12 +37,12 @@
         icon="fa-solid fa-trash-can"
         variant="danger"
         size="sm"
-        title="删除此规则"
+        title="Xóa quy tắc này"
         @click="remove(index)"
       />
     </div>
     <div v-if="!modelValue.length" class="acu-rule-pair-list__empty">
-      暂无规则，点击下方按钮添加。
+      Chưa có quy tắc, bấm nút bên dưới để thêm.
     </div>
     <AcuButton size="sm" class="acu-rule-pair-list__add" @click="add">
       <i class="fa-solid fa-plus"></i> {{ addLabel }}
@@ -74,12 +74,12 @@
           icon="fa-solid fa-trash-can"
           variant="danger"
           size="sm"
-          title="删除此规则"
+          title="Xóa quy tắc này"
           @click="remove(index)"
         />
       </div>
       <div v-if="!modelValue.length" class="acu-rule-pair-list__empty">
-        暂无规则，点击下方按钮添加。
+        Chưa có quy tắc, bấm nút bên dưới để thêm.
       </div>
       <AcuButton size="sm" class="acu-rule-pair-list__add" @click="add">
         <i class="fa-solid fa-plus"></i> {{ addLabel }}
@@ -108,9 +108,9 @@ const props = withDefaults(defineProps<{
   addLabel?: string;
 }>(), {
   label: '',
-  startPlaceholder: '开始词',
-  endPlaceholder: '结束词',
-  addLabel: '添加规则',
+  startPlaceholder: 'Từ bắt đầu',
+  endPlaceholder: 'Từ kết thúc',
+  addLabel: 'Thêm quy tắc',
 });
 
 const emit = defineEmits<{
@@ -121,7 +121,7 @@ const emit = defineEmits<{
 // 空状态用户点 header 展开后即可见添加按钮。不持久化：MainArea / 抽屉重挂载
 // 时该 ref 自然回到折叠态（D25）。
 const expanded = ref(false);
-const ruleCountText = computed(() => props.modelValue.length === 0 ? '暂无' : `${props.modelValue.length} 条`);
+const ruleCountText = computed(() => props.modelValue.length === 0 ? 'Chưa có' : `${props.modelValue.length} mục`);
 
 function toggle(): void {
   expanded.value = !expanded.value;

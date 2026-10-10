@@ -134,7 +134,7 @@ describe('resetCurrentChatTableStateFromTemplate_ACU', () => {
       sheet_summary_log: { uid: 'sheet_summary_log', name: 'SummaryLog', content: [['时间', 'row_id'], ['T1', '1']], sourceData: {} },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('row_id 位于第 2 列') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('row_id nằm ở cột 2') });
     expect(mocks.setGuide).not.toHaveBeenCalled();
     expect(mocks.saveStrict).not.toHaveBeenCalled();
     expect(mocks.setRuntime).not.toHaveBeenCalled();
@@ -169,7 +169,7 @@ describe('resetCurrentChatTableStateFromTemplate_ACU', () => {
 
     expect(result).toMatchObject({ saved: false });
     expect(result.error).toContain('primary host write failed');
-    expect(result.error).toContain('回滚保存也失败');
+    expect(result.error).toContain('lưu hoàn tác cũng thất bại');
     expect(result.error).toContain('rollback host write failed');
     expect(mocks.saveStrict).toHaveBeenCalledTimes(2);
     expect(mocks.setRuntime).not.toHaveBeenCalled();
@@ -185,7 +185,7 @@ describe('resetCurrentChatTableStateFromTemplate_ACU', () => {
       sheet_random: { uid: 'sheet_random', name: 'Role', content: [['row_id', 'name'], ['r-1', '助手']] },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('guide 与 template scope') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('guide và template scope') });
     expect(mocks.chat[0].TavernDB_ACU_IsolatedData).toEqual(oldFrame);
     expect(mocks.scope).toEqual(oldScope);
     expect(mocks.guide).toEqual(oldGuide);
@@ -204,7 +204,7 @@ describe('resetCurrentChatTableStateFromTemplate_ACU', () => {
       sheet_random: { uid: 'sheet_random', name: 'Role', content: [['row_id', 'name'], ['r-1', '助手']] },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('目标聊天已切换') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('Cuộc trò chuyện đích đã chuyển') });
     expect(mocks.chat[0].TavernDB_ACU_IsolatedData).toEqual(oldFrame);
     expect(mocks.saveStrict).not.toHaveBeenCalled();
     expect(mocks.setRuntime).not.toHaveBeenCalled();
@@ -220,7 +220,7 @@ describe('resetCurrentChatTableStateFromTemplate_ACU', () => {
       sheet_random: { uid: 'sheet_random', name: 'Role', content: [['row_id', 'name'], ['same', '助手'], ['same', '助手2']] },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('row_id「same」重复') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('row_id "same" của hàng') });
     expect(mocks.chat[0].TavernDB_ACU_IsolatedData).toEqual(oldFrame);
     expect(mocks.scope).toEqual(oldScope);
     expect(mocks.guide).toEqual(oldGuide);
@@ -274,7 +274,7 @@ describe('resetCurrentChatTableStateFromTemplate_ACU', () => {
       sheet_random: { uid: 'sheet_random', name: 'Role', content: [['row_id', 'name']] },
     });
 
-    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('歧义表别名') });
+    expect(result).toMatchObject({ saved: false, error: expect.stringContaining('bí danh bảng mơ hồ') });
     expect(mocks.setGuide).not.toHaveBeenCalled();
     expect(mocks.saveStrict).not.toHaveBeenCalled();
   });

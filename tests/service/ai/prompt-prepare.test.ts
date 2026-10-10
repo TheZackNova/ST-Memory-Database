@@ -167,7 +167,7 @@ describe('formatTableForSqliteMode', () => {
     };
     const result = formatTableForSqliteMode(table, 0, 'sheet_0', null);
     expect(result).toContain('CREATE TABLE inventory');
-    expect(result).toContain('以上 CREATE TABLE 中的列名是本轮唯一权威');
+    expect(result).toContain('tên cột trong các CREATE TABLE ở trên là căn cứ duy nhất của lượt này');
   });
 
   it('作者英文表名覆盖内部 runtime 名，供 AI 作为写入契约使用', () => {
@@ -187,7 +187,7 @@ describe('formatTableForSqliteMode', () => {
 
     expect(result).toContain('CREATE TABLE protagonist_info');
     expect(result).not.toContain('CREATE TABLE zhujuexinxi');
-    expect(result).toContain('SQL 写入必须严格使用本表上方 CREATE TABLE 中的表名 protagonist_info；不得使用其他名称。');
+    expect(result).toContain('Khi ghi SQL phải dùng đúng tên bảng protagonist_info trong CREATE TABLE phía trên bảng này; không được dùng tên khác.');
   });
 
   it('未传 runtimeTableName 时保持原 DDL 表名（向后兼容）', () => {
@@ -241,7 +241,7 @@ describe('formatTableForSqliteMode', () => {
     expect(result).toContain('-- INSERT: 获得新物品时插入');
     expect(result).toContain('-- UPDATE: 物品数量变化时更新');
     expect(result).toContain('-- DELETE: 丢弃物品时删除');
-    expect(result).toContain('Note/Trigger 中与其不一致的示例不得照抄');
+    expect(result).toContain('các ví dụ trong Note/Trigger không khớp với chúng thì không được chép nguyên');
   });
 
   // ═══════════════════════════════════════════════════════════════
@@ -255,7 +255,7 @@ describe('formatTableForSqliteMode', () => {
       updateConfig: {},
     };
     const result = formatTableForSqliteMode(table, 0, 'sheet_0', null);
-    expect(result).toContain('-- 当前数据 (2 rows)');
+    expect(result).toContain('-- Dữ liệu hiện tại (2 rows)');
     expect(result).toContain('-- | row_id | item_name |');
     expect(result).toContain('-- | 1 | 铁剑 |');
     expect(result).toContain('-- | 2 | 药水 |');
@@ -332,7 +332,7 @@ describe('formatTableForSqliteMode', () => {
     expect(result).toContain('-- INSERT: 获得物品时插入');
     expect(result).toContain('-- UPDATE: 数量变化时更新');
     expect(result).toContain('-- DELETE: 丢弃时删除');
-    expect(result).toContain('-- 当前数据');
+    expect(result).toContain('-- Dữ liệu hiện tại');
     expect(result).toContain('-- | 9 | 自定义行 |');
     expect(result).not.toContain('-- | 1 | 铁剑 |');
   });
@@ -348,7 +348,7 @@ describe('formatTableForSqliteMode', () => {
       updateConfig: {},
     };
     const result = formatTableForSqliteMode(table, 0, 'sheet_0', null);
-    expect(result).toContain('该表格为空，请进行初始化');
+    expect(result).toContain('Bảng này đang trống, hãy khởi tạo');
   });
 
   it('空表时输出 INIT 规则', () => {
@@ -368,7 +368,7 @@ describe('formatTableForSqliteMode', () => {
     const result = formatTableForSqliteMode(table, 0, 'sheet_0', null);
 
     expect(result).toContain('-- INIT: 故事初始化时插入唯一条目。');
-    expect(result).toContain('-- (该表格为空，请进行初始化。)');
+    expect(result).toContain('-- (Bảng này đang trống, hãy khởi tạo.)');
   });
 
   it('非空表时不输出 INIT 规则，避免后续更新误用初始化语义', () => {
@@ -388,8 +388,8 @@ describe('formatTableForSqliteMode', () => {
     const result = formatTableForSqliteMode(table, 0, 'sheet_0', null);
 
     expect(result).not.toContain('-- INIT:');
-    expect(result).not.toContain('该表格为空，请进行初始化');
-    expect(result).toContain('-- 当前数据 (1 rows)');
+    expect(result).not.toContain('Bảng này đang trống, hãy khởi tạo');
+    expect(result).toContain('-- Dữ liệu hiện tại (1 rows)');
   });
 
   // ═══════════════════════════════════════════════════════════════
@@ -405,7 +405,7 @@ describe('formatTableForSqliteMode', () => {
     };
     const result = formatTableForSqliteMode(table, 0, 'sheet_0', null);
     expect(result).toContain('SeedRows');
-    expect(result).toContain('-- 当前数据 (2 rows)');
+    expect(result).toContain('-- Dữ liệu hiện tại (2 rows)');
   });
 
   // ═══════════════════════════════════════════════════════════════
@@ -570,7 +570,7 @@ describe('prepareAIInput_ACU — 显式 tableData 模式', () => {
     const result = await prepareAIInput_ACU([], 'standard', null, { tableData: explicitTableData });
 
     expect(result?.conditionalSeedContent).toBe('');
-    expect(result?.messagesText).toContain('(无最新对话内容)');
+    expect(result?.messagesText).toContain('(Không có nội dung hội thoại mới nhất)');
   });
 
 
@@ -597,10 +597,10 @@ describe('prepareAIInput_ACU — 显式 tableData 模式', () => {
 
     expect(result).not.toBeNull();
     expect(result!.tableDataText).toContain('CREATE TABLE');
-    expect(result!.tableDataText).toContain('上方 CREATE TABLE 仅用于说明表结构');
-    expect(result!.tableDataText).toContain('严禁复制或输出 CREATE、ALTER、DROP、SELECT');
-    expect(result!.tableDataText).toContain('仅使用 INSERT INTO / INSERT OR REPLACE INTO / REPLACE INTO / UPDATE / DELETE FROM 数据变更语句');
-    expect(result!.tableDataText).toContain('按 SQLite 原生整行替换语义执行');
+    expect(result!.tableDataText).toContain('CREATE TABLE ở trên chỉ dùng để mô tả cấu trúc bảng');
+    expect(result!.tableDataText).toContain('nghiêm cấm sao chép hoặc xuất các câu lệnh như CREATE, ALTER, DROP, SELECT');
+    expect(result!.tableDataText).toContain('chỉ dùng các câu lệnh thay đổi dữ liệu INSERT INTO / INSERT OR REPLACE INTO / REPLACE INTO / UPDATE / DELETE FROM');
+    expect(result!.tableDataText).toContain('thực thi theo ngữ nghĩa thay thế cả hàng gốc của SQLite');
   });
 
   it('原生 prompt 使用 physical 投影隐藏历史列并保持右侧可见列对齐', async () => {

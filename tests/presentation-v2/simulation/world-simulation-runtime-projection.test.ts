@@ -36,6 +36,6 @@ describe('格林推演会话回灌投影', () => {
     ]);
 
     expect(projected.map(item => item.kind)).toEqual(['user_message', 'thought']);
-    expect(projected[0]).toMatchObject({ title: '你的消息', detail: '推进北境', at: 10 });
+    expect(projected[0]).toMatchObject({ title: 'Tin nhắn của bạn', detail: '推进北境', at: 10 });
   });
 });

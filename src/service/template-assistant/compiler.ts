@@ -139,13 +139,13 @@ function listPatchLeafKeys_ACU(patch: any, prefix = ''): string[] {
 function applyStrictPatch_ACU(target: AnyRecord, patch: AnyRecord, path = '') {
     Object.keys(patch).forEach((key) => {
         if (!Object.prototype.hasOwnProperty.call(target, key)) {
-            throw new Error(`patch 包含未知字段: ${path}${key}`);
+            throw new Error(`patch chứa trường không xác định: ${path}${key}`);
         }
         const nextValue = patch[key];
         const currentValue = target[key];
         if (isObject_ACU(nextValue)) {
             if (!isObject_ACU(currentValue)) {
-                throw new Error(`patch 目标不是对象，无法递归覆盖: ${path}${key}`);
+                throw new Error(`Đích của patch không phải đối tượng, không thể ghi đè đệ quy: ${path}${key}`);
             }
             applyStrictPatch_ACU(currentValue, nextValue, `${path}${key}.`);
             return;
@@ -157,7 +157,7 @@ function applyStrictPatch_ACU(target: AnyRecord, patch: AnyRecord, path = '') {
 function ensureSheetExists_ACU(dataObj: AnyRecord, sheetKey: string) {
     const sheet = dataObj?.[sheetKey];
     if (!sheet || typeof sheet !== 'object') {
-        throw new Error(`找不到目标表: ${sheetKey}`);
+        throw new Error(`Không tìm thấy bảng đích: ${sheetKey}`);
     }
     return sheet;
 }
@@ -167,10 +167,10 @@ function assertPatchTargetsCurrentSheet_ACU(op: any, currentSheetKey: string | n
     const opName = String(op?.op || 'patch_sheet');
     const opSheetKey = String(op?.sheetKey || '');
     if (opSheetKey !== String(selectedSheetKey || '')) {
-        throw new Error(`${opName} 的 sheetKey 必须与 draft.selectedSheetKey 一致`);
+        throw new Error(`${opName} phải có sheetKey trùng với draft.selectedSheetKey`);
     }
     if (currentSheetKey && opSheetKey !== currentSheetKey) {
-        throw new Error(`${opName} 只能修改当前选中表`);
+        throw new Error(`${opName} chỉ được sửa bảng đang chọn`);
     }
 }
 
@@ -180,11 +180,11 @@ function createUniqueSheetKey_ACU(dataObj: AnyRecord, sheetName: string) {
         .filter(([key, sheet]) => key.startsWith('sheet_') && isObject_ACU(sheet))
         .map(([sheetKey, sheet]: [string, any]) => ({ sheetKey, canonicalName: sheet.name }));
     if (existing.some(sheet => canonicalizeDisplayName_ACU(sheet.canonicalName) === canonicalName)) {
-        throw new Error(`add_sheet 的表名「${sheetName}」与现有表重复`);
+        throw new Error(`Tên bảng「${sheetName}」của add_sheet trùng với bảng hiện có`);
     }
     const allocation = allocateStableSheetKeys_ACU([sheetName], { existing });
     if (allocation.diagnostics.length > 0 || !allocation.keys[0]) {
-        throw new Error(`add_sheet 无法为表「${sheetName}」生成稳定 key`);
+        throw new Error(`add_sheet không thể tạo key ổn định cho bảng「${sheetName}」`);
     }
     return allocation.keys[0];
 }
@@ -227,31 +227,31 @@ function buildDefaultSourceData_ACU(sheetName: string, headers: string[]) {
         ? headers.map((item) => String(item ?? '').trim()).filter(Boolean)
         : [];
     const combinedText = [sheetName, ...normalizedHeaders].join('|');
-    const primaryHeader = normalizedHeaders.find((item) => /名称|姓名|标题|编号|代号|ID|id/.test(item)) || normalizedHeaders[0] || '首列';
+    const primaryHeader = normalizedHeaders.find((item) => /名称|姓名|标题|编号|代号|ID|id/.test(item)) || normalizedHeaders[0] || 'Cột đầu';
     const isInventoryLike = /战利品|背包|物品|掉落|素材|装备|loot|inventory/i.test(combinedText);
     if (isInventoryLike) {
         const noteLines = [
-            `记录${sheetName || '该表'}中的物品或战利品条目，一行代表一种可被持续追踪的物品。优先使用「${primaryHeader}」定位同一条目，避免把同名物品重复新增成多行。`,
-            ...normalizedHeaders.map((header, index) => `- 列${index + 1}: ${header} - 请记录该物品的对应信息，并保持同一物品长期使用同一行更新。`),
+            `Ghi lại các mục vật phẩm hoặc chiến lợi phẩm trong ${sheetName || 'bảng này'}, mỗi hàng đại diện cho một loại vật phẩm có thể theo dõi liên tục. Ưu tiên dùng「${primaryHeader}」để xác định cùng một mục, tránh thêm vật phẩm trùng tên thành nhiều hàng.`,
+            ...normalizedHeaders.map((header, index) => `- Cột ${index + 1}: ${header} - Hãy ghi thông tin tương ứng của vật phẩm này, và luôn cập nhật cùng một hàng cho cùng một vật phẩm.`),
         ];
         return {
             note: noteLines.join('\n'),
-            initNode: '当剧情、设定或当前场景已经明确存在初始物品、掉落物或库存时，先初始化最基础的真实条目；如果没有明确信息，不要编造。',
-            insertNode: '当出现当前表中还没有记录的新物品、新战利品或新掉落来源时新增一行。',
-            updateNode: '当已有物品的数量、状态、类别、描述或来源发生变化时更新原有行；如果只是数量变化，优先更新数量，不要重复新增同名物品。',
-            deleteNode: '当物品被完全移除、耗尽、拾取后不再追踪或明确失效时删除；如果只是数量减少，优先更新而不是删后重建。',
+            initNode: 'Khi cốt truyện, thiết lập hoặc cảnh hiện tại đã nêu rõ có vật phẩm ban đầu, vật rơi hoặc kho đồ, hãy khởi tạo trước các mục thật cơ bản nhất; nếu không có thông tin rõ ràng thì đừng bịa.',
+            insertNode: 'Khi xuất hiện vật phẩm mới, chiến lợi phẩm mới hoặc nguồn rơi mới chưa được ghi trong bảng hiện tại thì thêm một hàng.',
+            updateNode: 'Khi số lượng, trạng thái, loại, mô tả hoặc nguồn của vật phẩm đã có thay đổi thì cập nhật hàng cũ; nếu chỉ thay đổi số lượng, ưu tiên cập nhật số lượng, đừng thêm lặp vật phẩm trùng tên.',
+            deleteNode: 'Xóa khi vật phẩm bị loại bỏ hoàn toàn, hết sạch, nhặt xong không còn theo dõi hoặc rõ ràng đã mất hiệu lực; nếu chỉ giảm số lượng thì ưu tiên cập nhật thay vì xóa rồi tạo lại.',
         };
     }
     const noteLines = [
-        `记录${sheetName || '该表'}中的条目。默认按一行一个条目理解；优先使用「${primaryHeader}」作为稳定标识。如果这是单行配置表，请在说明中明确“此表有且仅有一行”。`,
-        ...normalizedHeaders.map((header, index) => `- 列${index + 1}: ${header} - 请补充这一列记录的具体含义与约束。`),
+        `Ghi lại các mục trong ${sheetName || 'bảng này'}. Mặc định hiểu là mỗi hàng một mục; ưu tiên dùng「${primaryHeader}」làm định danh ổn định. Nếu đây là bảng cấu hình một hàng, hãy nêu rõ trong phần mô tả \"bảng này có và chỉ có một hàng\".`,
+        ...normalizedHeaders.map((header, index) => `- Cột ${index + 1}: ${header} - Hãy bổ sung ý nghĩa cụ thể và ràng buộc của cột này.`),
     ];
     return {
         note: noteLines.join('\n'),
-        initNode: '当该表为空且剧情、设定或现有资料已经明确存在应记录的内容时，先初始化最基础的真实条目；如果没有明确信息，不要编造。',
-        insertNode: '当出现当前表中不存在、且应被记录的新条目时新增一行；如果这是单行表，不要新增，改为更新现有行。',
-        updateNode: '当已记录条目的状态、数量、描述或其他字段发生变化时更新对应行；如果这是单行表，始终更新现有行。',
-        deleteNode: '当条目已明确失效、移除、耗尽或不应继续保留时删除；如果这是单行表，通常不要删除。',
+        initNode: 'Khi bảng này trống và cốt truyện, thiết lập hoặc tư liệu hiện có đã nêu rõ có nội dung cần ghi, hãy khởi tạo trước các mục thật cơ bản nhất; nếu không có thông tin rõ ràng thì đừng bịa.',
+        insertNode: 'Khi xuất hiện mục mới chưa có trong bảng hiện tại và cần được ghi lại thì thêm một hàng; nếu đây là bảng một hàng thì đừng thêm, hãy cập nhật hàng hiện có.',
+        updateNode: 'Khi trạng thái, số lượng, mô tả hoặc trường khác của mục đã ghi có thay đổi thì cập nhật hàng tương ứng; nếu đây là bảng một hàng thì luôn cập nhật hàng hiện có.',
+        deleteNode: 'Xóa khi mục đã rõ ràng mất hiệu lực, bị loại bỏ, hết sạch hoặc không nên giữ lại nữa; nếu đây là bảng một hàng thì thường đừng xóa.',
     };
 }
 
@@ -259,7 +259,7 @@ function sanitizeAddSheetConfig_ACU(rawValue: any, baseValue: AnyRecord, label: 
     const nextValue = clone_ACU(baseValue);
     if (rawValue == null) return nextValue;
     if (!isObject_ACU(rawValue)) {
-        throw new Error(`add_sheet.${label} 必须是对象`);
+        throw new Error(`add_sheet.${label} phải là đối tượng`);
     }
     applyStrictPatch_ACU(nextValue, rawValue, `${label}.`);
     return nextValue;
@@ -268,13 +268,13 @@ function sanitizeAddSheetConfig_ACU(rawValue: any, baseValue: AnyRecord, label: 
 function buildNewSheet_ACU(op: any, newKey: string, orderNo: number) {
     const sheetName = String(op?.sheetName || '').trim();
     if (!sheetName) {
-        throw new Error('add_sheet 缺少 sheetName');
+        throw new Error('add_sheet thiếu sheetName');
     }
     const headers = Array.isArray(op?.headers)
         ? op.headers.map((item: any) => String(item ?? '').trim()).filter(Boolean)
         : [];
     if (headers.length === 0) {
-        throw new Error('add_sheet 至少需要一个表头');
+        throw new Error('add_sheet cần ít nhất một tiêu đề cột');
     }
     assertHeadersUnique_ACU(headers);
 
@@ -307,7 +307,7 @@ function insertAfterAnchor_ACU(orderedSheetKeys: string[], newKey: string, inser
     }
     const idx = orderedSheetKeys.indexOf(insertAfterSheetKey);
     if (idx === -1) {
-        throw new Error(`add_sheet 的 insertAfterSheetKey 不存在: ${insertAfterSheetKey}`);
+        throw new Error(`add_sheet có insertAfterSheetKey không tồn tại: ${insertAfterSheetKey}`);
     }
     orderedSheetKeys.splice(idx + 1, 0, newKey);
 }
@@ -315,19 +315,19 @@ function insertAfterAnchor_ACU(orderedSheetKeys: string[], newKey: string, inser
 function moveSheetAroundAnchor_ACU(orderedSheetKeys: string[], sheetKey: string, beforeSheetKey?: string, afterSheetKey?: string) {
     const anchorCount = Number(!!beforeSheetKey) + Number(!!afterSheetKey);
     if (anchorCount !== 1) {
-        throw new Error('move_sheet 必须且只能提供 beforeSheetKey 或 afterSheetKey 之一');
+        throw new Error('move_sheet phải và chỉ được cung cấp một trong beforeSheetKey hoặc afterSheetKey');
     }
     const fromIndex = orderedSheetKeys.indexOf(sheetKey);
     if (fromIndex === -1) {
-        throw new Error(`move_sheet 目标表不存在: ${sheetKey}`);
+        throw new Error(`move_sheet bảng đích không tồn tại: ${sheetKey}`);
     }
     const anchorKey = beforeSheetKey || afterSheetKey || '';
     const anchorIndex = orderedSheetKeys.indexOf(anchorKey);
     if (anchorIndex === -1) {
-        throw new Error(`move_sheet 锚点不存在: ${anchorKey}`);
+        throw new Error(`move_sheet điểm neo không tồn tại: ${anchorKey}`);
     }
     if (anchorKey === sheetKey) {
-        throw new Error('move_sheet 不能以自身为锚点');
+        throw new Error('move_sheet không được lấy chính nó làm điểm neo');
     }
 
     orderedSheetKeys.splice(fromIndex, 1);
@@ -339,7 +339,7 @@ function moveSheetAroundAnchor_ACU(orderedSheetKeys: string[], sheetKey: string,
 function getSheetHeaderRow_ACU(sheet: any, sheetKey: string) {
     const headerRow = Array.isArray(sheet?.content?.[0]) ? sheet.content[0] : null;
     if (!headerRow) {
-        throw new Error(`目标表 content 非法: ${sheetKey}`);
+        throw new Error(`content của bảng đích không hợp lệ: ${sheetKey}`);
     }
     return headerRow;
 }
@@ -355,10 +355,10 @@ function hasSheetDdl_ACU(sheet: any) {
 function assertNonEmptyColumnName_ACU(name: any, label: string) {
     const normalized = String(name ?? '').trim();
     if (!normalized) {
-        throw new Error(`${label} 必须是非空字符串`);
+        throw new Error(`${label} phải là chuỗi không rỗng`);
     }
     if (normalized === 'row_id') {
-        throw new Error(`${label} 不能为 row_id`);
+        throw new Error(`${label} không được là row_id`);
     }
     return normalized;
 }
@@ -366,9 +366,9 @@ function assertNonEmptyColumnName_ACU(name: any, label: string) {
 function assertHeadersUnique_ACU(headers: string[]) {
     const seen = new Set<string>();
     headers.forEach((header) => {
-        const normalized = assertNonEmptyColumnName_ACU(header, '列名');
+        const normalized = assertNonEmptyColumnName_ACU(header, 'Tên cột');
         if (seen.has(normalized)) {
-            throw new Error(`列名重复: ${normalized}`);
+            throw new Error(`Tên cột bị trùng: ${normalized}`);
         }
         seen.add(normalized);
     });
@@ -395,12 +395,12 @@ function maybeApplySpecialIndexSequenceToSheet_ACU(sheet: any, sheetKey: string,
 
 function applySheetContentPatch_ACU(sheet: any, sheetKey: string, rawPatch: any) {
     if (!isObject_ACU(rawPatch)) {
-        throw new Error('patch_sheet_content.patch 必须是对象');
+        throw new Error('patch_sheet_content.patch phải là đối tượng');
     }
     const allowedKeys = new Set(['updateCells', 'addRows', 'deleteRows']);
     Object.keys(rawPatch).forEach((key) => {
         if (!allowedKeys.has(key)) {
-            throw new Error(`patch_sheet_content.patch 包含未知字段: ${key}`);
+            throw new Error(`patch_sheet_content.patch chứa trường không xác định: ${key}`);
         }
     });
 
@@ -413,48 +413,48 @@ function applySheetContentPatch_ACU(sheet: any, sheetKey: string, rawPatch: any)
 
     updateCells.forEach((cellPatch: any, index: number) => {
         if (!isObject_ACU(cellPatch)) {
-            throw new Error(`patch_sheet_content.updateCells[${index}] 必须是对象`);
+            throw new Error(`patch_sheet_content.updateCells[${index}] phải là đối tượng`);
         }
         const rowNumber = Number(cellPatch.rowNumber);
         if (!Number.isInteger(rowNumber) || rowNumber <= 0) {
-            throw new Error(`patch_sheet_content.updateCells[${index}].rowNumber 必须是正整数`);
+            throw new Error(`patch_sheet_content.updateCells[${index}].rowNumber phải là số nguyên dương`);
         }
         const row = sheet.content[rowNumber];
         if (!Array.isArray(row)) {
-            throw new Error(`patch_sheet_content.updateCells[${index}] 指向不存在的行: ${rowNumber}`);
+            throw new Error(`patch_sheet_content.updateCells[${index}] trỏ tới hàng không tồn tại: ${rowNumber}`);
         }
         const columnName = assertNonEmptyColumnName_ACU(cellPatch.columnName, `patch_sheet_content.updateCells[${index}].columnName`);
         const colIndex = headers.indexOf(columnName);
         if (colIndex === -1) {
-            throw new Error(`patch_sheet_content.updateCells[${index}] 指向不存在的列: ${columnName}`);
+            throw new Error(`patch_sheet_content.updateCells[${index}] trỏ tới cột không tồn tại: ${columnName}`);
         }
         row[colIndex + 1] = clone_ACU(cellPatch.value);
-        changes.push(`改单元格: 第${rowNumber}行.${columnName}`);
+        changes.push(`Sửa ô: hàng ${rowNumber}.${columnName}`);
     });
 
     const normalizedDeleteRows = Array.from(new Set(deleteRows.map((item: any) => Number(item)))).sort((a, b) => b - a);
     normalizedDeleteRows.forEach((rowNumber, index) => {
         if (!Number.isInteger(rowNumber) || rowNumber <= 0) {
-            throw new Error(`patch_sheet_content.deleteRows[${index}] 必须是正整数`);
+            throw new Error(`patch_sheet_content.deleteRows[${index}] phải là số nguyên dương`);
         }
         if (!Array.isArray(sheet.content[rowNumber])) {
-            throw new Error(`patch_sheet_content.deleteRows[${index}] 指向不存在的行: ${rowNumber}`);
+            throw new Error(`patch_sheet_content.deleteRows[${index}] trỏ tới hàng không tồn tại: ${rowNumber}`);
         }
     });
     normalizedDeleteRows.forEach((rowNumber) => {
         sheet.content.splice(rowNumber, 1);
     });
     if (normalizedDeleteRows.length) {
-        changes.push(`删除 ${normalizedDeleteRows.length} 行（第 ${normalizedDeleteRows.slice().sort((a, b) => a - b).join(', ')} 行）`);
+        changes.push(`Xóa ${normalizedDeleteRows.length} hàng (hàng ${normalizedDeleteRows.slice().sort((a, b) => a - b).join(', ')})`);
     }
 
     addRows.forEach((rowPatch: any, index: number) => {
         if (!isObject_ACU(rowPatch)) {
-            throw new Error(`patch_sheet_content.addRows[${index}] 必须是对象`);
+            throw new Error(`patch_sheet_content.addRows[${index}] phải là đối tượng`);
         }
         Object.keys(rowPatch).forEach((columnName) => {
             if (!headers.includes(columnName)) {
-                throw new Error(`patch_sheet_content.addRows[${index}] 包含未知列: ${columnName}`);
+                throw new Error(`patch_sheet_content.addRows[${index}] chứa cột không xác định: ${columnName}`);
             }
         });
         const newRow = new Array(headerRow.length).fill('');
@@ -467,7 +467,7 @@ function applySheetContentPatch_ACU(sheet: any, sheetKey: string, rawPatch: any)
         sheet.content.push(newRow);
     });
     if (addRows.length) {
-        changes.push(`新增 ${addRows.length} 行`);
+        changes.push(`Thêm ${addRows.length} hàng`);
     }
 
     return changes;
@@ -475,12 +475,12 @@ function applySheetContentPatch_ACU(sheet: any, sheetKey: string, rawPatch: any)
 
 function applySheetSchemaPatch_ACU(sheet: any, sheetKey: string, rawPatch: any) {
     if (!isObject_ACU(rawPatch)) {
-        throw new Error('patch_sheet_schema.patch 必须是对象');
+        throw new Error('patch_sheet_schema.patch phải là đối tượng');
     }
     const allowedKeys = new Set(['renameColumns', 'addColumns', 'deleteColumns', 'ddl', 'migrationIntent']);
     Object.keys(rawPatch).forEach((key) => {
         if (!allowedKeys.has(key)) {
-            throw new Error(`patch_sheet_schema.patch 包含未知字段: ${key}`);
+            throw new Error(`patch_sheet_schema.patch chứa trường không xác định: ${key}`);
         }
     });
 
@@ -496,25 +496,25 @@ function applySheetSchemaPatch_ACU(sheet: any, sheetKey: string, rawPatch: any) 
     let ddlChanged = false;
 
     if (hasExistingDdl && !nextDdl && (addColumns.length > 0 || deleteColumns.length > 0)) {
-        throw new Error('DDL 表执行增删列时必须同时提供 patch.ddl');
+        throw new Error('Khi bảng DDL thêm/xóa cột phải cung cấp đồng thời patch.ddl');
     }
 
     renameColumns.forEach((renamePatch: any, index: number) => {
         if (!isObject_ACU(renamePatch)) {
-            throw new Error(`patch_sheet_schema.renameColumns[${index}] 必须是对象`);
+            throw new Error(`patch_sheet_schema.renameColumns[${index}] phải là đối tượng`);
         }
         const from = assertNonEmptyColumnName_ACU(renamePatch.from, `patch_sheet_schema.renameColumns[${index}].from`);
         const to = assertNonEmptyColumnName_ACU(renamePatch.to, `patch_sheet_schema.renameColumns[${index}].to`);
         const currentHeaders = getSheetHeaders_ACU(sheet, sheetKey);
         const colIndex = currentHeaders.indexOf(from);
         if (colIndex === -1) {
-            throw new Error(`patch_sheet_schema.renameColumns[${index}] 指向不存在的列: ${from}`);
+            throw new Error(`patch_sheet_schema.renameColumns[${index}] trỏ tới cột không tồn tại: ${from}`);
         }
         if (currentHeaders.includes(to) && from !== to) {
-            throw new Error(`patch_sheet_schema.renameColumns[${index}] 目标列名已存在: ${to}`);
+            throw new Error(`patch_sheet_schema.renameColumns[${index}] tên cột đích đã tồn tại: ${to}`);
         }
         headerRow[colIndex + 1] = to;
-        changes.push(`列改名: ${from} -> ${to}`);
+        changes.push(`Đổi tên cột: ${from} -> ${to}`);
         if (workingDdl) {
             const ddlColumns = parseDDLColumnNames(workingDdl);
             const ddlColumnName = ddlColumns[colIndex + 1];
@@ -532,7 +532,7 @@ function applySheetSchemaPatch_ACU(sheet: any, sheetKey: string, rawPatch: any) 
         const currentHeaders = getSheetHeaders_ACU(sheet, sheetKey);
         const colIndex = currentHeaders.indexOf(item.name);
         if (colIndex === -1) {
-            throw new Error(`patch_sheet_schema.deleteColumns 指向不存在的列: ${item.name}`);
+            throw new Error(`patch_sheet_schema.deleteColumns trỏ tới cột không tồn tại: ${item.name}`);
         }
         return { ...item, colIndex };
     }).sort((left, right) => right.colIndex - left.colIndex);
@@ -541,18 +541,18 @@ function applySheetSchemaPatch_ACU(sheet: any, sheetKey: string, rawPatch: any) 
         sheet.content.slice(1).forEach((row: any) => {
             if (Array.isArray(row)) row.splice(colIndex + 1, 1);
         });
-        changes.push(`删除列: ${name}`);
-        highRiskLabels.push(`删除列: ${String(sheet.name || sheetKey)}.${name}`);
+        changes.push(`Xóa cột: ${name}`);
+        highRiskLabels.push(`Xóa cột: ${String(sheet.name || sheetKey)}.${name}`);
     });
 
     addColumns.forEach((columnPatch: any, index: number) => {
         if (!isObject_ACU(columnPatch)) {
-            throw new Error(`patch_sheet_schema.addColumns[${index}] 必须是对象`);
+            throw new Error(`patch_sheet_schema.addColumns[${index}] phải là đối tượng`);
         }
         const name = assertNonEmptyColumnName_ACU(columnPatch.name, `patch_sheet_schema.addColumns[${index}].name`);
         const currentHeaders = getSheetHeaders_ACU(sheet, sheetKey);
         if (currentHeaders.includes(name)) {
-            throw new Error(`patch_sheet_schema.addColumns[${index}] 目标列名已存在: ${name}`);
+            throw new Error(`patch_sheet_schema.addColumns[${index}] tên cột đích đã tồn tại: ${name}`);
         }
         headerRow.push(name);
         sheet.content.slice(1).forEach((row: any) => {
@@ -560,7 +560,7 @@ function applySheetSchemaPatch_ACU(sheet: any, sheetKey: string, rawPatch: any) 
                 row.push(Object.prototype.hasOwnProperty.call(columnPatch, 'defaultValue') ? clone_ACU(columnPatch.defaultValue) : '');
             }
         });
-        changes.push(`新增列: ${name}`);
+        changes.push(`Thêm cột: ${name}`);
     });
 
     // 校验必须使用「完整表头」（首列为 row_id 位置），与
@@ -573,17 +573,17 @@ function applySheetSchemaPatch_ACU(sheet: any, sheetKey: string, rawPatch: any) 
     if (nextDdl) {
         const ddlValidation = validateDdlAgainstHeaders_ACU(nextDdl, finalHeaderRow);
         if (!ddlValidation.valid) {
-            throw new Error(`patch_sheet_schema.ddl 非法: ${ddlValidation.message}`);
+            throw new Error(`patch_sheet_schema.ddl không hợp lệ: ${ddlValidation.message}`);
         }
         if (!isObject_ACU(sheet.sourceData)) sheet.sourceData = {};
         sheet.sourceData.ddl = nextDdl;
         ddlChanged = true;
-        changes.push('DDL 已更新');
-        highRiskLabels.push(`更新 DDL: ${String(sheet.name || sheetKey)}`);
+        changes.push('DDL đã cập nhật');
+        highRiskLabels.push(`Cập nhật DDL: ${String(sheet.name || sheetKey)}`);
     } else if (workingDdl && ddlChanged) {
         if (!isObject_ACU(sheet.sourceData)) sheet.sourceData = {};
         sheet.sourceData.ddl = workingDdl;
-        changes.push('DDL 注释已同步');
+        changes.push('Chú thích DDL đã đồng bộ');
     }
 
     return {
@@ -594,12 +594,12 @@ function applySheetSchemaPatch_ACU(sheet: any, sheetKey: string, rawPatch: any) 
 
 function applySheetLockPatch_ACU(sheet: any, sheetKey: string, rawPatch: any) {
     if (!isObject_ACU(rawPatch)) {
-        throw new Error('patch_sheet_locks.patch 必须是对象');
+        throw new Error('patch_sheet_locks.patch phải là đối tượng');
     }
     const allowedKeys = new Set(['rows', 'columns', 'cells', 'specialIndexLocked']);
     Object.keys(rawPatch).forEach((key) => {
         if (!allowedKeys.has(key)) {
-            throw new Error(`patch_sheet_locks.patch 包含未知字段: ${key}`);
+            throw new Error(`patch_sheet_locks.patch chứa trường không xác định: ${key}`);
         }
     });
 
@@ -618,64 +618,64 @@ function applySheetLockPatch_ACU(sheet: any, sheetKey: string, rawPatch: any) {
 
     rows.forEach((item: any, index: number) => {
         if (!isObject_ACU(item)) {
-            throw new Error(`patch_sheet_locks.rows[${index}] 必须是对象`);
+            throw new Error(`patch_sheet_locks.rows[${index}] phải là đối tượng`);
         }
         const rowNumber = Number(item.rowNumber);
         if (!Number.isInteger(rowNumber) || rowNumber <= 0 || rowNumber > rowCount) {
-            throw new Error(`patch_sheet_locks.rows[${index}] 指向不存在的行: ${rowNumber}`);
+            throw new Error(`patch_sheet_locks.rows[${index}] trỏ tới hàng không tồn tại: ${rowNumber}`);
         }
         if (typeof item.locked !== 'boolean') {
-            throw new Error(`patch_sheet_locks.rows[${index}].locked 必须是布尔值`);
+            throw new Error(`patch_sheet_locks.rows[${index}].locked phải là giá trị boolean`);
         }
         normalized.rows.push({ rowIndex: rowNumber - 1, locked: item.locked });
-        changes.push(`${item.locked ? '锁定' : '解锁'}第${rowNumber}行`);
+        changes.push(`${item.locked ? 'Khóa' : 'Mở khóa'} hàng ${rowNumber}`);
     });
 
     columns.forEach((item: any, index: number) => {
         if (!isObject_ACU(item)) {
-            throw new Error(`patch_sheet_locks.columns[${index}] 必须是对象`);
+            throw new Error(`patch_sheet_locks.columns[${index}] phải là đối tượng`);
         }
         const columnName = assertNonEmptyColumnName_ACU(item.columnName, `patch_sheet_locks.columns[${index}].columnName`);
         const colIndex = headers.indexOf(columnName);
         if (colIndex === -1) {
-            throw new Error(`patch_sheet_locks.columns[${index}] 指向不存在的列: ${columnName}`);
+            throw new Error(`patch_sheet_locks.columns[${index}] trỏ tới cột không tồn tại: ${columnName}`);
         }
         if (typeof item.locked !== 'boolean') {
-            throw new Error(`patch_sheet_locks.columns[${index}].locked 必须是布尔值`);
+            throw new Error(`patch_sheet_locks.columns[${index}].locked phải là giá trị boolean`);
         }
         normalized.columns.push({ colIndex, locked: item.locked });
-        changes.push(`${item.locked ? '锁定' : '解锁'}列: ${columnName}`);
+        changes.push(`${item.locked ? 'Khóa' : 'Mở khóa'} cột: ${columnName}`);
     });
 
     cells.forEach((item: any, index: number) => {
         if (!isObject_ACU(item)) {
-            throw new Error(`patch_sheet_locks.cells[${index}] 必须是对象`);
+            throw new Error(`patch_sheet_locks.cells[${index}] phải là đối tượng`);
         }
         const rowNumber = Number(item.rowNumber);
         if (!Number.isInteger(rowNumber) || rowNumber <= 0 || rowNumber > rowCount) {
-            throw new Error(`patch_sheet_locks.cells[${index}] 指向不存在的行: ${rowNumber}`);
+            throw new Error(`patch_sheet_locks.cells[${index}] trỏ tới hàng không tồn tại: ${rowNumber}`);
         }
         const columnName = assertNonEmptyColumnName_ACU(item.columnName, `patch_sheet_locks.cells[${index}].columnName`);
         const colIndex = headers.indexOf(columnName);
         if (colIndex === -1) {
-            throw new Error(`patch_sheet_locks.cells[${index}] 指向不存在的列: ${columnName}`);
+            throw new Error(`patch_sheet_locks.cells[${index}] trỏ tới cột không tồn tại: ${columnName}`);
         }
         if (typeof item.locked !== 'boolean') {
-            throw new Error(`patch_sheet_locks.cells[${index}].locked 必须是布尔值`);
+            throw new Error(`patch_sheet_locks.cells[${index}].locked phải là giá trị boolean`);
         }
         normalized.cells.push({ rowIndex: rowNumber - 1, colIndex, locked: item.locked });
-        changes.push(`${item.locked ? '锁定' : '解锁'}单元格: 第${rowNumber}行.${columnName}`);
+        changes.push(`${item.locked ? 'Khóa' : 'Mở khóa'} ô: hàng ${rowNumber}.${columnName}`);
     });
 
     if (rawPatch.specialIndexLocked != null) {
         if (!isSummaryOrOutlineTable_ACU(String(sheet?.name || ''))) {
-            throw new Error('patch_sheet_locks.specialIndexLocked 仅支持纪要/大纲类表格');
+            throw new Error('patch_sheet_locks.specialIndexLocked chỉ hỗ trợ các bảng loại kỷ yếu/dàn ý');
         }
         if (typeof rawPatch.specialIndexLocked !== 'boolean') {
-            throw new Error('patch_sheet_locks.specialIndexLocked 必须是布尔值');
+            throw new Error('patch_sheet_locks.specialIndexLocked phải là giá trị boolean');
         }
         normalized.specialIndexLocked = rawPatch.specialIndexLocked;
-        changes.push(`${rawPatch.specialIndexLocked ? '启用' : '关闭'}编码索引列特殊锁定`);
+        changes.push(`${rawPatch.specialIndexLocked ? 'Bật' : 'Tắt'} khóa đặc biệt cho cột chỉ mục mã hóa`);
     }
 
     return {
@@ -699,14 +699,14 @@ export function compileTemplateAssistantDraft_ACU(input: {
 }): TemplateAssistantCompileResult_ACU {
     const tempData = isObject_ACU(input?.tempData) ? input.tempData : null;
     if (!tempData) {
-        throw new Error('缺少 tempData');
+        throw new Error('Thiếu tempData');
     }
     const draft = input?.draft;
     if (!draft || !Array.isArray(draft.operations)) {
         if (draft?.protocolVersion === 3) {
             return compileTemplateAssistantDraftV3_ACU(input.tempData, input.sheetOrder, input.currentSheetKey, draft);
         }
-        throw new Error('缺少合法 draft.operations');
+        throw new Error('Thiếu draft.operations hợp lệ');
     }
 
     const protocolVersion = draft?.protocolVersion === 1 ? 1 : 2;
@@ -722,7 +722,7 @@ export function compileTemplateAssistantDraft_ACU(input: {
 
     draft.operations.forEach((op: any) => {
         const opName = String(op?.op || '');
-        if (!opName) throw new Error('存在缺少 op 的操作');
+        if (!opName) throw new Error('Có thao tác thiếu op');
 
         if (opName === 'add_sheet') {
             const sheetName = String(op?.sheetName || '').trim();
@@ -739,7 +739,7 @@ export function compileTemplateAssistantDraft_ACU(input: {
             const sheet = ensureSheetExists_ACU(candidateData, op.sheetKey);
             const beforeName = String(sheet.name || '');
             const afterName = String(op.newName || '').trim();
-            if (!afterName) throw new Error('rename_sheet 缺少 newName');
+            if (!afterName) throw new Error('rename_sheet thiếu newName');
             sheet.name = afterName;
             ensureSheetExportConfigDefaults_ACU(sheet);
             diff.renamedSheets.push({ sheetKey: op.sheetKey, beforeName, afterName });
@@ -751,7 +751,7 @@ export function compileTemplateAssistantDraft_ACU(input: {
             const sheet = ensureSheetExists_ACU(candidateData, op.sheetKey);
             diff.deletedSheets.push({ sheetKey: op.sheetKey, name: String(sheet.name || op.sheetKey) });
             if (!deletedSheetKeys.includes(op.sheetKey)) deletedSheetKeys.push(op.sheetKey);
-            highRiskItems.push({ type: 'delete_sheet', label: `删除表: ${String(sheet.name || op.sheetKey)}` });
+            highRiskItems.push({ type: 'delete_sheet', label: `Xóa bảng: ${String(sheet.name || op.sheetKey)}` });
             delete candidateData[op.sheetKey];
             const idx = orderedSheetKeys.indexOf(op.sheetKey);
             if (idx >= 0) orderedSheetKeys.splice(idx, 1);
@@ -774,9 +774,9 @@ export function compileTemplateAssistantDraft_ACU(input: {
             assertPatchTargetsCurrentSheet_ACU(op, input?.currentSheetKey, draft?.selectedSheetKey, protocolVersion);
             const sheet = ensureSheetExists_ACU(candidateData, op.sheetKey);
             if (Object.prototype.hasOwnProperty.call(op.patch || {}, 'ddl')) {
-                throw new Error('patch_sheet_source_data 不能直接修改 ddl，请改用 patch_sheet_schema.ddl');
+                throw new Error('patch_sheet_source_data không được sửa trực tiếp ddl, hãy dùng patch_sheet_schema.ddl');
             }
-            if (!isObject_ACU(sheet.sourceData)) throw new Error(`目标表 sourceData 非法: ${op.sheetKey}`);
+            if (!isObject_ACU(sheet.sourceData)) throw new Error(`sourceData của bảng đích không hợp lệ: ${op.sheetKey}`);
             applyStrictPatch_ACU(sheet.sourceData, isObject_ACU(op.patch) ? op.patch : {});
             diff.patchedSourceDataSheets.push({ sheetKey: op.sheetKey, name: String(sheet.name || op.sheetKey), keys: listPatchLeafKeys_ACU(op.patch) });
             return;
@@ -785,7 +785,7 @@ export function compileTemplateAssistantDraft_ACU(input: {
         if (opName === 'patch_sheet_update_config') {
             assertPatchTargetsCurrentSheet_ACU(op, input?.currentSheetKey, draft?.selectedSheetKey, protocolVersion);
             const sheet = ensureSheetExists_ACU(candidateData, op.sheetKey);
-            if (!isObject_ACU(sheet.updateConfig)) throw new Error(`目标表 updateConfig 非法: ${op.sheetKey}`);
+            if (!isObject_ACU(sheet.updateConfig)) throw new Error(`updateConfig của bảng đích không hợp lệ: ${op.sheetKey}`);
             applyStrictPatch_ACU(sheet.updateConfig, isObject_ACU(op.patch) ? op.patch : {});
             sheet.updateConfig.uiSentinel = -1;
             diff.patchedUpdateConfigSheets.push({ sheetKey: op.sheetKey, name: String(sheet.name || op.sheetKey), keys: listPatchLeafKeys_ACU(op.patch) });
@@ -849,11 +849,11 @@ export function compileTemplateAssistantDraft_ACU(input: {
             applyStrictPatch_ACU(candidateData.mate.globalInjectionConfig, isObject_ACU(op.patch) ? op.patch : {});
             candidateData.mate.globalInjectionConfig = ensureGlobalInjectionConfigDefaults_ACU(candidateData.mate.globalInjectionConfig);
             diff.globalInjectionChanged = true;
-            highRiskItems.push({ type: 'patch_global_injection_config', label: '修改全局注入配置' });
+            highRiskItems.push({ type: 'patch_global_injection_config', label: 'Sửa cấu hình chèn toàn cục' });
             return;
         }
 
-        throw new Error(`当前协议不支持的操作: ${opName}`);
+        throw new Error(`Thao tác không được giao thức hiện tại hỗ trợ: ${opName}`);
     });
 
     orderedSheetKeys.forEach((sheetKey, index) => {
@@ -882,10 +882,10 @@ export function buildTemplateAssistantCumulativeCompileResult_ACU(input: Templat
     const baselineData = isObject_ACU(input?.baselineData) ? input.baselineData : null;
     const rawCandidateData = isObject_ACU(input?.candidateData) ? input.candidateData : null;
     if (!baselineData) {
-        throw new Error('缺少 baselineData');
+        throw new Error('Thiếu baselineData');
     }
     if (!rawCandidateData) {
-        throw new Error('缺少 candidateData');
+        throw new Error('Thiếu candidateData');
     }
 
     const candidateData = clone_ACU(rawCandidateData);
@@ -909,7 +909,7 @@ export function buildTemplateAssistantCumulativeCompileResult_ACU(input: Templat
         const sheet = baselineData[sheetKey] || {};
         const name = String(sheet.name || sheetKey);
         diff.deletedSheets.push({ sheetKey, name });
-        highRiskItems.push({ type: 'delete_sheet', label: `删除表: ${name}` });
+        highRiskItems.push({ type: 'delete_sheet', label: `Xóa bảng: ${name}` });
     });
 
     baselineCommonOrderedKeys.forEach((sheetKey, commonIndex) => {
@@ -947,14 +947,14 @@ export function buildTemplateAssistantCumulativeCompileResult_ACU(input: Templat
         }
 
         if (!isSameValue_ACU(beforeSheet.content, afterSheet.content)) {
-            diff.patchedContentSheets.push({ sheetKey, name: afterName || beforeName || sheetKey, changes: ['内容已修改'] });
+            diff.patchedContentSheets.push({ sheetKey, name: afterName || beforeName || sheetKey, changes: ['Nội dung đã sửa'] });
         }
 
         const beforeDdl = String(beforeSheet?.sourceData?.ddl || '');
         const afterDdl = String(afterSheet?.sourceData?.ddl || '');
         if (beforeDdl !== afterDdl) {
-            diff.patchedSchemaSheets.push({ sheetKey, name: afterName || beforeName || sheetKey, changes: ['DDL 已更新'] });
-            highRiskItems.push({ type: 'patch_sheet_schema', label: `更新 DDL: ${afterName || beforeName || sheetKey}` });
+            diff.patchedSchemaSheets.push({ sheetKey, name: afterName || beforeName || sheetKey, changes: ['DDL đã cập nhật'] });
+            highRiskItems.push({ type: 'patch_sheet_schema', label: `Cập nhật DDL: ${afterName || beforeName || sheetKey}` });
         }
     });
 
@@ -963,7 +963,7 @@ export function buildTemplateAssistantCumulativeCompileResult_ACU(input: Templat
         getNormalizedGlobalInjectionConfig_ACU(candidateData),
     );
     if (diff.globalInjectionChanged) {
-        highRiskItems.push({ type: 'patch_global_injection_config', label: '修改全局注入配置' });
+        highRiskItems.push({ type: 'patch_global_injection_config', label: 'Sửa cấu hình chèn toàn cục' });
     }
 
     orderedSheetKeys.forEach((sheetKey, index) => {
@@ -1015,11 +1015,11 @@ function compileTemplateAssistantDraftV3_ACU(
     const result = draft?.result;
 
     if (!result || typeof result !== 'object' || Array.isArray(result)) {
-        throw new Error('v3 draft.result 必须存在且为对象');
+        throw new Error('v3 draft.result phải tồn tại và là đối tượng');
     }
     const action = String(result.action || '');
     if (action !== 'replace' && action !== 'create' && action !== 'delete') {
-        throw new Error('v3 result.action 必须为 replace / create / delete 之一');
+        throw new Error('v3 result.action phải là một trong replace / create / delete');
     }
 
     let focusSheetKey: string | null = null;
@@ -1027,7 +1027,7 @@ function compileTemplateAssistantDraftV3_ACU(
     if (action === 'replace') {
         const targetSheetKey = String(result.sheetKey || '').trim();
         if (!targetSheetKey) {
-            throw new Error('v3 replace 必须提供非空 sheetKey');
+            throw new Error('v3 replace phải cung cấp sheetKey không rỗng');
         }
         const sheet = ensureSheetExists_ACU(candidateData, targetSheetKey);
         const beforeName = String(sheet.name || targetSheetKey);
@@ -1038,7 +1038,7 @@ function compileTemplateAssistantDraftV3_ACU(
         const beforeDdl = String(sheet?.sourceData?.ddl || '');
         const afterDdl = String(normalized.sourceData?.ddl || '');
         if (beforeDdl && afterDdl && beforeDdl !== afterDdl) {
-            highRiskItems.push({ type: 'patch_sheet_schema', label: `更新 DDL: ${normalized.name || beforeName}` });
+            highRiskItems.push({ type: 'patch_sheet_schema', label: `Cập nhật DDL: ${normalized.name || beforeName}` });
         }
 
         candidateData[targetSheetKey] = {
@@ -1047,9 +1047,9 @@ function compileTemplateAssistantDraftV3_ACU(
             [TABLE_ORDER_FIELD_ACU]: orderedSheetKeys.indexOf(targetSheetKey),
         };
         maybeApplySpecialIndexSequenceToSheet_ACU(candidateData[targetSheetKey], targetSheetKey, {});
-        diff.patchedContentSheets.push({ sheetKey: targetSheetKey, name: normalized.name || beforeName, changes: ['单表完整替换'] });
+        diff.patchedContentSheets.push({ sheetKey: targetSheetKey, name: normalized.name || beforeName, changes: ['Thay thế toàn bộ một bảng'] });
         if (beforeDdl !== afterDdl) {
-            diff.patchedSchemaSheets.push({ sheetKey: targetSheetKey, name: normalized.name || beforeName, changes: ['DDL 已更新'] });
+            diff.patchedSchemaSheets.push({ sheetKey: targetSheetKey, name: normalized.name || beforeName, changes: ['DDL đã cập nhật'] });
             // DDL 变化交给 preflight 判断 migration/rebase，不在此伪造 intent。
         }
         if (beforeName !== normalized.name) {
@@ -1074,13 +1074,13 @@ function compileTemplateAssistantDraftV3_ACU(
         // delete
         const targetSheetKey = String(result.sheetKey || '').trim();
         if (!targetSheetKey) {
-            throw new Error('v3 delete 必须提供非空 sheetKey');
+            throw new Error('v3 delete phải cung cấp sheetKey không rỗng');
         }
         const sheet = ensureSheetExists_ACU(candidateData, targetSheetKey);
         const name = String(sheet.name || targetSheetKey);
         diff.deletedSheets.push({ sheetKey: targetSheetKey, name });
         deletedSheetKeys.push(targetSheetKey);
-        highRiskItems.push({ type: 'delete_sheet', label: `删除表: ${name}` });
+        highRiskItems.push({ type: 'delete_sheet', label: `Xóa bảng: ${name}` });
         delete candidateData[targetSheetKey];
         const idx = orderedSheetKeys.indexOf(targetSheetKey);
         if (idx >= 0) orderedSheetKeys.splice(idx, 1);
@@ -1118,79 +1118,79 @@ function compileTemplateAssistantDraftV3_ACU(
  */
 function normalizeV3FullSheet_ACU(rawSheet: any, targetSheetKey: string): AnyRecord {
     if (!rawSheet || typeof rawSheet !== 'object' || Array.isArray(rawSheet)) {
-        throw new Error('v3 必须返回完整 sheet 对象');
+        throw new Error('v3 phải trả về đối tượng sheet đầy đủ');
     }
 
     const requiredKeys = ['name', 'domain', 'type', 'enable', 'required', 'content', 'sourceData', 'updateConfig', 'exportConfig'];
     requiredKeys.forEach((key) => {
         if (!Object.prototype.hasOwnProperty.call(rawSheet, key)) {
-            throw new Error(`v3 sheet 缺少必填字段: ${key}`);
+            throw new Error(`v3 sheet thiếu trường bắt buộc: ${key}`);
         }
     });
 
     const name = String(rawSheet.name || '').trim();
     if (!name) {
-        throw new Error('v3 sheet.name 必须是非空字符串');
+        throw new Error('v3 sheet.name phải là chuỗi không rỗng');
     }
     if (typeof rawSheet.domain !== 'string' || !rawSheet.domain.trim()) {
-        throw new Error('v3 sheet.domain 必须是非空字符串');
+        throw new Error('v3 sheet.domain phải là chuỗi không rỗng');
     }
     if (typeof rawSheet.type !== 'string' || !rawSheet.type.trim()) {
-        throw new Error('v3 sheet.type 必须是非空字符串');
+        throw new Error('v3 sheet.type phải là chuỗi không rỗng');
     }
     if (typeof rawSheet.enable !== 'boolean') {
-        throw new Error('v3 sheet.enable 必须是布尔值');
+        throw new Error('v3 sheet.enable phải là giá trị boolean');
     }
     if (typeof rawSheet.required !== 'boolean') {
-        throw new Error('v3 sheet.required 必须是布尔值');
+        throw new Error('v3 sheet.required phải là giá trị boolean');
     }
 
     const content = rawSheet.content;
     if (!Array.isArray(content) || content.length === 0) {
-        throw new Error('v3 sheet.content 必须是非空二维数组');
+        throw new Error('v3 sheet.content phải là mảng hai chiều không rỗng');
     }
     if (!Array.isArray(content[0])) {
-        throw new Error('v3 sheet.content[0]（表头行）必须是数组');
+        throw new Error('v3 sheet.content[0] (hàng tiêu đề) phải là mảng');
     }
     const headerRow = content[0].map((item: any) => String(item ?? '').trim());
     if (headerRow[0] !== 'row_id') {
-        throw new Error('v3 sheet.content[0][0] 必须为 row_id');
+        throw new Error('v3 sheet.content[0][0] phải là row_id');
     }
     const headers = headerRow.slice(1);
     if (headers.length === 0) {
-        throw new Error('v3 sheet 至少需要一个业务表头');
+        throw new Error('v3 sheet cần ít nhất một tiêu đề cột nghiệp vụ');
     }
     assertHeadersUnique_ACU(headers);
 
     const headerWidth = headerRow.length;
     content.slice(1).forEach((row: any, index: number) => {
         if (!Array.isArray(row)) {
-            throw new Error(`v3 sheet.content[${index + 1}] 必须是数组`);
+            throw new Error(`v3 sheet.content[${index + 1}] phải là mảng`);
         }
         if (row.length !== headerWidth) {
-            throw new Error(`v3 sheet.content[${index + 1}] 行宽(${row.length})与表头行宽(${headerWidth})不一致`);
+            throw new Error(`v3 sheet.content[${index + 1}] có độ rộng hàng (${row.length}) không khớp với độ rộng hàng tiêu đề (${headerWidth})`);
         }
     });
 
     const sourceData = isObject_ACU(rawSheet.sourceData) ? rawSheet.sourceData : null;
     if (!sourceData) {
-        throw new Error('v3 sheet.sourceData 必须是对象');
+        throw new Error('v3 sheet.sourceData phải là đối tượng');
     }
     const ddlText = typeof sourceData.ddl === 'string' ? sourceData.ddl.trim() : '';
     if (!ddlText) {
-        throw new Error('v3 replace/create 必须提供非空 sourceData.ddl');
+        throw new Error('v3 replace/create phải cung cấp sourceData.ddl không rỗng');
     }
     const ddlValidation = validateDdlAgainstHeaders_ACU(ddlText, headerRow);
     if (!ddlValidation.valid) {
-        throw new Error(`v3 sheet.sourceData.ddl 非法: ${ddlValidation.message}`);
+        throw new Error(`v3 sheet.sourceData.ddl không hợp lệ: ${ddlValidation.message}`);
     }
     const updateConfig = isObject_ACU(rawSheet.updateConfig) ? rawSheet.updateConfig : null;
     if (!updateConfig) {
-        throw new Error('v3 sheet.updateConfig 必须是对象');
+        throw new Error('v3 sheet.updateConfig phải là đối tượng');
     }
     const exportConfig = isObject_ACU(rawSheet.exportConfig) ? rawSheet.exportConfig : null;
     if (!exportConfig) {
-        throw new Error('v3 sheet.exportConfig 必须是对象');
+        throw new Error('v3 sheet.exportConfig phải là đối tượng');
     }
 
     // row_id 集合守卫：空/重复拒绝（未删行要求保持集合一致在 compile 之后由调用方复核）。
@@ -1198,10 +1198,10 @@ function normalizeV3FullSheet_ACU(rawSheet: any, targetSheetKey: string): AnyRec
     content.slice(1).forEach((row: any) => {
         const rowId = String(row[0] ?? '').trim();
         if (!rowId) {
-            throw new Error('v3 sheet 数据行 row_id 不能为空');
+            throw new Error('row_id của hàng dữ liệu v3 sheet không được rỗng');
         }
         if (rowIdSet.has(rowId)) {
-            throw new Error(`v3 sheet 数据行 row_id 重复: ${rowId}`);
+            throw new Error(`row_id của hàng dữ liệu v3 sheet bị trùng: ${rowId}`);
         }
         rowIdSet.add(rowId);
     });
@@ -1250,7 +1250,7 @@ export function collectV3RowIdGuardFindings_ACU(
     const missing = baselineIds.filter((rowId) => !candidateIds.includes(rowId));
     if (missing.length === 0) return [];
     // 用户需求显式提到「删除/移除/去掉」等动作时，认为删行是有意的，交给高风险确认流程而非硬阻断。
-    const explicitDeleteIntent = /删除|移除|去掉|清除|drop|delete|remove/i.test(String(userRequest || ''));
+    const explicitDeleteIntent = /删除|移除|去掉|清除|xóa|xoá|loại bỏ|gỡ bỏ|drop|delete|remove/i.test(String(userRequest || ''));
     if (explicitDeleteIntent) return [];
     return [{ code: 'row_id_set_reduction', sheetKey, missingRowIds: missing }];
 }

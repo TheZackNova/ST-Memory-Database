@@ -6,7 +6,7 @@ export async function runWithAbortSignal_ACU<T>(
     signal?.throwIfAborted();
     if (!signal) return run();
     return new Promise<T>((resolve, reject) => {
-        const abort = () => reject(signal.reason ?? new DOMException('本轮已停止。', 'AbortError'));
+        const abort = () => reject(signal.reason ?? new DOMException('Lượt này đã dừng.', 'AbortError'));
         signal.addEventListener('abort', abort, { once: true });
         Promise.resolve().then(() => {
             signal.throwIfAborted();

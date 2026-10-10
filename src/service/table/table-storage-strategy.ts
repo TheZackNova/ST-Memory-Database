@@ -190,7 +190,7 @@ export async function ensureStorageProviderReady_ACU(
   const initializedProvider = getActiveStorageProvider();
   if (!initializedProvider || initializedProvider.mode !== expectedMode || !initializedProvider.isReady()) {
     const reason = loadResult.failureCode || runtimeHealth.failureCode || 'unknown';
-    throw new Error(`[StorageStrategy] ${expectedMode} 存储运行时未就绪（${reason}），已阻止 SQL 写入。`);
+    throw new Error(`[StorageStrategy] ${expectedMode} runtime lưu trữ chưa sẵn sàng (${reason}), đã chặn ghi SQL.`);
   }
   return initializedProvider;
 }
@@ -234,7 +234,7 @@ async function initializeStorageProvider_ACU(mode: StorageMode, epoch: number): 
       nextProvider.dispose();
       setRuntimeHealth_ACU({
         status: 'idle', expectedMode: getCurrentStorageMode(), activeMode: currentProvider?.mode ?? null,
-        failureCode: 'stale_load_discarded', error: '存储模式在初始化期间发生变化，已丢弃旧候选运行时。',
+        failureCode: 'stale_load_discarded', error: 'Chế độ lưu trữ đã thay đổi trong lúc khởi tạo, đã loại bỏ runtime ứng viên cũ.',
       });
       return { ok: false, degraded: false, source: result.source, failureCode: 'stale_load_discarded' };
     }
@@ -310,14 +310,14 @@ export async function switchStorageMode(mode: StorageMode): Promise<void> {
           status: 'degraded', expectedMode: mode, activeMode: 'native', source: result.source,
           failureCode: 'provider_fallback', error: failure,
         });
-        throw new Error(`SQLite 模式切换失败: ${failure}。已自动回退到原生模式。`);
+        throw new Error(`Chuyển chế độ SQLite thất bại: ${failure}. Đã tự động lùi về chế độ gốc.`);
       }
     }
     replaceActiveProvider_ACU(nextProvider);
     nextProvider = null;
     setRuntimeHealth_ACU({ status: 'ready', expectedMode: mode, activeMode: mode, source: result.source });
   } catch (e: any) {
-    if (e.message?.includes('已自动回退')) throw e;
+    if (e.message?.includes('Đã tự động lùi về')) throw e;
 
     logError_ACU(`[StorageStrategy] 切换异常: ${e?.message}`);
     nextProvider?.dispose();
@@ -438,7 +438,7 @@ export async function hydrateStorageProviderFromSnapshot_ACU(
   envelope: CanonicalSnapshotEnvelope_ACU,
 ): Promise<StorageRuntimeLoadResult_ACU> {
   if (!isCanonicalSnapshotEnvelope_ACU(envelope)) {
-    return { ok: false, degraded: false, failureCode: 'provider_load_failed', error: '[StorageStrategy] 非法 canonical snapshot envelope。' };
+    return { ok: false, degraded: false, failureCode: 'provider_load_failed', error: '[StorageStrategy] canonical snapshot envelope không hợp lệ.' };
   }
   const lifecycleEpoch = runtimeLifecycleEpoch_ACU;
   const mode = getCurrentStorageMode();
@@ -552,7 +552,7 @@ async function loadProviderForCurrentChat_ACU(
 
   const replay = await loadOrCreateJsonTableFromChatHistory_ACU();
   if (typeof provider.loadFromData !== 'function') {
-    throw new Error('[StorageStrategy] SQLite provider 未实现 canonical snapshot hydrate。');
+    throw new Error('[StorageStrategy] SQLite provider chưa triển khai canonical snapshot hydrate.');
   }
   return provider.loadFromData(replay.data || null);
 }

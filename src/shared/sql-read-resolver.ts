@@ -192,7 +192,7 @@ export function rebindSheetKeysThroughTableAliases_ACU(
   targetData: TableDataObject_ACU | Record<string, unknown> | null | undefined,
 ): string[] {
   if (!targetData || typeof targetData !== 'object') {
-    throw new SheetTableAliasResolutionError_ACU('表身份重绑定失败：当前基底不可用。');
+    throw new SheetTableAliasResolutionError_ACU('Gán lại danh tính bảng thất bại: nền tảng hiện tại không khả dụng.');
   }
   const sourcePhysicalNames = sourceData && typeof sourceData === 'object'
     ? resolvePhysicalTableNames_ACU(sourceData)
@@ -218,17 +218,17 @@ export function rebindSheetKeysThroughTableAliases_ACU(
       : normalized;
 
     if (targetRegistry.conflicts.has(normalized)) {
-      throw new SheetTableAliasResolutionError_ACU(`表身份重绑定存在歧义：别名「${selector}」同时指向多张物理表。`);
+      throw new SheetTableAliasResolutionError_ACU(`Gán lại danh tính bảng có điểm mơ hồ: bí danh “${selector}” cùng lúc trỏ tới nhiều bảng vật lý.`);
     }
     const directTargetPhysicalName = targetRegistry.aliases.get(normalized);
     if (directTargetPhysicalName) {
       const directTargetSheetKey = targetSheetKeyByPhysicalName.get(canonicalizeSheetTableAlias_ACU(directTargetPhysicalName));
       if (!directTargetSheetKey) {
-        throw new SheetTableAliasResolutionError_ACU(`表身份重绑定失败：别名「${selector}」对应的物理表不在当前基底中。`);
+        throw new SheetTableAliasResolutionError_ACU(`Gán lại danh tính bảng thất bại: bảng vật lý tương ứng với bí danh “${selector}” không có trong nền tảng hiện tại.`);
       }
       const directOwner = sourceOwnerByTargetKey.get(directTargetSheetKey);
       if (directOwner && directOwner !== sourceOwner) {
-        throw new SheetTableAliasResolutionError_ACU(`表身份重绑定存在多对一冲突：${directOwner}、${sourceOwner} 同时指向 ${directTargetSheetKey}。`);
+        throw new SheetTableAliasResolutionError_ACU(`Gán lại danh tính bảng có xung đột nhiều-một: ${directOwner}, ${sourceOwner} cùng trỏ tới ${directTargetSheetKey}.`);
       }
       sourceOwnerByTargetKey.set(directTargetSheetKey, sourceOwner);
       if (!rebound.includes(directTargetSheetKey)) rebound.push(directTargetSheetKey);
@@ -236,18 +236,18 @@ export function rebindSheetKeysThroughTableAliases_ACU(
     }
 
     if (sourceRegistry.conflicts.has(normalized)) {
-      throw new SheetTableAliasResolutionError_ACU(`表身份重绑定存在歧义：调度快照中的别名「${selector}」同时指向多张物理表。`);
+      throw new SheetTableAliasResolutionError_ACU(`Gán lại danh tính bảng có điểm mơ hồ: bí danh “${selector}” trong snapshot điều phối cùng lúc trỏ tới nhiều bảng vật lý.`);
     }
     const sourcePhysicalName = sourceRegistry.aliases.get(normalized);
     if (!sourcePhysicalName) {
-      throw new SheetTableAliasResolutionError_ACU(`表身份重绑定失败：无法解析别名「${selector}」。`);
+      throw new SheetTableAliasResolutionError_ACU(`Gán lại danh tính bảng thất bại: không thể phân tích bí danh “${selector}”.`);
     }
     const sourceAliases = [...sourceRegistry.aliases.entries()]
       .filter(([, physicalName]) => canonicalizeSheetTableAlias_ACU(physicalName) === canonicalizeSheetTableAlias_ACU(sourcePhysicalName))
       .map(([alias]) => alias);
     const ambiguousAliases = sourceAliases.filter(alias => targetRegistry.conflicts.has(alias));
     if (ambiguousAliases.length > 0) {
-      throw new SheetTableAliasResolutionError_ACU(`表身份重绑定存在歧义：别名「${ambiguousAliases[0]}」在当前基底中同时指向多张物理表。`);
+      throw new SheetTableAliasResolutionError_ACU(`Gán lại danh tính bảng có điểm mơ hồ: bí danh “${ambiguousAliases[0]}” trong nền tảng hiện tại cùng lúc trỏ tới nhiều bảng vật lý.`);
     }
     const targetCandidates = new Set(
       sourceAliases
@@ -255,16 +255,16 @@ export function rebindSheetKeysThroughTableAliases_ACU(
         .filter((physicalName): physicalName is string => Boolean(physicalName)),
     );
     if (targetCandidates.size !== 1) {
-      const reason = targetCandidates.size === 0 ? '无法证明其在当前基底中的对应表' : '多个别名证据指向不同物理表';
-      throw new SheetTableAliasResolutionError_ACU(`表身份重绑定失败：别名「${selector}」${reason}。`);
+      const reason = targetCandidates.size === 0 ? 'không thể chứng minh bảng tương ứng của nó trong nền tảng hiện tại' : 'nhiều bằng chứng bí danh trỏ tới các bảng vật lý khác nhau';
+      throw new SheetTableAliasResolutionError_ACU(`Gán lại danh tính bảng thất bại: bí danh “${selector}” ${reason}.`);
     }
     const targetPhysicalName = [...targetCandidates][0];
     const targetSheetKey = targetSheetKeyByPhysicalName.get(targetPhysicalName);
-    if (!targetSheetKey) throw new SheetTableAliasResolutionError_ACU(`表身份重绑定失败：别名「${selector}」对应的物理表不在当前基底中。`);
+    if (!targetSheetKey) throw new SheetTableAliasResolutionError_ACU(`Gán lại danh tính bảng thất bại: bảng vật lý tương ứng với bí danh “${selector}” không có trong nền tảng hiện tại.`);
     const sourceSheetKey = [...sourcePhysicalNames].find(([, physicalName]) => canonicalizeSheetTableAlias_ACU(physicalName) === canonicalizeSheetTableAlias_ACU(sourcePhysicalName))?.[0] || normalized;
     const existingOwner = sourceOwnerByTargetKey.get(targetSheetKey);
     if (existingOwner && existingOwner !== sourceSheetKey) {
-      throw new SheetTableAliasResolutionError_ACU(`表身份重绑定存在多对一冲突：${existingOwner}、${sourceSheetKey} 同时指向 ${targetSheetKey}。`);
+      throw new SheetTableAliasResolutionError_ACU(`Gán lại danh tính bảng có xung đột nhiều-một: ${existingOwner}, ${sourceSheetKey} cùng trỏ tới ${targetSheetKey}.`);
     }
     sourceOwnerByTargetKey.set(targetSheetKey, sourceSheetKey);
     if (!rebound.includes(targetSheetKey)) rebound.push(targetSheetKey);

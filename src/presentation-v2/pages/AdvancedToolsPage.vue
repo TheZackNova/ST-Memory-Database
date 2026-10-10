@@ -16,28 +16,28 @@
       >
         <template #actions>
           <AcuBadge :variant="sqlFlow.isSqliteAvailable.value ? 'success' : 'warning'">
-            {{ sqlFlow.isSqliteAvailable.value ? 'SQLite 模式' : 'SQL 不可用' }}
+            {{ sqlFlow.isSqliteAvailable.value ? 'Chế độ SQLite' : 'SQL không khả dụng' }}
           </AcuBadge>
         </template>
 
-        <div class="acu-v2-advanced-tools-page__quick-actions" aria-label="SQL 快捷操作">
+        <div class="acu-v2-advanced-tools-page__quick-actions" aria-label="Thao tác nhanh SQL">
           <AcuButton size="sm" :disabled="!!sqlFlow.busyAction.value" @click="sqlFlow.showTables">
             <i class="fa-solid fa-list"></i>
-            查看所有表
+            Xem tất cả bảng
           </AcuButton>
           <AcuButton size="sm" :disabled="!!sqlFlow.busyAction.value" @click="sqlFlow.showSchema">
             <i class="fa-solid fa-sitemap"></i>
-            查看表结构
+            Xem cấu trúc bảng
           </AcuButton>
         </div>
 
-        <AcuFormRow label="SQL 语句" hint="Ctrl / Command + Enter 执行；多行语句会原样交给 SQLite provider 处理。">
+        <AcuFormRow label="Câu lệnh SQL" hint="Ctrl / Command + Enter để thực thi; câu lệnh nhiều dòng được giao nguyên cho SQLite provider xử lý.">
           <AcuTextarea
             :model-value="sqlFlow.sqlText.value"
             :rows="10"
-            placeholder="SELECT * FROM 表名;&#10;&#10;UPDATE 表名 SET 列名 = '新值' WHERE row_id = 1;"
+            placeholder="SELECT * FROM ten_bang;&#10;&#10;UPDATE ten_bang SET ten_cot = 'gia_tri_moi' WHERE row_id = 1;"
             class="acu-v2-advanced-tools-page__sql-textarea"
-            aria-label="SQL 语句"
+            aria-label="Câu lệnh SQL"
             @update:model-value="sqlFlow.sqlText.value = $event"
             @keydown="onSqlEditorKeydown"
           />
@@ -51,25 +51,25 @@
             @click="sqlFlow.executeCurrent"
           >
             <i class="fa-solid fa-play"></i>
-            执行
+            Thực thi
           </AcuButton>
           <AcuButton :disabled="!sqlFlow.hasSqlText.value || !!sqlFlow.busyAction.value" @click="sqlFlow.clearSql">
             <i class="fa-solid fa-eraser"></i>
-            清空
+            Xóa
           </AcuButton>
           <span class="acu-v2-advanced-tools-page__sql-status" :class="`acu-v2-advanced-tools-page__sql-status--${sqlFlow.statusKind.value}`">
             {{ sqlFlow.statusLabel.value }}
           </span>
         </div>
 
-        <section class="acu-v2-advanced-tools-page__sql-result-section" aria-label="SQL 执行结果">
-          <h4 class="acu-v2-advanced-tools-page__section-title">结果</h4>
+        <section class="acu-v2-advanced-tools-page__sql-result-section" aria-label="Kết quả thực thi SQL">
+          <h4 class="acu-v2-advanced-tools-page__section-title">Kết quả</h4>
           <div v-if="sqlFlow.result.value.kind === 'idle'" class="acu-v2-advanced-tools-page__empty">
-            执行 SQL 后结果会显示在这里
+            Kết quả sẽ hiển thị ở đây sau khi thực thi SQL
           </div>
 
           <AcuMessage v-else-if="sqlFlow.result.value.kind === 'mutation'" kind="success">
-            执行成功，{{ sqlFlow.result.value.changes }} 行受影响，耗时 {{ sqlFlow.result.value.elapsedMs }}ms。
+            Thực thi thành công, {{ sqlFlow.result.value.changes }} hàng bị ảnh hưởng, mất {{ sqlFlow.result.value.elapsedMs }}ms.
           </AcuMessage>
 
           <pre v-else-if="sqlFlow.result.value.kind === 'error'" class="acu-v2-advanced-tools-page__sql-error">{{ sqlFlow.result.value.error }}</pre>
@@ -85,7 +85,7 @@
                 <tbody>
                   <tr v-if="!sqlFlow.result.value.values.length">
                     <td :colspan="Math.max(sqlFlow.result.value.columns.length, 1)" class="acu-v2-advanced-tools-page__empty-cell">
-                      查询成功，没有返回行
+                      Truy vấn thành công, không có hàng trả về
                     </td>
                   </tr>
                   <tr v-for="(row, rowIndex) in sqlFlow.result.value.values" :key="rowIndex">
@@ -97,15 +97,15 @@
               </table>
             </div>
             <p class="acu-v2-advanced-tools-page__sql-result-meta">
-              {{ sqlFlow.result.value.rowCount }} 行 · {{ sqlFlow.result.value.elapsedMs }}ms
+              {{ sqlFlow.result.value.rowCount }} hàng · {{ sqlFlow.result.value.elapsedMs }}ms
             </p>
           </template>
         </section>
 
-        <section class="acu-v2-advanced-tools-page__sql-history-section" aria-label="SQL 执行历史">
-          <h4 class="acu-v2-advanced-tools-page__section-title">执行历史</h4>
+        <section class="acu-v2-advanced-tools-page__sql-history-section" aria-label="Lịch sử thực thi SQL">
+          <h4 class="acu-v2-advanced-tools-page__section-title">Lịch sử thực thi</h4>
           <div v-if="!sqlFlow.history.value.length" class="acu-v2-advanced-tools-page__empty acu-v2-advanced-tools-page__empty--compact">
-            暂无执行历史
+            Chưa có lịch sử thực thi
           </div>
           <div v-else class="acu-v2-advanced-tools-page__sql-history-list">
             <AcuButton
@@ -113,13 +113,13 @@
               :key="`${item.timestamp}-${index}`"
               class="acu-v2-advanced-tools-page__sql-history-item"
               :class="item.success ? 'acu-v2-advanced-tools-page__sql-history-item--success' : 'acu-v2-advanced-tools-page__sql-history-item--failure'"
-              title="填入编辑器"
+              title="Điền vào trình soạn thảo"
               @click="sqlFlow.useHistoryItem(item)"
             >
               <div class="acu-v2-advanced-tools-page__log-meta acu-v2-advanced-tools-page__sql-history-meta">
                 <span class="acu-v2-advanced-tools-page__log-time">{{ formatTime(item.timestamp) }}</span>
                 <AcuBadge :variant="item.success ? 'success' : 'danger'">
-                  {{ item.success ? '成功' : '失败' }}
+                  {{ item.success ? 'Thành công' : 'Thất bại' }}
                 </AcuBadge>
               </div>
               <code class="acu-v2-advanced-tools-page__log-message acu-v2-advanced-tools-page__log-body">{{ item.sql }}</code>
@@ -168,7 +168,7 @@
             <AcuInput
               :model-value="logFlow.keyword.value"
               type="text"
-              placeholder="搜索日志内容"
+              placeholder="Tìm nội dung nhật ký"
               @update:model-value="logFlow.keyword.value = String($event)"
             />
           </AcuFormRow>
@@ -179,27 +179,27 @@
             <div class="acu-v2-advanced-tools-page__log-actions">
               <AcuButton :variant="logFlow.paused.value ? 'primary' : 'default'" @click="logFlow.setPaused(!logFlow.paused.value)">
                 <i :class="logFlow.paused.value ? 'fa-solid fa-play' : 'fa-solid fa-pause'"></i>
-                暂停
+                Tạm dừng
               </AcuButton>
               <AcuButton :disabled="!logFlow.totalCount.value" @click="logFlow.exportFiltered">
                 <i class="fa-solid fa-upload"></i>
-                导出
+                Xuất
               </AcuButton>
               <AcuButton variant="danger" :disabled="!logFlow.totalCount.value" @click="logFlow.clearAll">
                 <i class="fa-solid fa-trash"></i>
-                清空
+                Xóa
               </AcuButton>
             </div>
 
             <div class="acu-v2-advanced-tools-page__toggles">
               <AcuToggle
                 :model-value="logFlow.autoScroll.value"
-                label="自动滚动"
+                label="Tự động cuộn"
                 @update:model-value="logFlow.autoScroll.value = $event"
               />
               <AcuToggle
                 :model-value="logFlow.apiLogEnabled.value"
-                label="API 请求"
+                label="Yêu cầu API"
                 @update:model-value="logFlow.setApiCollection"
               />
               <AcuToggle
@@ -216,13 +216,13 @@
           </div>
 
           <p class="acu-v2-advanced-tools-page__hint">
-            最多保留最近 2000 条；当前显示 {{ logFlow.filteredCount.value }} / {{ logFlow.totalCount.value }} 条。{{ logFlow.pendingCount.value ? `${logFlow.pendingCount.value} 条暂停期间新增日志等待显示。` : '没有暂停期间积压的日志。' }}
+            Chỉ giữ tối đa 2000 mục gần nhất; hiện hiển thị {{ logFlow.filteredCount.value }} / {{ logFlow.totalCount.value }} mục. {{ logFlow.pendingCount.value ? `${logFlow.pendingCount.value} nhật ký mới phát sinh trong lúc tạm dừng đang chờ hiển thị.` : 'Không có nhật ký tồn đọng trong lúc tạm dừng.' }}
           </p>
         </div>
 
         <div ref="logListRef" class="acu-v2-advanced-tools-page__log-list" role="log" aria-live="polite">
           <div v-if="!logFlow.visibleLogs.value.length" class="acu-v2-advanced-tools-page__empty acu-v2-advanced-tools-page__empty--log">
-            暂无匹配日志
+            Không có nhật ký phù hợp
           </div>
           <div
             v-for="entry in logFlow.visibleLogs.value"
@@ -244,7 +244,7 @@
               <summary class="acu-v2-advanced-tools-page__log-hint-summary">
                 <i class="fa-solid fa-lightbulb acu-v2-advanced-tools-page__log-hint-icon" aria-hidden="true"></i>
                 <span class="acu-v2-advanced-tools-page__log-hint-text">{{ hintFor(entry)!.summary }}</span>
-                <span class="acu-v2-advanced-tools-page__log-hint-toggle">怎么处理</span>
+                <span class="acu-v2-advanced-tools-page__log-hint-toggle">Cách xử lý</span>
               </summary>
               <ol class="acu-v2-advanced-tools-page__log-hint-steps">
                 <li v-for="(step, stepIndex) in hintFor(entry)!.steps" :key="stepIndex">{{ step }}</li>

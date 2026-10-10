@@ -237,7 +237,7 @@ export async function publishSummaryVectorMirrorRowRemovalSnapshot_ACU(
     const isolationKey = getCurrentIsolationKey_ACU();
     const base = locateSummaryVectorMirrorBase_ACU(chat, isolationKey);
     if (!base || base.frame.checkpoint?.kind !== 'full') {
-        return emptyResult_ACU({ reason: 'unsupported_replay_base', errors: ['表格基底不是 full checkpoint。'] });
+        return emptyResult_ACU({ reason: 'unsupported_replay_base', errors: ['Nền bảng không phải full checkpoint.'] });
     }
 
     if (!isSummaryVectorEmbeddingIdentity_ACU(snapshot.embedding)) {
@@ -247,7 +247,7 @@ export async function publishSummaryVectorMirrorRowRemovalSnapshot_ACU(
         } catch (error: any) {
             return emptyResult_ACU({
                 reason: 'rebuild_commit_failed',
-                errors: [error?.message || String(error || '非法 embedding 时清理镜像失败')],
+                errors: [error?.message || String(error || 'Dọn bản sao thất bại khi embedding không hợp lệ')],
             });
         }
     }
@@ -275,7 +275,7 @@ export async function publishSummaryVectorMirrorRowRemovalSnapshot_ACU(
     if (missingPackRefs.length > 0) {
         return emptyResult_ACU({
             reason: 'rebuild_repair_pack_reference_missing',
-            errors: [`剩余行镜像引用的 pack 缺少可达路径：${missingPackRefs.join(',')}`],
+            errors: [`Pack mà bản sao hàng còn lại tham chiếu thiếu đường dẫn truy cập được: ${missingPackRefs.join(',')}`],
         });
     }
     const packRefs = requiredPackHashes.map((packHash) => ({ ...packRefsByHash.get(packHash)! }));
@@ -295,7 +295,7 @@ export async function publishSummaryVectorMirrorRowRemovalSnapshot_ACU(
     } catch (error: any) {
         return emptyResult_ACU({
             reason: 'rebuild_commit_failed',
-            errors: [error?.message || String(error || '剩余行 manifest 上传失败')],
+            errors: [error?.message || String(error || 'Tải lên manifest hàng còn lại thất bại')],
         });
     }
 
@@ -335,7 +335,7 @@ export async function publishSummaryVectorMirrorRowRemovalSnapshot_ACU(
                     }
                 }
                 const tagData = chat[base.messageIndex]?.TavernDB_ACU_IsolatedData?.[isolationKey];
-                if (!isV2TagData_ACU(tagData)) throw new Error('发布剩余交火索引失败：C 层不是 V2 frame。');
+                if (!isV2TagData_ACU(tagData)) throw new Error('Phát hành chỉ mục giao hỏa còn lại thất bại: tầng C không phải V2 frame.');
                 const frame = tagData.storageFrame as TableStorageFrameV2_ACU;
                 const mirror: SummaryVectorIndexMirrorFrameV2_ACU = {
                     version: 3,
@@ -361,7 +361,7 @@ export async function publishSummaryVectorMirrorRowRemovalSnapshot_ACU(
         }
         return emptyResult_ACU({
             reason: 'rebuild_commit_failed',
-            errors: [error?.message || String(error || '剩余行镜像落盘失败')],
+            errors: [error?.message || String(error || 'Ghi bản sao hàng còn lại xuống đĩa thất bại')],
         });
     }
 
@@ -416,12 +416,12 @@ export async function rebuildSummaryVectorMirror_ACU(options: {
     }
     const selected = findSummaryTable_ACU();
     if (!selected?.summaryKey) {
-        return emptyResult_ACU({ reason: 'summary_table_not_found', errors: ['纪要表不可用'] });
+        return emptyResult_ACU({ reason: 'summary_table_not_found', errors: ['Bảng kỷ yếu không khả dụng'] });
     }
     const isolationKey = getCurrentIsolationKey_ACU();
     const base = locateSummaryVectorMirrorBase_ACU(chat, isolationKey);
     if (!base || base.frame.checkpoint?.kind !== 'full') {
-        return emptyResult_ACU({ reason: 'unsupported_replay_base', errors: ['表格基底不是 full checkpoint。'] });
+        return emptyResult_ACU({ reason: 'unsupported_replay_base', errors: ['Nền bảng không phải full checkpoint.'] });
     }
 
     const sheet = base.frame.checkpoint.data?.[selected.summaryKey];
@@ -429,7 +429,7 @@ export async function rebuildSummaryVectorMirror_ACU(options: {
     if (inspect.duplicates.length > 0) {
         return emptyResult_ACU({
             reason: 'duplicate_row_id',
-            errors: [`checkpoint 存在重复 rowId：${inspect.duplicates.join(',')}`],
+            errors: [`checkpoint có rowId trùng lặp: ${inspect.duplicates.join(',')}`],
         });
     }
 
@@ -524,7 +524,7 @@ export async function rebuildSummaryVectorMirror_ACU(options: {
             assertActive();
             embeddings = executed.embeddings;
             if (embeddings.some((vector) => vector.length === 0)) {
-                return emptyResult_ACU({ reason: 'embedding_incomplete', errors: ['重建 embedding 结果不完整'] });
+                return emptyResult_ACU({ reason: 'embedding_incomplete', errors: ['Kết quả embedding khi xây dựng lại không đầy đủ'] });
             }
             embedding.dimension = embeddings[0].length;
         } catch (error: any) {
@@ -534,7 +534,7 @@ export async function rebuildSummaryVectorMirror_ACU(options: {
                 && (Number((embeddingError as any).httpStatus) === 401 || Number((embeddingError as any).httpStatus) === 403);
             return emptyResult_ACU({
                 reason: credential ? 'embedding_unauthorized' : 'embedding_failed',
-                errors: [error?.message || String(error || 'embedding 失败')],
+                errors: [error?.message || String(error || 'embedding thất bại')],
             });
         }
     } else if (reusable.size > 0) {
@@ -591,7 +591,7 @@ export async function rebuildSummaryVectorMirror_ACU(options: {
     if (missingPackRefs.length > 0) {
         return emptyResult_ACU({
             reason: 'rebuild_repair_pack_reference_missing',
-            errors: [`重建引用的 pack 缺少可达路径：${missingPackRefs.join(',')}`],
+            errors: [`Pack mà bản dựng lại tham chiếu thiếu đường dẫn truy cập được: ${missingPackRefs.join(',')}`],
         });
     }
     const packRefs = requiredPackHashes.map((packHash) => ({ ...packRefsByHash.get(packHash)! }));
@@ -617,7 +617,7 @@ export async function rebuildSummaryVectorMirror_ACU(options: {
             } catch (error: any) {
                 return emptyResult_ACU({
                     reason: 'rebuild_commit_failed',
-                    errors: [error?.message || String(error || '空重建清理非法 embedding 失败')],
+                    errors: [error?.message || String(error || 'Dọn embedding không hợp lệ khi xây dựng lại rỗng thất bại')],
                 });
             }
         }
@@ -678,7 +678,7 @@ export async function rebuildSummaryVectorMirror_ACU(options: {
                     }
                 }
                 const tagData = chat[base.messageIndex]?.TavernDB_ACU_IsolatedData?.[isolationKey];
-                if (!isV2TagData_ACU(tagData)) throw new Error('重建失败：C 层不是 V2 frame。');
+                if (!isV2TagData_ACU(tagData)) throw new Error('Xây dựng lại thất bại: tầng C không phải V2 frame.');
                 const frame = tagData.storageFrame as TableStorageFrameV2_ACU;
                 const mirror: SummaryVectorIndexMirrorFrameV2_ACU = {
                     version: 3,
@@ -706,7 +706,7 @@ export async function rebuildSummaryVectorMirror_ACU(options: {
         assertActive();
         return emptyResult_ACU({
             reason: 'rebuild_commit_failed',
-            errors: [error?.message || String(error || '重建落盘失败')],
+            errors: [error?.message || String(error || 'Xây dựng lại ghi xuống đĩa thất bại')],
         });
     }
 

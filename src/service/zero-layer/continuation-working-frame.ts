@@ -9,13 +9,13 @@ export function validateZeroLayerWorkingFrame_ACU(raw: unknown): void {
   requireValue(record(raw) && typeof raw.branchId === 'string' && raw.branchId.trim()
     && record(raw.anchor) && ['host', 'logical'].includes(String(raw.anchor.kind))
     && Object.keys(raw).every(key => ['branchId', 'anchor', 'payload'].includes(key)),
-  '续写工作帧身份无效。');
+  'Danh tính khung làm việc viết tiếp không hợp lệ.');
   const payload = raw.payload;
   requireValue(record(payload) && payload.schemaVersion === AGENT_MODULE_FRAME_SCHEMA_VERSION_ACU
     && record(payload.checkpoint) && payload.checkpoint.swipeId === '0'
     && integer(payload.checkpoint.operationSeq) && record(payload.checkpoint.fieldSnapshot)
     && Array.isArray(payload.deltas) && payload.deltas.length === 0,
-  '续写工作帧缺少无损基底或操作水位。');
+  'Khung làm việc viết tiếp thiếu nền không mất dữ liệu hoặc mốc thao tác.');
   foldCheckpointContinuation_ACU([{ payload, swipeId: '0' }]);
 }
 
@@ -30,5 +30,5 @@ export function validateZeroLayerWorkingFrameScope_ACU(source: ZeroLayerEnvelope
   const hostRefs = branch.bridge?.activationCut.refs;
   const anchor = head ? checkpointTurnRef_ACU(source, head) : hostRefs?.[hostRefs.length - 1];
   requireValue(working.branchId === branch.branchId && anchor
-    && fingerprint(working.anchor) === fingerprint(anchor), '续写工作帧不属于当前分支前沿。');
+    && fingerprint(working.anchor) === fingerprint(anchor), 'Khung làm việc viết tiếp không thuộc đầu nhánh hiện tại.');
 }

@@ -13,8 +13,8 @@ describe.each(features)('$name 默认提示词模式', feature => {
   it.each(['json', 'tools'] as const)('%s 默认只描述当前模式的动作与交付', mode => {
     const prompts = feature.build(mode);
     const forbidden = mode === 'json'
-      ? /函数调用|原生 write_sql|调用 (?:read|search|write_sql) 函数/
-      : /输出(?:必须是一个|一个|契约)?\s*JSON(?: 对象)?|交(?:付)?(?:最终|契约)\s*JSON|以一个完整的 JSON 对象收尾|回复 NO_CHANGE/;
+      ? /函数调用|原生 write_sql|调用 (?:read|search|write_sql) 函数|lệnh gọi hàm/
+      : /输出(?:必须是一个|一个|契约)?\s*JSON(?: 对象)?|交(?:付)?(?:最终|契约)\s*JSON|以一个完整的 JSON 对象收尾|回复 NO_CHANGE|là một đối tượng JSON|xuất đối tượng JSON/;
     const violations = Object.entries(prompts).flatMap(([role, segments]) => segments.flatMap((segment, index) =>
       [segment.content, segment.snapshotTemplate ?? ''].join('\n').split('\n').filter(line => forbidden.test(line)).map(line => `${role}#${index}: ${line}`)));
     expect(violations).toEqual([]);
@@ -72,18 +72,18 @@ describe('续写维护角色独立写入与交付', () => {
   it.each(['arcArchitect', 'maintainer', 'webResearcher'] as const)('%s 的两种默认交付均不携带 sql', role => {
     const json = buildContinuationAgentPromptsForMode_ACU('json')[role].map(segment => segment.content).join('\n');
     const tools = buildContinuationAgentPromptsForMode_ACU('tools')[role].map(segment => segment.content).join('\n');
-    expect(json).toContain('写入时单独输出 {"action":"write_sql","sql":');
+    expect(json).toContain('xuất riêng {"action":"write_sql","sql":');
     if (role === 'maintainer') {
-      expect(json).toContain('优先一次交付 summary + delta');
-      expect(json).toContain('完整保存后任务直接结束，无需再次确认');
-      expect(json).toMatch(/我的最终交付是一个 JSON 对象：\{"summary":"[^"]*","delta":/);
-      expect(tools).toMatch(/我的最终交付调用 submit，参数为：\{"summary":"[^"]*","delta":/);
+      expect(json).toContain('Ưu tiên bàn giao một lần summary + delta');
+      expect(json).toContain('lưu đầy đủ xong là nhiệm vụ kết thúc luôn, không cần xác nhận lại');
+      expect(json).toMatch(/Bàn giao cuối cùng của tôi là một đối tượng JSON: \{"summary":"[^"]*","delta":/);
+      expect(tools).toMatch(/Bàn giao cuối cùng của tôi gọi submit, tham số là: \{"summary":"[^"]*","delta":/);
     } else {
-      expect(json).toContain('收到回执后再单独输出最终交付');
-      expect(json).toMatch(/我的最终交付是一个 JSON 对象：\{"summary":"[^"]*"\}/);
-      expect(tools).toMatch(/我的最终交付调用 submit，参数为：\{"summary":"[^"]*"\}/);
+      expect(json).toContain('nhận biên nhận rồi mới xuất riêng bàn giao cuối cùng');
+      expect(json).toMatch(/Bàn giao cuối cùng của tôi là một đối tượng JSON: \{"summary":"[^"]*"\}/);
+      expect(tools).toMatch(/Bàn giao cuối cùng của tôi gọi submit, tham số là: \{"summary":"[^"]*"\}/);
     }
-    expect(json).not.toMatch(/函数调用|submit|\{"summary":"[^"]*","sql":/);
-    expect(tools).not.toMatch(/\{"summary":"[^"]*","sql":|写入时单独输出/);
+    expect(json).not.toMatch(/lệnh gọi hàm|submit|\{"summary":"[^"]*","sql":/);
+    expect(tools).not.toMatch(/\{"summary":"[^"]*","sql":|xuất riêng {"action":"write_sql"/);
   });
 });

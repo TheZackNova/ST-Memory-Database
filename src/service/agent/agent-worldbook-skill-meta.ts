@@ -140,8 +140,8 @@ export function findWorldbookEntryByUid_ACU(entries: Record<string, any>[], uid:
 }
 
 function validateWorldbookSkillMetaTarget_ACU(bookName: string, uid: string | number | null | undefined): string | null {
-  if (!bookName || !bookName.trim()) return '世界书名称为空';
-  if (uid === null || uid === undefined || uid === '') return '世界书条目 uid 为空';
+  if (!bookName || !bookName.trim()) return 'Tên sổ thế giới rỗng';
+  if (uid === null || uid === undefined || uid === '') return 'uid của mục sổ thế giới rỗng';
   return null;
 }
 
@@ -156,7 +156,7 @@ export async function saveWorldbookEntrySkillMeta_ACU(
 
   const entries = await getLorebookEntries_ACU(bookName);
   const entry = findWorldbookEntryByUid_ACU(entries, uid);
-  if (!entry) return { updated: false, reason: '未找到世界书条目' };
+  if (!entry) return { updated: false, reason: 'Không tìm thấy mục sổ thế giới' };
 
   const meta = normalizeWorldbookSkillMetaDraft_ACU(metaDraft, updatedBy);
   const nextComment = buildWorldbookSkillMetaComment_ACU(entry.comment, meta);
@@ -177,7 +177,7 @@ export async function deleteWorldbookEntrySkillMeta_ACU(
 
   const entries = await getLorebookEntries_ACU(bookName);
   const entry = findWorldbookEntryByUid_ACU(entries, uid);
-  if (!entry) return { updated: false, reason: '未找到世界书条目' };
+  if (!entry) return { updated: false, reason: 'Không tìm thấy mục sổ thế giới' };
 
   const currentComment = normalizeCommentText_ACU(entry.comment);
   const nextComment = stripWorldbookSkillMetaBlock_ACU(currentComment);
@@ -256,7 +256,7 @@ export async function clearWorldbookSkillMetaBlocks_ACU(
       else result.skipped += 1;
     } catch (error: any) {
       result.failed += 1;
-      result.errors.push({ bookName: target.bookName, uid: target.uid, reason: error?.message || '清除 Skill 元数据失败' });
+      result.errors.push({ bookName: target.bookName, uid: target.uid, reason: error?.message || 'Xóa siêu dữ liệu Skill thất bại' });
     }
   }
 

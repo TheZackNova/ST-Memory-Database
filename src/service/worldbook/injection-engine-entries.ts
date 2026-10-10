@@ -380,7 +380,7 @@ function projectWorldbookTable_ACU(table: any): { headers: string[]; rows: any[]
         personEntriesToCreate.unshift(personsHeaderEntryData);
 
         // 2.2 准备要创建的索引条目
-        let indexContent = "# 以下是之前剧情中登场过的角色\n\n";
+        let indexContent = "# Sau đây là các nhân vật đã xuất hiện trong cốt truyện trước đó\n\n";
         indexContent += `| ${headers[nameColumnIndex]} |\n|---|\n` + personNames.map(name => `| ${name} |`).join('\n');
         // indexContent 已是纯文本，由 Wrapper 条目包裹
 

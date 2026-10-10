@@ -91,7 +91,7 @@ export async function planWorldSimulationHistoryCompaction_ACU(input: { view: Wo
   let summary;
   try { summary = await summarizeWorldSimulationHandoff_ACU({ previous: input.previousState ?? (input.view.compaction ? { currentGoal: '', effectiveConstraints: [], decisions: [], completedItems: [], pendingItems: [], blockers: [], continuityFacts: [input.view.compaction.report], readKeys: [], recentTurns: [] } : null), messages: dropped, maxTokens: handoffBudget, countTokens: input.countTokens, ...(input.semanticAdapter ? { semanticAdapter: input.semanticAdapter } : {}) }); } catch { return unchanged('summary_failed', before, target); }
   const at = Date.now();
-  const handoff: WorldSimulationConversationMessage_ACU = { id: 0, kind: 'handoff', text: summary.report, digest: `交接报告（浓缩 ${droppedTurns} 个轮次）`, turnKey: '', at };
+  const handoff: WorldSimulationConversationMessage_ACU = { id: 0, kind: 'handoff', text: summary.report, digest: `Báo cáo bàn giao (cô đọng ${droppedTurns} lượt)`, turnKey: '', at };
   const messages = [handoff, ...kept];
   const preparedAfter = input.preparedMessages ? replaceHistory_ACU(input.preparedMessages, renderView_ACU(input.view.messages), renderView_ACU(messages)) : null;
   // 最终请求里的历史块必须与权威投影逐条一致才谈得上实测压缩后体量；

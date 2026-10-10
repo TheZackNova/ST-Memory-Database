@@ -63,12 +63,12 @@ describe('交接报告', () => {
     const report = buildAgentHandoffReport_ACU(snapshot.messages);
 
     expect(report.startsWith('更早的交接报告正文')).toBe(true);
-    expect(report).toContain('轮次：第 1 轮');
+    expect(report).toContain('Lượt: 第 1 轮');
     // 用户原话的空白被压平，便于在报告里逐条列出。
-    expect(report).toContain('用户要求：别 揭穿 守门人');
-    expect(report).toContain('我的动作：派工 2 项 → 交付写作指导');
-    expect(report).toContain('运行时结果：mainline-planner成功');
-    expect(report).toContain('运行时快照：运行时快照');
+    expect(report).toContain('Yêu cầu người dùng: 别 揭穿 守门人');
+    expect(report).toContain('Hành động của tôi: 派工 2 项 → 交付写作指导');
+    expect(report).toContain('Kết quả thời gian chạy: mainline-planner成功');
+    expect(report).toContain('Snapshot thời gian chạy: 运行时快照');
     expect(buildAgentHandoffReport_ACU([])).toBe('');
   });
 });

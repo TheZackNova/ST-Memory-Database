@@ -42,7 +42,7 @@ function readInt_ACU(value: unknown, fallback: number, min: number, max: number,
   if (value === undefined) return fallback;
   const num = Number(value);
   if (!Number.isInteger(num) || num < min || num > max) {
-    diagnostics.push(`${field} 非法（${String(value)}），已回退为 ${fallback}`);
+    diagnostics.push(`${field} không hợp lệ (${String(value)}), đã quay về ${fallback}`);
     return fallback;
   }
   return num;
@@ -52,7 +52,7 @@ function readScore_ACU(value: unknown, fallback: number, field: string, diagnost
   if (value === undefined) return fallback;
   const num = Number(value);
   if (!Number.isFinite(num) || num < 0 || num > 1) {
-    diagnostics.push(`${field} 非法（${String(value)}），已回退为 ${fallback}`);
+    diagnostics.push(`${field} không hợp lệ (${String(value)}), đã quay về ${fallback}`);
     return fallback;
   }
   return num;
@@ -67,7 +67,7 @@ export function normalizeFillModePreferences_ACU(
   let selectedMode = fallbackMode;
   if (source.selectedMode !== undefined) {
     if (isFillMode_ACU(source.selectedMode)) selectedMode = source.selectedMode;
-    else diagnostics.push(`selectedMode 非法（${String(source.selectedMode)}），已回退为 ${fallbackMode}`);
+    else diagnostics.push(`selectedMode không hợp lệ (${String(source.selectedMode)}), đã quay về ${fallbackMode}`);
   }
   // 旧 llm 偏好不参与请求；读时忽略，下次成功保存仅写回有效字段。
   return {
@@ -98,7 +98,7 @@ export function readFillModePreferences_ACU(): FillModePreferencesRead_ACU {
   }
   if (typeof raw !== 'object' || Array.isArray(raw)) {
     const { preferences } = normalizeFillModePreferences_ACU({});
-    return { preferences, source: 'default', diagnostics: ['formFillPreferencesGlobal 结构非法，已使用默认值且未覆盖原值'] };
+    return { preferences, source: 'default', diagnostics: ['Cấu trúc formFillPreferencesGlobal không hợp lệ, đã dùng giá trị mặc định và không ghi đè giá trị gốc'] };
   }
   const { preferences, diagnostics } = normalizeFillModePreferences_ACU(raw);
   return { preferences, source: 'stored', diagnostics };
@@ -151,7 +151,7 @@ export function saveFillModePreferences_ACU(
   if (!saveGlobalMeta_ACU()) {
     if (hadKey) globalMeta_ACU[FILL_MODE_PREFERENCES_KEY_ACU] = previous;
     else delete globalMeta_ACU[FILL_MODE_PREFERENCES_KEY_ACU];
-    return { ok: false, error: '全局配置保存失败，已保留原填表模式。' };
+    return { ok: false, error: 'Lưu cấu hình toàn cục thất bại, đã giữ nguyên chế độ điền bảng cũ.' };
   }
   return { ok: true, preferences };
 }

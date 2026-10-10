@@ -117,7 +117,7 @@ describe('findParagraphMatch_ACU', () => {
     const result = findParagraphMatch_ACU('你好世界', '前缀你好世界后缀');
     expect(result.start).toBe(2);
     expect(result.end).toBe(6);
-    expect(result.method).toBe('精确匹配');
+    expect(result.method).toBe('Khớp chính xác');
   });
 
   it('完全不匹配返回 -1', () => {
@@ -140,7 +140,7 @@ describe('findParagraphMatch_ACU', () => {
     const result = findParagraphMatch_ACU(original, content);
     // 精确匹配失败（标点不同），但模糊匹配应该成功
     if (result.start !== -1) {
-      expect(result.method).not.toBe('精确匹配');
+      expect(result.method).not.toBe('Khớp chính xác');
     }
     // 如果模糊匹配算法对此用例不匹配，也是合理的（算法有阈值限制）
     expect(typeof result.start).toBe('number');

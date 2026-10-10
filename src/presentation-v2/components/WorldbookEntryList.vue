@@ -1,8 +1,8 @@
 <template>
   <div class="acu-v2-wb-entries">
-    <div v-if="loading" class="acu-v2-wb-entries__status">正在加载条目...</div>
+    <div v-if="loading" class="acu-v2-wb-entries__status">Đang tải mục...</div>
     <div v-else-if="status === 'error'" class="acu-v2-wb-entries__status acu-v2-wb-entries__status--error" role="alert">
-      {{ error || '加载条目失败' }}
+      {{ error || 'Tải mục thất bại' }}
     </div>
     <div v-else-if="groups.length === 0" class="acu-v2-wb-entries__status">
       {{ emptyText }}
@@ -42,23 +42,23 @@
           <div v-else class="acu-v2-wb-entry-item__label" :title="entry.label">{{ entry.label }}</div>
           <div v-if="showSkillifyControls || entry.isConstant || (showAgentTakeoverState && formatAgentTakeoverState(entry))" class="acu-v2-wb-entry-item__actions">
             <span v-if="showSkillifyControls && entry.skillMeta" class="acu-v2-wb-entry-item__skill-badge">Skill</span>
-            <span v-if="entry.isConstant" class="acu-v2-wb-entry-item__state-badge">常量</span>
+            <span v-if="entry.isConstant" class="acu-v2-wb-entry-item__state-badge">Hằng</span>
             <span v-if="showAgentTakeoverState && formatAgentTakeoverState(entry)" class="acu-v2-wb-entry-item__state-badge">{{ formatAgentTakeoverState(entry) }}</span>
             <AcuCheckbox v-if="showSkillifyControls"
               :model-value="entry.skillifySelected"
-              label="Skill 化"
+              label="Skill hóa"
               :disabled="entry.disabled || !entry.skillifySelectable"
               @update:model-value="$emit('toggle-skillify', entry.bookName, entry.uid, $event)"
             />
             <AcuButton v-if="showSkillifyControls && showSkillEditor" size="sm" @click="toggleSkillEditor(entry)">
-              {{ isSkillEditorOpen(entry) ? '收起 Skill' : '编辑 Skill' }}
+              {{ isSkillEditorOpen(entry) ? 'Thu gọn Skill' : 'Sửa Skill' }}
             </AcuButton>
           </div>
           <div v-if="showSkillEditor && isSkillEditorOpen(entry)" class="acu-v2-wb-entry-skill">
             <AcuTextarea
               :model-value="getSkillDraft(entry).description"
-              label="Skill 描述"
-              placeholder="描述该世界书条目的用途，留空则不写入 Skill 元数据。"
+              label="Mô tả Skill"
+              placeholder="Mô tả công dụng của mục Sổ thế giới này; để trống thì không ghi vào metadata Skill."
               :rows="2"
               :max-rows="6"
               auto-resize
@@ -66,16 +66,16 @@
             />
             <AcuTextarea
               :model-value="getSkillDraft(entry).triggerWhen"
-              label="触发时机"
-              placeholder="说明 Agent 何时应选择该条目，留空则不写入 Skill 元数据。"
+              label="Thời điểm kích hoạt"
+              placeholder="Nêu khi nào Agent nên chọn mục này; để trống thì không ghi vào metadata Skill."
               :rows="2"
               :max-rows="6"
               auto-resize
               @update:model-value="patchSkillDraft(entry, { triggerWhen: String($event) })"
             />
             <div class="acu-v2-wb-entry-skill__actions">
-              <AcuButton size="sm" variant="primary" @click="saveSkill(entry)">保存 Skill</AcuButton>
-              <AcuButton size="sm" variant="danger" @click="$emit('delete-skill', entry.bookName, entry.uid)">删除 Skill</AcuButton>
+              <AcuButton size="sm" variant="primary" @click="saveSkill(entry)">Lưu Skill</AcuButton>
+              <AcuButton size="sm" variant="danger" @click="$emit('delete-skill', entry.bookName, entry.uid)">Xóa Skill</AcuButton>
             </div>
           </div>
         </div>
@@ -109,7 +109,7 @@ const props = withDefaults(defineProps<{
   showAgentTakeoverState?: boolean;
   showSkillEditor?: boolean;
 }>(), {
-  emptyText: '所选世界书中无可显示的条目。',
+  emptyText: 'Sổ thế giới đã chọn không có mục nào để hiển thị.',
   showEntryToggle: true,
   showSkillifyControls: true,
   showAgentTakeoverState: true,
@@ -151,19 +151,19 @@ function formatGroupMeta(group: WorldbookEntryDisplayGroup_ACU): string {
   const controlledCount = group.entries.filter(entry => entry.agentTakeoverState === 'taken_over' || entry.agentTakeoverState === 'final_greenlight').length;
   const suffix = [
     props.showSkillifyControls && skillCount > 0 ? `Skill ${skillCount}` : '',
-    props.showAgentTakeoverState && controlledCount > 0 ? `接管 ${controlledCount}` : '',
+    props.showAgentTakeoverState && controlledCount > 0 ? `Tiếp quản ${controlledCount}` : '',
   ].filter(Boolean).join(' · ');
-  const prefix = checkedCount === null ? `${group.entries.length} 条` : `${checkedCount}/${group.entries.length} 条`;
+  const prefix = checkedCount === null ? `${group.entries.length} mục` : `${checkedCount}/${group.entries.length} mục`;
   return suffix ? `${prefix} · ${suffix}` : prefix;
 }
 
 function formatAgentTakeoverState(entry: WorldbookEntryDisplayItem_ACU): string {
-  if (entry.agentTakeoverState === 'initial_disabled') return '原本关闭';
+  if (entry.agentTakeoverState === 'initial_disabled') return 'Vốn đang tắt';
   if (entry.isConstant && entry.agentTakeoverState === 'native') return '';
-  if (entry.agentTakeoverState === 'native') return '原生逻辑';
-  if (entry.agentTakeoverState === 'skill_ready') return '可接管';
-  if (entry.agentTakeoverState === 'taken_over') return 'Agent 接管';
-  if (entry.agentTakeoverState === 'final_greenlight') return '正文放行';
+  if (entry.agentTakeoverState === 'native') return 'Logic gốc';
+  if (entry.agentTakeoverState === 'skill_ready') return 'Có thể tiếp quản';
+  if (entry.agentTakeoverState === 'taken_over') return 'Agent tiếp quản';
+  if (entry.agentTakeoverState === 'final_greenlight') return 'Cho phép nội dung';
   return '';
 }
 

@@ -134,11 +134,11 @@ describe('useVisualizerAssistant', () => {
       },
     } as any, 'sheet_a');
 
-    expect(groups.find(group => group.key === 'current')?.items.join('；')).toContain('A表: 更新参数 contextDepth');
+    expect(groups.find(group => group.key === 'current')?.items.join('；')).toContain('A表: Tham số cập nhật contextDepth');
     expect(groups.find(group => group.key === 'other')?.items.join('；')).toContain('B表: 新增 1 行');
     expect(groups.find(group => group.key === 'added')?.items.join('；')).toContain('战利品表 [sheet_new]');
     expect(groups.find(group => group.key === 'deleted')?.tone).toBe('warning');
-    expect(groups.find(group => group.key === 'global')?.items[0]).toContain('全局注入配置');
+    expect(groups.find(group => group.key === 'global')?.items[0]).toContain('Đã sửa cấu hình chèn toàn cục');
     expect(groups.find(group => group.key === 'locks')?.items[0]).toContain('锁定列');
   });
 
@@ -253,7 +253,7 @@ describe('useVisualizerAssistant', () => {
       dirty: visualizer.dirty,
     });
 
-    expect(() => assistant.applyLatestDraft()).toThrow('保存正在进行中');
+    expect(() => assistant.applyLatestDraft()).toThrow('Đang lưu, trong lúc này không thể tiếp tục chỉnh sửa.');
 
     expect(JSON.stringify({
       tempData: visualizer.tempData,
@@ -323,7 +323,7 @@ describe('useVisualizerAssistant', () => {
     assistant.userRequest.value = '顺便调整 B 表';
     await assistant.run();
 
-    expect(assistant.highRiskItems.value.map(item => item.label).join('；')).toContain('跨表变更：B表 的数据内容');
+    expect(assistant.highRiskItems.value.map(item => item.label).join('；')).toContain('Thay đổi liên bảng: Nội dung dữ liệu của B表');
     expect(assistant.canApply.value).toBe(false);
     expect(assistant.applyLatestDraft()).toBe(false);
 
@@ -399,7 +399,7 @@ describe('useVisualizerAssistant', () => {
     expect(remountedAssistant.turns.value.map(turn => turn.type)).toEqual(['user', 'final']);
     expect(remountedAssistant.getTurnSummary(remountedAssistant.turns.value[0])).toBe('新增状态列');
     expect(remountedAssistant.getTurnWarnings(remountedAssistant.turns.value[1])).toEqual([]);
-    expect(remountedAssistant.getTurnDiffGroups(remountedAssistant.turns.value[1]).map(group => group.title).join('；')).toContain('当前锚点表内容');
+    expect(remountedAssistant.getTurnDiffGroups(remountedAssistant.turns.value[1]).map(group => group.title).join('；')).toContain('Nội dung / cấu trúc / tham số bảng neo hiện tại');
     expect(remountedAssistant.canApply.value).toBe(true);
     expect(remountedAssistant.applyLatestDraft()).toBe(true);
     expect(visualizer.currentSheet.content[1][2]).toBe('警觉');
@@ -459,7 +459,7 @@ describe('useVisualizerAssistant', () => {
     visualizer.selectSheet('sheet_b');
 
     expect(assistant.anchorSheetLabel.value).toBe('A表 (sheet_a)');
-    expect(assistant.diffGroups.value.find(group => group.key === 'current')?.items.join('；')).toContain('A表: 更新参数 contextDepth');
+    expect(assistant.diffGroups.value.find(group => group.key === 'current')?.items.join('；')).toContain('A表: Tham số cập nhật contextDepth');
     expect(assistant.canApply.value).toBe(false);
     expect(assistant.applyLatestDraft()).toBe(false);
   });
@@ -589,7 +589,7 @@ describe('useVisualizerAssistant', () => {
 
     expect(ok).toBe(true);
     expect(mockRunSession).toHaveBeenCalledWith(expect.objectContaining({
-      userRequest: '新增状态列\n\n补充要求：不要输出解释文字，直接给 JSON',
+      userRequest: '新增状态列\n\nYêu cầu bổ sung: 不要输出解释文字，直接给 JSON',
     }));
   });
 
@@ -703,7 +703,7 @@ describe('useVisualizerAssistant', () => {
 
     const finalTurn = assistant.turns.value.find(turn => turn.type === 'final') as any;
     expect(assistant.canApplyTurn(finalTurn)).toBe(false); // 高风险未确认
-    expect(assistant.getTurnApplyBlockReason(finalTurn)).toContain('高风险');
+    expect(assistant.getTurnApplyBlockReason(finalTurn)).toContain('rủi ro cao');
 
     assistant.setRiskConfirmation(finalTurn.id, 0, true);
     expect(assistant.canApplyTurn(finalTurn)).toBe(true);
@@ -714,7 +714,7 @@ describe('useVisualizerAssistant', () => {
       sheet_a: { uid: 'sheet_a', name: 'A表', orderNo: 0, content: [[null, '姓名'], [null, 'B']] },
     };
     expect(assistant.canApplyTurn(finalTurn)).toBe(false);
-    expect(assistant.getTurnApplyBlockReason(finalTurn)).toContain('结构已变化');
+    expect(assistant.getTurnApplyBlockReason(finalTurn)).toContain('Cấu trúc hiện tại đã thay đổi');
   });
 
   it('风险确认按 turn 隔离：turn A 确认第 0 项不影响 turn B 的 canApplyTurn', async () => {
@@ -1015,7 +1015,7 @@ describe('useVisualizerAssistant', () => {
     assistant.userRequest.value = '精简行数据';
     await assistant.run();
 
-    expect(assistant.highRiskItems.value.map(item => item.label).join('；')).toContain('row_id 集合缩减');
+    expect(assistant.highRiskItems.value.map(item => item.label).join('；')).toContain('Tập row_id bị thu hẹp');
     expect(assistant.canApply.value).toBe(false);
     expect(assistant.applyLatestDraft()).toBe(false);
 

@@ -36,23 +36,23 @@ afterEach(() => { mounted.splice(0).forEach(({ app, el }) => { app.unmount(); el
 
 describe('WorldbookAgentAdvancedPanel', () => {
   it('内置默认只进入草稿，全局保存不写当前世界书', async () => {
-    const x = await mount(); click(x.el, '载入内置默认决策提示词'); await nextTick(); click(x.el, '保存为全局模板'); await nextTick();
+    const x = await mount(); click(x.el, 'Nạp prompt quyết định mặc định tích hợp'); await nextTick(); click(x.el, 'Lưu thành mẫu toàn cục'); await nextTick();
     expect(x.agentControl.savePromptSegmentsAsGlobalTemplate).toHaveBeenCalledWith([segment('built-in decision')], [segment('current skillify')]);
     expect(x.agentControl.savePromptSegmentsToCurrentWorldbook).not.toHaveBeenCalled(); expect(x.global).toHaveBeenCalledOnce(); expect(x.current).not.toHaveBeenCalled();
   });
   it('保存当前才发当前变更，dirty 关闭需要确认', async () => {
-    const x = await mount(); click(x.el, '载入内置默认决策提示词'); await nextTick(); click(x.el, '保存到当前世界书'); await nextTick();
-    expect(x.current).toHaveBeenCalledOnce(); expect(x.global).not.toHaveBeenCalled(); click(x.el, '载入内置默认决策提示词'); await nextTick(); (x.el.querySelector('.close') as HTMLButtonElement).click(); await nextTick(); expect(harness.confirm).toHaveBeenCalled(); expect(x.closed).not.toHaveBeenCalled();
+    const x = await mount(); click(x.el, 'Nạp prompt quyết định mặc định tích hợp'); await nextTick(); click(x.el, 'Lưu vào sổ thế giới hiện tại'); await nextTick();
+    expect(x.current).toHaveBeenCalledOnce(); expect(x.global).not.toHaveBeenCalled(); click(x.el, 'Nạp prompt quyết định mặc định tích hợp'); await nextTick(); (x.el.querySelector('.close') as HTMLButtonElement).click(); await nextTick(); expect(harness.confirm).toHaveBeenCalled(); expect(x.closed).not.toHaveBeenCalled();
   });
   it('底层配置在 dirty 期间变化时锁定保存，确认关闭后真正丢弃草稿', async () => {
     const x = await mount();
-    click(x.el, '载入内置默认决策提示词');
+    click(x.el, 'Nạp prompt quyết định mặc định tích hợp');
     await nextTick();
     x.agentControl.agentDecisionPromptSegments.value = [segment('new scope decision')];
     await nextTick();
-    expect(x.el.textContent).toContain('当前草稿可能属于旧角色或旧世界书');
+    expect(x.el.textContent).toContain('bản nháp hiện tại có thể thuộc vai trò hoặc sổ thế giới cũ');
     const saveButtons = [...x.el.querySelectorAll<HTMLButtonElement>('button')]
-      .filter(button => ['保存到当前世界书', '保存为全局模板'].includes(button.textContent?.trim() || ''));
+      .filter(button => ['Lưu vào sổ thế giới hiện tại', 'Lưu thành mẫu toàn cục'].includes(button.textContent?.trim() || ''));
     expect(saveButtons.every(button => button.disabled)).toBe(true);
     harness.confirm.mockResolvedValueOnce(true);
     (x.el.querySelector('.close') as HTMLButtonElement).click();

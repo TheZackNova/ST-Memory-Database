@@ -15,7 +15,7 @@ export function installZeroLayerInputGate_ACU(
   let active = true;
   let queued: symbol | null = null;
   let sending = false;
-  const reject = () => Promise.reject(Object.assign(new Error('零层已接管或拒绝本次生成；原发送不会入楼。'), { name: 'AbortError' }));
+  const reject = () => Promise.reject(Object.assign(new Error('Tầng 0 đã tiếp quản hoặc từ chối lần tạo này; việc gửi gốc sẽ không vào tầng.'), { name: 'AbortError' }));
   const wrapper: typeof original = function (this: unknown, event, ...args) {
     if (invalidateEvents.includes(event)) queued = null;
     if (!active || event !== eventType || args[2] === true

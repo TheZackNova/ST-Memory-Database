@@ -29,7 +29,7 @@ export class ZeroLayerSimulationStore_ACU implements WorldSimulationStorePort_AC
   constructor(readonly store = new ZeroLayerStore_ACU()) {
     this.context = captureZeroLayerCarrier_ACU();
     const source = store.readSnapshot();
-    if (!source?.enabled) throw new ZeroLayerError_ACU('mode-disabled', '逻辑推演需要已启用的 carrier。');
+    if (!source?.enabled) throw new ZeroLayerError_ACU('mode-disabled', 'Mô phỏng logic cần carrier đã được bật.');
     this.sessionId = source.sessionId;
     this.branchId = source.activeBranchId;
   }
@@ -37,7 +37,7 @@ export class ZeroLayerSimulationStore_ACU implements WorldSimulationStorePort_AC
     assertZeroLayerCarrier_ACU(this.context);
     const source = this.store.readSnapshot();
     if (!source?.enabled || source.sessionId !== this.sessionId || source.activeBranchId !== this.branchId) {
-      throw new ZeroLayerError_ACU('scope-changed', '推演所属会话或分支已变化。');
+      throw new ZeroLayerError_ACU('scope-changed', 'Phiên hoặc nhánh của mô phỏng đã thay đổi.');
     }
     return source;
   }
@@ -73,11 +73,11 @@ export class ZeroLayerSimulationStore_ACU implements WorldSimulationStorePort_AC
         || guard.taskId !== undefined && guard.taskId !== (current?.task?.taskId ?? null)
         || guard.stageId !== undefined && guard.stageId !== (current?.activeStageId ?? null)
         || guard.revision !== undefined && guard.revision !== (stage?.activeRevision ?? null))) {
-        throw new ZeroLayerError_ACU('revision-conflict', '推演任务或阶段守卫不匹配。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Tác vụ mô phỏng hoặc chốt chặn giai đoạn không khớp.');
       }
       const next = validateWorldSimulationEnvelope_ACU(mutator(structuredClone(current)), 'persist');
       if (current && JSON.stringify(current.ledger) !== JSON.stringify(next.ledger)) {
-        throw new ZeroLayerError_ACU('invalid-transition', '账本更新必须通过推演联合提交写口。');
+        throw new ZeroLayerError_ACU('invalid-transition', 'Cập nhật sổ cái phải đi qua cổng ghi gộp của mô phỏng.');
       }
       if (!current) state.fields = seedLedgerFieldView_ACU(next.ledger, next.updatedAt);
       const run = next.task?.activeRun;
@@ -100,7 +100,7 @@ export class ZeroLayerSimulationStore_ACU implements WorldSimulationStorePort_AC
       const turn = candidate.turns.find(item => item.turnId === completed.logicalRef.turnId)!;
       if (turn.phase !== 'response-durable' || turn.effectReceipts.some(item => item.kind === 'simulation')) return undefined;
       return buildZeroLayerSimulationEffect_ACU(state, completed, 'no_change',
-        state.envelope.timeline[state.envelope.timeline.length - 1]?.message ?? '世界推演无变化');
+        state.envelope.timeline[state.envelope.timeline.length - 1]?.message ?? 'Mô phỏng thế giới không có thay đổi');
     });
   }
   async skipAutomatic(anchor: WorldSimulationLogicalAnchorIdentity_ACU): Promise<void> {
@@ -111,13 +111,13 @@ export class ZeroLayerSimulationStore_ACU implements WorldSimulationStorePort_AC
       validateZeroLayerSimulationReceipt_ACU(turn, this.sessionId);
       return;
     }
-    await this.updateState(() => {}, buildZeroLayerSimulationEffect_ACU(state, anchor, 'skipped-by-config', '自动推演已关闭'));
+    await this.updateState(() => {}, buildZeroLayerSimulationEffect_ACU(state, anchor, 'skipped-by-config', 'Mô phỏng tự động đã tắt'));
   }
   anchorForTurn(turnId: string, source = this.readSource()): WorldSimulationLogicalAnchorIdentity_ACU {
     const turn = source.turns.find(item => item.turnId === turnId && (item.branchId === this.branchId
       || getPublishedZeroLayerPath_ACU(source).some(published => published.turnId === item.turnId)));
     if (!turn?.body?.trim() || !['response-durable', 'effects-durable', 'published'].includes(turn.phase)) {
-      throw new ZeroLayerError_ACU('effects-pending', '推演锚点缺少已保存的逻辑正文。');
+      throw new ZeroLayerError_ACU('effects-pending', 'Neo mô phỏng thiếu nội dung logic đã lưu.');
     }
     return { kind: 'logical', chatIdentity: this.getChatIdentity(), contentDigest: sha256HexSync_ACU(turn.body),
       logicalRef: { sessionId: this.sessionId, branchId: turn.branchId, turnId: turn.turnId,
@@ -125,22 +125,22 @@ export class ZeroLayerSimulationStore_ACU implements WorldSimulationStorePort_AC
   }
   assertAnchor(anchor: WorldSimulationTargetAnchor_ACU, source = this.readSource()): asserts anchor is WorldSimulationLogicalAnchorIdentity_ACU {
     if (!('logicalRef' in anchor) || anchor.kind !== 'logical' || anchor.chatIdentity !== this.getChatIdentity()) {
-      throw new ZeroLayerError_ACU('scope-changed', '逻辑推演不接受宿主锚点或其他会话。');
+      throw new ZeroLayerError_ACU('scope-changed', 'Mô phỏng logic không chấp nhận neo host hoặc phiên khác.');
     }
     const actual = this.anchorForTurn(anchor.logicalRef.turnId, source);
     if (actual.contentDigest !== anchor.contentDigest || !(['sessionId', 'branchId', 'turnId', 'attemptId', 'floorId'] as const)
       .every(key => actual.logicalRef[key] === anchor.logicalRef[key])) {
-      throw new ZeroLayerError_ACU('revision-conflict', '推演逻辑锚点已变化。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Neo logic của mô phỏng đã thay đổi.');
     }
     const turn = source.turns.find(item => item.turnId === anchor.logicalRef.turnId)!;
     const path = getPublishedZeroLayerPath_ACU(source);
     const head = source.branches.find(item => item.branchId === this.branchId)!.headTurnId;
     if (turn.phase === 'published' ? !path.some(item => item.turnId === turn.turnId) : turn.parentTurnId !== head) {
-      throw new ZeroLayerError_ACU('revision-conflict', '推演锚点不属于当前逻辑历史。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Neo mô phỏng không thuộc lịch sử logic hiện tại.');
     }
   }
   restoreAnchor(identity: WorldSimulationRunIdentity_ACU): WorldSimulationLogicalAnchorIdentity_ACU {
-    if (identity.kind !== 'logical') throw new ZeroLayerError_ACU('corrupt-data', '逻辑推演不能恢复宿主运行。');
+    if (identity.kind !== 'logical') throw new ZeroLayerError_ACU('corrupt-data', 'Mô phỏng logic không thể khôi phục lần chạy của host.');
     const anchor: WorldSimulationLogicalAnchorIdentity_ACU = { kind: 'logical', chatIdentity: identity.chatIdentity,
       logicalRef: structuredClone(identity.logicalRef), contentDigest: identity.anchorContentDigest };
     this.assertAnchor(anchor);
@@ -163,9 +163,9 @@ export class ZeroLayerSimulationStore_ACU implements WorldSimulationStorePort_AC
   readView() {
     const source = this.readSource();
     const state = this.readState();
-    if (!state.envelope) throw new ZeroLayerError_ACU('effects-pending', '逻辑推演账本尚未建立。');
+    if (!state.envelope) throw new ZeroLayerError_ACU('effects-pending', 'Sổ cái mô phỏng logic chưa được thiết lập.');
     const view = readCheckpointSimulationView_ACU(source, state);
-    if (!view.ledger) throw new ZeroLayerError_ACU('corrupt-data', '推演基线回放缺少账本。');
+    if (!view.ledger) throw new ZeroLayerError_ACU('corrupt-data', 'Phát lại đường cơ sở mô phỏng thiếu sổ cái.');
     return { ...view, ledger: view.ledger };
   }
 }

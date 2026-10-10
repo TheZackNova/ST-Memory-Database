@@ -398,7 +398,7 @@ function buildLedgerFieldRecord_ACU(engine: SqliteEngine, module: WorldSimulatio
 }
 
 function readLedgerFieldRecord_ACU(engine: SqliteEngine, module: WorldSimulationLedgerModule_ACU, id: string): WorldSimulationLedgerFieldRecord_ACU | null {
-  if (!isLedgerFieldModule_ACU(module)) throw new WorldSimulationSqlViewError_ACU(`未知账本栏目模块: ${String(module)}`);
+  if (!isLedgerFieldModule_ACU(module)) throw new WorldSimulationSqlViewError_ACU(`Module cột sổ cái không xác định: ${String(module)}`);
   const normalized = normalizeLedgerFieldRecordId_ACU(module, id);
   const row = readLedgerFieldRecordRow_ACU(engine, module, normalized);
   if (!row) return null;
@@ -406,7 +406,7 @@ function readLedgerFieldRecord_ACU(engine: SqliteEngine, module: WorldSimulation
 }
 
 function readLedgerPartialRecords_ACU(engine: SqliteEngine, module?: WorldSimulationLedgerModule_ACU): WorldSimulationLedgerFieldRecord_ACU[] {
-  if (module !== undefined && !isLedgerFieldModule_ACU(module)) throw new WorldSimulationSqlViewError_ACU(`未知账本栏目模块: ${String(module)}`);
+  if (module !== undefined && !isLedgerFieldModule_ACU(module)) throw new WorldSimulationSqlViewError_ACU(`Module cột sổ cái không xác định: ${String(module)}`);
   const records: WorldSimulationLedgerFieldRecord_ACU[] = [];
   for (const key of module ? [module] : LEDGER_FIELD_MODULES_ACU) {
     const rows = engine.query(`SELECT id, updated_at FROM ${FIELD_RECORDS_TABLE_ACU} WHERE module = ? AND status = 'partial' ORDER BY id`, [key]).values;
@@ -428,7 +428,7 @@ function loadLedger_ACU(engine: SqliteEngine, ledger: WorldSimulationLedger_ACU)
     const table = moduleTable_ACU(module);
     for (const entry of ledger[module] as unknown as readonly Record<string, unknown>[]) {
       const key = itemKey_ACU(entry, idKey);
-      if (!key) throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 存在无 ${idKey} 条目，无法物化进 SQL 视图`, { module });
+      if (!key) throw new WorldSimulationSqlViewError_ACU(`Module ${module} có mục không có ${idKey}, không thể hiện thực hóa vào chế độ xem SQL`, { module });
       engine.run(`INSERT INTO ${table} (row_key, payload) VALUES (?, ?)`, [key, JSON.stringify(entry)]);
     }
   }
@@ -443,7 +443,7 @@ function loadLedger_ACU(engine: SqliteEngine, ledger: WorldSimulationLedger_ACU)
 function loadArchive_ACU(engine: SqliteEngine, snapshot: WorldChronicleArchiveSnapshot_ACU | undefined): void {
   if (!snapshot) return;
   for (const [ref, detail] of Object.entries(snapshot.records)) {
-    if (!ref.trim()) throw new WorldSimulationSqlViewError_ACU('编年归档存在空 archiveRef 记录，无法物化进 SQL 视图', { module: 'chronicleArchive' });
+    if (!ref.trim()) throw new WorldSimulationSqlViewError_ACU('Lưu trữ niên biểu có bản ghi archiveRef rỗng, không thể hiện thực hóa vào chế độ xem SQL', { module: 'chronicleArchive' });
     engine.run(`INSERT INTO ${ARCHIVE_TABLE_ACU} (archive_ref, payload) VALUES (?, ?)`, [ref, JSON.stringify(detail)]);
   }
 }
@@ -451,25 +451,25 @@ function loadArchive_ACU(engine: SqliteEngine, snapshot: WorldChronicleArchiveSn
 
 function applyArrayWrite_ACU(engine: SqliteEngine, input: WorldSimulationSqlArrayWrite_ACU): number {
   if (!isArrayModule_ACU(input.module)) {
-    throw new WorldSimulationSqlViewError_ACU(`未知账本模块: ${String(input.module)}`);
+    throw new WorldSimulationSqlViewError_ACU(`Module sổ cái không xác định: ${String(input.module)}`);
   }
   const module = input.module;
   const idKey = arrayModuleIdKey_ACU(module);
   if (!Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) {
-    throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 的 expectedRevision 非法: ${String(input.expectedRevision)}`, { module });
+    throw new WorldSimulationSqlViewError_ACU(`expectedRevision của module ${module} không hợp lệ: ${String(input.expectedRevision)}`, { module });
   }
   for (const item of input.upserts ?? []) {
-    if (!itemKey_ACU(item, idKey)) throw new WorldSimulationSqlViewError_ACU(`模块 ${module} upsert 条目缺少合法 ${idKey}`, { module });
+    if (!itemKey_ACU(item, idKey)) throw new WorldSimulationSqlViewError_ACU(`Mục upsert của module ${module} thiếu ${idKey} hợp lệ`, { module });
   }
   for (const id of input.removedIds ?? []) {
-    if (typeof id !== 'string' || !id.trim()) throw new WorldSimulationSqlViewError_ACU(`模块 ${module} removedIds 含非法 id`, { module });
+    if (typeof id !== 'string' || !id.trim()) throw new WorldSimulationSqlViewError_ACU(`removedIds của module ${module} chứa id không hợp lệ`, { module });
   }
   const table = moduleTable_ACU(module);
   engine.run('BEGIN');
   try {
     const current = readRevision_ACU(engine);
     if (current !== input.expectedRevision) {
-      throw new WorldSimulationSqlViewError_ACU(`账本 revision 冲突（模块 ${module}）：期望 ${input.expectedRevision}，实际 ${current}`, { module, expected: input.expectedRevision, actual: current });
+      throw new WorldSimulationSqlViewError_ACU(`Xung đột revision sổ cái (module ${module}): kỳ vọng ${input.expectedRevision}, thực tế ${current}`, { module, expected: input.expectedRevision, actual: current });
     }
     for (const id of input.removedIds ?? []) {
       engine.run(`DELETE FROM ${table} WHERE row_key = ?`, [id]);
@@ -494,18 +494,18 @@ function applyArrayWrite_ACU(engine: SqliteEngine, input: WorldSimulationSqlArra
 
 function applySingletonWrite_ACU(engine: SqliteEngine, input: WorldSimulationSqlSingletonWrite_ACU): number {
   if (!isSingleton_ACU(input.module)) {
-    throw new WorldSimulationSqlViewError_ACU(`未知单行模块: ${String(input.module)}`);
+    throw new WorldSimulationSqlViewError_ACU(`Module một hàng không xác định: ${String(input.module)}`);
   }
   const module = input.module;
   if (!Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) {
-    throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 的 expectedRevision 非法: ${String(input.expectedRevision)}`, { module });
+    throw new WorldSimulationSqlViewError_ACU(`expectedRevision của module ${module} không hợp lệ: ${String(input.expectedRevision)}`, { module });
   }
-  if (!isRecord_ACU(input.value)) throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 的替换值必须是对象`, { module });
+  if (!isRecord_ACU(input.value)) throw new WorldSimulationSqlViewError_ACU(`Giá trị thay thế của module ${module} phải là đối tượng`, { module });
   engine.run('BEGIN');
   try {
     const current = readRevision_ACU(engine);
     if (current !== input.expectedRevision) {
-      throw new WorldSimulationSqlViewError_ACU(`账本 revision 冲突（模块 ${module}）：期望 ${input.expectedRevision}，实际 ${current}`, { module, expected: input.expectedRevision, actual: current });
+      throw new WorldSimulationSqlViewError_ACU(`Xung đột revision sổ cái (module ${module}): kỳ vọng ${input.expectedRevision}, thực tế ${current}`, { module, expected: input.expectedRevision, actual: current });
     }
     engine.run(`UPDATE ${SINGLETON_TABLE_ACU} SET payload = ? WHERE module = ?`, [JSON.stringify(input.value), module]);
     recordChange_ACU(engine, module, module, 'replace', JSON.stringify(input.value));
@@ -522,29 +522,29 @@ function applySingletonWrite_ACU(engine: SqliteEngine, input: WorldSimulationSql
 
 function applyLedgerFieldBatch_ACU(engine: SqliteEngine, input: WorldSimulationSqlFieldBatch_ACU): number {
   if (!isLedgerFieldModule_ACU(input.module)) {
-    throw new WorldSimulationSqlViewError_ACU(`未知账本栏目模块: ${String(input.module)}`);
+    throw new WorldSimulationSqlViewError_ACU(`Module cột sổ cái không xác định: ${String(input.module)}`);
   }
   const module = input.module;
   if (!Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) {
-    throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 的 expectedRevision 非法: ${String(input.expectedRevision)}`, { module });
+    throw new WorldSimulationSqlViewError_ACU(`expectedRevision của module ${module} không hợp lệ: ${String(input.expectedRevision)}`, { module });
   }
   if (!Number.isFinite(input.updatedAt) || input.updatedAt < 0) {
-    throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 的 updatedAt 非法: ${String(input.updatedAt)}`, { module });
+    throw new WorldSimulationSqlViewError_ACU(`updatedAt của module ${module} không hợp lệ: ${String(input.updatedAt)}`, { module });
   }
   const matrix = WORLD_SIMULATION_LEDGER_FIELD_MATRIX_ACU[module];
   const singleton = SINGLETON_FIELD_MODULES_ACU.has(module);
   const writeIds = new Map<string, Record<string, WorldSimulationLedgerFieldWrite_ACU>>();
   for (const [rawId, writes] of Object.entries(input.fieldWrites ?? {})) {
     const id = normalizeLedgerFieldRecordId_ACU(module, rawId);
-    if (!id) throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 逐栏写入含非法 id`, { module });
-    if (!isRecord_ACU(writes)) throw new WorldSimulationSqlViewError_ACU(`模块 ${module}#${id} 的栏目写集必须是对象`, { module });
+    if (!id) throw new WorldSimulationSqlViewError_ACU(`Ghi theo từng cột của module ${module} chứa id không hợp lệ`, { module });
+    if (!isRecord_ACU(writes)) throw new WorldSimulationSqlViewError_ACU(`Tập ghi cột của module ${module}#${id} phải là đối tượng`, { module });
     const merged = writeIds.get(id) ?? {};
     for (const [field, write] of Object.entries(writes)) {
       if (!matrix.fields.includes(field)) {
-        throw new WorldSimulationSqlViewError_ACU(`模块 ${module}#${id} 的栏目 ${field} 不在栏目矩阵`, { module });
+        throw new WorldSimulationSqlViewError_ACU(`Cột ${field} của module ${module}#${id} không nằm trong ma trận cột`, { module });
       }
       if (!isRecord_ACU(write) || (write.unset !== true && !Object.prototype.hasOwnProperty.call(write, 'value'))) {
-        throw new WorldSimulationSqlViewError_ACU(`模块 ${module}#${id} 的栏目 ${field} 写入必须给 value 或 unset`, { module });
+        throw new WorldSimulationSqlViewError_ACU(`Việc ghi cột ${field} của module ${module}#${id} phải cung cấp value hoặc unset`, { module });
       }
       merged[field] = write;
     }
@@ -553,37 +553,37 @@ function applyLedgerFieldBatch_ACU(engine: SqliteEngine, input: WorldSimulationS
   const upsertIds = new Map<string, Record<string, unknown>>();
   for (const [rawId, payload] of Object.entries(input.domainUpserts ?? {})) {
     const id = normalizeLedgerFieldRecordId_ACU(module, rawId);
-    if (!id) throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 领域写含非法 id`, { module });
-    if (!isRecord_ACU(payload)) throw new WorldSimulationSqlViewError_ACU(`模块 ${module}#${id} 的领域写必须是对象`, { module });
+    if (!id) throw new WorldSimulationSqlViewError_ACU(`Ghi miền của module ${module} chứa id không hợp lệ`, { module });
+    if (!isRecord_ACU(payload)) throw new WorldSimulationSqlViewError_ACU(`Ghi miền của module ${module}#${id} phải là đối tượng`, { module });
     if (!singleton && itemKey_ACU(payload, 'id') !== id) {
-      throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 领域写 id 不一致：键 ${id}，条目 ${itemKey_ACU(payload, 'id') || '(无 id)'}`, { module });
+      throw new WorldSimulationSqlViewError_ACU(`Id ghi miền của module ${module} không khớp: khóa ${id}, mục ${itemKey_ACU(payload, 'id') || '(không có id)'}`, { module });
     }
     upsertIds.set(id, payload);
   }
   const removedIds = new Set<string>();
   for (const rawId of input.domainRemovedIds ?? []) {
     const id = normalizeLedgerFieldRecordId_ACU(module, rawId);
-    if (!id || singleton) throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 领域删除含非法 id`, { module });
+    if (!id || singleton) throw new WorldSimulationSqlViewError_ACU(`Xóa miền của module ${module} chứa id không hợp lệ`, { module });
     removedIds.add(id);
   }
   const discardIds = new Set<string>();
   for (const rawId of input.discardPartialIds ?? []) {
     const id = normalizeLedgerFieldRecordId_ACU(module, rawId);
-    if (!id) throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 草稿丢弃含非法 id`, { module });
+    if (!id) throw new WorldSimulationSqlViewError_ACU(`Hủy bản nháp của module ${module} chứa id không hợp lệ`, { module });
     discardIds.add(id);
   }
   if (!writeIds.size && !upsertIds.size && !discardIds.size && !removedIds.size) {
-    throw new WorldSimulationSqlViewError_ACU(`模块 ${module} 的逐栏批次为空`, { module });
+    throw new WorldSimulationSqlViewError_ACU(`Lô theo từng cột của module ${module} rỗng`, { module });
   }
   engine.run('BEGIN');
   try {
     const current = readRevision_ACU(engine);
     if (current !== input.expectedRevision) {
-      throw new WorldSimulationSqlViewError_ACU(`账本 revision 冲突（模块 ${module}）：期望 ${input.expectedRevision}，实际 ${current}`, { module, expected: input.expectedRevision, actual: current });
+      throw new WorldSimulationSqlViewError_ACU(`Xung đột revision sổ cái (module ${module}): kỳ vọng ${input.expectedRevision}, thực tế ${current}`, { module, expected: input.expectedRevision, actual: current });
     }
     // 1) 领域整行先行（与折叠 applyLedgerDelta→fieldUpserts→reconcile 的写侧同序）
     for (const id of removedIds) {
-      if (readLedgerDomainItem_ACU(engine, module, id) === null) throw new WorldSimulationSqlViewError_ACU(`模块 ${module}#${id} 不存在完整领域行`, { module });
+      if (readLedgerDomainItem_ACU(engine, module, id) === null) throw new WorldSimulationSqlViewError_ACU(`Module ${module}#${id} không tồn tại hàng miền đầy đủ`, { module });
       engine.run(`DELETE FROM ${moduleTable_ACU(module as WorldSimulationSqlArrayModule_ACU)} WHERE row_key = ?`, [id]);
       recordChange_ACU(engine, module, id, 'remove', null);
       pruneLedgerFieldRecordAfterDomainRemoval_ACU(engine, module, id);
@@ -611,7 +611,7 @@ function applyLedgerFieldBatch_ACU(engine: SqliteEngine, input: WorldSimulationS
         const rows = engine.query(`SELECT value, revision FROM ${FIELD_VALUES_TABLE_ACU} WHERE module = ? AND id = ? AND field = ?`, [module, id, field]).values;
         if (write.unset === true) {
           if (inDomain) {
-            throw new WorldSimulationSqlViewError_ACU(`模块 ${module}#${id} 是完整条目，栏目 ${field} 不能按草稿撤销`, { module });
+            throw new WorldSimulationSqlViewError_ACU(`Module ${module}#${id} là mục đầy đủ, cột ${field} không thể hoàn tác như bản nháp`, { module });
           }
           if (rows.length) {
             engine.run(`DELETE FROM ${FIELD_VALUES_TABLE_ACU} WHERE module = ? AND id = ? AND field = ?`, [module, id, field]);
@@ -637,7 +637,7 @@ function applyLedgerFieldBatch_ACU(engine: SqliteEngine, input: WorldSimulationS
     // 3) 丢弃草稿：完整条目按草稿丢弃即失败（fail-closed）
     for (const id of discardIds) {
       if (readLedgerDomainItem_ACU(engine, module, id) !== null) {
-        throw new WorldSimulationSqlViewError_ACU(`模块 ${module}#${id} 是完整条目，不能按草稿丢弃`, { module });
+        throw new WorldSimulationSqlViewError_ACU(`Module ${module}#${id} là mục đầy đủ, không thể hủy như bản nháp`, { module });
       }
       const values = readLedgerFieldValueRows_ACU(engine, module, id);
       for (const field of values.keys()) recordLedgerFieldChange_ACU(engine, module, id, field);
@@ -673,10 +673,10 @@ function applyLedgerFieldBatch_ACU(engine: SqliteEngine, input: WorldSimulationS
 
 function applyArchiveWrite_ACU(engine: SqliteEngine, input: WorldSimulationSqlArchiveWrite_ACU): void {
   for (const item of input.upserts ?? []) {
-    if (!item.archiveRef?.trim()) throw new WorldSimulationSqlViewError_ACU('归档 upsert 记录缺少合法 archiveRef', { module: 'chronicleArchive' });
+    if (!item.archiveRef?.trim()) throw new WorldSimulationSqlViewError_ACU('Bản ghi upsert lưu trữ thiếu archiveRef hợp lệ', { module: 'chronicleArchive' });
   }
   for (const ref of input.removedRefs ?? []) {
-    if (typeof ref !== 'string' || !ref.trim()) throw new WorldSimulationSqlViewError_ACU('归档 removedRefs 含非法 archiveRef', { module: 'chronicleArchive' });
+    if (typeof ref !== 'string' || !ref.trim()) throw new WorldSimulationSqlViewError_ACU('removedRefs lưu trữ chứa archiveRef không hợp lệ', { module: 'chronicleArchive' });
   }
   engine.run('BEGIN');
   try {
@@ -838,7 +838,7 @@ export async function materializeWorldSimulationLedgerSqlView_ACU(
   } catch (error) {
     db.dispose();
     if (error instanceof WorldSimulationSqlViewError_ACU) throw error;
-    throw new WorldSimulationSqlViewError_ACU(`推演账本 SQL 视物化失败: ${error instanceof Error ? error.message : String(error)}`);
+    throw new WorldSimulationSqlViewError_ACU(`Hiện thực hóa chế độ xem SQL của sổ cái mô phỏng thất bại: ${error instanceof Error ? error.message : String(error)}`);
   }
   const hasLedgerChanges = (): boolean => Number(db.query(`SELECT (SELECT COUNT(*) FROM ${CHANGES_TABLE_ACU}) + (SELECT COUNT(*) FROM ${FIELD_CHANGES_TABLE_ACU})`).values[0]?.[0] ?? 0) > 0;
   const hasArchiveChanges = (): boolean => Number(db.query(`SELECT COUNT(*) FROM ${ARCHIVE_CHANGES_TABLE_ACU}`).values[0]?.[0] ?? 0) > 0;

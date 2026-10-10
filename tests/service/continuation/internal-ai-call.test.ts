@@ -49,7 +49,7 @@ beforeEach(() => {
 
 describe('formatAgentUsageLabel_ACU', () => {
   it('缓存读取和写入字段缺失时不显示缓存用量', () => {
-    expect(formatAgentUsageLabel_ACU({})).toBe('输入 未报告 · 输出 未报告');
+    expect(formatAgentUsageLabel_ACU({})).toBe('đầu vào chưa báo cáo · đầu ra chưa báo cáo');
   });
 
   it('明确报告 0 时保留 0，并显示缓存写入', () => {
@@ -58,7 +58,7 @@ describe('formatAgentUsageLabel_ACU', () => {
       completionTokens: 0,
       cachedTokens: 0,
       cacheWriteTokens: 0,
-    })).toBe('输入 0 · 缓存读取 0 · 输出 0 · 缓存写入 0');
+    })).toBe('đầu vào 0 · đọc cache 0 · đầu ra 0 · ghi cache 0');
   });
 
   it('正数沿用紧凑缩写', () => {
@@ -67,7 +67,7 @@ describe('formatAgentUsageLabel_ACU', () => {
       completionTokens: 999,
       cachedTokens: 1200,
       cacheWriteTokens: 1000,
-    })).toBe('输入 1.5k · 缓存读取 1.2k · 输出 999 · 缓存写入 1.0k');
+    })).toBe('đầu vào 1.5k · đọc cache 1.2k · đầu ra 999 · ghi cache 1.0k');
   });
 });
 

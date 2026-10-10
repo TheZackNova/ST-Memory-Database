@@ -113,11 +113,11 @@ describe('ImportPage', () => {
     const page = document.querySelector('.acu-v2-import-page');
     expect(page).not.toBeNull();
     const text = page!.textContent || '';
-    expect(document.querySelector('.acu-v2-app__page-title')?.textContent?.trim()).toBe('外部导入');
-    expect(text).toContain('写入目标');
-    expect(text).toContain('拆分与编码');
-    expect(text).toContain('写入表格选择');
-    expect(text).toContain('状态 / 操作区');
+    expect(document.querySelector('.acu-v2-app__page-title')?.textContent?.trim()).toBe('Nhập từ ngoài');
+    expect(text).toContain('Đích ghi');
+    expect(text).toContain('Tách và mã hóa');
+    expect(text).toContain('Chọn bảng để ghi');
+    expect(text).toContain('Trạng thái / Thao tác');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -126,22 +126,22 @@ describe('ImportPage', () => {
     const { mount } = await mountImportPage();
 
     const panel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-import-page .acu-panel'))
-      .find(el => el.querySelector('.acu-panel__title')?.textContent?.includes('状态 / 操作区'));
+      .find(el => el.querySelector('.acu-panel__title')?.textContent?.includes('Trạng thái / Thao tác'));
     expect(panel).not.toBeUndefined();
     expect(panel!.querySelector('.acu-v2-import-page__action-grid')).not.toBeNull();
 
     const buttons = Array.from(panel!.querySelectorAll<HTMLButtonElement>('button'));
     const labels = buttons.map(button => button.textContent?.trim() || '').filter(Boolean);
     expect(labels).toEqual([
-      '选择并拆分',
-      '写入',
-      '清空缓存',
-      '删除条目',
+      'Chọn và tách',
+      'Ghi',
+      'Xóa bộ nhớ đệm',
+      'Xóa mục',
     ]);
 
-    const clearButton = buttons.find(button => button.textContent?.includes('清空缓存'))!;
-    const deleteButton = buttons.find(button => button.textContent?.includes('删除条目'))!;
-    const splitButton = buttons.find(button => button.textContent?.includes('选择并拆分'))!;
+    const clearButton = buttons.find(button => button.textContent?.includes('Xóa bộ nhớ đệm'))!;
+    const deleteButton = buttons.find(button => button.textContent?.includes('Xóa mục'))!;
+    const splitButton = buttons.find(button => button.textContent?.includes('Chọn và tách'))!;
     expect(splitButton.classList.contains('acu-btn--block')).toBe(true);
     expect(clearButton.classList.contains('acu-btn--default')).toBe(true);
     expect(deleteButton.classList.contains('acu-btn--danger')).toBe(true);
@@ -170,7 +170,7 @@ describe('ImportPage', () => {
     const { mount } = await mountImportPage();
 
     const buttons = Array.from(document.querySelectorAll('button'));
-    const inject = buttons.find(b => b.textContent?.includes('写入')) as HTMLButtonElement | undefined;
+    const inject = buttons.find(b => b.textContent?.includes('Ghi')) as HTMLButtonElement | undefined;
     expect(inject).not.toBeUndefined();
     expect(inject!.disabled).toBe(true);
 
@@ -184,10 +184,10 @@ describe('ImportPage', () => {
     });
 
     const buttons = Array.from(document.querySelectorAll('button'));
-    const inject = buttons.find(b => b.textContent?.includes('继续写入')) as HTMLButtonElement | undefined;
+    const inject = buttons.find(b => b.textContent?.includes('Ghi tiếp')) as HTMLButtonElement | undefined;
     expect(inject).not.toBeUndefined();
     expect(inject!.disabled).toBe(false);
-    expect(document.body.textContent || '').toContain('状态：已暂停，完成 0/2。');
+    expect(document.body.textContent || '').toContain('Trạng thái: đã tạm dừng, hoàn tất 0/2.');
 
     mount.__resetAcuV2MountForTests();
   });

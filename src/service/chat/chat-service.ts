@@ -146,7 +146,7 @@ async function cleanupVectorIndexManifestsAfterCommit_ACU(manifests: any[]): Pro
         try {
             await deleteSummaryVectorIndexExternal_ACU(manifest);
         } catch (error: any) {
-            const warning = `外置向量索引资源清理失败：${error?.message || String(error || '未知错误')}`;
+            const warning = `Dọn tài nguyên chỉ mục vector bên ngoài thất bại: ${error?.message || String(error || 'Lỗi không xác định')}`;
             warnings.push(warning);
             logWarn_ACU(`[手动重填基底替换] ${warning}`, error);
         }
@@ -674,7 +674,7 @@ async function ensureV2BoundaryCheckpointForRetainedBufferCore_ACU(
             return {
                 success: false,
                 changed: false,
-                error: error?.message || String(error || '边界 checkpoint 写入失败。'),
+                error: error?.message || String(error || 'Ghi checkpoint ranh giới thất bại.'),
                 ...(typeof error?.failedIsolationKey === 'string' ? { failedIsolationKey: error.failedIsolationKey } : {}),
                 anchorIndex,
             };
@@ -700,7 +700,7 @@ async function ensureV2BoundaryCheckpointForRetainedBufferCore_ACU(
         return {
             success: false,
             changed: false,
-            error: `最新保留 AI 楼层窗口的边界处找不到可写入 checkpoint 的 AI 楼层（保留 ${boundary.effectiveRetainCount - boundary.bufferLayers} 个 AI 楼层，缓冲 ${boundary.bufferLayers} 个 AI 楼层）。`,
+            error: `Không tìm thấy tầng AI có thể ghi checkpoint ở ranh giới của cửa sổ tầng AI giữ lại mới nhất (giữ ${boundary.effectiveRetainCount - boundary.bufferLayers} tầng AI, đệm ${boundary.bufferLayers} tầng AI).`,
         };
     }
 
@@ -739,7 +739,7 @@ export async function ensureV2BoundaryCheckpointForRetainedBuffer_ACU(
     if (hasActiveProvisionalBridgeAnywhere_ACU(preflightChat)) {
         const recovery = await recoverProvisionalBridgeSession_ACU({ isolationKey: getCurrentIsolationKey_ACU() });
         if (!recovery.ok) {
-            return { success: false, changed: false, error: `检测到 active provisional bridge 且自动恢复失败，已阻止边界 compaction：${(recovery as { ok: false; error: string }).error}` };
+            return { success: false, changed: false, error: `Phát hiện active provisional bridge và tự động khôi phục thất bại, đã chặn compaction ranh giới: ${(recovery as { ok: false; error: string }).error}` };
         }
     }
     return runTableWriteTransaction_ACU({
@@ -805,7 +805,7 @@ async function writeV2BoundaryCheckpointBeforePurge_ACU(
     checkpointReason: 'compaction' | 'periodic' = 'compaction',
 ): Promise<{ changed: boolean; foldFiles: SummaryVectorIndexExternalFileRef_ACU[] }> {
     if (boundaryAnchorIndex < 0 || !chat[boundaryAnchorIndex] || chat[boundaryAnchorIndex].is_user) {
-        throw new Error(`边界 checkpoint 写入失败：boundaryAnchorIndex=${boundaryAnchorIndex} 不是有效 AI 楼层。`);
+        throw new Error(`Ghi checkpoint ranh giới thất bại: boundaryAnchorIndex=${boundaryAnchorIndex} không phải tầng AI hợp lệ.`);
     }
 
     let changed = false;
@@ -867,7 +867,7 @@ async function writeV2BoundaryCheckpointBeforePurge_ACU(
                 updateRuntimeState: false,
             });
             if (!transitionReplay) {
-                const error = new Error(`边界 checkpoint 收敛失败：无法读取 isolationKey=[${isolationKey || '无标签'}] 的过渡根状态。`) as Error & { failedIsolationKey?: string };
+                const error = new Error(`Hội tụ checkpoint ranh giới thất bại: không đọc được trạng thái gốc chuyển tiếp của isolationKey=[${isolationKey || 'không nhãn'}].`) as Error & { failedIsolationKey?: string };
                 error.failedIsolationKey = isolationKey;
                 throw error;
             }
@@ -887,7 +887,7 @@ async function writeV2BoundaryCheckpointBeforePurge_ACU(
                 || strictReplay.requiresCheckpointConvergence
                 || strictReplay.compatibilityRepairs?.length
                 || getTableDataFingerprint_ACU(strictReplay.data) !== getTableDataFingerprint_ACU(transitionReplay.data)) {
-                const error = new Error(`边界 checkpoint 收敛失败：已有 compaction full 无法严格替代过渡根（isolationKey=[${isolationKey || '无标签'}]）。`) as Error & { failedIsolationKey?: string };
+                const error = new Error(`Hội tụ checkpoint ranh giới thất bại: compaction full hiện có không thể thay thế nghiêm ngặt gốc chuyển tiếp (isolationKey=[${isolationKey || 'không nhãn'}]).`) as Error & { failedIsolationKey?: string };
                 error.failedIsolationKey = isolationKey;
                 throw error;
             }
@@ -907,13 +907,13 @@ async function writeV2BoundaryCheckpointBeforePurge_ACU(
         try {
             replay = await loadTableStateFromFramesV2Detailed_ACU(chat, isolationKey, { maxMessageIndex: boundaryAnchorIndex });
         } catch (error: unknown) {
-            const replayError = new Error(error instanceof Error ? error.message : String(error ?? '未知 replay 错误。')) as Error & { cause?: unknown; failedIsolationKey?: string };
+            const replayError = new Error(error instanceof Error ? error.message : String(error ?? 'Lỗi replay không xác định.')) as Error & { cause?: unknown; failedIsolationKey?: string };
             replayError.cause = error;
             replayError.failedIsolationKey = isolationKey;
             throw replayError;
         }
         if (!replay) {
-            const error = new Error(`边界 checkpoint 写入失败：无法在 boundaryAnchorIndex=${boundaryAnchorIndex} 前恢复 isolationKey=[${isolationKey || '无标签'}] 的 V2 数据。`) as Error & { failedIsolationKey?: string };
+            const error = new Error(`Ghi checkpoint ranh giới thất bại: không thể khôi phục dữ liệu V2 của isolationKey=[${isolationKey || 'không nhãn'}] trước boundaryAnchorIndex=${boundaryAnchorIndex}.`) as Error & { failedIsolationKey?: string };
             error.failedIsolationKey = isolationKey;
             throw error;
         }
@@ -943,7 +943,7 @@ async function writeV2BoundaryCheckpointBeforePurge_ACU(
                 .slice(0, MAX_CHECKPOINT_RISK_DETAILS_ACU)
                 .map(issue => `${issue.sheetKey || 'root'}:${issue.rowIndex ?? '-'}:${issue.type}`)
                 .join(', ');
-            const error = new Error(`边界 checkpoint 写入失败：replay 结果未满足 canonical 契约（${issueSummary}）。`) as Error & { failedIsolationKey?: string };
+            const error = new Error(`Ghi checkpoint ranh giới thất bại: kết quả replay không thỏa hợp đồng canonical (${issueSummary}).`) as Error & { failedIsolationKey?: string };
             error.failedIsolationKey = isolationKey;
             throw error;
         }
@@ -960,8 +960,8 @@ async function writeV2BoundaryCheckpointBeforePurge_ACU(
             const restoreData = entry?.restoreSourceData;
             if (!restoreData) {
                 const error = new Error(
-                    `边界 checkpoint 写入失败：隐藏表 ${hiddenSheetKey} 缺少可迁移的 hide checkpoint 数据`
-                    + `（isolationKey=[${isolationKey || '无标签'}]）。`,
+                    `Ghi checkpoint ranh giới thất bại: bảng ẩn ${hiddenSheetKey} thiếu dữ liệu hide checkpoint có thể di chuyển`
+                    + ` (isolationKey=[${isolationKey || 'không nhãn'}]).`,
                 ) as Error & { failedIsolationKey?: string };
                 error.failedIsolationKey = isolationKey;
                 throw error;
@@ -975,7 +975,7 @@ async function writeV2BoundaryCheckpointBeforePurge_ACU(
             });
             if (!built.checkpoint) {
                 const error = new Error(
-                    `边界 checkpoint 写入失败：隐藏表 ${hiddenSheetKey} 的迁移 checkpoint 不合法：${built.error}`,
+                    `Ghi checkpoint ranh giới thất bại: checkpoint di chuyển của bảng ẩn ${hiddenSheetKey} không hợp lệ: ${built.error}`,
                 ) as Error & { failedIsolationKey?: string };
                 error.failedIsolationKey = isolationKey;
                 throw error;
@@ -1028,7 +1028,7 @@ async function writeV2BoundaryCheckpointBeforePurge_ACU(
                 || strictReplay.requiresCheckpointConvergence
                 || strictReplay.compatibilityRepairs?.length
                 || getTableDataFingerprint_ACU(strictReplay.data) !== getTableDataFingerprint_ACU(data)) {
-                const error = new Error(`边界 checkpoint 写入失败：兼容回放结果无法收敛为严格可回放 checkpoint（isolationKey=[${isolationKey || '无标签'}]）。`) as Error & { failedIsolationKey?: string };
+                const error = new Error(`Ghi checkpoint ranh giới thất bại: kết quả phát lại tương thích không thể hội tụ thành checkpoint phát lại nghiêm ngặt (isolationKey=[${isolationKey || 'không nhãn'}]).`) as Error & { failedIsolationKey?: string };
                 error.failedIsolationKey = isolationKey;
                 throw error;
             }
@@ -1067,7 +1067,7 @@ export async function replaceChatMessage_ACU(messageIndex: number, newContent: s
         const chat = getChatArray_ACU();
         if (!chat || !chat[messageIndex]) {
             logError_ACU('[正文优化] 消息不存在, chat存在=', !!chat, 'messageIndex=', messageIndex);
-            throw new Error('消息不存在');
+            throw new Error('Tin nhắn không tồn tại');
         }
 
         const oldContent = chat[messageIndex].mes;
@@ -1639,12 +1639,12 @@ export async function ensureManualCatchUpAnchorBeforeTarget_ACU(
         const chat = getChatArray_ACU();
         if (!Array.isArray(chat) || chat.length === 0) {
             logDebug_ACU(`[追平锚点预检] blocked：聊天记录为空（target=${targetMessageIndex}, isolationKey=[${isolationKey || '无标签'}]）。`);
-            return { status: 'blocked', error: '聊天记录为空，无法验证手动追平锚点。' };
+            return { status: 'blocked', error: 'Bản ghi cuộc trò chuyện trống, không thể xác minh neo đuổi kịp thủ công.' };
         }
         const aiMessageIndices = chat.map((message, index) => !message?.is_user ? index : -1).filter(index => index >= 0);
         if (!Number.isInteger(targetMessageIndex) || targetMessageIndex < 0 || !chat[targetMessageIndex] || chat[targetMessageIndex].is_user) {
             logDebug_ACU(`[追平锚点预检] blocked：目标楼层无效（target=${targetMessageIndex}）。`);
-            return { status: 'blocked', error: '手动追平目标楼层无效，无法验证 V2 锚点。' };
+            return { status: 'blocked', error: 'Tầng đích đuổi kịp thủ công không hợp lệ, không thể xác minh neo V2.' };
         }
         const checkpoints = aiMessageIndices.filter(index => {
             const tagData = readIsolatedTagData_ACU(chat[index], isolationKey) as any;
@@ -1661,14 +1661,14 @@ export async function ensureManualCatchUpAnchorBeforeTarget_ACU(
         }
         if (checkpoints.length !== 1) {
             logDebug_ACU(`[追平锚点预检] blocked：多 full checkpoint（${checkpoints.length} 个：${checkpoints.join('、')}, target=${targetMessageIndex}）。`);
-            return { status: 'blocked', error: '手动追平目标早于多个 V2 full checkpoint；无法安全自动重排历史，请先执行 V2 恢复诊断。' };
+            return { status: 'blocked', error: 'Đích đuổi kịp thủ công nằm trước nhiều V2 full checkpoint; không thể tự động sắp xếp lại lịch sử an toàn, hãy chạy chẩn đoán khôi phục V2 trước.' };
         }
 
         const sourceMessage = chat[checkpointMessageIndex];
         const sourceTagData = readIsolatedTagData_ACU(sourceMessage, isolationKey) as any;
         if (!isV2TagData_ACU(sourceTagData)) {
             logDebug_ACU(`[追平锚点预检] blocked：checkpoint 帧不满足 canonical 契约（checkpoint=${checkpointMessageIndex}, target=${targetMessageIndex}）。`);
-            return { status: 'blocked', error: '手动追平目标早于不满足 canonical 契约的 V2 checkpoint；已在调用 AI 前阻止写入，请先执行 V2 恢复诊断。' };
+            return { status: 'blocked', error: 'Đích đuổi kịp thủ công nằm trước V2 checkpoint không thỏa hợp đồng canonical; đã chặn ghi trước khi gọi AI, hãy chạy chẩn đoán khôi phục V2 trước.' };
         }
         if (!isSafeHeaderOnlyResetCheckpoint_ACU(sourceTagData.storageFrame)) {
             // 含真实行数据 / migration / compaction / fallback provenance 的正式 full checkpoint
@@ -1679,7 +1679,7 @@ export async function ensureManualCatchUpAnchorBeforeTarget_ACU(
         }
         if (hasV2ReplayArtifact_ACU(sourceTagData.storageFrame)) {
             logDebug_ACU(`[追平锚点预检] blocked：checkpoint 帧携带后缀 artifact（checkpoint=${checkpointMessageIndex}, target=${targetMessageIndex}）。`);
-            return { status: 'blocked', error: '手动追平目标早于携带后缀 replay artifact 的 V2 checkpoint；请先执行 V2 恢复诊断。' };
+            return { status: 'blocked', error: 'Đích đuổi kịp thủ công nằm trước V2 checkpoint mang replay artifact hậu tố; hãy chạy chẩn đoán khôi phục V2 trước.' };
         }
 
         const unsafeArtifactIndex = aiMessageIndices.find(index => {
@@ -1690,7 +1690,7 @@ export async function ensureManualCatchUpAnchorBeforeTarget_ACU(
         });
         if (unsafeArtifactIndex !== undefined) {
             logDebug_ACU(`[追平锚点预检] blocked：checkpoint 之后存在后缀 artifact（artifact=${unsafeArtifactIndex}, checkpoint=${checkpointMessageIndex}, target=${targetMessageIndex}）。`);
-            return { status: 'blocked', error: `手动追平目标之后存在无法安全重排的 V2 增量 artifact（messageIndex=${unsafeArtifactIndex}）；请先执行 V2 恢复诊断。` };
+            return { status: 'blocked', error: `Sau đích đuổi kịp thủ công có V2 artifact gia tăng không thể sắp xếp lại an toàn (messageIndex=${unsafeArtifactIndex}); hãy chạy chẩn đoán khôi phục V2 trước.` };
         }
 
         let replayBefore;
@@ -1701,11 +1701,11 @@ export async function ensureManualCatchUpAnchorBeforeTarget_ACU(
             });
         } catch (error: any) {
             logDebug_ACU(`[追平锚点预检] blocked：移动前 replay 校验异常（checkpoint=${checkpointMessageIndex}, target=${targetMessageIndex}, error=${error?.message || String(error)}）。`);
-            return { status: 'blocked', error: `手动追平锚点移动前 replay 校验失败：${error?.message || String(error)}` };
+            return { status: 'blocked', error: `Kiểm tra replay trước khi di chuyển neo đuổi kịp thủ công thất bại: ${error?.message || String(error)}` };
         }
         if (!replayBefore || replayBefore.requiresCheckpointConvergence || replayBefore.compatibilityRepairs?.length) {
             logDebug_ACU(`[追平锚点预检] blocked：移动前 replay 依赖兼容修复（checkpoint=${checkpointMessageIndex}, target=${targetMessageIndex}, convergence=${replayBefore?.requiresCheckpointConvergence}, repairs=${replayBefore?.compatibilityRepairs?.length || 0}）。`);
-            return { status: 'blocked', error: '手动追平锚点移动前 V2 replay 仍依赖兼容修复；请先执行 V2 恢复诊断。' };
+            return { status: 'blocked', error: 'Trước khi di chuyển neo đuổi kịp thủ công, V2 replay vẫn phụ thuộc sửa chữa tương thích; hãy chạy chẩn đoán khôi phục V2 trước.' };
         }
 
         const anchorMessageIndex = aiMessageIndices[0];
@@ -1754,12 +1754,12 @@ export async function ensureManualCatchUpAnchorBeforeTarget_ACU(
             });
         } catch (error: any) {
             logDebug_ACU(`[追平锚点预检] blocked：移动后候选 replay 校验异常（checkpoint=${checkpointMessageIndex}, target=${targetMessageIndex}, error=${error?.message || String(error)}）。`);
-            return { status: 'blocked', error: `手动追平锚点移动候选 replay 校验失败：${error?.message || String(error)}` };
+            return { status: 'blocked', error: `Kiểm tra replay của ứng viên di chuyển neo đuổi kịp thủ công thất bại: ${error?.message || String(error)}` };
         }
         if (!replayAfter || replayAfter.requiresCheckpointConvergence || replayAfter.compatibilityRepairs?.length
             || getTableDataFingerprint_ACU(replayBefore.data) !== getTableDataFingerprint_ACU(replayAfter.data)) {
             logDebug_ACU(`[追平锚点预检] blocked：锚点移动会改变可见表格状态（checkpoint=${checkpointMessageIndex}, target=${targetMessageIndex}, convergence=${replayAfter?.requiresCheckpointConvergence}, repairs=${replayAfter?.compatibilityRepairs?.length || 0}, fingerprintSame=${replayBefore && replayAfter ? getTableDataFingerprint_ACU(replayBefore.data) === getTableDataFingerprint_ACU(replayAfter.data) : 'n/a'}）。`);
-            return { status: 'blocked', error: '手动追平锚点移动会改变当前可见表格状态，已拒绝写入；请先执行 V2 恢复诊断。' };
+            return { status: 'blocked', error: 'Việc di chuyển neo đuổi kịp thủ công sẽ thay đổi trạng thái bảng đang hiển thị, đã từ chối ghi; hãy chạy chẩn đoán khôi phục V2 trước.' };
         }
         logDebug_ACU(`[追平锚点预检] repaired：锚点前移 checkpoint=${checkpointMessageIndex} → ${anchorMessageIndex}（target=${targetMessageIndex}, discardedPrefix=${discardedPrefixFrames.length}）。`);
 
@@ -1784,7 +1784,7 @@ export async function ensureManualCatchUpAnchorBeforeTarget_ACU(
                 if (state.hadIdentity) state.message.TavernDB_ACU_Identity = state.identity;
                 else delete state.message.TavernDB_ACU_Identity;
             }
-            return { status: 'blocked', error: `手动追平 reset checkpoint 前移保存失败：${error?.message || String(error)}` };
+            return { status: 'blocked', error: `Lưu dịch chuyển lên trước reset checkpoint khi đuổi kịp thủ công thất bại: ${error?.message || String(error)}` };
         }
         logDebug_ACU(`[手动追平] 已将 canonical ${sourceTagData.storageFrame.checkpoint.reason} checkpoint 从 #${checkpointMessageIndex} 前移到 #${anchorMessageIndex}，并备份了 ${discardedPrefixFrames.length} 个已忽略前缀 artifact。`);
         return { status: 'repaired', checkpointMessageIndex: anchorMessageIndex };
@@ -2050,7 +2050,7 @@ export async function deleteLocalDataWithScope_ACU(
         if (expectedPath === 'purge') {
             return {
                 path: 'aborted',
-                reason: '按表删除只会清除所选表的数据，不会执行完全清空；预判路径与实际不一致，已中止，请重新确认。',
+                reason: 'Xóa theo bảng chỉ xóa dữ liệu của các bảng đã chọn, không thực hiện xóa sạch hoàn toàn; đường dẫn dự đoán không khớp thực tế, đã hủy, hãy xác nhận lại.',
             };
         }
         const targetMessageIndices = resolveAiMessageIndicesInFloorRange_ACU(chat, startFloor, endFloor);
@@ -2066,8 +2066,8 @@ export async function deleteLocalDataWithScope_ACU(
     if (expectedPath && expectedPath !== path) {
         return {
             path: 'aborted',
-            reason: `删除范围在确认期间发生变化（预期${expectedPath === 'purge' ? '完全清空' : '按范围删除'}，`
-                + `实际为${path === 'purge' ? '完全清空' : '按范围删除'}）。为避免误删已中止，请重新确认。`,
+            reason: `Phạm vi xóa đã thay đổi trong lúc xác nhận (dự kiến ${expectedPath === 'purge' ? 'xóa sạch hoàn toàn' : 'xóa theo phạm vi'}, `
+                + `thực tế là ${path === 'purge' ? 'xóa sạch hoàn toàn' : 'xóa theo phạm vi'}). Đã hủy để tránh xóa nhầm, hãy xác nhận lại.`,
         };
     }
 
@@ -2251,7 +2251,7 @@ export async function clearTableDataAtFloors_ACU(targetMessageIndices: number[],
 async function clearManualRefillIncrementalDataInRangeCore_ACU(targetMessageIndices: number[], targetSheetKeys: string[] | null = null): Promise<number> {
     if (!targetMessageIndices || targetMessageIndices.length === 0) return 0;
     if (!Array.isArray(targetSheetKeys) || targetSheetKeys.length === 0) {
-        throw new Error('手动重填增量清理必须指定目标表。');
+        throw new Error('Dọn gia tăng khi điền lại thủ công phải chỉ định bảng đích.');
     }
 
     const chat = getChatArray_ACU();
@@ -2339,7 +2339,7 @@ async function clearManualRefillIncrementalDataInRangeCore_ACU(targetMessageIndi
 
 export async function clearManualRefillIncrementalDataInRange_ACU(targetMessageIndices: number[], targetSheetKeys: string[] | null = null): Promise<number> {
     if (!Array.isArray(targetSheetKeys) || targetSheetKeys.length === 0) {
-        throw new Error('手动重填增量清理必须指定目标表。');
+        throw new Error('Dọn gia tăng khi điền lại thủ công phải chỉ định bảng đích.');
     }
     const writeSet = targetSheetKeys.map(sheetKey => ({ kind: 'sheet' as const, sheetKey }));
     return runTableWriteTransaction_ACU({
@@ -2538,17 +2538,17 @@ export async function commitManualRefillSheetSnapshotInRangeAtomic_ACU(
     options: ManualRefillSheetSnapshotCommitOptions_ACU,
 ): Promise<ManualRefillSheetBaselineReplaceResult_ACU> {
     if (!Array.isArray(options.targetSheetKeys) || options.targetSheetKeys.length === 0) {
-        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: '手动重填最终快照提交必须指定目标表。' };
+        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: 'Gửi snapshot cuối khi điền lại thủ công phải chỉ định bảng đích.' };
     }
     if (!Array.isArray(options.targetMessageIndices) || options.targetMessageIndices.length === 0) {
-        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: '手动重填最终快照提交必须指定目标消息范围。' };
+        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: 'Gửi snapshot cuối khi điền lại thủ công phải chỉ định phạm vi tin nhắn đích.' };
     }
     const invalidSnapshotSheet = options.targetSheetKeys.find(sheetKey => {
         const sheet = options.snapshotData?.[sheetKey];
         return !sheet || typeof sheet !== 'object' || !Array.isArray(sheet.content);
     });
     if (invalidSnapshotSheet) {
-        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: `手动重填最终快照提交失败：目标表 ${invalidSnapshotSheet} 不是可恢复的完整 Sheet。` };
+        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: `Gửi snapshot cuối khi điền lại thủ công thất bại: bảng đích ${invalidSnapshotSheet} không phải Sheet đầy đủ có thể khôi phục.` };
     }
 
     const writeSet = options.targetSheetKeys.map(sheetKey => ({ kind: 'sheet' as const, sheetKey }));
@@ -2561,29 +2561,29 @@ export async function commitManualRefillSheetSnapshotInRangeAtomic_ACU(
     }, async () => {
         const chat = getChatArray_ACU();
         if (!Array.isArray(chat) || chat.length === 0) {
-            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: '聊天记录为空，无法提交手动重填最终快照。' };
+            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: 'Bản ghi cuộc trò chuyện trống, không thể gửi snapshot cuối khi điền lại thủ công.' };
         }
 
         const normalizedIndices = [...new Set(options.targetMessageIndices.filter((idx): idx is number => Number.isInteger(idx) && idx >= 0 && idx < chat.length))].sort((a, b) => a - b);
         const completedMessageIndex = [...normalizedIndices].reverse().find(idx => !chat[idx]?.is_user);
         if (completedMessageIndex === undefined) {
-            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: '手动重填最终快照提交失败：目标消息范围不含 AI 回复楼层。' };
+            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: 'Gửi snapshot cuối khi điền lại thủ công thất bại: phạm vi tin nhắn đích không chứa tầng trả lời của AI.' };
         }
         const completedAiFloor = chat.slice(0, completedMessageIndex + 1).filter(msg => msg && !msg.is_user).length;
         const anchor = resolveManualRefillReplayAnchor_ACU(chat, options.isolationKey, normalizedIndices);
         if (anchor.fullCheckpointIndices.length > 1) {
-            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: `手动重填最终快照提交失败：isolationKey ${options.isolationKey} 存在多个整库 full checkpoint（${anchor.fullCheckpointIndices.join(', ')}），必须先完成完整性修复。` };
+            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: `Gửi snapshot cuối khi điền lại thủ công thất bại: isolationKey ${options.isolationKey} có nhiều full checkpoint toàn cơ sở (${anchor.fullCheckpointIndices.join(', ')}), phải hoàn tất sửa chữa tính toàn vẹn trước.` };
         }
         const fallbackRequired = anchor.fullCheckpointIndices.length === 0;
         const rootMessageIndex = fallbackRequired ? anchor.fallbackRootIndex : anchor.fullCheckpointIndices[0];
         if (rootMessageIndex < 0 || chat[rootMessageIndex]?.is_user) {
-            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: '手动重填最终快照提交失败：找不到可承载回放根的 AI 楼层。' };
+            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: 'Gửi snapshot cuối khi điền lại thủ công thất bại: không tìm thấy tầng AI có thể chứa gốc phát lại.' };
         }
         if (options.targetMessageIndex !== undefined && options.targetMessageIndex !== rootMessageIndex) {
-            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, targetMessageIndex: rootMessageIndex, error: `手动重填最终快照提交失败：指定 anchor #${options.targetMessageIndex} 不等于唯一回放根 #${rootMessageIndex}。` };
+            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, targetMessageIndex: rootMessageIndex, error: `Gửi snapshot cuối khi điền lại thủ công thất bại: anchor chỉ định #${options.targetMessageIndex} không bằng gốc phát lại duy nhất #${rootMessageIndex}.` };
         }
         if (fallbackRequired && (!options.templateData || typeof options.templateData !== 'object' || Array.isArray(options.templateData))) {
-            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, targetMessageIndex: rootMessageIndex, error: '手动重填最终快照提交失败：全局缺少整库 full checkpoint，且未提供有效的冻结模板。' };
+            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, targetMessageIndex: rootMessageIndex, error: 'Gửi snapshot cuối khi điền lại thủ công thất bại: toàn cục thiếu full checkpoint toàn cơ sở và chưa cung cấp mẫu đóng băng hợp lệ.' };
         }
         const templateFingerprint = options.templateData && typeof options.templateData === 'object' && !Array.isArray(options.templateData)
             ? getTableDataFingerprint_ACU(options.templateData)
@@ -2595,8 +2595,8 @@ export async function commitManualRefillSheetSnapshotInRangeAtomic_ACU(
             const missingTemplateSheet = options.targetSheetKeys.find(sheetKey => !options.templateData?.[sheetKey] || typeof options.templateData[sheetKey] !== 'object');
             if (!options.templateData?.mate || typeof options.templateData.mate !== 'object' || missingTemplateSheet) {
                 return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, targetMessageIndex: rootMessageIndex, error: missingTemplateSheet
-                    ? `手动重填最终快照提交失败：冻结模板缺少目标表 ${missingTemplateSheet}。`
-                    : '手动重填最终快照提交失败：冻结模板缺少有效 mate 根元数据。' };
+                    ? `Gửi snapshot cuối khi điền lại thủ công thất bại: mẫu đóng băng thiếu bảng đích ${missingTemplateSheet}.`
+                    : 'Gửi snapshot cuối khi điền lại thủ công thất bại: mẫu đóng băng thiếu siêu dữ liệu gốc mate hợp lệ.' };
             }
         }
 
@@ -2658,7 +2658,7 @@ export async function commitManualRefillSheetSnapshotInRangeAtomic_ACU(
                     },
                     context: { messageIndex: rootMessageIndex, isolationKey: options.isolationKey, reason: 'manual' },
                 });
-                if (!checkpointBuild.checkpoint) throw new Error(`手动重填最终快照提交失败：${checkpointBuild.error}`);
+                if (!checkpointBuild.checkpoint) throw new Error(`Gửi snapshot cuối khi điền lại thủ công thất bại: ${checkpointBuild.error}`);
                 rootFrame.checkpoint = checkpointBuild.checkpoint;
             }
 
@@ -2684,7 +2684,7 @@ export async function commitManualRefillSheetSnapshotInRangeAtomic_ACU(
                     context: { messageIndex: completedMessageIndex, aiFloor: completedAiFloor, isolationKey: options.isolationKey, reason: 'manual' },
                 });
                 if (!checkpointBuild.checkpoint) {
-                    throw new Error(`手动重填最终快照提交失败：${checkpointBuild.error}`);
+                    throw new Error(`Gửi snapshot cuối khi điền lại thủ công thất bại: ${checkpointBuild.error}`);
                 }
                 perSheetCheckpoints[sheetKey] = {
                     ...checkpointBuild.checkpoint,
@@ -2699,13 +2699,13 @@ export async function commitManualRefillSheetSnapshotInRangeAtomic_ACU(
                 updateRuntimeState: false,
                 compatibilityMode: 'disabled',
             });
-            if (!replayed || replayed.baseKind !== 'full_checkpoint') throw new Error('手动重填最终快照提交失败：候选聊天未能建立持久化 full checkpoint 回放基底。');
+            if (!replayed || replayed.baseKind !== 'full_checkpoint') throw new Error('Gửi snapshot cuối khi điền lại thủ công thất bại: cuộc trò chuyện ứng viên không thiết lập được nền phát lại full checkpoint lưu bền.');
             if (replayed.requiresCheckpointConvergence || replayed.compatibilityRepairs?.length) {
-                throw new Error('手动重填最终快照提交失败：候选聊天仍依赖临时 Sheet 补锚，必须先完成恢复收敛。');
+                throw new Error('Gửi snapshot cuối khi điền lại thủ công thất bại: cuộc trò chuyện ứng viên vẫn phụ thuộc neo bù bằng Sheet tạm, phải hoàn tất hội tụ khôi phục trước.');
             }
             for (const sheetKey of options.targetSheetKeys) {
                 if (getTableDataFingerprint_ACU(replayed.data[sheetKey]) !== getTableDataFingerprint_ACU(options.snapshotData[sheetKey])) {
-                    throw new Error(`手动重填最终快照提交失败：候选回放后的目标表 ${sheetKey} 与最终快照不一致。`);
+                    throw new Error(`Gửi snapshot cuối khi điền lại thủ công thất bại: bảng đích ${sheetKey} sau khi phát lại ứng viên không khớp snapshot cuối.`);
                 }
             }
             snapshotIndices.forEach(index => applyCandidateMessageFields_ACU(chat[index], candidateChat[index]));
@@ -2714,7 +2714,7 @@ export async function commitManualRefillSheetSnapshotInRangeAtomic_ACU(
             return { success: true, changed: true, clearedCount: 0, checkpointCount: options.targetSheetKeys.length, targetMessageIndex: rootMessageIndex };
         } catch (error: any) {
             snapshots.forEach((snapshot, idx) => restoreMessageFieldSnapshot_ACU(chat[idx], snapshot));
-            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, targetMessageIndex: rootMessageIndex, error: error?.message || String(error || '手动重填最终快照提交失败。') };
+            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, targetMessageIndex: rootMessageIndex, error: error?.message || String(error || 'Gửi snapshot cuối khi điền lại thủ công thất bại.') };
         }
     });
 }
@@ -2746,27 +2746,27 @@ export async function establishManualRefillTemplateRoot_ACU(options: {
 }): Promise<{ success: boolean; changed: boolean; targetMessageIndex: number; error?: string }> {
     const { isolationKey, targetSheetKeys, targetMessageIndices, templateData } = options;
     if (!Array.isArray(targetSheetKeys) || targetSheetKeys.length === 0) {
-        return { success: false, changed: false, targetMessageIndex: -1, error: '手动重填临时根建立必须指定目标表。' };
+        return { success: false, changed: false, targetMessageIndex: -1, error: 'Thiết lập gốc tạm khi điền lại thủ công phải chỉ định bảng đích.' };
     }
     if (!templateData || typeof templateData !== 'object' || Array.isArray(templateData)) {
-        return { success: false, changed: false, targetMessageIndex: -1, error: '手动重填临时根建立失败：缺少有效的冻结模板。' };
+        return { success: false, changed: false, targetMessageIndex: -1, error: 'Thiết lập gốc tạm khi điền lại thủ công thất bại: thiếu mẫu đóng băng hợp lệ.' };
     }
     if (!templateData.mate || typeof templateData.mate !== 'object') {
-        return { success: false, changed: false, targetMessageIndex: -1, error: '手动重填临时根建立失败：冻结模板缺少有效 mate 根元数据。' };
+        return { success: false, changed: false, targetMessageIndex: -1, error: 'Thiết lập gốc tạm khi điền lại thủ công thất bại: mẫu đóng băng thiếu siêu dữ liệu gốc mate hợp lệ.' };
     }
     const missingTemplateSheet = targetSheetKeys.find(sheetKey => !templateData[sheetKey] || typeof templateData[sheetKey] !== 'object');
     if (missingTemplateSheet) {
-        return { success: false, changed: false, targetMessageIndex: -1, error: `手动重填临时根建立失败：冻结模板缺少目标表 ${missingTemplateSheet}。` };
+        return { success: false, changed: false, targetMessageIndex: -1, error: `Thiết lập gốc tạm khi điền lại thủ công thất bại: mẫu đóng băng thiếu bảng đích ${missingTemplateSheet}.` };
     }
 
     const chat = getChatArray_ACU();
     if (!Array.isArray(chat) || chat.length === 0) {
-        return { success: false, changed: false, targetMessageIndex: -1, error: '聊天记录为空，无法建立手动重填临时根。' };
+        return { success: false, changed: false, targetMessageIndex: -1, error: 'Bản ghi cuộc trò chuyện trống, không thể thiết lập gốc tạm khi điền lại thủ công.' };
     }
 
     const normalizedIndices = [...new Set(targetMessageIndices.filter((idx): idx is number => Number.isInteger(idx) && idx >= 0 && idx < chat.length))].sort((a, b) => a - b);
     if (normalizedIndices.length === 0) {
-        return { success: false, changed: false, targetMessageIndex: -1, error: '手动重填临时根建立失败：目标消息范围不含有效楼层。' };
+        return { success: false, changed: false, targetMessageIndex: -1, error: 'Thiết lập gốc tạm khi điền lại thủ công thất bại: phạm vi tin nhắn đích không chứa tầng hợp lệ.' };
     }
 
     // 与末尾 commitManualRefillSheetSnapshotInRangeAtomic_ACU 同一口径：
@@ -2781,7 +2781,7 @@ export async function establishManualRefillTemplateRoot_ACU(options: {
     }
     const rootMessageIndex = anchor.fallbackRootIndex;
     if (rootMessageIndex < 0 || chat[rootMessageIndex]?.is_user) {
-        return { success: false, changed: false, targetMessageIndex: -1, error: `手动重填临时根建立失败：找不到可承载临时根的 AI 楼层（fallbackRootIndex=${rootMessageIndex}）。` };
+        return { success: false, changed: false, targetMessageIndex: -1, error: `Thiết lập gốc tạm khi điền lại thủ công thất bại: không tìm thấy tầng AI có thể chứa gốc tạm (fallbackRootIndex=${rootMessageIndex}).` };
     }
 
     // 与末尾 commit 相同的 runId 公式：isolationKey + 范围 + 模板指纹。
@@ -2807,7 +2807,7 @@ export async function establishManualRefillTemplateRoot_ACU(options: {
         context: { messageIndex: rootMessageIndex, isolationKey, reason: 'manual' },
     });
     if (!checkpointBuild.checkpoint) {
-        return { success: false, changed: false, targetMessageIndex: -1, error: `手动重填临时根建立失败：${checkpointBuild.error}` };
+        return { success: false, changed: false, targetMessageIndex: -1, error: `Thiết lập gốc tạm khi điền lại thủ công thất bại: ${checkpointBuild.error}` };
     }
 
     // 候选克隆上写入临时根，strict save 成功后才 apply 到 live chat（与清理同款原子性）。
@@ -2835,9 +2835,9 @@ export async function establishManualRefillTemplateRoot_ACU(options: {
         return { success: true, changed: true, targetMessageIndex: rootMessageIndex };
     } catch (error: any) {
         snapshots.forEach((snapshot, idx) => restoreMessageFieldSnapshot_ACU(chat[idx], snapshot));
-        const failureError = error?.message || String(error || '手动重填临时根建立异常。');
+        const failureError = error?.message || String(error || 'Lỗi khi thiết lập gốc tạm điền lại thủ công.');
         logError_ACU('[手动重填临时根] 建立 strict save 失败，已原位恢复聊天内存状态:', error);
-        return { success: false, changed: false, targetMessageIndex: -1, error: `手动重填临时根建立失败：${failureError}` };
+        return { success: false, changed: false, targetMessageIndex: -1, error: `Thiết lập gốc tạm khi điền lại thủ công thất bại: ${failureError}` };
     }
 }
 
@@ -2846,14 +2846,14 @@ export async function replaceManualRefillSheetBaselineInRangeAtomic_ACU(
     options: ManualRefillSheetBaselineReplaceOptions_ACU,
 ): Promise<ManualRefillSheetBaselineReplaceResult_ACU> {
     if (!Array.isArray(options.targetSheetKeys) || options.targetSheetKeys.length === 0) {
-        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: '手动重填基底替换必须指定目标表。' };
+        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: 'Thay nền khi điền lại thủ công phải chỉ định bảng đích.' };
     }
     if (!Array.isArray(options.targetMessageIndices) || options.targetMessageIndices.length === 0) {
-        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: '手动重填基底替换必须指定目标消息范围。' };
+        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: 'Thay nền khi điền lại thủ công phải chỉ định phạm vi tin nhắn đích.' };
     }
     const missingBaselineSheet = options.targetSheetKeys.find(sheetKey => !options.baselineData || !options.baselineData[sheetKey] || typeof options.baselineData[sheetKey] !== 'object');
     if (missingBaselineSheet) {
-        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: `手动重填基底替换失败：缺少目标表 ${missingBaselineSheet} 的重建基底。` };
+        return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: `Thay nền khi điền lại thủ công thất bại: thiếu nền dựng lại của bảng đích ${missingBaselineSheet}.` };
     }
 
 
@@ -2868,18 +2868,18 @@ export async function replaceManualRefillSheetBaselineInRangeAtomic_ACU(
     }, async () => {
         const chat = getChatArray_ACU();
         if (!Array.isArray(chat) || chat.length === 0) {
-            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: '聊天记录为空，无法替换手动重填基底。' };
+            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: 'Bản ghi cuộc trò chuyện trống, không thể thay nền điền lại thủ công.' };
         }
 
         const normalizedIndices = [...new Set(options.targetMessageIndices.filter((idx): idx is number => Number.isInteger(idx) && idx >= 0 && idx < chat.length))].sort((a, b) => a - b);
         const targetMessageIndex = findManualRefillSheetBaselineTargetIndex_ACU(chat, options.isolationKey, normalizedIndices, options.targetMessageIndex);
         if (targetMessageIndex < 0) {
-            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: '手动重填基底替换失败：本次范围内找不到可承载单表 checkpoint 的整库 full checkpoint。' };
+            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, error: 'Thay nền khi điền lại thủ công thất bại: trong phạm vi lần này không tìm thấy full checkpoint toàn cơ sở có thể chứa checkpoint đơn bảng.' };
         }
 
         const targetMsg = chat[targetMessageIndex];
         if (!targetMsg || targetMsg.is_user) {
-            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, targetMessageIndex, error: `手动重填基底替换失败：targetMessageIndex=${targetMessageIndex} 不是有效 AI 楼层。` };
+            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, targetMessageIndex, error: `Thay nền khi điền lại thủ công thất bại: targetMessageIndex=${targetMessageIndex} không phải tầng AI hợp lệ.` };
         }
 
         const snapshotIndices = [...new Set([...normalizedIndices, targetMessageIndex])];
@@ -2909,7 +2909,7 @@ export async function replaceManualRefillSheetBaselineInRangeAtomic_ACU(
             const existingTagData = targetMsg.TavernDB_ACU_IsolatedData[options.isolationKey];
             const existingFrame = isV2TagData_ACU(existingTagData) ? existingTagData.storageFrame : null;
             if (!existingFrame?.checkpoint || existingFrame.checkpoint.kind !== 'full') {
-                throw new Error('手动重填基底替换失败：清理后目标楼层不再包含整库 full checkpoint。');
+                throw new Error('Thay nền khi điền lại thủ công thất bại: sau khi dọn, tầng đích không còn chứa full checkpoint toàn cơ sở.');
             }
 
             const createdAt = Date.now();
@@ -2936,7 +2936,7 @@ export async function replaceManualRefillSheetBaselineInRangeAtomic_ACU(
             return { success: true, changed: clearedCount > 0 || options.targetSheetKeys.length > 0, clearedCount, checkpointCount: options.targetSheetKeys.length, targetMessageIndex, ...(cleanupWarnings.length ? { cleanupWarnings } : {}) };
         } catch (error: any) {
             snapshots.forEach((snapshot, idx) => restoreMessageFieldSnapshot_ACU(chat[idx], snapshot));
-            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, targetMessageIndex, error: error?.message || String(error || '手动重填基底替换失败。') };
+            return { success: false, changed: false, clearedCount: 0, checkpointCount: 0, targetMessageIndex, error: error?.message || String(error || 'Thay nền khi điền lại thủ công thất bại.') };
         }
     });
 }
@@ -2944,7 +2944,7 @@ export async function replaceManualRefillSheetBaselineInRangeAtomic_ACU(
 async function clearManualRefillSheetDataInRangeCore_ACU(targetMessageIndices: number[], targetSheetKeys: string[] | null = null): Promise<number> {
     if (!targetMessageIndices || targetMessageIndices.length === 0) return 0;
     if (!Array.isArray(targetSheetKeys) || targetSheetKeys.length === 0) {
-        throw new Error('手动重填范围清理必须指定目标表。');
+        throw new Error('Dọn theo phạm vi khi điền lại thủ công phải chỉ định bảng đích.');
     }
 
     const chat = getChatArray_ACU();
@@ -2992,7 +2992,7 @@ async function clearManualRefillSheetDataInRangeCore_ACU(targetMessageIndices: n
 
 export async function clearManualRefillSheetDataInRange_ACU(targetMessageIndices: number[], targetSheetKeys: string[] | null = null): Promise<number> {
     if (!Array.isArray(targetSheetKeys) || targetSheetKeys.length === 0) {
-        throw new Error('手动重填范围清理必须指定目标表。');
+        throw new Error('Dọn theo phạm vi khi điền lại thủ công phải chỉ định bảng đích.');
     }
     const writeSet = targetSheetKeys.map(sheetKey => ({ kind: 'sheet' as const, sheetKey }));
     return runTableWriteTransaction_ACU({

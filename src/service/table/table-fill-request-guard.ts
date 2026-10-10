@@ -10,7 +10,7 @@ export interface TableFillRequestGuard_ACU {
 export function assertTableFillRequestCurrent_ACU(
   guard: TableFillRequestGuard_ACU, targetIndex?: number, chat?: any[],
 ): void {
-  if (guard.signal?.aborted) throw new DOMException('填表任务已取消。', 'AbortError');
+  if (guard.signal?.aborted) throw new DOMException('Tác vụ điền bảng đã bị hủy.', 'AbortError');
   if (guard.targetSnapshot) {
     assertAiMessageSnapshotCurrent_ACU(chat ?? getChatArray_ACU(), guard.targetSnapshot, targetIndex);
   }

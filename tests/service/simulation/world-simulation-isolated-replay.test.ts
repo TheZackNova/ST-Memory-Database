@@ -245,7 +245,7 @@ function buildReplay(options: ReplayOptions) {
     ...(options.anchored ? { persistCompletion: async ({ identity, anchor, outcome, summary }) => {
       await appendWorldSimulationSessionEvent_ACU({ anchor, runId: identity.runId, taskId: identity.taskId,
         stageId: identity.stageId, stageRevision: identity.stageRevision, eventKey: `run-completed-${outcome}`,
-        event: { kind: 'run_completed', title: outcome === 'commit' ? '格林推演已提交' : '格林推演无变化', detail: summary, agentName: 'world-director' } }, chat);
+        event: { kind: 'run_completed', title: outcome === 'commit' ? 'Mô phỏng thế giới đã nộp' : '格林推演无变化', detail: summary, agentName: 'world-director' } }, chat);
     } } : {}),
   });
   const runtime = new WorldSimulationRuntime_ACU(orchestrator, () => chat);
@@ -379,8 +379,8 @@ describe('T9 格林推演隔离 API replay', () => {
     expect(replay.store.read()).toMatchObject({ ledger: { revision: 1 }, task: { status: 'completed', activeRun: null }, stages: [{ status: 'completed' }] });
     expect(replay.commitProjection).toHaveBeenCalledOnce();
     expect(readWorldSimulationSessionLog_ACU('chat-replay')).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: 'main_action', title: '主 Agent 动作：open_round', ok: true }),
-      expect.objectContaining({ kind: 'run_completed', title: '格林推演已提交', ok: true }),
+      expect.objectContaining({ kind: 'main_action', title: 'Hành động của Agent chính: open_round', ok: true }),
+      expect.objectContaining({ kind: 'run_completed', title: 'Mô phỏng thế giới đã nộp', ok: true }),
     ]));
   });
 
@@ -400,7 +400,7 @@ describe('T9 格林推演隔离 API replay', () => {
     const currentAnchor = resolveWorldSimulationAnchor_ACU(0, replay.chat);
     expect(currentAnchor.contentDigest).not.toBe(replay.initialAnchor.contentDigest);
     const messages = readWorldSimulationConversation_ACU(replay.chat).messages;
-    expect(messages.filter(item => item.eventKind === 'run_completed')).toMatchObject([{ title: '格林推演已提交' }]);
+    expect(messages.filter(item => item.eventKind === 'run_completed')).toMatchObject([{ title: 'Mô phỏng thế giới đã nộp' }]);
     // 导演工具回执以 tool 身份（带 toolCallId）持久化，与智能续写一致；其余反馈仍是 model_feedback。
     expect(messages.filter(item => item.kind === 'model_agent')).toHaveLength(messages.filter(item => item.kind === 'model_feedback' || (item.kind === 'tool' && !!item.toolCallId)).length);
     expect(messages.filter(item => item.kind === 'tool' && item.toolCallId === 'replay-director-read')).toHaveLength(1);
@@ -421,7 +421,7 @@ describe('T9 格林推演隔离 API replay', () => {
     const result = await replay.run();
     expect(result).toMatchObject({ status: 'completed', result: { outcome: 'commit' } });
     expect(readWorldSimulationConversation_ACU(replay.chat).messages.filter(item => item.eventKind === 'run_completed'))
-      .toMatchObject([{ title: '格林推演已提交' }]);
+      .toMatchObject([{ title: 'Mô phỏng thế giới đã nộp' }]);
     expect(readWorldSimulationDirectorHistory_ACU(replay.chat).at(-1)?.content).toContain('"source":"fixed-workflow"');
     expect(replay.invocations.filter(item => item.role === 'world-director')).toHaveLength(2);
     expect(await replay.runtime.handleAssistantCompletion(createWorldSimulationCompletionIntent_ACU(42, 'chat-replay', '', replay.chat, 1)))
@@ -457,7 +457,7 @@ describe('T9 格林推演隔离 API replay', () => {
     expect(receiptFailed.store.read()?.task?.status).toBe('completed');
     expect(readWorldSimulationConversation_ACU(receiptFailed.chat).messages.filter(item => item.eventKind === 'run_completed')).toHaveLength(0);
     expect(readWorldSimulationSessionLog_ACU('chat-replay')).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: 'run_completed' }), expect.objectContaining({ title: '完成通告保存失败', ok: false }),
+      expect.objectContaining({ kind: 'run_completed' }), expect.objectContaining({ title: 'Lưu thông báo hoàn tất thất bại', ok: false }),
     ]));
   });
 

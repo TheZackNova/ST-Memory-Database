@@ -26,7 +26,7 @@ export { cleanupLogViewer_ACU };
  */
 export function generateAdvancedTabHTML(): string {
     const sqlSection = isSqliteMode() ? `
-                    <button class="acu-subtab-button" data-subtab="advanced-sql">SQL 控制台</button>` : '';
+                    <button class="acu-subtab-button" data-subtab="advanced-sql">Bảng điều khiển SQL</button>` : '';
 
     const sqlContent = isSqliteMode() ? `
                 <div id="acu-subtab-advanced-sql" class="acu-subtab-content">
@@ -37,9 +37,9 @@ export function generateAdvancedTabHTML(): string {
                 <div id="acu-tab-advanced" class="acu-tab-content">
                     <!-- 内部子导航 -->
                     <div class="acu-subtabs-nav">
-                    <button class="acu-subtab-button active" data-subtab="advanced-optimization">正文替换</button>
+                    <button class="acu-subtab-button active" data-subtab="advanced-optimization">Thay thế nội dung</button>
                     ${sqlSection}
-                    <button class="acu-subtab-button" data-subtab="advanced-log">运行日志</button>
+                    <button class="acu-subtab-button" data-subtab="advanced-log">Nhật ký chạy</button>
                     </div>
 
                     <!-- 子页面内容 — 保持子模块原始 id 不变 -->

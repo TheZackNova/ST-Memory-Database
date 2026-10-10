@@ -37,13 +37,13 @@ import { $popupInstance_ACU, $cardUpdateStatusDisplay_ACU } from '../state/ui-re
 
     const chatHistory = getChatArray_ACU();
     const totalMessages = chatHistory.filter(msg => !msg.is_user).length;
-    $totalMessagesDisplay.text(`上下文总层数: ${totalMessages} (仅计算AI回复楼层)`);
+    $totalMessagesDisplay.text(`Tổng số tầng ngữ cảnh: ${totalMessages} (chỉ tính tầng phản hồi AI)`);
 
     const totalAiMessages = totalMessages;
 
     if (!currentJsonTableData_ACU) {
-      $cardUpdateStatusDisplay_ACU.text('数据库状态：未加载或初始化失败。');
-      $statusTableBody.html('<tr><td colspan="5" style="text-align: center;">暂无数据</td></tr>');
+      $cardUpdateStatusDisplay_ACU.text('Trạng thái cơ sở dữ liệu: chưa tải hoặc khởi tạo thất bại.');
+      $statusTableBody.html('<tr><td colspan="5" style="text-align: center;">Chưa có dữ liệu</td></tr>');
       return;
     }
 
@@ -100,7 +100,7 @@ import { $popupInstance_ACU, $cardUpdateStatusDisplay_ACU } from '../state/ui-re
 
         if (isAutoUpdateDisabledForThisTable) {
             // 频率=0：不参与自动更新，UI显示“无”
-            triggerFloor = '无';
+            triggerFloor = 'Không';
             // 仍可展示“未记录楼层/上次更新”，便于用户观察数据变化
             if (foundInHistory) {
                 unrecorded = String(totalAiMessages - lastUpdatedAiFloor);
@@ -128,14 +128,14 @@ import { $popupInstance_ACU, $cardUpdateStatusDisplay_ACU } from '../state/ui-re
         }
 
         // 显示文本处理
-        let lastUpdatedDisplay = foundInHistory ? lastUpdatedAiFloor : '<span style="color: grey;">未初始</span>';
+        let lastUpdatedDisplay = foundInHistory ? lastUpdatedAiFloor : '<span style="color: grey;">Chưa khởi tạo</span>';
         
         // 高亮显示当前层更新的表，并显示变更数量
         const isUpdatedThisFloor = foundInHistory && (lastUpdatedAiFloor === totalAiMessages);
         
         if (isUpdatedThisFloor) {
             const changes = table._lastUpdateStats ? table._lastUpdateStats.changes : 0;
-            const changeText = changes > 0 ? `(+${changes})` : '(无变更)';
+            const changeText = changes > 0 ? `(+${changes})` : '(không thay đổi)';
             lastUpdatedDisplay = `<span style="color: lightgreen; font-weight: bold;">${lastUpdatedAiFloor} ${changeText}</span>`;
         }
 
@@ -143,7 +143,7 @@ import { $popupInstance_ACU, $cardUpdateStatusDisplay_ACU } from '../state/ui-re
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                 <td style="text-align: left; padding: 5px;">${escapeHtml_ACU(table.name)}</td>
                 <td style="text-align: center; padding: 5px;">${frequency}</td>
-                <td style="text-align: center; padding: 5px;" title="有效未记录: ${effectiveUnrecorded}">${unrecorded}</td>
+                <td style="text-align: center; padding: 5px;" title="Chưa ghi hiệu lực: ${effectiveUnrecorded}">${unrecorded}</td>
                 <td style="text-align: center; padding: 5px;">${lastUpdatedDisplay}</td>
                 <td style="text-align: center; padding: 5px;">${triggerFloor}</td>
             </tr>
@@ -154,7 +154,7 @@ import { $popupInstance_ACU, $cardUpdateStatusDisplay_ACU } from '../state/ui-re
  
       const activeTemplateMeta_ACU = getActiveTemplatePresetMeta_ACU();
       $cardUpdateStatusDisplay_ACU.html(
-        `数据库状态: <b style="color:lightgreen;">已加载</b> (${tableCount}个表格, ${totalRowCount}条记录)；当前生效模板预设：<b style="color:var(--accent-primary);">${escapeHtml_ACU(activeTemplateMeta_ACU.displayName)}</b><span style="color: var(--text-secondary);">（${activeTemplateMeta_ACU.scopeLabel}）</span>`,
+        `Trạng thái cơ sở dữ liệu: <b style="color:lightgreen;">Đã tải</b> (${tableCount} bảng, ${totalRowCount} bản ghi); preset mẫu đang có hiệu lực: <b style="color:var(--accent-primary);">${escapeHtml_ACU(activeTemplateMeta_ACU.displayName)}</b><span style="color: var(--text-secondary);"> (${activeTemplateMeta_ACU.scopeLabel})</span>`,
       );
       
       // 更新下次预测显示
@@ -165,7 +165,7 @@ import { $popupInstance_ACU, $cardUpdateStatusDisplay_ACU } from '../state/ui-re
           
           let statusText = "";
           if (readyList.length > 0) {
-               statusText += `<span style="color: lightgreen;">[就绪] ${readyList.map(u => u.name).join(', ')}</span> `;
+               statusText += `<span style="color: lightgreen;">[Sẵn sàng] ${readyList.map(u => u.name).join(', ')}</span> `;
           }
           
           if (upcomingList.length > 0) {
@@ -175,19 +175,19 @@ import { $popupInstance_ACU, $cardUpdateStatusDisplay_ACU } from '../state/ui-re
               if (othersSameFloor.length > 0) names += ", " + othersSameFloor.map(u => u.name).join(", ");
               
               if (statusText) statusText += " | ";
-              statusText += `下一次: <b>${names}</b> (AI楼层 ${next.floor})`;
+              statusText += `Lần tiếp theo: <b>${names}</b> (tầng AI ${next.floor})`;
           } else if (readyList.length === 0) {
-               statusText = "下一次: <b>无</b>";
+               statusText = "Lần tiếp theo: <b>Không</b>";
           }
           
           $nextUpdateDisplay.html(statusText);
       } else if ($nextUpdateDisplay.length) {
           // 所有表都禁用自动更新 / 没有可参与预测的表
-          $nextUpdateDisplay.html("下一次: <b>无</b>");
+          $nextUpdateDisplay.html("Lần tiếp theo: <b>Không</b>");
       }
 
     } catch (e) {
       logError_ACU('ACU: Failed to parse database for UI status:', e);
-      $cardUpdateStatusDisplay_ACU.text('解析数据库状态时出错。');
+      $cardUpdateStatusDisplay_ACU.text('Lỗi khi phân tích trạng thái cơ sở dữ liệu.');
     }
   }

@@ -236,8 +236,8 @@ function failLoop_ACU(
   throw new ContinuationValidationError_ACU(createContinuationError_ACU(code, 'agent_loop', message, false, details));
 }
 
-const ARC_MAINTENANCE_TRIGGER_PATTERN_ACU = /(偏离|越出|偏差|脱节|底牌|提前(翻|释放|揭)|收束|完结|收尾|done|续卷|扩充|新卷|追加.*卷|切卷|台阶|patch|回写|登记|进度)/i;
-const ARC_EVIDENCE_PATTERN_ACU = /(楼层\s*\d+|第\s*\d+\s*楼|\$STORY_RANGE:\d+|第\s*\d+\s*阶段|阶段\s*\d+|stage\s*\d+|VOL-\d+)/i;
+const ARC_MAINTENANCE_TRIGGER_PATTERN_ACU = /(偏离|越出|偏差|脱节|底牌|提前(翻|释放|揭)|收束|完结|收尾|done|续卷|扩充|新卷|追加.*卷|切卷|台阶|patch|回写|登记|进度|lệch|vượt|bài tẩy|khép|kết thúc|tập mới|tiếp tập|bậc thang|ghi ngược|đăng ký|tiến độ)/i;
+const ARC_EVIDENCE_PATTERN_ACU = /(楼层\s*\d+|第\s*\d+\s*楼|\$STORY_RANGE:\d+|第\s*\d+\s*阶段|阶段\s*\d+|stage\s*\d+|VOL-\d+|tầng\s*\d+|giai đoạn\s*\d+)/i;
 
 /**
  * arc-architect 派工门禁。总纲一旦建立，每轮都派它“更新总纲”只会让卷台阶被反复重写、派工额度被白白吃掉。
@@ -256,7 +256,7 @@ export function evaluateArcArchitectDispatch_ACU(context: AgentResolveContext_AC
   if (ARC_MAINTENANCE_TRIGGER_PATTERN_ACU.test(text) && ARC_EVIDENCE_PATTERN_ACU.test(text)) return { allowed: true, reason: '' };
   return {
     allowed: false,
-    reason: '总纲已建立、没有待登记的已完成阶段、当前阶段仍在进行，本轮没有需要维护总纲的结构事件，arc-architect 未执行（不消耗派工额度）。只有剧情越出台阶、底牌被正文提前翻开、当前卷已可判定收束或需要追加新卷时才派它，并在 prompt 里写明事由与依据（如「楼层 12-14 主角提前翻出身世，VOL-01 的 withheld 需要更新」）。常规轮次请直接进入结算与策划。',
+    reason: 'Tổng cương đã được lập, không có giai đoạn đã hoàn thành nào chờ đăng ký, giai đoạn hiện tại vẫn đang tiến hành, lượt này không có sự kiện cấu trúc nào cần bảo trì tổng cương, nên arc-architect không chạy (không tốn hạn mức giao việc). Chỉ giao cho nó khi cốt truyện vượt khỏi bậc thang, bài tẩy bị chính văn lật sớm, tập hiện tại đã có thể xác định là khép lại hoặc cần thêm tập mới, và phải ghi rõ lý do cùng căn cứ trong prompt (ví dụ: "tầng 12-14 nhân vật chính lật sớm thân thế, withheld của VOL-01 cần cập nhật"). Lượt thông thường hãy đi thẳng vào quyết toán và hoạch định.',
   };
 }
 
@@ -266,35 +266,35 @@ export function evaluateArcArchitectDispatch_ACU(context: AgentResolveContext_AC
  */
 export function renderMainProtocolRejection_ACU(reason: string, execution: ContinuationAgentExecutionContext_ACU, allowDelegate: boolean, toolMode: AgentToolMode_ACU = 'json'): string {
   const correction = reason.includes('correct_materials') || reason.includes('settlementStartIndex');
-  const sqlExample = '<依据真实正文、真实 ID 与当前模块修订号的非空受限 SQL>';
-  const correctionGuide = 'reason 是非空纠正依据；sql 是非空受限 INSERT/UPDATE/DELETE。两者写在同一个动作里，不能把 SQL 放在 thought 或动作外。只有用户明确要求改变追溯起点时才用 settlementStartIndex，并同时给最新真实用户消息 userMessageId；不要为修复格式错误跳过历史。hooks 只写 summary、status、importance、planted_index、planned_payoff；expected_revision 只放 WHERE，不写 recent_floor 或自行递增版本。';
+  const sqlExample = '<SQL giới hạn không rỗng, dựa trên chính văn thật, ID thật và số hiệu chỉnh hiện tại của mô-đun>';
+  const correctionGuide = 'reason là căn cứ chỉnh sửa không rỗng; sql là INSERT/UPDATE/DELETE giới hạn không rỗng. Cả hai phải nằm trong cùng một hành động, không được đặt SQL trong thought hoặc ngoài hành động. Chỉ dùng settlementStartIndex khi người dùng yêu cầu rõ ràng đổi điểm truy ngược, và phải kèm userMessageId của tin nhắn người dùng thật mới nhất; không bỏ qua lịch sử chỉ để sửa lỗi định dạng. hooks chỉ ghi summary, status, importance, planted_index, planned_payoff; expected_revision chỉ đặt trong WHERE, không ghi recent_floor và không tự tăng phiên bản.';
   if (toolMode === 'tools') {
     const hints = [
-      `你上一次的调用没有被采纳。原因：${reason}`,
-      '每次回复只做一件事：要么调用 read / search 核对资料，要么调用一个决策函数。不要把动作写在正文里。',
+      `Lệnh gọi lần trước của bạn không được chấp nhận. Lý do: ${reason}`,
+      'Mỗi lần trả lời chỉ làm một việc: hoặc gọi read / search để đối chiếu tư liệu, hoặc gọi một hàm quyết định. Không viết hành động trong phần chính văn.',
     ];
     if (correction) return [...hints, correctionGuide,
-      `资料纠正最小结构：调用 correct_materials，参数 ${JSON.stringify({ reason: '已核实的纠正依据', sql: sqlExample })}。示例内容不可原样提交；没有实际纠正就不要调用 correct_materials。`].join('\n');
-    hints.push('正常续写调用 open_round，参数 focus 为本轮场景焦点；总纲、大纲、维护、策划、指导与终审由固定工作流安排，不重复委派维护和策划。');
-    hints.push('具体事实仍缺失时调用 read（reads 非空）或 search（query 非空）；不要重复读取已经完整注入的资料。');
-    if (allowDelegate) hints.push('仅在明确需要重规划时调用 delegate，复制目录中的代理名并给出依据和禁止事项。');
-    if (execution.turn) hints.push('finalize 只能确认 instruction-composer 本轮已产出的完整 instruction，不自行编造指导。');
-    hints.push('关键资料缺失无法继续：调用 block，给出 reason 与 unresolved。');
+      `Cấu trúc tối thiểu để chỉnh sửa tư liệu: gọi correct_materials với tham số ${JSON.stringify({ reason: 'Căn cứ chỉnh sửa đã xác minh', sql: sqlExample })}. Không được nộp nguyên nội dung mẫu; nếu không có chỉnh sửa thực tế thì đừng gọi correct_materials.`].join('\n');
+    hints.push('Viết tiếp bình thường thì gọi open_round, tham số focus là tiêu điểm cảnh của lượt này; tổng cương, dàn ý, bảo trì, hoạch định, chỉ dẫn và chung thẩm do quy trình cố định sắp xếp, không giao lại bảo trì và hoạch định.');
+    hints.push('Khi vẫn thiếu sự thật cụ thể thì gọi read (reads không rỗng) hoặc search (query không rỗng); không đọc lại tư liệu đã được đưa vào đầy đủ.');
+    if (allowDelegate) hints.push('Chỉ gọi delegate khi thật sự cần lập kế hoạch lại, sao chép tên agent trong danh mục và nêu căn cứ cùng các điều cấm.');
+    if (execution.turn) hints.push('finalize chỉ được xác nhận instruction hoàn chỉnh mà instruction-composer đã tạo ra trong lượt này, không tự bịa chỉ dẫn.');
+    hints.push('Thiếu tư liệu then chốt nên không thể tiếp tục: gọi block, nêu reason và unresolved.');
     return hints.join('\n');
   }
   const lines = [
-    `你上一次的输出没有被采纳。原因：${reason}`,
-    '重新输出一个完整动作 JSON 对象，不续写被拒残片、不输出裸 SQL 或 Markdown 围栏。',
+    `Đầu ra lần trước của bạn không được chấp nhận. Lý do: ${reason}`,
+    'Hãy xuất lại một đối tượng JSON hành động hoàn chỉnh, không viết tiếp phần dở bị từ chối, không xuất SQL trần hay hàng rào Markdown.',
   ];
   if (correction) return [...lines, correctionGuide,
-    JSON.stringify({ action: 'correct_materials', reason: '已核实的纠正依据', sql: sqlExample }),
-    '示例内容不可原样提交；没有实际纠正时改用 open_round，不用空 SQL 或伪造起点满足校验。'].join('\n');
-  lines.push('{"action":"open_round","focus":"依据本轮目标与真实正文确定的场景焦点"}');
-  lines.push('正常续写由 open_round 启动固定工作流，自动准备总纲、大纲并完成维护、策划、指导和终审，不重复委派维护或策划。');
-  lines.push('需要核对具体缺口时输出 {"action":"read","reads":["真实授权地址"]} 或 {"action":"search","query":"具体缺口"}，不要重复已完整注入的资料。');
-  if (allowDelegate) lines.push('仅在需要重规划时 delegate；delegations 每项给目录中的 agentName、prompt 与 reads。');
-  if (execution.turn) lines.push('finalize 只确认 instruction-composer 本轮已有的完整 instruction 与 summary，不自行重写。');
-  lines.push('{"action":"block","reason":"关键缺口或需要用户裁决的具体原因","unresolved":["具体缺口"]}');
+    JSON.stringify({ action: 'correct_materials', reason: 'Căn cứ chỉnh sửa đã xác minh', sql: sqlExample }),
+    'Không được nộp nguyên nội dung mẫu; nếu không có chỉnh sửa thực tế thì dùng open_round, không dùng SQL rỗng hay điểm khởi đầu giả để qua kiểm tra.'].join('\n');
+  lines.push('{"action":"open_round","focus":"Tiêu điểm cảnh xác định theo mục tiêu lượt này và chính văn thật"}');
+  lines.push('Viết tiếp bình thường do open_round khởi động quy trình cố định, tự động chuẩn bị tổng cương, dàn ý và hoàn tất bảo trì, hoạch định, chỉ dẫn, chung thẩm; không giao lại bảo trì hoặc hoạch định.');
+  lines.push('Khi cần đối chiếu chỗ thiếu cụ thể thì xuất {"action":"read","reads":["Địa chỉ được cấp quyền thật"]} hoặc {"action":"search","query":"Chỗ thiếu cụ thể"}, không đọc lại tư liệu đã được đưa vào đầy đủ.');
+  if (allowDelegate) lines.push('Chỉ delegate khi cần lập kế hoạch lại; mỗi mục trong delegations nêu agentName, prompt và reads từ danh mục.');
+  if (execution.turn) lines.push('finalize chỉ xác nhận instruction và summary hoàn chỉnh mà instruction-composer đã có trong lượt này, không tự viết lại.');
+  lines.push('{"action":"block","reason":"Lý do cụ thể: chỗ thiếu then chốt hoặc việc cần người dùng quyết định","unresolved":["Chỗ thiếu cụ thể"]}');
   return lines.join('\n');
 }
 
@@ -305,10 +305,10 @@ export function renderMainProtocolRejection_ACU(reason: string, execution: Conti
  */
 function describeRunLabel_ACU(context: AgentResolveContext_ACU): string {
   const execution = context.execution;
-  if (!execution.stage) return '大纲待创建';
-  if (execution.stage.status === 'completed') return `第 ${execution.stage.stageNumber} 阶段已完成 · 待继续大纲`;
-  if (!execution.revision || execution.turnNumber === null) return `第 ${execution.stage.stageNumber} 阶段 · 大纲待确认`;
-  return `第 ${execution.stage.stageNumber} 阶段 · 第 ${execution.turnNumber}/${execution.revision.outline.totalTurns} 轮`;
+  if (!execution.stage) return 'Dàn ý chờ tạo';
+  if (execution.stage.status === 'completed') return `Giai đoạn ${execution.stage.stageNumber} đã hoàn thành · chờ tiếp tục dàn ý`;
+  if (!execution.revision || execution.turnNumber === null) return `Giai đoạn ${execution.stage.stageNumber} · dàn ý chờ xác nhận`;
+  return `Giai đoạn ${execution.stage.stageNumber} · lượt ${execution.turnNumber}/${execution.revision.outline.totalTurns}`;
 }
 
 /**
@@ -317,13 +317,13 @@ function describeRunLabel_ACU(context: AgentResolveContext_ACU): string {
  * @returns 一句话动作标签
  */
 export function describeAgentActionLabel_ACU(action: AgentMainAction_ACU): string {
-  if (action.kind === 'tools') return `调用 ${action.calls.length} 个 read/search 工具`;
-  if (action.kind === 'delegate') return `派工 ${action.delegations.length} 项`;
-  if (action.kind === 'open_round') return '开局并交给固定工作流';
-  if (action.kind === 'correct_materials') return '主会话纠正资料';
-  if (action.kind === 'adjust_progress') return '主会话校准续写进度';
-  if (action.kind === 'finalize') return '交付写作指导';
-  return '阻断本轮';
+  if (action.kind === 'tools') return `Gọi ${action.calls.length} công cụ read/search`;
+  if (action.kind === 'delegate') return `Giao việc ${action.delegations.length} mục`;
+  if (action.kind === 'open_round') return 'Mở lượt và chuyển cho quy trình cố định';
+  if (action.kind === 'correct_materials') return 'Phiên chính chỉnh sửa tư liệu';
+  if (action.kind === 'adjust_progress') return 'Phiên chính hiệu chỉnh tiến độ viết tiếp';
+  if (action.kind === 'finalize') return 'Giao chỉ dẫn viết';
+  return 'Chặn lượt này';
 }
 
 /** 只把可回读的资料版本、待修复模块及受控步骤状态回灌主会话，不回灌子代理输出。 */
@@ -343,11 +343,11 @@ function renderWorkflowReceipt_ACU(workflow: ContinuationWorkflowResult_ACU): st
  */
 export function buildAgentTurnAnnouncement_ACU(context: AgentResolveContext_ACU, previousRoundDiscarded = false): string {
   return [
-    `开始新的一轮规划：${describeRunLabel_ACU(context)}`,
-    `本轮目标：${context.execution.turn?.goal || '（尚无可执行的大纲轮次，需先创建或继续大纲）'}`,
+    `Bắt đầu một vòng hoạch định mới: ${describeRunLabel_ACU(context)}`,
+    `Mục tiêu lượt này: ${context.execution.turn?.goal || '(chưa có lượt dàn ý khả thi, cần tạo hoặc tiếp tục dàn ý trước)'}`,
     previousRoundDiscarded
-      ? '请按协议输出一个动作。上一轮已在工作流结束时收束，不要确认或续接上一轮对话。'
-      : '请按协议输出一个动作。上文中我们此前的对话仍然有效，不要重复已经完成的工作。',
+      ? 'Hãy xuất một hành động theo giao thức. Lượt trước đã được khép lại khi quy trình kết thúc, đừng xác nhận hay nối tiếp hội thoại của lượt trước.'
+      : 'Hãy xuất một hành động theo giao thức. Cuộc trao đổi trước đó của chúng ta ở trên vẫn còn hiệu lực, đừng lặp lại việc đã hoàn thành.',
   ].join('\n');
 }
 
@@ -370,23 +370,23 @@ export function renderAgentBudget_ACU(
 ): string {
   const isFinal = iteration >= budget.maxIterations;
   const lines = [
-    `迭代：第 ${iteration} / ${budget.maxIterations} 次（read/search 工具批次不计入迭代，但每次运行只有一个成功读取批次）`,
-    `派工：已用 ${ledger.delegationsUsed} / ${budget.maxDelegations} 次`,
-    `单代理上限：同一代理最多 ${budget.maxSameAgent} 次`,
-    `并发上限：同一波次最多 ${waveLimit} 个子代理`,
+    `Vòng lặp: lần ${iteration} / ${budget.maxIterations} (lô công cụ read/search không tính vào vòng lặp, nhưng mỗi lần chạy chỉ có một lô đọc thành công)`,
+    `Giao việc: đã dùng ${ledger.delegationsUsed} / ${budget.maxDelegations} lần`,
+    `Giới hạn mỗi agent: cùng một agent tối đa ${budget.maxSameAgent} lần`,
+    `Giới hạn đồng thời: cùng một đợt tối đa ${waveLimit} agent phụ`,
   ];
   if (tool) {
-    lines.push(`read/search：已用 ${tool.batchesUsed} / ${budget.maxReads} 个工具批次；本次运行只允许一个成功读取批次${tool.successfulReadBatch ? '，已用完，不能再读' : ''}；单批次上限约 ${tool.maxReadTokens} tokens（本次累计已读取约 ${tool.grantedTokens} tokens，仅作遥测）`);
-    lines.push('会话记录、运行时快照与目录够用就不读，直接 open_round。确需补读时把全部地址放进同一次回复并发读取，失败批次不占额度、修正后可重试；读过一次就立即决策（open_round / delegate / finalize / block），不要逐项串行读。伏笔、信息差、年代学、阶段大纲与总纲由固定工作流按角色注入给子代理，主 Agent 不必为它们 read。');
+    lines.push(`read/search: đã dùng ${tool.batchesUsed} / ${budget.maxReads} lô công cụ; lần chạy này chỉ cho phép một lô đọc thành công${tool.successfulReadBatch ? ', đã dùng hết, không được đọc nữa' : ''}; giới hạn mỗi lô khoảng ${tool.maxReadTokens} tokens (lần này đã đọc tích lũy khoảng ${tool.grantedTokens} tokens, chỉ để theo dõi)`);
+    lines.push('Nếu bản ghi hội thoại, snapshot thời gian chạy và danh mục đã đủ thì đừng đọc, cứ open_round. Khi thật sự cần đọc bổ sung, hãy đưa toàn bộ địa chỉ vào cùng một lần trả lời để đọc song song; lô thất bại không chiếm hạn mức và có thể thử lại sau khi sửa; đọc xong một lần thì quyết định ngay (open_round / delegate / finalize / block), không đọc tuần tự từng mục. Phục bút, chênh lệch thông tin, niên đại học, dàn ý giai đoạn và tổng cương do quy trình cố định tiêm cho agent phụ theo vai trò, Agent chính không cần read chúng.');
   }
   if (lifecycle?.convergenceOnly) {
-    lines.push('CONVERGENCE_ONLY：必要的大纲维护已完成，本次只允许输出 finalize 或 block；不得继续派工。');
+    lines.push('CONVERGENCE_ONLY: Việc bảo trì dàn ý cần thiết đã hoàn tất, lần này chỉ được xuất finalize hoặc block; không được giao việc tiếp.');
   } else if (lifecycle?.outlineMaintenanceReserveAvailable) {
-    lines.push('FINAL_MAINTENANCE_RESERVE：当前没有可执行大纲。仅可委派一次 outline-architect 创建、继续或维护阶段大纲；其他代理仍被禁用。维护完成后必须 finalize 或 block。');
+    lines.push('FINAL_MAINTENANCE_RESERVE: Hiện không có dàn ý khả thi. Chỉ được giao một lần cho outline-architect để tạo, tiếp tục hoặc bảo trì dàn ý giai đoạn; các agent khác vẫn bị tắt. Sau khi bảo trì xong phải finalize hoặc block.');
   } else {
     lines.push(isFinal
-      ? 'FINAL_ITERATION：本轮已是最后一次迭代，delegate 已被禁用。请基于现有证据输出 finalize；关键信息确实缺失时输出 block，不许伪造。'
-      : '预算充足，可以继续派工。读取与派工每轮的正常开销，不算浪费；证据与建议都齐了就立刻 finalize，不要为「或许还能更好」反复加派。');
+      ? 'FINAL_ITERATION: Lượt này là vòng lặp cuối cùng, delegate đã bị tắt. Hãy xuất finalize dựa trên bằng chứng hiện có; nếu thật sự thiếu thông tin then chốt thì xuất block, không được ngụy tạo.'
+      : 'Ngân sách còn đủ, có thể tiếp tục giao việc. Chi phí đọc và giao việc bình thường mỗi lượt không phải lãng phí; khi bằng chứng và đề xuất đã đủ thì finalize ngay, đừng giao thêm hết lần này đến lần khác chỉ vì "có lẽ còn tốt hơn".');
   }
   return lines.join('\n');
 }
@@ -397,13 +397,13 @@ export function renderAgentBudget_ACU(
  * @returns 自然语言文本；列表为空时如实标注
  */
 export function renderAgentToolResults_ACU(outcomes: readonly AgentDelegationOutcome_ACU[]): string {
-  if (!outcomes.length) return '本轮尚未派工，还没有任何子代理结果。';
+  if (!outcomes.length) return 'Lượt này chưa giao việc, chưa có kết quả nào từ agent phụ.';
   return outcomes
     .map((outcome, index) => {
-      const head = `【结果 ${index + 1}｜${outcome.agentName}｜${outcome.ok ? '成功' : '失败'}】`;
+      const head = `【Kết quả ${index + 1}｜${outcome.agentName}｜${outcome.ok ? 'Thành công' : 'Thất bại'}】`;
       const body = outcome.ok
-        ? [outcome.summary ? `摘要：${outcome.summary}` : '', outcome.detail].filter(Boolean).join('\n')
-        : `未采用，原因：${outcome.rejectedReason}`;
+        ? [outcome.summary ? `Tóm tắt: ${outcome.summary}` : '', outcome.detail].filter(Boolean).join('\n')
+        : `Không được chấp nhận, lý do: ${outcome.rejectedReason}`;
       return `${head}\n${body}`;
     })
     .join('\n\n');
@@ -423,11 +423,11 @@ function subagentPresetRoles_ACU(settings: ContinuationSettings_ACU): ReadonlyAr
  */
 function buildOpeningResearchPrompt_ACU(originInstruction: string): string {
   return [
-    '开场检索：这是一个新续写任务的第一次规划，百科资料库还是空的。',
-    '请从用户初始要求、世界书目录、角色表与最近正文里识别这个故事依托的原作与已登场的原作实体（人物、组织、地点、能力、术语），按对开篇写作的重要度排序，优先把主角、核心配角、核心设定与世界规则查清并入库。',
-    '只登记原作/公开设定常识，不把本故事正文写成原作事实；世界书已详细覆盖的条目不必重复查。',
-    '查不到的实体在 summary 里如实列出，不要硬凑。',
-    originInstruction ? `用户初始要求原文：${originInstruction}` : '',
+    'Tra cứu mở đầu: đây là lần hoạch định đầu tiên của một tác vụ viết tiếp mới, kho tư liệu bách khoa vẫn còn trống.',
+    'Hãy nhận diện từ yêu cầu ban đầu của người dùng, danh mục sổ thế giới, bảng nhân vật và chính văn gần nhất: tác phẩm gốc mà câu chuyện này dựa vào và các thực thể gốc đã xuất hiện (nhân vật, tổ chức, địa điểm, năng lực, thuật ngữ), xếp theo mức quan trọng đối với việc viết phần mở đầu, ưu tiên tra rõ và nhập kho nhân vật chính, nhân vật phụ cốt lõi, thiết lập cốt lõi và quy tắc thế giới.',
+    'Chỉ đăng ký kiến thức thiết lập gốc/công khai, không biến chính văn của câu chuyện này thành sự thật của tác phẩm gốc; các mục đã được sổ thế giới bao quát chi tiết thì không cần tra lại.',
+    'Thực thể không tra được thì liệt kê trung thực trong summary, đừng gượng ép.',
+    originInstruction ? `Nguyên văn yêu cầu ban đầu của người dùng: ${originInstruction}` : '',
   ].filter(Boolean).join('\n');
 }
 
@@ -446,10 +446,10 @@ function resolveWaveLimit_ACU(settings: ContinuationSettings_ACU, budget: AgentR
 
 function describePlannerOutcome_ACU(summary: string, recommendation: string, mustPreserve: readonly string[], risks: readonly string[]): string {
   return [
-    recommendation ? `建议：${recommendation}` : '',
-    mustPreserve.length ? `必须保留：${mustPreserve.join('；')}` : '',
-    risks.length ? `风险：${risks.join('；')}` : '',
-    summary && !recommendation ? `摘要：${summary}` : '',
+    recommendation ? `Đề xuất: ${recommendation}` : '',
+    mustPreserve.length ? `Phải giữ lại: ${mustPreserve.join('; ')}` : '',
+    risks.length ? `Rủi ro: ${risks.join('; ')}` : '',
+    summary && !recommendation ? `Tóm tắt: ${summary}` : '',
   ].filter(Boolean).join('\n');
 }
 
@@ -471,10 +471,10 @@ function renderFinalReviewFeedback_ACU(
   const title = status === 'completed' ? '【发送前终审反馈】' : '【发送前终审未完成】';
   return [
     title,
-    `候选标识：${candidateFingerprint}`,
-    `候选摘要：${candidateSummary}`,
+    `Mã nhận diện bản ứng viên: ${candidateFingerprint}`,
+    `Tóm tắt bản ứng viên: ${candidateSummary}`,
     detail,
-    '这是一次性终审的最终回灌。请据此修订指导、派责任代理维护权威计划，或 block；本轮后续 finalize 不会再次触发终审。',
+    'Đây là lần phản hồi cuối của đợt chung thẩm một lần. Hãy dựa vào đó để sửa chỉ dẫn, giao agent phụ trách bảo trì kế hoạch chính thức, hoặc block; finalize về sau trong lượt này sẽ không kích hoạt chung thẩm lại.',
   ].join('\n');
 }
 
@@ -639,8 +639,8 @@ export class ContinuationAgentTurnPlanner_ACU {
     beginAgentSessionRun_ACU(
       describeRunLabel_ACU(context),
       resumedState
-        ? `从中断点恢复：继续第 ${iterationStart} 次迭代，已保留 ${ledger.outcomes.length} 条已完成结果`
-        : context.execution.turn?.goal ?? '本轮目标待大纲确定',
+        ? `Khôi phục từ điểm gián đoạn: tiếp tục vòng lặp thứ ${iterationStart}, đã giữ ${ledger.outcomes.length} kết quả đã hoàn thành`
+        : context.execution.turn?.goal ?? 'Mục tiêu lượt này chờ dàn ý xác định',
       resumedState !== null,
     );
     // 阈值统计的是主 Agent 实际读取的完整上下文，而不只是会话历史。开销部分（提示词骨架、
@@ -659,7 +659,7 @@ export class ContinuationAgentTurnPlanner_ACU {
     // 落在本次运行的分隔条之后，用户能看出它属于哪一次运行。
     const handoffSemanticAdapter = createAgentHandoffSemanticSummaryAdapter_ACU(async (messages): Promise<string | null> => {
       const base = request.createInternalRequestIdentity(0);
-      if (!request.isInternalRequestCurrent(base)) throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', '交接摘要请求已失效', false));
+      if (!request.isInternalRequestCurrent(base)) throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', 'Yêu cầu tóm tắt bàn giao đã hết hiệu lực', false));
       const identity: ContinuationInternalAiRequestIdentity_ACU = {
         ...base,
         requestId: `${base.requestId || base.attemptId || 'turn'}-handoff-summary`,
@@ -712,7 +712,7 @@ export class ContinuationAgentTurnPlanner_ACU {
       finalReview = {
         ...finalReview,
         status: 'feedback_ready',
-        feedback: renderFinalReviewFeedback_ACU('interrupted', finalReview.candidateFingerprint, finalReview.candidateSummary, '终审请求在拿到可用结论前中断，未将其视为通过。请依据现有资料修订、补证或 block。'),
+        feedback: renderFinalReviewFeedback_ACU('interrupted', finalReview.candidateFingerprint, finalReview.candidateSummary, 'Yêu cầu chung thẩm bị gián đoạn trước khi có kết luận dùng được, không coi là đã đạt. Hãy dựa vào tư liệu hiện có để sửa, bổ sung bằng chứng hoặc block.'),
       };
       session.record([{ kind: 'tool', text: finalReview.feedback, digest: '发送前终审中断', turnKey: session.turnKey }]);
       await session.flush();
@@ -753,11 +753,11 @@ export class ContinuationAgentTurnPlanner_ACU {
       const escalatedBatches = new Set<string>();
       while (iteration <= budget.maxIterations || postReviewDecisionAvailable || maintenanceConvergenceAvailable) {
         if (request.signal?.aborted) {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', '本轮规划已被用户中断', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', 'Việc hoạch định lượt này đã bị người dùng ngắt', false));
         }
         totalCalls += 1;
         if (totalCalls > totalCallLimit) {
-          failLoop_ACU('CONTINUATION_AGENT_ITERATIONS_EXHAUSTED', `主 Agent 总调用数已达硬上限 ${totalCallLimit}（决策迭代 + 工具批次），仍未交付最终指导`, { delegationsUsed: ledger.delegationsUsed, totalCalls });
+          failLoop_ACU('CONTINUATION_AGENT_ITERATIONS_EXHAUSTED', `Tổng số lần gọi của Agent chính đã đạt giới hạn cứng ${totalCallLimit} (vòng lặp quyết định + lô công cụ) mà vẫn chưa giao chỉ dẫn cuối cùng`, { delegationsUsed: ledger.delegationsUsed, totalCalls });
         }
         // 大纲操作会改变游标，每次迭代都从权威状态重读执行上下文。
         context.execution = request.readContext();
@@ -776,13 +776,13 @@ export class ContinuationAgentTurnPlanner_ACU {
         await this.ensureRuntimeSnapshot_ACU(request, session, context, ledger, budget, iteration, toolUsage, gateConfig, toolMode, lifecycle);
         // 未执行的本轮由程序开局；已执行动作、工作流升级与终审后的裁决仍交给主 Agent。
         const directOpening = openingAvailable && iteration === 1 && totalCalls === 1 && !postReviewDecisionAvailable;
-        const openingFocus = context.execution.turn?.goal?.trim() || context.originInstruction.trim() || '本轮续写';
+        const openingFocus = context.execution.turn?.goal?.trim() || context.originInstruction.trim() || 'Lượt viết tiếp này';
         const round = directOpening
           ? {
               attempts: 0,
               action: {
                 kind: 'open_round' as const,
-                thought: '新运行直接启动固定工作流',
+                thought: 'Lần chạy mới khởi động thẳng quy trình cố định',
                 focus: openingFocus,
                 summary: openingFocus,
                 dispatchWebResearcher: false,
@@ -797,7 +797,7 @@ export class ContinuationAgentTurnPlanner_ACU {
         if (!directOpening) {
           logAgentSession_ACU({
             kind: 'thought',
-            title: `迭代 ${iteration} · ${describeAgentActionLabel_ACU(action)}${round.usage ? ` · ${formatAgentUsageLabel_ACU(round.usage)}` : ''}`,
+            title: `Vòng lặp ${iteration} · ${describeAgentActionLabel_ACU(action)}${round.usage ? ` · ${formatAgentUsageLabel_ACU(round.usage)}` : ''}`,
             detail: action.thought,
           });
         }
@@ -806,7 +806,7 @@ export class ContinuationAgentTurnPlanner_ACU {
         if (maintenanceConvergenceAvailable && action.kind !== 'finalize' && action.kind !== 'block' && action.kind !== 'open_round') {
           failLoop_ACU(
             'CONTINUATION_AGENT_PROTOCOL_INVALID',
-            '必要大纲维护完成后只允许 finalize 或 block，不能继续读取或派工。',
+            'Sau khi bảo trì dàn ý cần thiết hoàn tất, chỉ được finalize hoặc block, không được đọc hay giao việc tiếp.',
             { action: action.kind },
           );
         }
@@ -814,8 +814,8 @@ export class ContinuationAgentTurnPlanner_ACU {
         if (postReviewDecisionAvailable && action.kind !== 'tools') {
           logAgentSession_ACU({
             kind: 'thought',
-            title: `迭代 ${iteration} · 终审反馈后的主 Agent 动作`,
-            detail: `协议动作：${action.kind}`,
+            title: `Vòng lặp ${iteration} · Hành động của Agent chính sau phản hồi chung thẩm`,
+            detail: `Hành động giao thức: ${action.kind}`,
           });
           finalReview = { ...finalReview, status: 'consumed' };
           postReviewDecisionAvailable = false;
@@ -831,11 +831,11 @@ export class ContinuationAgentTurnPlanner_ACU {
 
         if (action.kind === 'adjust_progress') {
           if (request.signal?.aborted || !request.isInternalRequestCurrent(identitySeed)) {
-            throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', '进度校准请求已失效', false));
+            throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', 'Yêu cầu hiệu chỉnh tiến độ đã hết hiệu lực', false));
           }
           const receipt = request.adjustProgress
             ? await request.adjustProgress(action)
-            : { status: 'rejected' as const, message: '本轮不允许调整进度；正文重试必须保持原轮次身份' };
+            : { status: 'rejected' as const, message: 'Lượt này không cho phép điều chỉnh tiến độ; thử lại chính văn phải giữ nguyên danh tính lượt gốc' };
           context.execution = request.readContext();
           if (receipt.status === 'committed') {
             resetLedgerForAuthorityChange();
@@ -848,7 +848,7 @@ export class ContinuationAgentTurnPlanner_ACU {
             session.record([{ kind: 'turn', text: buildAgentTurnAnnouncement_ACU(context, false), digest: describeRunLabel_ACU(context), turnKey: session.turnKey }]);
           }
           await session.flush();
-          logAgentSession_ACU({ kind: 'thought', title: '进度校准回执', detail: JSON.stringify(receipt), ok: receipt.status === 'committed' });
+          logAgentSession_ACU({ kind: 'thought', title: 'Biên nhận hiệu chỉnh tiến độ', detail: JSON.stringify(receipt), ok: receipt.status === 'committed' });
           iteration += 1;
           persistRunState(iteration);
           continue;
@@ -866,18 +866,18 @@ export class ContinuationAgentTurnPlanner_ACU {
           snapshot = context.moduleSnapshot;
           session.record([{ kind: 'tool', text: JSON.stringify(receipt), digest: '主会话纠正回执', turnKey: session.turnKey }]);
           await session.flush();
-          logAgentSession_ACU({ kind: 'thought', title: '主会话纠正回执', detail: JSON.stringify(receipt), ok: receipt.status === 'committed' });
+          logAgentSession_ACU({ kind: 'thought', title: 'Biên nhận chỉnh sửa của phiên chính', detail: JSON.stringify(receipt), ok: receipt.status === 'committed' });
           iteration += 1;
           continue;
         }
 
         if (action.kind === 'open_round') {
-          const workflowEntry = logAgentSession_ACU({ kind: 'delegation', title: '固定工作流正在执行', detail: action.focus, status: 'running' });
+          const workflowEntry = logAgentSession_ACU({ kind: 'delegation', title: 'Quy trình cố định đang chạy', detail: action.focus, status: 'running' });
           let workflow: ContinuationWorkflowResult_ACU;
           try {
             // 开始任何付费派工前落盘；重载后不能把已启动的工作流当成未执行的新轮。
             if (request.signal?.aborted || !request.isInternalRequestCurrent(identitySeed)) {
-              throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', '工作流启动身份已失效', false));
+              throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', 'Danh tính khởi động quy trình đã hết hiệu lực', false));
             }
             session.record([{ kind: 'runtime', text: JSON.stringify({ taskId: identitySeed.taskId, focus: action.focus, status: 'started' }), digest: '固定工作流启动', turnKey: session.turnKey }]);
             await session.flush();
@@ -886,14 +886,14 @@ export class ContinuationAgentTurnPlanner_ACU {
           } catch (error) {
             const awaitingReview = error instanceof ContinuationValidationError_ACU && error.error.code === 'CONTINUATION_AGENT_OUTLINE_REPLANNED';
             updateAgentSession_ACU(workflowEntry, {
-              title: awaitingReview ? '固定工作流等待大纲确认' : '固定工作流失败',
+              title: awaitingReview ? 'Quy trình cố định chờ xác nhận dàn ý' : 'Quy trình cố định thất bại',
               detail: error instanceof Error ? error.message : String(error), ok: awaitingReview,
             });
             throw error;
           }
           snapshot = context.moduleSnapshot;
           updateAgentSession_ACU(workflowEntry, {
-            title: `固定工作流：${workflow.outcome}`,
+            title: `Quy trình cố định: ${workflow.outcome}`,
             detail: workflow.summary,
             ok: workflow.outcome === 'deliver',
           });
@@ -903,10 +903,10 @@ export class ContinuationAgentTurnPlanner_ACU {
             try {
               await request.updateTurnLabel?.(action.focus.trim());
             } catch (error) {
-              logAgentSession_ACU({ kind: 'thought', title: '轮次标注未保存', detail: error instanceof Error ? error.message : String(error), ok: false });
+              logAgentSession_ACU({ kind: 'thought', title: 'Chú thích lượt chưa được lưu', detail: error instanceof Error ? error.message : String(error), ok: false });
             }
-            logAgentSession_ACU({ kind: 'finalize', title: '最终写作指导', detail: workflow.instruction });
-            logAgentSession_ACU({ kind: 'run_completed', title: '本轮规划完成', detail: workflow.summary });
+            logAgentSession_ACU({ kind: 'finalize', title: 'Chỉ dẫn viết cuối cùng', detail: workflow.instruction });
+            logAgentSession_ACU({ kind: 'run_completed', title: 'Hoạch định lượt này hoàn tất', detail: workflow.summary });
             terminalLogged = true;
             clearAgentRunState_ACU(identitySeed.chatIdentity);
             await session.flush();
@@ -919,10 +919,10 @@ export class ContinuationAgentTurnPlanner_ACU {
           const repeated = escalatedBatches.has(escalationKey);
           escalatedBatches.add(escalationKey);
           const guidance = repeated
-            ? '同一批问题定向重试仍未合格，不要原样再次 open_round。已核实的字段错误可用 correct_materials 直接纠正；用户已明确选择跳过旧历史时，用 correct_materials 登记新追溯起点。只有纠正保存成功、实际范围或资料版本改变后再 open_round；没有可执行的纠正或仍需用户决定时输出 block。'
+            ? 'Thử lại có định hướng cho cùng một loạt vấn đề vẫn chưa đạt, đừng open_round lại nguyên như cũ. Lỗi trường đã xác minh có thể sửa trực tiếp bằng correct_materials; khi người dùng đã rõ ràng chọn bỏ qua lịch sử cũ, dùng correct_materials để đăng ký điểm truy ngược mới. Chỉ open_round lại sau khi lưu chỉnh sửa thành công và phạm vi thực tế hoặc phiên bản tư liệu đã thay đổi; nếu không có chỉnh sửa khả thi hoặc vẫn cần người dùng quyết định thì xuất block.'
             : workflow.pendingFixes.length
-              ? '资料维护未合格。你是和用户对话的主会话，要针对子代理反馈制定修缮方案，不要直接停下：先对照回执中每条 pending 的 module、violations 与 lastError 判断原因（缺栏、ID 不存在、修订号冲突、枚举或格式不合法、正文证据不足），再输出一次 open_round，在 focus 中逐条写明修缮方案——修哪条记录的哪一栏、依据哪一楼正文、不许做什么（例如已删除的条目不要重建）。结算代理会带着待修复清单定向修缮。缺口属于正文证据不足或需要用户裁决时不要硬修，改为 block 向用户说明缺口并给出建议。总纲可用 correct_materials 修正或 delegate arc-architect 维护；阶段大纲可单独 delegate outline-architect 重规划。结构和进度保存成功后再 open_round。'
-              : '本轮工作流没有产出可交付的写作指令。先按回执判断原因：终审意见可以修正时，再输出一次 open_round，在 focus 中写明针对这些意见的修订方向；无法修正的硬冲突或需要用户决定的事项，用 block 向用户说明。总纲可用 correct_materials 修正或 delegate arc-architect 维护；阶段大纲可单独 delegate outline-architect 重规划。结构和进度保存成功后再 open_round。';
+              ? 'Bảo trì tư liệu chưa đạt. Bạn là phiên chính đối thoại với người dùng, cần lập phương án sửa chữa dựa trên phản hồi của agent phụ, đừng dừng ngay: trước hết đối chiếu module, violations và lastError của từng mục pending trong biên nhận để xác định nguyên nhân (thiếu cột, ID không tồn tại, xung đột số hiệu chỉnh, enum hoặc định dạng không hợp lệ, thiếu bằng chứng chính văn), rồi xuất một lần open_round, trong focus ghi từng phương án sửa: sửa cột nào của bản ghi nào, dựa vào chính văn tầng nào, không được làm gì (ví dụ mục đã xóa thì đừng tạo lại). Agent quyết toán sẽ mang danh sách chờ sửa để sửa theo hướng đã định. Nếu chỗ thiếu thuộc về thiếu bằng chứng chính văn hoặc cần người dùng quyết định thì đừng gượng sửa, hãy block để báo cho người dùng chỗ thiếu và đưa ra đề xuất. Tổng cương có thể sửa bằng correct_materials hoặc delegate arc-architect bảo trì; dàn ý giai đoạn có thể delegate riêng outline-architect lập lại. Sau khi lưu cấu trúc và tiến độ thành công thì open_round.'
+              : 'Quy trình lượt này không tạo ra chỉ thị viết có thể giao. Trước hết dựa vào biên nhận để xác định nguyên nhân: nếu ý kiến chung thẩm có thể sửa thì xuất lại open_round, trong focus ghi hướng sửa đổi cho các ý kiến đó; xung đột cứng không thể sửa hoặc việc cần người dùng quyết định thì dùng block để báo cho người dùng. Tổng cương có thể sửa bằng correct_materials hoặc delegate arc-architect bảo trì; dàn ý giai đoạn có thể delegate riêng outline-architect lập lại. Sau khi lưu cấu trúc và tiến độ thành công thì open_round.';
           const correctionGuide = renderAgentCorrectionGuide_ACU(session.snapshot(), context.moduleSnapshot);
           session.record([{ kind: 'tool', text: `${workflow.summary}\n${guidance}\n${correctionGuide}`, digest: '工作流升级主会话', turnKey: session.turnKey }]);
           await session.flush();
@@ -961,13 +961,13 @@ export class ContinuationAgentTurnPlanner_ACU {
                   candidateFingerprint,
                   candidateSummary,
                   [
-                    `判词：${output.verdict}`,
-                    output.summary ? `摘要：${output.summary}` : '',
-                    output.emotionFindings.length ? `人物情绪：${output.emotionFindings.join('；')}` : '',
-                    output.worldFindings.length ? `世界书与世界观：${output.worldFindings.join('；')}` : '',
-                    output.logicFindings.length ? `逻辑边界：${output.logicFindings.join('；')}` : '',
-                    output.requiredFixes.length ? `必须修正：${output.requiredFixes.join('；')}` : '',
-                    output.preserve.length ? `必须保留：${output.preserve.join('；')}` : '',
+                    `Phán quyết: ${output.verdict}`,
+                    output.summary ? `Tóm tắt: ${output.summary}` : '',
+                    output.emotionFindings.length ? `Cảm xúc nhân vật: ${output.emotionFindings.join('; ')}` : '',
+                    output.worldFindings.length ? `Sổ thế giới và thế giới quan: ${output.worldFindings.join('; ')}` : '',
+                    output.logicFindings.length ? `Ranh giới logic: ${output.logicFindings.join('; ')}` : '',
+                    output.requiredFixes.length ? `Phải sửa: ${output.requiredFixes.join('; ')}` : '',
+                    output.preserve.length ? `Phải giữ lại: ${output.preserve.join('; ')}` : '',
                   ].filter(Boolean).join('\n'),
                 ),
               };
@@ -975,8 +975,8 @@ export class ContinuationAgentTurnPlanner_ACU {
               const supplementalReads = review.expandedReads.length - supplementalSearches;
               logAgentSession_ACU({
                 kind: 'thought',
-                title: `迭代 ${iteration} · 发送前终审遥测`,
-                detail: [`判词：${output.verdict}`, '初始世界书：仅目录与命中预览，不自动精读全文', `补充调阅：read ${supplementalReads} 次，search ${supplementalSearches} 次`, `独立读取：${review.readTokens} tokens`, `工具轮：${review.toolRounds}`, `模型用量：${review.usage ? formatAgentUsageLabel_ACU(review.usage) : '未报告'}`].join('\n'),
+                title: `Vòng lặp ${iteration} · Theo dõi chung thẩm trước khi gửi`,
+                detail: [`Phán quyết: ${output.verdict}`, 'Sổ thế giới ban đầu: chỉ danh mục và xem trước mục khớp, không tự động đọc kỹ toàn văn', `Tra cứu bổ sung: read ${supplementalReads} lần, search ${supplementalSearches} lần`, `Đọc độc lập: ${review.readTokens} tokens`, `Số vòng công cụ: ${review.toolRounds}`, `Mức dùng mô hình: ${review.usage ? formatAgentUsageLabel_ACU(review.usage) : 'chưa báo cáo'}`].join('\n'),
               });
             } catch (error) {
               if (error instanceof ContinuationValidationError_ACU && error.error.code === 'CONTINUATION_INTERNAL_REQUEST_STALE') {
@@ -987,7 +987,7 @@ export class ContinuationAgentTurnPlanner_ACU {
                 status: 'feedback_ready',
                 candidateFingerprint,
                 candidateSummary,
-                feedback: renderFinalReviewFeedback_ACU('failed', candidateFingerprint, candidateSummary, `终审调用失败：${reason}`),
+                feedback: renderFinalReviewFeedback_ACU('failed', candidateFingerprint, candidateSummary, `Lệnh gọi chung thẩm thất bại: ${reason}`),
               };
             }
             session.record([
@@ -997,7 +997,7 @@ export class ContinuationAgentTurnPlanner_ACU {
             await session.flush();
             persistRunState(iteration);
             postReviewDecisionAvailable = true;
-            logAgentSession_ACU({ kind: 'thought', title: `迭代 ${iteration} · 发送前终审完成`, detail: finalReview.feedback });
+            logAgentSession_ACU({ kind: 'thought', title: `Vòng lặp ${iteration} · Chung thẩm trước khi gửi hoàn tất`, detail: finalReview.feedback });
             iteration += 1;
             continue;
           }
@@ -1013,21 +1013,21 @@ export class ContinuationAgentTurnPlanner_ACU {
               constraintsApplied = false;
               lastConstraintRejection = error.error.message;
               if (iteration < budget.maxIterations) {
-                ledger.outcomes.push({ agentName: 'finalize(约束登记)', ok: false, summary: '', detail: '', rejectedReason: `${error.error.message}。finalize 未被采纳，请修正 constraints 后重新交付` });
-                logAgentSession_ACU({ kind: 'protocol_retry', title: `迭代 ${iteration} · 约束登记被拒绝`, detail: error.error.message, ok: false });
+                ledger.outcomes.push({ agentName: 'finalize(约束登记)', ok: false, summary: '', detail: '', rejectedReason: `${error.error.message}. finalize không được chấp nhận, hãy sửa constraints rồi giao lại` });
+                logAgentSession_ACU({ kind: 'protocol_retry', title: `Vòng lặp ${iteration} · Đăng ký ràng buộc bị từ chối`, detail: error.error.message, ok: false });
                 await commitOutcomes(outcomesBefore);
                 iteration += 1;
                 continue;
               }
-              logAgentSession_ACU({ kind: 'protocol_retry', title: `迭代 ${iteration} · 约束登记被拒绝，已跳过登记并照常交付`, detail: error.error.message, ok: false });
+              logAgentSession_ACU({ kind: 'protocol_retry', title: `Vòng lặp ${iteration} · Đăng ký ràng buộc bị từ chối, đã bỏ qua đăng ký và giao như thường`, detail: error.error.message, ok: false });
             }
             if (constraintsApplied) {
               context.moduleSnapshot = snapshot;
               await this.persistSnapshot_ACU(chat, snapshot);
             }
           }
-          logAgentSession_ACU({ kind: 'finalize', title: '最终写作指导', detail: action.instruction });
-          logAgentSession_ACU({ kind: 'run_completed', title: '本轮规划完成', detail: action.summary });
+          logAgentSession_ACU({ kind: 'finalize', title: 'Chỉ dẫn viết cuối cùng', detail: action.instruction });
+          logAgentSession_ACU({ kind: 'run_completed', title: 'Hoạch định lượt này hoàn tất', detail: action.summary });
           terminalLogged = true;
           clearAgentRunState_ACU(identitySeed.chatIdentity);
           await session.flush();
@@ -1035,12 +1035,12 @@ export class ContinuationAgentTurnPlanner_ACU {
         }
 
         if (action.kind === 'block') {
-          logAgentSession_ACU({ kind: 'block', title: '主 Agent 阻断本轮', detail: [action.reason, ...action.unresolved].filter(Boolean).join('\n'), ok: false });
+          logAgentSession_ACU({ kind: 'block', title: 'Agent chính chặn lượt này', detail: [action.reason, ...action.unresolved].filter(Boolean).join('\n'), ok: false });
           terminalLogged = true;
           // block 是明确的终局判断：重跑应给全新预算重新收集证据，而不是复播旧账本再次阻断。
           clearAgentRunState_ACU(identitySeed.chatIdentity);
           await session.flush();
-          failLoop_ACU('CONTINUATION_AGENT_BLOCKED', `主 Agent 阻断本轮：${action.reason}`, { unresolved: action.unresolved });
+          failLoop_ACU('CONTINUATION_AGENT_BLOCKED', `Agent chính chặn lượt này: ${action.reason}`, { unresolved: action.unresolved });
         }
 
         const delegationResult = await this.runDelegations(action, request, context, ledger, budget, chat, snapshot, session, readRoundState, toolMode, apiDependencies, outlineMaintenanceReserveAvailable);
@@ -1062,8 +1062,8 @@ export class ContinuationAgentTurnPlanner_ACU {
       failLoop_ACU(
         'CONTINUATION_AGENT_ITERATIONS_EXHAUSTED',
         lastConstraintRejection
-          ? `主 Agent 在 ${budget.maxIterations} 次迭代内没有交付最终指导；最后一次约束登记被拒绝：${lastConstraintRejection}`
-          : `主 Agent 在 ${budget.maxIterations} 次迭代内没有交付最终指导`,
+          ? `Agent chính không giao chỉ dẫn cuối cùng trong ${budget.maxIterations} vòng lặp; lần đăng ký ràng buộc cuối cùng bị từ chối: ${lastConstraintRejection}`
+          : `Agent chính không giao chỉ dẫn cuối cùng trong ${budget.maxIterations} vòng lặp`,
         { delegationsUsed: ledger.delegationsUsed },
       );
     } catch (error) {
@@ -1079,9 +1079,9 @@ export class ContinuationAgentTurnPlanner_ACU {
         const message = error instanceof ContinuationValidationError_ACU ? error.error.message : error instanceof Error ? error.message : String(error);
         if (awaitingReview) {
           // 人工预览是正常交接：清除运行标记，不记为生成失败。
-          logAgentSession_ACU({ kind: 'block', title: '等待大纲确认', detail: message });
+          logAgentSession_ACU({ kind: 'block', title: 'Chờ xác nhận dàn ý', detail: message });
         } else {
-          logAgentSession_ACU({ kind: 'run_failed', title: '本轮已终止', detail: `${message}\n（进度已保留，输入新指令后发送即可继续）`, ok: false });
+          logAgentSession_ACU({ kind: 'run_failed', title: 'Lượt này đã dừng', detail: `${message}\n(Tiến độ đã được giữ, nhập chỉ thị mới rồi gửi là có thể tiếp tục)`, ok: false });
         }
       }
       throw error;
@@ -1189,13 +1189,13 @@ export class ContinuationAgentTurnPlanner_ACU {
         snapshot = authoritative;
         logAgentSession_ACU({
           kind: 'handoff',
-          title: '上一轮会话已丢弃（此前的会话记录、工具调用和快照对当前 AI 不可见）',
+          title: 'Phiên của lượt trước đã bị bỏ (bản ghi hội thoại, lệnh gọi công cụ và snapshot trước đó không hiển thị với AI hiện tại)',
           detail: report,
         });
         return true;
       } catch (error) {
         if (this.dependencies.captureCompactionCommit) throw error;
-        logAgentSession_ACU({ kind: 'thought', title: '上一轮会话丢弃未提交', detail: error instanceof Error ? error.message : String(error) });
+        logAgentSession_ACU({ kind: 'thought', title: 'Việc bỏ phiên của lượt trước chưa được lưu', detail: error instanceof Error ? error.message : String(error) });
         return false;
       }
     };
@@ -1280,24 +1280,24 @@ export class ContinuationAgentTurnPlanner_ACU {
       }
     } catch (error) {
       if (this.dependencies.captureCompactionCommit) throw error;
-      logAgentSession_ACU({ kind: 'thought', title: '会话历史压缩写入失败', detail: error instanceof Error ? error.message : String(error) });
+      logAgentSession_ACU({ kind: 'thought', title: 'Ghi nén lịch sử hội thoại thất bại', detail: error instanceof Error ? error.message : String(error) });
     }
     if (!reread) {
-      logAgentSession_ACU({ kind: 'thought', title: '会话历史压缩未提交', detail: '压缩候选未通过持久化回读一致性确认，已保留本次运行的旧会话投影。' });
+      logAgentSession_ACU({ kind: 'thought', title: 'Nén lịch sử hội thoại chưa được lưu', detail: 'Bản nén ứng viên chưa qua kiểm tra nhất quán khi đọc lại từ lưu trữ, đã giữ nguyên phép chiếu hội thoại cũ của lần chạy này.' });
       return null;
     }
     logAgentSession_ACU({
       kind: 'thought',
-      title: `会话历史已压缩（压缩后上下文约 ${compaction.afterTokens} tokens）`,
+      title: `Lịch sử hội thoại đã được nén (ngữ cảnh sau nén khoảng ${compaction.afterTokens} tokens)`,
       detail: [
-        `实际读取的完整上下文超出阈值 ${budgetTokens}（其中提示词骨架约 ${overheadTokens} tokens），已把最早的 ${compaction.droppedTurns} 个轮次（${compaction.droppedMessages} 条消息）浓缩成交接报告。`,
-        emergency ? `本轮尚未结束，但上下文已达阈值的 ${AGENT_HISTORY_EMERGENCY_FACTOR_ACU} 倍，再不压缩这次请求会因超长直接失败，因此提前压缩。` : '',
-        compaction.status === 'compacted_above_target' ? '压缩后仍高于内部低水位：提示词骨架与最近一轮的内容本身较大，最近一轮已完整保留。' : '',
+        `Ngữ cảnh đầy đủ thực tế đọc được vượt ngưỡng ${budgetTokens} (trong đó khung prompt khoảng ${overheadTokens} tokens), đã cô đọng ${compaction.droppedTurns} lượt sớm nhất (${compaction.droppedMessages} tin nhắn) thành báo cáo bàn giao.`,
+        emergency ? `Lượt này chưa kết thúc nhưng ngữ cảnh đã đạt ${AGENT_HISTORY_EMERGENCY_FACTOR_ACU} lần ngưỡng, nếu không nén thì yêu cầu này sẽ thất bại ngay vì quá dài, nên nén sớm.` : '',
+        compaction.status === 'compacted_above_target' ? 'Sau khi nén vẫn cao hơn mức nước thấp nội bộ: khung prompt và nội dung lượt gần nhất vốn đã lớn, lượt gần nhất đã được giữ nguyên vẹn.' : '',
       ].filter(Boolean).join(''),
     });
     // 交接报告正文单独作为一条会话条目插进会话流：用户在界面上直接看到
     // 「AI 的可见历史从这份交接文件开始」，而不是只看到一条统计说明。
-    logAgentSession_ACU({ kind: 'handoff', title: '早期会话交接报告（此前内容对当前 AI 不可见）', detail: candidate.report });
+    logAgentSession_ACU({ kind: 'handoff', title: 'Báo cáo bàn giao hội thoại sớm (nội dung trước đó không hiển thị với AI hiện tại)', detail: candidate.report });
     return reread;
   }
 
@@ -1355,7 +1355,7 @@ export class ContinuationAgentTurnPlanner_ACU {
       const base = request.createInternalRequestIdentity(attempt);
       const identity: ContinuationInternalAiRequestIdentity_ACU = { ...base, source: 'agent_main' };
       if (!request.isInternalRequestCurrent(base)) {
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', '主 Agent 请求已失效', false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', 'Yêu cầu của Agent chính đã hết hiệu lực', false));
       }
       const rendered = await this.renderMainPrompt_ACU(request, context, ledger, budget, iteration, toolUsage, gateConfig, toolMode, lifecycle);
       const latestSnapshot = lastRuntimeSnapshotText_ACU(session.snapshot());
@@ -1376,7 +1376,7 @@ export class ContinuationAgentTurnPlanner_ACU {
           throw new ContinuationValidationError_ACU(createContinuationError_ACU(
             'CONTINUATION_AGENT_SNAPSHOT_INVALID',
             'agent_loop',
-            `主 Agent 最终请求约 ${promptTokens} tokens，超过会话 token 阈值 ${budgetTokens} 的 ${AGENT_HISTORY_EMERGENCY_FACTOR_ACU} 倍且已无法再压缩，拒绝发送必然超长的请求。可在设置里提高「会话自动总结阈值」，或清空 Agent 会话历史后重试`,
+            `Yêu cầu cuối cùng của Agent chính khoảng ${promptTokens} tokens, vượt ${AGENT_HISTORY_EMERGENCY_FACTOR_ACU} lần ngưỡng token hội thoại ${budgetTokens} và không thể nén thêm, từ chối gửi yêu cầu chắc chắn quá dài. Có thể tăng "ngưỡng tự động tóm tắt hội thoại" trong cài đặt, hoặc xóa lịch sử hội thoại Agent rồi thử lại`,
             false,
           ));
         }
@@ -1384,8 +1384,8 @@ export class ContinuationAgentTurnPlanner_ACU {
           session.overBudgetNotified = true;
           logAgentSession_ACU({
             kind: 'thought',
-            title: `上下文已超过 token 阈值（约 ${promptTokens} tokens）`,
-            detail: `阈值 ${budgetTokens}，越界线 ${ceilingTokens}。还没到两倍，本轮结束不总结。本轮规划完成后再丢弃会话记录、工具调用和运行时快照，下一轮不再确认上一轮。`,
+            title: `Ngữ cảnh đã vượt ngưỡng token (khoảng ${promptTokens} tokens)`,
+            detail: `Ngưỡng ${budgetTokens}, vạch vượt ${ceilingTokens}. Chưa đến gấp đôi, cuối lượt này không tóm tắt. Sau khi hoạch định lượt này hoàn tất sẽ bỏ bản ghi hội thoại, lệnh gọi công cụ và snapshot thời gian chạy, lượt sau không xác nhận lại lượt trước.`,
           });
         }
       }
@@ -1409,7 +1409,7 @@ export class ContinuationAgentTurnPlanner_ACU {
         throw new ContinuationValidationError_ACU(createContinuationError_ACU(
           'CONTINUATION_AGENT_SNAPSHOT_INVALID',
           'agent_loop',
-          `主 Agent 最终请求超出上下文容量（${code}），请求未发送；资料未截断、未摘要。`,
+          `Yêu cầu cuối cùng của Agent chính vượt dung lượng ngữ cảnh (${code}), yêu cầu chưa được gửi; tư liệu không bị cắt hay tóm tắt.`,
           false,
           { reason: 'context-capacity-exceeded', code, inputLimitTokens: budgetTokens },
         ));
@@ -1427,7 +1427,7 @@ export class ContinuationAgentTurnPlanner_ACU {
         },
       );
       if (!request.isInternalRequestCurrent(base)) {
-        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', '主 Agent 结果已失效', false));
+        throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'agent_loop', 'Kết quả của Agent chính đã hết hiệu lực', false));
       }
       const turn = normalizeAgentModelReply_ACU(raw);
       const nativeCalls = turn.toolCalls;
@@ -1437,7 +1437,7 @@ export class ContinuationAgentTurnPlanner_ACU {
         let action: AgentMainAction_ACU;
         let decisionCallId = '';
         if (nativeMode) {
-          if (!nativeCalls.length) throw new Error('本次回复没有调用任何函数；核对资料请调用 read / search，做决定请调用 open_round / delegate / finalize / block 之一');
+          if (!nativeCalls.length) throw new Error('Lần trả lời này không gọi hàm nào; muốn đối chiếu tư liệu hãy gọi read / search, muốn quyết định hãy gọi một trong open_round / delegate / finalize / block');
           const split = splitNativeDecisionCalls_ACU(nativeToolArguments_ACU(nativeCalls), CONTINUATION_DECISION_TOOL_NAMES_ACU);
           if (split.decision) {
             action = parseAgentMainAction_ACU(split.decision.payload, allowDelegate);
@@ -1446,22 +1446,22 @@ export class ContinuationAgentTurnPlanner_ACU {
             action = { kind: 'tools', thought: '', calls: split.tools.map(({ payload }) => parseAgentToolCall_ACU(payload)) };
           }
         } else {
-          if (nativeCalls.length) throw new Error('本次没有可调用的函数，动作必须写成 JSON 对象');
+          if (nativeCalls.length) throw new Error('Lần này không có hàm nào để gọi, hành động phải được viết thành đối tượng JSON');
           action = parseAgentMainOutput_ACU(rawText, AGENT_PREFILLS_ACU.main, allowDelegate);
         }
         // 没有可执行的大纲轮次就不存在「本轮」，finalize 无从谈起；拒绝并回灌，让主 Agent 先走大纲子代理。
         if (action.kind === 'finalize' && !request.readContext().turn) {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_PROTOCOL_INVALID', 'agent_loop', '当前没有可执行的大纲轮次，不能 finalize；请先派工 outline-architect 创建或继续大纲', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_PROTOCOL_INVALID', 'agent_loop', 'Hiện không có lượt dàn ý khả thi nên không thể finalize; hãy giao outline-architect tạo hoặc tiếp tục dàn ý trước', false));
         }
         session.record([{
           kind: 'agent',
-          text: turn.content.trim() || rawText || '(空输出)',
+          text: turn.content.trim() || rawText || '(đầu ra rỗng)',
           digest: describeAgentActionLabel_ACU(action),
           turnKey: session.turnKey,
           ...(nativeCalls.length ? { toolCalls: nativeCalls.map(call => ({ id: call.id, name: call.name, arguments: call.arguments })) } : {}),
         },
         // 决策函数也要有对应的工具回执，否则下一次请求里这条 tool_call 没有结果会被服务商拒绝。
-        ...(decisionCallId ? [{ kind: 'tool' as const, text: `${describeAgentActionLabel_ACU(action)}：已受理，执行结果见后续回执。`, digest: describeAgentActionLabel_ACU(action), turnKey: session.turnKey, toolCallId: decisionCallId }] : [])]);
+        ...(decisionCallId ? [{ kind: 'tool' as const, text: `${describeAgentActionLabel_ACU(action)}: đã tiếp nhận, kết quả thực thi xem biên nhận phía sau.`, digest: describeAgentActionLabel_ACU(action), turnKey: session.turnKey, toolCallId: decisionCallId }] : [])]);
         await session.flush();
         return { action, nativeCalls, attempts: attempt + 1, usage: callUsage };
       } catch (error) {
@@ -1473,16 +1473,16 @@ export class ContinuationAgentTurnPlanner_ACU {
         }
         // 被拒绝的原文也要留在会话里：模型必须看到自己上一次到底写了什么才能真正修正。
         session.record([
-          { kind: 'agent', text: rawText || '(空输出)', digest: '输出被协议层拒绝', turnKey: session.turnKey },
+          { kind: 'agent', text: rawText || '(đầu ra rỗng)', digest: '输出被协议层拒绝', turnKey: session.turnKey },
           { kind: 'tool', text: renderMainProtocolRejection_ACU(lastReason, request.readContext(), allowDelegate, toolMode), digest: `协议拒绝：${lastReason}`, turnKey: session.turnKey },
         ]);
         await session.flush();
         // 会话流必须展示模型原文片段：解析被拒不等于模型没输出，用户要能看到它实际返回了什么。
-        logAgentSession_ACU({ kind: 'protocol_retry', title: `迭代 ${iteration} · 输出被拒绝`, detail: `${lastReason}\n模型返回片段：${rawText.slice(0, 300) || '(空)'}`, ok: false });
+        logAgentSession_ACU({ kind: 'protocol_retry', title: `Vòng lặp ${iteration} · Đầu ra bị từ chối`, detail: `${lastReason}\nĐoạn mô hình trả về: ${rawText.slice(0, 300) || '(rỗng)'}`, ok: false });
       }
     }
 
-    failLoop_ACU('CONTINUATION_AGENT_PROTOCOL_INVALID', `主 Agent 连续 ${retries + 1} 次返回不符合协议：${lastReason}`, { lastReason });
+    failLoop_ACU('CONTINUATION_AGENT_PROTOCOL_INVALID', `Agent chính trả về ${retries + 1} lần liên tiếp không đúng giao thức: ${lastReason}`, { lastReason });
   }
 
   /**
@@ -1506,12 +1506,12 @@ export class ContinuationAgentTurnPlanner_ACU {
       $STORY_TAIL: () => renderAgentStoryTail_ACU(context),
       $STORY_CATALOG: () => renderAgentStoryCatalog_ACU(context),
       $OUTLINE_STATE: () => renderAgentOutlineState_ACU(context),
-      $WORLDBOOK_CATALOG: () => '主会话不浏览世界书目录。本轮已触发的条目全文见命中区。不够时用 search，scope 设为 ["worldbook"]。不要 read $WORLDBOOK。',
+      $WORLDBOOK_CATALOG: () => 'Phiên chính không duyệt danh mục sổ thế giới. Toàn văn các mục đã kích hoạt trong lượt này nằm ở vùng khớp. Nếu chưa đủ thì dùng search, đặt scope là ["worldbook"]. Đừng read $WORLDBOOK.',
       $WORLDBOOK_HITS: () => renderAgentWorldbookTriggeredInjection_ACU(context.worldbook ?? buildEmptyAgentWorldbookSnapshot_ACU(false), buildAgentWorldbookScanText_ACU(context)),
       $HISTORY_UNSETTLED: () => renderAgentUnsettledHistory_ACU(context),
-      $USER_INTENT: () => context.originInstruction || '（用户未提供初始要求）',
+      $USER_INTENT: () => context.originInstruction || '(Người dùng chưa cung cấp yêu cầu ban đầu)',
       $USER_REQUIREMENTS: () => renderAgentUserRequirements_ACU(context.moduleSnapshot, context.originInstruction),
-      $CURRENT_TURN_GOAL: () => context.execution.turn?.goal || '（尚无可执行的大纲轮次，需先创建或继续大纲）',
+      $CURRENT_TURN_GOAL: () => context.execution.turn?.goal || '(chưa có lượt dàn ý khả thi, cần tạo hoặc tiếp tục dàn ý trước)',
       $UNSETTLED_RANGE: () => this.renderUnsettledRange_ACU(context),
       $STORY_ARC_STATE: () => this.renderStoryArcState_ACU(context),
       $CURRENT_TURN_PACING: () => renderAgentTurnGuidance_ACU(context.execution.turn ?? null),
@@ -1624,13 +1624,13 @@ export class ContinuationAgentTurnPlanner_ACU {
     iteration: number,
     nativeCalls: readonly AiNativeToolCall_ACU[] = [],
   ): Promise<void> {
-    const exhaustedText = `read-once-exhausted：read/search 工具批次已用尽（本次运行只允许一个成功读取批次，尝试上限 ${budget.maxReads} 次）。请基于已有资料决策：correct_materials 修正资料或总纲，delegate 要求总纲或阶段大纲修改，adjust_progress 校准阶段与轮次，准备完成后 open_round；无法继续时 block。`;
+    const exhaustedText = `read-once-exhausted: lô công cụ read/search đã dùng hết (lần chạy này chỉ cho phép một lô đọc thành công, giới hạn thử ${budget.maxReads} lần). Hãy quyết định dựa trên tư liệu hiện có: correct_materials để sửa tư liệu hoặc tổng cương, delegate để yêu cầu sửa tổng cương hoặc dàn ý giai đoạn, adjust_progress để hiệu chỉnh giai đoạn và lượt, chuẩn bị xong thì open_round; không thể tiếp tục thì block.`;
     // 唯一成功批次用过后仍走一次结算：重复与收窄地址照常回如实提示，新地址一律不注入正文。
     const readOnceExhausted = toolUsage.successfulReadBatch;
     if (toolUsage.batchesUsed >= budget.maxReads) {
       const text = exhaustedText;
       session.record(nativeCalls.map(call => ({ kind: 'tool' as const, text, digest: '工具批次已用尽', turnKey: session.turnKey, toolCallId: call.id })));
-      logAgentSession_ACU({ kind: 'tool_read', title: `迭代 ${iteration} · 工具批次已用尽`, detail: text, ok: false });
+      logAgentSession_ACU({ kind: 'tool_read', title: `Vòng lặp ${iteration} · Lô công cụ đã dùng hết`, detail: text, ok: false });
       await session.flush();
       return;
     }
@@ -1668,7 +1668,7 @@ export class ContinuationAgentTurnPlanner_ACU {
             seenInBatch.add(key);
             const narrowed = toolUsage.narrowed.get(key);
             if (narrowed) {
-              duplicated.push(`原地址「${key}」此前只提供了收窄子范围「${narrowed.address}」的完整正文，未声称原地址已全部注入；未读取部分${narrowed.remainder ? `请改读「${narrowed.remainder}」` : '本次没有剩余范围'}。`);
+              duplicated.push(`Địa chỉ gốc "${key}" trước đó chỉ cung cấp toàn văn của phạm vi con thu hẹp "${narrowed.address}", không tuyên bố địa chỉ gốc đã được đưa vào toàn bộ; phần chưa đọc${narrowed.remainder ? ` hãy đọc "${narrowed.remainder}"` : ' lần này không còn phạm vi dư'}.`);
               continue;
             }
             if (toolUsage.granted.has(key)) { duplicated.push(`地址「${key}」已放行，完整内容见上文，不再重注。`); continue; }
@@ -1679,7 +1679,7 @@ export class ContinuationAgentTurnPlanner_ACU {
           seenInBatch.add(key);
           const narrowed = toolUsage.narrowed.get(key);
           if (narrowed) {
-            duplicated.push(`原地址「${key}」此前只提供了收窄子范围「${narrowed.address}」的完整正文，未声称原地址已全部注入；未读取部分${narrowed.remainder ? `请改读「${narrowed.remainder}」` : '本次没有剩余范围'}。`);
+            duplicated.push(`Địa chỉ gốc "${key}" trước đó chỉ cung cấp toàn văn của phạm vi con thu hẹp "${narrowed.address}", không tuyên bố địa chỉ gốc đã được đưa vào toàn bộ; phần chưa đọc${narrowed.remainder ? ` hãy đọc "${narrowed.remainder}"` : ' lần này không còn phạm vi dư'}.`);
             continue;
           }
           if (toolUsage.granted.has(key)) { duplicated.push(`地址「${key}」已放行，完整内容见上文，不再重注。`); continue; }
@@ -1698,9 +1698,9 @@ export class ContinuationAgentTurnPlanner_ACU {
       const key = `search|${call.isRegex ? 're' : 'kw'}|${[...call.scope].sort().join('+')}|${call.maxResults}|${call.query}`;
       if (seenInBatch.has(key)) continue;
       seenInBatch.add(key);
-      const label = `search "${call.query}"（域：${call.scope.join('、')}）`;
+      const label = `search "${call.query}" (miền: ${call.scope.join(', ')})`;
       if (toolUsage.granted.has(key)) { duplicated.push(label); continue; }
-      fresh.push({ key, label, title: `搜索「${call.query}」`, text: runAgentSearch_ACU(call, context) });
+      fresh.push({ key, label, title: `Tìm "${call.query}"`, text: runAgentSearch_ACU(call, context) });
     }
 
     const owners: number[] = [];
@@ -1715,13 +1715,13 @@ export class ContinuationAgentTurnPlanner_ACU {
     });
     if (duplicated.length) {
       owners.push(0);
-      appends.push({ kind: 'tool', text: `以下调阅请求未重复注入：\n${duplicated.join('\n')}`, digest: '重复调阅提示', turnKey: session.turnKey });
+      appends.push({ kind: 'tool', text: `Các yêu cầu tra cứu sau không được tiêm lặp lại:\n${duplicated.join('\n')}`, digest: '重复调阅提示', turnKey: session.turnKey });
     }
 
     if (!failed.length && fresh.length && readOnceExhausted) {
       owners.push(0);
       appends.push({ kind: 'tool', text: exhaustedText, digest: '读取额度已用尽', turnKey: session.turnKey });
-      logAgentSession_ACU({ kind: 'tool_read', title: `迭代 ${iteration} · 工具批次已用尽`, detail: exhaustedText, ok: false });
+      logAgentSession_ACU({ kind: 'tool_read', title: `Vòng lặp ${iteration} · Lô công cụ đã dùng hết`, detail: exhaustedText, ok: false });
     } else if (!failed.length && fresh.length) {
       // 未显式提供上围栏的本地读取：60% 默认上围栏预算经地址适配器解析为可证明的子范围，不截断正文。
       const defaultFenced = fresh.filter(material => material.local && material.local.requestedFence?.upper === undefined);
@@ -1752,7 +1752,7 @@ export class ContinuationAgentTurnPlanner_ACU {
             turnKey: session.turnKey,
           });
         }
-        logAgentSession_ACU({ kind: 'tool_read', title: `迭代 ${iteration} · 默认上围栏范围无法完整读取`, detail: allocation.failures.map(failure => failure.message).join('\n'), ok: false });
+        logAgentSession_ACU({ kind: 'tool_read', title: `Vòng lặp ${iteration} · Phạm vi hàng rào trên mặc định không thể đọc đầy đủ`, detail: allocation.failures.map(failure => failure.message).join('\n'), ok: false });
       } else {
         const allocated = new Map(allocation.reads.map(read => [read.key, read]));
         // address 是实际注入并登记放行的稳定地址；收窄时它是默认上围栏解析出的子范围地址。
@@ -1762,7 +1762,7 @@ export class ContinuationAgentTurnPlanner_ACU {
             ? { key: material.key, address: read.address, label: read.address, title: read.title, text: read.text, narrowedFrom: material.key, ...(read.remainder ? { remainder: read.remainder } : {}) }
             : { ...material, address: material.key };
         });
-        const describe = (material: typeof admitted[number]): string => (material.narrowedFrom ? `${material.label}（默认上围栏，原地址 ${material.narrowedFrom}）` : material.label);
+        const describe = (material: typeof admitted[number]): string => (material.narrowedFrom ? `${material.label} (hàng rào trên mặc định, địa chỉ gốc ${material.narrowedFrom})` : material.label);
         const items: AgentGateItem_ACU[] = admitted.map(material => ({ label: material.label, text: material.text }));
         const decision = await gateAgentReadBatch_ACU(items, toolUsage.gateState, gateConfig, await measureContextTokens(), counter);
         if (decision.allowed) {
@@ -1777,25 +1777,25 @@ export class ContinuationAgentTurnPlanner_ACU {
               toolUsage.narrowed.set(material.narrowedFrom, { address: material.address, ...(material.remainder ? { remainder: material.remainder } : {}) });
             }
             const latestSnapshotNotice = isLatestSnapshot
-              ? '\n\n【最新快照】该地址的资料在上次调阅后可能已变化；本条是重新调阅所得的最新快照，较早结果仅代表产生时状态。'
+              ? '\n\n【Snapshot mới nhất】Tư liệu tại địa chỉ này có thể đã thay đổi sau lần tra cứu trước; mục này là snapshot mới nhất từ lần tra cứu lại, kết quả cũ hơn chỉ đại diện cho trạng thái lúc được tạo ra.'
               : '';
             owners.push(ownerByKey.get(material.key) ?? 0);
             appends.push({ kind: 'tool', text: `### ${material.title}（${material.label}）\n${material.text}${latestSnapshotNotice}`, digest: `调阅 ${describe(material)}`, turnKey: session.turnKey, readKey: material.address });
           }
           logAgentSession_ACU({
             kind: 'tool_read',
-            title: `迭代 ${iteration} · 调阅 ${admitted.length} 项（约 ${decision.batchTokens} tokens）`,
-            detail: admitted.map((material, index) => `${describe(material)}：${decision.itemTokens[index]} tokens`).join('\n'),
+            title: `Vòng lặp ${iteration} · Tra cứu ${admitted.length} mục (khoảng ${decision.batchTokens} tokens)`,
+            detail: admitted.map((material, index) => `${describe(material)}: ${decision.itemTokens[index]} tokens`).join('\n'),
           });
         } else {
           owners.push(0);
           appends.push({ kind: 'tool', text: decision.report, digest: '读取被门禁打回', turnKey: session.turnKey });
-          logAgentSession_ACU({ kind: 'tool_read', title: `迭代 ${iteration} · 读取批次被门禁打回（${decision.batchTokens} tokens）`, detail: decision.report, ok: false });
+          logAgentSession_ACU({ kind: 'tool_read', title: `Vòng lặp ${iteration} · Lô đọc bị cổng chặn trả về (${decision.batchTokens} tokens)`, detail: decision.report, ok: false });
         }
       }
     } else if (!duplicated.length && !failed.length) {
       owners.push(0);
-      appends.push({ kind: 'tool', text: '本次工具批次没有任何有效的读取地址或搜索请求。请检查 read 的 reads 数组与 search 的 query。', digest: '空工具批次', turnKey: session.turnKey });
+      appends.push({ kind: 'tool', text: 'Lô công cụ lần này không có địa chỉ đọc hay yêu cầu tìm kiếm hợp lệ nào. Hãy kiểm tra mảng reads của read và query của search.', digest: '空工具批次', turnKey: session.turnKey });
     }
 
     if (nativeCalls.length) {
@@ -1863,14 +1863,14 @@ export class ContinuationAgentTurnPlanner_ACU {
       const entryId = logAgentSession_ACU({
         kind: 'delegation',
         agentName: 'arc-architect',
-        title: '固定工作流维护故事总纲',
+        title: 'Quy trình cố định bảo trì tổng cương câu chuyện',
         detail: action.focus,
         status: 'running',
       });
       try {
         const preset = this.dependencies.resolveApiPreset(request.settings, 'arcArchitect', 'agent_delegate', apiDependencies);
         const result = await this.dependencies.subagentRuntime.run({
-          delegation: { agentName: 'arc-architect', prompt: `固定工作流维护故事总纲。焦点：${action.focus}`, reads: [] },
+          delegation: { agentName: 'arc-architect', prompt: `Quy trình cố định bảo trì tổng cương câu chuyện. Tiêu điểm: ${action.focus}`, reads: [] },
           toolMode,
           roundId: session.turnKey,
           settings: request.settings,
@@ -1903,15 +1903,15 @@ export class ContinuationAgentTurnPlanner_ACU {
         const arcReady = hasActiveStoryArc_ACU(context.moduleSnapshot) && hasActiveStoryArcVolume_ACU(context.moduleSnapshot)
           && findUnregisteredStageNumbers_ACU(context.moduleSnapshot, completedStageNumbers).length === 0;
         if (!arcReady) {
-          const missing = (result.unresolvedIssues ?? []).map(issue => `${issue.path}：${issue.message}`).join('；');
+          const missing = (result.unresolvedIssues ?? []).map(issue => `${issue.path}: ${issue.message}`).join('; ');
           failLoop_ACU('CONTINUATION_AGENT_PROTOCOL_INVALID', missing
-            ? `固定工作流的总纲还缺栏目，已写入的栏目已保留。${missing}`
-            : '固定工作流的总纲维护没有形成可执行的活跃总纲和活动卷');
+            ? `Tổng cương của quy trình cố định còn thiếu cột, các cột đã ghi được giữ lại. ${missing}`
+            : 'Việc bảo trì tổng cương của quy trình cố định không tạo ra tổng cương hoạt động và tập đang hoạt động khả thi');
         }
-        updateAgentSession_ACU(entryId, { title: '固定工作流已维护故事总纲', detail: result.arc?.summary || '总纲已按栏目写入', ok: true });
+        updateAgentSession_ACU(entryId, { title: 'Quy trình cố định đã bảo trì tổng cương câu chuyện', detail: result.arc?.summary || 'Tổng cương đã được ghi theo từng cột', ok: true });
       } catch (error) {
         const reason = compactAgentProtocolError_ACU(error);
-        updateAgentSession_ACU(entryId, { title: '固定工作流维护故事总纲失败', detail: reason, ok: false });
+        updateAgentSession_ACU(entryId, { title: 'Quy trình cố định bảo trì tổng cương câu chuyện thất bại', detail: reason, ok: false });
         throw error;
       }
     }
@@ -1919,19 +1919,19 @@ export class ContinuationAgentTurnPlanner_ACU {
     context.execution = request.readContext();
     if (context.execution.turn) return;
     if (!request.applyOutline) {
-      failLoop_ACU('CONTINUATION_TASK_STATE_INVALID', '当前没有可执行的阶段大纲，且本轮不允许创建或继续大纲');
+      failLoop_ACU('CONTINUATION_TASK_STATE_INVALID', 'Hiện không có dàn ý giai đoạn khả thi, và lượt này không cho phép tạo hoặc tiếp tục dàn ý');
     }
-    const entryId = logAgentSession_ACU({ kind: 'outline_op', agentName: AGENT_OUTLINE_AGENT_NAME_ACU, title: '固定工作流准备阶段大纲', detail: action.focus, status: 'running' });
-    const result = await request.applyOutline(`固定工作流根据当前 active 卷准备阶段大纲。焦点：${action.focus}`);
+    const entryId = logAgentSession_ACU({ kind: 'outline_op', agentName: AGENT_OUTLINE_AGENT_NAME_ACU, title: 'Quy trình cố định chuẩn bị dàn ý giai đoạn', detail: action.focus, status: 'running' });
+    const result = await request.applyOutline(`Quy trình cố định chuẩn bị dàn ý giai đoạn theo tập active hiện tại. Tiêu điểm: ${action.focus}`);
     updateAgentSession_ACU(entryId, {
-      title: result.op === 'create' ? '固定工作流已创建阶段大纲' : result.op === 'continue' ? '固定工作流已继续阶段大纲' : '固定工作流已维护阶段大纲',
+      title: result.op === 'create' ? 'Quy trình cố định đã tạo dàn ý giai đoạn' : result.op === 'continue' ? 'Quy trình cố định đã tiếp tục dàn ý giai đoạn' : 'Quy trình cố định đã bảo trì dàn ý giai đoạn',
       detail: result.summary,
       ok: result.stopped === null,
     });
     if (result.stopped) failLoop_ACU('CONTINUATION_TASK_STATE_INVALID', result.summary, { stopped: result.stopped });
-    if (result.requiresReview) failLoop_ACU('CONTINUATION_AGENT_OUTLINE_REPLANNED', '固定工作流已产出新大纲，等待你在界面上确认后再继续', { op: result.op, requiresReview: true });
+    if (result.requiresReview) failLoop_ACU('CONTINUATION_AGENT_OUTLINE_REPLANNED', 'Quy trình cố định đã tạo dàn ý mới, chờ bạn xác nhận trên giao diện rồi mới tiếp tục', { op: result.op, requiresReview: true });
     context.execution = request.readContext();
-    if (!context.execution.turn) failLoop_ACU('CONTINUATION_TASK_STATE_INVALID', '阶段大纲操作完成后仍没有可执行轮次');
+    if (!context.execution.turn) failLoop_ACU('CONTINUATION_TASK_STATE_INVALID', 'Sau khi thao tác dàn ý giai đoạn xong vẫn không có lượt khả thi');
   }
 
   private async runFixedWorkflow_ACU(
@@ -1989,7 +1989,7 @@ export class ContinuationAgentTurnPlanner_ACU {
         if (call.billing === 'opening') {
           const used = ledger.perAgent.get(call.agentName) ?? 0;
           if (ledger.delegationsUsed >= budget.maxDelegations || used >= budget.maxSameAgent) {
-            return { ok: false, summary: '开局派工超出预算，已跳过' };
+            return { ok: false, summary: 'Giao việc mở đầu vượt ngân sách, đã bỏ qua' };
           }
         }
         const definition = findAgentSubagentDefinition_ACU(call.agentName);
@@ -2021,7 +2021,7 @@ export class ContinuationAgentTurnPlanner_ACU {
       },
       runComposer: async call => {
         const preset = this.dependencies.resolveApiPreset(request.settings, 'instructionComposer', 'agent_delegate', apiDependencies);
-        const feedback = call.revisionFeedback ? `\n终审反馈清单（只改这些，不要全量重写）：\n${call.revisionFeedback}` : '';
+        const feedback = call.revisionFeedback ? `\nDanh sách phản hồi chung thẩm (chỉ sửa những điểm này, đừng viết lại toàn bộ):\n${call.revisionFeedback}` : '';
         const result = await this.dependencies.subagentRuntime.run({
           delegation: { agentName: AGENT_INSTRUCTION_COMPOSER_NAME_ACU, prompt: `${call.prompt}${feedback}`, reads: [] },
           toolMode,
@@ -2038,7 +2038,7 @@ export class ContinuationAgentTurnPlanner_ACU {
           mainHistory: session.history().filter(message => message.content !== USER_PREFILL_CONTENT_ACU && !message.content.startsWith('【运行时快照】\n')),
         });
         if (!result.composer?.instruction.trim()) {
-          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_PROTOCOL_INVALID', 'agent_delegate', 'instruction-composer 必须提供非空 instruction', false));
+          throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_PROTOCOL_INVALID', 'agent_delegate', 'instruction-composer phải cung cấp instruction không rỗng', false));
         }
         return result.composer;
       },
@@ -2074,11 +2074,11 @@ export class ContinuationAgentTurnPlanner_ACU {
     const start = selection.startIndex;
     const last = context.chat.length - 1;
     const hiddenNote = selection.hiddenCount > 0
-      ? `更早的 ${selection.hiddenCount} 个未结算 AI 楼层在正文可读窗口外，本轮不逐楼结算，也不推进连续结算水位；早期剧情经事件概览与纪要回溯。` : '';
+      ? `${selection.hiddenCount} tầng AI chưa quyết toán sớm hơn nằm ngoài cửa sổ chính văn có thể đọc, lượt này không quyết toán từng tầng và cũng không đẩy mức nước quyết toán liên tục; cốt truyện sớm được truy lại qua tổng quan sự kiện và kỷ yếu.` : '';
     if (!selection.floors.length) return hiddenNote
-      ? `${hiddenNote}当前窗口内没有待结算正文。`
-      : '没有尚未结算的真实历史，无需派工结算维护类代理。';
-    return `${hiddenNote}未结算楼层区间：${start} 到 ${last}（窗口内 ${selection.floors.length} 个 AI 正文楼层）。输出 open_round 后，固定工作流会自动派 hook-cognition-maintainer 结算本次窗口内正文。不要 delegate 结算、策划或审查角色。这些楼层的正文默认没有注入，需要核对时 read $HISTORY_UNSETTLED。`;
+      ? `${hiddenNote}Trong cửa sổ hiện tại không có chính văn chờ quyết toán.`
+      : 'Không có lịch sử thật chưa quyết toán, không cần giao agent bảo trì loại quyết toán.';
+    return `${hiddenNote}Khoảng tầng chưa quyết toán: ${start} đến ${last} (${selection.floors.length} tầng chính văn AI trong cửa sổ). Sau khi xuất open_round, quy trình cố định sẽ tự động giao hook-cognition-maintainer quyết toán chính văn trong cửa sổ lần này. Không delegate vai trò quyết toán, hoạch định hay kiểm duyệt. Chính văn của các tầng này mặc định không được tiêm, khi cần đối chiếu thì read $HISTORY_UNSETTLED.`;
   }
 
   /**
@@ -2087,13 +2087,13 @@ export class ContinuationAgentTurnPlanner_ACU {
    */
   private renderStoryArcState_ACU(context: AgentResolveContext_ACU): string {
     if (!hasActiveStoryArc_ACU(context.moduleSnapshot)) {
-      return '故事总纲：尚未建立。可 delegate arc-architect 建立全书方向与卷台阶，再单独 delegate outline-architect 准备阶段大纲；也可用 open_round 固定工作流准备。';
+      return 'Tổng cương câu chuyện: chưa được lập. Có thể delegate arc-architect lập hướng đi toàn truyện và các bậc thang của tập, rồi delegate riêng outline-architect chuẩn bị dàn ý giai đoạn; cũng có thể dùng quy trình cố định open_round để chuẩn bị.';
     }
     const completed = context.execution.task.stages.filter(stage => stage.status === 'completed').map(stage => stage.stageNumber);
     const unregistered = findUnregisteredStageNumbers_ACU(context.moduleSnapshot, completed);
-    const head = `故事总纲：已建立（修订号 ${context.moduleSnapshot.revisions.storyArc}），完整内容用 read $STORY_ARC 调阅。`;
-    if (!unregistered.length) return `${head}已完成阶段的进度均已登记；如剧情越出台阶、底牌被提前翻开或当前卷可判定收束，把依据写进 open_round.focus，由固定工作流判断并维护总纲。`;
-    return `${head}第 ${unregistered.join('、')} 阶段已完成但没有登记进任何卷台阶的 stageNumbers，卷进度因此判断不了「本卷该收了没」。输出 open_round 后，固定工作流会调用 arc-architect 向当前 active 卷回写这些阶段；只有真实正文达到 escalation 的可判定收束状态时，才以完成阶段编号和卷末状态把该卷 patch 成 done 并激活下一卷。所有既有卷都完成而用户继续写时，固定工作流会先根据最后一卷的后果追加带续卷依据的 active 新卷。`;
+    const head = `Tổng cương câu chuyện: đã lập (số hiệu chỉnh ${context.moduleSnapshot.revisions.storyArc}), xem toàn bộ nội dung bằng read $STORY_ARC.`;
+    if (!unregistered.length) return `${head}Tiến độ của các giai đoạn đã hoàn thành đều đã được đăng ký; nếu cốt truyện vượt khỏi bậc thang, bài tẩy bị lật sớm hoặc tập hiện tại có thể xác định là khép lại, hãy ghi căn cứ vào open_round.focus, quy trình cố định sẽ phán đoán và bảo trì tổng cương.`;
+    return `${head}Giai đoạn ${unregistered.join(', ')} đã hoàn thành nhưng chưa được đăng ký vào stageNumbers của bất kỳ bậc thang tập nào, nên tiến độ tập không thể phán đoán "tập này đã đến lúc khép chưa". Sau khi xuất open_round, quy trình cố định sẽ gọi arc-architect ghi ngược các giai đoạn này vào tập active hiện tại; chỉ khi chính văn thật đạt trạng thái khép lại có thể xác định của escalation, mới dùng số hiệu giai đoạn đã hoàn thành và trạng thái cuối tập để patch tập đó thành done và kích hoạt tập kế tiếp. Khi tất cả tập hiện có đều đã hoàn thành mà người dùng tiếp tục viết, quy trình cố định sẽ trước hết dựa vào hậu quả của tập cuối để thêm một tập active mới kèm căn cứ nối tập.`;
   }
 
   private spliceHistory_ACU(
@@ -2103,7 +2103,7 @@ export class ContinuationAgentTurnPlanner_ACU {
   ): Array<{ role: string; content: string; tool_calls?: ReturnType<typeof renderAgentConversationMessages_ACU>[number]['tool_calls']; tool_call_id?: string }> {
     const historical = history.filter(item => item.content !== USER_PREFILL_CONTENT_ACU && !(item.role === 'user' && item.content.startsWith('【运行时快照】\n')));
     return assembleAgentPrompt_ACU(messages, historical,
-      latestSnapshot || '【运行时快照】\n本次没有可用的运行时资料；请以此前已确认的工具回执为准。');
+      latestSnapshot || '【运行时快照】\nLần này không có tư liệu thời gian chạy khả dụng; hãy lấy biên nhận công cụ đã xác nhận trước đó làm chuẩn.');
   }
 
   /**
@@ -2133,7 +2133,7 @@ export class ContinuationAgentTurnPlanner_ACU {
     apiDependencies?: ContinuationApiPresetDependencies_ACU,
   ): Promise<AgentModuleSnapshot_ACU> {
     const delegation: AgentDelegation_ACU = { agentName: AGENT_WEB_RESEARCHER_NAME_ACU, prompt: buildOpeningResearchPrompt_ACU(context.originInstruction), reads: [] };
-    const entryId = logAgentSession_ACU({ kind: 'delegation', agentName: delegation.agentName, title: '开场百科检索执行中', detail: delegation.prompt, status: 'running' });
+    const entryId = logAgentSession_ACU({ kind: 'delegation', agentName: delegation.agentName, title: 'Đang chạy tra cứu bách khoa mở đầu', detail: delegation.prompt, status: 'running' });
     try {
       const preset = this.dependencies.resolveApiPreset(request.settings, 'webResearcher', 'agent_delegate', apiDependencies);
       const result = await this.dependencies.subagentRuntime.run({
@@ -2153,11 +2153,11 @@ export class ContinuationAgentTurnPlanner_ACU {
           mainHistory: session.history().filter(message => message.content !== USER_PREFILL_CONTENT_ACU && !message.content.startsWith('【运行时快照】\n')),
       });
       const settled = result.usedFieldWrites
-        ? { snapshot: this.dependencies.readModuleSnapshot(chat), outcome: { agentName: result.agentName, ok: true, summary: result.researcher?.summary || '百科资料已按栏目写入', detail: '', rejectedReason: '' } }
+        ? { snapshot: this.dependencies.readModuleSnapshot(chat), outcome: { agentName: result.agentName, ok: true, summary: result.researcher?.summary || 'Tư liệu bách khoa đã được ghi theo từng cột', detail: '', rejectedReason: '' } }
         : await this.settleResearcherResult_ACU(result, snapshot);
       ledger.outcomes.push(settled.outcome);
       updateAgentSession_ACU(entryId, {
-        title: `开场百科检索${settled.outcome.ok ? '完成' : '未采用'}${result.usage ? ` · ${formatAgentUsageLabel_ACU(result.usage)}` : ''}`,
+        title: `Tra cứu bách khoa mở đầu ${settled.outcome.ok ? 'hoàn tất' : 'không được chấp nhận'}${result.usage ? ` · ${formatAgentUsageLabel_ACU(result.usage)}` : ''}`,
         detail: settled.outcome.ok ? [settled.outcome.summary, settled.outcome.detail].filter(Boolean).join('\n') : settled.outcome.rejectedReason,
         ok: settled.outcome.ok,
       });
@@ -2169,8 +2169,8 @@ export class ContinuationAgentTurnPlanner_ACU {
     } catch (error) {
       if (error instanceof ContinuationValidationError_ACU && error.error.code === 'CONTINUATION_INTERNAL_REQUEST_STALE') throw error;
       const reason = compactAgentProtocolError_ACU(error);
-      updateAgentSession_ACU(entryId, { title: '开场百科检索失败', detail: `${reason}\n主 Agent 将在没有百科资料库的情况下继续规划；需要时它仍可派工 web-researcher 重试。`, ok: false });
-      ledger.outcomes.push({ agentName: delegation.agentName, ok: false, summary: '', detail: '', rejectedReason: `开场百科检索失败：${reason}` });
+      updateAgentSession_ACU(entryId, { title: 'Tra cứu bách khoa mở đầu thất bại', detail: `${reason}\nAgent chính sẽ tiếp tục hoạch định khi không có kho tư liệu bách khoa; khi cần vẫn có thể giao web-researcher thử lại.`, ok: false });
+      ledger.outcomes.push({ agentName: delegation.agentName, ok: false, summary: '', detail: '', rejectedReason: `Tra cứu bách khoa mở đầu thất bại: ${reason}` });
       return snapshot;
     }
   }
@@ -2182,7 +2182,7 @@ export class ContinuationAgentTurnPlanner_ACU {
   private async settleResearcherResult_ACU(result: AgentSubagentRunResult_ACU, snapshot: AgentModuleSnapshot_ACU): Promise<{ snapshot: AgentModuleSnapshot_ACU; outcome: AgentDelegationOutcome_ACU }> {
     const researcher = result.researcher;
     if (!researcher) {
-      return { snapshot, outcome: { agentName: result.agentName, ok: false, summary: '', detail: '', rejectedReason: '网页检索子代理没有返回可用输出' } };
+      return { snapshot, outcome: { agentName: result.agentName, ok: false, summary: '', detail: '', rejectedReason: 'Agent phụ tra cứu web không trả về đầu ra dùng được' } };
     }
     try {
       const expected = researcher.expectedRevision ?? result.readRevisions.webRefs;
@@ -2190,17 +2190,17 @@ export class ContinuationAgentTurnPlanner_ACU {
       const upserts = researcher.items.filter(item => item.action === 'upsert');
       const retires = researcher.items.filter(item => item.action === 'retire');
       const patches = researcher.patches ?? [];
-      const catalog = upserts.map(item => `[${item.id || '新'}]「${item.title}」${item.brief}`).join('；');
+      const catalog = upserts.map(item => `[${item.id || 'mới'}] "${item.title}" ${item.brief}`).join('; ');
       return {
         snapshot: applied,
         outcome: {
           agentName: result.agentName,
           ok: true,
-          summary: researcher.summary || `百科资料库更新 ${upserts.length + patches.length} 条`,
+          summary: researcher.summary || `Kho tư liệu bách khoa cập nhật ${upserts.length + patches.length} mục`,
           detail: [
-            `百科资料库：新增/更新 ${upserts.length} 条${retires.length ? `、退休 ${retires.length} 条` : ''}${patches.length ? `、逐栏修订 ${patches.length} 条` : ''}${catalog ? `：${catalog}` : ''}`,
-            upserts.length ? '以上只是预览；详情与原文用 read $WEB_REFS:ID 精读，派工时也可把该地址写进 reads。它们是原作/公开设定的外部参考，不是本故事事实。' : '',
-            result.expandedReads.length ? `检索轨迹：${result.expandedReads.slice(0, 12).join('、')}${result.expandedReads.length > 12 ? '…' : ''}` : '',
+            `Kho tư liệu bách khoa: thêm/cập nhật ${upserts.length} mục${retires.length ? `, cho nghỉ ${retires.length} mục` : ''}${patches.length ? `, sửa theo cột ${patches.length} mục` : ''}${catalog ? `: ${catalog}` : ''}`,
+            upserts.length ? 'Trên đây chỉ là bản xem trước; chi tiết và nguyên văn dùng read $WEB_REFS:ID để đọc kỹ, khi giao việc cũng có thể ghi địa chỉ này vào reads. Chúng là tham khảo bên ngoài về tác phẩm gốc/thiết lập công khai, không phải sự thật của câu chuyện này.' : '',
+            result.expandedReads.length ? `Dấu vết tra cứu: ${result.expandedReads.slice(0, 12).join(', ')}${result.expandedReads.length > 12 ? '…' : ''}` : '',
           ].filter(Boolean).join('\n'),
           rejectedReason: '',
         },
@@ -2256,7 +2256,7 @@ export class ContinuationAgentTurnPlanner_ACU {
       logAgentSession_ACU({
         kind: agentName === AGENT_OUTLINE_AGENT_NAME_ACU ? 'outline_op' : 'delegation',
         agentName,
-        title: `${agentName} 未执行`,
+        title: `${agentName} không chạy`,
         detail: reason,
         ok: false,
       });
@@ -2265,67 +2265,67 @@ export class ContinuationAgentTurnPlanner_ACU {
     // 总纲写入与阶段重规划有数据依赖，不能在同一波并发修改。
     for (const delegation of outlineDelegations) {
       if (action.delegations.length !== 1) {
-        rejectImmediately(delegation.agentName, '阶段大纲必须单独委派；先完成总纲或资料维护，收到回执后再重规划。');
+        rejectImmediately(delegation.agentName, 'Dàn ý giai đoạn phải được giao riêng; hãy hoàn tất tổng cương hoặc bảo trì tư liệu trước, nhận biên nhận rồi mới lập kế hoạch lại.');
         continue;
       }
       if (!request.applyOutline) {
-        rejectImmediately(delegation.agentName, '本轮不允许修改阶段大纲；正文重试必须保持原轮次身份。');
+        rejectImmediately(delegation.agentName, 'Lượt này không cho phép sửa dàn ý giai đoạn; thử lại chính văn phải giữ nguyên danh tính lượt gốc.');
         continue;
       }
       const used = ledger.perAgent.get(delegation.agentName) ?? 0;
       if (!outlineMaintenanceReserveAvailable && (ledger.delegationsUsed >= budget.maxDelegations || used >= budget.maxSameAgent)) {
-        rejectImmediately(delegation.agentName, '阶段大纲派工额度已用尽。');
+        rejectImmediately(delegation.agentName, 'Hạn mức giao việc dàn ý giai đoạn đã dùng hết.');
         continue;
       }
       ledger.delegationsUsed += 1;
       ledger.perAgent.set(delegation.agentName, used + 1);
       usedOutlineMaintenanceReserve = outlineMaintenanceReserveAvailable;
-      const entry = logAgentSession_ACU({ kind: 'outline_op', agentName: delegation.agentName, title: '阶段大纲规划中', detail: delegation.prompt, status: 'running' });
+      const entry = logAgentSession_ACU({ kind: 'outline_op', agentName: delegation.agentName, title: 'Đang lập dàn ý giai đoạn', detail: delegation.prompt, status: 'running' });
       try {
-        if (request.signal?.aborted || !request.isInternalRequestCurrent(request.createInternalRequestIdentity(0))) throw new Error('阶段大纲请求已失效');
+        if (request.signal?.aborted || !request.isInternalRequestCurrent(request.createInternalRequestIdentity(0))) throw new Error('Yêu cầu dàn ý giai đoạn đã hết hiệu lực');
         const result = await request.applyOutline(delegation.prompt);
         const ok = !result.requiresReview && !result.stopped;
         ledger.outcomes.push({ agentName: delegation.agentName, ok, summary: result.summary, detail: result.summary, rejectedReason: ok ? '' : result.summary });
-        updateAgentSession_ACU(entry, { title: ok ? '阶段大纲已更新' : '阶段大纲等待处理', detail: result.summary, ok });
+        updateAgentSession_ACU(entry, { title: ok ? 'Dàn ý giai đoạn đã cập nhật' : 'Dàn ý giai đoạn chờ xử lý', detail: result.summary, ok });
         // 预览落盘后任务已不在 running，不能再读取执行上下文或继续派工。
-        if (result.requiresReview) failLoop_ACU('CONTINUATION_AGENT_OUTLINE_REPLANNED', '新大纲已产出，等待你在界面上确认后再继续', { op: result.op, requiresReview: true });
+        if (result.requiresReview) failLoop_ACU('CONTINUATION_AGENT_OUTLINE_REPLANNED', 'Dàn ý mới đã được tạo, chờ bạn xác nhận trên giao diện rồi mới tiếp tục', { op: result.op, requiresReview: true });
         context.execution = request.readContext();
       } catch (error) {
         if (error instanceof ContinuationValidationError_ACU && error.error.code === 'CONTINUATION_AGENT_OUTLINE_REPLANNED') throw error;
         const reason = compactAgentProtocolError_ACU(error);
         ledger.outcomes.push({ agentName: delegation.agentName, ok: false, summary: '', detail: '', rejectedReason: reason });
-        updateAgentSession_ACU(entry, { title: '阶段大纲未更新', detail: reason, ok: false });
+        updateAgentSession_ACU(entry, { title: 'Dàn ý giai đoạn chưa cập nhật', detail: reason, ok: false });
       }
     }
 
     const accepted: AgentDelegation_ACU[] = [];
     for (const delegation of normalDelegations) {
       if (delegation.agentName === AGENT_INSTRUCTION_COMPOSER_NAME_ACU || delegation.agentName === 'final-reviewer') {
-        rejectImmediately(delegation.agentName, '该角色由固定工作流调用，主 Agent 不能 delegate。请输出 open_round。本次未消耗派工额度。');
+        rejectImmediately(delegation.agentName, 'Vai trò này do quy trình cố định gọi, Agent chính không thể delegate. Hãy xuất open_round. Lần này không tốn hạn mức giao việc.');
         continue;
       }
       if (outlineMaintenanceReserveAvailable) {
-        rejectImmediately(delegation.agentName, '末轮保留容量只允许 outline-architect 恢复可执行大纲；普通子代理本次未执行。');
+        rejectImmediately(delegation.agentName, 'Dung lượng dự phòng của lượt cuối chỉ cho phép outline-architect khôi phục dàn ý khả thi; agent phụ thông thường lần này không chạy.');
         continue;
       }
       const used = ledger.perAgent.get(delegation.agentName) ?? 0;
       if (ledger.delegationsUsed + accepted.length >= budget.maxDelegations) {
-        rejectImmediately(delegation.agentName, `派工总数已达上限 ${budget.maxDelegations} 次`);
+        rejectImmediately(delegation.agentName, `Tổng số lần giao việc đã đạt giới hạn ${budget.maxDelegations} lần`);
         continue;
       }
       if (used + accepted.filter(item => item.agentName === delegation.agentName).length >= budget.maxSameAgent) {
-        rejectImmediately(delegation.agentName, `同一代理最多派工 ${budget.maxSameAgent} 次`);
+        rejectImmediately(delegation.agentName, `Cùng một agent tối đa được giao ${budget.maxSameAgent} lần`);
         continue;
       }
       if (accepted.length >= waveLimit) {
         const why = waveLimit === 1 && waveHasSerialChannel
-          ? '存在必须串行的子代理渠道（酒馆连接或主 API），同一波次只能派工 1 个子代理'
-          : `同一波次并发上限为 ${waveLimit} 个`;
-        rejectImmediately(delegation.agentName, `${why}，本次未执行，可在下一次迭代重派`);
+          ? 'Có kênh agent phụ bắt buộc chạy tuần tự (kết nối SillyTavern hoặc API chính), cùng một đợt chỉ được giao 1 agent phụ'
+          : `Giới hạn đồng thời của cùng một đợt là ${waveLimit}`;
+        rejectImmediately(delegation.agentName, `${why}, lần này không chạy, có thể giao lại ở vòng lặp sau`);
         continue;
       }
       if (delegation.agentName === AGENT_WEB_RESEARCHER_NAME_ACU && !request.settings.webResearch.enabled) {
-        rejectImmediately(delegation.agentName, '网页检索功能未启用（续写设置 → 启用开场百科检索），web-researcher 不可派工。请基于世界书与已有资料继续。');
+        rejectImmediately(delegation.agentName, 'Chức năng tra cứu web chưa bật (Cài đặt viết tiếp → bật tra cứu bách khoa mở đầu), web-researcher không thể được giao việc. Hãy tiếp tục dựa trên sổ thế giới và tư liệu hiện có.');
         continue;
       }
       accepted.push(delegation);
@@ -2334,7 +2334,7 @@ export class ContinuationAgentTurnPlanner_ACU {
     // 派工发出即记 running 条目，结果回来后原地更新——用户能实时看到哪些子代理在跑。
     const runningEntries = new Map<AgentDelegation_ACU, number>();
     for (const delegation of accepted) {
-      runningEntries.set(delegation, logAgentSession_ACU({ kind: 'delegation', agentName: delegation.agentName, title: `${delegation.agentName} 执行中`, detail: delegation.prompt, status: 'running' }));
+      runningEntries.set(delegation, logAgentSession_ACU({ kind: 'delegation', agentName: delegation.agentName, title: `${delegation.agentName} đang chạy`, detail: delegation.prompt, status: 'running' }));
     }
     const settleOutcome = (delegation: AgentDelegation_ACU, outcome: AgentDelegationOutcome_ACU, usage?: AiUsageMetadata_ACU | null): void => {
       ledger.outcomes.push(outcome);
@@ -2342,7 +2342,7 @@ export class ContinuationAgentTurnPlanner_ACU {
       if (entryId === undefined) return;
       const usageSuffix = usage ? ` · ${formatAgentUsageLabel_ACU(usage)}` : '';
       updateAgentSession_ACU(entryId, {
-        title: `${outcome.agentName} ${outcome.ok ? '完成' : '未采用'}${usageSuffix}`,
+        title: `${outcome.agentName} ${outcome.ok ? 'hoàn tất' : 'không được chấp nhận'}${usageSuffix}`,
         detail: outcome.ok ? [outcome.summary, outcome.detail].filter(Boolean).join('\n') : outcome.rejectedReason,
         ok: outcome.ok,
       });
@@ -2429,9 +2429,9 @@ export class ContinuationAgentTurnPlanner_ACU {
         }
       }
       if (result.completion === 'failed' || result.completion === 'partial') {
-        const issues = result.unresolvedIssues?.map(issue => `${issue.path}: ${issue.message}`).join('；');
+        const issues = result.unresolvedIssues?.map(issue => `${issue.path}: ${issue.message}`).join('; ');
         settleOutcome(item.delegation, { agentName: result.agentName, ok: false, summary: '', detail: '',
-          rejectedReason: `逐栏维护未完成${issues ? `：${issues}` : ''}；已确认栏目：${result.acceptedKeys?.join('、') || '无'}` }, result.usage);
+          rejectedReason: `Bảo trì theo cột chưa hoàn tất${issues ? `: ${issues}` : ''}; các cột đã xác nhận: ${result.acceptedKeys?.join(', ') || 'không có'}` }, result.usage);
         continue;
       }
       if (result.maintainer) {
@@ -2484,13 +2484,13 @@ export class ContinuationAgentTurnPlanner_ACU {
             summary: result.maintainer.summary,
             detail: [
               result.usedFieldWrites
-                ? `已结算：${(['hooks', 'infoGap', 'chronology'] as const).map((module, index) =>
-                  `${['伏笔', '信息差', '故事时间'][index]} ${new Set((result.acceptedKeys ?? []).filter(key => key.startsWith(`${module}:`)).map(key => key.split(':')[1])).size} 条`).join('、')}`
-                : `已结算：伏笔 ${result.maintainer.delta.hooks.length} 条、信息差 ${result.maintainer.delta.infoGap.length} 条、故事时间 ${result.maintainer.delta.chronology.length + result.maintainer.delta.chronologyPatches.length} 条`,
-              proposals.length ? `约束提议（需你裁决后登记）：${proposals.join('；')}` : '',
-              result.expandedReads.length ? `补充读取：${result.expandedReads.join('、')}` : '',
+                ? `Đã quyết toán: ${(['hooks', 'infoGap', 'chronology'] as const).map((module, index) =>
+                  `${['phục bút', 'chênh lệch thông tin', 'thời gian truyện'][index]} ${new Set((result.acceptedKeys ?? []).filter(key => key.startsWith(`${module}:`)).map(key => key.split(':')[1])).size} mục`).join(', ')}`
+                : `Đã quyết toán: phục bút ${result.maintainer.delta.hooks.length} mục, chênh lệch thông tin ${result.maintainer.delta.infoGap.length} mục, thời gian truyện ${result.maintainer.delta.chronology.length + result.maintainer.delta.chronologyPatches.length} mục`,
+              proposals.length ? `Đề xuất ràng buộc (cần bạn quyết định rồi mới đăng ký): ${proposals.join('; ')}` : '',
+              result.expandedReads.length ? `Đọc bổ sung: ${result.expandedReads.join(', ')}` : '',
             ].filter(Boolean).join('\n'),
-            rejectedReason: hasPending ? `本次字段已确认，但仍有待修问题：${pending.flatMap(fix => fix.violations.map(issue => `${issue.path}: ${issue.message}`)).join('；')}` : '',
+            rejectedReason: hasPending ? `Các trường lần này đã được xác nhận, nhưng vẫn còn vấn đề chờ sửa: ${pending.flatMap(fix => fix.violations.map(issue => `${issue.path}: ${issue.message}`)).join('; ')}` : '',
           }, result.usage);
         } catch (error) {
           settleOutcome(item.delegation, { agentName: result.agentName, ok: false, summary: result.maintainer.summary, detail: '', rejectedReason: compactAgentProtocolError_ACU(error) }, result.usage);
@@ -2512,8 +2512,8 @@ export class ContinuationAgentTurnPlanner_ACU {
             ok: true,
             summary: result.arc.summary,
             detail: [
-              `总纲已更新：${result.arc.delta.storyArc.length} 条写入、${result.arc.delta.storyArcPatches.length} 处修补`,
-              result.expandedReads.length ? `补充读取：${result.expandedReads.join('、')}` : '',
+              `Tổng cương đã cập nhật: ghi ${result.arc.delta.storyArc.length} mục, vá ${result.arc.delta.storyArcPatches.length} chỗ`,
+              result.expandedReads.length ? `Đọc bổ sung: ${result.expandedReads.join(', ')}` : '',
             ].filter(Boolean).join('\n'),
             rejectedReason: '',
           }, result.usage);
@@ -2536,8 +2536,8 @@ export class ContinuationAgentTurnPlanner_ACU {
         settleOutcome(item.delegation, {
           agentName: result.agentName,
           ok: true,
-          summary: `判词 ${result.reviewer.verdict}`,
-          detail: [`判词：${result.reviewer.verdict}`, result.reviewer.reason ? `依据：${result.reviewer.reason}` : '', result.reviewer.fixes.length ? `修正项：${result.reviewer.fixes.join('；')}` : ''].filter(Boolean).join('\n'),
+          summary: `Phán quyết ${result.reviewer.verdict}`,
+          detail: [`Phán quyết: ${result.reviewer.verdict}`, result.reviewer.reason ? `Căn cứ: ${result.reviewer.reason}` : '', result.reviewer.fixes.length ? `Mục cần sửa: ${result.reviewer.fixes.join('; ')}` : ''].filter(Boolean).join('\n'),
           rejectedReason: '',
         }, result.usage);
         continue;
@@ -2545,13 +2545,13 @@ export class ContinuationAgentTurnPlanner_ACU {
       if (result.researcher) {
         // 与总纲分支同理：只换快照，不推进结算水位——百科条目不是正文事实。
         const settled = result.usedFieldWrites
-          ? { snapshot: nextSnapshot, outcome: { agentName: result.agentName, ok: true, summary: result.researcher.summary, detail: '逐栏写入已独立保存', rejectedReason: '' } }
+          ? { snapshot: nextSnapshot, outcome: { agentName: result.agentName, ok: true, summary: result.researcher.summary, detail: 'Việc ghi theo từng cột đã được lưu độc lập', rejectedReason: '' } }
           : await this.settleResearcherResult_ACU(result, nextSnapshot);
         if (settled.snapshot !== nextSnapshot) { nextSnapshot = settled.snapshot; snapshotChanged = true; }
         settleOutcome(item.delegation, settled.outcome, result.usage);
         continue;
       }
-      settleOutcome(item.delegation, { agentName: result.agentName, ok: false, summary: '', detail: '', rejectedReason: '子代理没有返回可用输出' }, result.usage);
+      settleOutcome(item.delegation, { agentName: result.agentName, ok: false, summary: '', detail: '', rejectedReason: 'Agent phụ không trả về đầu ra dùng được' }, result.usage);
     }
 
     if (snapshotChanged) {
@@ -2565,7 +2565,7 @@ export class ContinuationAgentTurnPlanner_ACU {
   private async persistSnapshot_ACU(chat: any[], snapshot: AgentModuleSnapshot_ACU): Promise<void> {
     const targetIndex = chat.length - 1;
     if (targetIndex < 0) {
-      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', '当前聊天没有可承载资料快照的楼层', false));
+      throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_AGENT_SNAPSHOT_INVALID', 'agent_persist', 'Cuộc trò chuyện hiện tại không có tầng nào để chứa snapshot tư liệu', false));
     }
     await this.dependencies.writeModuleSnapshot(chat, targetIndex, snapshot);
     // 快照跟着楼层走：该楼被删除、重新生成或 swipe 时资料会随之回退。写到哪一楼必须让用户看得见，
@@ -2573,8 +2573,8 @@ export class ContinuationAgentTurnPlanner_ACU {
     const active = (list: ReadonlyArray<{ retired: boolean }>) => list.filter(item => !item.retired).length;
     logAgentSession_ACU({
       kind: 'thought',
-      title: this.dependencies.storageLabel ? `资料快照已保存到${this.dependencies.storageLabel}` : `资料快照已写入楼层 ${targetIndex}`,
-      detail: `伏笔 ${active(snapshot.hooks)} 条 · 信息差 ${active(snapshot.infoGap)} 条 · 总纲 ${active(snapshot.storyArc)} 条 · 年代学 ${active(snapshot.chronology)} 条 · 百科 ${active(snapshot.webRefs)} 条 · 长期约束 ${snapshot.constraints.length} 条 · 结算水位 ${Math.max(snapshot.settledThroughIndex, 0)}。${snapshot.settlementBoundary ? `追溯从楼层 ${snapshot.settlementBoundary.startIndex} 开始，此前历史未结算，跳过缺口 ${snapshot.settlementBoundary.skippedPendingFixes.length} 项。` : ''}资料按最近基线折叠；该楼增量会随删除或 swipe 一起退出折叠。`,
+      title: this.dependencies.storageLabel ? `Snapshot tư liệu đã lưu vào ${this.dependencies.storageLabel}` : `Snapshot tư liệu đã ghi vào tầng ${targetIndex}`,
+      detail: `Phục bút ${active(snapshot.hooks)} mục · Chênh lệch thông tin ${active(snapshot.infoGap)} mục · Tổng cương ${active(snapshot.storyArc)} mục · Niên đại học ${active(snapshot.chronology)} mục · Bách khoa ${active(snapshot.webRefs)} mục · Ràng buộc dài hạn ${snapshot.constraints.length} mục · Mức nước quyết toán ${Math.max(snapshot.settledThroughIndex, 0)}.${snapshot.settlementBoundary ? `Truy ngược bắt đầu từ tầng ${snapshot.settlementBoundary.startIndex}, lịch sử trước đó chưa quyết toán, bỏ qua ${snapshot.settlementBoundary.skippedPendingFixes.length} chỗ thiếu.` : ''} Tư liệu được gộp theo đường cơ sở gần nhất; phần tăng thêm của tầng này sẽ thôi gộp cùng khi bị xóa hoặc swipe.`,
       ok: true,
     });
   }

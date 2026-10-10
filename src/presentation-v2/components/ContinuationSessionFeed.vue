@@ -1,15 +1,15 @@
 <template>
   <div ref="feedElement" class="acu-v2-session-feed">
     <p v-if="!entries.length" class="acu-v2-session-feed__empty">
-      还没有运行记录。发送一条指令后，主 Agent 的思考、派工、大纲操作与交付过程会实时显示在这里。
+      Chưa có bản ghi chạy. Sau khi gửi một chỉ dẫn, quá trình suy nghĩ, giao việc, thao tác dàn ý và bàn giao của Agent chính sẽ hiển thị theo thời gian thực ở đây.
     </p>
     <button v-if="hiddenCount > 0" type="button" class="acu-v2-session-feed__fold" @click="expandOlder">
-      已折叠 {{ hiddenCount }} 条更早消息 · 点击展开更早的 {{ nextExpandCount }} 条
+      Đã thu gọn {{ hiddenCount }} tin cũ hơn · bấm để mở thêm {{ nextExpandCount }} tin cũ hơn
     </button>
     <template v-for="entry in visibleEntries" :key="entry.id">
       <!-- 运行分隔条：一次运行（或恢复）的起点 -->
       <div v-if="entry.kind === 'run_started' || entry.kind === 'run_resumed'" class="acu-v2-session-feed__run-divider">
-        <span class="acu-v2-session-feed__run-divider-badge">{{ entry.kind === 'run_resumed' ? '恢复运行' : '开始运行' }}</span>
+        <span class="acu-v2-session-feed__run-divider-badge">{{ entry.kind === 'run_resumed' ? 'Tiếp tục chạy' : 'Bắt đầu chạy' }}</span>
         <span class="acu-v2-session-feed__run-divider-title">{{ entry.title }}</span>
         <span class="acu-v2-session-feed__time">{{ formatTime(entry.at) }}</span>
       </div>
@@ -50,7 +50,7 @@
       </div>
     </template>
     <div v-if="running" class="acu-v2-session-feed__running">
-      <span class="acu-v2-session-feed__pulse" />主 Agent 正在工作…
+      <span class="acu-v2-session-feed__pulse" />Agent chính đang làm việc…
     </div>
   </div>
 </template>
@@ -85,32 +85,32 @@ async function expandOlder(): Promise<void> {
 }
 
 const KIND_LABELS: Record<AgentSessionEntry_ACU['kind'], string> = {
-  run_started: '开始',
-  run_resumed: '恢复',
-  user_message: '你',
-  thought: '思考',
-  main_action: '主 Agent',
-  protocol_retry: '重试',
-  tool_read: '调阅',
-  delegation: '子代理',
-  outline_op: '大纲',
-  handoff: '交接',
-  finalize: '交付',
-  block: '阻断',
-  run_failed: '失败',
-  run_completed: '完成',
+  run_started: 'Bắt đầu',
+  run_resumed: 'Tiếp tục',
+  user_message: 'Bạn',
+  thought: 'Suy nghĩ',
+  main_action: 'Agent chính',
+  protocol_retry: 'Thử lại',
+  tool_read: 'Tra cứu',
+  delegation: 'Agent phụ',
+  outline_op: 'Dàn ý',
+  handoff: 'Bàn giao',
+  finalize: 'Giao nộp',
+  block: 'Chặn',
+  run_failed: 'Thất bại',
+  run_completed: 'Hoàn tất',
 };
 
 /** 会话流展示沿用「各 Agent 渠道」里的中文角色名，内部 agentName 不直接暴露给用户。 */
 const AGENT_DISPLAY_LABELS: Record<string, string> = {
-  'outline-architect': '大纲子代理',
-  'arc-architect': '故事总纲',
-  'hook-cognition-maintainer': '伏笔与认知维护',
-  'mainline-planner': '主线推进策划',
-  'beat-planner': '伏笔与节拍策划',
-  'continuity-reviewer': '连续性审查',
-  'final-reviewer': '发送前终审',
-  'web-researcher': '网页检索',
+  'outline-architect': 'Agent phụ dàn ý',
+  'arc-architect': 'Tổng cương câu chuyện',
+  'hook-cognition-maintainer': 'Bảo trì phục bút và nhận thức',
+  'mainline-planner': 'Hoạch định đẩy tuyến chính',
+  'beat-planner': 'Hoạch định phục bút và nhịp',
+  'continuity-reviewer': 'Rà soát tính liên tục',
+  'final-reviewer': 'Duyệt cuối trước khi gửi',
+  'web-researcher': 'Tra cứu web',
 };
 
 function kindLabel(entry: AgentSessionEntry_ACU): string {

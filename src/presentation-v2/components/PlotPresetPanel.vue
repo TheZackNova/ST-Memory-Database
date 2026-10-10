@@ -5,7 +5,7 @@
   >
     <template #actions>
       <AcuBadge v-if="!store.hasPresets" variant="neutral"
-        >使用默认预设</AcuBadge
+        >Dùng preset mặc định</AcuBadge
       >
     </template>
 
@@ -13,21 +13,21 @@
       variant="status-line"
       class="acu-plot-preset-panel__status-line acu-v2-plot-page__status-line"
     >
-      当前聊天:
+      Cuộc trò chuyện hiện tại:
       <strong class="acu-text__value">{{
-        store.activePresetName || "默认预设"
+        store.activePresetName || "Preset mặc định"
       }}</strong>
       <template v-if="store.defaultPresetName">
-        · 全局默认:
+        · Mặc định toàn cục:
         <strong class="acu-text__value">{{
           store.defaultPresetName
         }}</strong></template
       >
       <template v-else>
-        · 全局默认: <strong class="acu-text__value">默认预设</strong></template
+        · Mặc định toàn cục: <strong class="acu-text__value">Preset mặc định</strong></template
       >
       <AcuBadge :variant="store.isChatOverridden ? 'accent' : 'neutral'">
-        {{ store.isChatOverridden ? "已覆盖" : "跟随全局" }}
+        {{ store.isChatOverridden ? "Đã ghi đè" : "Theo toàn cục" }}
       </AcuBadge>
     </AcuText>
 
@@ -42,12 +42,12 @@
       <AcuIconButton
         v-if="showEdit"
         icon="fa-solid fa-pen"
-        :title="store.activePreset ? '编辑当前预设' : '从默认新建预设'"
+        :title="store.activePreset ? 'Sửa preset hiện tại' : 'Tạo preset mới từ mặc định'"
         @click="management.openEditCurrent"
       />
       <AcuFileButton
         icon-only
-        title="导入预设 JSON"
+        title="Nhập JSON preset"
         accept="application/json,.json"
         @file="onImportFile"
       >
@@ -55,15 +55,15 @@
       </AcuFileButton>
       <AcuIconButton
         icon="fa-solid fa-gear"
-        title="管理预设"
+        title="Quản lý preset"
         @click="management.openManage"
       />
     </div>
 
     <AcuFormRow
       v-if="showApiPreset"
-      label="剧情推进 API 预设"
-      hint="默认使用当前的API，选择后仅影响剧情推进功能。"
+      label="Preset API đẩy cốt truyện"
+      hint="Mặc định dùng API hiện tại; sau khi chọn chỉ ảnh hưởng chức năng đẩy cốt truyện."
     >
       <AcuSelect
         :options="pageApiSelectOptions"
@@ -152,13 +152,13 @@ const devOptions = useDevOptions();
 const presetDropdownItems = computed<PresetDropdownItem[]>(() => [
   {
     value: "",
-    label: "默认预设",
-    meta: `${store.defaultPresetTaskCount} 个任务`,
+    label: "Preset mặc định",
+    meta: `${store.defaultPresetTaskCount} tác vụ`,
   },
   ...store.presets.map((p) => ({
     value: p.name,
     label: p.name,
-    meta: `${Array.isArray(p.raw?.plotTasks) ? p.raw.plotTasks.length : 0} 个任务`,
+    meta: `${Array.isArray(p.raw?.plotTasks) ? p.raw.plotTasks.length : 0} tác vụ`,
   })),
 ]);
 
@@ -184,9 +184,9 @@ function onTaskApiOverride(value: string): void {
 
 async function onDelete(name: string): Promise<void> {
   const confirmed = await dialogStore.confirm({
-    title: "删除剧情推进预设",
-    message: `删除剧情推进预设"${name}"？`,
-    confirmLabel: "删除预设",
+    title: "Xóa preset đẩy cốt truyện",
+    message: `Xóa preset đẩy cốt truyện "${name}"?`,
+    confirmLabel: "Xóa preset",
     confirmVariant: "danger",
   });
   if (!confirmed) return;
@@ -206,9 +206,9 @@ function onExport(name: string): void {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("剧情推进预设 JSON 已导出。");
+    toast.success("Đã xuất JSON preset đẩy cốt truyện.");
   } catch {
-    toast.error("剧情推进预设 JSON 导出失败。");
+    toast.error("Xuất JSON preset đẩy cốt truyện thất bại.");
   }
 }
 

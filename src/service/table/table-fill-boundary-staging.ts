@@ -233,7 +233,7 @@ function assertCandidateWriteSurface_ACU(
   targetSheetKeys: readonly string[],
 ): string | null {
   if (!Array.isArray(liveChat) || !Array.isArray(candidateChat) || liveChat.length !== candidateChat.length) {
-    return 'candidate 改变了消息数量';
+    return 'candidate đã thay đổi số lượng tin nhắn';
   }
   const targetSet = new Set(targetSheetKeys);
   const hostReserved = new Set(['TavernDB_ACU_IsolatedData']);
@@ -249,7 +249,7 @@ function assertCandidateWriteSurface_ACU(
       if (!hostReserved.has(key)) candidateHost[key] = value;
     }
     if (getTableDataFingerprint_ACU(liveHost) !== getTableDataFingerprint_ACU(candidateHost)) {
-      return `message[${index}] 宿主字段被改写`;
+      return `message[${index}] trường host bị ghi đè`;
     }
     const liveIso = (liveMessage as any).TavernDB_ACU_IsolatedData && typeof (liveMessage as any).TavernDB_ACU_IsolatedData === 'object'
       ? (liveMessage as any).TavernDB_ACU_IsolatedData
@@ -261,13 +261,13 @@ function assertCandidateWriteSurface_ACU(
     for (const key of isolationKeys) {
       if (key !== isolationKey) {
         if (getTableDataFingerprint_ACU(liveIso[key] ?? null) !== getTableDataFingerprint_ACU(candidateIso[key] ?? null)) {
-          return `message[${index}] 非目标 isolationKey 被改写`;
+          return `message[${index}] isolationKey không phải đích bị ghi đè`;
         }
         continue;
       }
       if (index !== originalFullIndex) {
         if (getTableDataFingerprint_ACU(liveIso[key] ?? null) !== getTableDataFingerprint_ACU(candidateIso[key] ?? null)) {
-          return `message[${index}] 目标 isolation 在非根楼层被改写`;
+          return `message[${index}] isolation đích bị ghi đè ở tầng không phải gốc`;
         }
         continue;
       }
@@ -278,16 +278,16 @@ function assertCandidateWriteSurface_ACU(
       const liveTagRest = { ...liveTag, storageFrame: undefined };
       const candidateTagRest = { ...candidateTag, storageFrame: undefined };
       if (getTableDataFingerprint_ACU(liveTagRest) !== getTableDataFingerprint_ACU(candidateTagRest)) {
-        return 'full checkpoint 宿主 tag 元数据被改写';
+        return 'Metadata tag host của full checkpoint bị ghi đè';
       }
       if (getTableDataFingerprint_ACU(liveFrame.checkpoint ?? null) !== getTableDataFingerprint_ACU(candidateFrame.checkpoint ?? null)) {
-        return 'full checkpoint 本体被改写';
+        return 'Thân full checkpoint bị ghi đè';
       }
       if (getTableDataFingerprint_ACU(liveFrame.logEntries ?? []) !== getTableDataFingerprint_ACU(candidateFrame.logEntries ?? [])) {
-        return 'logEntries 被改写';
+        return 'logEntries bị ghi đè';
       }
       if (getTableDataFingerprint_ACU(liveFrame.headRevision ?? null) !== getTableDataFingerprint_ACU(candidateFrame.headRevision ?? null)) {
-        return 'headRevision 被改写';
+        return 'headRevision bị ghi đè';
       }
       const liveFrameRest: Record<string, unknown> = { ...(liveFrame as any) };
       const candidateFrameRest: Record<string, unknown> = { ...(candidateFrame as any) };
@@ -300,7 +300,7 @@ function assertCandidateWriteSurface_ACU(
       delete liveFrameRest.headRevision;
       delete candidateFrameRest.headRevision;
       if (getTableDataFingerprint_ACU(liveFrameRest) !== getTableDataFingerprint_ACU(candidateFrameRest)) {
-        return 'storageFrame 其他元数据被改写';
+        return 'Metadata khác của storageFrame bị ghi đè';
       }
       const livePer = liveFrame.perSheetCheckpoints || {};
       const candidatePer = candidateFrame.perSheetCheckpoints || {};
@@ -308,7 +308,7 @@ function assertCandidateWriteSurface_ACU(
       for (const sheetKey of perKeys) {
         if (targetSet.has(sheetKey)) continue;
         if (getTableDataFingerprint_ACU((livePer as any)[sheetKey] ?? null) !== getTableDataFingerprint_ACU((candidatePer as any)[sheetKey] ?? null)) {
-          return `非目标 perSheetCheckpoints[${sheetKey}] 被改写`;
+          return `perSheetCheckpoints[${sheetKey}] không phải đích bị ghi đè`;
         }
       }
     }
@@ -319,20 +319,20 @@ function assertCandidateWriteSurface_ACU(
 function requireNonEmptyString_ACU(value: unknown, field: string): string {
   const normalized = typeof value === 'string' ? value.trim() : '';
   if (!normalized) {
-    throw new TableFillBoundaryPlanError_ACU('invalid_input', `跨 full checkpoint 填表规划缺少有效 ${field}。`);
+    throw new TableFillBoundaryPlanError_ACU('invalid_input', `Kế hoạch điền bảng xuyên full checkpoint thiếu ${field} hợp lệ.`);
   }
   return normalized;
 }
 
 function normalizeStrictlyIncreasingIndices_ACU(indices: readonly number[], field: string): number[] {
   if (!Array.isArray(indices)) {
-    throw new TableFillBoundaryPlanError_ACU('invalid_input', `跨 full checkpoint 填表规划的 ${field} 必须是消息索引数组。`);
+    throw new TableFillBoundaryPlanError_ACU('invalid_input', `${field} của kế hoạch điền bảng xuyên full checkpoint phải là mảng chỉ số tin nhắn.`);
   }
   const normalized = [...indices];
   for (let index = 0; index < normalized.length; index += 1) {
     const value = normalized[index];
     if (!Number.isInteger(value) || value < 0 || (index > 0 && value <= normalized[index - 1])) {
-      throw new TableFillBoundaryPlanError_ACU('invalid_input', `跨 full checkpoint 填表规划的 ${field} 必须为严格递增的非负整数。`);
+      throw new TableFillBoundaryPlanError_ACU('invalid_input', `${field} của kế hoạch điền bảng xuyên full checkpoint phải là các số nguyên không âm tăng chặt.`);
     }
   }
   return normalized;
@@ -340,38 +340,38 @@ function normalizeStrictlyIncreasingIndices_ACU(indices: readonly number[], fiel
 
 function normalizeTargetSheetKeys_ACU(targetSheetKeys: readonly string[]): string[] {
   if (!Array.isArray(targetSheetKeys)) {
-    throw new TableFillBoundaryPlanError_ACU('invalid_input', '跨 full checkpoint 填表规划的目标表必须是数组。');
+    throw new TableFillBoundaryPlanError_ACU('invalid_input', 'Bảng đích của kế hoạch điền bảng xuyên full checkpoint phải là mảng.');
   }
-  const normalized = [...new Set(targetSheetKeys.map(sheetKey => requireNonEmptyString_ACU(sheetKey, '目标表')))].sort();
+  const normalized = [...new Set(targetSheetKeys.map(sheetKey => requireNonEmptyString_ACU(sheetKey, 'bảng đích')))].sort();
   if (!normalized.length) {
-    throw new TableFillBoundaryPlanError_ACU('invalid_input', '跨 full checkpoint 填表规划至少需要一个目标表。');
+    throw new TableFillBoundaryPlanError_ACU('invalid_input', 'Kế hoạch điền bảng xuyên full checkpoint cần ít nhất một bảng đích.');
   }
   return normalized;
 }
 
 export function planTableFillBoundaryStaging_ACU(input: TableFillBoundaryStagingPlanInput_ACU): TableFillBoundaryStagingPlan_ACU {
   if (!input || typeof input !== 'object') {
-    throw new TableFillBoundaryPlanError_ACU('invalid_input', '跨 full checkpoint 填表规划输入无效。');
+    throw new TableFillBoundaryPlanError_ACU('invalid_input', 'Đầu vào kế hoạch điền bảng xuyên full checkpoint không hợp lệ.');
   }
   if (!['manual_refill', 'auto_fill', 'manual_catch_up'].includes(input.runKind)) {
-    throw new TableFillBoundaryPlanError_ACU('invalid_input', '跨 full checkpoint 填表规划的运行类型无效。');
+    throw new TableFillBoundaryPlanError_ACU('invalid_input', 'Loại chạy của kế hoạch điền bảng xuyên full checkpoint không hợp lệ.');
   }
 
   const runId = requireNonEmptyString_ACU(input.runId, 'runId');
   const chatKey = requireNonEmptyString_ACU(input.chatKey, 'chatKey');
   const isolationKey = typeof input.isolationKey === 'string' ? input.isolationKey : '';
   if (typeof input.isolationKey !== 'string') {
-    throw new TableFillBoundaryPlanError_ACU('invalid_input', '跨 full checkpoint 填表规划的 isolationKey 必须是字符串。');
+    throw new TableFillBoundaryPlanError_ACU('invalid_input', 'isolationKey của kế hoạch điền bảng xuyên full checkpoint phải là chuỗi.');
   }
-  const templateFingerprint = requireNonEmptyString_ACU(input.templateFingerprint, '模板指纹');
+  const templateFingerprint = requireNonEmptyString_ACU(input.templateFingerprint, 'dấu vân tay mẫu');
   const targetSheetKeys = normalizeTargetSheetKeys_ACU(input.targetSheetKeys);
-  const messageIndices = normalizeStrictlyIncreasingIndices_ACU(input.messageIndices, '待填索引');
-  const fullCheckpointIndices = normalizeStrictlyIncreasingIndices_ACU(input.fullCheckpointIndices, 'full checkpoint 索引');
+  const messageIndices = normalizeStrictlyIncreasingIndices_ACU(input.messageIndices, 'chỉ số cần điền');
+  const fullCheckpointIndices = normalizeStrictlyIncreasingIndices_ACU(input.fullCheckpointIndices, 'chỉ số full checkpoint');
 
   if (fullCheckpointIndices.length > 1) {
     throw new TableFillBoundaryPlanError_ACU(
       'multiple_full_checkpoints',
-      `跨 full checkpoint 填表规划拒绝执行：同一 isolationKey 下存在 ${fullCheckpointIndices.length} 个 full checkpoint（${fullCheckpointIndices.join(', ')}）。`,
+      `Kế hoạch điền bảng xuyên full checkpoint bị từ chối: dưới cùng isolationKey có ${fullCheckpointIndices.length} full checkpoint (${fullCheckpointIndices.join(', ')}).`,
     );
   }
 
@@ -496,7 +496,7 @@ export function splitMessageIndicesAtSchemaBoundaries_ACU(
   schemaBoundaries: readonly TableFillSchemaBoundary_ACU[] = [],
   fullMessageIndexSet: ReadonlySet<number> = new Set(),
 ): BoundarySegment_ACU[] {
-  const normalized = normalizeStrictlyIncreasingIndices_ACU(messageIndices, '待拆索引');
+  const normalized = normalizeStrictlyIncreasingIndices_ACU(messageIndices, 'chỉ số cần tách');
   if (!normalized.length) return [];
   const normalizedBoundaries = [...schemaBoundaries]
     .filter(boundary => Number.isInteger(boundary.index) && (boundary.index as number) >= 0)
@@ -581,7 +581,7 @@ export function splitMessageIndicesAtBoundary_ACU(
   originalFullIndex: number | null,
   fullMessageIndexSet: ReadonlySet<number> = new Set(),
 ): BoundarySegment_ACU[] {
-  const normalized = normalizeStrictlyIncreasingIndices_ACU(messageIndices, '待拆索引');
+  const normalized = normalizeStrictlyIncreasingIndices_ACU(messageIndices, 'chỉ số cần tách');
   if (!normalized.length) return [];
   if (originalFullIndex === null) {
     const first = normalized[0];
@@ -662,10 +662,10 @@ export async function commitStagedSheetsAtFullBoundaryAtomic_ACU(
     writeSet: targetSheetKeys.map(sheetKey => ({ kind: 'sheet' as const, sheetKey })),
     maintenanceMode: 'exclusive',
   }, async () => {
-    if (options.signal?.aborted) throw new DOMException('填表任务已取消。', 'AbortError');
+    if (options.signal?.aborted) throw new DOMException('Tác vụ điền bảng đã bị hủy.', 'AbortError');
     if (String(currentChatFileIdentifier_ACU || '') !== String(chatKey || '')
       || String(getCurrentIsolationKey_ACU() || '') !== String(isolationKey || '')) {
-      return failBoundary_ACU('staging_scope_changed', 'boundary commit 复检失败：chatKey 或 isolationKey 已切换。');
+      return failBoundary_ACU('staging_scope_changed', 'Kiểm tra lại boundary commit thất bại: chatKey hoặc isolationKey đã chuyển.');
     }
 
     const chat = getChatArray_ACU();
@@ -682,40 +682,40 @@ export async function commitStagedSheetsAtFullBoundaryAtomic_ACU(
     if (fullIndices.length !== 1) {
       return failBoundary_ACU(
         'multiple_full_checkpoints',
-        `boundary commit 拒绝执行：同一 isolationKey 下存在 ${fullIndices.length} 个 full checkpoint（${fullIndices.join(', ')}），必须唯一。`,
+        `boundary commit bị từ chối: dưới cùng isolationKey có ${fullIndices.length} full checkpoint (${fullIndices.join(', ')}), phải duy nhất.`,
       );
     }
     if (fullIndices[0] !== options.originalFullIndex) {
       return failBoundary_ACU(
         'full_checkpoint_root_mismatch',
-        `boundary commit 原 full 根不匹配：expected=${options.originalFullIndex}, actual=${fullIndices[0]}；拒绝汇合。`,
+        `Gốc full ban đầu của boundary commit không khớp: expected=${options.originalFullIndex}, actual=${fullIndices[0]}; từ chối hợp nhất.`,
       );
     }
 
     const originalMessage = chat[options.originalFullIndex];
     if (!originalMessage) {
-      return failBoundary_ACU('full_checkpoint_root_mismatch', `原 full checkpoint 楼层 ${options.originalFullIndex} 不存在，无法汇合。`);
+      return failBoundary_ACU('full_checkpoint_root_mismatch', `Tầng full checkpoint ban đầu ${options.originalFullIndex} không tồn tại, không thể hợp nhất.`);
     }
     const originalContainer = readIsolatedDataContainer_ACU(originalMessage) || {};
     if (!isV2TagData_ACU(originalContainer[isolationKey])) {
-      return failBoundary_ACU('full_checkpoint_root_mismatch', `原 full checkpoint 楼层 ${options.originalFullIndex} 缺少 V2 数据。`);
+      return failBoundary_ACU('full_checkpoint_root_mismatch', `Tầng full checkpoint ban đầu ${options.originalFullIndex} thiếu dữ liệu V2.`);
     }
     const liveFrame = (originalContainer[isolationKey] as any).storageFrame as TableStorageFrameV2_ACU;
     if (liveFrame?.checkpoint?.kind !== 'full') {
-      return failBoundary_ACU('full_checkpoint_root_mismatch', `原 full checkpoint 楼层 ${options.originalFullIndex} 的 frame 缺少正式 full 根。`);
+      return failBoundary_ACU('full_checkpoint_root_mismatch', `frame của tầng full checkpoint ban đầu ${options.originalFullIndex} thiếu gốc full chính thức.`);
     }
     const liveFingerprint = getOriginalFullFrameFingerprint_ACU(liveFrame);
     if (options.originalFullFingerprint && options.originalFullFingerprint !== liveFingerprint) {
       return failBoundary_ACU(
         'full_checkpoint_fingerprint_mismatch',
-        `boundary commit 原 full 根指纹不匹配：runId=${runId}, index=${options.originalFullIndex}。`,
+        `Dấu vân tay gốc full ban đầu của boundary commit không khớp: runId=${runId}, index=${options.originalFullIndex}. `,
       );
     }
 
     const overlaySheets = extractTargetOverlaySheets_ACU(options.stagedSnapshot, targetSheetKeys);
     for (const sheetKey of targetSheetKeys) {
       if (!overlaySheets[sheetKey]) {
-        return failBoundary_ACU('staging_target_snapshot_missing', `boundary commit 缺少 selected sheet 的 staging 快照：${sheetKey}。`);
+        return failBoundary_ACU('staging_target_snapshot_missing', `boundary commit thiếu snapshot staging của selected sheet: ${sheetKey}. `);
       }
     }
 
@@ -732,19 +732,19 @@ export async function commitStagedSheetsAtFullBoundaryAtomic_ACU(
       liveBoundary = liveStates.get(options.originalFullIndex);
       liveHead = liveStates.get(headIndex);
       if (!liveBoundary || liveBoundary.baseKind !== 'full_checkpoint' || !liveBoundary.data) {
-        return failBoundary_ACU('boundary_replay_mismatch', `boundary commit live boundary replay 未建立正式基底：boundary=${options.originalFullIndex}。`);
+        return failBoundary_ACU('boundary_replay_mismatch', `boundary commit live boundary replay chưa thiết lập nền chính thức: boundary=${options.originalFullIndex}. `);
       }
       if (liveBoundary.requiresCheckpointConvergence || liveBoundary.compatibilityRepairs?.length) {
-        return failBoundary_ACU('candidate_replay_requires_repair', `boundary commit live boundary replay 依赖兼容修复：boundary=${options.originalFullIndex}。`);
+        return failBoundary_ACU('candidate_replay_requires_repair', `boundary commit live boundary replay phụ thuộc sửa chữa tương thích: boundary=${options.originalFullIndex}. `);
       }
       if (!liveHead || liveHead.baseKind !== 'full_checkpoint' || !liveHead.data) {
-        return failBoundary_ACU('boundary_replay_mismatch', `boundary commit live head replay 未建立正式基底：boundary=${headIndex}。`);
+        return failBoundary_ACU('boundary_replay_mismatch', `boundary commit live head replay chưa thiết lập nền chính thức: boundary=${headIndex}. `);
       }
       if (liveHead.requiresCheckpointConvergence || liveHead.compatibilityRepairs?.length) {
-        return failBoundary_ACU('candidate_replay_requires_repair', `boundary commit live head replay 依赖兼容修复：boundary=${headIndex}。`);
+        return failBoundary_ACU('candidate_replay_requires_repair', `boundary commit live head replay phụ thuộc sửa chữa tương thích: boundary=${headIndex}. `);
       }
     } catch (error: any) {
-      return failBoundary_ACU('boundary_replay_mismatch', `boundary commit live replay 验证异常：${error?.message || String(error)}`);
+      return failBoundary_ACU('boundary_replay_mismatch', `boundary commit xác minh live replay gặp lỗi: ${error?.message || String(error)}`);
     }
 
     const originalTagData = JSON.parse(JSON.stringify(originalContainer[isolationKey]));
@@ -762,7 +762,7 @@ export async function commitStagedSheetsAtFullBoundaryAtomic_ACU(
         context: { messageIndex: options.originalFullIndex, isolationKey, reason: 'manual' },
       });
       if (!sheetCheckpointResult.checkpoint) {
-        return failBoundary_ACU('staging_target_snapshot_missing', `boundary commit 无法构建 selected sheet rebase：${sheetKey}：${sheetCheckpointResult.error}`);
+        return failBoundary_ACU('staging_target_snapshot_missing', `boundary commit không thể dựng rebase của selected sheet: ${sheetKey}: ${sheetCheckpointResult.error}`);
       }
       perSheetCheckpoints[sheetKey] = {
         ...sheetCheckpointResult.checkpoint,
@@ -779,7 +779,7 @@ export async function commitStagedSheetsAtFullBoundaryAtomic_ACU(
     const candidateChat = JSON.parse(JSON.stringify(chat)) as any[];
     const candidateOriginalMessage = candidateChat[options.originalFullIndex];
     if (!candidateOriginalMessage) {
-      return failBoundary_ACU('full_checkpoint_root_mismatch', `候选聊天缺少原 full 楼层 ${options.originalFullIndex}，无法汇合。`);
+      return failBoundary_ACU('full_checkpoint_root_mismatch', `Cuộc trò chuyện ứng viên thiếu tầng full ban đầu ${options.originalFullIndex}, không thể hợp nhất.`);
     }
     const candidateContainer = readIsolatedDataContainer_ACU(candidateOriginalMessage) || {};
     candidateContainer[isolationKey] = originalTagData;
@@ -793,7 +793,7 @@ export async function commitStagedSheetsAtFullBoundaryAtomic_ACU(
       targetSheetKeys,
     );
     if (writeSurfaceError) {
-      return failBoundary_ACU('candidate_write_surface_violation', `boundary commit 写入面越权：${writeSurfaceError}。`);
+      return failBoundary_ACU('candidate_write_surface_violation', `boundary commit ghi vượt phạm vi cho phép: ${writeSurfaceError}. `);
     }
 
     let candidateHeadData: Record<string, any> | null = null;
@@ -807,16 +807,16 @@ export async function commitStagedSheetsAtFullBoundaryAtomic_ACU(
       const candidateBoundary = candidateStates.get(options.originalFullIndex);
       const candidateHead = candidateStates.get(headIndex);
       if (!candidateBoundary || candidateBoundary.baseKind !== 'full_checkpoint' || !candidateBoundary.data) {
-        return failBoundary_ACU('boundary_replay_mismatch', `boundary commit 候选 boundary replay 未建立正式基底：boundary=${options.originalFullIndex}。`);
+        return failBoundary_ACU('boundary_replay_mismatch', `boundary commit boundary replay ứng viên chưa thiết lập nền chính thức: boundary=${options.originalFullIndex}. `);
       }
       if (candidateBoundary.requiresCheckpointConvergence || candidateBoundary.compatibilityRepairs?.length) {
-        return failBoundary_ACU('candidate_replay_requires_repair', `boundary commit 候选 boundary replay 依赖兼容修复：boundary=${options.originalFullIndex}。`);
+        return failBoundary_ACU('candidate_replay_requires_repair', `boundary commit boundary replay ứng viên phụ thuộc sửa chữa tương thích: boundary=${options.originalFullIndex}. `);
       }
       if (!candidateHead || candidateHead.baseKind !== 'full_checkpoint' || !candidateHead.data) {
-        return failBoundary_ACU('boundary_replay_mismatch', `boundary commit 候选 head replay 未建立正式基底：boundary=${headIndex}。`);
+        return failBoundary_ACU('boundary_replay_mismatch', `boundary commit head replay ứng viên chưa thiết lập nền chính thức: boundary=${headIndex}. `);
       }
       if (candidateHead.requiresCheckpointConvergence || candidateHead.compatibilityRepairs?.length) {
-        return failBoundary_ACU('candidate_replay_requires_repair', `boundary commit 候选 head replay 依赖兼容修复：boundary=${headIndex}。`);
+        return failBoundary_ACU('candidate_replay_requires_repair', `boundary commit head replay ứng viên phụ thuộc sửa chữa tương thích: boundary=${headIndex}. `);
       }
       candidateHeadData = candidateHead.data as Record<string, any>;
 
@@ -833,27 +833,27 @@ export async function commitStagedSheetsAtFullBoundaryAtomic_ACU(
         if (isTarget) {
           if (canonicalSheetFingerprint_ACU(candidateBoundary.data?.[sheetKey]) !== canonicalSheetFingerprint_ACU(overlaySheets[sheetKey])) {
             logWarn_ACU(`[TableFillBoundaryStaging] selected_sheet_boundary_mismatch: runId=${runId}, cutoff=${options.originalFullIndex}, sheetKey=${sheetKey}, overlay=${canonicalSheetFingerprint_ACU(overlaySheets[sheetKey])}, candidate=${canonicalSheetFingerprint_ACU(candidateBoundary.data?.[sheetKey])}`);
-            return failBoundary_ACU('selected_sheet_boundary_mismatch', `boundary commit 后 selected sheet 边界回放不一致：${sheetKey}。`);
+            return failBoundary_ACU('selected_sheet_boundary_mismatch', `Sau boundary commit, phát lại biên của selected sheet không nhất quán: ${sheetKey}. `);
           }
           if (!candidateHead.data?.[sheetKey] || typeof candidateHead.data[sheetKey] !== 'object') {
-            return failBoundary_ACU('selected_sheet_boundary_mismatch', `boundary commit 候选 head 缺少目标表：${sheetKey}。`);
+            return failBoundary_ACU('selected_sheet_boundary_mismatch', `head ứng viên của boundary commit thiếu bảng đích: ${sheetKey}. `);
           }
           continue;
         }
         if (canonicalSheetFingerprint_ACU(candidateBoundary.data?.[sheetKey]) !== canonicalSheetFingerprint_ACU(liveBoundary.data?.[sheetKey])) {
           logWarn_ACU(`[TableFillBoundaryStaging] non_target_boundary_mismatch: runId=${runId}, cutoff=${options.originalFullIndex}, sheetKey=${sheetKey}`);
-          return failBoundary_ACU('non_target_boundary_mismatch', `boundary commit 后非目标表边界回放不一致：${sheetKey}。`);
+          return failBoundary_ACU('non_target_boundary_mismatch', `Sau boundary commit, phát lại biên của bảng không phải đích không nhất quán: ${sheetKey}. `);
         }
         if (canonicalSheetFingerprint_ACU(candidateHead.data?.[sheetKey]) !== canonicalSheetFingerprint_ACU(liveHead.data?.[sheetKey])) {
           logWarn_ACU(`[TableFillBoundaryStaging] non_target_head_mismatch: runId=${runId}, cutoff=${headIndex}, sheetKey=${sheetKey}`);
-          return failBoundary_ACU('non_target_head_mismatch', `boundary commit 后非目标表 head 回放不一致：${sheetKey}。`);
+          return failBoundary_ACU('non_target_head_mismatch', `Sau boundary commit, phát lại head của bảng không phải đích không nhất quán: ${sheetKey}. `);
         }
       }
     } catch (error: any) {
-      return failBoundary_ACU('boundary_replay_mismatch', `boundary commit 候选 replay 验证异常：${error?.message || String(error)}`);
+      return failBoundary_ACU('boundary_replay_mismatch', `xác minh replay ứng viên của boundary commit gặp lỗi: ${error?.message || String(error)}`);
     }
 
-    if (options.signal?.aborted) throw new DOMException('填表任务已取消。', 'AbortError');
+    if (options.signal?.aborted) throw new DOMException('Tác vụ điền bảng đã bị hủy.', 'AbortError');
     const before = JSON.parse(JSON.stringify(chat));
     try {
       chat.length = 0;
@@ -866,7 +866,7 @@ export async function commitStagedSheetsAtFullBoundaryAtomic_ACU(
     } catch (error: any) {
       chat.length = 0;
       chat.push(...before);
-      return failBoundary_ACU('boundary_strict_save_failed', `boundary commit 严格保存失败：${error?.message || String(error)}`);
+      return failBoundary_ACU('boundary_strict_save_failed', `Lưu nghiêm ngặt boundary commit thất bại: ${error?.message || String(error)}`);
     }
     logDebug_ACU(`[TableFillBoundaryStaging] 已原子汇合：runId=${runId}, originalFull=${options.originalFullIndex}, sheets=${targetSheetKeys.join('、')}。`);
     return {
@@ -890,7 +890,7 @@ export async function publishVerifiedBoundaryHead_ACU(input: {
       || String(getCurrentIsolationKey_ACU() || '') !== String(input.isolationKey || '')) {
       return {
         ok: false,
-        error: 'boundary runtime 发布复检失败：chatKey 或 isolationKey 已切换。',
+        error: 'Kiểm tra lại việc phát hành boundary runtime thất bại: chatKey hoặc isolationKey đã chuyển.',
         diagnosticCode: 'runtime_publish_failed',
       };
     }
@@ -905,13 +905,13 @@ export async function publishVerifiedBoundaryHead_ACU(input: {
         source: 'boundary_commit_head',
       });
       if (!envelope) {
-        return { ok: false, error: 'boundary runtime 发布失败：无法构造 verified head envelope。', diagnosticCode: 'runtime_publish_failed' };
+        return { ok: false, error: 'Phát hành boundary runtime thất bại: không thể dựng verified head envelope.', diagnosticCode: 'runtime_publish_failed' };
       }
       const hydrated = await hydrateStorageProviderFromSnapshot_ACU(envelope);
       if (!hydrated.ok) {
         return {
           ok: false,
-          error: `boundary runtime 发布失败：${hydrated.error || hydrated.failureCode || 'hydrate 未成功'}。持久化聊天仍是权威，请重新 hydrate。`,
+          error: `Phát hành boundary runtime thất bại: ${hydrated.error || hydrated.failureCode || 'hydrate không thành công'}. Cuộc trò chuyện đã lưu vẫn là nguồn có thẩm quyền, hãy hydrate lại.`,
           diagnosticCode: 'runtime_publish_failed',
         };
       }
@@ -921,7 +921,7 @@ export async function publishVerifiedBoundaryHead_ACU(input: {
   } catch (error: any) {
     return {
       ok: false,
-      error: `boundary runtime 发布异常：${error?.message || String(error)}。持久化聊天仍是权威，请重新 hydrate。`,
+      error: `Phát hành boundary runtime gặp lỗi: ${error?.message || String(error)}. Cuộc trò chuyện đã lưu vẫn là nguồn có thẩm quyền, hãy hydrate lại.`,
       diagnosticCode: 'runtime_publish_failed',
     };
   }

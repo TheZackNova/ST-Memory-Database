@@ -17,14 +17,14 @@ export const checkpointInteger_ACU = (value: unknown): value is number =>
 /** 只沿指定分支的已发布父链；供校验器使用，不能递归调用 envelope 校验。 */
 export function checkpointPath_ACU(source: ZeroLayerEnvelope_ACU, branchId: string): ZeroLayerTurn_ACU[] {
   const branch = source.branches.find(item => item.branchId === branchId);
-  requireCheckpoint_ACU(branch, 'checkpoint 分支不存在。');
+  requireCheckpoint_ACU(branch, 'Nhánh checkpoint không tồn tại.');
   const turns = new Map(source.turns.map(turn => [turn.turnId, turn]));
   const path: ZeroLayerTurn_ACU[] = [];
   const seen = new Set<string>();
   let cursor = branch.headTurnId;
   while (cursor !== null) {
     const turn = turns.get(cursor);
-    requireCheckpoint_ACU(turn?.phase === 'published' && !seen.has(cursor), 'checkpoint 父链无效。');
+    requireCheckpoint_ACU(turn?.phase === 'published' && !seen.has(cursor), 'Chuỗi cha của checkpoint không hợp lệ.');
     seen.add(cursor);
     path.push(turn);
     cursor = turn.parentTurnId;
@@ -43,11 +43,11 @@ export function foldCheckpointContinuation_ACU(frames: readonly { payload: unkno
   let folded = foldAgentModuleSnapshot_ACU(frames.map(frame => ({
     [AGENT_MODULE_FIELD_ACU]: structuredClone(frame.payload), swipe_id: Number(frame.swipeId),
   })), deps);
-  requireCheckpoint_ACU(!folded.salvaged && folded.candidates.every(item => item.valid), 'checkpoint 续写源帧未通过严格折叠。');
+  requireCheckpoint_ACU(!folded.salvaged && folded.candidates.every(item => item.valid), 'Khung nguồn viết tiếp của checkpoint chưa qua gấp nghiêm ngặt.');
   if (!folded.contributed) {
     // 首基线的合法空载荷由既有折叠器建出规范栏目；水位不承担逻辑身份。
     const snapshot = { ...folded.snapshot, settledThroughIndex: 0 };
-    requireCheckpoint_ACU(deps.validateSnapshot(snapshot), 'checkpoint 空资料基底无效。');
+    requireCheckpoint_ACU(deps.validateSnapshot(snapshot), 'Nền tài liệu rỗng của checkpoint không hợp lệ.');
     folded = foldAgentModuleSnapshot_ACU([{ swipe_id: 0, [AGENT_MODULE_FIELD_ACU]: {
       schemaVersion: AGENT_MODULE_FRAME_SCHEMA_VERSION_ACU,
       checkpoint: { swipeId: '0', snapshot }, deltas: [],
@@ -61,8 +61,8 @@ export function continuationCheckpointPayload_ACU(frames: readonly { payload: un
   // 沿用资料帧的首基线契约；0 仅为未结算空载荷的合法水位，不代表任何逻辑楼层身份。
   if (!folded.contributed) folded.snapshot.settledThroughIndex = 0;
   requireCheckpoint_ACU(agentModuleFrameDeps_ACU().validateSnapshot(folded.snapshot),
-    'checkpoint 资料基底未通过领域校验。');
-  requireCheckpoint_ACU(validateAgentModuleFieldSnapshot_ACU(folded.fields, folded.snapshot), 'checkpoint 分栏基底无效。');
+    'Nền tài liệu của checkpoint chưa qua kiểm tra miền.');
+  requireCheckpoint_ACU(validateAgentModuleFieldSnapshot_ACU(folded.fields, folded.snapshot), 'Nền phân mục của checkpoint không hợp lệ.');
   const operationSeq = Math.max(0, ...frames.flatMap(({ payload }) => {
     if (!checkpointRecord_ACU(payload)) return [];
     const checkpoint = checkpointRecord_ACU(payload.checkpoint) ? payload.checkpoint : null;
@@ -74,6 +74,6 @@ export function continuationCheckpointPayload_ACU(frames: readonly { payload: un
     checkpoint: { swipeId: '0', snapshot: folded.snapshot, fieldSnapshot: folded.fields, operationSeq }, deltas: [] };
   const replay = foldCheckpointContinuation_ACU([{ payload, swipeId: '0' }]);
   requireCheckpoint_ACU(checkpointFingerprint_ACU([folded.snapshot, folded.fields])
-    === checkpointFingerprint_ACU([replay.snapshot, replay.fields]), 'checkpoint 续写重建不等价。');
+    === checkpointFingerprint_ACU([replay.snapshot, replay.fields]), 'Dựng lại viết tiếp của checkpoint không tương đương.');
   return payload;
 }

@@ -35,7 +35,7 @@ describe('格林推演用户要求资料区', () => {
 
   it('校验未知键与缺键一律拒绝；缺独立字段读取为空而不伪装损坏', () => {
     expect(() => validateWorldSimulationUserRequirementsSnapshot_ACU({ schemaVersion: 1, requirements: [], updatedAt: 0, extra: 1 })).toThrow(WorldSimulationValidationError_ACU);
-    expect(() => validateWorldSimulationUserRequirementsSnapshot_ACU({ schemaVersion: 1, requirements: [] })).toThrow(/缺少字段/);
+    expect(() => validateWorldSimulationUserRequirementsSnapshot_ACU({ schemaVersion: 1, requirements: [] })).toThrow(/thiếu trường/);
     const chat: any[] = [{ message_id: 1, mes: '正文', swipe_id: 0 }];
     expect(readLatestWorldSimulationUserRequirements_ACU(chat)).toMatchObject({ snapshot: null, adoptedIndex: null, diagnostics: [] });
   });
@@ -47,12 +47,12 @@ describe('格林推演用户要求资料区', () => {
     chat[0][WORLD_SIMULATION_USER_REQUIREMENTS_FIELD_ACU] = { schemaVersion: 1, entries: 'broken' };
     const result = readLatestWorldSimulationUserRequirements_ACU(chat);
     expect(result.snapshot).toBeNull();
-    expect(result.diagnostics.join('；')).toMatch(/损坏|未知|非法|当前有效分支/);
+    expect(result.diagnostics.join('；')).toMatch(/hỏng|không xác định|không hợp lệ|Nhánh hiệu lực hiện tại/);
   });
 
   it('渲染空快照时回退非机械 originInstruction；机械继续词不回退', () => {
     const empty = emptyWorldSimulationUserRequirementsSnapshot_ACU();
-    expect(renderWorldSimulationUserRequirements_ACU(empty, '继续')).toBe('（用户尚未提出任务要求）');
+    expect(renderWorldSimulationUserRequirements_ACU(empty, '继续')).toBe('(Người dùng chưa đưa ra yêu cầu nhiệm vụ)');
     expect(renderWorldSimulationUserRequirements_ACU(null, '推进港口')).toBe('- 推进港口');
     expect(renderWorldSimulationUserRequirements_ACU({ schemaVersion: 1, requirements: ['用第一人称'], updatedAt: 1 }, '推进港口')).toBe('- 用第一人称');
   });

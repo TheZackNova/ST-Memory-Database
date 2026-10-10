@@ -64,7 +64,7 @@ export async function importTxtTextAndSplitCore_ACU(
 ): Promise<ImportTxtTextAndSplitResult_ACU> {
     try {
         if (typeof text !== 'string' || text.trim().length === 0) {
-            return { success: false, error: '导入文本为空。' };
+            return { success: false, error: 'Văn bản nhập đang trống.' };
         }
 
         const splitSize = normalizeImportSplitSize_ACU(options.splitSize);
@@ -89,7 +89,7 @@ export async function importTxtTextAndSplitCore_ACU(
         logError_ACU('[外部导入] Failed to split TXT text into temp storage.', e);
         return {
             success: false,
-            error: e instanceof Error ? e.message : 'TXT 文本拆分暂存失败。',
+            error: e instanceof Error ? e.message : 'Tách và lưu tạm văn bản TXT thất bại.',
         };
     }
 }
@@ -139,19 +139,19 @@ async function clearImportedTempStorageForInvalidStaging_ACU(): Promise<void> {
 async function readImportedChunksForInjection_ACU(): Promise<{ success: true; chunks: Array<{ content?: string }> } | { success: false; error: string }> {
     const savedEntriesJson = await importTempGet_ACU(STORAGE_KEY_IMPORTED_ENTRIES_ACU);
     if (!savedEntriesJson) {
-        return { success: false, error: '尚未加载 TXT 文件。请先导入并拆分文本。' };
+        return { success: false, error: 'Chưa tải tệp TXT. Hãy nhập và tách văn bản trước.' };
     }
 
     try {
         const parsed = JSON.parse(savedEntriesJson);
         if (!Array.isArray(parsed) || parsed.length === 0) {
-            return { success: false, error: '没有可注入的分块。请重新导入 TXT 文本。' };
+            return { success: false, error: 'Không có khối nào để chèn. Hãy nhập lại văn bản TXT.' };
         }
         return { success: true, chunks: parsed };
     } catch (e) {
         logError_ACU('[外部导入] Failed to parse imported TXT staging data.', e);
         await clearImportedTempStorageForInvalidStaging_ACU();
-        return { success: false, error: '导入暂存数据已损坏，已清空。请重新导入。' };
+        return { success: false, error: 'Dữ liệu nhập tạm đã bị hỏng và đã được xóa. Hãy nhập lại.' };
     }
 }
 
@@ -161,7 +161,7 @@ async function resolveImportInjectionTarget_ACU(targetWorldbook?: string): Promi
         : String(settings_ACU.importWorldbookTarget || '').trim();
 
     if (!rawTarget) {
-        return { success: false, error: '无法注入：未设置导入数据注入目标世界书。' };
+        return { success: false, error: 'Không thể chèn: chưa đặt sổ thế giới đích để chèn dữ liệu nhập.' };
     }
 
     if (rawTarget === 'character') {
@@ -169,12 +169,12 @@ async function resolveImportInjectionTarget_ACU(targetWorldbook?: string): Promi
             const primary = await getCurrentCharPrimaryLorebook_ACU();
             const resolved = typeof primary === 'string' ? primary.trim() : '';
             if (!resolved) {
-                return { success: false, error: '无法注入：未找到当前角色绑定的主世界书。' };
+                return { success: false, error: 'Không thể chèn: không tìm thấy sổ thế giới chính gắn với nhân vật hiện tại.' };
             }
             return { success: true, target: resolved };
         } catch (e) {
             logError_ACU('[外部导入] Failed to resolve current character primary lorebook.', e);
-            return { success: false, error: '无法注入：解析当前角色主世界书失败。' };
+            return { success: false, error: 'Không thể chèn: phân giải sổ thế giới chính của nhân vật hiện tại thất bại.' };
         }
     }
 
@@ -184,14 +184,14 @@ async function resolveImportInjectionTarget_ACU(targetWorldbook?: string): Promi
 function resolveImportSelectedSheetKeys_ACU(options: InjectImportedSelectedOptions_ACU): { success: true; selectedSheetKeys: string[] | null } | { success: false; error: string } {
     if (options.selectedSheetKeys !== undefined) {
         if (!Array.isArray(options.selectedSheetKeys)) {
-            return { success: false, error: 'selectedSheetKeys 必须是字符串数组。' };
+            return { success: false, error: 'selectedSheetKeys phải là mảng chuỗi.' };
         }
 
         const selected = options.selectedSheetKeys
             .filter((key): key is string => typeof key === 'string' && key.trim().length > 0)
             .map(key => key.trim());
         if (selected.length === 0) {
-            return { success: false, error: '未选择任何表格，无法注入。' };
+            return { success: false, error: 'Chưa chọn bảng nào, không thể chèn.' };
         }
         return { success: true, selectedSheetKeys: selected };
     }
@@ -201,7 +201,7 @@ function resolveImportSelectedSheetKeys_ACU(options: InjectImportedSelectedOptio
             ? settings_ACU.importSelectedTables.filter((key: any): key is string => typeof key === 'string' && key.trim().length > 0).map((key: string) => key.trim())
             : [];
         if (selected.length === 0) {
-            return { success: false, error: '未选择任何表格，无法注入。请先配置导入表选择。' };
+            return { success: false, error: 'Chưa chọn bảng nào, không thể chèn. Hãy cấu hình lựa chọn bảng nhập trước.' };
         }
         return { success: true, selectedSheetKeys: selected };
     }
@@ -240,7 +240,7 @@ export async function injectImportedSelectedCore_ACU(
         hooks.onProgress?.({ phase: 'initializing', totalChunks: allChunks.length });
         const initResult = await initImportDatabase_ACU(importTarget, selectedSheetKeys, allChunks, selectionSig);
         if (!initResult.success || !initResult.status || !initResult.modeSuffix) {
-            return { success: false, error: initResult.error || '导入初始化失败。', targetWorldbook: importTarget, selectedSheetKeys: selectedSheetKeys || undefined };
+            return { success: false, error: initResult.error || 'Khởi tạo nhập thất bại.', targetWorldbook: importTarget, selectedSheetKeys: selectedSheetKeys || undefined };
         }
 
         const status = initResult.status;
@@ -279,8 +279,8 @@ export async function injectImportedSelectedCore_ACU(
                 if (updateResult.aborted) {
                     status.currentIndex = i;
                     await importTempSet_ACU(STORAGE_KEY_IMPORTED_STATUS_ACU, JSON.stringify(status));
-                    hooks.onProgress?.({ phase: 'aborted', currentChunk: i + 1, totalChunks: allChunks.length, message: updateResult.error || '任务已终止。' });
-                    return { success: false, aborted: true, processedChunks: i, currentIndex: i, totalChunks: allChunks.length, targetWorldbook: importTarget, selectedSheetKeys: selectedSheetKeys || undefined, error: updateResult.error || '任务已终止。' };
+                    hooks.onProgress?.({ phase: 'aborted', currentChunk: i + 1, totalChunks: allChunks.length, message: updateResult.error || 'Tác vụ đã bị chấm dứt.' });
+                    return { success: false, aborted: true, processedChunks: i, currentIndex: i, totalChunks: allChunks.length, targetWorldbook: importTarget, selectedSheetKeys: selectedSheetKeys || undefined, error: updateResult.error || 'Tác vụ đã bị chấm dứt.' };
                 }
 
                 success = updateResult.success;
@@ -294,13 +294,13 @@ export async function injectImportedSelectedCore_ACU(
             if (!success) {
                 status.currentIndex = i;
                 await importTempSet_ACU(STORAGE_KEY_IMPORTED_STATUS_ACU, JSON.stringify(status));
-                hooks.onProgress?.({ phase: 'error', currentChunk: i + 1, totalChunks: allChunks.length, message: lastError || '分块处理失败。' });
-                return { success: false, processedChunks: i, currentIndex: i, totalChunks: allChunks.length, targetWorldbook: importTarget, selectedSheetKeys: selectedSheetKeys || undefined, error: `分块 ${i + 1}/${allChunks.length} 处理失败，已保存断点。${lastError || '请稍后继续注入。'}` };
+                hooks.onProgress?.({ phase: 'error', currentChunk: i + 1, totalChunks: allChunks.length, message: lastError || 'Xử lý khối thất bại.' });
+                return { success: false, processedChunks: i, currentIndex: i, totalChunks: allChunks.length, targetWorldbook: importTarget, selectedSheetKeys: selectedSheetKeys || undefined, error: `Khối ${i + 1}/${allChunks.length} xử lý thất bại, đã lưu điểm dừng. ${lastError || 'Hãy tiếp tục chèn sau.'}` };
             }
 
             const saved = await saveChunkProgress_ACU(importTarget, modeSuffix, status, i);
             if (!saved) {
-                return { success: false, processedChunks: i + 1, currentIndex: i + 1, totalChunks: allChunks.length, targetWorldbook: importTarget, selectedSheetKeys: selectedSheetKeys || undefined, error: `第 ${i + 1} 个分块已处理，但无法保存临时数据库条目，已停止继续导入。` };
+                return { success: false, processedChunks: i + 1, currentIndex: i + 1, totalChunks: allChunks.length, targetWorldbook: importTarget, selectedSheetKeys: selectedSheetKeys || undefined, error: `Khối thứ ${i + 1} đã được xử lý, nhưng không thể lưu mục cơ sở dữ liệu tạm, đã dừng nhập tiếp.` };
             }
             hooks.onProgress?.({ phase: 'chunk_done', currentChunk: i + 1, totalChunks: allChunks.length });
         }
@@ -308,14 +308,14 @@ export async function injectImportedSelectedCore_ACU(
         hooks.onProgress?.({ phase: 'finalizing', totalChunks: allChunks.length });
         const finalResult = await finalizeImportAndCleanup_ACU(importTarget, selectedSheetKeys, modeSuffix, allChunks.length);
         if (!finalResult.success) {
-            return { success: false, processedChunks: allChunks.length, currentIndex: allChunks.length, totalChunks: allChunks.length, targetWorldbook: importTarget, selectedSheetKeys: selectedSheetKeys || undefined, error: finalResult.error || '最终注入失败。' };
+            return { success: false, processedChunks: allChunks.length, currentIndex: allChunks.length, totalChunks: allChunks.length, targetWorldbook: importTarget, selectedSheetKeys: selectedSheetKeys || undefined, error: finalResult.error || 'Chèn cuối cùng thất bại.' };
         }
 
         hooks.onProgress?.({ phase: 'complete', totalChunks: allChunks.length });
         return { success: true, processedChunks: allChunks.length, currentIndex: allChunks.length, totalChunks: allChunks.length, targetWorldbook: importTarget, selectedSheetKeys: selectedSheetKeys || undefined, cleanedCount: finalResult.cleanedCount };
     } catch (e) {
         logError_ACU('[外部导入] injectImportedSelectedCore failed.', e);
-        return { success: false, error: e instanceof Error ? e.message : '外部导入注入失败。' };
+        return { success: false, error: e instanceof Error ? e.message : 'Chèn nhập ngoài thất bại.' };
     }
 }
 
@@ -355,16 +355,16 @@ export async function initImportDatabase_ACU(
             _set_currentJsonTableData_ACU(parseTableTemplateJson_ACU({ stripSeedRows: true }));
         } catch(e) {
             logError_ACU("Failed to parse table template for import.", e);
-            return { success: false, error: '无法为导入解析数据库模板。' };
+            return { success: false, error: 'Không thể phân giải mẫu cơ sở dữ liệu cho việc nhập.' };
         }
         if (!currentJsonTableData_ACU) {
-            return { success: false, error: '无法为导入解析数据库模板。' };
+            return { success: false, error: 'Không thể phân giải mẫu cơ sở dữ liệu cho việc nhập.' };
         }
         try {
             await saveImportedJsonDataToLorebook_ACU(importTarget, currentJsonTableData_ACU, modeSuffix);
         } catch (e) {
             logError_ACU('[外部导入] Failed to initialize ImportedJsonData source entry from template.', e);
-            return { success: false, error: '无法初始化外部导入的临时数据库条目。' };
+            return { success: false, error: 'Không thể khởi tạo mục cơ sở dữ liệu tạm cho nhập ngoài.' };
         }
     } else {
         // 断点续行：从世界书恢复数据
@@ -381,7 +381,7 @@ export async function initImportDatabase_ACU(
         } else if (currentJsonTableData_ACU) {
             logWarn_ACU('[外部导入] ImportedJsonData source entry missing during resume, falling back to in-memory data.');
         } else {
-            return { success: false, error: '无法继续导入：未找到临时数据库条目，请重新开始导入。' };
+            return { success: false, error: 'Không thể tiếp tục nhập: không tìm thấy mục cơ sở dữ liệu tạm, hãy bắt đầu nhập lại.' };
         }
     }
 

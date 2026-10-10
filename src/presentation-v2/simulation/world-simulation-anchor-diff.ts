@@ -29,5 +29,5 @@ export function formatWorldSimulationAnchorStaleDiff_ACU(error: WorldSimulationE
     if (expectedValue === actualValue) continue;
     parts.push(`${field} expected=${displayAnchorField_ACU(field, expectedValue)} actual=${displayAnchorField_ACU(field, actualValue)}`);
   }
-  return parts.length ? `锚点差异：${parts.join('；')}` : '';
+  return parts.length ? `Khác biệt mốc neo: ${parts.join('; ')}` : '';
 }

@@ -22,7 +22,7 @@ export async function prepareZeroLayerPlot_ACU(
     finalMessage: null, content: '', taskContents: {}, finalPrompts: [], filterEntries: [], agentActive: false,
   };
   if (!plotSettings?.enabled) return candidate;
-  if (!turn.tableInput) throw new ZeroLayerError_ACU('effects-pending', '剧情准备缺少本轮表格快照。');
+  if (!turn.tableInput) throw new ZeroLayerError_ACU('effects-pending', 'Chuẩn bị cốt truyện thiếu snapshot bảng của lượt này.');
   const input = turn.tableInput;
   const streaming = settings_ACU.streamingEnabled === true;
   const defaultPreset = String(settings_ACU.plotApiPreset || '').trim();
@@ -37,7 +37,7 @@ export async function prepareZeroLayerPlot_ACU(
     if (provider) {
       const loaded = await provider.loadFromData(structuredClone(input.tableData));
       assertCurrent();
-      if (loaded.error || !provider.isReady()) throw new ZeroLayerError_ACU('effects-pending', '剧情独立 SQLite 快照未就绪。');
+      if (loaded.error || !provider.isReady()) throw new ZeroLayerError_ACU('effects-pending', 'Snapshot SQLite độc lập của cốt truyện chưa sẵn sàng.');
     }
     const tableData = provider?.getCurrentDataStrict_ACU() ?? structuredClone(input.tableData);
     const entries: Record<string, any>[] = [];
@@ -51,22 +51,22 @@ export async function prepareZeroLayerPlot_ACU(
       async callApi(messages, name) {
         assertCurrent();
         const resolved = presets.get(name);
-        if (!resolved) throw new ZeroLayerError_ACU('effects-pending', '剧情 API 预设不在本轮冻结配置中。');
+        if (!resolved) throw new ZeroLayerError_ACU('effects-pending', 'Preset API cốt truyện không nằm trong cấu hình đóng băng của lượt này.');
         requireResolvedApiPreset_ACU(name, resolved);
         if (resolved.apiMode !== 'custom' || !resolved.apiConfig.url || !resolved.apiConfig.model) {
-          throw new ZeroLayerError_ACU('effects-pending', '零层剧情必须配置数据库独立 API。');
+          throw new ZeroLayerError_ACU('effects-pending', 'Cốt truyện Tầng 0 phải cấu hình API độc lập của cơ sở dữ liệu.');
         }
         const response = await callAIWithResolvedPreset_ACU(messages,
           { ...resolved, apiConfig: { ...resolved.apiConfig, useMainApi: false } }, signal, undefined, { streaming });
         assertCurrent();
-        if (!response?.trim()) throw new ZeroLayerError_ACU('effects-pending', '剧情 API 未返回有效文本。');
+        if (!response?.trim()) throw new ZeroLayerError_ACU('effects-pending', 'API cốt truyện không trả về văn bản hợp lệ.');
         return response;
       },
     };
     const result = await runPlotTasksRuntime_ACU(plotSettings, turn.input, { requestContext, inputForHash: turn.input });
     assertCurrent();
     if (result.failedResults.length || ('apiRetriesExhausted' in result && result.apiRetriesExhausted)) {
-      throw new ZeroLayerError_ACU('effects-pending', '剧情任务未全部完成，正文请求未发送。');
+      throw new ZeroLayerError_ACU('effects-pending', 'Các tác vụ cốt truyện chưa hoàn tất hết, yêu cầu nội dung chính chưa được gửi.');
     }
     candidate.outcome = result.successfulResults.length ? 'generated' : 'no-tasks';
     candidate.finalMessage = result.finalMessage;
@@ -114,14 +114,14 @@ async function prepareFinalPrompts_ACU(
         if (entry.role === 1 || entry.role === 'user') role = 'user';
         else if (entry.role === 2 || entry.role === 'assistant') role = 'assistant';
         else if (entry.role !== undefined && entry.role !== 0 && entry.role !== 'system') {
-          throw new ZeroLayerError_ACU('effects-pending', '正文世界书角色不受支持。');
+          throw new ZeroLayerError_ACU('effects-pending', 'Vai trò sổ thế giới của nội dung chính không được hỗ trợ.');
         }
         break;
-      default: throw new ZeroLayerError_ACU('effects-pending', '正文世界书位置不受支持，拒绝猜测注入位置。');
+      default: throw new ZeroLayerError_ACU('effects-pending', 'Vị trí sổ thế giới của nội dung chính không được hỗ trợ, từ chối đoán vị trí chèn.');
     }
     const depth = position === 'at_depth' ? Number(entry.depth) : 0;
     if (!Number.isSafeInteger(depth) || depth < 0) {
-      throw new ZeroLayerError_ACU('effects-pending', '正文世界书深度无效。');
+      throw new ZeroLayerError_ACU('effects-pending', 'Độ sâu sổ thế giới của nội dung chính không hợp lệ.');
     }
     const rendered = await tryRenderPlotTemplateWithEjs_ACU(content, context);
     context.assertCurrent();
@@ -132,6 +132,6 @@ async function prepareFinalPrompts_ACU(
     if (text.trim()) candidate.finalPrompts.push({ role, content: text, position, depth });
   }
   if ([...allowed].some(key => !found.has(key))) {
-    throw new ZeroLayerError_ACU('effects-pending', '正文绿灯条目不在本轮冻结目录中，拒绝遗漏注入。');
+    throw new ZeroLayerError_ACU('effects-pending', 'Mục đèn xanh của nội dung chính không nằm trong danh mục đóng băng của lượt này, từ chối bỏ sót chèn.');
   }
 }

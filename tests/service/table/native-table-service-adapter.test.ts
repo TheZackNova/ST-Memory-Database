@@ -163,11 +163,11 @@ describe('NativeTableServiceAdapter', () => {
   // ═══════════════════════════════════════════════════════════════
   describe('executeQuery', () => {
     it('抛出 Error', () => {
-      expect(() => adapter.executeQuery('SELECT 1')).toThrow('SQL 查询仅在 SQLite 模式下可用');
+      expect(() => adapter.executeQuery('SELECT 1')).toThrow('Truy vấn SQL chỉ khả dụng ở chế độ SQLite');
     });
 
     it('错误信息包含切换提示', () => {
-      expect(() => adapter.executeQuery('SELECT 1')).toThrow('切换到 SQLite 模式');
+      expect(() => adapter.executeQuery('SELECT 1')).toThrow('chuyển sang chế độ SQLite');
     });
   });
 
@@ -176,11 +176,11 @@ describe('NativeTableServiceAdapter', () => {
   // ═══════════════════════════════════════════════════════════════
   describe('executeMutation', () => {
     it('抛出 Error', () => {
-      expect(() => adapter.executeMutation('INSERT INTO t VALUES (1)')).toThrow('SQL 变更仅在 SQLite 模式下可用');
+      expect(() => adapter.executeMutation('INSERT INTO t VALUES (1)')).toThrow('Thay đổi SQL chỉ khả dụng ở chế độ SQLite');
     });
 
     it('错误信息包含切换提示', () => {
-      expect(() => adapter.executeMutation('DELETE FROM t')).toThrow('切换到 SQLite 模式');
+      expect(() => adapter.executeMutation('DELETE FROM t')).toThrow('chuyển sang chế độ SQLite');
     });
   });
 

@@ -1366,7 +1366,7 @@ describe('loadTableStateFromFramesV2_ACU', () => {
     for (const patch of cases) {
       const state = makeCheckpointData();
       const before = JSON.parse(JSON.stringify(state));
-      expect(() => applyTablePatchV2_ACU(state, { kind: 'row_upsert', sheetKey: 'sheet_0', ...patch } as any)).toThrow(/身份|行宽/i);
+      expect(() => applyTablePatchV2_ACU(state, { kind: 'row_upsert', sheetKey: 'sheet_0', ...patch } as any)).toThrow(/danh tính|độ rộng hàng/i);
       expect(state).toEqual(before);
     }
 
@@ -1375,14 +1375,14 @@ describe('loadTableStateFromFramesV2_ACU', () => {
     const duplicateBefore = JSON.parse(JSON.stringify(duplicateState));
     expect(() => applyTablePatchV2_ACU(duplicateState, {
       kind: 'row_upsert', sheetKey: 'sheet_0', rowId: '1', cells: ['1', '新值'],
-    } as any)).toThrow(/重复 row_id/i);
+    } as any)).toThrow(/row_id trùng/i);
     expect(duplicateState).toEqual(duplicateBefore);
   });
 
   it('legacy 空身份 row_upsert 删除在目标缺失、坏表头或重复目标时 fail closed', () => {
     const cases = [
-      { mutate: (state: any) => { state.sheet_0.content[0][0] = 'id'; }, error: /row_id 表头/i },
-      { mutate: (state: any) => { state.sheet_0.content.push([' 1 ', '重复']); }, error: /重复 row_id/i },
+      { mutate: (state: any) => { state.sheet_0.content[0][0] = 'id'; }, error: /tiêu đề row_id/i },
+      { mutate: (state: any) => { state.sheet_0.content.push([' 1 ', '重复']); }, error: /row_id trùng/i },
     ];
     for (const { mutate, error } of cases) {
       const state = makeCheckpointData();
@@ -1398,7 +1398,7 @@ describe('loadTableStateFromFramesV2_ACU', () => {
     const missingTargetBefore = JSON.parse(JSON.stringify(missingTargetState));
     expect(() => applyTablePatchV2_ACU(missingTargetState, {
       kind: 'row_upsert', sheetKey: 'sheet_0', rowId: '404', cells: [null, '旧兼容删除'],
-    } as any)).toThrow(/目标 row_id 不存在/i);
+    } as any)).toThrow(/row_id đích không tồn tại/i);
     expect(missingTargetState).toEqual(missingTargetBefore);
 
     const missingSheetState = makeCheckpointData();
@@ -1406,7 +1406,7 @@ describe('loadTableStateFromFramesV2_ACU', () => {
     const missingSheetBefore = JSON.parse(JSON.stringify(missingSheetState));
     expect(() => applyTablePatchV2_ACU(missingSheetState, {
       kind: 'row_upsert', sheetKey: 'sheet_0', rowId: '1', cells: [null, '旧兼容删除'],
-    } as any)).toThrow(/删除目标 Sheet 缺失或 content 非法/i);
+    } as any)).toThrow(/xóa: Sheet đích thiếu hoặc content không hợp lệ/i);
     expect(missingSheetState).toEqual(missingSheetBefore);
 
     const invalidContentState = makeCheckpointData();
@@ -1414,14 +1414,14 @@ describe('loadTableStateFromFramesV2_ACU', () => {
     const invalidContentBefore = JSON.parse(JSON.stringify(invalidContentState));
     expect(() => applyTablePatchV2_ACU(invalidContentState, {
       kind: 'row_upsert', sheetKey: 'sheet_0', rowId: '1', cells: [null, '旧兼容删除'],
-    } as any)).toThrow(/删除目标 Sheet 缺失或 content 非法/i);
+    } as any)).toThrow(/xóa: Sheet đích thiếu hoặc content không hợp lệ/i);
     expect(invalidContentState).toEqual(invalidContentBefore);
 
     const missingIdState = makeCheckpointData();
     const missingIdBefore = JSON.parse(JSON.stringify(missingIdState));
     expect(() => applyTablePatchV2_ACU(missingIdState, {
       kind: 'row_upsert', sheetKey: 'sheet_0', rowId: ' ', cells: [null, '旧兼容删除'],
-    } as any)).toThrow(/缺少 row_id/i);
+    } as any)).toThrow(/thiếu row_id/i);
     expect(missingIdState).toEqual(missingIdBefore);
   });
 
@@ -3658,7 +3658,7 @@ describe('loadTableStateFromFramesV2_ACU', () => {
     { label: 'negative activateAtMessageIndex', timeline: { kind: 'sheet_rebase', activateAtMessageIndex: -1, afterSeq: 0 } },
     { label: 'fractional activateAtMessageIndex', timeline: { kind: 'sheet_rebase', activateAtMessageIndex: 1.5, afterSeq: 0 } },
     { label: 'afterSeq', timeline: { kind: 'sheet_rebase', activateAtMessageIndex: 0, afterSeq: -1 } },
-  ])('rebase 分片与旧 sheet_schema_migrate 无关，非法 timeline $label fail-closed', async ({ timeline }) => {
+  ])('rebase 分片与旧 sheet_schema_migrate 无关，timeline không hợp lệ $label fail-closed', async ({ timeline }) => {
     const rootData = makeCheckpointData();
     const chat = [{
       is_user: false,
@@ -3677,8 +3677,8 @@ describe('loadTableStateFromFramesV2_ACU', () => {
       },
     }];
 
-    await expect(loadTableStateFromFramesV2_ACU(chat, '')).rejects.toThrow('非法 timeline');
-    expect(() => collectScheduleSummaryFromFramesV2_ACU(chat, '')).toThrow('非法 timeline');
+    await expect(loadTableStateFromFramesV2_ACU(chat, '')).rejects.toThrow('timeline không hợp lệ');
+    expect(() => collectScheduleSummaryFromFramesV2_ACU(chat, '')).toThrow('timeline không hợp lệ');
   });
 
   it('per-sheet checkpoint 的合法 map key 覆盖冲突 sheetKey，state 与 schedule 使用同一物理归属', async () => {
@@ -3931,7 +3931,7 @@ describe('loadTableStateFromFramesV2_ACU', () => {
       kind: 'data_replace',
       data: invalidData,
       reason: 'system',
-    } as any)).rejects.toThrow('行标识不合法');
+    } as any)).rejects.toThrow('định danh hàng không hợp lệ');
 
     expect(state).toEqual(original);
   });
@@ -4019,7 +4019,7 @@ describe('loadTableStateFromFramesV2_ACU', () => {
       kind: 'data_replace',
       data: legacyData,
       reason: 'system',
-    } as any)).rejects.toThrow('行标识不合法');
+    } as any)).rejects.toThrow('định danh hàng không hợp lệ');
 
     expect(state).toEqual(original);
   });
@@ -4184,7 +4184,7 @@ describe('loadTableStateFromFramesV2_ACU', () => {
     await expect(applyTableOperationV2_ACU(state, {
       kind: 'meta_update', sheetKey: 'sheet_0',
       meta: { sourceData: { ddl: 'CREATE TABLE inventory (row_id INTEGER PRIMARY KEY, name TEXT, unsafe TEXT);' } },
-    } as any, loadedRuntime as any)).rejects.toThrow('迁移为 sheet_schema_migrate 或 sheet_replace');
+    } as any, loadedRuntime as any)).rejects.toThrow('được di chuyển thành sheet_schema_migrate hoặc sheet_replace');
 
     expect(state).toEqual(original);
     expect(loadedRuntime.loaded).toBe(true);
@@ -6193,7 +6193,7 @@ describe('onEntryApplied', () => {
     await expect(loadTableStateFromFramesV2Detailed_ACU(chat, '', {
       updateRuntimeState: true,
       onEntryApplied: () => undefined,
-    })).rejects.toThrow('onEntryApplied 仅在 updateRuntimeState:false');
+    })).rejects.toThrow('onEntryApplied chỉ được phép ở đường dẫn chỉ đọc với updateRuntimeState:false');
   });
 
   it('只读路径按应用顺序回调，readSheet 返回该 entry 之后的单表快照', async () => {

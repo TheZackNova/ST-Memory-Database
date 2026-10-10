@@ -46,7 +46,7 @@ export class ZeroLayerStore_ACU {
   assertCanOperate(): void {
     const { carrier } = captureZeroLayerCarrier_ACU();
     if (ZeroLayerStore_ACU.operationBlocks.get(carrier)?.size) {
-      throw new ZeroLayerError_ACU('mode-disabled', '零层关闭尚未确认，请显式回读存档或再次关闭，禁止启动新操作。');
+      throw new ZeroLayerError_ACU('mode-disabled', 'Việc tắt Tầng 0 chưa được xác nhận, hãy đọc lại bản lưu rõ ràng hoặc tắt lần nữa, cấm khởi động thao tác mới.');
     }
   }
 
@@ -54,7 +54,7 @@ export class ZeroLayerStore_ACU {
   readSnapshot(): ZeroLayerEnvelope_ACU | null {
     const context = captureZeroLayerCarrier_ACU();
     if (ZeroLayerStore_ACU.unknown.has(context.key)) {
-      throw new ZeroLayerError_ACU('persist-unknown', '零层保存结果未知，请先回读恢复。');
+      throw new ZeroLayerError_ACU('persist-unknown', 'Kết quả lưu Tầng 0 chưa rõ, hãy đọc lại để khôi phục trước.');
     }
     return readZeroLayerCarrier_ACU(context);
   }
@@ -63,12 +63,12 @@ export class ZeroLayerStore_ACU {
     const context = captureZeroLayerCarrier_ACU();
     return this.enqueue(context, async () => {
       if (ZeroLayerStore_ACU.unknown.has(context.key)) {
-        throw new ZeroLayerError_ACU('persist-unknown', '上次保存尚未确认，请先回读恢复。');
+        throw new ZeroLayerError_ACU('persist-unknown', 'Lần lưu trước chưa được xác nhận, hãy đọc lại để khôi phục trước.');
       }
       const current = readZeroLayerCarrier_ACU(context);
       await this.verifySource(context, current);
       if (!sameEnvelope_ACU(readZeroLayerCarrier_ACU(context), current)) {
-        throw new ZeroLayerError_ACU('revision-conflict', '读取期间载体存档已变化。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Bản lưu của vật mang đã thay đổi trong lúc đọc.');
       }
       return current;
     });
@@ -79,14 +79,14 @@ export class ZeroLayerStore_ACU {
     const snapshot = structuredClone(command);
     return this.enqueue(context, async () => {
       if (ZeroLayerStore_ACU.unknown.has(context.key)) {
-        throw new ZeroLayerError_ACU('persist-unknown', '保存结果未知，禁止追加或重试提交。');
+        throw new ZeroLayerError_ACU('persist-unknown', 'Kết quả lưu chưa rõ, cấm thêm hoặc thử gửi lại.');
       }
       const current = readZeroLayerCarrier_ACU(context);
       if (current?.exitManifest) {
-        throw new ZeroLayerError_ACU('mode-disabled', '退出 journal 已冻结零层历史，请使用显式退出恢复，不能重启或改写归档。');
+        throw new ZeroLayerError_ACU('mode-disabled', 'Journal thoát đã đóng băng lịch sử Tầng 0, hãy dùng khôi phục thoát rõ ràng, không được khởi động lại hoặc sửa bản lưu.');
       }
       if ((current?.revision ?? null) !== expectedRevision) {
-        throw new ZeroLayerError_ACU('revision-conflict', '零层 revision 已变化，请重新读取。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Revision Tầng 0 đã thay đổi, hãy đọc lại.');
       }
       const fingerprint = await this.verifySource(context, current);
       const candidate = applyZeroLayerCommand_ACU(current, snapshot, context, fingerprint);
@@ -101,10 +101,10 @@ export class ZeroLayerStore_ACU {
     const selected = structuredClone(selection);
     return this.enqueue(context, async () => {
       if (ZeroLayerStore_ACU.unknown.has(context.key)) {
-        throw new ZeroLayerError_ACU('persist-unknown', '退出保存尚未确认，请先显式回读，禁止重复提交。');
+        throw new ZeroLayerError_ACU('persist-unknown', 'Lưu thoát chưa được xác nhận, hãy đọc lại rõ ràng trước, cấm gửi lặp.');
       }
       const current = readZeroLayerCarrier_ACU(context);
-      requireExit_ACU(current, '退出缺少已保存的零层载体。');
+      requireExit_ACU(current, 'Thoát thiếu vật mang Tầng 0 đã lưu.');
       await this.verifySource(context, current);
       const manifest = await buildZeroLayerExitCandidate_ACU(current,
         context.chat as Record<string, unknown>[], selected);
@@ -112,7 +112,7 @@ export class ZeroLayerStore_ACU {
       assertZeroLayerCarrier_ACU(context);
       assertBridgeConfig_ACU(context.chat, manifest.configFingerprint);
       requireExit_ACU(exitAssignmentsMatch_ACU(context.chat as Record<string, unknown>[], manifest.assignments, 'before'),
-        '退出候选回放期间普通字段已变化。');
+        'Trường thường đã thay đổi trong lúc phát lại ứng viên thoát.');
       const prepared = validateZeroLayerEnvelope_ACU({ ...current, revision: current.revision + 1, exitManifest: manifest });
       await this.persist(context, current, prepared);
       assertLease();
@@ -125,15 +125,15 @@ export class ZeroLayerStore_ACU {
     assertLease();
     const recovered = await this.recover();
     assertLease();
-    requireExit_ACU(recovered?.exitManifest, '服务器没有可续接的退出意图。');
+    requireExit_ACU(recovered?.exitManifest, 'Máy chủ không có ý định thoát nào để tiếp tục.');
     if (recovered.exitManifest.phase === 'committed') return recovered;
     const context = captureZeroLayerCarrier_ACU();
     return this.enqueue(context, async () => {
       if (ZeroLayerStore_ACU.unknown.has(context.key)) {
-        throw new ZeroLayerError_ACU('persist-unknown', '回读后又出现未知保存，禁止推进退出。');
+        throw new ZeroLayerError_ACU('persist-unknown', 'Sau khi đọc lại lại xuất hiện lần lưu chưa rõ, cấm tiến hành thoát.');
       }
       const current = readZeroLayerCarrier_ACU(context);
-      requireExit_ACU(sameEnvelope_ACU(current, recovered), '退出回读后载体已变化。');
+      requireExit_ACU(sameEnvelope_ACU(current, recovered), 'Vật mang đã thay đổi sau khi đọc lại khi thoát.');
       return this.finishExitWithinQueue(context, recovered, assertLease);
     });
   }
@@ -142,12 +142,12 @@ export class ZeroLayerStore_ACU {
     prepared: ZeroLayerEnvelope_ACU, assertLease: () => void): Promise<ZeroLayerEnvelope_ACU> {
     assertLease();
     const journal = prepared.exitManifest;
-    requireExit_ACU(journal?.phase === 'prepared' && !prepared.enabled, '退出缺少已确认的 prepared 意图。');
+    requireExit_ACU(journal?.phase === 'prepared' && !prepared.enabled, 'Thoát thiếu ý định prepared đã xác nhận.');
     await this.verifySource(context, prepared);
     assertLease();
     assertBridgeConfig_ACU(context.chat, journal.configFingerprint);
     requireExit_ACU(exitAssignmentsMatch_ACU(context.chat as Record<string, unknown>[], journal.assignments, 'before'),
-      '退出意图的普通来源已变化。');
+      'Nguồn thường của ý định thoát đã thay đổi.');
     const candidate = validateZeroLayerEnvelope_ACU({ ...prepared, revision: prepared.revision + 1,
       exitManifest: { ...journal, phase: 'committed' } });
     return this.persist(context, prepared, candidate, { values: journal.assignments, beforeSide: 'before' });
@@ -163,15 +163,15 @@ export class ZeroLayerStore_ACU {
     const ref = confirmation ? structuredClone(confirmation) : undefined;
     return this.enqueue(context, async () => {
       if (ZeroLayerStore_ACU.unknown.has(context.key)) {
-        throw new ZeroLayerError_ACU('persist-unknown', '续写保存结果未知，请先回读恢复。');
+        throw new ZeroLayerError_ACU('persist-unknown', 'Kết quả lưu viết tiếp chưa rõ, hãy đọc lại để khôi phục trước.');
       }
       const current = readZeroLayerCarrier_ACU(context);
       if (!current?.enabled || current.sessionId !== sessionId || current.activeBranchId !== branchId) {
-        throw new ZeroLayerError_ACU('scope-changed', '续写所属零层会话或分支已变化。');
+        throw new ZeroLayerError_ACU('scope-changed', 'Phiên hoặc nhánh Tầng 0 của viết tiếp đã thay đổi.');
       }
       const checkpoints = current.branches.find(branch => branch.branchId === branchId)!.checkpoints;
       if (checkpoints?.pending || checkpoints?.cleanupPending) {
-        throw new ZeroLayerError_ACU('effects-pending', 'checkpoint 提交尚未收尾，禁止修改续写来源。');
+        throw new ZeroLayerError_ACU('effects-pending', 'Gửi checkpoint chưa kết thúc, cấm sửa nguồn viết tiếp.');
       }
       await this.verifySource(context, current);
       let base = current;
@@ -182,7 +182,7 @@ export class ZeroLayerStore_ACU {
           || !turn?.continuationIdentity || turn.branchId !== branchId
           || turn.assistantFloor.floorId !== ref.floorId
           || !['response-durable', 'effects-durable', 'published'].includes(turn.phase)) {
-          throw new ZeroLayerError_ACU('revision-conflict', '联合确认缺少本分支已保存的逻辑正文。');
+          throw new ZeroLayerError_ACU('revision-conflict', 'Xác nhận gộp thiếu nội dung logic đã lưu của nhánh này.');
         }
         const state = current.branches.find(branch => branch.branchId === branchId)!.continuation;
         alreadyConfirmed = !!state?.confirmed.some(item => item.turnId === ref.turnId);
@@ -200,7 +200,7 @@ export class ZeroLayerStore_ACU {
             || !capturedRef || !(['sessionId', 'branchId', 'turnId', 'attemptId', 'floorId'] as const)
               .every(key => capturedRef[key] === ref[key])
             || turn.effectReceipts.some(item => item.kind === 'continuation')) {
-            throw new ZeroLayerError_ACU('revision-conflict', '联合确认不属于当前续写等待轮。');
+            throw new ZeroLayerError_ACU('revision-conflict', 'Xác nhận gộp không thuộc lượt chờ viết tiếp hiện tại.');
           }
           const result = { floorId: ref.floorId, identity };
           // 仅组合内存候选；游标、通告与回执通过最终的一次 carrier 保存提交。
@@ -219,22 +219,22 @@ export class ZeroLayerStore_ACU {
         return copy;
       };
       if (!sameEnvelope_ACU(strip(base), strip(candidate))) {
-        throw new ZeroLayerError_ACU('invalid-transition', '续写写口只能更新当前分支的续写状态。');
+        throw new ZeroLayerError_ACU('invalid-transition', 'Cổng ghi viết tiếp chỉ được cập nhật trạng thái viết tiếp của nhánh hiện tại.');
       }
       const beforeFrames = base.branches.find(branch => branch.branchId === branchId)!.continuation?.moduleFrames ?? {};
       const afterFrames = candidate.branches.find(branch => branch.branchId === branchId)!.continuation?.moduleFrames ?? {};
       if (getTableDataFingerprint_ACU(beforeFrames) !== getTableDataFingerprint_ACU(afterFrames)) {
-        throw new ZeroLayerError_ACU('invalid-transition', '续写规划只能更新分支工作帧，不能覆盖已封存或共享前缀资料帧。');
+        throw new ZeroLayerError_ACU('invalid-transition', 'Lập kế hoạch viết tiếp chỉ được cập nhật khung làm việc của nhánh, không được ghi đè khung tài liệu đã niêm phong hoặc tiền tố chung.');
       }
 
       if (ref) {
         const state = candidate.branches.find(branch => branch.branchId === branchId)!.continuation;
         if (!state?.confirmed.some(item => item.turnId === ref.turnId)
           || (!alreadyConfirmed && state.envelope?.activeTask?.pendingHostTurn != null)) {
-          throw new ZeroLayerError_ACU('invalid-transition', '联合确认必须同时保存确认引用并结束等待轮。');
+          throw new ZeroLayerError_ACU('invalid-transition', 'Xác nhận gộp phải đồng thời lưu tham chiếu xác nhận và kết thúc lượt chờ.');
         }
         if (alreadyConfirmed && !sameEnvelope_ACU(current, candidate)) {
-          throw new ZeroLayerError_ACU('invalid-transition', '重复确认不能再次推进续写状态。');
+          throw new ZeroLayerError_ACU('invalid-transition', 'Xác nhận lặp không được tiến thêm trạng thái viết tiếp.');
         }
         return this.persist(context, current, candidate);
       }
@@ -254,15 +254,15 @@ export class ZeroLayerStore_ACU {
     const context = captureZeroLayerCarrier_ACU();
     return this.enqueue(context, async () => {
       if (ZeroLayerStore_ACU.unknown.has(context.key)) {
-        throw new ZeroLayerError_ACU('persist-unknown', '推演保存结果未知，请先回读恢复。');
+        throw new ZeroLayerError_ACU('persist-unknown', 'Kết quả lưu mô phỏng chưa rõ, hãy đọc lại để khôi phục trước.');
       }
       const current = readZeroLayerCarrier_ACU(context);
       if (!current?.enabled || current.sessionId !== sessionId || current.activeBranchId !== branchId) {
-        throw new ZeroLayerError_ACU('scope-changed', '推演所属零层会话或分支已变化。');
+        throw new ZeroLayerError_ACU('scope-changed', 'Phiên hoặc nhánh Tầng 0 của mô phỏng đã thay đổi.');
       }
       const checkpoints = current.branches.find(branch => branch.branchId === branchId)!.checkpoints;
       if (checkpoints?.pending || checkpoints?.cleanupPending) {
-        throw new ZeroLayerError_ACU('effects-pending', 'checkpoint 提交尚未收尾，禁止修改推演来源。');
+        throw new ZeroLayerError_ACU('effects-pending', 'Gửi checkpoint chưa kết thúc, cấm sửa nguồn mô phỏng.');
       }
       await this.verifySource(context, current);
       const candidate = mutator(structuredClone(current));
@@ -272,21 +272,21 @@ export class ZeroLayerStore_ACU {
         return copy;
       };
       if (!sameEnvelope_ACU(strip(current), strip(candidate))) {
-        throw new ZeroLayerError_ACU('invalid-transition', '推演写口只能更新当前分支的推演状态。');
+        throw new ZeroLayerError_ACU('invalid-transition', 'Cổng ghi mô phỏng chỉ được cập nhật trạng thái mô phỏng của nhánh hiện tại.');
       }
       const receipt = typeof effect === 'function' ? effect(structuredClone(candidate)) : effect;
       if (receipt) {
         if (receipt.receipt.kind !== 'simulation' || receipt.userData !== undefined
           || !receipt.assistantData || Object.keys(receipt.assistantData).some(key => key !== 'simulation')) {
-          throw new ZeroLayerError_ACU('invalid-transition', '推演联合提交只允许本轮推演回执。');
+          throw new ZeroLayerError_ACU('invalid-transition', 'Gửi gộp mô phỏng chỉ cho phép biên nhận mô phỏng của lượt này.');
         }
         const repeated = current.turns.find(turn => turn.turnId === receipt.turnId)?.effectReceipts
           .some(item => item.kind === 'simulation');
         if (repeated && !sameEnvelope_ACU(current, candidate)) {
-          throw new ZeroLayerError_ACU('invalid-transition', '重复推演确认不能再次推进分支状态。');
+          throw new ZeroLayerError_ACU('invalid-transition', 'Xác nhận mô phỏng lặp không được tiến thêm trạng thái nhánh.');
         }
         const turn = candidate.turns.find(item => item.turnId === receipt.turnId && item.branchId === branchId);
-        if (!turn) throw new ZeroLayerError_ACU('revision-conflict', '推演回执不属于当前分支。');
+        if (!turn) throw new ZeroLayerError_ACU('revision-conflict', 'Biên nhận mô phỏng không thuộc nhánh hiện tại.');
         const changed = mergeZeroLayerEffectReceipt_ACU(turn, structuredClone(receipt));
         if (!changed && sameEnvelope_ACU(current, candidate)) return current;
         candidate.revision += 1;
@@ -304,7 +304,7 @@ export class ZeroLayerStore_ACU {
     const fingerprint = await physicalHistoryFingerprint_ACU(source);
     assertZeroLayerCarrier_ACU(context);
     if (current && current.activationFingerprint !== fingerprint) {
-      throw new ZeroLayerError_ACU('source-changed', '零层启用时的物理源历史指纹已变化。');
+      throw new ZeroLayerError_ACU('source-changed', 'Dấu vân tay lịch sử nguồn vật lý lúc bật Tầng 0 đã thay đổi.');
     }
     const bridge = current?.branches.find(branch => branch.branchId === current.activeBranchId)?.bridge;
     if (bridge && bridge.phase !== 'reconciled') {
@@ -320,7 +320,7 @@ export class ZeroLayerStore_ACU {
     return this.enqueue(context, async () => {
       const assertKnown = () => {
         if (ZeroLayerStore_ACU.unknown.has(context.key)) {
-          throw new ZeroLayerError_ACU('persist-unknown', '保存结果未知，请使用显式恢复；状态读取不能解除门禁。');
+          throw new ZeroLayerError_ACU('persist-unknown', 'Kết quả lưu chưa rõ, hãy dùng khôi phục rõ ràng; việc đọc trạng thái không gỡ được chốt chặn.');
         }
       };
       assertKnown();
@@ -330,7 +330,7 @@ export class ZeroLayerStore_ACU {
       assertZeroLayerCarrier_ACU(context);
       assertKnown();
       if (physicalHistorySnapshot_ACU(messages) !== context.source) {
-        throw new ZeroLayerError_ACU('source-changed', '服务器物理历史与当前聊天不一致，不能显示为默认关闭。');
+        throw new ZeroLayerError_ACU('source-changed', 'Lịch sử vật lý trên máy chủ không khớp cuộc trò chuyện hiện tại, không thể hiển thị là tắt mặc định.');
       }
       const persisted = readZeroLayerCarrier_ACU({ ...context, chat: messages,
         carrier: messages[context.carrierIndex] });
@@ -338,7 +338,7 @@ export class ZeroLayerStore_ACU {
       assertKnown();
       if (context.carrier[ZERO_LAYER_CARRIER_FIELD_ACU] !== beforeRaw
         || !sameEnvelope_ACU(readZeroLayerCarrier_ACU(context), before)) {
-        throw new ZeroLayerError_ACU('revision-conflict', '状态读取期间本地载体已变化，请重新读取。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Vật mang cục bộ đã thay đổi trong lúc đọc trạng thái, hãy đọc lại.');
       }
       return structuredClone(persisted);
     });
@@ -360,14 +360,14 @@ export class ZeroLayerStore_ACU {
       const pending = ZeroLayerStore_ACU.unknown.get(context.key);
       // 检查与回读共用写队列，不能由队列外的先读绕过新出现的未知保存。
       if (pending && !resolveUnknown) {
-        throw new ZeroLayerError_ACU('persist-unknown', '上次保存尚未确认，启停不能代替显式恢复。');
+        throw new ZeroLayerError_ACU('persist-unknown', 'Lần lưu trước chưa được xác nhận, bật/tắt không thể thay thế khôi phục rõ ràng.');
       }
       const beforeRaw = context.carrier[ZERO_LAYER_CARRIER_FIELD_ACU];
       const messages = await readChatFromHostStrict_ACU();
       assertZeroLayerCarrier_ACU(context);
       if (physicalHistorySnapshot_ACU(messages) !== context.source
         || (pending && pending.source !== context.source)) {
-        throw new ZeroLayerError_ACU('source-changed', '服务器物理历史与当前载体不一致，拒绝恢复写入。');
+        throw new ZeroLayerError_ACU('source-changed', 'Lịch sử vật lý trên máy chủ không khớp vật mang hiện tại, từ chối ghi khôi phục.');
       }
       const carrier = messages[context.carrierIndex];
       const persisted = readZeroLayerCarrier_ACU({ ...context, chat: messages, carrier });
@@ -386,11 +386,11 @@ export class ZeroLayerStore_ACU {
       }
       await this.verifySource(context, persisted);
       if (context.carrier[ZERO_LAYER_CARRIER_FIELD_ACU] !== beforeRaw) {
-        throw new ZeroLayerError_ACU('revision-conflict', '回读期间载体存档已变化。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Bản lưu của vật mang đã thay đổi trong lúc đọc lại.');
       }
       if (pending && !sameEnvelope_ACU(persisted, pending.candidate)
         && !sameEnvelope_ACU(persisted, pending.before)) {
-        throw new ZeroLayerError_ACU('revision-conflict', '服务器存档既不是原快照也不是本次候选，需人工确认。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Bản lưu trên máy chủ không phải snapshot gốc cũng không phải ứng viên lần này, cần xác nhận thủ công.');
       }
       const journal = pending?.candidate.exitManifest ?? persisted?.exitManifest;
       if (journal) {
@@ -400,18 +400,18 @@ export class ZeroLayerStore_ACU {
         if (pending?.assignments) {
           const side = sameEnvelope_ACU(persisted, pending.candidate) ? 'after' : pending.assignments.beforeSide;
           requireExit_ACU(exitAssignmentsMatch_ACU(messages, journal.assignments, side)
-            && (localBefore || localAfter), '退出保存回读不是完整旧状态或完整候选。');
+            && (localBefore || localAfter), 'Đọc lại sau khi lưu thoát không phải trạng thái cũ đầy đủ hay ứng viên đầy đủ.');
           applyExitAssignments_ACU(chat, journal.assignments, side);
         } else if (persisted?.exitManifest?.phase === 'prepared') {
           requireExit_ACU(exitAssignmentsMatch_ACU(messages, journal.assignments, 'before') && localBefore,
-            '退出意图的普通来源已变化。');
+            'Nguồn thường của ý định thoát đã thay đổi.');
         } else if (persisted?.exitManifest?.phase === 'committed') {
           // 已有普通后缀时基线允许沿普通写口演化，不能把旧 assignments 再写回。
           requireExit_ACU(pending ? exitAssignmentsMatch_ACU(messages, journal.assignments, 'after') && localAfter
-            : JSON.stringify(messages) === JSON.stringify(context.chat), '退出存档回读与当前完整聊天不一致。');
+            : JSON.stringify(messages) === JSON.stringify(context.chat), 'Đọc lại bản lưu thoát không khớp với toàn bộ cuộc trò chuyện hiện tại.');
         } else {
           requireExit_ACU(exitAssignmentsMatch_ACU(messages, journal.assignments, 'before') && localBefore,
-            '退出意图未保存，但普通来源已变化。');
+            'Ý định thoát chưa được lưu, nhưng nguồn thường đã thay đổi.');
         }
       }
       if (persisted === null) delete context.carrier[ZERO_LAYER_CARRIER_FIELD_ACU];
@@ -434,11 +434,11 @@ export class ZeroLayerStore_ACU {
     const verifyExit = (side: 'before' | 'after') => {
       if (!journal) return;
       assertBridgeConfig_ACU(context.chat, journal.configFingerprint);
-      requireExit_ACU(exitAssignmentsMatch_ACU(chat, journal.assignments, side), '退出保存字段与冻结写集不一致。');
+      requireExit_ACU(exitAssignmentsMatch_ACU(chat, journal.assignments, side), 'Trường lưu thoát không khớp với tập ghi đã đóng băng.');
     };
     verifyExit(assignments?.beforeSide ?? (journal?.phase === 'committed' ? 'after' : 'before'));
     if (!sameEnvelope_ACU(readZeroLayerCarrier_ACU(context), before)) {
-      throw new ZeroLayerError_ACU('revision-conflict', '保存前载体存档已变化。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Bản lưu của vật mang đã thay đổi trước khi lưu.');
     }
     if (sameEnvelope_ACU(before, candidate)) return structuredClone(candidate);
     const bridge = candidate.branches.find(branch => branch.branchId === candidate.activeBranchId)?.bridge;
@@ -464,7 +464,7 @@ export class ZeroLayerStore_ACU {
       verifyExit(journal?.phase === 'committed' ? 'after' : 'before');
       const confirmed = readZeroLayerCarrierCandidate_ACU(context);
       if (!sameEnvelope_ACU(confirmed, candidate)) {
-        throw new ZeroLayerError_ACU('revision-conflict', '保存确认后载体存档已变化。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Bản lưu của vật mang đã thay đổi sau khi xác nhận lưu.');
       }
       releaseCandidate();
       notifyZeroLayerChanges_ACU(before, candidate);
@@ -478,13 +478,13 @@ export class ZeroLayerStore_ACU {
         else delete context.carrier[ZERO_LAYER_CARRIER_FIELD_ACU];
       }
       if (error instanceof HostChatSaveNotStartedError_ACU) {
-        throw new ZeroLayerError_ACU('persist-failed', '宿主保存未开始，零层字段已恢复。');
+        throw new ZeroLayerError_ACU('persist-failed', 'Host chưa bắt đầu lưu, trường Tầng 0 đã được khôi phục.');
       }
       ZeroLayerStore_ACU.unknown.set(context.key, {
         before: structuredClone(before), candidate: structuredClone(candidate), source: context.source,
         ...(assignments ? { assignments: structuredClone(assignments) } : {}),
       });
-      throw new ZeroLayerError_ACU('persist-unknown', '零层保存结果尚未确认；禁止继续提交，请从服务器回读恢复。');
+      throw new ZeroLayerError_ACU('persist-unknown', 'Kết quả lưu Tầng 0 chưa được xác nhận; cấm tiếp tục gửi, hãy đọc lại từ máy chủ để khôi phục.');
     } finally {
       releaseCandidate();
     }

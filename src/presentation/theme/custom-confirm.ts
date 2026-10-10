@@ -43,8 +43,8 @@ export function showCustomConfirm_ACU(
   options: CustomConfirmOptions = {},
 ): Promise<boolean> {
   const {
-    confirmLabel = '确定',
-    cancelLabel = '取消',
+    confirmLabel = 'Xác nhận',
+    cancelLabel = 'Hủy',
   } = options;
 
   const targetDoc = getTargetDoc();

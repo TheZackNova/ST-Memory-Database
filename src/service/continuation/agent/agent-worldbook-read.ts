@@ -119,7 +119,7 @@ export async function loadAgentWorldbookSnapshot_ACU(options: AgentWorldbookSnap
         entries.push({
           bookName,
           uid,
-          title: title || `条目 ${uid}`,
+          title: title || `Mục ${uid}`,
           keys: readEntryKeys_ACU(raw),
           constant: raw.type === 'constant',
           preventRecursion: raw.prevent_recursion === true,
@@ -164,13 +164,13 @@ function entryExcerpt_ACU(content: string): string {
  * @returns 目录文本，进入主 Agent 骨架的 $WORLDBOOK_CATALOG
  */
 export function renderAgentWorldbookCatalog_ACU(snapshot: AgentWorldbookSnapshot_ACU): string {
-  if (!snapshot.available) return '本轮世界书读取失败，目录不可用；请勿臆测世界书内容，可照常使用其他资料域。';
-  if (!snapshot.entries.length) return '当前没有已启用的世界书条目。';
+  if (!snapshot.available) return 'Đọc sổ thế giới lượt này thất bại, danh mục không khả dụng; đừng suy đoán nội dung sổ thế giới, vẫn có thể dùng các miền tư liệu khác như bình thường.';
+  if (!snapshot.entries.length) return 'Hiện không có mục sổ thế giới nào đang bật.';
   const lines = snapshot.entries.map(entry => {
-    const keys = entry.keys.length ? entry.keys.join('、') : '（无）';
-    return `- ${entry.title}｜关键词：${keys}｜摘要：${entryExcerpt_ACU(entry.content)}｜约 ${entry.tokens} token → 读取地址 $WORLDBOOK:${entry.bookName}:${entry.uid}`;
+    const keys = entry.keys.length ? entry.keys.join(', ') : '(không có)';
+    return `- ${entry.title}｜từ khóa: ${keys}｜tóm tắt: ${entryExcerpt_ACU(entry.content)}｜khoảng ${entry.tokens} token → địa chỉ đọc $WORLDBOOK:${entry.bookName}:${entry.uid}`;
   });
-  return `## 已启用的世界书条目（共 ${snapshot.entries.length} 条，只有这里列出的可读；行尾 token 数用于估算读取预算）\n${lines.join('\n')}`;
+  return `## Các mục sổ thế giới đang bật (tổng ${snapshot.entries.length} mục, chỉ các mục liệt kê ở đây đọc được; số token cuối dòng dùng để ước tính ngân sách đọc)\n${lines.join('\n')}`;
 }
 
 /**
@@ -230,19 +230,19 @@ export function selectTriggeredWorldbookEntries_ACU(
 }
 
 export function renderAgentWorldbookHits_ACU(snapshot: AgentWorldbookSnapshot_ACU, scanText: string): string {
-  if (!snapshot.available) return '本轮世界书读取失败，无法给出命中提示；请勿臆测世界书内容。';
-  if (!snapshot.entries.length) return '当前没有已启用的世界书条目，无命中提示。';
+  if (!snapshot.available) return 'Đọc sổ thế giới lượt này thất bại, không thể đưa ra gợi ý khớp; đừng suy đoán nội dung sổ thế giới.';
+  if (!snapshot.entries.length) return 'Hiện không có mục sổ thế giới nào đang bật, không có gợi ý khớp.';
   const hits = selectTriggeredWorldbookEntries_ACU(snapshot.entries, scanText);
-  if (!hits.length) return '本轮语境没有命中任何世界书条目的关键词，也没有常开条目。需要设定时从世界书目录挑选精读。';
+  if (!hits.length) return 'Ngữ cảnh lượt này không khớp từ khóa của mục sổ thế giới nào, cũng không có mục luôn bật. Khi cần thiết lập thì chọn đọc kỹ từ danh mục sổ thế giới.';
   const lines = hits.map(entry =>
-    `- ${entry.title}（${entry.constant ? '常开' : '关键词命中'}｜约 ${entry.tokens} token）→ $WORLDBOOK:${entry.bookName}:${entry.uid}`);
-  return `以下条目与本轮语境直接相关（常开条目 + 关键词命中），本轮涉及对应设定时应精读：\n${lines.join('\n')}`;
+    `- ${entry.title} (${entry.constant ? 'luôn bật' : 'khớp từ khóa'}｜khoảng ${entry.tokens} token) → $WORLDBOOK:${entry.bookName}:${entry.uid}`);
+  return `Các mục sau liên quan trực tiếp đến ngữ cảnh lượt này (mục luôn bật + khớp từ khóa), khi lượt này đụng tới thiết lập tương ứng thì nên đọc kỹ:\n${lines.join('\n')}`;
 }
 
 /** 总纲与大纲看到的是目录，由它们自己决定读哪一条。 */
-export const WORLDBOOK_BROWSE_NOTE_ACU = '这是全部已启用世界书条目的目录，不是命中清单，没有注入条目全文。需要哪一条就按行尾地址 read。也可以用 search，scope 设为 ["worldbook"]，按关键词在世界书域里检索。';
+export const WORLDBOOK_BROWSE_NOTE_ACU = 'Đây là danh mục toàn bộ mục sổ thế giới đang bật, không phải danh sách khớp, chưa tiêm toàn văn các mục. Cần mục nào thì read theo địa chỉ cuối dòng. Cũng có thể dùng search, đặt scope là ["worldbook"], tìm theo từ khóa trong miền sổ thế giới.';
 
-const WORLDBOOK_TRIGGERED_NOTE_ACU = '以下是本轮按与剧情推进、填表相同的规则触发的世界书条目全文：常量条目直接纳入；关键词条目会迭代触发，已触发条目的正文可以继续带出别的关键词条目。已注入的条目不必重复 read；未命中的内容仅能通过当前角色已授权的资料目录和工具获取，无法核实时须说明缺口。';
+const WORLDBOOK_TRIGGERED_NOTE_ACU = 'Sau đây là toàn văn các mục sổ thế giới được kích hoạt trong lượt này theo cùng quy tắc với đẩy cốt truyện và điền bảng: mục hằng được đưa thẳng vào; mục từ khóa kích hoạt lặp, nội dung của mục đã kích hoạt có thể tiếp tục kéo theo các mục từ khóa khác. Mục đã tiêm không cần read lại; nội dung chưa khớp chỉ có thể lấy qua danh mục tư liệu và công cụ mà vai trò hiện tại được cấp quyền, khi không thể xác minh phải nêu rõ chỗ thiếu.';
 
 /** 总纲、大纲使用的已启用目录。不附带命中条目全文。 */
 export function renderAgentWorldbookBrowseCatalog_ACU(snapshot: AgentWorldbookSnapshot_ACU): string {
@@ -254,7 +254,7 @@ export function renderAgentWorldbookBrowseCatalog_ACU(snapshot: AgentWorldbookSn
  * 常量条目直接纳入；关键词条目按已触发正文迭代，规则与剧情推进、填表相同。
  */
 export function renderAgentWorldbookTriggeredInjection_ACU(snapshot: AgentWorldbookSnapshot_ACU, scanText: string): string {
-  if (!snapshot.available) return `本轮世界书不可用。不要臆测设定。\n${WORLDBOOK_TRIGGERED_NOTE_ACU}`;
+  if (!snapshot.available) return `Sổ thế giới lượt này không khả dụng. Đừng suy đoán thiết lập.\n${WORLDBOOK_TRIGGERED_NOTE_ACU}`;
   return `${WORLDBOOK_TRIGGERED_NOTE_ACU}\n${renderAgentWorldbookHitBodies_ACU(snapshot, scanText)}`;
 }
 
@@ -267,10 +267,10 @@ export async function loadTriggeredWorldbookInjection_ACU(scanText: string): Pro
 
 /** 本轮命中的世界书条目全文。 */
 export function renderAgentWorldbookHitBodies_ACU(snapshot: AgentWorldbookSnapshot_ACU, scanText: string): string {
-  if (!snapshot.available) return '本轮世界书不可用。';
-  if (!snapshot.entries.length) return '当前没有已启用的世界书条目。';
+  if (!snapshot.available) return 'Sổ thế giới lượt này không khả dụng.';
+  if (!snapshot.entries.length) return 'Hiện không có mục sổ thế giới nào đang bật.';
   const hits = selectTriggeredWorldbookEntries_ACU(snapshot.entries, scanText);
-  if (!hits.length) return '本轮没有命中世界书条目。';
+  if (!hits.length) return 'Lượt này không khớp mục sổ thế giới nào.';
   const byBook = new Map<string, string[]>();
   for (const hit of hits) {
     const list = byBook.get(hit.bookName) ?? [];
@@ -285,15 +285,15 @@ export function renderAgentWorldbookHitBodies_ACU(snapshot: AgentWorldbookSnapsh
  * @returns 条目全文；未知书名/uid 或条目未启用时回灌可修正的错误文本
  */
 export function renderAgentWorldbookEntries_ACU(snapshot: AgentWorldbookSnapshot_ACU, bookName: string, uids: readonly string[]): string {
-  if (!snapshot.available) return '本轮世界书读取失败，无法精读条目。';
+  if (!snapshot.available) return 'Đọc sổ thế giới lượt này thất bại, không thể đọc kỹ mục.';
   const book = String(bookName ?? '').trim();
   const wanted = uids.map(uid => String(uid ?? '').trim()).filter(Boolean);
-  if (!book || !wanted.length) return '世界书读取地址不完整：需要 $WORLDBOOK:书名:uid（逗号分隔多个 uid）。地址请从世界书目录复制。';
+  if (!book || !wanted.length) return 'Địa chỉ đọc sổ thế giới không đầy đủ: cần $WORLDBOOK:tên_sách:uid (nhiều uid ngăn cách bằng dấu phẩy). Hãy sao chép địa chỉ từ danh mục sổ thế giới.';
   const inBook = snapshot.entries.filter(entry => entry.bookName === book);
-  if (!inBook.length) return `已启用条目中不存在世界书「${book}」。可用地址见世界书目录；未启用的条目不可读。`;
+  if (!inBook.length) return `Trong các mục đang bật không có sổ thế giới "${book}". Địa chỉ khả dụng xem trong danh mục sổ thế giới; mục chưa bật không đọc được.`;
   const found = inBook.filter(entry => wanted.includes(entry.uid));
   const missing = wanted.filter(uid => !inBook.some(entry => entry.uid === uid));
-  const parts: string[] = found.map(entry => `### ${entry.title}（${entry.bookName}#${entry.uid}）\n${entry.content}`);
-  if (missing.length) parts.push(`以下 uid 不存在于「${book}」的已启用条目中：${missing.join('、')}。地址请从世界书目录复制。`);
+  const parts: string[] = found.map(entry => `### ${entry.title} (${entry.bookName}#${entry.uid})\n${entry.content}`);
+  if (missing.length) parts.push(`Các uid sau không tồn tại trong các mục đang bật của "${book}": ${missing.join(', ')}. Hãy sao chép địa chỉ từ danh mục sổ thế giới.`);
   return parts.join('\n\n');
 }

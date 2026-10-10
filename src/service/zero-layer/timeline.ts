@@ -40,7 +40,7 @@ export function getPublishedZeroLayerPath_ACU(envelope: ZeroLayerEnvelope_ACU): 
   while (cursor !== null) {
     const turn = turns.get(cursor);
     if (!turn || turn.phase !== 'published' || seen.has(cursor)) {
-      throw new ZeroLayerError_ACU('corrupt-data', '逻辑历史父链无效。');
+      throw new ZeroLayerError_ACU('corrupt-data', 'Chuỗi cha của lịch sử logic không hợp lệ.');
     }
     seen.add(cursor);
     path.push(turn);
@@ -65,12 +65,12 @@ export function buildZeroLayerTimeline_ACU(
 ): ZeroLayerTimelineSnapshot_ACU {
   const source = validateZeroLayerEnvelope_ACU(envelope);
   if (physicalMessages.length !== source.activationMessageCount) {
-    throw new ZeroLayerError_ACU('source-changed', '物理历史长度与启用边界不一致。');
+    throw new ZeroLayerError_ACU('source-changed', 'Độ dài lịch sử vật lý không khớp với ranh giới kích hoạt.');
   }
   let completedAiCount = 0;
   const floors: ZeroLayerTimelineFloor_ACU[] = physicalMessages.map((message, messageIndex) => {
     if (!message || typeof message.mes !== 'string') {
-      throw new ZeroLayerError_ACU('source-changed', '物理历史正文无效。');
+      throw new ZeroLayerError_ACU('source-changed', 'Nội dung lịch sử vật lý không hợp lệ.');
     }
     const role = message.is_user === true ? 'user' : message.is_system === true ? 'system' : 'assistant';
     return {

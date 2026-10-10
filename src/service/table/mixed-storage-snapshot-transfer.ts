@@ -64,17 +64,17 @@ function isRecord_ACU(value: unknown): value is Record<string, unknown> {
 
 function assertSafeJsonValue_ACU(value: unknown, path = '$', seen = new Set<object>()): void {
   if (Array.isArray(value)) {
-    if (seen.has(value)) throw new Error(`Mixed storage snapshot 包含循环引用：${path}`);
+    if (seen.has(value)) throw new Error(`Mixed storage snapshot chứa tham chiếu vòng: ${path}`);
     seen.add(value);
     value.forEach((item, index) => assertSafeJsonValue_ACU(item, `${path}[${index}]`, seen));
     seen.delete(value);
     return;
   }
   if (!isRecord_ACU(value)) return;
-  if (seen.has(value)) throw new Error(`Mixed storage snapshot 包含循环引用：${path}`);
+  if (seen.has(value)) throw new Error(`Mixed storage snapshot chứa tham chiếu vòng: ${path}`);
   seen.add(value);
   for (const [key, child] of Object.entries(value)) {
-    if (DANGEROUS_KEYS_ACU.has(key)) throw new Error(`Mixed storage snapshot 包含危险键：${path}.${key}`);
+    if (DANGEROUS_KEYS_ACU.has(key)) throw new Error(`Mixed storage snapshot chứa khóa nguy hiểm: ${path}.${key}`);
     assertSafeJsonValue_ACU(child, `${path}.${key}`, seen);
   }
   seen.delete(value);

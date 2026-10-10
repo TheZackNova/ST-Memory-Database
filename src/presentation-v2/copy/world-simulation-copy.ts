@@ -10,17 +10,17 @@ export const WORLD_SIMULATION_AGENT_ORDER_ACU: readonly WorldSimulationAgentName
  * 退役角色保留展示名，避免旧会话卡片回退成英文内部名。
  */
 export const WORLD_SIMULATION_AGENT_DISPLAY_LABELS_ACU: Record<string, string> = {
-  'world-director': '主 Agent',
-  'world-stage-planner': '阶段规划',
-  'timekeeper': '旧角色：时计',
-  'undercurrent-analyst': '时序与伏线',
-  'dramatis-keeper': '人物谱',
-  'chronicler': '旧角色：纪要',
-  'causality-reviewer': '因果审核',
-  'guidance-composer': '纪要、风声与场外信号',
-  'lore-researcher': '设定研究',
-  'requirements-maintainer': '用户要求维护',
-  'world-analyst': '格林推演',
+  'world-director': 'Agent chính',
+  'world-stage-planner': 'Lập kế hoạch giai đoạn',
+  'timekeeper': 'Vai trò cũ: Đồng hồ',
+  'undercurrent-analyst': 'Trình tự thời gian và mạch ngầm',
+  'dramatis-keeper': 'Danh bạ nhân vật',
+  'chronicler': 'Vai trò cũ: Kỷ yếu',
+  'causality-reviewer': 'Thẩm định nhân quả',
+  'guidance-composer': 'Kỷ yếu, tin đồn và tín hiệu ngoài cảnh',
+  'lore-researcher': 'Nghiên cứu thiết lập',
+  'requirements-maintainer': 'Bảo trì yêu cầu người dùng',
+  'world-analyst': 'Mô phỏng thế giới',
 };
 
 export function worldSimulationAgentLabel_ACU(agentName: string): string {

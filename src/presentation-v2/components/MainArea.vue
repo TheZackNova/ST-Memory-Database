@@ -5,7 +5,7 @@
       :is="router.activePage.component"
       :key="`${router.activePageId}:${shell.openRefreshTick}`"
     />
-    <p v-else class="acu-v2-main__empty">没有可显示的页面（路由 store 异常）</p>
+    <p v-else class="acu-v2-main__empty">Không có trang nào để hiển thị (store định tuyến bất thường)</p>
   </main>
 </template>
 

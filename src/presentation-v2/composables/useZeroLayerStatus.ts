@@ -47,8 +47,8 @@ function emptyControls(): ZeroLayerControls {
 }
 
 function loadingStatus(): ZeroLayerStatusView {
-  return { status: 'loading', intent: null, label: '读取中',
-    detail: '正在读取当前聊天存档；不会保存设置或自动恢复。', revision: null, headTurnId: null };
+  return { status: 'loading', intent: null, label: 'Đang đọc',
+    detail: 'Đang đọc lưu trữ cuộc trò chuyện hiện tại; sẽ không lưu cài đặt hay tự động khôi phục.', revision: null, headTurnId: null };
 }
 
 /** 仅投影已校验存档；尚未通过完整生产准入，不对外声明 ready。 */
@@ -60,19 +60,19 @@ function projectStatus(source: ZeroLayerEnvelope_ACU | null): ZeroLayerStatusVie
     || branch?.checkpoints?.pending || branch?.checkpoints?.cleanupPending
     || source?.turns.some(turn => turn.branchId === source.activeBranchId
       && !['published', 'cancelled', 'failed'].includes(turn.phase))) {
-    return { ...base, status: 'recovery-required', label: '待恢复',
-      detail: '存档有未闭合回合、checkpoint 或退出意图。只读刷新不恢复、不重发正文；关闭也不等于取得普通发送资格。' };
+    return { ...base, status: 'recovery-required', label: 'Chờ khôi phục',
+      detail: 'Lưu trữ có lượt chưa đóng, checkpoint hoặc ý định thoát. Làm mới chỉ đọc sẽ không khôi phục, không gửi lại nội dung; đóng cũng không đồng nghĩa với có quyền gửi thông thường.' };
   }
   if (branch?.bridge && branch.bridge.phase !== 'reconciled') {
-    return { ...base, status: 'preparing', label: '桥接未完成',
-      detail: '已保存的启用桥接尚未确认完成。请通过受控恢复入口处理；此处不会推进保存阶段。' };
+    return { ...base, status: 'preparing', label: 'Chưa hoàn tất cầu nối',
+      detail: 'Cầu nối đã bật và đã lưu vẫn chưa xác nhận hoàn tất. Vui lòng xử lý qua lối vào khôi phục có kiểm soát; ở đây sẽ không đẩy giai đoạn lưu tiếp.' };
   }
-  if (!source?.enabled) return { ...base, status: 'disabled', label: '已关闭',
-    detail: source?.exitManifest?.phase === 'committed' ? '已关闭并保存普通模式退出归档；逻辑历史保留。'
-      : source ? '已保存关闭意图；逻辑历史保留，不自动退出到普通模式。'
-        : '服务器确认当前聊天尚未启用；默认关闭，不创建存档。' };
-  return { ...base, status: 'unverified', label: '已开启 · 待实机验证',
-    detail: '启用存档已确认；宿主请求、保存恢复与游戏连续运行仍需实机验证。关闭保留历史，恢复不盲目重发正文。' };
+  if (!source?.enabled) return { ...base, status: 'disabled', label: 'Đã tắt',
+    detail: source?.exitManifest?.phase === 'committed' ? 'Đã tắt và lưu bản lưu trữ thoát chế độ thường; lịch sử logic được giữ lại.'
+      : source ? 'Đã lưu ý định tắt; lịch sử logic được giữ lại, không tự động thoát về chế độ thường.'
+        : 'Máy chủ xác nhận cuộc trò chuyện hiện tại chưa bật; mặc định tắt, không tạo lưu trữ.' };
+  return { ...base, status: 'unverified', label: 'Đã bật · chờ kiểm chứng thực tế',
+    detail: 'Lưu trữ đã bật được xác nhận; yêu cầu máy chủ, khôi phục lưu và việc chạy game liên tục vẫn cần kiểm chứng thực tế. Tắt giữ lại lịch sử, khôi phục không gửi lại nội dung một cách mù quáng.' };
 }
 
 function failedStatus(error: unknown): ZeroLayerStatusView {
@@ -81,10 +81,10 @@ function failedStatus(error: unknown): ZeroLayerStatusView {
   const incompatible = ['source-changed', 'scope-changed', 'corrupt-data', 'unsupported-version',
     'chat-unavailable', 'carrier-unavailable'].includes(code);
   return { status: recovery ? 'recovery-required' : incompatible ? 'incompatible' : 'storage-read-failed',
-    intent: null, label: recovery ? '保存待确认' : incompatible ? '当前不可用' : '读取失败',
-    detail: recovery ? '保存结果未知，开启意图也未确认。只读刷新不能解除门禁，请使用显式恢复入口。'
-      : incompatible ? `当前聊天身份、源历史或存档无法确认（${code}）；不会按默认关闭处理。`
-        : '当前聊天存档读取失败，开启意图未知；可重试只读刷新，不会保存或重新生成。',
+    intent: null, label: recovery ? 'Lưu chờ xác nhận' : incompatible ? 'Hiện không khả dụng' : 'Đọc thất bại',
+    detail: recovery ? 'Kết quả lưu chưa rõ, ý định bật cũng chưa được xác nhận. Làm mới chỉ đọc không thể gỡ cổng chặn, vui lòng dùng lối vào khôi phục tường minh.'
+      : incompatible ? `Danh tính cuộc trò chuyện hiện tại, lịch sử nguồn hoặc lưu trữ không thể xác nhận (${code}); sẽ không xử lý theo mặc định tắt.`
+        : 'Đọc lưu trữ cuộc trò chuyện hiện tại thất bại, ý định bật chưa rõ; có thể thử lại làm mới chỉ đọc, sẽ không lưu hay tạo lại.',
     revision: null, headTurnId: null };
 }
 
@@ -157,7 +157,7 @@ export function useZeroLayerStatus() {
       controls.value = source ? {
         apiPresetName: source.apiPresetName, branchId: source.activeBranchId,
         branches: source.branches.map(branch => ({ value: branch.branchId, label: branch.branchId })),
-        heads: [{ value: '', label: '启用切点' }, ...path.map(turn => ({ value: turn.turnId, label: turn.turnId }))],
+        heads: [{ value: '', label: 'Điểm cắt kích hoạt' }, ...path.map(turn => ({ value: turn.turnId, label: turn.turnId }))],
         canSend: source.enabled && view.value.status === 'unverified',
         canExit: !source.enabled && !source.exitManifest && path.length > 0 && view.value.status === 'disabled',
         pendingTurn: pending && !source.exitManifest
@@ -208,7 +208,7 @@ export function useZeroLayerStatus() {
         unsubscribeHistory = authorized.api.subscribe(change => {
           if (change.kind !== 'scope-invalidated' || lease !== historyEpoch) return;
           clearHistory();
-          historyError.value = '历史授权已撤销，请重新选择当前分支读取。';
+          historyError.value = 'Ủy quyền lịch sử đã bị thu hồi, vui lòng chọn lại nhánh hiện tại để đọc.';
         });
       }
       const page = historyPage;
@@ -223,7 +223,7 @@ export function useZeroLayerStatus() {
     } catch (error) {
       if (!disposed && lease === historyEpoch && scopeLease === actionEpoch) {
         clearHistory();
-        historyError.value = error instanceof Error ? error.message : '历史读取失败，请重新取得快照。';
+        historyError.value = error instanceof Error ? error.message : 'Đọc lịch sử thất bại, vui lòng lấy lại snapshot.';
       }
     } finally {
       if (lease === historyEpoch) historyLoading.value = false;
@@ -242,10 +242,10 @@ export function useZeroLayerStatus() {
         source = await store.readPersistedSnapshot();
         assertZeroLayerCarrier_ACU(context);
         if (disposed || lease !== actionEpoch || JSON.stringify(source) !== JSON.stringify(confirmed)) {
-          throw new ZeroLayerError_ACU('revision-conflict', '存档已变化，请刷新后重新选择操作。');
+          throw new ZeroLayerError_ACU('revision-conflict', 'Lưu trữ đã thay đổi, vui lòng làm mới rồi chọn lại thao tác.');
         }
       }
-      if (disposed || lease !== actionEpoch) throw new ZeroLayerError_ACU('scope-changed', '操作已撤销。');
+      if (disposed || lease !== actionEpoch) throw new ZeroLayerError_ACU('scope-changed', 'Thao tác đã bị hủy.');
       await work(source);
       assertZeroLayerCarrier_ACU(context);
       if (disposed || lease !== actionEpoch) return false;
@@ -254,7 +254,7 @@ export function useZeroLayerStatus() {
     } catch (error) {
       if (!disposed && lease === actionEpoch) {
         actionError.value = error instanceof ZeroLayerError_ACU ? error.message
-          : '操作未完成；请检查宿主能力、API 预设或游戏绑定后重试，不会退回普通发送。';
+          : 'Thao tác chưa hoàn tất; vui lòng kiểm tra khả năng của máy chủ, preset API hoặc liên kết game rồi thử lại, sẽ không quay về gửi thông thường.';
         await refresh();
       }
       return false;
@@ -269,27 +269,27 @@ export function useZeroLayerStatus() {
   const recover = () => operate(() => getZeroLayerPageOperations_ACU().recover(), true);
   const abandon = () => operate(source => {
     const turn = findAbandonableTurn(source);
-    if (!turn) throw new ZeroLayerError_ACU('invalid-transition', '当前没有可放弃的未保存回合。');
+    if (!turn) throw new ZeroLayerError_ACU('invalid-transition', 'Hiện không có lượt chưa lưu nào có thể bỏ.');
     return getZeroLayerPageOperations_ACU().abandon(turn.turnId, turn.attemptId);
   });
   const selectBranch = (branchId: string) => operate(() =>
     getZeroLayerPageOperations_ACU().changeBranch({ type: 'select-branch', branchId }));
   const forkBranch = (branchId: string, turnId: string) => operate(source => {
-    if (!source) throw new ZeroLayerError_ACU('mode-disabled', '当前聊天没有逻辑历史。');
+    if (!source) throw new ZeroLayerError_ACU('mode-disabled', 'Cuộc trò chuyện hiện tại không có lịch sử logic.');
     const turn = getPublishedZeroLayerPath_ACU(source).find(item => item.turnId === turnId);
-    if (turnId && !turn) throw new ZeroLayerError_ACU('history-unavailable', '所选切点已不可用。');
+    if (turnId && !turn) throw new ZeroLayerError_ACU('history-unavailable', 'Điểm cắt đã chọn không còn khả dụng.');
     return getZeroLayerPageOperations_ACU().changeBranch({ type: 'fork-branch', branchId,
       head: turn ? { kind: 'logical', sessionId: source.sessionId, branchId: turn.branchId,
         turnId: turn.turnId, floorId: turn.assistantFloor.floorId, role: 'assistant' } : null });
   });
   const exit = () => operate(source => {
-    if (!source) throw new ZeroLayerError_ACU('mode-disabled', '当前聊天没有退出素材。');
+    if (!source) throw new ZeroLayerError_ACU('mode-disabled', 'Cuộc trò chuyện hiện tại không có tư liệu thoát.');
     const context = captureZeroLayerCarrier_ACU();
     const floors = buildZeroLayerTimeline_ACU(source, context.chat as Record<string, unknown>[]).floors;
     const head = floors[floors.length - 1]?.ref;
     const target = floors[source.activationMessageCount - 1];
     if (head?.kind !== 'logical' || head.role !== 'assistant' || target?.ref.kind !== 'host' || target.role !== 'assistant') {
-      throw new ZeroLayerError_ACU('history-unavailable', '退出需要已发布 head 和原物理前缀末尾的 assistant 接入点。');
+      throw new ZeroLayerError_ACU('history-unavailable', 'Thoát cần head đã phát hành và điểm tiếp nhận assistant ở cuối tiền tố vật lý gốc.');
     }
     return getZeroLayerPageOperations_ACU().exit({ expectedRevision: source.revision, head, target: target.ref });
   });
@@ -324,8 +324,8 @@ export function useZeroLayerStatus() {
     const source = SillyTavern_API_ACU?.eventSource;
     const events = SillyTavern_API_ACU?.eventTypes;
     if (!source || !events?.CHAT_CHANGED) {
-      view.value = { ...failedStatus(new ZeroLayerError_ACU('chat-unavailable', '聊天生命周期不可用。')),
-        detail: '宿主聊天生命周期不可用，无法安全绑定当前聊天；开启意图未知。' };
+      view.value = { ...failedStatus(new ZeroLayerError_ACU('chat-unavailable', 'Vòng đời trò chuyện không khả dụng.')),
+        detail: 'Vòng đời trò chuyện của máy chủ không khả dụng, không thể liên kết an toàn với cuộc trò chuyện hiện tại; ý định bật chưa rõ.' };
       return;
     }
     const listen = (event: string, callback: (...args: any[]) => void) => {
@@ -358,8 +358,8 @@ export function useZeroLayerStatus() {
       void refresh();
     } catch {
       dispose();
-      view.value = { ...failedStatus(new ZeroLayerError_ACU('chat-unavailable', '监听装配失败。')),
-        detail: '聊天状态监听装配失败，未开放操作；请重新打开页面。' };
+      view.value = { ...failedStatus(new ZeroLayerError_ACU('chat-unavailable', 'Lắp ghép trình lắng nghe thất bại.')),
+        detail: 'Lắp ghép trình lắng nghe trạng thái trò chuyện thất bại, chưa mở thao tác; vui lòng mở lại trang.' };
     }
   });
   onBeforeUnmount(dispose);

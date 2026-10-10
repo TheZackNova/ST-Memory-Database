@@ -118,7 +118,7 @@ import { isSqliteMode } from '../../service/table/storage-mode';
 
               // 1. 从旧目标删除条目
               if (oldLorebookName) {
-                  showToastr_ACU('info', `正在从旧目标 [${oldLorebookName}] 中清除条目...`);
+                  showToastr_ACU('info', `Đang xóa mục khỏi đích cũ [${oldLorebookName}]...`);
                   try {
                       await deleteAllGeneratedEntries_ACU(oldLorebookName);
                       // [修复] 增加短暂延迟，确保后端/API完成删除操作
@@ -137,11 +137,11 @@ import { isSqliteMode } from '../../service/table/storage-mode';
 
               // 3. 向新目标注入条目
               if (currentJsonTableData_ACU) {
-                  showToastr_ACU('info', `正在向新目标注入条目...`);
+                  showToastr_ACU('info', `Đang chèn mục vào đích mới...`);
                   await updateReadableLorebookEntry_ACU(true); // `true` to ensure entries are created
-                  showToastr_ACU('success', '数据注入目标已成功切换！');
+                  showToastr_ACU('success', 'Đã chuyển đích chèn dữ liệu thành công!');
               } else {
-                  showToastr_ACU('warning', '数据注入目标已更新，但当前无数据可注入。');
+                  showToastr_ACU('warning', 'Đã cập nhật đích chèn dữ liệu, nhưng hiện không có dữ liệu để chèn.');
               }
           });
       }
@@ -190,7 +190,7 @@ import { isSqliteMode } from '../../service/table/storage-mode';
                 const selectedMode = String(jQuery_API_ACU(this).val() || '');
                 const result = setApiMode_ACU(selectedMode);
                 if (!result.ok) {
-                    showToastr_ACU('error', result.message || '保存API模式失败，已回滚。');
+                    showToastr_ACU('error', result.message || 'Lưu chế độ API thất bại, đã khôi phục.');
                     return;
                 }
                 updateApiModeView_ACU(selectedMode);
@@ -203,7 +203,7 @@ import { isSqliteMode } from '../../service/table/storage-mode';
             $tavernProfileSelect.on('change', function() {
                 const result = setTavernProfile_ACU(String(jQuery_API_ACU(this).val() || ''));
                 if (!result.ok) {
-                    showToastr_ACU('error', result.message || '保存酒馆API预设失败，已回滚。');
+                    showToastr_ACU('error', result.message || 'Lưu preset API SillyTavern thất bại, đã khôi phục.');
                     return;
                 }
             });
@@ -224,5 +224,5 @@ import { isSqliteMode } from '../../service/table/storage-mode';
       // Removed call to applyActualMessageVisibility_ACU();
       // Removed call to updateAdvancedHideUIDisplay_ACU();
       if (typeof updateCardUpdateStatusDisplay_ACU === 'function') updateCardUpdateStatusDisplay_ACU();
-      showToastr_ACU('success', '数据库更新工具已加载。');
+      showToastr_ACU('success', 'Đã tải công cụ cập nhật cơ sở dữ liệu.');
   }

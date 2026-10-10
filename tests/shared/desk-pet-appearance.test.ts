@@ -46,7 +46,7 @@ describe('桌宠 / 气泡外观缺省值', () => {
       waveCooldownMs: 30000,
       reactionMs: { shy: 1600, tickle: 1600, angry: 2200, happy: 1100, dizzy: 2400, surprised: 1300, wave: 1600, huff: 1000, pound: 1300, knockdown: 2200 },
     });
-    expect(pet.jokes).toEqual({ mode: 'append', heading: '你知道吗？', items: [] });
+    expect(pet.jokes).toEqual({ mode: 'append', heading: 'Bạn có biết?', items: [] });
     expect(pet.statusWords.mode).toBe('append');
     expect(Object.keys(pet.statusWords.groups)).toEqual([...DESK_PET_STATUS_GROUPS_ACU]);
 
@@ -80,31 +80,31 @@ describe('桌宠 / 气泡外观缺省值', () => {
 
 describe('补丁校验', () => {
   it('未知键、类型、范围、整数与 0 档都按字段路径报错', () => {
-    expect(() => validateAppearancePatch_ACU(PET, { sizes: {} }, 'deskPet')).toThrow('deskPet.sizes：不支持的设置项');
-    expect(() => validateAppearancePatch_ACU(PET, { size: { wide: '100' } }, 'deskPet')).toThrow('deskPet.size.wide：应为 32~256 的整数');
+    expect(() => validateAppearancePatch_ACU(PET, { sizes: {} }, 'deskPet')).toThrow('deskPet.sizes: mục cài đặt không được hỗ trợ');
+    expect(() => validateAppearancePatch_ACU(PET, { size: { wide: '100' } }, 'deskPet')).toThrow('deskPet.size.wide: phải là số nguyên 32~256');
     expect(() => validateAppearancePatch_ACU(PET, { size: { wide: 300 } }, 'deskPet')).toThrow('deskPet.size.wide');
-    expect(() => validateAppearancePatch_ACU(PET, { size: { wide: 90.5 } }, 'deskPet')).toThrow('整数');
-    expect(() => validateAppearancePatch_ACU(PET, { motion: { snoreAfterMs: 100 } }, 'deskPet')).toThrow('0 或 5000~86400000');
+    expect(() => validateAppearancePatch_ACU(PET, { size: { wide: 90.5 } }, 'deskPet')).toThrow('số nguyên');
+    expect(() => validateAppearancePatch_ACU(PET, { motion: { snoreAfterMs: 100 } }, 'deskPet')).toThrow('0 hoặc số nguyên 5000~86400000');
     expect(validateAppearancePatch_ACU(PET, { motion: { snoreAfterMs: 0, tuckDelayMs: 0 } }, 'deskPet')).toEqual({ motion: { snoreAfterMs: 0, tuckDelayMs: 0 } });
-    expect(() => validateAppearancePatch_ACU(PET, { motion: { enabled: 'no' } }, 'deskPet')).toThrow('true 或 false');
-    expect(() => validateAppearancePatch_ACU(PET, { jokes: { mode: 'merge' } }, 'deskPet')).toThrow('可选 append / replace');
-    expect(() => validateAppearancePatch_ACU(PET, [], 'deskPet')).toThrow('补丁必须是对象');
-    expect(() => validateAppearancePatch_ACU(PET, { images: 'x' }, 'deskPet')).toThrow('deskPet.images：补丁必须是对象');
+    expect(() => validateAppearancePatch_ACU(PET, { motion: { enabled: 'no' } }, 'deskPet')).toThrow('true hoặc false');
+    expect(() => validateAppearancePatch_ACU(PET, { jokes: { mode: 'merge' } }, 'deskPet')).toThrow('có thể chọn append / replace');
+    expect(() => validateAppearancePatch_ACU(PET, [], 'deskPet')).toThrow('bản vá phải là đối tượng');
+    expect(() => validateAppearancePatch_ACU(PET, { images: 'x' }, 'deskPet')).toThrow('deskPet.images: bản vá phải là đối tượng');
   });
 
   it('文本列表去掉首尾空白，空条目与超长条目报错；undefined 忽略、null 保留为恢复缺省', () => {
     expect(validateAppearancePatch_ACU(PET, { jokes: { items: ['  第一条 \n第二行  '], heading: undefined } }, 'deskPet'))
       .toEqual({ jokes: { items: ['第一条 \n第二行'] } });
-    expect(() => validateAppearancePatch_ACU(PET, { jokes: { items: ['ok', '  '] } }, 'deskPet')).toThrow('deskPet.jokes.items[1]：应为非空字符串');
-    expect(() => validateAppearancePatch_ACU(PET, { statusWords: { groups: { table: ['x'.repeat(21)] } } }, 'deskPet')).toThrow('不能超过 20 字');
+    expect(() => validateAppearancePatch_ACU(PET, { jokes: { items: ['ok', '  '] } }, 'deskPet')).toThrow('deskPet.jokes.items[1]: phải là chuỗi không rỗng');
+    expect(() => validateAppearancePatch_ACU(PET, { statusWords: { groups: { table: ['x'.repeat(21)] } } }, 'deskPet')).toThrow('không được vượt quá 20 ký tự');
     expect(validateAppearancePatch_ACU(PET, { images: { idle: null }, jokes: null }, 'deskPet')).toEqual({ images: { idle: null }, jokes: null });
     expect(validateAppearancePatch_ACU(PET, { jokes: { heading: '' } }, 'deskPet')).toEqual({ jokes: { heading: '' } });
   });
 
   it('方位顺序必须是不重复的合法方位', () => {
     expect(validateAppearancePatch_ACU(BUBBLE, { anchor: { sides: ['right', 'above'] } }, 'noticeBubble')).toEqual({ anchor: { sides: ['right', 'above'] } });
-    expect(() => validateAppearancePatch_ACU(BUBBLE, { anchor: { sides: [] } }, 'noticeBubble')).toThrow('不重复的 1~4 项');
-    expect(() => validateAppearancePatch_ACU(BUBBLE, { anchor: { sides: ['above', 'above'] } }, 'noticeBubble')).toThrow('不重复');
+    expect(() => validateAppearancePatch_ACU(BUBBLE, { anchor: { sides: [] } }, 'noticeBubble')).toThrow('phải chọn 1~4 mục không trùng lặp');
+    expect(() => validateAppearancePatch_ACU(BUBBLE, { anchor: { sides: ['above', 'above'] } }, 'noticeBubble')).toThrow('không trùng lặp');
     expect(() => validateAppearancePatch_ACU(BUBBLE, { anchor: { sides: ['up'] } }, 'noticeBubble')).toThrow('noticeBubble.anchor.sides');
   });
 
@@ -116,14 +116,14 @@ describe('补丁校验', () => {
       expect(isCssColor_ACU(color)).toBe(false);
     }
     expect(validateAppearancePatch_ACU(BUBBLE, { colors: { background: '  #222  ' } }, 'noticeBubble')).toEqual({ colors: { background: '#222' } });
-    expect(() => validateAppearancePatch_ACU(BUBBLE, { colors: { text: 'url(x)' } }, 'noticeBubble')).toThrow('noticeBubble.colors.text：颜色格式不对');
+    expect(() => validateAppearancePatch_ACU(BUBBLE, { colors: { text: 'url(x)' } }, 'noticeBubble')).toThrow('noticeBubble.colors.text: định dạng màu không đúng');
   });
 
   it('字体名不允许分号、括号等 CSS 语法', () => {
     expect(validateAppearancePatch_ACU(BUBBLE, { fontFamily: '"霞鹜文楷", "Microsoft YaHei", sans-serif' }, 'noticeBubble'))
       .toEqual({ fontFamily: '"霞鹜文楷", "Microsoft YaHei", sans-serif' });
-    expect(() => validateAppearancePatch_ACU(BUBBLE, { fontFamily: 'serif; color: red' }, 'noticeBubble')).toThrow('只能包含');
-    expect(() => validateAppearancePatch_ACU(BUBBLE, { fontFamily: '   ' }, 'noticeBubble')).toThrow('不能为空');
+    expect(() => validateAppearancePatch_ACU(BUBBLE, { fontFamily: 'serif; color: red' }, 'noticeBubble')).toThrow('Chỉ được chứa');
+    expect(() => validateAppearancePatch_ACU(BUBBLE, { fontFamily: '   ' }, 'noticeBubble')).toThrow('không được để trống');
   });
 
   it('图片只收 http(s)、站内路径与 data:image，并限制单张长度', () => {
@@ -134,10 +134,10 @@ describe('补丁校验', () => {
       expect(isAllowedImageUrl_ACU(url)).toBe(false);
     }
     expect(validateAppearancePatch_ACU(PET, { images: { idle: ' https://img.test/idle.png ' } }, 'deskPet')).toEqual({ images: { idle: 'https://img.test/idle.png' } });
-    expect(() => validateAppearancePatch_ACU(PET, { images: { idle: '' } }, 'deskPet')).toThrow('要恢复内置图请传 null');
-    expect(() => validateAppearancePatch_ACU(PET, { images: { idle: 'javascript:alert(1)' } }, 'deskPet')).toThrow('只支持 http(s)');
+    expect(() => validateAppearancePatch_ACU(PET, { images: { idle: '' } }, 'deskPet')).toThrow('muốn khôi phục ảnh có sẵn hãy truyền null');
+    expect(() => validateAppearancePatch_ACU(PET, { images: { idle: 'javascript:alert(1)' } }, 'deskPet')).toThrow('chỉ hỗ trợ liên kết http(s)');
     const tooLong = `data:image/png;base64,${'A'.repeat(DESK_PET_IMAGE_MAX_LENGTH_ACU)}`;
-    expect(() => validateAppearancePatch_ACU(PET, { images: { idle: tooLong } }, 'deskPet')).toThrow('超过上限');
+    expect(() => validateAppearancePatch_ACU(PET, { images: { idle: tooLong } }, 'deskPet')).toThrow('vượt quá giới hạn');
   });
 });
 
@@ -154,7 +154,7 @@ describe('覆盖项合并、读取与恢复', () => {
   it('生效值是缺省值叠加覆盖项，数组为新副本', () => {
     const overrides = { jokes: { items: ['a'] } };
     const effective = resolveAppearance_ACU(PET, overrides) as any;
-    expect(effective.jokes).toEqual({ mode: 'append', heading: '你知道吗？', items: ['a'] });
+    expect(effective.jokes).toEqual({ mode: 'append', heading: 'Bạn có biết?', items: ['a'] });
     effective.jokes.items.push('b');
     expect(overrides.jokes.items).toEqual(['a']);
   });
@@ -172,11 +172,11 @@ describe('覆盖项合并、读取与恢复', () => {
     expect(issues).toHaveLength(4);
     expect(issues.join('\n')).toContain('deskPet.size.wide');
     expect(issues.join('\n')).toContain('deskPet.images.idle');
-    expect(issues.join('\n')).toContain('deskPet.legacyKey：无法识别的设置项');
-    expect(issues.join('\n')).toContain('deskPet.motion：已存数据不是对象');
+    expect(issues.join('\n')).toContain('deskPet.legacyKey: mục cài đặt không nhận ra');
+    expect(issues.join('\n')).toContain('deskPet.motion: dữ liệu đã lưu không phải đối tượng');
     expect(stored).toEqual(snapshot);
     expect(readAppearanceOverrides_ACU(PET, undefined, 'deskPet')).toEqual({ overrides: {}, issues: [] });
-    expect(readAppearanceOverrides_ACU(PET, 'broken', 'deskPet').issues).toEqual(['deskPet：已存数据不是对象，按缺省处理']);
+    expect(readAppearanceOverrides_ACU(PET, 'broken', 'deskPet').issues).toEqual(['deskPet: dữ liệu đã lưu không phải đối tượng, xử lý theo mặc định']);
   });
 
   it('按路径恢复缺省；不传全部恢复；路径不存在时抛错', () => {
@@ -184,9 +184,9 @@ describe('覆盖项合并、读取与恢复', () => {
     expect(resetAppearanceOverrides_ACU(PET, overrides, 'images.idle', 'deskPet')).toEqual({ size: { wide: 100, narrow: 70 }, jokes: { mode: 'replace' } });
     expect(resetAppearanceOverrides_ACU(PET, overrides, ['size.wide', 'jokes'], 'deskPet')).toEqual({ size: { narrow: 70 }, images: { idle: 'https://img.test/idle.png' } });
     expect(resetAppearanceOverrides_ACU(PET, overrides, undefined, 'deskPet')).toEqual({});
-    expect(() => resetAppearanceOverrides_ACU(PET, overrides, 'images.cat', 'deskPet')).toThrow('deskPet.images.cat：不支持的设置项');
-    expect(() => resetAppearanceOverrides_ACU(PET, overrides, 'size.wide.x', 'deskPet')).toThrow('不是分组');
-    expect(() => resetAppearanceOverrides_ACU(PET, overrides, 3, 'deskPet')).toThrow('字符串或字符串数组');
+    expect(() => resetAppearanceOverrides_ACU(PET, overrides, 'images.cat', 'deskPet')).toThrow('deskPet.images.cat: mục cài đặt không được hỗ trợ');
+    expect(() => resetAppearanceOverrides_ACU(PET, overrides, 'size.wide.x', 'deskPet')).toThrow('không phải nhóm');
+    expect(() => resetAppearanceOverrides_ACU(PET, overrides, 3, 'deskPet')).toThrow('chuỗi hoặc mảng chuỗi');
   });
 
   it('字段说明列出全部叶子字段的路径、类型、缺省值与范围', () => {
@@ -207,11 +207,11 @@ describe('覆盖项合并、读取与恢复', () => {
     pet.images.wave = big;
     pet.images.huff = big;
     expect(big.length * 5).toBeGreaterThan(DESK_PET_IMAGES_TOTAL_MAX_LENGTH_ACU);
-    expect(() => checkDeskPetAppearance_ACU(pet)).toThrow('deskPet.images：自定义图片合计');
+    expect(() => checkDeskPetAppearance_ACU(pet)).toThrow('deskPet.images: tổng ảnh tùy chỉnh là');
 
     const bubble = defaultNoticeBubbleAppearance_ACU();
     bubble.size.minWidth = 380;
-    expect(() => checkNoticeBubbleAppearance_ACU(bubble)).toThrow('dockedMaxWidth（360）');
+    expect(() => checkNoticeBubbleAppearance_ACU(bubble)).toThrow('dockedMaxWidth (360)');
   });
 });
 

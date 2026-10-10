@@ -212,7 +212,7 @@ describe('deleteProfileFromStorage_ACU', () => {
   });
 
   it('空标签拒绝删除，避免误删默认 Profile', () => {
-    expect(() => deleteProfileFromStorage_ACU('   ')).toThrow('不能删除默认 Profile');
+    expect(() => deleteProfileFromStorage_ACU('   ')).toThrow('Không thể xóa Profile mặc định');
     expect(mockStore.removeItem).not.toHaveBeenCalled();
   });
 });

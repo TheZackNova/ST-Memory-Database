@@ -342,7 +342,7 @@ describe('table-storage-strategy', () => {
       const fallbackProvider = getActiveStorageProvider()!;
       const createdCount = allCreatedProviders.length;
 
-      await expect(ensureStorageProviderReady_ACU()).rejects.toThrow('sqlite 存储运行时未就绪');
+      await expect(ensureStorageProviderReady_ACU()).rejects.toThrow('sqlite runtime lưu trữ chưa sẵn sàng');
 
       const activeProvider = getActiveStorageProvider()!;
       expect(activeProvider).not.toBe(fallbackProvider);
@@ -407,7 +407,7 @@ describe('table-storage-strategy', () => {
       // 设置 SQLite 加载失败
       sqliteLoadResult = { loaded: false, source: 'empty', error: 'WASM 错误' };
 
-      await expect(switchStorageMode('sqlite')).rejects.toThrow('已自动回退');
+      await expect(switchStorageMode('sqlite')).rejects.toThrow('Đã tự động lùi về');
       // fallback 后应该是 native
       expect(getCurrentProviderMode()).toBe('native');
     });
@@ -498,7 +498,7 @@ describe('table-storage-strategy', () => {
       sqliteLoadResult = { loaded: false, source: 'empty', error: 'WASM 错误' };
 
       mockStorageMode = 'sqlite';
-      await expect(switchStorageMode('sqlite')).rejects.toThrow('已自动回退');
+      await expect(switchStorageMode('sqlite')).rejects.toThrow('Đã tự động lùi về');
 
       expect(getCurrentProviderMode()).toBe('native');
       expect(getStorageRuntimeHealth_ACU()).toMatchObject({
@@ -531,7 +531,7 @@ describe('table-storage-strategy', () => {
       sqliteLoadResult = { loaded: false, source: 'empty', error: 'WASM 错误' };
 
       mockStorageMode = 'sqlite';
-      await expect(switchStorageMode('sqlite')).rejects.toThrow('已自动回退');
+      await expect(switchStorageMode('sqlite')).rejects.toThrow('Đã tự động lùi về');
       expect(isStorageRuntimeReadyForSyncRead_ACU()).toBe(false);
 
       sqliteLoadResult = { loaded: true, source: 'merged' };

@@ -43,7 +43,7 @@ export async function fetchAvailableModels_ACU(apiUrl: string, apiKey: string, c
     customApiFormat?: import('../settings/api-preset-service').CustomApiFormat_ACU;
 } = { sendViaTavern: true }): Promise<FetchModelsResult> {
     if (!apiUrl) {
-        return { success: false, error: '请输入API基础URL。' };
+        return { success: false, error: 'Vui lòng nhập URL cơ sở của API.' };
     }
 
     try {
@@ -72,7 +72,7 @@ export async function fetchAvailableModels_ACU(apiUrl: string, apiKey: string, c
     for (const line of String(config.requestHeaders ?? '').split('\n')) {
         if (!line.trim()) continue;
         const colon = line.indexOf(':');
-        if (colon < 1) throw new Error('附加请求标头须按 Header: Value 填写。');
+        if (colon < 1) throw new Error('Tiêu đề yêu cầu bổ sung phải điền theo dạng Header: Value.');
         directHeaders.set(line.slice(0, colon).trim(), line.slice(colon + 1).trim());
     }
     const response = config.sendViaTavern === true ? await pristineFetch_ACU(statusUrl, {
@@ -83,12 +83,12 @@ export async function fetchAvailableModels_ACU(apiUrl: string, apiKey: string, c
 
     if (!response.ok) {
         const errorText = await response.text();
-        let errorMessage = `API端点状态检查失败: ${response.status} ${response.statusText}.`;
+        let errorMessage = `Kiểm tra trạng thái endpoint API thất bại: ${response.status} ${response.statusText}.`;
         try {
             const errorJson = JSON.parse(errorText);
-            errorMessage += ` 详情: ${errorJson.error || errorJson.message || errorText}`;
+            errorMessage += ` Chi tiết: ${errorJson.error || errorJson.message || errorText}`;
         } catch (e) {
-            errorMessage += ` 详情: ${errorText}`;
+            errorMessage += ` Chi tiết: ${errorText}`;
         }
         return { success: false, error: errorMessage };
     }
@@ -110,12 +110,12 @@ export async function fetchAvailableModels_ACU(apiUrl: string, apiKey: string, c
         .filter(Boolean);
 
     if (modelNames.length === 0) {
-        return { success: false, error: '未能解析模型数据或列表为空。' };
+        return { success: false, error: 'Không thể phân tích dữ liệu mô hình hoặc danh sách rỗng.' };
     }
 
     return { success: true, models: modelNames };
     });
     } catch (error: any) {
-        return { success: false, error: error?.message || '模型列表加载失败。' };
+        return { success: false, error: error?.message || 'Tải danh sách mô hình thất bại.' };
     }
 }

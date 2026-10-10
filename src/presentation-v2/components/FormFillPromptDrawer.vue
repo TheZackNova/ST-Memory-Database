@@ -1,7 +1,7 @@
 <template>
   <AcuDrawer
     :is-open="isOpen"
-    title="编辑填表提示词"
+    title="Sửa prompt điền bảng"
     width="720px"
     :before-close="confirmIfDirty"
     @close="emit('close')"
@@ -12,12 +12,12 @@
 
     <div class="acu-form-fill-prompt-drawer__toolbar">
       <AcuFileButton size="sm" accept="application/json,.json" @file="$emit('import-file', $event)">
-        <i class="fa-solid fa-download"></i> 导入 JSON
+        <i class="fa-solid fa-download"></i> Nhập JSON
       </AcuFileButton>
       <AcuButton size="sm" @click="$emit('export')">
-        <i class="fa-solid fa-upload"></i> 导出 JSON
+        <i class="fa-solid fa-upload"></i> Xuất JSON
       </AcuButton>
-      <AcuButton size="sm" @click="$emit('reset')">载入默认提示词</AcuButton>
+      <AcuButton size="sm" @click="$emit('reset')">Nạp prompt mặc định</AcuButton>
     </div>
 
     <AcuPromptSegments
@@ -29,8 +29,8 @@
     />
 
     <footer class="acu-form-fill-prompt-drawer__actions">
-      <AcuButton @click="requestClose">关闭</AcuButton>
-      <AcuButton variant="primary" :disabled="!dirty" @click="$emit('save')">保存提示词</AcuButton>
+      <AcuButton @click="requestClose">Đóng</AcuButton>
+      <AcuButton variant="primary" :disabled="!dirty" @click="$emit('save')">Lưu prompt</AcuButton>
     </footer>
   </AcuDrawer>
 </template>
@@ -68,9 +68,9 @@ const dialogStore = useDialogStore();
 async function confirmIfDirty(): Promise<boolean> {
   if (!props.dirty) return true;
   return dialogStore.confirm({
-    title: '关闭提示词编辑器',
-    message: '你有未保存的填表提示词修改，确定要关闭吗？',
-    confirmLabel: '关闭',
+    title: 'Đóng trình sửa prompt',
+    message: 'Bạn có thay đổi prompt điền bảng chưa lưu, chắc chắn đóng?',
+    confirmLabel: 'Đóng',
     confirmVariant: 'danger',
   });
 }

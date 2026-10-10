@@ -48,7 +48,7 @@ export function planSheetSchemaMigration_ACU(before: Sheet_ACU, after: Sheet_ACU
       return {
         status: 'rebase_available',
         code: 'UNSUPPORTED_SCHEMA_CHANGE',
-        message: '该表原本没有 DDL 定义，本次为首次定义 schema；不存在需要迁移的历史 schema，按候选整表 rebase。',
+        message: 'Bảng này trước đây không có định nghĩa DDL, lần này là định nghĩa schema đầu tiên; không có schema lịch sử cần di chuyển, rebase toàn bảng theo ứng viên.',
       };
     }
   }
@@ -60,12 +60,12 @@ export function planSheetSchemaMigration_ACU(before: Sheet_ACU, after: Sheet_ACU
   } catch (error: any) {
     return { status: 'invalid', code: 'INVALID_SCHEMA', message: error?.message || String(error) };
   }
-  if (beforeSchema.uid !== targetSchema.uid) return { status: 'invalid', code: 'INVALID_SCHEMA', message: 'sheet uid 发生变化。' };
+  if (beforeSchema.uid !== targetSchema.uid) return { status: 'invalid', code: 'INVALID_SCHEMA', message: 'sheet uid đã thay đổi.' };
   if (JSON.stringify(beforeSchema.tableConstraints) !== JSON.stringify(targetSchema.tableConstraints)) {
-    return { status: 'rebase_available', code: 'UNSUPPORTED_SCHEMA_CHANGE', message: '表级 constraint 变更无法安全精确迁移，可选择按候选整表 rebase。' };
+    return { status: 'rebase_available', code: 'UNSUPPORTED_SCHEMA_CHANGE', message: 'Thay đổi constraint cấp bảng không thể di chuyển chính xác an toàn, có thể chọn rebase toàn bảng theo ứng viên.' };
   }
   if (beforeSchema.tableSuffix !== targetSchema.tableSuffix) {
-    return { status: 'rebase_available', code: 'UNSUPPORTED_SCHEMA_CHANGE', message: 'CREATE TABLE suffix 变更无法安全精确迁移，可选择按候选整表 rebase。' };
+    return { status: 'rebase_available', code: 'UNSUPPORTED_SCHEMA_CHANGE', message: 'Thay đổi CREATE TABLE suffix không thể di chuyển chính xác an toàn, có thể chọn rebase toàn bảng theo ứng viên.' };
   }
 
   const beforeByPhysical = new Map(beforeSchema.columns.map(column => [column.physicalName, column]));
@@ -95,7 +95,7 @@ export function planSheetSchemaMigration_ACU(before: Sheet_ACU, after: Sheet_ACU
       });
       continue;
     }
-    return { status: 'rebase_available', code: 'UNSUPPORTED_SCHEMA_CHANGE', message: `列「${source.displayHeader}」definition/constraint 变更无法安全精确迁移，可选择按候选整表 rebase。` };
+    return { status: 'rebase_available', code: 'UNSUPPORTED_SCHEMA_CHANGE', message: `Thay đổi definition/constraint của cột「${source.displayHeader}」không thể di chuyển chính xác an toàn, có thể chọn rebase toàn bảng theo ứng viên.` };
   }
 
   const mappings: SchemaMigrationPlannerIntent_ACU['physicalColumnMappings'] = [];
@@ -111,10 +111,10 @@ export function planSheetSchemaMigration_ACU(before: Sheet_ACU, after: Sheet_ACU
       return {
         status: 'needs_choice',
         code: 'AMBIGUOUS_COLUMN_IDENTITY',
-        message: `目标列「${target.displayHeader}」存在多个合法历史来源，需要确认列身份。`,
+        message: `Cột đích「${target.displayHeader}」có nhiều nguồn lịch sử hợp lệ, cần xác nhận danh tính cột.`,
         choices: candidates.map((source): SchemaMigrationPlannerChoice_ACU => ({
           id: `map:${source.physicalName}->${target.physicalName}`,
-          label: `${source.displayHeader}（${source.physicalName}）→ ${target.displayHeader}（${target.physicalName}）`,
+          label: `${source.displayHeader} (${source.physicalName})→ ${target.displayHeader} (${target.physicalName}) `,
           intent: {
             physicalColumnMappings: [{ fromPhysicalName: source.physicalName, toPhysicalName: target.physicalName }],
             fills: {},
@@ -140,7 +140,7 @@ export function planSheetSchemaMigration_ACU(before: Sheet_ACU, after: Sheet_ACU
     const choices: SchemaMigrationPlannerChoice_ACU[] = canOfferIdentityMapping
       ? [{
         id: `map:${source.physicalName}->${target.physicalName}`,
-        label: `${source.displayHeader}（${source.physicalName}）→ ${target.displayHeader}（${target.physicalName}）`,
+        label: `${source.displayHeader} (${source.physicalName})→ ${target.displayHeader} (${target.physicalName}) `,
         intent: {
           physicalColumnMappings: [{ fromPhysicalName: source.physicalName, toPhysicalName: target.physicalName }],
           fills: {},
@@ -152,7 +152,7 @@ export function planSheetSchemaMigration_ACU(before: Sheet_ACU, after: Sheet_ACU
     return {
       status: 'needs_choice',
       code: 'AMBIGUOUS_COLUMN_IDENTITY',
-      message: 'physical add/drop 无法唯一推导列身份，需要确认列身份。',
+      message: 'physical add/drop không thể suy ra duy nhất danh tính cột, cần xác nhận danh tính cột.',
       choices,
     };
   }
@@ -162,7 +162,7 @@ export function planSheetSchemaMigration_ACU(before: Sheet_ACU, after: Sheet_ACU
     const target = targetByPhysical.get(physicalName)!;
     const literal = parseDDLSafeDefaultLiteral_ACU(target.defaultExpression);
     if (!literal) {
-      return { status: 'rebase_available', code: 'UNSUPPORTED_SCHEMA_CHANGE', message: `新增列「${target.displayHeader}」缺少可安全静态求值的 literal DEFAULT，可选择按候选整表 rebase。` };
+      return { status: 'rebase_available', code: 'UNSUPPORTED_SCHEMA_CHANGE', message: `Cột mới「${target.displayHeader}」thiếu literal DEFAULT có thể tính tĩnh an toàn, có thể chọn rebase toàn bảng theo ứng viên.` };
     }
     fills[physicalName] = { kind: 'ddl_literal_default', literal };
   }
@@ -177,7 +177,7 @@ export function planSheetSchemaMigration_ACU(before: Sheet_ACU, after: Sheet_ACU
     && added.length === 0
     && JSON.stringify(beforeRetainedOrder) !== JSON.stringify(targetRetainedOrder);
   if (mappings.length === 0 && Object.keys(fills).length === 0 && conversions.length === 0 && !isPureReorder) {
-    return { status: 'rebase_available', code: 'UNSUPPORTED_SCHEMA_CHANGE', message: '该变更不属于当前可自动推导的精确迁移子集，可选择按候选整表 rebase。' };
+    return { status: 'rebase_available', code: 'UNSUPPORTED_SCHEMA_CHANGE', message: 'Thay đổi này không thuộc tập con di chuyển chính xác có thể tự suy ra hiện tại, có thể chọn rebase toàn bảng theo ứng viên.' };
   }
 
   return {

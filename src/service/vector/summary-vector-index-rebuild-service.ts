@@ -41,7 +41,7 @@ export async function rebuildCurrentSummaryVectorIndexNow_ACU(
     }
     assertActive();
     if (!currentJsonTableData_ACU) {
-        throw new Error('数据库未加载，无法重建交火索引快照。');
+        throw new Error('Cơ sở dữ liệu chưa được tải, không thể xây dựng lại snapshot chỉ mục giao hỏa.');
     }
 
     const result = await rebuildSummaryVectorMirror_ACU({
@@ -116,7 +116,7 @@ export async function ensureSummaryVectorMirrorAfterTableFill_ACU(): Promise<Ens
             result,
         };
     } catch (error: any) {
-        const message = error?.message || String(error || '首次向量重建异常');
+        const message = error?.message || String(error || 'Lỗi khi xây dựng lại vector lần đầu');
         logWarn_ACU('[交火模式纪要索引] 填表完成后首次向量重建异常:', message);
         return { attempted: true, skipped: false, reason: 'rebuild_exception' };
     }

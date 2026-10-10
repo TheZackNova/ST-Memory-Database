@@ -6,13 +6,13 @@ import { validateZeroLayerSimulationResult_ACU } from './simulation-validation';
 /** 全量结算结果是无损 replacement 载荷；位置只由父链与 FloorRef 选择。 */
 export function readCheckpointMaterials_ACU(source: ZeroLayerEnvelope_ACU, throughTurnId?: string) {
   const branch = source.branches.find(item => item.branchId === source.activeBranchId);
-  requireCheckpoint_ACU(branch, 'checkpoint 资料分支不存在。');
+  requireCheckpoint_ACU(branch, 'Nhánh tài liệu checkpoint không tồn tại.');
   const path = checkpointPath_ACU(source, branch.branchId);
   const end = throughTurnId === undefined ? path.length - 1 : path.findIndex(turn => turn.turnId === throughTurnId);
-  requireCheckpoint_ACU(throughTurnId === undefined || end >= 0, '资料回放目标不在已发布父链。');
+  requireCheckpoint_ACU(throughTurnId === undefined || end >= 0, 'Đích phát lại tài liệu không nằm trên chuỗi cha đã phát hành.');
   const active = branch.checkpoints?.active;
   const cut = active ? path.findIndex(turn => turn.turnId === active.position.ref.turnId) : -1;
-  requireCheckpoint_ACU(!active || cut >= 0, '活动资料基线不在已发布父链。');
+  requireCheckpoint_ACU(!active || cut >= 0, 'Đường cơ sở tài liệu đang hoạt động không nằm trên chuỗi cha đã phát hành.');
   // 回退到 active 之前必须读保留的原结果，不能套用未来基线。
   const useActive = !!active && cut <= end;
   let table: ZeroLayerTableResult_ACU | null = useActive ? structuredClone(active.table.result) : null;
@@ -29,7 +29,7 @@ export function readCheckpointMaterials_ACU(source: ZeroLayerEnvelope_ACU, throu
   if (end >= 0) {
     requireCheckpoint_ACU(checkpointFingerprint_ACU(table) === checkpointFingerprint_ACU(path[end].assistantFloor.data.table)
       && checkpointFingerprint_ACU(simulation) === checkpointFingerprint_ACU(path[end].assistantFloor.data.simulation),
-    '资料基线与未压缩结算回放不等价。');
+    'Đường cơ sở tài liệu không tương đương với phát lại quyết toán chưa nén.');
   }
   return { table, simulation };
 }
@@ -43,6 +43,6 @@ export function readCheckpointSimulationView_ACU(source: ZeroLayerEnvelope_ACU,
   const replay = { ledger: confirmed.ledger, fields: confirmed.fields, archive: confirmed.archive };
   if (checkpointFingerprint_ACU(working) === checkpointFingerprint_ACU(replay)) return structuredClone(replay);
   requireCheckpoint_ACU(!confirmed.ledger || working.ledger
-    && working.ledger.revision >= confirmed.ledger.revision, '推演工作状态早于已确认的 checkpoint 回放。');
+    && working.ledger.revision >= confirmed.ledger.revision, 'Trạng thái làm việc mô phỏng cũ hơn phát lại checkpoint đã xác nhận.');
   return structuredClone(working);
 }

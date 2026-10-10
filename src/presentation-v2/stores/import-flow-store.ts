@@ -115,17 +115,17 @@ export const useImportFlowStore = defineStore('acuV2ImportFlow', {
       return !state.busy;
     },
     statusText(state): string {
-      if (state.busy) return '状态：正在处理...';
-      if (!state.staging.hasChunks) return '状态：尚未加载文件。';
+      if (state.busy) return 'Trạng thái: đang xử lý...';
+      if (!state.staging.hasChunks) return 'Trạng thái: chưa tải tệp.';
       if (state.hasTableSelection && state.selectedSheetKeys.length === 0) {
-        return '状态：未选择任何表格，无法注入。';
+        return 'Trạng thái: chưa chọn bảng nào, không thể chèn.';
       }
       const total = state.staging.chunkCount;
       const idx = state.staging.processedIndex;
       if (idx != null && idx >= 0 && idx < total) {
-        return `状态：已暂停，完成 ${idx}/${total}。`;
+        return `Trạng thái: đã tạm dừng, hoàn tất ${idx}/${total}.`;
       }
-      return `状态：已准备好 ${total} 个条目可供注入。`;
+      return `Trạng thái: đã chuẩn bị ${total} mục sẵn sàng để chèn.`;
     },
   },
 

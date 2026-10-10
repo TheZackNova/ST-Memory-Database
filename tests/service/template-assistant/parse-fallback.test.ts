@@ -40,11 +40,11 @@ describe('template assistant 容错解析链', () => {
   });
 
   it('纯垃圾文本抛错且错误信息包含定位说明', () => {
-    expect(() => parseTemplateAssistantDraft_ACU('这段文字完全不是 JSON')).toThrow(/JSON|未找到|未闭合/);
+    expect(() => parseTemplateAssistantDraft_ACU('这段文字完全不是 JSON')).toThrow(/JSON|Không tìm thấy|chưa được đóng/);
   });
 
   it('标签内 JSON 非法时仍报 JSON 解析失败', () => {
-    expect(() => parseTemplateAssistantDraft_ACU('<templateAssistantDraft>{not-json}</templateAssistantDraft>')).toThrow(/JSON 解析失败/);
+    expect(() => parseTemplateAssistantDraft_ACU('<templateAssistantDraft>{not-json}</templateAssistantDraft>')).toThrow(/Phân tích assistant draft JSON thất bại/);
   });
 
   it('字符串内部含 { } 的大括号配对扫描不会被误切', () => {
@@ -77,7 +77,7 @@ describe('提示词占位符与默认等价', () => {
     expect(messages).toHaveLength(2);
     const systemContent = messages[0]?.content || '';
     expect(systemContent).not.toContain(TEMPLATE_ASSISTANT_REFERENCE_DOCS_PLACEHOLDER_ACU);
-    expect(systemContent).toContain('【原文嵌入 / syntax-reference (1).md');
+    expect(systemContent).toContain('【Nhúng nguyên văn / syntax-reference (1).md');
     // 占位符替换为引用文档全文且未二次追加：以完整引用文本作为整体子串只出现一次
     const referenceText = buildTemplateAssistantEmbeddedReferenceText_ACU();
     expect(systemContent.split(referenceText).length - 1).toBe(1);
@@ -95,16 +95,16 @@ describe('提示词占位符与默认等价', () => {
     expect(messages[2]?.role).toBe('USER');
     const secondSystem = messages[1]?.content || '';
     expect(secondSystem).toContain('第二条规则');
-    expect(secondSystem).toContain('【原文嵌入 / syntax-reference (1).md');
-    expect(messages[0]?.content).not.toContain('【原文嵌入');
+    expect(secondSystem).toContain('【Nhúng nguyên văn / syntax-reference (1).md');
+    expect(messages[0]?.content).not.toContain('【Nhúng nguyên văn');
   });
 
   it('空 segments 回退到默认提示词（存量用户行为不变）', () => {
     const messages = resolveAssistantSystemPrompt_ACU([]);
     expect(messages).toHaveLength(1);
     expect(messages[0]?.role).toBe('system');
-    expect(messages[0]?.content).toContain('你是 visualizer 内的模板改表助手，你生活在一个虚拟的世界');
-    expect(messages[0]?.content).toContain('【原文嵌入');
+    expect(messages[0]?.content).toContain('Bạn là trợ lý sửa bảng mẫu bên trong visualizer, bạn sống trong một thế giới ảo');
+    expect(messages[0]?.content).toContain('【Nhúng nguyên văn');
   });
 
   it('默认回退路径 role 为小写 system，与旧版 buildTemplateAssistantMessages 消息结构字节级一致', () => {
@@ -116,7 +116,7 @@ describe('提示词占位符与默认等价', () => {
     // 占位符已被替换为引用文档全文，且未残留占位符
     expect(messages[0]?.content).not.toContain(TEMPLATE_ASSISTANT_REFERENCE_DOCS_PLACEHOLDER_ACU);
     // 内容以默认提示词开头、以引用文档收尾，与旧版 buildSystemPrompt_ACU 的 join 结构一致
-    expect(messages[0]?.content.startsWith('你是 visualizer 内的模板改表助手，你生活在一个虚拟的世界')).toBe(true);
+    expect(messages[0]?.content.startsWith('Bạn là trợ lý sửa bảng mẫu bên trong visualizer, bạn sống trong một thế giới ảo')).toBe(true);
     expect(messages[0]?.content.endsWith(
       buildTemplateAssistantEmbeddedReferenceText_ACU(),
     )).toBe(true);
@@ -141,7 +141,7 @@ describe('提示词占位符与默认等价', () => {
     const systemContent = messages[0]?.content || '';
     // 核心协议卡被追加（含操作路由标记）
     expect(systemContent).toContain(TEMPLATE_ASSISTANT_CORE_PROTOCOL_MARKER_ACU);
-    expect(systemContent).toContain('【操作路由】');
+    expect(systemContent).toContain('【Định tuyến thao tác】');
     expect(systemContent).toContain('patch_sheet_update_config');
     expect(systemContent).toContain('patch_sheet_source_data');
     expect(systemContent).toContain('patch_sheet_content');

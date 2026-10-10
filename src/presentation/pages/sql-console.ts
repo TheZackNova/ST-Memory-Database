@@ -26,19 +26,19 @@ export function generateSqlConsoleTabHTML(): string {
     return `
                 <div id="acu-tab-sql-console">
                     <div class="acu-card">
-                        <h3><i class="fa-solid fa-terminal" style="margin-right: 6px;"></i>SQL 控制台</h3>
-                        <p class="notes" style="margin-bottom: 12px;">在 SQLite 内存数据库上直接执行 SQL 语句。支持 SELECT 查询和 INSERT/UPDATE/DELETE 变更。</p>
+                        <h3><i class="fa-solid fa-terminal" style="margin-right: 6px;"></i>Bảng điều khiển SQL</h3>
+                        <p class="notes" style="margin-bottom: 12px;">Thực thi trực tiếp câu lệnh SQL trên cơ sở dữ liệu SQLite trong bộ nhớ. Hỗ trợ truy vấn SELECT và thay đổi INSERT/UPDATE/DELETE.</p>
 
                         <!-- 快捷操作 -->
                         <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
                             <button id="${SCRIPT_ID_PREFIX_ACU}-sql-show-tables" class="button" style="font-size: 0.85em; padding: 4px 10px;">
-                                <i class="fa-solid fa-list"></i> 查看所有表
+                                <i class="fa-solid fa-list"></i> Xem tất cả bảng
                             </button>
                             <button id="${SCRIPT_ID_PREFIX_ACU}-sql-show-schema" class="button" style="font-size: 0.85em; padding: 4px 10px;">
-                                <i class="fa-solid fa-sitemap"></i> 查看表结构
+                                <i class="fa-solid fa-sitemap"></i> Xem cấu trúc bảng
                             </button>
                             <button id="${SCRIPT_ID_PREFIX_ACU}-sql-show-history" class="button" style="font-size: 0.85em; padding: 4px 10px;">
-                                <i class="fa-solid fa-clock-rotate-left"></i> 历史记录
+                                <i class="fa-solid fa-clock-rotate-left"></i> Lịch sử
                             </button>
                         </div>
 
@@ -46,23 +46,23 @@ export function generateSqlConsoleTabHTML(): string {
                         <div style="position: relative;">
                             <textarea id="${SCRIPT_ID_PREFIX_ACU}-sql-input"
                                 style="width: 100%; min-height: 120px; font-family: monospace; font-size: 0.9em; padding: 10px; border: 1px solid var(--border-normal); border-radius: 6px; background: var(--input-background); color: var(--input-text-color); resize: vertical; white-space: pre;"
-                                placeholder="输入 SQL 语句...&#10;&#10;示例:&#10;  SELECT * FROM 背包物品表;&#10;  INSERT INTO 背包物品表 (物品名, 数量) VALUES ('药水', 3);"></textarea>
+                                placeholder="Nhập câu lệnh SQL...&#10;&#10;Ví dụ:&#10;  SELECT * FROM 背包物品表;&#10;  INSERT INTO 背包物品表 (物品名, 数量) VALUES ('药水', 3);"></textarea>
                         </div>
 
                         <!-- 执行按钮 -->
                         <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center;">
                             <button id="${SCRIPT_ID_PREFIX_ACU}-sql-execute" class="primary" style="padding: 8px 20px;">
-                                <i class="fa-solid fa-play" style="margin-right: 4px;"></i> 执行
+                                <i class="fa-solid fa-play" style="margin-right: 4px;"></i> Thực thi
                             </button>
                             <button id="${SCRIPT_ID_PREFIX_ACU}-sql-clear-input" class="button" style="padding: 8px 12px;">
-                                <i class="fa-solid fa-eraser"></i> 清空
+                                <i class="fa-solid fa-eraser"></i> Xóa sạch
                             </button>
                             <span id="${SCRIPT_ID_PREFIX_ACU}-sql-exec-status" class="notes" style="flex: 1; text-align: right;"></span>
                         </div>
 
                         <!-- 结果展示区 -->
                         <div id="${SCRIPT_ID_PREFIX_ACU}-sql-result-area" style="margin-top: 16px; border: 1px solid var(--border-normal); border-radius: 6px; background: var(--background-color-light); min-height: 60px; max-height: 400px; overflow: auto; padding: 10px;">
-                            <div class="notes" style="text-align: center; padding: 20px;">执行 SQL 后结果将显示在这里</div>
+                            <div class="notes" style="text-align: center; padding: 20px;">Kết quả sẽ hiển thị ở đây sau khi thực thi SQL</div>
                         </div>
                     </div>
                 </div>`;
@@ -87,12 +87,12 @@ export async function bindSqlConsoleEvents_ACU(): Promise<void> {
     $executeBtn.on('click', function() {
         const sql = String($sqlInput.val() || '').trim();
         if (!sql) {
-            showToastr_ACU('warning', 'SQL 语句不能为空');
+            showToastr_ACU('warning', 'Câu lệnh SQL không được để trống');
             return;
         }
 
         if (!isSqliteMode()) {
-            showToastr_ACU('error', 'SQL 控制台仅在 SQLite 模式下可用');
+            showToastr_ACU('error', 'Bảng điều khiển SQL chỉ khả dụng ở chế độ SQLite');
             return;
         }
 
@@ -116,7 +116,7 @@ export async function bindSqlConsoleEvents_ACU(): Promise<void> {
     // 查看所有表
     $showTablesBtn.on('click', function() {
         if (!isSqliteMode()) {
-            showToastr_ACU('error', '仅在 SQLite 模式下可用');
+            showToastr_ACU('error', 'Chỉ khả dụng ở chế độ SQLite');
             return;
         }
         $sqlInput.val("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_acu_%' ORDER BY name;");
@@ -126,7 +126,7 @@ export async function bindSqlConsoleEvents_ACU(): Promise<void> {
     // 查看表结构
     $showSchemaBtn.on('click', function() {
         if (!isSqliteMode()) {
-            showToastr_ACU('error', '仅在 SQLite 模式下可用');
+            showToastr_ACU('error', 'Chỉ khả dụng ở chế độ SQLite');
             return;
         }
         $sqlInput.val("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_acu_%' ORDER BY name;");
@@ -166,12 +166,12 @@ export async function executeSql(sql: string, $resultArea: any, $execStatus: any
 
             // 渲染表格结果
             if (result.rowCount === 0) {
-                $resultArea.html(`<div class="notes" style="text-align: center; padding: 12px;">查询成功，无结果 (0 行)</div>`);
+                $resultArea.html(`<div class="notes" style="text-align: center; padding: 12px;">Truy vấn thành công, không có kết quả (0 hàng)</div>`);
             } else {
                 renderQueryResult(result.columns, result.values, $resultArea);
             }
 
-            $execStatus.html(`<span style="color: #a6e3a1;">✓ ${result.rowCount} 行, ${elapsed}ms</span>`);
+            $execStatus.html(`<span style="color: #a6e3a1;">✓ ${result.rowCount} hàng, ${elapsed}ms</span>`);
             logDebug_ACU(`[SQL Console] SELECT 成功: ${result.rowCount} 行, ${elapsed}ms`);
         } else {
             // INSERT/UPDATE/DELETE 变更：走统一 update+persist 提交模型
@@ -181,11 +181,11 @@ export async function executeSql(sql: string, $resultArea: any, $execStatus: any
             if (result.errors.length > 0) {
                 addHistory(sql, false);
                 $resultArea.html(`<div style="color: #e95e5e; padding: 12px; font-family: monospace; white-space: pre-wrap;">${escapeHtml_ACU(result.errors.join('\n'))}</div>`);
-                $execStatus.html(`<span style="color: #e95e5e;">✗ 执行失败</span>`);
+                $execStatus.html(`<span style="color: #e95e5e;">✗ Thực thi thất bại</span>`);
             } else {
                 addHistory(sql, true);
-                $resultArea.html(`<div style="padding: 12px; color: #a6e3a1;">✓ 执行成功，${result.changes} 行受影响</div>`);
-                $execStatus.html(`<span style="color: #a6e3a1;">✓ ${result.changes} 行受影响, ${elapsed}ms</span>`);
+                $resultArea.html(`<div style="padding: 12px; color: #a6e3a1;">✓ Thực thi thành công, ${result.changes} hàng bị ảnh hưởng</div>`);
+                $execStatus.html(`<span style="color: #a6e3a1;">✓ ${result.changes} hàng bị ảnh hưởng, ${elapsed}ms</span>`);
                 logDebug_ACU(`[SQL Console] 变更成功: ${result.changes} 行, ${elapsed}ms`);
             }
         }
@@ -193,8 +193,8 @@ export async function executeSql(sql: string, $resultArea: any, $execStatus: any
         const elapsed = (performance.now() - startTime).toFixed(1);
         addHistory(sql, false);
         const errMsg = e?.message || String(e);
-        $resultArea.html(`<div style="color: #e95e5e; padding: 12px; font-family: monospace; white-space: pre-wrap;">错误: ${escapeHtml_ACU(errMsg)}</div>`);
-        $execStatus.html(`<span style="color: #e95e5e;">✗ 失败, ${elapsed}ms</span>`);
+        $resultArea.html(`<div style="color: #e95e5e; padding: 12px; font-family: monospace; white-space: pre-wrap;">Lỗi: ${escapeHtml_ACU(errMsg)}</div>`);
+        $execStatus.html(`<span style="color: #e95e5e;">✗ Thất bại, ${elapsed}ms</span>`);
         logError_ACU(`[SQL Console] 执行失败: ${errMsg}`);
     }
 }
@@ -219,7 +219,7 @@ export function renderQueryResult(columns: string[], values: any[][], $container
             <thead><tr>${headerCells}</tr></thead>
             <tbody>${rows}</tbody>
         </table>
-        <div class="notes" style="text-align: right; margin-top: 6px; font-size: 0.8em;">${values.length} 行</div>
+        <div class="notes" style="text-align: right; margin-top: 6px; font-size: 0.8em;">${values.length} hàng</div>
     `);
 }
 
@@ -238,7 +238,7 @@ export function addHistory(sql: string, success: boolean): void {
  */
 function renderHistory($container: any): void {
     if (sqlHistory.length === 0) {
-        $container.html('<div class="notes" style="text-align: center; padding: 12px;">暂无执行历史</div>');
+        $container.html('<div class="notes" style="text-align: center; padding: 12px;">Chưa có lịch sử thực thi</div>');
         return;
     }
 
@@ -247,7 +247,7 @@ function renderHistory($container: any): void {
         const statusIcon = item.success ? '<span style="color: #a6e3a1;">✓</span>' : '<span style="color: #e95e5e;">✗</span>';
         const sqlPreview = item.sql.length > 80 ? item.sql.substring(0, 80) + '...' : item.sql;
         return `
-            <div class="acu-sql-history-item" data-idx="${idx}" style="padding: 6px 10px; border-bottom: 1px solid var(--border-normal); cursor: pointer; display: flex; gap: 8px; align-items: flex-start;" title="点击填入输入框">
+            <div class="acu-sql-history-item" data-idx="${idx}" style="padding: 6px 10px; border-bottom: 1px solid var(--border-normal); cursor: pointer; display: flex; gap: 8px; align-items: flex-start;" title="Bấm để điền vào ô nhập">
                 ${statusIcon}
                 <span style="color: #888; font-size: 0.8em; white-space: nowrap;">${time}</span>
                 <code style="font-size: 0.85em; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml_ACU(sqlPreview)}</code>
@@ -256,7 +256,7 @@ function renderHistory($container: any): void {
     }).join('');
 
     $container.html(`
-        <div style="font-weight: 600; padding: 6px 10px; border-bottom: 2px solid var(--border-normal);">执行历史 (最近 ${sqlHistory.length} 条)</div>
+        <div style="font-weight: 600; padding: 6px 10px; border-bottom: 2px solid var(--border-normal);">Lịch sử thực thi (${sqlHistory.length} mục gần nhất)</div>
         ${items}
     `);
 

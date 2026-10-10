@@ -152,22 +152,22 @@ describe('useContentReplaceStore', () => {
     store.updatePromptSegment(0, { content: '另一套提示词 $CONTENT' });
     store.selectPreset('');
 
-    expect(store.activePresetLabel).toBe('默认预设');
+    expect(store.activePresetLabel).toBe('Preset mặc định');
     expect(store.selectedPresetName).toBe('');
     expect(settings.contentOptimizationSettings.promptGroup[0].content).not.toBe('另一套提示词 $CONTENT');
     expect(settings.contentOptimizationSettings.promptGroup.some((seg: any) => String(seg.content || '').includes('$CONTENT'))).toBe(true);
 
     store.createPresetFromDefault();
 
-    expect(store.selectedPresetName).toBe('新正文替换预设');
-    expect(settings.contentOptimizationSettings.promptPresets.map((p: any) => p.name)).toContain('新正文替换预设');
+    expect(store.selectedPresetName).toBe('Preset thay thế nội dung mới');
+    expect(settings.contentOptimizationSettings.promptPresets.map((p: any) => p.name)).toContain('Preset thay thế nội dung mới');
     expect(settings.contentOptimizationSettings.promptGroup.some((seg: any) => String(seg.content || '').includes('$CONTENT'))).toBe(true);
   });
 
   it('不能覆盖内置默认预设名称', async () => {
     const { store, settings } = await setupStore();
 
-    store.setString('presetNameDraft', '默认预设');
+    store.setString('presetNameDraft', 'Preset mặc định');
     store.savePreset();
 
     expect(settings.contentOptimizationSettings.promptPresets).toEqual([]);
@@ -181,9 +181,9 @@ describe('useContentReplaceStore', () => {
     await store.runTest();
 
     expect(performOptimization).toHaveBeenCalledWith('这是一段足够长的测试正文。', { currentLoop: 1, userMessage: '' });
-    expect(store.testOutput).toContain('优化完成：1 处建议');
+    expect(store.testOutput).toContain('Tối ưu hoàn tất: 1 đề xuất');
     expect(store.message).toBeNull();
-    expect(toast.items.map(item => item.text)).toContain('正文替换测试完成。');
+    expect(toast.items.map(item => item.text)).toContain('Thử nghiệm thay thế nội dung hoàn tất.');
   });
 
   it('重新优化最近一次会读取原文、优化并写回聊天消息', async () => {
@@ -196,6 +196,6 @@ describe('useContentReplaceStore', () => {
     expect(performOptimization).toHaveBeenCalledWith('旧句子', { currentLoop: 1, userMessage: '' });
     expect(replaceChatMessage).toHaveBeenCalledWith(2, '新句子', { originalContent: '旧句子' });
     expect(store.message).toBeNull();
-    expect(toast.items.map(item => item.text)).toContain('已重新优化并替换 1 处内容。');
+    expect(toast.items.map(item => item.text)).toContain('Đã tối ưu lại và thay thế 1 chỗ nội dung.');
   });
 });

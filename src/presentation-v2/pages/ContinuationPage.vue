@@ -1,6 +1,6 @@
 <template>
   <section class="acu-v2-continuation-page">
-    <AcuPanel title="Agent 会话" description="像和 coding agent 对话一样使用：随时输入、随时打断。主 Agent 按需派工子代理并管理大纲，最终正文仍由酒馆模型生成。">
+    <AcuPanel title="Phiên Agent" description="Dùng như trò chuyện với coding agent: nhập bất cứ lúc nào, ngắt bất cứ lúc nào. Agent chính giao Agent phụ khi cần và quản lý dàn ý, nội dung cuối cùng vẫn do mô hình SillyTavern tạo.">
       <ContinuationChat
         :task="runtime.task.value"
         :entries="session.entries.value"
@@ -20,17 +20,17 @@
       />
     </AcuPanel>
 
-    <AcuPanel v-if="runtime.task.value && runtime.task.value.status === 'awaiting_outline_review' && runtime.activeRevision.value" title="待确认的大纲" description="确认前会在领域层重新执行严格 Schema 与 revision 校验；页面不直接写入聊天数组。">
+    <AcuPanel v-if="runtime.task.value && runtime.task.value.status === 'awaiting_outline_review' && runtime.activeRevision.value" title="Dàn ý chờ xác nhận" description="Trước khi xác nhận, tầng miền sẽ chạy lại kiểm tra Schema nghiêm ngặt và revision; trang không ghi trực tiếp vào mảng chat.">
       <AcuTextarea :model-value="outlineDraft" :rows="16" @update:model-value="outlineDraft = $event" />
       <p v-if="outlineDraftError" class="acu-v2-continuation-page__error">{{ outlineDraftError }}</p>
       <div class="acu-v2-continuation-page__actions">
-        <AcuButton variant="primary" :loading="runtime.busy.value" @click="acceptOutlineDraft">确认大纲并继续</AcuButton>
+        <AcuButton variant="primary" :loading="runtime.busy.value" @click="acceptOutlineDraft">Xác nhận dàn ý và tiếp tục</AcuButton>
       </div>
     </AcuPanel>
 
     <!-- 会话独占整宽，资料与设置并列在其下：会话是主操作面，资料与设置是查阅面。 -->
     <AcuPanelGrid class="acu-v2-continuation-page__layout">
-      <AcuPanel title="已有资料" description="阶段大纲与本地资料都可以直接编辑保存；一键清空只丢任务、会话记录与本地资料，不动小说正文。">
+      <AcuPanel title="Tài liệu hiện có" description="Dàn ý giai đoạn và tài liệu cục bộ đều có thể sửa và lưu trực tiếp; xóa sạch một chạm chỉ bỏ tác vụ, bản ghi phiên và tài liệu cục bộ, không động tới nội dung tiểu thuyết.">
         <ContinuationMaterialsPanel
           ref="materialsPanel"
           :task="runtime.task.value"
@@ -42,37 +42,37 @@
         />
       </AcuPanel>
 
-      <AcuPanel v-if="settingsDraft" title="续写设置" description="修改后自动保存；任务运行中也可以改，改动会在本轮空档落盘、下一轮开始时生效。常用项直接可见，其余参数按主题折叠，默认值已能满足大多数场景。">
+      <AcuPanel v-if="settingsDraft" title="Cài đặt viết tiếp" description="Tự động lưu sau khi sửa; có thể sửa cả khi tác vụ đang chạy, thay đổi sẽ được ghi xuống ở khoảng nghỉ của lượt này và có hiệu lực từ lượt sau. Mục thường dùng hiển thị sẵn, các tham số còn lại gập theo chủ đề, giá trị mặc định đã đáp ứng đa số tình huống.">
         <div class="acu-v2-continuation-page__settings-grid">
-          <AcuFormRow label="使用工具调用" hint="开启后决策与交付都通过函数调用完成；部分渠道不支持 tools 字段会报错。全局生效，不随对话保存。">
-            <AcuToggle :model-value="runtime.nativeToolEnabled.value" aria-label="使用工具调用" @update:model-value="runtime.setNativeToolEnabled($event)" />
+          <AcuFormRow label="Dùng gọi công cụ" hint="Khi bật, cả quyết định và bàn giao đều hoàn tất qua gọi hàm; một số kênh không hỗ trợ trường tools sẽ báo lỗi. Có hiệu lực toàn cục, không lưu theo hội thoại.">
+            <AcuToggle :model-value="runtime.nativeToolEnabled.value" aria-label="Dùng gọi công cụ" @update:model-value="runtime.setNativeToolEnabled($event)" />
           </AcuFormRow>
-          <AcuFormRow label="阶段规模" hint="一个阶段规划多少轮正文；轮数越多，单个大纲覆盖的剧情越长。">
+          <AcuFormRow label="Quy mô giai đoạn" hint="Một giai đoạn lên kế hoạch bao nhiêu lượt nội dung; càng nhiều lượt thì cốt truyện một dàn ý bao phủ càng dài.">
             <select v-model="settingsDraft.stageSize">
-              <option value="short">短（3–5）</option>
-              <option value="standard">标准（6–10）</option>
-              <option value="long">长（11–20）</option>
-              <option value="custom">自定义</option>
+              <option value="short">Ngắn (3–5)</option>
+              <option value="standard">Chuẩn (6–10)</option>
+              <option value="long">Dài (11–20)</option>
+              <option value="custom">Tùy chỉnh</option>
             </select>
           </AcuFormRow>
-          <AcuFormRow label="故事总纲卷数" hint="故事总纲预计分多少卷推进，影响总纲子代理的整体节奏规划。">
+          <AcuFormRow label="Số tập của tổng cương truyện" hint="Tổng cương truyện dự kiến chia thành bao nhiêu tập để đẩy, ảnh hưởng tới việc hoạch định nhịp tổng thể của Agent phụ tổng cương.">
             <select v-model="settingsDraft.storyArcVolumePlan">
-              <option value="short">短线（7–8 卷）</option>
-              <option value="medium">中线（10–14 卷）</option>
-              <option value="long">长线（20 卷）</option>
-              <option value="custom">自定义</option>
+              <option value="short">Tuyến ngắn (7–8 tập)</option>
+              <option value="medium">Tuyến vừa (10–14 tập)</option>
+              <option value="long">Tuyến dài (20 tập)</option>
+              <option value="custom">Tùy chỉnh</option>
             </select>
           </AcuFormRow>
-          <AcuFormRow v-if="settingsDraft.storyArcVolumePlan === 'custom'" label="自定义总纲卷数" hint="1–50 的整数。">
+          <AcuFormRow v-if="settingsDraft.storyArcVolumePlan === 'custom'" label="Số tập tổng cương tùy chỉnh" hint="Số nguyên từ 1–50.">
             <AcuInput v-model="settingsDraft.customStoryArcVolumeCount" type="number" :min="1" :max="50" />
           </AcuFormRow>
-          <AcuFormRow v-if="settingsDraft.stageSize === 'custom'" label="最少轮次" hint="1–50 的整数，且不能大于最多轮次。">
+          <AcuFormRow v-if="settingsDraft.stageSize === 'custom'" label="Số lượt tối thiểu" hint="Số nguyên từ 1–50 và không được lớn hơn số lượt tối đa.">
             <AcuInput v-model="settingsDraft.customTurnMin" type="number" :min="1" :max="50" />
           </AcuFormRow>
-          <AcuFormRow v-if="settingsDraft.stageSize === 'custom'" label="最多轮次" hint="1–50 的整数。">
+          <AcuFormRow v-if="settingsDraft.stageSize === 'custom'" label="Số lượt tối đa" hint="Số nguyên từ 1–50.">
             <AcuInput v-model="settingsDraft.customTurnMax" type="number" :min="1" :max="50" />
           </AcuFormRow>
-          <AcuFormRow label="API 预设（全局默认）" hint="所有 Agent 默认走这个预设；需要给某个 Agent 单独指定时，展开下方「各 Agent 渠道」。需要工具的 Agent 须使用 Chat Completion 类连接：自定义 API、Chat Completion 酒馆连接预设或 Chat Completion 主连接均可；Text Completion 连接无法返回工具调用。">
+          <AcuFormRow label="Preset API (mặc định toàn cục)" hint="Tất cả Agent mặc định dùng preset này; khi cần chỉ định riêng cho một Agent, hãy mở «Kênh từng Agent» bên dưới. Agent cần công cụ phải dùng kết nối loại Chat Completion: API tùy chỉnh, preset kết nối SillyTavern Chat Completion hoặc kết nối chính Chat Completion đều được; kết nối Text Completion không trả về được lệnh gọi công cụ.">
             <AcuSelect
               :options="continuationApiPresetOptions"
               :model-value="continuationApiPresetValue"
@@ -80,14 +80,14 @@
               @update:model-value="applyContinuationApiPreset"
             />
           </AcuFormRow>
-          <AcuFormRow label="总时长（分钟）" hint="到点后自动停止任务，0 为不限时。">
+          <AcuFormRow label="Tổng thời lượng (phút)" hint="Đến giờ sẽ tự động dừng tác vụ, 0 là không giới hạn.">
             <AcuInput v-model="settingsDraft.totalDurationMinutes" type="number" :min="0" />
           </AcuFormRow>
         </div>
         <div class="acu-v2-continuation-page__toggles">
-          <AcuCheckbox v-model="settingsDraft.outlinePreview" label="大纲产出后先预览再执行" />
-          <AcuCheckbox v-model="settingsDraft.finalReview.enabled" label="启用发送前世界书终审" />
-          <AcuCheckbox v-model="settingsDraft.webResearch.enabled" label="启用开场百科检索（同人推荐）" />
+          <AcuCheckbox v-model="settingsDraft.outlinePreview" label="Xem trước dàn ý rồi mới thực thi" />
+          <AcuCheckbox v-model="settingsDraft.finalReview.enabled" label="Bật duyệt cuối Sổ thế giới trước khi gửi" />
+          <AcuCheckbox v-model="settingsDraft.webResearch.enabled" label="Bật tra cứu bách khoa mở đầu (khuyến nghị cho đồng nhân)" />
         </div>
 
         <div class="acu-v2-continuation-page__groups">
@@ -101,42 +101,42 @@
           >
             <p class="acu-v2-continuation-page__meta">{{ continuationCopy.workflow.description }}</p>
             <div class="acu-v2-continuation-page__settings-grid">
-              <AcuFormRow label="终审打回上限" hint="instruction-composer 按反馈清单增量修订的次数。范围 1–10。">
+              <AcuFormRow label="Giới hạn trả lại ở duyệt cuối" hint="Số lần instruction-composer sửa tăng dần theo danh sách phản hồi. Phạm vi 1–10.">
                 <AcuInput v-model="settingsDraft.workflow.reviseLimit" type="number" :min="1" :max="10" />
               </AcuFormRow>
             </div>
           </AcuDisclosureGroup>
           <AcuDisclosureGroup
             class="acu-v2-continuation-page__group"
-            label="运行与重试"
+            label="Chạy và thử lại"
             :meta="runGroupMeta"
             :expanded="isGroupExpanded('run')"
             body-id="acu-continuation-group-run"
             @toggle="toggleGroup('run')"
           >
             <div class="acu-v2-continuation-page__settings-grid">
-              <AcuFormRow label="自动阶段上限" hint="连续自动推进多少个阶段后暂停，等待你确认。">
+              <AcuFormRow label="Giới hạn giai đoạn tự động" hint="Sau khi tự động đẩy liên tiếp bao nhiêu giai đoạn thì tạm dừng, chờ bạn xác nhận.">
                 <AcuInput v-model="settingsDraft.maxAutomaticStages" type="number" :min="1" />
               </AcuFormRow>
-              <AcuFormRow label="正文重试次数" hint="酒馆生成失败或被判定截断时最多重试几次。">
+              <AcuFormRow label="Số lần thử lại nội dung" hint="Số lần thử lại tối đa khi SillyTavern tạo thất bại hoặc bị coi là bị cắt.">
                 <AcuInput v-model="settingsDraft.generationRetryLimit" type="number" :min="0" />
               </AcuFormRow>
-              <AcuFormRow label="正文最低 token 数" hint="酒馆生成低于该值视为截断或出错并自动重试，0 为不检查。">
+              <AcuFormRow label="Số token tối thiểu của nội dung" hint="Nội dung SillyTavern tạo ra thấp hơn giá trị này được coi là bị cắt hoặc lỗi và tự động thử lại, 0 là không kiểm tra.">
                 <AcuInput v-model="settingsDraft.minGenerationTokens" type="number" :min="0" />
               </AcuFormRow>
-              <AcuFormRow label="内部 AI 重试次数" hint="Agent 自身调用 API 失败时的重试次数。">
+              <AcuFormRow label="Số lần thử lại AI nội bộ" hint="Số lần thử lại khi chính Agent gọi API thất bại.">
                 <AcuInput v-model="settingsDraft.internalAiRetryLimit" type="number" :min="0" />
               </AcuFormRow>
-              <AcuFormRow label="轮次延迟（秒）" hint="每轮正文完成后等待多久再开始下一轮。">
+              <AcuFormRow label="Độ trễ giữa các lượt (giây)" hint="Chờ bao lâu sau khi mỗi lượt nội dung xong rồi mới bắt đầu lượt tiếp theo.">
                 <AcuInput v-model="settingsDraft.loopDelaySeconds" type="number" :min="0" />
               </AcuFormRow>
-              <AcuFormRow label="重试延迟（秒）" hint="失败后等待多久再重试；遇到 429 限流可适当调大。">
+              <AcuFormRow label="Độ trễ thử lại (giây)" hint="Chờ bao lâu sau khi thất bại rồi mới thử lại; gặp giới hạn tốc độ 429 có thể tăng lên.">
                 <AcuInput v-model="settingsDraft.retryDelaySeconds" type="number" :min="0" />
               </AcuFormRow>
-              <AcuFormRow label="连续高压轮上限" hint="跨阶段累计多少轮没有日常/余波轮就强制安排一轮，0 为不作要求。每阶段的松紧由大纲自选的节奏形态决定，这里只兜底极端情况。">
+              <AcuFormRow label="Giới hạn lượt áp lực cao liên tiếp" hint="Tích lũy xuyên giai đoạn bao nhiêu lượt không có lượt thường nhật/dư chấn thì bắt buộc sắp xếp một lượt, 0 là không yêu cầu. Độ chặt lỏng của từng giai đoạn do dàn ý tự chọn kiểu nhịp quyết định, ở đây chỉ chặn tình huống cực đoan.">
                 <AcuInput v-model="settingsDraft.maxConsecutivePressureTurns" type="number" :min="0" :max="maxConsecutivePressureTurnsMax" />
               </AcuFormRow>
-              <AcuFormRow label="循环标签" hint="逗号分隔；正文中缺少任一标签就视为生成失败并重试。留空不检查。">
+              <AcuFormRow label="Thẻ vòng lặp" hint="Phân cách bằng dấu phẩy; nội dung thiếu bất kỳ thẻ nào sẽ bị coi là tạo thất bại và thử lại. Để trống thì không kiểm tra.">
                 <AcuInput v-model="settingsDraft.loopTags" type="text" />
               </AcuFormRow>
             </div>
@@ -144,26 +144,26 @@
 
           <AcuDisclosureGroup
             class="acu-v2-continuation-page__group"
-            label="正文读取与上下文"
+            label="Đọc nội dung và ngữ cảnh"
             :meta="contextGroupMeta"
             :expanded="isGroupExpanded('context')"
             body-id="acu-continuation-group-context"
             @toggle="toggleGroup('context')"
           >
             <div class="acu-v2-continuation-page__settings-grid">
-              <AcuFormRow label="正文可读窗口楼数" hint="只有最近这么多 AI 楼层能被 Agent 读取/搜索，更早剧情走纪要回溯；0 为不开放正文读取。">
+              <AcuFormRow label="Số tầng cửa sổ nội dung có thể đọc" hint="Chỉ chừng này tầng AI gần nhất mới được Agent đọc/tìm kiếm, cốt truyện sớm hơn truy ngược qua kỷ yếu; 0 là không mở đọc nội dung.">
                 <AcuInput v-model="settingsDraft.storyWindowFloors" type="number" :min="0" />
               </AcuFormRow>
-              <AcuFormRow label="正文目录尾部全文楼数" hint="最近几楼直接注入全文作承接锚点，其余窗口内楼层只进目录按需调阅。">
+              <AcuFormRow label="Số tầng cuối mục lục có toàn văn" hint="Vài tầng gần nhất được chèn toàn văn làm điểm neo nối tiếp, các tầng còn lại trong cửa sổ chỉ vào mục lục và tra cứu khi cần.">
                 <AcuInput v-model="settingsDraft.storyTailFloors" type="number" :min="0" />
               </AcuFormRow>
-              <AcuFormRow label="会话自动总结阈值（token）" hint="按主 Agent 实际读取的完整上下文统计（含提示词、工具结果与子代理报告），超过后在下一轮开始前把最早轮次浓缩成交接报告；0 为不总结。">
+              <AcuFormRow label="Ngưỡng tự động tóm tắt phiên (token)" hint="Tính theo toàn bộ ngữ cảnh Agent chính thực sự đọc (gồm prompt, kết quả công cụ và báo cáo Agent phụ); vượt ngưỡng sẽ cô đọng các lượt sớm nhất thành báo cáo bàn giao trước khi lượt tiếp theo bắt đầu; 0 là không tóm tắt.">
                 <AcuInput v-model="settingsDraft.agentHistoryTokenBudget" type="number" :min="0" />
               </AcuFormRow>
-              <AcuFormRow label="单批次读取上限" hint="一次 read/search 工具批次最多可注入多少 token；超过整批打回。不同批次不累计，填正整数或形如 20% 的百分比（按总结阈值折算）。">
+              <AcuFormRow label="Giới hạn đọc mỗi lô" hint="Một lô công cụ read/search được chèn tối đa bao nhiêu token; vượt quá thì trả lại cả lô. Các lô khác nhau không cộng dồn; nhập số nguyên dương hoặc phần trăm dạng 20% (quy đổi theo ngưỡng tóm tắt).">
                 <AcuInput v-model="settingsDraft.agentReadTokenBudget" type="text" />
               </AcuFormRow>
-              <AcuFormRow label="临近总结时的精读额度（token）" hint="上下文即将触发总结时，只有不超过此大小的单批次读取会放行；默认 6000。">
+              <AcuFormRow label="Hạn mức đọc kỹ khi sắp tóm tắt (token)" hint="Khi ngữ cảnh sắp kích hoạt tóm tắt, chỉ các lần đọc một lô không vượt quá kích thước này mới được cho qua; mặc định 6000.">
                 <AcuInput v-model="settingsDraft.agentReadFallbackTokens" type="number" :min="1" />
               </AcuFormRow>
             </div>
@@ -171,29 +171,29 @@
 
           <AcuDisclosureGroup
             class="acu-v2-continuation-page__group"
-            label="Agent 运行预算"
+            label="Ngân sách chạy của Agent"
             :meta="budgetGroupMeta"
             :expanded="isGroupExpanded('budget')"
             body-id="acu-continuation-group-budget"
             @toggle="toggleGroup('budget')"
           >
             <div class="acu-v2-continuation-page__settings-grid">
-              <AcuFormRow label="主 Agent 迭代上限" hint="一次规划内最多做多少次决策（派工/改大纲/交付各算一次；read/search 工具批次不计入）。范围 1–30。">
+              <AcuFormRow label="Giới hạn vòng lặp của Agent chính" hint="Số lần ra quyết định tối đa trong một lần lên kế hoạch (giao việc/sửa dàn ý/bàn giao mỗi loại tính một lần; lô công cụ read/search không tính). Phạm vi 1–30.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxIterations" type="number" :min="1" :max="30" />
               </AcuFormRow>
-              <AcuFormRow label="派工总数上限" hint="一次规划内最多派出多少个子代理任务，0 为禁止派工。范围 0–20。">
+              <AcuFormRow label="Giới hạn tổng số lần giao việc" hint="Số tác vụ Agent phụ được giao tối đa trong một lần lên kế hoạch, 0 là cấm giao việc. Phạm vi 0–20.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxDelegations" type="number" :min="0" :max="20" />
               </AcuFormRow>
-              <AcuFormRow label="单代理派工上限" hint="同一个子代理在一次规划内最多被派几次。范围 1–10。">
+              <AcuFormRow label="Giới hạn giao việc mỗi Agent" hint="Cùng một Agent phụ được giao tối đa bao nhiêu lần trong một lần lên kế hoạch. Phạm vi 1–10.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxSameAgent" type="number" :min="1" :max="10" />
               </AcuFormRow>
-              <AcuFormRow label="并发派工上限" hint="同一波次最多同时运行几个子代理；API 限流严格时调小。范围 1–6。">
+              <AcuFormRow label="Giới hạn giao việc đồng thời" hint="Số Agent phụ chạy đồng thời tối đa trong cùng một đợt; giảm xuống khi API giới hạn tốc độ nghiêm ngặt. Phạm vi 1–6.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxConcurrent" type="number" :min="1" :max="6" />
               </AcuFormRow>
-              <AcuFormRow label="读取批次上限" hint="主 Agent 一次规划内 read/search 工具批次的次数上限，0 为禁止读取。范围 0–30。">
+              <AcuFormRow label="Giới hạn lô đọc" hint="Số lô công cụ read/search tối đa của Agent chính trong một lần lên kế hoạch, 0 là cấm đọc. Phạm vi 0–30.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxReads" type="number" :min="0" :max="30" />
               </AcuFormRow>
-              <AcuFormRow label="子代理工具轮上限" hint="子代理首轮之外还允许几轮 read/search 追加读取，0 为只靠固定注入与派工种子。范围 0–10。">
+              <AcuFormRow label="Giới hạn vòng công cụ của Agent phụ" hint="Ngoài vòng đầu, Agent phụ còn được phép thêm mấy vòng đọc bổ sung read/search, 0 là chỉ dựa vào phần chèn cố định và hạt giống giao việc. Phạm vi 0–10.">
                 <AcuInput v-model="settingsDraft.agentRunBudget.maxExtraReads" type="number" :min="0" :max="10" />
               </AcuFormRow>
             </div>
@@ -201,55 +201,55 @@
 
           <AcuDisclosureGroup
             class="acu-v2-continuation-page__group"
-            label="发送前终审"
+            label="Duyệt cuối trước khi gửi"
             :meta="finalReviewGroupMeta"
             :expanded="isGroupExpanded('finalReview')"
             body-id="acu-continuation-group-final-review"
             @toggle="toggleGroup('finalReview')"
           >
             <div class="acu-v2-continuation-page__settings-grid">
-              <AcuFormRow label="终审单批次读取上限" hint="终审每次 read/search 工具批次最多可注入多少 token；超过整批打回。填正整数或形如 20% 的百分比（按总结阈值折算）。">
+              <AcuFormRow label="Giới hạn đọc mỗi lô của duyệt cuối" hint="Mỗi lô công cụ read/search của duyệt cuối được chèn tối đa bao nhiêu token; vượt quá thì trả lại cả lô. Nhập số nguyên dương hoặc phần trăm dạng 20% (quy đổi theo ngưỡng tóm tắt).">
                 <AcuInput v-model="settingsDraft.finalReview.readTokenBudget" type="text" />
               </AcuFormRow>
-              <AcuFormRow label="终审额外读取轮数" hint="终审首轮之外允许追加 read/search 的次数，0 为只使用固定证据。范围 0–10。">
+              <AcuFormRow label="Số vòng đọc bổ sung của duyệt cuối" hint="Số lần được phép thêm read/search ngoài vòng đầu của duyệt cuối, 0 là chỉ dùng chứng cứ cố định. Phạm vi 0–10.">
                 <AcuInput v-model="settingsDraft.finalReview.maxExtraReads" type="number" :min="0" :max="10" />
               </AcuFormRow>
             </div>
-            <p class="acu-v2-continuation-page__meta">终审默认关闭；开启后会额外调用 final-reviewer，先看世界书目录与命中预览，再按实际需要 search/read 精读条目。它使用独立的单批次读取上限与工具轮，不占用主 Agent 的读取额度。关闭时不装配终审证据、不额外读取世界书，也不会发起终审调用。</p>
+            <p class="acu-v2-continuation-page__meta">Duyệt cuối mặc định tắt; khi bật sẽ gọi thêm final-reviewer, xem mục lục Sổ thế giới và bản xem trước các mục khớp, rồi search/read kỹ các mục theo nhu cầu thực tế. Nó dùng giới hạn đọc mỗi lô và vòng công cụ riêng, không chiếm hạn mức đọc của Agent chính. Khi tắt, sẽ không lắp ráp chứng cứ duyệt cuối, không đọc thêm Sổ thế giới và cũng không phát lệnh gọi duyệt cuối.</p>
           </AcuDisclosureGroup>
 
           <AcuDisclosureGroup
             class="acu-v2-continuation-page__group"
-            label="网页检索"
+            label="Tra cứu web"
             :meta="webResearchGroupMeta"
             :expanded="isGroupExpanded('webResearch')"
             body-id="acu-continuation-group-web-research"
             @toggle="toggleGroup('webResearch')"
           >
-            <p class="acu-v2-continuation-page__meta">开启后，新任务第一次规划前会自动派工 web-researcher，从勾选的百科查清原作人物、组织、能力与设定，按实体分条写进「百科资料库」（资料面板 → 百科资料）；之后主 Agent 也能按需再派。所有出网只由该子代理执行：维基与萌娘走浏览器直连，百度与网页抓取经酒馆服务器同源转发。</p>
+            <p class="acu-v2-continuation-page__meta">Khi bật, trước lần lên kế hoạch đầu tiên của tác vụ mới sẽ tự động giao web-researcher tra rõ nhân vật, tổ chức, năng lực và thiết lập của tác phẩm gốc từ các bách khoa đã tích, ghi theo từng thực thể vào «Kho tư liệu bách khoa» (bảng tài liệu → Tư liệu bách khoa); về sau Agent chính cũng có thể giao lại khi cần. Mọi truy cập ra ngoài chỉ do Agent phụ này thực hiện: Wikipedia và Moegirl kết nối trực tiếp từ trình duyệt, Baidu và việc thu thập trang web được chuyển tiếp qua máy chủ SillyTavern cùng nguồn.</p>
             <div class="acu-v2-continuation-page__toggles">
-              <AcuCheckbox v-model="settingsDraft.webResearch.sources.moegirl" label="萌娘百科" />
-              <AcuCheckbox v-model="settingsDraft.webResearch.sources.wikipediaZh" label="中文维基百科" />
-              <AcuCheckbox v-model="settingsDraft.webResearch.sources.wikipediaEn" label="英文维基百科" />
-              <AcuCheckbox v-model="settingsDraft.webResearch.sources.baidu" label="百度百科（经酒馆转发）" />
+              <AcuCheckbox v-model="settingsDraft.webResearch.sources.moegirl" label="Moegirl" />
+              <AcuCheckbox v-model="settingsDraft.webResearch.sources.wikipediaZh" label="Wikipedia tiếng Trung" />
+              <AcuCheckbox v-model="settingsDraft.webResearch.sources.wikipediaEn" label="Wikipedia tiếng Anh" />
+              <AcuCheckbox v-model="settingsDraft.webResearch.sources.baidu" label="Baidu Baike (qua SillyTavern chuyển tiếp)" />
             </div>
             <div class="acu-v2-continuation-page__settings-grid">
-              <AcuFormRow label="搜索引擎" hint="百科查不到时的兜底搜索。DuckDuckGo 免 key；Serper / Tavily 使用酒馆「API 密钥」里已配置的 key；SearXNG 需填实例地址。">
+              <AcuFormRow label="Công cụ tìm kiếm" hint="Tìm kiếm dự phòng khi bách khoa không tra được. DuckDuckGo không cần key; Serper / Tavily dùng key đã cấu hình trong «Khóa API» của SillyTavern; SearXNG cần nhập địa chỉ instance.">
                 <AcuSelect v-model="settingsDraft.webResearch.searchProvider" :options="webSearchProviderOptions" />
               </AcuFormRow>
-              <AcuFormRow v-if="settingsDraft.webResearch.searchProvider === 'searxng'" label="SearXNG 实例地址" hint="形如 https://searx.example.org">
+              <AcuFormRow v-if="settingsDraft.webResearch.searchProvider === 'searxng'" label="Địa chỉ instance SearXNG" hint="Dạng như https://searx.example.org">
                 <AcuInput v-model="settingsDraft.webResearch.searxngBaseUrl" type="text" />
               </AcuFormRow>
-              <AcuFormRow label="单次工具轮上限" hint="web-researcher 一次派工里搜索/抓取/本地调阅的轮数上限。范围 1–20。">
+              <AcuFormRow label="Giới hạn vòng công cụ mỗi lần" hint="Số vòng tìm kiếm/thu thập/tra cứu cục bộ tối đa trong một lần giao việc cho web-researcher. Phạm vi 1–20.">
                 <AcuInput v-model="settingsDraft.webResearch.maxToolRounds" type="number" :min="1" :max="20" />
               </AcuFormRow>
-              <AcuFormRow label="单次抓取页数上限" hint="单次检索最多阅读的外部页面数。页面正文仅在检索子代理当次上下文中使用，不会写入聊天。范围 1–30。">
+              <AcuFormRow label="Giới hạn số trang thu thập mỗi lần" hint="Số trang bên ngoài được đọc tối đa trong một lần tra cứu. Nội dung trang chỉ dùng trong ngữ cảnh lần đó của Agent phụ tra cứu, không ghi vào chat. Phạm vi 1–30.">
                 <AcuInput v-model="settingsDraft.webResearch.maxPages" type="number" :min="1" :max="30" />
               </AcuFormRow>
-              <AcuFormRow label="单页阅读字数上限" hint="检索子代理归纳资料时可读取的单页正文上限；正文不保存。范围 500–20000。">
+              <AcuFormRow label="Giới hạn số ký tự đọc mỗi trang" hint="Giới hạn nội dung một trang mà Agent phụ tra cứu được đọc khi tổng hợp tư liệu; nội dung không được lưu. Phạm vi 500–20000.">
                 <AcuInput v-model="settingsDraft.webResearch.pageCharLimit" type="number" :min="500" :max="20000" />
               </AcuFormRow>
-              <AcuFormRow label="域名黑名单" hint="web_read 不得抓取的域名，逗号或换行分隔；内网与酒馆自身始终被拦。">
+              <AcuFormRow label="Danh sách đen tên miền" hint="Các tên miền web_read không được thu thập, phân cách bằng dấu phẩy hoặc xuống dòng; mạng nội bộ và chính SillyTavern luôn bị chặn.">
                 <AcuTextarea v-model="settingsDraft.webResearch.blockedDomains" :rows="3" />
               </AcuFormRow>
             </div>
@@ -257,13 +257,13 @@
 
           <AcuDisclosureGroup
             class="acu-v2-continuation-page__group"
-            label="各 Agent 渠道"
+            label="Kênh từng Agent"
             :meta="channelGroupMeta"
             :expanded="isGroupExpanded('channels')"
             body-id="acu-continuation-group-channels"
             @toggle="toggleGroup('channels')"
           >
-            <p class="acu-v2-continuation-page__meta">给不同 Agent 分配不同 API 预设：例如主 Agent 用强模型，审查类子代理用便宜快速的模型。「跟随全局默认」即使用上方的 API 预设。</p>
+            <p class="acu-v2-continuation-page__meta">Gán preset API khác nhau cho từng Agent: ví dụ Agent chính dùng mô hình mạnh, Agent phụ rà soát dùng mô hình rẻ và nhanh. «Theo mặc định toàn cục» nghĩa là dùng preset API ở trên.</p>
             <div class="acu-v2-continuation-page__settings-grid">
               <AcuFormRow v-for="channel in agentChannelRoles" :key="channel.role" :label="channel.label">
                 <AcuSelect
@@ -277,15 +277,15 @@
 
           <AcuDisclosureGroup
             class="acu-v2-continuation-page__group"
-            label="上下文提取与排除规则"
+            label="Quy tắc trích xuất và loại trừ ngữ cảnh"
             :meta="rulesGroupMeta"
             :expanded="isGroupExpanded('rules')"
             body-id="acu-continuation-group-rules"
             @toggle="toggleGroup('rules')"
           >
-            <p class="acu-v2-continuation-page__meta">提取规则只保留正文中匹配「起始–结束」标记之间的内容；排除规则则把匹配段落剔除。两者都为空时使用完整正文。</p>
-            <AcuRulePairList v-model="settingsDraft.contextExtractRules" label="上下文提取规则" />
-            <AcuRulePairList v-model="settingsDraft.contextExcludeRules" label="上下文排除规则" />
+            <p class="acu-v2-continuation-page__meta">Quy tắc trích xuất chỉ giữ nội dung nằm giữa các dấu «bắt đầu–kết thúc» khớp trong nội dung; quy tắc loại trừ thì loại bỏ các đoạn khớp. Khi cả hai đều trống thì dùng toàn bộ nội dung.</p>
+            <AcuRulePairList v-model="settingsDraft.contextExtractRules" label="Quy tắc trích xuất ngữ cảnh" />
+            <AcuRulePairList v-model="settingsDraft.contextExcludeRules" label="Quy tắc loại trừ ngữ cảnh" />
           </AcuDisclosureGroup>
         </div>
 
@@ -294,10 +294,10 @@
       </AcuPanel>
     </AcuPanelGrid>
 
-    <AcuPanel v-if="settingsDraft" title="伪 Role 提示词" description="仅启用段参与内部调用；占位符会按实际出现按需解析。修改后自动保存。">
+    <AcuPanel v-if="settingsDraft" title="Prompt giả Role" description="Chỉ các đoạn được bật mới tham gia lệnh gọi nội bộ; placeholder được phân giải theo nhu cầu khi thực sự xuất hiện. Tự động lưu sau khi sửa.">
       <div class="acu-v2-continuation-page__actions acu-v2-continuation-page__actions--start">
-        <AcuButton @click="exportPrompts">导出提示词 JSON</AcuButton>
-        <AcuButton @click="promptImportInput?.click()">导入提示词 JSON</AcuButton>
+        <AcuButton @click="exportPrompts">Xuất JSON prompt</AcuButton>
+        <AcuButton @click="promptImportInput?.click()">Nhập JSON prompt</AcuButton>
         <input ref="promptImportInput" type="file" accept=".json,application/json" class="acu-v2-continuation-page__file-input" @change="onImportPromptsFile" />
       </div>
       <p v-if="promptIoError" class="acu-v2-continuation-page__error">{{ promptIoError }}</p>
@@ -331,18 +331,18 @@
 
         <AcuDisclosureGroup
           class="acu-v2-continuation-page__group"
-          label="占位符速查"
-          meta="参考"
+          label="Tra nhanh placeholder"
+          meta="Tham khảo"
           :expanded="isGroupExpanded('prompt:reference')"
           body-id="acu-continuation-prompt-reference"
           @toggle="toggleGroup('prompt:reference')"
         >
-          <h4 class="acu-v2-continuation-page__subheading">大纲子代理</h4>
-          <p class="acu-v2-continuation-page__meta">大纲可用占位符：$USER_REQUIREMENTS（用户累计要求）、$ORIGIN_INSTRUCTION（创建任务时的初始要求原文，自定义提示词仍可用）、$1、$STORY_OVERVIEW（事件概览：纪要表概览全量 + 召回 AM 码展开纪要）、$STORY_TAIL（尾部楼层全文）、$STAGE_HISTORY、$COMPLETED_STAGE_PART、$REPLAN_INSTRUCTION、$TURN_RANGE、$REMAINING_TURNS、$STORY_ARC（故事总纲）、$STAGE_WORD_BUDGET（本阶段字数容量）、$PACING_CONTEXT（跨阶段节奏状态：上一阶段形态与已连续高压轮数）、$VALIDATION_ERRORS。</p>
-          <h4 class="acu-v2-continuation-page__subheading">主 Agent</h4>
-          <p class="acu-v2-continuation-page__meta">$HISTORY_ANCHOR 标记主 Agent 自己的会话记录（用户输入、它历次迭代的输出、回灌的工具结果与调阅到的资料）插入位置，该段本身不发送；删掉它会让会话记录退回到序列最前面。正文三层注入：$STORY_OVERVIEW（事件概览：纪要表概览全量，召回 AM 码展开对应纪要）、$STORY_TAIL（尾部楼层全文）、$STORY_CATALOG（楼层纯索引：楼号、字数、开头摘录、读取地址）。目录与状态占位符：$OUTLINE_STATE（大纲单行状态）、$WORLDBOOK_CATALOG（已启用世界书目录，含 token 估算）、$WORLDBOOK_HITS（本轮语境命中的世界书条目提示）、$AGENT_READ_CATALOG（read/search 地址词汇表）。其余可用占位符：$USER_REQUIREMENTS（用户对任务累计提过的要求）、$USER_INTENT（创建任务时的初始要求原文，自定义提示词仍可用）、$CURRENT_TURN_GOAL、$CURRENT_TURN_PACING（本轮节奏与写作约束）、$STORY_ARC_STATE（总纲状态）、$HISTORY_UNSETTLED（未结算正文全量，仅 AI 楼层）、$AGENT_CATALOG、$MODULE_CATALOG、$TABLE_CATALOG、$BUDGET；旧版的 $OUTLINE_WINDOW、$ACTIVE_CONSTRAINTS、$TOOL_RESULTS 仍可在自定义提示词中使用。</p>
-          <h4 class="acu-v2-continuation-page__subheading">各子代理</h4>
-          <p class="acu-v2-continuation-page__meta">子代理可用占位符：$USER_REQUIREMENTS（用户累计要求）、$AGENT_READ_MATERIALS（派工种子读集解析出的资料）、$AGENT_TASK（本次派工任务）、$AGENT_WRITE_SCOPE（职责固定的写入范围）、$AGENT_READ_CATALOG（read/search 地址词汇表）、$STORY_OVERVIEW / $STORY_TAIL / $HISTORY_UNSETTLED（按角色固定注入的正文语境）、$HOOKS_LEDGER / $INFO_GAP / $ACTIVE_CONSTRAINTS / $STORY_ARC / $CHRONOLOGY / $WEB_REFS（本地资料；$WEB_REFS 只给名称 + 一句话简介的预览）、$STORY_CATALOG、$TABLE_CATALOG、$WORLDBOOK_CATALOG、$WORLDBOOK_HITS（各资料目录与命中提示）；网页检索子代理另有 $WEB_TOOL_CATALOG（出网工具说明与本次配额）。固定注入差异：主 Agent、总纲代理、两类策划代理、连续性审查、终审固定获得 $OUTLINE_WINDOW 或任务段中的 $USER_REQUIREMENTS；大纲代理默认使用 $USER_REQUIREMENTS，自定义段仍可使用 $ORIGIN_INSTRUCTION；伏笔与认知维护代理不再注入初始要求原文，只接收累计用户要求清单。</p>
+          <h4 class="acu-v2-continuation-page__subheading">Agent phụ dàn ý</h4>
+          <p class="acu-v2-continuation-page__meta">Placeholder dùng được trong dàn ý: $USER_REQUIREMENTS (yêu cầu tích lũy của người dùng), $ORIGIN_INSTRUCTION (nguyên văn yêu cầu ban đầu khi tạo tác vụ, prompt tùy chỉnh vẫn dùng được), $1, $STORY_OVERVIEW (tổng quan sự kiện: toàn bộ tổng quan bảng kỷ yếu + kỷ yếu mở ra qua mã AM truy hồi), $STORY_TAIL (toàn văn các tầng cuối), $STAGE_HISTORY, $COMPLETED_STAGE_PART, $REPLAN_INSTRUCTION, $TURN_RANGE, $REMAINING_TURNS, $STORY_ARC (tổng cương truyện), $STAGE_WORD_BUDGET (dung lượng số chữ của giai đoạn này), $PACING_CONTEXT (trạng thái nhịp xuyên giai đoạn: kiểu của giai đoạn trước và số lượt áp lực cao liên tiếp), $VALIDATION_ERRORS.</p>
+          <h4 class="acu-v2-continuation-page__subheading">Agent chính</h4>
+          <p class="acu-v2-continuation-page__meta">$HISTORY_ANCHOR đánh dấu vị trí chèn bản ghi phiên của chính Agent chính (đầu vào người dùng, đầu ra các vòng lặp trước của nó, kết quả công cụ được đưa lại và tài liệu đã tra cứu), bản thân đoạn này không được gửi; xóa nó thì bản ghi phiên sẽ lùi về đầu chuỗi. Chèn nội dung ba lớp: $STORY_OVERVIEW (tổng quan sự kiện: toàn bộ tổng quan bảng kỷ yếu, kỷ yếu tương ứng được mở ra qua mã AM truy hồi), $STORY_TAIL (toàn văn các tầng cuối), $STORY_CATALOG (chỉ mục thuần của tầng: số tầng, số chữ, trích đoạn đầu, địa chỉ đọc). Placeholder mục lục và trạng thái: $OUTLINE_STATE (trạng thái một dòng của dàn ý), $WORLDBOOK_CATALOG (mục lục Sổ thế giới đã bật, kèm ước lượng token), $WORLDBOOK_HITS (gợi ý các mục Sổ thế giới khớp ngữ cảnh lượt này), $AGENT_READ_CATALOG (bảng từ vựng địa chỉ read/search). Các placeholder khả dụng khác: $USER_REQUIREMENTS (các yêu cầu người dùng đã nêu tích lũy cho tác vụ), $USER_INTENT (nguyên văn yêu cầu ban đầu khi tạo tác vụ, prompt tùy chỉnh vẫn dùng được), $CURRENT_TURN_GOAL, $CURRENT_TURN_PACING (nhịp và ràng buộc viết của lượt này), $STORY_ARC_STATE (trạng thái tổng cương), $HISTORY_UNSETTLED (toàn bộ nội dung chưa kết toán, chỉ tầng AI), $AGENT_CATALOG, $MODULE_CATALOG, $TABLE_CATALOG, $BUDGET; $OUTLINE_WINDOW, $ACTIVE_CONSTRAINTS, $TOOL_RESULTS của bản cũ vẫn dùng được trong prompt tùy chỉnh.</p>
+          <h4 class="acu-v2-continuation-page__subheading">Các Agent phụ</h4>
+          <p class="acu-v2-continuation-page__meta">Placeholder dùng được cho Agent phụ: $USER_REQUIREMENTS (yêu cầu tích lũy của người dùng), $AGENT_READ_MATERIALS (tài liệu phân giải từ tập đọc hạt giống giao việc), $AGENT_TASK (tác vụ giao lần này), $AGENT_WRITE_SCOPE (phạm vi ghi cố định theo trách nhiệm), $AGENT_READ_CATALOG (bảng từ vựng địa chỉ read/search), $STORY_OVERVIEW / $STORY_TAIL / $HISTORY_UNSETTLED (ngữ cảnh nội dung chèn cố định theo vai trò), $HOOKS_LEDGER / $INFO_GAP / $ACTIVE_CONSTRAINTS / $STORY_ARC / $CHRONOLOGY / $WEB_REFS (tài liệu cục bộ; $WEB_REFS chỉ cho bản xem trước gồm tên + giới thiệu một câu), $STORY_CATALOG, $TABLE_CATALOG, $WORLDBOOK_CATALOG, $WORLDBOOK_HITS (mục lục tài liệu và gợi ý khớp); Agent phụ tra cứu web còn có $WEB_TOOL_CATALOG (mô tả công cụ ra ngoài và hạn mức lần này). Khác biệt về chèn cố định: Agent chính, Agent tổng cương, hai loại Agent hoạch định, rà soát tính liên tục và duyệt cuối luôn nhận $OUTLINE_WINDOW hoặc $USER_REQUIREMENTS trong đoạn tác vụ; Agent dàn ý mặc định dùng $USER_REQUIREMENTS, đoạn tùy chỉnh vẫn dùng được $ORIGIN_INSTRUCTION; Agent bảo trì phục bút và nhận thức không còn được chèn nguyên văn yêu cầu ban đầu, chỉ nhận danh sách yêu cầu người dùng tích lũy.</p>
         </AcuDisclosureGroup>
       </div>
       <p v-if="settingsError" class="acu-v2-continuation-page__error">{{ settingsError }}</p>
@@ -393,17 +393,17 @@ let countdownTimer: ReturnType<typeof setInterval> | undefined;
 
 const stageText = computed(() => {
   const stage = runtime.activeStage.value;
-  if (!runtime.task.value) return '尚未创建任务';
-  if (!stage) return '大纲待创建';
+  if (!runtime.task.value) return 'Chưa tạo tác vụ';
+  if (!stage) return 'Dàn ý chờ tạo';
   const turn = runtime.activeRevision.value?.outline.nodes[stage.activeNodeIndex]?.turns[stage.activeTurnIndex];
   const label = stage.agentTurnLabel;
   return label && label.revision === stage.activeRevision && label.turnId === turn?.id
-    ? `第 ${stage.stageNumber} 阶段 · ${label.text}` : `第 ${stage.stageNumber} 阶段`;
+    ? `Giai đoạn ${stage.stageNumber} · ${label.text}` : `Giai đoạn ${stage.stageNumber}`;
 });
 
 const deadlineText = computed(() => {
   const deadlineAt = runtime.task.value?.deadlineAt;
-  if (deadlineAt === null || deadlineAt === undefined) return '未设置';
+  if (deadlineAt === null || deadlineAt === undefined) return 'Chưa đặt';
   const remainingSeconds = Math.max(0, Math.ceil((deadlineAt - clock.value) / 1_000));
   const hours = Math.floor(remainingSeconds / 3_600);
   const minutes = Math.floor((remainingSeconds % 3_600) / 60);
@@ -444,22 +444,22 @@ const maxConsecutivePressureTurnsMax = CONTINUATION_MAX_CONSECUTIVE_PRESSURE_TUR
 const INHERIT_CHANNEL_VALUE = '__inherit__';
 
 const agentChannelRoles = [
-  { role: 'main', label: '主 Agent' },
-  { role: 'outline', label: '大纲子代理' },
-  { role: 'arcArchitect', label: '故事总纲' },
-  { role: 'maintainer', label: '伏笔与认知维护' },
-  { role: 'mainlinePlanner', label: '主线推进策划' },
-  { role: 'beatPlanner', label: '伏笔与节拍策划' },
-  { role: 'finalReviewer', label: '发送前终审' },
-  { role: 'webResearcher', label: '网页检索' },
-  { role: 'instructionComposer', label: '写作指令编排' },
+  { role: 'main', label: 'Agent chính' },
+  { role: 'outline', label: 'Agent phụ dàn ý' },
+  { role: 'arcArchitect', label: 'Tổng cương truyện' },
+  { role: 'maintainer', label: 'Bảo trì phục bút và nhận thức' },
+  { role: 'mainlinePlanner', label: 'Hoạch định đẩy tuyến chính' },
+  { role: 'beatPlanner', label: 'Hoạch định phục bút và nhịp' },
+  { role: 'finalReviewer', label: 'Duyệt cuối trước khi gửi' },
+  { role: 'webResearcher', label: 'Tra cứu web' },
+  { role: 'instructionComposer', label: 'Biên soạn chỉ dẫn viết' },
 ] as const;
 
 const webSearchProviderOptions = [
-  { value: 'duckduckgo', label: 'DuckDuckGo（免 key）' },
-  { value: 'serper', label: 'Serper（Google，需酒馆已配 key）' },
-  { value: 'tavily', label: 'Tavily（需酒馆已配 key）' },
-  { value: 'searxng', label: 'SearXNG（自建/公共实例）' },
+  { value: 'duckduckgo', label: 'DuckDuckGo (không cần key)' },
+  { value: 'serper', label: 'Serper (Google, cần SillyTavern đã cấu hình key)' },
+  { value: 'tavily', label: 'Tavily (cần SillyTavern đã cấu hình key)' },
+  { value: 'searxng', label: 'SearXNG (tự dựng/instance công cộng)' },
 ];
 
 type AgentChannelRole = typeof agentChannelRoles[number]['role'];
@@ -479,52 +479,52 @@ function toggleGroup(key: string): void {
 const runGroupMeta = computed(() => {
   const s = settingsDraft.value;
   if (!s) return '';
-  return `阶段上限 ${s.maxAutomaticStages} · 正文重试 ${s.generationRetryLimit} 次`;
+  return `Giới hạn giai đoạn ${s.maxAutomaticStages} · thử lại nội dung ${s.generationRetryLimit} lần`;
 });
 
 const contextGroupMeta = computed(() => {
   const s = settingsDraft.value;
   if (!s) return '';
-  return `窗口 ${s.storyWindowFloors} 楼 · 总结阈值 ${s.agentHistoryTokenBudget}`;
+  return `Cửa sổ ${s.storyWindowFloors} tầng · ngưỡng tóm tắt ${s.agentHistoryTokenBudget}`;
 });
 
 const budgetGroupMeta = computed(() => {
   const s = settingsDraft.value;
   if (!s) return '';
-  return `迭代 ${s.agentRunBudget.maxIterations} · 派工 ${s.agentRunBudget.maxDelegations} · 并发 ${s.agentRunBudget.maxConcurrent}`;
+  return `Vòng lặp ${s.agentRunBudget.maxIterations} · giao việc ${s.agentRunBudget.maxDelegations} · đồng thời ${s.agentRunBudget.maxConcurrent}`;
 });
 
-const finalReviewGroupMeta = computed(() => (settingsDraft.value?.finalReview.enabled ? '已开启' : '已关闭'));
+const finalReviewGroupMeta = computed(() => (settingsDraft.value?.finalReview.enabled ? 'Đã bật' : 'Đã tắt'));
 
 const workflowGroupMeta = computed(() => {
   const workflow = settingsDraft.value?.workflow;
   if (!workflow) return '';
-  return `终审打回 ${workflow.reviseLimit} 次`;
+  return `Duyệt cuối trả lại ${workflow.reviseLimit} lần`;
 });
 
 const webResearchGroupMeta = computed(() => {
   const web = settingsDraft.value?.webResearch;
   if (!web) return '';
-  if (!web.enabled) return '已关闭';
-  const sources = [web.sources.moegirl && '萌娘', web.sources.wikipediaZh && '中文维基', web.sources.wikipediaEn && '英文维基', web.sources.baidu && '百度'].filter(Boolean);
-  return `已开启 · ${sources.length ? sources.join('/') : '无百科来源'} · ${web.searchProvider}`;
+  if (!web.enabled) return 'Đã tắt';
+  const sources = [web.sources.moegirl && 'Moegirl', web.sources.wikipediaZh && 'Wikipedia TQ', web.sources.wikipediaEn && 'Wikipedia Anh', web.sources.baidu && 'Baidu'].filter(Boolean);
+  return `Đã bật · ${sources.length ? sources.join('/') : 'Không có nguồn bách khoa'} · ${web.searchProvider}`;
 });
 
 const channelGroupMeta = computed(() => {
   const presets = settingsDraft.value?.agentApiPresets;
   if (!presets) return '';
   const customized = agentChannelRoles.filter(channel => presets[channel.role]?.mode !== 'inherit').length;
-  return customized ? `${customized} 个单独指定` : '全部跟随默认';
+  return customized ? `${customized} chỉ định riêng` : 'Tất cả theo mặc định';
 });
 
 const rulesGroupMeta = computed(() => {
   const s = settingsDraft.value;
   if (!s) return '';
-  return `提取 ${s.contextExtractRules.length} · 排除 ${s.contextExcludeRules.length}`;
+  return `Trích xuất ${s.contextExtractRules.length} · loại trừ ${s.contextExcludeRules.length}`;
 });
 
 const agentChannelOptions = computed(() => [
-  { value: INHERIT_CHANNEL_VALUE, label: '跟随全局默认' },
+  { value: INHERIT_CHANNEL_VALUE, label: 'Theo mặc định toàn cục' },
   ...continuationApiPresetOptions.value,
 ]);
 
@@ -600,10 +600,10 @@ function syncOutlineDraft(): void {
 function parseOutlineDraft(): StageOutline_ACU | null {
   try {
     const parsed: unknown = JSON.parse(outlineDraft.value);
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('大纲必须是 JSON 对象');
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Dàn ý phải là một đối tượng JSON');
     return parsed as StageOutline_ACU;
   } catch (error) {
-    outlineDraftError.value = error instanceof Error ? error.message : '大纲 JSON 无法解析';
+    outlineDraftError.value = error instanceof Error ? error.message : 'Không thể phân tích JSON dàn ý';
     return null;
   }
 }
@@ -617,11 +617,11 @@ async function acceptOutlineDraft(): Promise<void> {
 /** 首次发送（即将创建任务）前的高 RPM 风险确认：5 秒倒计时结束前只能取消。 */
 async function confirmFirstSendRpmWarning(): Promise<boolean> {
   return dialog.confirm({
-    title: '开始智能续写前请确认',
-    message: '本功能单次请求占用的 Token 不多，但 Agent 会连续发起大量请求，需要 API 支持很高的 RPM（每分钟请求数）。',
-    dangerMessage: '禁止使用任何公益站，除非它明确表示允许 coding（本功能的请求模式与 coding 类似）。违规使用可能导致账号被封禁。',
-    confirmLabel: '我已了解，开始',
-    cancelLabel: '取消',
+    title: 'Vui lòng xác nhận trước khi bắt đầu viết tiếp thông minh',
+    message: 'Mỗi yêu cầu của chức năng này tốn không nhiều Token, nhưng Agent sẽ liên tục phát ra rất nhiều yêu cầu, cần API hỗ trợ RPM (số yêu cầu mỗi phút) rất cao.',
+    dangerMessage: 'Cấm dùng bất kỳ trạm công ích nào, trừ khi nó nói rõ cho phép coding (mô hình yêu cầu của chức năng này tương tự coding). Dùng sai quy định có thể khiến tài khoản bị khóa.',
+    confirmLabel: 'Tôi đã hiểu, bắt đầu',
+    cancelLabel: 'Hủy',
     confirmVariant: 'danger',
     confirmCountdownSeconds: 5,
   });
@@ -653,7 +653,7 @@ async function clearData(): Promise<void> {
 
 function requiredInteger(value: unknown, label: string): number {
   const numeric = typeof value === 'number' ? value : Number(value);
-  if (!Number.isInteger(numeric)) throw new Error(`${label} 必须是整数`);
+  if (!Number.isInteger(numeric)) throw new Error(`${label} phải là số nguyên`);
   return numeric;
 }
 
@@ -665,100 +665,100 @@ function requiredBoundedInteger(value: unknown, label: string, maximum: number):
 /** 上下界俱全的整数设置，用于 Agent 运行预算等有护栏的字段。 */
 function requiredRangeInteger(value: unknown, label: string, minimum: number, maximum: number): number {
   const numeric = typeof value === 'number' ? value : Number(String(value ?? '').trim());
-  if (!Number.isInteger(numeric) || numeric < minimum || numeric > maximum) throw new Error(`${label} 必须是 ${minimum} 到 ${maximum} 之间的整数`);
+  if (!Number.isInteger(numeric) || numeric < minimum || numeric > maximum) throw new Error(`${label} phải là số nguyên từ ${minimum} đến ${maximum}`);
   return numeric;
 }
 
 /** 读取预算接受两种形态：正整数（固定 token 数）或 1%-100% 的百分比串（按总结阈值折算）。 */
 function normalizedReadBudget(value: unknown): number | string {
   const raw = String(value ?? '').trim();
-  if (!raw) throw new Error('读取预算不能为空');
+  if (!raw) throw new Error('Ngân sách đọc không được để trống');
   if (raw.endsWith('%')) {
     const percent = Number.parseFloat(raw);
-    if (!Number.isFinite(percent) || percent < 1 || percent > 100) throw new Error('读取预算百分比必须在 1% 到 100% 之间');
+    if (!Number.isFinite(percent) || percent < 1 || percent > 100) throw new Error('Phần trăm ngân sách đọc phải nằm trong khoảng 1% đến 100%');
     return `${percent}%`;
   }
   const fixed = Number(raw);
-  if (!Number.isInteger(fixed) || fixed < 1) throw new Error('读取上限必须是正整数，或形如 20% 的百分比');
+  if (!Number.isInteger(fixed) || fixed < 1) throw new Error('Giới hạn đọc phải là số nguyên dương, hoặc phần trăm dạng 20%');
   return fixed;
 }
 
 function normalizeSettingsDraft(): ContinuationSettings_ACU {
-  if (!settingsDraft.value) throw new Error('续写设置尚未加载');
+  if (!settingsDraft.value) throw new Error('Cài đặt viết tiếp chưa được tải');
   const source = settingsDraft.value;
-  const customTurnMin = source.stageSize === 'custom' ? requiredInteger(source.customTurnMin, '最少轮次') : null;
-  const customTurnMax = source.stageSize === 'custom' ? requiredInteger(source.customTurnMax, '最多轮次') : null;
+  const customTurnMin = source.stageSize === 'custom' ? requiredInteger(source.customTurnMin, 'Số lượt tối thiểu') : null;
+  const customTurnMax = source.stageSize === 'custom' ? requiredInteger(source.customTurnMax, 'Số lượt tối đa') : null;
   const customStoryArcVolumeCount = source.storyArcVolumePlan === 'custom'
-    ? requiredInteger(source.customStoryArcVolumeCount, '自定义总纲卷数')
+    ? requiredInteger(source.customStoryArcVolumeCount, 'Số tập tổng cương tùy chỉnh')
     : null;
   if (source.stageSize === 'custom' && (customTurnMin < 1 || customTurnMax < customTurnMin || customTurnMax > 50)) {
-    throw new Error('自定义阶段轮次必须是 1 到 50 的递增整数范围');
+    throw new Error('Số lượt giai đoạn tùy chỉnh phải là khoảng số nguyên tăng dần từ 1 đến 50');
   }
   if (source.storyArcVolumePlan === 'custom' && (customStoryArcVolumeCount < 1 || customStoryArcVolumeCount > 50)) {
-    throw new Error('自定义总纲卷数必须是 1 到 50 的整数');
+    throw new Error('Số tập tổng cương tùy chỉnh phải là số nguyên từ 1 đến 50');
   }
   const normalized = {
     ...cloneSettings(source),
     customTurnMin,
     customTurnMax,
     customStoryArcVolumeCount,
-    maxAutomaticStages: requiredInteger(source.maxAutomaticStages, '自动阶段上限'),
-    generationRetryLimit: requiredInteger(source.generationRetryLimit, '正文重试次数'),
-    minGenerationTokens: requiredInteger(source.minGenerationTokens, '正文最低 token 数'),
-    internalAiRetryLimit: requiredInteger(source.internalAiRetryLimit, '内部 AI 重试次数'),
-    loopDelaySeconds: requiredInteger(source.loopDelaySeconds, '轮次延迟'),
-    retryDelaySeconds: requiredInteger(source.retryDelaySeconds, '重试延迟'),
-    totalDurationMinutes: requiredInteger(source.totalDurationMinutes, '总时长'),
-    maxConsecutivePressureTurns: requiredBoundedInteger(source.maxConsecutivePressureTurns, '连续高压轮上限', CONTINUATION_MAX_CONSECUTIVE_PRESSURE_TURNS_MAX_UI_ACU),
-    storyWindowFloors: requiredInteger(source.storyWindowFloors, '正文可读窗口楼数'),
-    storyTailFloors: requiredInteger(source.storyTailFloors, '正文目录尾部全文楼数'),
-    agentHistoryTokenBudget: requiredInteger(source.agentHistoryTokenBudget, '会话自动总结阈值'),
+    maxAutomaticStages: requiredInteger(source.maxAutomaticStages, 'Giới hạn giai đoạn tự động'),
+    generationRetryLimit: requiredInteger(source.generationRetryLimit, 'Số lần thử lại nội dung'),
+    minGenerationTokens: requiredInteger(source.minGenerationTokens, 'Số token tối thiểu của nội dung'),
+    internalAiRetryLimit: requiredInteger(source.internalAiRetryLimit, 'Số lần thử lại AI nội bộ'),
+    loopDelaySeconds: requiredInteger(source.loopDelaySeconds, 'Độ trễ giữa các lượt'),
+    retryDelaySeconds: requiredInteger(source.retryDelaySeconds, 'Độ trễ thử lại'),
+    totalDurationMinutes: requiredInteger(source.totalDurationMinutes, 'Tổng thời lượng'),
+    maxConsecutivePressureTurns: requiredBoundedInteger(source.maxConsecutivePressureTurns, 'Giới hạn lượt áp lực cao liên tiếp', CONTINUATION_MAX_CONSECUTIVE_PRESSURE_TURNS_MAX_UI_ACU),
+    storyWindowFloors: requiredInteger(source.storyWindowFloors, 'Số tầng cửa sổ nội dung có thể đọc'),
+    storyTailFloors: requiredInteger(source.storyTailFloors, 'Số tầng cuối mục lục có toàn văn'),
+    agentHistoryTokenBudget: requiredInteger(source.agentHistoryTokenBudget, 'Ngưỡng tự động tóm tắt phiên'),
     agentReadTokenBudget: normalizedReadBudget(source.agentReadTokenBudget),
-    agentReadFallbackTokens: requiredInteger(source.agentReadFallbackTokens, '临近总结时的精读额度'),
+    agentReadFallbackTokens: requiredInteger(source.agentReadFallbackTokens, 'Hạn mức đọc kỹ khi sắp tóm tắt'),
     finalReview: {
       enabled: source.finalReview.enabled,
       readTokenBudget: normalizedReadBudget(source.finalReview.readTokenBudget),
-      maxExtraReads: requiredRangeInteger(source.finalReview.maxExtraReads, '终审额外读取轮数', 0, 10),
+      maxExtraReads: requiredRangeInteger(source.finalReview.maxExtraReads, 'Số vòng đọc bổ sung của duyệt cuối', 0, 10),
     },
     workflow: {
-      reviseLimit: requiredRangeInteger(source.workflow.reviseLimit, '终审打回上限', 1, 10),
+      reviseLimit: requiredRangeInteger(source.workflow.reviseLimit, 'Giới hạn trả lại ở duyệt cuối', 1, 10),
     },
     webResearch: {
       enabled: source.webResearch.enabled,
       sources: { ...source.webResearch.sources },
       searchProvider: source.webResearch.searchProvider,
       searxngBaseUrl: String(source.webResearch.searxngBaseUrl ?? '').trim(),
-      maxToolRounds: requiredRangeInteger(source.webResearch.maxToolRounds, '网页检索单次工具轮上限', 1, 20),
-      maxPages: requiredRangeInteger(source.webResearch.maxPages, '网页检索单次抓取页数上限', 1, 30),
-      pageCharLimit: requiredRangeInteger(source.webResearch.pageCharLimit, '网页检索单页阅读字数上限', 500, 20000),
+      maxToolRounds: requiredRangeInteger(source.webResearch.maxToolRounds, 'Giới hạn vòng công cụ mỗi lần của tra cứu web', 1, 20),
+      maxPages: requiredRangeInteger(source.webResearch.maxPages, 'Giới hạn số trang thu thập mỗi lần của tra cứu web', 1, 30),
+      pageCharLimit: requiredRangeInteger(source.webResearch.pageCharLimit, 'Giới hạn số ký tự đọc mỗi trang của tra cứu web', 500, 20000),
       blockedDomains: String(source.webResearch.blockedDomains ?? ''),
     },
     agentRunBudget: {
-      maxIterations: requiredRangeInteger(source.agentRunBudget.maxIterations, '主 Agent 迭代上限', 1, 30),
-      maxDelegations: requiredRangeInteger(source.agentRunBudget.maxDelegations, '派工总数上限', 0, 20),
-      maxSameAgent: requiredRangeInteger(source.agentRunBudget.maxSameAgent, '单代理派工上限', 1, 10),
-      maxConcurrent: requiredRangeInteger(source.agentRunBudget.maxConcurrent, '并发派工上限', 1, 6),
-      maxReads: requiredRangeInteger(source.agentRunBudget.maxReads, '读取批次上限', 0, 30),
-      maxExtraReads: requiredRangeInteger(source.agentRunBudget.maxExtraReads, '子代理工具轮上限', 0, 10),
+      maxIterations: requiredRangeInteger(source.agentRunBudget.maxIterations, 'Giới hạn vòng lặp của Agent chính', 1, 30),
+      maxDelegations: requiredRangeInteger(source.agentRunBudget.maxDelegations, 'Giới hạn tổng số lần giao việc', 0, 20),
+      maxSameAgent: requiredRangeInteger(source.agentRunBudget.maxSameAgent, 'Giới hạn giao việc mỗi Agent', 1, 10),
+      maxConcurrent: requiredRangeInteger(source.agentRunBudget.maxConcurrent, 'Giới hạn giao việc đồng thời', 1, 6),
+      maxReads: requiredRangeInteger(source.agentRunBudget.maxReads, 'Giới hạn lô đọc', 0, 30),
+      maxExtraReads: requiredRangeInteger(source.agentRunBudget.maxExtraReads, 'Giới hạn vòng công cụ của Agent phụ', 0, 10),
     },
   };
   if (normalized.maxAutomaticStages < 1 || normalized.generationRetryLimit < 0 || normalized.minGenerationTokens < 0 || normalized.internalAiRetryLimit < 0 || normalized.loopDelaySeconds < 0 || normalized.retryDelaySeconds < 0 || normalized.totalDurationMinutes < 0 || normalized.storyWindowFloors < 0 || normalized.storyTailFloors < 0 || normalized.agentHistoryTokenBudget < 0 || normalized.agentReadFallbackTokens < 1) {
-    throw new Error('续写设置中的数值不能低于允许范围');
+    throw new Error('Giá trị trong cài đặt viết tiếp không được thấp hơn phạm vi cho phép');
   }
   if (normalized.webResearch.enabled && normalized.webResearch.searchProvider === 'searxng' && !normalized.webResearch.searxngBaseUrl) {
-    throw new Error('搜索引擎选择 SearXNG 时必须填写实例地址');
+    throw new Error('Khi chọn công cụ tìm kiếm SearXNG phải nhập địa chỉ instance');
   }
   if (normalized.apiPresetMode === 'fixed') {
     const presetName = normalized.fixedApiPresetName.trim();
-    if (!presetName) throw new Error('固定 API 预设名称不能为空');
-    if (!presetExists(presetName)) throw new Error(`API 预设 "${presetName}" 不存在，请重新选择`);
+    if (!presetName) throw new Error('Tên preset API cố định không được để trống');
+    if (!presetExists(presetName)) throw new Error(`Preset API "${presetName}" không tồn tại, vui lòng chọn lại`);
   }
   for (const channel of agentChannelRoles) {
     const choice = normalized.agentApiPresets[channel.role];
     if (choice.mode !== 'fixed') continue;
     const presetName = choice.presetName.trim();
-    if (!presetName) throw new Error(`${channel.label} 的固定渠道必须选择预设`);
-    if (!presetExists(presetName)) throw new Error(`${channel.label} 渠道的 API 预设 "${presetName}" 不存在，请重新选择`);
+    if (!presetName) throw new Error(`Kênh cố định của ${channel.label} phải chọn preset`);
+    if (!presetExists(presetName)) throw new Error(`Preset API "${presetName}" của kênh ${channel.label} không tồn tại, vui lòng chọn lại`);
   }
   return normalized;
 }
@@ -794,7 +794,7 @@ async function saveSettingsNow(): Promise<void> {
     apiStore.refreshFromSettings();
     candidate = normalizeSettingsDraft();
   } catch (error) {
-    settingsError.value = error instanceof Error ? error.message : '续写设置无效';
+    settingsError.value = error instanceof Error ? error.message : 'Cài đặt viết tiếp không hợp lệ';
     return;
   }
   const outcome = await runtime.saveSettings(candidate);
@@ -803,7 +803,7 @@ async function saveSettingsNow(): Promise<void> {
     settingsNotice.value = '';
   } else if (outcome === 'busy') {
     // Agent 正在规划，改动不能丢：告知用户并排队等空档（如等待宿主正文时）落盘。
-    settingsNotice.value = '设置已修改：Agent 正在运行，将在本轮空档自动保存并于下一轮生效。';
+    settingsNotice.value = 'Đã sửa cài đặt: Agent đang chạy, sẽ tự động lưu ở khoảng nghỉ của lượt này và có hiệu lực từ lượt sau.';
     scheduleSettingsSave();
   }
 }
@@ -820,15 +820,15 @@ interface PromptGroupDef {
 }
 
 const promptGroups: PromptGroupDef[] = [
-  { key: 'outlinePrompt', kind: 'outline', title: '大纲子代理（outline-architect）提示词', restoreLabel: '恢复大纲提示词默认值' },
-  { key: 'main', kind: 'agent_main', title: '主 Agent 提示词', restoreLabel: '恢复主 Agent 默认值', note: '$HISTORY_ANCHOR 段标记会话记录的插入位置，本身不发送；删掉它会让会话记录退回到序列最前面。' },
-  { key: 'arcArchitect', kind: 'agent_arc', title: '故事总纲子代理（arc-architect）提示词', restoreLabel: '恢复总纲子代理默认值' },
-  { key: 'maintainer', kind: 'agent_maintainer', title: '伏笔与认知维护子代理提示词', restoreLabel: '恢复维护子代理默认值', note: '该代理不接收用户目标或阶段大纲，避免计划污染事实结算。' },
-  { key: 'mainlinePlanner', kind: 'agent_mainline', title: '主线推进策划子代理提示词', restoreLabel: '恢复主线策划默认值' },
-  { key: 'beatPlanner', kind: 'agent_beat', title: '伏笔与节拍策划子代理提示词', restoreLabel: '恢复节拍策划默认值' },
-  { key: 'finalReviewer', kind: 'agent_final_reviewer', title: '发送前终审子代理提示词', restoreLabel: '恢复终审子代理默认值', note: '仅在「启用发送前世界书终审」开启时，固定工作流会在 instruction-composer 之后调用它。' },
-  { key: 'instructionComposer', kind: 'agent_instruction_composer', title: continuationCopy.composer.title, restoreLabel: '恢复写作指令编排默认值', note: continuationCopy.composer.note },
-  { key: 'webResearcher', kind: 'agent_web_researcher', title: '网页检索子代理（web-researcher）提示词', restoreLabel: '恢复网页检索默认值', note: '仅在「启用开场百科检索」开启时才会被调用。专属占位符：$WEB_TOOL_CATALOG（出网工具说明与本次配额）、$WEB_REFS（百科资料库预览）。' },
+  { key: 'outlinePrompt', kind: 'outline', title: 'Prompt Agent phụ dàn ý (outline-architect)', restoreLabel: 'Khôi phục giá trị mặc định của prompt dàn ý' },
+  { key: 'main', kind: 'agent_main', title: 'Prompt Agent chính', restoreLabel: 'Khôi phục giá trị mặc định của Agent chính', note: 'Đoạn $HISTORY_ANCHOR đánh dấu vị trí chèn bản ghi phiên, bản thân không được gửi; xóa nó thì bản ghi phiên sẽ lùi về đầu chuỗi.' },
+  { key: 'arcArchitect', kind: 'agent_arc', title: 'Prompt Agent phụ tổng cương truyện (arc-architect)', restoreLabel: 'Khôi phục giá trị mặc định của Agent phụ tổng cương' },
+  { key: 'maintainer', kind: 'agent_maintainer', title: 'Prompt Agent phụ bảo trì phục bút và nhận thức', restoreLabel: 'Khôi phục giá trị mặc định của Agent phụ bảo trì', note: 'Agent này không nhận mục tiêu người dùng hay dàn ý giai đoạn, tránh để kế hoạch làm nhiễm kết toán sự thật.' },
+  { key: 'mainlinePlanner', kind: 'agent_mainline', title: 'Prompt Agent phụ hoạch định đẩy tuyến chính', restoreLabel: 'Khôi phục giá trị mặc định của hoạch định tuyến chính' },
+  { key: 'beatPlanner', kind: 'agent_beat', title: 'Prompt Agent phụ hoạch định phục bút và nhịp', restoreLabel: 'Khôi phục giá trị mặc định của hoạch định nhịp' },
+  { key: 'finalReviewer', kind: 'agent_final_reviewer', title: 'Prompt Agent phụ duyệt cuối trước khi gửi', restoreLabel: 'Khôi phục giá trị mặc định của Agent phụ duyệt cuối', note: 'Chỉ khi «Bật duyệt cuối Sổ thế giới trước khi gửi» được bật, luồng công việc cố định mới gọi nó sau instruction-composer.' },
+  { key: 'instructionComposer', kind: 'agent_instruction_composer', title: continuationCopy.composer.title, restoreLabel: 'Khôi phục giá trị mặc định của biên soạn chỉ dẫn viết', note: continuationCopy.composer.note },
+  { key: 'webResearcher', kind: 'agent_web_researcher', title: 'Prompt Agent phụ tra cứu web (web-researcher)', restoreLabel: 'Khôi phục giá trị mặc định của tra cứu web', note: 'Chỉ được gọi khi «Bật tra cứu bách khoa mở đầu» được bật. Placeholder riêng: $WEB_TOOL_CATALOG (mô tả công cụ ra ngoài và hạn mức lần này), $WEB_REFS (bản xem trước kho tư liệu bách khoa).' },
 ];
 
 /** 折叠态摘要：启用段数 / 总段数。 */
@@ -836,7 +836,7 @@ function promptGroupMeta(key: PromptKey): string {
   const prompts = promptList(key);
   if (!prompts) return '';
   const enabled = prompts.filter(segment => segment.enabled !== false).length;
-  return `${enabled}/${prompts.length} 段启用`;
+  return `${enabled}/${prompts.length} đoạn được bật`;
 }
 
 /** 取出指定提示词组的数组。大纲组在设置根层，其余 Agent 提示词在 agentPrompts 下。 */
@@ -854,7 +854,7 @@ function promptDisplay(key: PromptKey): ContinuationPromptSegment_ACU[] {
 function addPrompt(key: PromptKey, position: 'top' | 'bottom' = 'bottom'): void {
   const prompts = promptList(key);
   if (!prompts) return;
-  const segment: ContinuationPromptSegment_ACU = { role: 'user', content: '请填写提示词内容。', enabled: true, deletable: true };
+  const segment: ContinuationPromptSegment_ACU = { role: 'user', content: 'Vui lòng nhập nội dung prompt.', enabled: true, deletable: true };
   if (position === 'top') prompts.unshift(segment);
   else prompts.push(segment);
 }
@@ -911,9 +911,9 @@ function exportPrompts(): void {
     anchor.click();
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
-    promptIoNotice.value = '提示词 JSON 已导出。';
+    promptIoNotice.value = 'Đã xuất JSON prompt.';
   } catch (error) {
-    promptIoError.value = error instanceof Error ? error.message : '提示词导出失败。';
+    promptIoError.value = error instanceof Error ? error.message : 'Xuất prompt thất bại.';
   }
 }
 
@@ -931,9 +931,9 @@ async function onImportPromptsFile(event: Event): Promise<void> {
     settingsDraft.value.outlinePrompt = bundle.outlinePrompt;
     settingsDraft.value.agentPrompts = bundle.agentPrompts;
     saveSettingsImmediately();
-    promptIoNotice.value = '提示词 JSON 已导入并保存。';
+    promptIoNotice.value = 'Đã nhập và lưu JSON prompt.';
   } catch (error) {
-    promptIoError.value = error instanceof Error ? error.message : '提示词 JSON 读取失败。';
+    promptIoError.value = error instanceof Error ? error.message : 'Đọc JSON prompt thất bại.';
   }
 }
 

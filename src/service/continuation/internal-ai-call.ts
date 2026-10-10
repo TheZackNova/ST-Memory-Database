@@ -55,14 +55,14 @@ export const CONTINUATION_ROLE_OUTPUT_TOKEN_FLOORS_ACU: Readonly<Record<Continua
  */
 export function formatAgentUsageLabel_ACU(usage: AiUsageMetadata_ACU): string {
   const compact = (value: number | undefined): string => (
-    value === undefined ? '未报告' : value < 1000 ? String(value) : `${(value / 1000).toFixed(1)}k`
+    value === undefined ? 'chưa báo cáo' : value < 1000 ? String(value) : `${(value / 1000).toFixed(1)}k`
   );
   const parts = [
-    `输入 ${compact(usage.promptTokens)}`,
-    `输出 ${compact(usage.completionTokens)}`,
+    `đầu vào ${compact(usage.promptTokens)}`,
+    `đầu ra ${compact(usage.completionTokens)}`,
   ];
-  if (usage.cachedTokens !== undefined) parts.splice(1, 0, `缓存读取 ${compact(usage.cachedTokens)}`);
-  if (usage.cacheWriteTokens !== undefined) parts.push(`缓存写入 ${compact(usage.cacheWriteTokens)}`);
+  if (usage.cachedTokens !== undefined) parts.splice(1, 0, `đọc cache ${compact(usage.cachedTokens)}`);
+  if (usage.cacheWriteTokens !== undefined) parts.push(`ghi cache ${compact(usage.cacheWriteTokens)}`);
   return parts.join(' · ');
 }
 

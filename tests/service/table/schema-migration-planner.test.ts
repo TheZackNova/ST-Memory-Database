@@ -76,7 +76,7 @@ describe('schema migration semantic planner', () => {
     const target = sheet(['row_id', 'quality'], 'CREATE TABLE inventory (row_id INTEGER PRIMARY KEY, quality TEXT);');
 
     expect(planSheetSchemaMigration_ACU(before, target)).toMatchObject({
-      status: 'needs_choice', code: 'AMBIGUOUS_COLUMN_IDENTITY', message: expect.stringContaining('需要确认列身份'),
+      status: 'needs_choice', code: 'AMBIGUOUS_COLUMN_IDENTITY', message: expect.stringContaining('cần xác nhận danh tính cột'),
       choices: [{
         id: 'map:name->quality',
         label: expect.stringMatching(/name.*→.*quality/),
@@ -105,7 +105,7 @@ describe('schema migration semantic planner', () => {
     const target = sheet(['row_id', 'name'], 'not sql');
 
     expect(planSheetSchemaMigration_ACU(before, target)).toMatchObject({
-      status: 'invalid', code: 'INVALID_SCHEMA', message: expect.stringContaining('DDL/表头不一致'),
+      status: 'invalid', code: 'INVALID_SCHEMA', message: expect.stringContaining('DDL/tiêu đề không nhất quán'),
     });
   });
 });

@@ -114,9 +114,9 @@ describe('useFormFillInjectionTarget', () => {
     expect(mockUpdateReadableLorebookEntry).toHaveBeenCalledWith(true);
     expect(mockDeleteAllGeneratedEntries.mock.invocationCallOrder[0]).toBeLessThan(mockSaveSettings.mock.invocationCallOrder[0]);
     expect(mockSaveSettings.mock.invocationCallOrder[0]).toBeLessThan(mockUpdateReadableLorebookEntry.mock.invocationCallOrder[0]);
-    expect(mockToast.info).toHaveBeenCalledWith('正在从旧目标 [CharBook-A] 中清除条目...', { muteable: false });
-    expect(mockToast.info).toHaveBeenCalledWith('正在向新目标注入条目...', { muteable: false });
-    expect(mockToast.success).toHaveBeenCalledWith('数据注入目标已成功切换！', { muteable: false });
+    expect(mockToast.info).toHaveBeenCalledWith('Đang xóa mục khỏi đích cũ [CharBook-A]...', { muteable: false });
+    expect(mockToast.info).toHaveBeenCalledWith('Đang chèn mục vào đích mới...', { muteable: false });
+    expect(mockToast.success).toHaveBeenCalledWith('Đã chuyển đích chèn dữ liệu thành công!', { muteable: false });
   });
 
   it('旧目标为指定世界书且当前无表格数据时只保存新目标并提示无数据', async () => {
@@ -130,7 +130,7 @@ describe('useFormFillInjectionTarget', () => {
     expect(worldbookConfig.injectionTarget).toBe('Book-B');
     expect(mockSaveSettings).toHaveBeenCalledTimes(1);
     expect(mockUpdateReadableLorebookEntry).not.toHaveBeenCalled();
-    expect(mockToast.warning).toHaveBeenCalledWith('数据注入目标已更新，但当前无数据可注入。', { muteable: false });
+    expect(mockToast.warning).toHaveBeenCalledWith('Đã cập nhật đích chèn dữ liệu nhưng hiện không có dữ liệu để chèn.', { muteable: false });
   });
 
   it('选择相同目标时不清理、不保存、不注入', async () => {

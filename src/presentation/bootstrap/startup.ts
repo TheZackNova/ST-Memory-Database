@@ -43,7 +43,7 @@ import { ACU_PRODUCT_NAME_ACU, ACU_PRODUCT_VERSION_ACU } from '../../shared/prod
     $menuItemContainer = jQuery_API_ACU(
       `<div class="extension_container interactable" id="${MENU_ITEM_CONTAINER_ID_ACU}" tabindex="0"></div>`,
     );
-    const menuItemHTML = `<div class="list-group-item flex-container flexGap5 interactable" id="${MENU_ITEM_ID_ACU}" title="打开 ${ACU_PRODUCT_NAME_ACU} ${ACU_PRODUCT_VERSION_ACU}"><div class="fa-fw fa-solid fa-database extensionsMenuExtensionButton"></div><span>${ACU_PRODUCT_NAME_ACU} ${ACU_PRODUCT_VERSION_ACU}</span></div>`;
+    const menuItemHTML = `<div class="list-group-item flex-container flexGap5 interactable" id="${MENU_ITEM_ID_ACU}" title="Mở ${ACU_PRODUCT_NAME_ACU} ${ACU_PRODUCT_VERSION_ACU}"><div class="fa-fw fa-solid fa-database extensionsMenuExtensionButton"></div><span>${ACU_PRODUCT_NAME_ACU} ${ACU_PRODUCT_VERSION_ACU}</span></div>`;
     const $menuItem = jQuery_API_ACU(menuItemHTML);
     $menuItem.on(`click.${SCRIPT_ID_PREFIX_ACU}`, async function (e) {
       e.stopPropagation();

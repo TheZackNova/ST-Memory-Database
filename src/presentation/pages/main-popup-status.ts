@@ -13,99 +13,99 @@ export function generateDashboardTabHTML(): string {
                 <div id="acu-tab-dashboard" class="acu-tab-content active">
                     <!-- A. 数据库状态 -->
                     <div class="acu-card">
-                        <h3>数据库状态</h3>
+                        <h3>Trạng thái cơ sở dữ liệu</h3>
                         <div class="acu-row-between" style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--acu-border);">
-                            <span id="${SCRIPT_ID_PREFIX_ACU}-total-messages-display">上下文总层数: N/A (仅计算AI回复楼层)</span>
-                            <span id="${SCRIPT_ID_PREFIX_ACU}-card-update-status-display">正在获取状态...</span>
+                            <span id="${SCRIPT_ID_PREFIX_ACU}-total-messages-display">Tổng số tầng ngữ cảnh: N/A (chỉ tính tầng phản hồi AI)</span>
+                            <span id="${SCRIPT_ID_PREFIX_ACU}-card-update-status-display">Đang lấy trạng thái...</span>
                         </div>
                         
                         <table class="acu-table">
                             <thead>
                                 <tr>
-                                    <th>表格名称</th>
-                                    <th>更新频率</th>
-                                    <th>未记录楼层</th>
-                                    <th>上次更新</th>
-                                    <th>下次触发</th>
+                                    <th>Tên bảng</th>
+                                    <th>Tần suất cập nhật</th>
+                                    <th>Tầng chưa ghi</th>
+                                    <th>Lần cập nhật trước</th>
+                                    <th>Lần kích hoạt tiếp</th>
                                 </tr>
                             </thead>
                             <tbody id="${SCRIPT_ID_PREFIX_ACU}-granular-status-table-body">
-                                <tr><td colspan="5" style="text-align: center; padding: 10px;">正在加载数据...</td></tr>
+                                <tr><td colspan="5" style="text-align: center; padding: 10px;">Đang tải dữ liệu...</td></tr>
                             </tbody>
                         </table>
 
-                        <p id="${SCRIPT_ID_PREFIX_ACU}-next-update-display" class="notes" style="border-top: 1px dashed var(--acu-border); padding-top: 10px; margin-top: 10px; text-align: right;">下一次更新: 计算中...</p>
+                        <p id="${SCRIPT_ID_PREFIX_ACU}-next-update-display" class="notes" style="border-top: 1px dashed var(--acu-border); padding-top: 10px; margin-top: 10px; text-align: right;">Lần cập nhật tiếp theo: đang tính...</p>
                     </div>
 
                     <!-- B. 快速操作 -->
                     <div class="acu-card">
-                        <h3>快速操作</h3>
+                        <h3>Thao tác nhanh</h3>
                         <div class="acu-row" style="margin-bottom: 10px;">
-                            <label style="white-space: nowrap;">填表API预设:</label>
+                            <label style="white-space: nowrap;">Preset API điền bảng:</label>
                             <select id="${SCRIPT_ID_PREFIX_ACU}-table-api-preset-select" style="flex: 1;">
-                                <option value="">使用当前API配置</option>
+                                <option value="">Dùng cấu hình API hiện tại</option>
                             </select>
                         </div>
                         <div class="button-group" style="margin-bottom: 8px;">
-                            <button id="${SCRIPT_ID_PREFIX_ACU}-manual-update-card" class="primary">立即手动更新</button>
+                            <button id="${SCRIPT_ID_PREFIX_ACU}-manual-update-card" class="primary">Cập nhật thủ công ngay</button>
                         </div>
                         <div class="checkbox-group">
                             <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-manual-extra-hint-checkbox">
-                            <label for="${SCRIPT_ID_PREFIX_ACU}-manual-extra-hint-checkbox">额外提示词（仅手动更新时临时追加）</label>
+                            <label for="${SCRIPT_ID_PREFIX_ACU}-manual-extra-hint-checkbox">Prompt bổ sung (chỉ thêm tạm khi cập nhật thủ công)</label>
                         </div>
-                        <p class="notes">手动更新会使用当前UI参数，对勾选的表进行更新；未勾选则默认更新全部表。</p>
+                        <p class="notes">Cập nhật thủ công dùng tham số UI hiện tại để cập nhật các bảng đã chọn; nếu chưa chọn thì mặc định cập nhật tất cả bảng.</p>
                     </div>
 
                     <!-- C. 手动更新表选择 -->
                     <div class="acu-card">
-                        <h3>手动更新表选择</h3>
-                        <p class="notes" style="margin-bottom:6px;">选择需要手动更新的表（可多选，默认全选新表）：</p>
+                        <h3>Chọn bảng cập nhật thủ công</h3>
+                        <p class="notes" style="margin-bottom:6px;">Chọn các bảng cần cập nhật thủ công (chọn nhiều, mặc định chọn tất cả bảng mới):</p>
                         <div class="button-group" style="justify-content:flex-start; margin-bottom:8px;">
-                            <button id="${SCRIPT_ID_PREFIX_ACU}-manual-table-select-all" class="button">全选</button>
-                            <button id="${SCRIPT_ID_PREFIX_ACU}-manual-table-select-none" class="button">全不选</button>
+                            <button id="${SCRIPT_ID_PREFIX_ACU}-manual-table-select-all" class="button">Chọn tất cả</button>
+                            <button id="${SCRIPT_ID_PREFIX_ACU}-manual-table-select-none" class="button">Bỏ chọn tất cả</button>
                         </div>
-                        <div id="${SCRIPT_ID_PREFIX_ACU}-manual-table-selector" style="min-height:60px;">加载表格列表中...</div>
+                        <div id="${SCRIPT_ID_PREFIX_ACU}-manual-table-selector" style="min-height:60px;">Đang tải danh sách bảng...</div>
                     </div>
 
                     <!-- D. 核心功能开关 -->
                     <div class="acu-card">
-                        <h3>核心功能开关</h3>
+                        <h3>Công tắc chức năng cốt lõi</h3>
                         <div class="acu-col">
                             <div class="checkbox-group">
                                 <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-auto-update-enabled-checkbox">
-                                <label for="${SCRIPT_ID_PREFIX_ACU}-auto-update-enabled-checkbox">启用自动更新</label>
+                                <label for="${SCRIPT_ID_PREFIX_ACU}-auto-update-enabled-checkbox">Bật tự động cập nhật</label>
                             </div>
                             <div class="checkbox-group">
                                 <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-standardized-table-fill-enabled-checkbox">
-                                <label for="${SCRIPT_ID_PREFIX_ACU}-standardized-table-fill-enabled-checkbox">规范填表功能（总结表与总体大纲必须同步新增）</label>
+                                <label for="${SCRIPT_ID_PREFIX_ACU}-standardized-table-fill-enabled-checkbox">Chức năng điền bảng chuẩn hóa (bảng tóm tắt và dàn ý tổng thể phải được thêm đồng bộ)</label>
                             </div>
                             <div class="checkbox-group">
                                 <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-toast-mute-enabled-checkbox">
-                                <label for="${SCRIPT_ID_PREFIX_ACU}-toast-mute-enabled-checkbox">静默提示框（除填表/规划/导入/报错外，其它提示不弹窗）</label>
+                                <label for="${SCRIPT_ID_PREFIX_ACU}-toast-mute-enabled-checkbox">Tắt thông báo (ngoài điền bảng/quy hoạch/nhập/báo lỗi, các thông báo khác không hiện)</label>
                             </div>
                             <div class="checkbox-group">
                                 <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-prompt-template-enabled-checkbox">
-                                <label for="${SCRIPT_ID_PREFIX_ACU}-prompt-template-enabled-checkbox">启用条件模板功能（&lt;if&gt;条件判断）</label>
+                                <label for="${SCRIPT_ID_PREFIX_ACU}-prompt-template-enabled-checkbox">Bật chức năng mẫu có điều kiện (&lt;if&gt; kiểm tra điều kiện)</label>
                             </div>
                             <div class="checkbox-group">
                                 <input type="checkbox" id="${SCRIPT_ID_PREFIX_ACU}-worldbook-outline-entry-enabled">
-                                <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-outline-entry-enabled">0TK占用模式</label>
+                                <label for="${SCRIPT_ID_PREFIX_ACU}-worldbook-outline-entry-enabled">Chế độ chiếm 0TK</label>
                             </div>
-                            <small class="notes">0TK占用模式仍然作用于世界书注入链路，仅迁移到此处以提高可见性。</small>
+                            <small class="notes">Chế độ chiếm 0TK vẫn tác động lên chuỗi chèn sổ thế giới, chỉ được chuyển đến đây để dễ thấy hơn.</small>
 
                             <div class="acu-divider-dashed" style="margin: 4px 0;"></div>
-                            <label class="acu-label">表格存储模式:</label>
+                            <label class="acu-label">Chế độ lưu trữ bảng:</label>
                             <div class="acu-row" style="gap: 16px;">
                                 <label class="acu-row" style="cursor: pointer; gap: 6px;">
                                     <input type="radio" name="${SCRIPT_ID_PREFIX_ACU}-storage-mode" value="native" checked>
-                                    <span>原生模式 (JSON/DSL)</span>
+                                    <span>Chế độ gốc (JSON/DSL)</span>
                                 </label>
                                 <label class="acu-row" style="cursor: pointer; gap: 6px;">
                                     <input type="radio" name="${SCRIPT_ID_PREFIX_ACU}-storage-mode" value="sqlite">
-                                    <span>SQLite 模式 (SQL)</span>
+                                    <span>Chế độ SQLite (SQL)</span>
                                 </label>
                             </div>
-                            <small class="notes">原生模式使用 JSON 二维数组 + DSL 指令；SQLite 模式使用内存数据库 + 标准 SQL 语句。切换后会自动重新加载数据。</small>
+                            <small class="notes">Chế độ gốc dùng mảng hai chiều JSON + lệnh DSL; chế độ SQLite dùng cơ sở dữ liệu trong bộ nhớ + câu lệnh SQL chuẩn. Sau khi chuyển sẽ tự động tải lại dữ liệu.</small>
                         </div>
                     </div>
                 </div>`;

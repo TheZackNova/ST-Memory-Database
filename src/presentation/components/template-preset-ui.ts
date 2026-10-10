@@ -35,12 +35,12 @@ import { getTemplatePresetDisplayName_ACU, getTemplatePreset_ACU, listTemplatePr
       }
   }
 
-  function populateTemplatePresetSelectOptions_ACU($select: JQuery<HTMLElement> | null, { extraPresetName = '', extraLabelSuffix = '（仅当前聊天快照）', extraOptions = [] as any[] } = {}) {
+  function populateTemplatePresetSelectOptions_ACU($select: JQuery<HTMLElement> | null, { extraPresetName = '', extraLabelSuffix = ' (chỉ snapshot cuộc trò chuyện hiện tại)', extraOptions = [] as any[] } = {}) {
       if (!$select || !$select.length) return;
       const normalizedExtraPresetName = normalizeTemplatePresetSelectionValue_ACU(extraPresetName);
       const presetNames = listTemplatePresetNames_ACU();
       const renderedNames = new Set();
-      $select.empty().append(jQuery_API_ACU('<option/>').val(DEFAULT_TEMPLATE_PRESET_OPTION_VALUE_ACU).text('默认预设'));
+      $select.empty().append(jQuery_API_ACU('<option/>').val(DEFAULT_TEMPLATE_PRESET_OPTION_VALUE_ACU).text('Preset mặc định'));
       presetNames.forEach(name => {
           const normalizedName = normalizeTemplatePresetSelectionValue_ACU(name);
           if (!normalizedName || renderedNames.has(normalizedName)) return;
@@ -79,7 +79,7 @@ import { getTemplatePresetDisplayName_ACU, getTemplatePreset_ACU, listTemplatePr
            ? normalizeTemplatePresetSelectionValue_ACU(chatScopeState?.presetName || effectiveChatPresetName || '')
            : '';
        const currentChatSnapshotOption = currentChatSnapshotName
-           ? [{ value: currentChatSnapshotName, label: `${getTemplatePresetDisplayName_ACU(currentChatSnapshotName)}（当前聊天快照）` }]
+           ? [{ value: currentChatSnapshotName, label: `${getTemplatePresetDisplayName_ACU(currentChatSnapshotName)} (snapshot cuộc trò chuyện hiện tại)` }]
            : [];
       const chatExtraPresetName = (() => {
           if (!chatSelectedPresetName) return '';
@@ -99,11 +99,11 @@ import { getTemplatePresetDisplayName_ACU, getTemplatePreset_ACU, listTemplatePr
 
       populateTemplatePresetSelectOptions_ACU($globalSelect, {
           extraPresetName: hasGlobalPreset ? '' : globalPresetName,
-          extraLabelSuffix: '（仅当前全局模板快照）',
+          extraLabelSuffix: ' (chỉ snapshot mẫu toàn cục hiện tại)',
       });
        populateTemplatePresetSelectOptions_ACU($chatSelect, {
            extraPresetName: chatExtraPresetName,
-           extraLabelSuffix: '（当前聊天快照）',
+           extraLabelSuffix: ' (snapshot cuộc trò chuyện hiện tại)',
            extraOptions: currentChatSnapshotOption,
        });
 
@@ -135,27 +135,27 @@ import { getTemplatePresetDisplayName_ACU, getTemplatePreset_ACU, listTemplatePr
 
       if ($globalStatus && $globalStatus.length) {
           if (globalPresetName && !hasGlobalPreset) {
-              $globalStatus.text(`当前全局模板：${globalPresetName}（预设库已不存在，但当前 profile 仍保留这份模板快照）。`);
+              $globalStatus.text(`Mẫu toàn cục hiện tại: ${globalPresetName} (thư viện preset không còn nhưng profile hiện tại vẫn giữ snapshot mẫu này).`);
           } else {
-              $globalStatus.text(`当前全局模板：${getTemplatePresetDisplayName_ACU(globalPresetName)}；新聊天会默认继承这里的表格模板。`);
+              $globalStatus.text(`Mẫu toàn cục hiện tại: ${getTemplatePresetDisplayName_ACU(globalPresetName)}; cuộc trò chuyện mới sẽ mặc định kế thừa mẫu bảng ở đây.`);
           }
       }
 
       if ($chatStatus && $chatStatus.length) {
           if (normalizedChatMode === 'chat_override') {
-              let scopeLabel = '当前聊天专属预设';
+              let scopeLabel = 'Preset riêng của cuộc trò chuyện hiện tại';
               if (chatScopeState.source === 'legacy_frozen') {
-                  scopeLabel = '旧版聊天冻结模板（已迁移）';
+                  scopeLabel = 'Mẫu đóng băng cũ của cuộc trò chuyện (đã di chuyển)';
               } else if (chatScopeState.source === 'legacy_history_frozen') {
-                  scopeLabel = '旧对话历史模板快照（已迁移）';
+                  scopeLabel = 'Snapshot mẫu lịch sử hội thoại cũ (đã di chuyển)';
               } else if (chatScopeState.source === 'legacy_header_frozen') {
-                  scopeLabel = '旧版表头冻结模板（已迁移）';
+                  scopeLabel = 'Mẫu đóng băng tiêu đề cột cũ (đã di chuyển)';
               }
-              $chatStatus.text(`当前聊天：${scopeLabel}；当前实际模板预设为 ${getTemplatePresetDisplayName_ACU(chatSelectedPresetName)}。`);
+              $chatStatus.text(`Cuộc trò chuyện hiện tại: ${scopeLabel}; preset mẫu thực tế hiện tại là ${getTemplatePresetDisplayName_ACU(chatSelectedPresetName)}.`);
           } else if (normalizedChatMode === 'preset_link') {
-              $chatStatus.text(`当前聊天：旧版预设引用待迁移；当前实际模板预设为 ${getTemplatePresetDisplayName_ACU(chatSelectedPresetName)}。`);
+              $chatStatus.text(`Cuộc trò chuyện hiện tại: tham chiếu preset cũ chờ di chuyển; preset mẫu thực tế hiện tại là ${getTemplatePresetDisplayName_ACU(chatSelectedPresetName)}.`);
           } else {
-              $chatStatus.text(`当前聊天：跟随当前全局；当前实际模板预设为 ${getTemplatePresetDisplayName_ACU(effectiveChatPresetName)}。`);
+              $chatStatus.text(`Cuộc trò chuyện hiện tại: theo toàn cục hiện tại; preset mẫu thực tế hiện tại là ${getTemplatePresetDisplayName_ACU(effectiveChatPresetName)}.`);
           }
       }
 
@@ -163,43 +163,43 @@ import { getTemplatePresetDisplayName_ACU, getTemplatePreset_ACU, listTemplatePr
           if (normalizedChatMode === 'chat_override') {
               const detailParts = [];
               if (chatScopeState.source === 'legacy_frozen') {
-                  detailParts.push('来源语义：从旧版聊天冻结模板迁移');
+                  detailParts.push('Nguồn: di chuyển từ mẫu đóng băng cũ của cuộc trò chuyện');
               } else if (chatScopeState.source === 'legacy_history_frozen') {
-                  detailParts.push('来源语义：从旧对话实际表格结构迁移');
+                  detailParts.push('Nguồn: di chuyển từ cấu trúc bảng thực tế của hội thoại cũ');
               } else if (chatScopeState.source === 'legacy_header_frozen') {
-                  detailParts.push('来源语义：从旧版表头冻结模板迁移');
+                  detailParts.push('Nguồn: di chuyển từ mẫu đóng băng tiêu đề cột cũ');
               } else {
-                  detailParts.push('来源语义：当前聊天已保存本地模板预设快照');
+                  detailParts.push('Nguồn: cuộc trò chuyện hiện tại đã lưu snapshot preset mẫu cục bộ');
               }
               if (chatScopeState.originGlobalName) {
-                  detailParts.push(`来源全局模板：${getTemplatePresetDisplayName_ACU(chatScopeState.originGlobalName)}`);
+                  detailParts.push(`Mẫu toàn cục nguồn: ${getTemplatePresetDisplayName_ACU(chatScopeState.originGlobalName)}`);
               }
               if (Number.isFinite(chatScopeState.originGlobalRevision) && chatScopeState.originGlobalRevision > 0) {
-                  detailParts.push(`来源全局版本：v${chatScopeState.originGlobalRevision}`);
+                  detailParts.push(`Phiên bản toàn cục nguồn: v${chatScopeState.originGlobalRevision}`);
               }
               const updatedAtText = (typeof formatPlotScopeUpdatedAt_ACU === 'function') ? formatPlotScopeUpdatedAt_ACU(chatScopeState.updatedAt) : '';
               if (updatedAtText) {
-                  detailParts.push(`更新时间：${updatedAtText}`);
+                  detailParts.push(`Thời gian cập nhật: ${updatedAtText}`);
               }
               if (chatScopeState.source) {
-                  detailParts.push(`写入来源：${chatScopeState.source}`);
+                  detailParts.push(`Nguồn ghi: ${chatScopeState.source}`);
               }
-               $chatOriginStatus.text(detailParts.join('；') || '当前聊天正在使用聊天级模板预设快照。');
+               $chatOriginStatus.text(detailParts.join('; ') || 'Cuộc trò chuyện hiện tại đang dùng snapshot preset mẫu cấp cuộc trò chuyện.');
           } else if (normalizedChatMode === 'preset_link') {
               const detailParts = [
-                  '来源语义：旧版预设引用兼容状态，打开/切换后会物化为当前聊天模板快照',
-                  `来源预设：${getTemplatePresetDisplayName_ACU(chatSelectedPresetName)}`,
+                  'Nguồn: trạng thái tương thích tham chiếu preset cũ, sau khi mở/chuyển sẽ được hiện thực hóa thành snapshot mẫu của cuộc trò chuyện hiện tại',
+                  `Preset nguồn: ${getTemplatePresetDisplayName_ACU(chatSelectedPresetName)}`,
               ];
               const updatedAtText = (typeof formatPlotScopeUpdatedAt_ACU === 'function') ? formatPlotScopeUpdatedAt_ACU(chatScopeState?.updatedAt) : '';
               if (updatedAtText) {
-                  detailParts.push(`更新时间：${updatedAtText}`);
+                  detailParts.push(`Thời gian cập nhật: ${updatedAtText}`);
               }
               if (chatScopeState?.source) {
-                  detailParts.push(`写入来源：${chatScopeState.source}`);
+                  detailParts.push(`Nguồn ghi: ${chatScopeState.source}`);
               }
-               $chatOriginStatus.text(detailParts.join('；'));
+               $chatOriginStatus.text(detailParts.join('; '));
            } else {
-               $chatOriginStatus.text('当前聊天尚未保存本地模板快照，实际会直接跟随当前全局表格模板。');
+               $chatOriginStatus.text('Cuộc trò chuyện hiện tại chưa lưu snapshot mẫu cục bộ, thực tế sẽ theo mẫu bảng toàn cục hiện tại.');
           }
       }
   }
@@ -227,7 +227,7 @@ import { getTemplatePresetDisplayName_ACU, getTemplatePreset_ACU, listTemplatePr
           const names = listTemplatePresetNames_ACU();
           const persistedName = getCurrentTemplatePresetName_ACU(settings_ACU, { requireExisting: true, getTemplatePresetFn: getTemplatePreset_ACU });
           $select.empty();
-          $select.append(jQuery_API_ACU('<option/>').val(DEFAULT_TEMPLATE_PRESET_OPTION_VALUE_ACU).text('默认预设'));
+          $select.append(jQuery_API_ACU('<option/>').val(DEFAULT_TEMPLATE_PRESET_OPTION_VALUE_ACU).text('Preset mặc định'));
           names.forEach(n => {
               $select.append(jQuery_API_ACU('<option/>').val(String(n)).text(String(n)));
           });

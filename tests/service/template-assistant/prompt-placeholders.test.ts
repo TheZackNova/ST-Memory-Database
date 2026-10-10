@@ -207,12 +207,12 @@ describe('伪 role 模板结构', () => {
     expect(first.role).toBe('SYSTEM');
     expect(first.content).toContain('<templateAssistantDraft>');
     expect(first.content).toContain('</templateAssistantDraft>');
-    expect(first.content).toContain('不要使用 <draft>');
+    expect(first.content).toContain('Không dùng <draft>');
     ['protocolVersion', 'mode', 'requestId', 'baseFingerprint', 'atomic', 'selectedSheetKey', 'summary', 'warnings', 'operations'].forEach(key => {
       expect(first.content).toContain(key);
     });
-    expect(first.content).toContain('op 字段');
-    expect(first.content).toContain('禁止使用');
+    expect(first.content).toContain('trường op');
+    expect(first.content).toContain('cấm dùng');
     expect(first.content).toContain('type');
     expect(first.content).toContain('constraints');
     expect(first.content).toContain('requestIdRequired');
@@ -238,10 +238,10 @@ describe('伪 role 模板结构', () => {
     whitelist.forEach(op => expect(third.content).toContain(op));
     expect(third.content).toContain('patch_sheet_schema');
     // 白名单行（操作白名单…）本身不得包含 patch_sheet_ddl（防回归）
-    const whitelistLine = third.content.split('\n').find(line => line.includes('操作白名单')) || '';
+    const whitelistLine = third.content.split('\n').find(line => line.includes('Danh sách thao tác cho phép')) || '';
     expect(whitelistLine).not.toContain('patch_sheet_ddl');
     // 但整卡必须包含「不存在 patch_sheet_ddl 操作」的教育句（实测踩坑项，不能删）
-    expect(third.content).toContain('不存在 patch_sheet_ddl 操作');
+    expect(third.content).toContain('Không tồn tại thao tác patch_sheet_ddl');
     expect(third.content).toContain('add_sheet');
     expect(third.content).toContain('sheetKey');
     expect(third.content).toContain('note');
@@ -404,7 +404,7 @@ describe('buildTemplateAssistantMessages_ACU 消息组装', () => {
     // 预填充卡位于提示词组内（下标 9），不再恒在末尾
     const prefill = messages[9]!;
     expect(prefill.role).toBe('assistant');
-    expect(prefill.content).toBe('收到，我不会输出解释文本，现在直接输出完整的 draft 标签与 JSON：');
+    expect(prefill.content).toBe('Đã nhận, tôi sẽ không xuất văn bản giải thích, bây giờ xuất thẳng thẻ draft và JSON đầy đủ:');
     // 预填充卡不含 draft 开标签
     expect(prefill.content).not.toContain('<templateAssistantDraft>');
     // 真实历史跟随提示词组之后（下标 10、11），本轮 USER 为最后一条（下标 12）
@@ -434,12 +434,12 @@ describe('buildTemplateAssistantMessages_ACU 消息组装', () => {
     // 首轮：完整 10 卡结构，不额外追加 payload
     expect(messages).toHaveLength(10);
     // 卡 9 包装语只出现一次（$1 替换后是本轮需求）
-    const wrapperCount = messages.filter((m) => m.content.includes('现在请按照我的需求立刻开始工作')).length;
+    const wrapperCount = messages.filter((m) => m.content.includes('Bây giờ hãy bắt tay vào việc ngay theo yêu cầu của tôi')).length;
     expect(wrapperCount).toBe(1);
     // 末条为预填充卡
     const last = messages[messages.length - 1]!;
     expect(last.role).toBe('assistant');
-    expect(last.content).toBe('收到，我不会输出解释文本，现在直接输出完整的 draft 标签与 JSON：');
+    expect(last.content).toBe('Đã nhận, tôi sẽ không xuất văn bản giải thích, bây giờ xuất thẳng thẻ draft và JSON đầy đủ:');
   });
 
   it('多轮：伪 role 提示词组整体放最顶（含卡 9 包装语与卡 10 预填充），真实历史按 user→assistant 顺序，本轮需求作为最后 USER 消息', () => {
@@ -457,12 +457,12 @@ describe('buildTemplateAssistantMessages_ACU 消息组装', () => {
     // 结构：提示词组整体(10，含卡9包装语与卡10预填充) + 真实历史(2) + 本轮 USER(1) = 13
     expect(messages).toHaveLength(13);
     // 卡 9 包装语出现在最顶（提示词组内，$1 替换为第二轮需求）
-    const wrapperCount = messages.filter((m) => m.content.includes('现在请按照我的需求立刻开始工作')).length;
+    const wrapperCount = messages.filter((m) => m.content.includes('Bây giờ hãy bắt tay vào việc ngay theo yêu cầu của tôi')).length;
     expect(wrapperCount).toBe(1);
     // 提示词组固定在最顶：末位卡 10 预填充位于下标 9
     expect(messages[0]?.role).toBe('SYSTEM');
     expect(messages[9]?.role).toBe('assistant');
-    expect(messages[9]?.content).toBe('收到，我不会输出解释文本，现在直接输出完整的 draft 标签与 JSON：');
+    expect(messages[9]?.content).toBe('Đã nhận, tôi sẽ không xuất văn bản giải thích, bây giờ xuất thẳng thẻ draft và JSON đầy đủ:');
     // 真实历史按 user→assistant 顺序紧跟提示词组之后（下标 10、11）
     expect(messages[10]?.role).toBe('user');
     expect(messages[10]?.content).toBe('第一轮需求');
@@ -495,7 +495,7 @@ describe('resolveAssistantSystemPrompt_ACU 核心协议卡按协议版本分支'
     );
     const joined = resolved.map((m: any) => m.content).join('\n');
     expect(joined).toContain('[ACU 改表助手核心协议]');
-    expect(joined).toContain('v3 单表完整替换协议');
+    expect(joined).toContain('Giao thức v3 thay thế đầy đủ một bảng');
     expect(joined).toContain('result.action');
     expect(joined).not.toContain('patch_sheet_update_config');
     expect(joined).not.toContain('operations[i]');
@@ -513,7 +513,7 @@ describe('resolveAssistantSystemPrompt_ACU 核心协议卡按协议版本分支'
     expect(joined).toContain('[ACU 改表助手核心协议]');
     expect(joined).toContain('patch_sheet_update_config');
     expect(joined).toContain('operations');
-    expect(joined).not.toContain('v3 单表完整替换协议');
+    expect(joined).not.toContain('Giao thức v3 thay thế đầy đủ một bảng');
   });
 
   it('用户自定义 segments 已含核心协议标记时不重复追加', async () => {

@@ -96,8 +96,8 @@ describe('compileTemplateAssistantDraft_ACU', () => {
     expect(addedKey).toBe('sheet_zhan_li_pin_biao');
     expect(result.candidateData[addedKey].content[0]).toEqual(['row_id', '物品', '品质']);
     expect(result.candidateData[addedKey].updateConfig.groupId).toBe(-1);
-    expect(result.candidateData[addedKey].sourceData.initNode).toContain('初始化');
-    expect(result.candidateData[addedKey].sourceData.insertNode).toContain('新增');
+    expect(result.candidateData[addedKey].sourceData.initNode).toContain('khởi tạo');
+    expect(result.candidateData[addedKey].sourceData.insertNode).toContain('thêm một hàng');
     expect(result.focusSheetKey).toBe(addedKey);
   });
 
@@ -115,12 +115,12 @@ describe('compileTemplateAssistantDraft_ACU', () => {
     });
 
     const addedKey = result.diff.addedSheets[0].sheetKey;
-    expect(result.candidateData[addedKey].sourceData.note).toContain('记录战利品表中的物品或战利品条目');
-    expect(result.candidateData[addedKey].sourceData.note).toContain('列1: 物品名称');
-    expect(result.candidateData[addedKey].sourceData.initNode).toContain('不要编造');
-    expect(result.candidateData[addedKey].sourceData.updateNode).toContain('数量');
-    expect(result.candidateData[addedKey].sourceData.updateNode).toContain('更新');
-    expect(result.candidateData[addedKey].sourceData.deleteNode).toContain('删除');
+    expect(result.candidateData[addedKey].sourceData.note).toContain('Ghi lại các mục vật phẩm hoặc chiến lợi phẩm trong 战利品表');
+    expect(result.candidateData[addedKey].sourceData.note).toContain('Cột 1: 物品名称');
+    expect(result.candidateData[addedKey].sourceData.initNode).toContain('đừng bịa');
+    expect(result.candidateData[addedKey].sourceData.updateNode).toContain('số lượng');
+    expect(result.candidateData[addedKey].sourceData.updateNode).toContain('cập nhật');
+    expect(result.candidateData[addedKey].sourceData.deleteNode).toContain('Xóa');
   });
 
   it('add_sheet 拒绝与现有表 canonical 重名的名称', () => {
@@ -135,7 +135,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
         selectedSheetKey: 'sheet_a',
         operations: [{ op: 'add_sheet', sheetName: ' 背包 ', headers: ['物品'] }],
       },
-    } as any)).toThrow('与现有表重复');
+    } as any)).toThrow('trùng với bảng hiện có');
   });
 
   it('add_sheet 拒绝重复表头', () => {
@@ -149,7 +149,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
           { op: 'add_sheet', sheetName: '战利品表', headers: ['物品名称', '物品名称'] },
         ],
       },
-    })).toThrow(/列名重复/);
+    })).toThrow(/Tên cột bị trùng/);
   });
 
   it('add_sheet 拒绝把 row_id 当作业务表头', () => {
@@ -163,7 +163,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
           { op: 'add_sheet', sheetName: '战利品表', headers: ['row_id', '物品名称'] },
         ],
       },
-    })).toThrow(/不能为 row_id/);
+    })).toThrow(/không được là row_id/);
   });
 
   it('add_sheet 拒绝未知 sourceData 字段和直接注入 ddl', () => {
@@ -177,7 +177,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
           { op: 'add_sheet', sheetName: '战利品表', headers: ['物品'], sourceData: { ddl: 'CREATE TABLE loot(id INTEGER);' } },
         ],
       },
-    })).toThrow(/未知字段/);
+    })).toThrow(/trường không xác định/);
   });
 
   it('rename_sheet 只改表名', () => {
@@ -224,7 +224,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: { protocolVersion: 1, selectedSheetKey: 'sheet_b', operations: [{ op: 'patch_sheet_update_config', sheetKey: 'sheet_b', patch: { contextDepth: 8 } }] },
-    })).toThrow(/只能修改当前选中表/);
+    })).toThrow(/chỉ được sửa bảng đang chọn/);
   });
 
   it('v2 允许跨表 patch_sheet_update_config', () => {
@@ -283,8 +283,8 @@ describe('compileTemplateAssistantDraft_ACU', () => {
       },
     });
 
-    expect(result.diff.patchedContentSheets[0]?.changes.join('；')).toContain('改单元格');
-    expect(result.diff.patchedContentSheets[0]?.changes.join('；')).toContain('新增 1 行');
+    expect(result.diff.patchedContentSheets[0]?.changes.join('；')).toContain('Sửa ô');
+    expect(result.diff.patchedContentSheets[0]?.changes.join('；')).toContain('Thêm 1 hàng');
     expect(result.candidateData.sheet_a.content).toEqual([
       ['row_id', '姓名', '备注'],
       [null, '乙', '第二行'],
@@ -317,7 +317,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
 
     expect(result.candidateData.sheet_a.content[0]).toEqual(['row_id', 'character_name', 'age']);
     expect(result.candidateData.sheet_a.content[1]).toEqual([1, '甲', 18]);
-    expect(result.diff.patchedSchemaSheets[0]?.changes.join('；')).toContain('列改名');
+    expect(result.diff.patchedSchemaSheets[0]?.changes.join('；')).toContain('Đổi tên cột');
     expect(result.highRiskItems.some((item) => item.type === 'patch_sheet_schema')).toBe(true);
   });
 
@@ -350,7 +350,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
 
     expect(result.candidateData.sheet_a.sourceData.ddl).toContain('item_name TEXT');
     expect(result.candidateData.sheet_a.sourceData.ddl).toContain('time_span TEXT NOT NULL');
-    expect(result.diff.patchedSchemaSheets[0]?.changes).toContain('DDL 已更新');
+    expect(result.diff.patchedSchemaSheets[0]?.changes).toContain('DDL đã cập nhật');
   });
 
   it('patch_sheet_schema 将 migrationIntent 原样克隆到 compile result', () => {
@@ -403,7 +403,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
           },
         }],
       },
-    })).toThrow(/物理列名必须使用英文\/ASCII/);
+    })).toThrow(/tên cột vật lý trong DDL phải dùng tiếng Anh\/ASCII/);
   });
 
   it('patch_sheet_schema.ddl 在无中文注释映射时仍拒绝英文物理列名', () => {
@@ -430,7 +430,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
           },
         }],
       },
-    })).toThrow(/第 1 列不匹配/);
+    })).toThrow(/Cột thứ 1 không khớp/);
   });
 
   it('patch_sheet_locks 产出声明式 lockChanges 并汇总 diff', () => {
@@ -459,7 +459,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
     expect(result.lockChanges[0].columns).toEqual([{ colIndex: 0, locked: true }]);
     expect(result.lockChanges[0].cells).toEqual([{ rowIndex: 0, colIndex: 0, locked: false }]);
     expect(result.lockChanges[0].specialIndexLocked).toBe(true);
-    expect(result.diff.patchedLockSheets[0]?.changes.join('；')).toContain('启用编码索引列特殊锁定');
+    expect(result.diff.patchedLockSheets[0]?.changes.join('；')).toContain('Bật khóa đặc biệt cho cột chỉ mục mã hóa');
   });
 
   it('拒绝未知结构 patch 字段', () => {
@@ -468,7 +468,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: { protocolVersion: 2, selectedSheetKey: 'sheet_a', operations: [{ op: 'patch_sheet_source_data', sheetKey: 'sheet_a', patch: { unknownField: 'x' } }] },
-    })).toThrow(/未知字段/);
+    })).toThrow(/trường không xác định/);
   });
 
   it('拒绝对普通表设置 specialIndexLocked', () => {
@@ -477,7 +477,7 @@ describe('compileTemplateAssistantDraft_ACU', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: { protocolVersion: 2, selectedSheetKey: 'sheet_a', operations: [{ op: 'patch_sheet_locks', sheetKey: 'sheet_a', patch: { specialIndexLocked: true } }] },
-    })).toThrow(/仅支持纪要\/大纲类表格/);
+    })).toThrow(/chỉ hỗ trợ các bảng loại kỷ yếu\/dàn ý/);
   });
 });
 
@@ -569,7 +569,7 @@ describe('v3 单表完整替换协议', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: buildV3ReplaceDraft_ACU(fp, 'sheet_not_exist', buildV3FullSheet_ACU()),
-    })).toThrow(/找不到目标表/);
+    })).toThrow(/Không tìm thấy bảng đích/);
   });
 
   it('replace 拒绝缺必填字段的完整 Sheet', () => {
@@ -581,7 +581,7 @@ describe('v3 单表完整替换协议', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: buildV3ReplaceDraft_ACU(fp, 'sheet_a', sheet),
-    })).toThrow(/缺少必填字段: required/);
+    })).toThrow(/thiếu trường bắt buộc: required/);
   });
 
   it('replace 拒绝缺 DDL 或非法 DDL', () => {
@@ -592,7 +592,7 @@ describe('v3 单表完整替换协议', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: buildV3ReplaceDraft_ACU(fp, 'sheet_a', noDdl),
-    })).toThrow(/必须提供非空 sourceData.ddl/);
+    })).toThrow(/phải cung cấp sourceData.ddl không rỗng/);
 
     const badDdl = buildV3FullSheet_ACU({ sourceData: { note: 'a', ddl: 'CREATE TABLE a (row_id INTEGER PRIMARY KEY, 姓名 TEXT)' } });
     expect(() => compileTemplateAssistantDraft_ACU({
@@ -600,7 +600,7 @@ describe('v3 单表完整替换协议', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: buildV3ReplaceDraft_ACU(fp, 'sheet_a', badDdl),
-    })).toThrow(/sourceData.ddl 非法/);
+    })).toThrow(/sourceData.ddl không hợp lệ/);
   });
 
   it('replace 拒绝表头非 row_id 开头', () => {
@@ -611,7 +611,7 @@ describe('v3 单表完整替换协议', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: buildV3ReplaceDraft_ACU(fp, 'sheet_a', sheet),
-    })).toThrow(/必须为 row_id/);
+    })).toThrow(/phải là row_id/);
   });
 
   it('replace 拒绝行宽不一致', () => {
@@ -622,7 +622,7 @@ describe('v3 单表完整替换协议', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: buildV3ReplaceDraft_ACU(fp, 'sheet_a', sheet),
-    })).toThrow(/行宽/);
+    })).toThrow(/độ rộng hàng/);
   });
 
   it('replace 拒绝 row_id 重复', () => {
@@ -633,7 +633,7 @@ describe('v3 单表完整替换协议', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: buildV3ReplaceDraft_ACU(fp, 'sheet_a', sheet),
-    })).toThrow(/row_id 重复/);
+    })).toThrow(/row_id của hàng dữ liệu v3 sheet bị trùng/);
   });
 
   it('create 分配本地身份并保持未目标表不变', () => {
@@ -661,7 +661,7 @@ describe('v3 单表完整替换协议', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: buildV3CreateDraft_ACU(fp, buildV3FullSheet_ACU({ name: 'A表', content: [['row_id', 'item'], [1, '金币']], sourceData: { note: 'loot', ddl: 'CREATE TABLE loot (row_id INTEGER PRIMARY KEY, -- 行号\n  item TEXT\n);' } })),
-    })).toThrow(/表名.*重复/);
+    })).toThrow(/Tên bảng.*trùng/);
   });
 
   it('delete 显式删除目标表并返回焦点', () => {
@@ -708,7 +708,7 @@ describe('v3 单表完整替换协议', () => {
         warnings: [],
         result: { action: 'delete', sheetKey: 'sheet_not_exist' },
       },
-    })).toThrow(/找不到目标表/);
+    })).toThrow(/Không tìm thấy bảng đích/);
   });
 
   it('create 的 insertAfterSheetKey 不存在时报错', () => {
@@ -718,7 +718,7 @@ describe('v3 单表完整替换协议', () => {
       sheetOrder: ['sheet_a', 'sheet_b', 'sheet_summary'],
       currentSheetKey: 'sheet_a',
       draft: buildV3CreateDraft_ACU(fp, buildV3FullSheet_ACU({ name: '战利品表', content: [['row_id', 'item'], [1, '金币']], sourceData: { note: 'loot', ddl: 'CREATE TABLE loot (row_id INTEGER PRIMARY KEY, -- 行号\n  item TEXT\n);' } }), 'sheet_missing'),
-    })).toThrow(/insertAfterSheetKey 不存在/);
+    })).toThrow(/insertAfterSheetKey không tồn tại/);
   });
 });
 

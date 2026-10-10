@@ -194,14 +194,14 @@ export interface CommitCurrentFloorTemplateScopeOnlyOptions_ACU {
 }
 
 function assertTemplateCommitChatContext_ACU(expectedChat: unknown[], options: { expectedChatIdentity?: string; expectedFirstMessage?: unknown; signal?: AbortSignal }): void {
-  if (options.signal?.aborted) throw new Error('模板提交已取消。');
+  if (options.signal?.aborted) throw new Error('Đã hủy commit mẫu.');
   const activeChat = getChatArray_ACU();
-  if (!Array.isArray(activeChat) || activeChat.length === 0) throw new Error('目标聊天已切换，已取消模板提交。');
+  if (!Array.isArray(activeChat) || activeChat.length === 0) throw new Error('Cuộc trò chuyện đích đã được chuyển, đã hủy commit mẫu.');
   if (options.expectedFirstMessage && (expectedChat[0] !== options.expectedFirstMessage || activeChat[0] !== options.expectedFirstMessage)) {
-    throw new Error('目标聊天已切换，已取消模板提交。');
+    throw new Error('Cuộc trò chuyện đích đã được chuyển, đã hủy commit mẫu.');
   }
   if (options.expectedChatIdentity && getActiveChatStorageIdentity_ACU(activeChat) !== options.expectedChatIdentity) {
-    throw new Error('目标聊天已切换，已取消模板提交。');
+    throw new Error('Cuộc trò chuyện đích đã được chuyển, đã hủy commit mẫu.');
   }
 }
 
@@ -633,15 +633,15 @@ async function validateTemporaryBaselineUpgradeCandidate_ACU(
       return `V2 candidate_${scope}_replay_failed: ${message}`;
     }
     if (!replay || replay.baseKind !== 'full_checkpoint') {
-      return `V2 candidate_${scope}_replay_failed: 未能从正式 full checkpoint 建立回放基底。`;
+      return `V2 candidate_${scope}_replay_failed: không thể thiết lập nền phát lại từ full checkpoint chính thức.`;
     }
     if (replay.requiresCheckpointConvergence || replay.compatibilityRepairs?.length) {
-      return `V2 candidate_requires_convergence: ${scope} replay 仍依赖临时 Sheet 补锚。`;
+      return `V2 candidate_requires_convergence: ${scope} replay vẫn phụ thuộc neo bù Sheet tạm.`;
     }
     if (scope === 'boundary'
       && getTableDataFingerprint_ACU(projectReplayComparableData_ACU(replay.data))
         !== getTableDataFingerprint_ACU(projectReplayComparableData_ACU(afterData))) {
-      return 'V2 candidate_boundary_replay_failed: checkpoint 边界回放结果与 afterData 不一致。';
+      return 'V2 candidate_boundary_replay_failed: kết quả phát lại ở biên checkpoint không khớp afterData.';
     }
     return null;
   };
@@ -690,7 +690,7 @@ async function validateAppendedOperationsReplayCandidate_ACU(
   }
   if (replay?.baseKind === 'compat_tolerant_replay') {
     const diagnosis = replay.legacyToleranceDiagnosis;
-    const strictError = diagnosis?.strictError || '严格回放失败';
+    const strictError = diagnosis?.strictError || 'Phát lại nghiêm ngặt thất bại';
     return isAppendedFailure(diagnosis?.strictFailure)
       ? buildAppendedOperationsWriteRejectionMessage_ACU(strictError)
       : compatReadonlyRejection(strictError);
@@ -718,10 +718,10 @@ async function validateProvisionalConvergenceCandidate_ACU(
         compatibilityMode: 'disabled',
       });
       if (!replay || replay.baseKind !== 'full_checkpoint') {
-        return `V2 convergence_candidate_${scope}_replay_failed: 候选未能从正式 full checkpoint 建立回放基底。`;
+        return `V2 convergence_candidate_${scope}_replay_failed: ứng viên không thể thiết lập nền phát lại từ full checkpoint chính thức.`;
       }
       if (replay.requiresCheckpointConvergence || replay.compatibilityRepairs?.length) {
-        return `V2 convergence_candidate_${scope}_requires_repair: 候选仍依赖兼容补锚。`;
+        return `V2 convergence_candidate_${scope}_requires_repair: ứng viên vẫn phụ thuộc neo bù tương thích.`;
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -745,17 +745,17 @@ function resolveConvergenceAnchorSheetData_ACU(
 ): { bySheetKey: Map<string, Sheet_ACU>; error?: undefined } | { bySheetKey?: undefined; error: string } {
   const headerOnly = resolveHeaderOnlyTemplateSnapshot_ACU(chat, isolationKey);
   if (!headerOnly) {
-    return { error: 'V2 收敛无法从当前聊天模板重新解析 header-only 锚点数据，已拒绝自动收敛。' };
+    return { error: 'Hội tụ V2 không thể phân tích lại dữ liệu neo header-only từ mẫu cuộc trò chuyện hiện tại, đã từ chối hội tụ tự động.' };
   }
   const fingerprint = getTableDataFingerprint_ACU(headerOnly);
   const bySheetKey = new Map<string, Sheet_ACU>();
   for (const repair of repairs) {
     if (repair.templateFingerprint && repair.templateFingerprint !== fingerprint) {
-      return { error: `V2 收敛模板指纹不一致（replay 时 ${repair.templateFingerprint}，当前 ${fingerprint}），模板已在补锚后被修改，拒绝按不可信模板写锚点。` };
+      return { error: `Dấu vân tay mẫu hội tụ V2 không khớp (lúc replay ${repair.templateFingerprint}, hiện tại ${fingerprint}), mẫu đã bị sửa sau khi bù neo, từ chối ghi neo theo mẫu không đáng tin.` };
     }
     const sheet = headerOnly[repair.sheetKey];
     if (!sheet || typeof sheet !== 'object' || Array.isArray(sheet) || !('content' in sheet)) {
-      return { error: `V2 收敛锚点缺少目标表 ${repair.sheetKey} 的模板数据，已拒绝自动收敛。` };
+      return { error: `Neo hội tụ V2 thiếu dữ liệu mẫu của bảng đích ${repair.sheetKey}, đã từ chối hội tụ tự động.` };
     }
     const sheetData = sheet as Sheet_ACU;
     bySheetKey.set(repair.sheetKey, deepClone_ACU(sheetData));
@@ -782,7 +782,7 @@ function writeSheetAnchorCheckpointsToFrame_ACU(
   for (const [sheetKey, sheet] of bySheetKey) {
     const conflictingEntry = (frame.logEntries || []).find(entry => logEntryConflictsWithSheetCheckpoint_ACU(entry, sheetKey));
     if (conflictingEntry) {
-      return { ok: false, error: `V2 收敛锚点无法写入：根帧已有同表 log entry（sheetKey=${sheetKey}, entryId=${conflictingEntry.entryId}），请先恢复。` };
+      return { ok: false, error: `Không thể ghi neo hội tụ V2: khung gốc đã có log entry cùng bảng (sheetKey=${sheetKey}, entryId=${conflictingEntry.entryId}), hãy khôi phục trước.` };
     }
     const checkpointResult = buildCanonicalSheetCheckpoint_ACU({
       createdAt,
@@ -793,7 +793,7 @@ function writeSheetAnchorCheckpointsToFrame_ACU(
       context,
     });
     if (checkpointResult.checkpoint === undefined) {
-      return { ok: false, error: `V2 收敛锚点构建失败（${sheetKey}）：${checkpointResult.error}` };
+      return { ok: false, error: `Dựng neo hội tụ V2 thất bại (${sheetKey}): ${checkpointResult.error}` };
     }
     frame.perSheetCheckpoints = {
       ...(frame.perSheetCheckpoints || {}),
@@ -823,14 +823,14 @@ async function validateHardDeleteCandidate_ACU(
     return `V2 hard-delete candidate replay failed: ${message}`;
   }
   if (!replay || replay.baseKind !== 'full_checkpoint') {
-    return 'V2 hard-delete candidate replay failed: 未能从正式 full checkpoint 建立回放基底。';
+    return 'V2 hard-delete candidate replay failed: không thể thiết lập nền phát lại từ full checkpoint chính thức.';
   }
   if (replay.requiresCheckpointConvergence || replay.compatibilityRepairs?.length) {
     return 'V2 hard-delete candidate replay requires compatibility convergence.';
   }
   const resurrectedSheetKeys = deletedSheetKeys.filter(sheetKey => Object.prototype.hasOwnProperty.call(replay.data, sheetKey));
   if (resurrectedSheetKeys.length > 0) {
-    return `V2 hard-delete candidate replay resurrected deleted Sheet: ${resurrectedSheetKeys.join(', ')}。`;
+    return `V2 hard-delete candidate replay resurrected deleted Sheet: ${resurrectedSheetKeys.join(', ')}. `;
   }
   if (getTableDataFingerprint_ACU(projectReplayComparableData_ACU(replay.data))
     !== getTableDataFingerprint_ACU(projectReplayComparableData_ACU(expectedData))) {
@@ -928,8 +928,8 @@ export function assertSingleActiveFullCheckpointV2_ACU(
     const tagData = readIsolatedTagData_ACU(chat?.[index], isolationKey);
     const checkpoint = isV2TagData_ACU(tagData) ? tagData.storageFrame.checkpoint : undefined;
     return `#${index}(${checkpoint?.reason ?? 'unknown'})`;
-  }).join('、');
-  return `V2 ${context} 违反单根不变量：同一隔离键下存在 ${indices.length} 个 full checkpoint（${detail}），回放只认最后一个，多余基线会使之前增量失效。`;
+  }).join(', ');
+  return `V2 ${context} vi phạm bất biến một gốc: dưới cùng khóa cô lập có ${indices.length} full checkpoint (${detail}), phát lại chỉ nhận cái cuối cùng, baseline dư thừa sẽ làm các thay đổi tăng lượng trước đó mất hiệu lực.`;
 }
 
 /**
@@ -952,10 +952,10 @@ export function writeInitFullCheckpointFrameV2_ACU(options: {
   const { chat, targetIndex, isolationKey, checkpoint } = options;
   const target = Array.isArray(chat) ? chat[targetIndex] : undefined;
   if (!target || target.is_user) {
-    throw new Error(`初始化 checkpoint 写入目标无效：楼层 #${targetIndex} 不存在或不是 AI 楼层。`);
+    throw new Error(`Đích ghi checkpoint khởi tạo không hợp lệ: tầng #${targetIndex} không tồn tại hoặc không phải tầng AI.`);
   }
   if (checkpoint?.kind !== 'full' || checkpoint.reason !== 'init') {
-    throw new Error(`初始化 checkpoint 写入口只接受 reason:'init' 的 full checkpoint（收到 kind=${checkpoint?.kind}, reason=${(checkpoint as any)?.reason}）。`);
+    throw new Error(`Cổng ghi checkpoint khởi tạo chỉ nhận full checkpoint có reason:'init' (nhận được kind=${checkpoint?.kind}, reason=${(checkpoint as any)?.reason}).`);
   }
   target.TavernDB_ACU_IsolatedData = {
     ...(target.TavernDB_ACU_IsolatedData || {}),
@@ -1026,7 +1026,7 @@ export function assertWriteTargetNotBeforeReplayRoot_ACU(options: {
   }
   return {
     allow: false,
-    reason: `写目标早于 V2 回放根且无有效 provisional bridge：targetMessageIndex=${targetMessageIndex}, latestReplayRootIndex=${latestRootIndex}。`,
+    reason: `Đích ghi sớm hơn gốc phát lại V2 và không có provisional bridge hợp lệ: targetMessageIndex=${targetMessageIndex}, latestReplayRootIndex=${latestRootIndex}. `,
     targetMessageIndex,
     latestFullCheckpointIndex: latestRootIndex,
   };
@@ -1448,7 +1448,7 @@ export async function demoteTemplateOnlyRootToScopeOnly_ACU(options: {
           ok: false,
           demoted: false,
           noReplayRoot: true,
-          reason: '聊天记录为空，不存在任何回放根，无需降级。',
+          reason: 'Lịch sử trò chuyện trống, không có gốc phát lại nào, không cần hạ cấp.',
         };
       }
       const storageState = classifyTemplateCommitStorageState_ACU(chat, isolationKey);
@@ -1468,10 +1468,10 @@ export async function demoteTemplateOnlyRootToScopeOnly_ACU(options: {
           demoted: false,
           noReplayRoot,
           reason: storageState.kind === 'existing_full_checkpoint'
-            ? '检测到含真实数据或后缀 artifact 的 full checkpoint，无法安全移除回放根，拒绝降级，零写入。'
+            ? 'Phát hiện full checkpoint chứa dữ liệu thật hoặc artifact hậu tố, không thể gỡ gốc phát lại an toàn, từ chối hạ cấp, không ghi gì.'
             : storageState.kind === 'legacy_persisted_data'
-              ? `检测到 legacy 表格数据（${storageState.details.join(', ')}）与 pristine 判定冲突，拒绝降级，零写入。`
-              : `当前状态为 ${storageState.kind}，不存在需要降级的回放根。`,
+              ? `Phát hiện dữ liệu bảng legacy (${storageState.details.join(', ')}) mâu thuẫn với kết luận pristine, từ chối hạ cấp, không ghi gì.`
+              : `Trạng thái hiện tại là ${storageState.kind}, không có gốc phát lại nào cần hạ cấp.`,
         };
       }
 
@@ -1479,7 +1479,7 @@ export async function demoteTemplateOnlyRootToScopeOnly_ACU(options: {
       const isolatedContainer = readIsolatedDataContainer_ACU(rootMessage) || {};
       const tagData = isolatedContainer[isolationKey] as any;
       if (!isV2TagData_ACU(tagData) || !isObjectRecord_ACU(tagData.storageFrame)) {
-        return { ok: false, demoted: false, reason: 'template_only_root 帧结构异常，拒绝降级，零写入。' };
+        return { ok: false, demoted: false, reason: 'Cấu trúc khung template_only_root bất thường, từ chối hạ cấp, không ghi gì.' };
       }
       const sourceFrame = tagData.storageFrame as TableStorageFrameV2_ACU;
       const backupFrame = deepClone_ACU(sourceFrame);
@@ -1493,7 +1493,7 @@ export async function demoteTemplateOnlyRootToScopeOnly_ACU(options: {
       // 安放，fail-closed 拒绝降级。先写 backup 消除对判空顺序的依赖。
       const backupTagData = candidateContainer[isolationKey];
       if (!backupTagData || typeof backupTagData !== 'object' || !isObjectRecord_ACU(backupTagData.storageFrame)) {
-        return { ok: false, demoted: false, reason: 'template_only_root 降级候选 tagData 缺失，拒绝写入，零写入。' };
+        return { ok: false, demoted: false, reason: 'Ứng viên hạ cấp template_only_root thiếu tagData, từ chối ghi, không ghi gì.' };
       }
       backupTagData.recoveryBackup = {
         version: 1,
@@ -1504,7 +1504,7 @@ export async function demoteTemplateOnlyRootToScopeOnly_ACU(options: {
       } satisfies TableV2RecoveryBackup_ACU;
       const candidateTagData = candidateContainer[isolationKey] as any;
       if (!isV2TagData_ACU(candidateTagData) || !isObjectRecord_ACU(candidateTagData.storageFrame)) {
-        return { ok: false, demoted: false, reason: 'template_only_root 候选帧结构异常，拒绝降级，零写入。' };
+        return { ok: false, demoted: false, reason: 'Cấu trúc khung ứng viên template_only_root bất thường, từ chối hạ cấp, không ghi gì.' };
       }
       const candidateFrame = candidateTagData.storageFrame as TableStorageFrameV2_ACU;
       delete candidateFrame.checkpoint;
@@ -1536,17 +1536,17 @@ export async function demoteTemplateOnlyRootToScopeOnly_ACU(options: {
           compatibilityMode: 'disabled',
         });
       } catch (error: any) {
-        return { ok: false, demoted: false, reason: `template_only_root 降级后候选 replay 校验失败：${error?.message || String(error)}` };
+        return { ok: false, demoted: false, reason: `Kiểm tra replay ứng viên sau khi hạ cấp template_only_root thất bại: ${error?.message || String(error)}` };
       }
       if (!replayAfter) {
         const templateBaseline = resolveHeaderOnlyTemplateSnapshot_ACU(chat, isolationKey);
         if (!templateBaseline) {
-          return { ok: false, demoted: false, reason: 'template_only_root 降级后候选 replay 无法校验，且当前模板基线不可得，拒绝降级，零写入。' };
+          return { ok: false, demoted: false, reason: 'Không thể kiểm tra replay ứng viên sau khi hạ cấp template_only_root, và không lấy được baseline mẫu hiện tại, từ chối hạ cấp, không ghi gì.' };
         }
         replayAfter = { data: templateBaseline, baseKind: 'temporary_template_baseline' };
       }
       if (replayAfter.requiresCheckpointConvergence || replayAfter.compatibilityRepairs?.length) {
-        return { ok: false, demoted: false, reason: 'template_only_root 降级后候选 replay 仍依赖兼容修复，拒绝降级，零写入。' };
+        return { ok: false, demoted: false, reason: 'Replay ứng viên sau khi hạ cấp template_only_root vẫn phụ thuộc sửa chữa tương thích, từ chối hạ cấp, không ghi gì.' };
       }
 
       // 指纹比对（fail-closed）：候选回放的每张表 content 必须与原 checkpoint 的
@@ -1561,8 +1561,8 @@ export async function demoteTemplateOnlyRootToScopeOnly_ACU(options: {
       const expectedFingerprint = getTableDataFingerprint_ACU(projectHeaderOnlyReplayComparableData_ACU(rootCheckpoint.data as TableDataObject_ACU));
       if (afterFingerprint !== expectedFingerprint) {
         const diffDetails = diffHeaderOnlyReplayStructures_ACU(rootCheckpoint.data as TableDataObject_ACU, replayAfter.data);
-        const detailText = diffDetails.length > 0 ? `（${diffDetails.join('; ')}）` : '';
-        return { ok: false, demoted: false, reason: `template_only_root 降级后候选 replay 与原 checkpoint 表结构不一致，已拒绝写入；请先执行 V2 恢复诊断。${detailText}` };
+        const detailText = diffDetails.length > 0 ? ` (${diffDetails.join('; ')}) ` : '';
+        return { ok: false, demoted: false, reason: `Replay ứng viên sau khi hạ cấp template_only_root không khớp cấu trúc bảng của checkpoint gốc, đã từ chối ghi; hãy chạy chẩn đoán khôi phục V2 trước. ${detailText}` };
       }
 
       // 真实写回：直接应用候选的最终容器形态，避免在真实对象上重复判空造成双写不一致。
@@ -1615,10 +1615,10 @@ function getValidatedFrameLastLogSeq_ACU(frame: TableStorageFrameV2_ACU): number
   for (const [index, entry] of frame.logEntries.entries()) {
     const seq = entry?.seq;
     if (!Number.isInteger(seq) || seq < 0) {
-      throw new Error(`V2 当前楼层模板提交包含非法 log seq: index=${index}, seq=${String(seq)}。`);
+      throw new Error(`Commit mẫu tầng hiện tại V2 chứa log seq không hợp lệ: index=${index}, seq=${String(seq)}. `);
     }
     if (seq <= previousSeq) {
-      throw new Error(`V2 当前楼层模板提交要求 log seq 唯一且严格递增: previous=${previousSeq}, current=${seq}。`);
+      throw new Error(`Commit mẫu tầng hiện tại V2 yêu cầu log seq duy nhất và tăng chặt: previous=${previousSeq}, current=${seq}. `);
     }
     previousSeq = seq;
   }
@@ -1954,19 +1954,19 @@ function introductionHistoryEvidence_ACU(
 
     const frame = tagData.storageFrame as unknown;
     if (!isObjectRecord_ACU(frame) || frame.version !== 2 || !Array.isArray(frame.logEntries)) {
-      return indeterminate(messageIndex, 'frame', 'V2 storage frame 无法解析');
+      return indeterminate(messageIndex, 'frame', 'Không thể phân tích V2 storage frame');
     }
     if (frame.checkpoint !== undefined && !checkpointIsValidForIntroductionHistory_ACU(frame.checkpoint)) {
-      return indeterminate(messageIndex, 'checkpoint', 'full checkpoint 无法验证');
+      return indeterminate(messageIndex, 'checkpoint', 'Không thể xác minh full checkpoint');
     }
     if (checkpointDataContainsSheet_ACU(frame.checkpoint, sheetKey)) return present(messageIndex, 'checkpoint');
     if (frame.perSheetCheckpoints !== undefined && !isObjectRecord_ACU(frame.perSheetCheckpoints)) {
-      return indeterminate(messageIndex, 'per_sheet_checkpoint', 'per-sheet checkpoint map 无法解析');
+      return indeterminate(messageIndex, 'per_sheet_checkpoint', 'Không thể phân tích per-sheet checkpoint map');
     }
     if (recordContainsSheet_ACU(frame.perSheetCheckpoints, sheetKey)) {
       const checkpoint = (frame.perSheetCheckpoints as Record<string, unknown>)[sheetKey];
       if (!sheetCheckpointMapIsValidForIntroductionHistory_ACU({ [sheetKey]: checkpoint })) {
-        return indeterminate(messageIndex, 'per_sheet_checkpoint', '目标 sheet checkpoint 无法验证');
+        return indeterminate(messageIndex, 'per_sheet_checkpoint', 'Không thể xác minh sheet checkpoint đích');
       }
       return present(messageIndex, 'per_sheet_checkpoint');
     }
@@ -1974,7 +1974,7 @@ function introductionHistoryEvidence_ACU(
     for (const entry of frame.logEntries) {
       if (!logEntryIsValidForIntroductionHistory_ACU(entry)) {
         logWarn_ACU(`[V2 Persist] introduction_history_entry_invalid: messageIndex=${messageIndex}, entrySeq=${String((entry as any)?.seq)}`);
-        return indeterminate(messageIndex, 'operation', 'mutation log entry 无法验证');
+        return indeterminate(messageIndex, 'operation', 'Không thể xác minh mutation log entry');
       }
 
       for (const [operationIndex, operation] of entry.operations.entries()) {
@@ -1986,12 +1986,12 @@ function introductionHistoryEvidence_ACU(
         }
         if (operationEvidence === 'indeterminate') {
           logWarn_ACU(`[V2 Persist] introduction_history_operation_indeterminate: messageIndex=${messageIndex}, entrySeq=${String(entry.seq)}, operationIndex=${operationIndex}`);
-          return indeterminate(messageIndex, 'operation', '目标相关 operation 无法验证');
+          return indeterminate(messageIndex, 'operation', 'Không thể xác minh operation liên quan đến đích');
         }
       }
 
       if (entry.patches === undefined) continue;
-      if (!Array.isArray(entry.patches)) return indeterminate(messageIndex, 'patch', 'patch 列表无法解析');
+      if (!Array.isArray(entry.patches)) return indeterminate(messageIndex, 'patch', 'Không thể phân tích danh sách patch');
       for (const [patchIndex, patch] of entry.patches.entries()) {
         const patchEvidence = scopedHistoryArtifactEvidence_ACU(patch, sheetKey, patchContainsOrCannotDisproveSheet_ACU);
         if (patchEvidence === 'present') return present(messageIndex, 'patch');
@@ -2001,7 +2001,7 @@ function introductionHistoryEvidence_ACU(
         }
         if (patchEvidence === 'indeterminate') {
           logWarn_ACU(`[V2 Persist] introduction_history_patch_indeterminate: messageIndex=${messageIndex}, entrySeq=${String(entry.seq)}, patchIndex=${patchIndex}`);
-          return indeterminate(messageIndex, 'patch', '目标相关 patch 无法验证');
+          return indeterminate(messageIndex, 'patch', 'Không thể xác minh patch liên quan đến đích');
         }
       }
     }
@@ -2014,7 +2014,7 @@ function introductionHistoryEvidence_ACU(
       sheetKey,
       messageIndex: note.messageIndex,
       artifactKind: note.artifactKind,
-      reason: '仅存在归属未知的全局 artifact，无法证明或证伪目标表存在',
+      reason: 'Chỉ có artifact toàn cục không rõ thuộc về đâu, không thể chứng minh hay bác bỏ sự tồn tại của bảng đích',
     };
   }
   return absent();
@@ -2163,7 +2163,7 @@ async function resolveRevealSource_ACU(
           messageIndex: boundary,
         };
       }
-      return { status: 'indeterminate', reason: `bounded replay 返回了非对象 sheet：messageIndex=${boundary}` };
+      return { status: 'indeterminate', reason: `bounded replay trả về sheet không phải đối tượng: messageIndex=${boundary}` };
     }
   }
   if (isObjectRecord_ACU(currentSheetCheckpoint)) {
@@ -2176,10 +2176,10 @@ async function resolveRevealSource_ACU(
         messageIndex: maxMessageIndex,
       };
     }
-    return { status: 'indeterminate', reason: '当前目标 sheet checkpoint 缺少对象 data' };
+    return { status: 'indeterminate', reason: 'sheet checkpoint đích hiện tại thiếu data dạng đối tượng' };
   }
   if (replayFailureCount > 0) {
-    return { status: 'indeterminate', reason: `无法完成 ${replayFailureCount} 个 bounded replay 边界` };
+    return { status: 'indeterminate', reason: `Không thể hoàn tất ${replayFailureCount} biên bounded replay` };
   }
   return { status: 'not_found' };
 }
@@ -2238,10 +2238,10 @@ async function persistTableMutationLogV2Core_ACU(
   const afterData = clonePersistAfterData_ACU(options, requiresFullAfterData);
   const normalization = normalizeCanonicalTableRows_ACU(afterData);
   if (normalization.errors.length > 0) {
-    return { saved: false, error: `V2 operation log snapshot 行标识不合法：${formatCanonicalRowIssues_ACU(normalization.errors)}` };
+    return { saved: false, error: `Định danh hàng của V2 operation log snapshot không hợp lệ: ${formatCanonicalRowIssues_ACU(normalization.errors)}` };
   }
   if (normalization.removedRows.length > 0) {
-    return { saved: false, error: `V2 operation log snapshot 包含空 row_id 行，拒绝静默删除：${formatCanonicalRowIssues_ACU(normalization.removedRows)}` };
+    return { saved: false, error: `V2 operation log snapshot chứa hàng row_id rỗng, từ chối xóa âm thầm: ${formatCanonicalRowIssues_ACU(normalization.removedRows)}` };
   }
   const filledSheetKeys = normalizeKeys_ACU(options.filledSheetKeys, afterData);
   const candidateChangedSheetKeys = normalizeKeys_ACU(options.candidateChangedSheetKeys, afterData);
@@ -2303,10 +2303,10 @@ async function persistTableMutationLogV2Core_ACU(
     });
     if (!replay || replay.baseKind !== 'temporary_template_baseline'
       || replay.requiresCheckpointConvergence || replay.compatibilityRepairs?.length) {
-      return { saved: false, error: 'V2 boundary_replay_failed: 无锚点 artifacts 无法从当前聊天模板建立安全临时基线，已拒绝自动升级。' };
+      return { saved: false, error: 'V2 boundary_replay_failed: artifacts không có neo không thể thiết lập baseline tạm an toàn từ mẫu cuộc trò chuyện hiện tại, đã từ chối nâng cấp tự động.' };
     }
     if (!await verifyTemporaryBaselineUpgrade_ACU(replay.data, operations, afterData)) {
-      return { saved: false, error: 'V2 boundary_after_data_mismatch: 临时基线回放与本次 afterData 不一致，已拒绝建立 full checkpoint。' };
+      return { saved: false, error: 'V2 boundary_after_data_mismatch: phát lại baseline tạm không khớp afterData lần này, đã từ chối thiết lập full checkpoint.' };
     }
     temporaryBaselineUpgrade = true;
   }
@@ -2343,23 +2343,23 @@ async function persistTableMutationLogV2Core_ACU(
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      return { saved: false, error: `V2 写入前无法验证 provisional replay：${message}` };
+      return { saved: false, error: `Trước khi ghi V2 không thể xác minh provisional replay: ${message}` };
     }
     if (replay?.requiresCheckpointConvergence || replay?.compatibilityRepairs?.length) {
       // F2：Tier-1 宽容回放结果不是严格可写历史，也没有可收敛的 temporary_sheet_anchor
       // 模型（provisional 收敛依赖 repairs 定位锚点数据），必须拒绝写入并指向恢复收敛。
       if (replay?.baseKind === 'compat_tolerant_replay') {
-        return { saved: false, error: buildCompatReadonlyWriteRejectionMessage_ACU('V2 写入前', replay) };
+        return { saved: false, error: buildCompatReadonlyWriteRejectionMessage_ACU('Trước khi ghi V2', replay) };
       }
       if (!replay || !replay.compatibilityRepairs?.length
         || hasStructuralReplayCompatibilityRepairs_ACU(replay.compatibilityRepairs)) {
-        return { saved: false, error: 'V2 写入前检测到结构性 replay repair，不能自动收敛或继续写入。' };
+        return { saved: false, error: 'Trước khi ghi V2 phát hiện replay repair mang tính cấu trúc, không thể tự động hội tụ hoặc tiếp tục ghi.' };
       }
       provisionalConvergenceReplay = replay;
     }
   }
   if (!manualRefillProgressIsValidForIntroductionHistory_ACU(options.manualRefillProgress)) {
-    return { saved: false, error: 'V2 manualRefillProgress 格式无效，已拒绝写入。' };
+    return { saved: false, error: 'Định dạng V2 manualRefillProgress không hợp lệ, đã từ chối ghi.' };
   }
   if (isManualRefillProgressOnly && !hasExistingCheckpoint) {
     return {
@@ -2403,7 +2403,7 @@ async function persistTableMutationLogV2Core_ACU(
       || initialCheckpointReason === 'migration'
       || initialCheckpointReason === 'import');
   if (shouldCheckpoint && operations.length > 0 && !temporaryBaselineUpgrade && !importDataReplaceBootstrap) {
-    return { saved: false, error: 'V2 初始 full checkpoint 不接受 operations；请仅提交 afterData 快照。' };
+    return { saved: false, error: 'full checkpoint khởi tạo V2 không nhận operations; hãy chỉ gửi snapshot afterData.' };
   }
 
   const targetExistingTagData = cloneIsolatedData_ACU(target.message)?.[isolationKey];
@@ -2450,7 +2450,7 @@ async function persistTableMutationLogV2Core_ACU(
     );
     if (invariantViolation) return { saved: false, error: invariantViolation };
     if (!latestFullCheckpoint) {
-      return { saved: false, error: 'V2 临时补锚收敛缺少既有 full checkpoint 根，已拒绝。' };
+      return { saved: false, error: 'Hội tụ bù neo tạm V2 thiếu gốc full checkpoint sẵn có, đã từ chối.' };
     }
     const anchorData = resolveConvergenceAnchorSheetData_ACU(
       chat,
@@ -2594,7 +2594,7 @@ async function persistTableMutationLogV2Core_ACU(
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        return { saved: false, error: `V2 无法确认 operation 执行前的 active sheet state，已拒绝写入：${message}` };
+        return { saved: false, error: `V2 không thể xác nhận active sheet state trước khi thực thi operation, đã từ chối ghi: ${message}` };
       }
       // 已在当前候选 frame 写入 full checkpoint 的 provisional replay 不再是
       // "compatibility-only"：再追加 header shard 会制造冗余 timeline，且让本次
@@ -2706,7 +2706,7 @@ async function persistTableMutationLogV2Core_ACU(
     } else if (progress.ok === false) {
       // 结构性失败（找不到根）才阻断；幂等重试（already_committed）不阻断本次提交。
       if (progress.code === 'root_missing') {
-        return { saved: false, error: `provisional bridge 提交进度推进失败：${progress.error}` };
+        return { saved: false, error: `Đẩy tiến độ commit provisional bridge thất bại: ${progress.error}` };
       }
     }
   }
@@ -2740,7 +2740,7 @@ async function persistTableMutationLogV2Core_ACU(
       isolationKey,
       target.index,
       [{ messageIndex: target.index, seq: entry.seq }],
-      'V2 写入时',
+      'Khi ghi V2',
     );
     if (candidateValidationError) {
       return { saved: false, error: candidateValidationError };
@@ -2837,13 +2837,13 @@ export async function persistTableMutationLogV2_ACU(
         isolationKey,
       );
       if (!auth.ok) {
-        const result = { saved: false, error: `provisional bridge 写入被拒绝：${(auth as { ok: false; error: string }).error}` };
+        const result = { saved: false, error: `Ghi provisional bridge bị từ chối: ${(auth as { ok: false; error: string }).error}` };
         performanceSpan.end({ success: false });
         return result;
       }
     }
   } catch (bridgeCheckError) {
-    const result = { saved: false, error: `provisional bridge 准入检查失败：${bridgeCheckError instanceof Error ? bridgeCheckError.message : String(bridgeCheckError)}` };
+    const result = { saved: false, error: `Kiểm tra cho phép provisional bridge thất bại: ${bridgeCheckError instanceof Error ? bridgeCheckError.message : String(bridgeCheckError)}` };
     performanceSpan.end({ success: false });
     return result;
   }
@@ -2955,17 +2955,17 @@ async function persistTableMutationLogBatchV2Core_ACU(
     if (replay?.requiresCheckpointConvergence || replay?.compatibilityRepairs?.length) {
       // F2：同单写入门——宽容回放结果不是严格可写历史，直接拒绝 batch 写入。
       if (replay?.baseKind === 'compat_tolerant_replay') {
-        return { saved: false, error: buildCompatReadonlyWriteRejectionMessage_ACU('V2 batch 写入前', replay) };
+        return { saved: false, error: buildCompatReadonlyWriteRejectionMessage_ACU('Trước khi ghi V2 batch', replay) };
       }
       if (!replay?.compatibilityRepairs?.length
         || hasStructuralReplayCompatibilityRepairs_ACU(replay.compatibilityRepairs)) {
-        return { saved: false, error: 'V2 batch 写入前检测到结构性 replay repair，不能自动收敛或继续写入。' };
+        return { saved: false, error: 'Trước khi ghi V2 batch phát hiện replay repair mang tính cấu trúc, không thể tự động hội tụ hoặc tiếp tục ghi.' };
       }
       provisionalConvergenceReplay = replay;
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return { saved: false, error: `V2 batch 写入前无法验证 provisional replay：${message}` };
+    return { saved: false, error: `Trước khi ghi V2 batch không thể xác minh provisional replay: ${message}` };
   }
 
   const candidateChat = deepClone_ACU(chat);
@@ -2995,7 +2995,7 @@ async function persistTableMutationLogBatchV2Core_ACU(
       }
       const rootMessage = candidateChat[latestCheckpoint.index];
       if (!rootMessage) {
-        return { saved: false, error: `V2 batch 收敛缺少既有 full checkpoint 根消息（index=${latestCheckpoint.index}），已拒绝。` };
+        return { saved: false, error: `Hội tụ V2 batch thiếu tin nhắn gốc full checkpoint sẵn có (index=${latestCheckpoint.index}), đã từ chối.` };
       }
       const rootIsolatedData = cloneIsolatedData_ACU(rootMessage) as Record<string, any>;
       const rootFrame = getOrInitV2Frame_ACU(rootIsolatedData, isolationKey);
@@ -3080,7 +3080,7 @@ async function persistTableMutationLogBatchV2Core_ACU(
       isolationKey,
       Math.max(...targetMessageIndices),
       appendedEntries,
-      'V2 batch 写入时',
+      'Khi ghi V2 batch',
     );
     if (candidateValidationError) return { saved: false, error: candidateValidationError };
     options.transactionContext?.assertFresh?.('persistTableMutationLogBatchV2:before_appended_operations_save');
@@ -3164,10 +3164,10 @@ async function persistTableSheetCheckpointV2Core_ACU(
   const normalizedSheetData = deepClone_ACU(options.sheetData);
   const normalization = normalizeCanonicalTableRows_ACU({ [options.sheetKey]: normalizedSheetData });
   if (normalization.errors.length > 0) {
-    return { saved: false, error: `V2 sheet checkpoint 行标识不合法：${formatCanonicalRowIssues_ACU(normalization.errors)}` };
+    return { saved: false, error: `Định danh hàng của V2 sheet checkpoint không hợp lệ: ${formatCanonicalRowIssues_ACU(normalization.errors)}` };
   }
   if (normalization.removedRows.length > 0) {
-    return { saved: false, error: `V2 sheet checkpoint 包含空 row_id 行，拒绝静默删除：${formatCanonicalRowIssues_ACU(normalization.removedRows)}` };
+    return { saved: false, error: `V2 sheet checkpoint chứa hàng row_id rỗng, từ chối xóa âm thầm: ${formatCanonicalRowIssues_ACU(normalization.removedRows)}` };
   }
 
   const chat = getChatArray_ACU();
@@ -3317,10 +3317,10 @@ export async function persistNullRowCleanupShards_ACU(
         const sheetData = deepClone_ACU(sourceSheet);
         const normalization = normalizeCanonicalTableRows_ACU({ [sheetKey]: sheetData });
         if (normalization.errors.length > 0) {
-          return { status: 'skipped_invalid_data', error: `null-row cleanup sheet 行标识不合法：${formatCanonicalRowIssues_ACU(normalization.errors)}` };
+          return { status: 'skipped_invalid_data', error: `Định danh hàng của null-row cleanup sheet không hợp lệ: ${formatCanonicalRowIssues_ACU(normalization.errors)}` };
         }
         if (!Array.isArray(sheetData.content?.[0]) || sheetData.content[0][0] !== 'row_id') {
-          return { status: 'skipped_invalid_data', error: `null-row cleanup sheet 缺少 row_id 表头：${sheetKey}.` };
+          return { status: 'skipped_invalid_data', error: `null-row cleanup sheet thiếu tiêu đề row_id: ${sheetKey}.` };
         }
         normalizedSheets.set(sheetKey, sheetData);
       }
@@ -3384,7 +3384,7 @@ export async function persistNullRowCleanupShards_ACU(
         try {
           await saveChatToHostStrict_ACU();
         } catch (rollbackError: any) {
-          return { status: 'failed', error: `${error?.message || String(error)}；回滚保存也失败：${rollbackError?.message || String(rollbackError)}` };
+          return { status: 'failed', error: `${error?.message || String(error)}; lưu hoàn tác cũng thất bại: ${rollbackError?.message || String(rollbackError)}` };
         }
         return { status: 'failed', error: error?.message || String(error) };
       }
@@ -3438,7 +3438,7 @@ export async function commitCurrentFloorTemplateScopeOnly_ACU(
   options: CommitCurrentFloorTemplateScopeOnlyOptions_ACU,
 ): Promise<CommitCurrentFloorTemplateChangesResult_ACU> {
   if (!options.guideData || typeof options.guideData !== 'object' || Array.isArray(options.guideData)) {
-    return { saved: false, error: 'scope-only 模板提交必须提供有效的 guideData。' };
+    return { saved: false, error: 'Commit mẫu scope-only phải cung cấp guideData hợp lệ.' };
   }
   if (options.pristineOverride !== true) {
     if (!options.baselineData || !options.candidateData
@@ -3448,7 +3448,7 @@ export async function commitCurrentFloorTemplateScopeOnly_ACU(
   }
   const createdAt = options.createdAt ?? Date.now();
   if (!Number.isFinite(createdAt) || createdAt < 0) {
-    return { saved: false, error: 'scope-only 模板提交 requires a finite non-negative createdAt.' };
+    return { saved: false, error: 'scope-only template commit requires a finite non-negative createdAt.' };
   }
   const isolationKey = options.isolationKey ?? getCurrentIsolationKey_ACU();
   try {
@@ -3475,7 +3475,7 @@ export async function commitCurrentFloorTemplateScopeOnly_ACU(
           source: options.source,
           updatedAt: createdAt,
         });
-        if (!guideUpdated) throw new Error('scope-only 模板提交无法写入 guideData 与 template scope。');
+        if (!guideUpdated) throw new Error('Commit mẫu scope-only không thể ghi guideData và template scope.');
         await saveChatToHostStrict_ACU();
         return { saved: true, mode: 'scope_only' as const };
       } catch (error: any) {
@@ -3484,7 +3484,7 @@ export async function commitCurrentFloorTemplateScopeOnly_ACU(
         try {
           await saveChatToHostStrict_ACU();
         } catch (rollbackError: any) {
-          throw new Error(`${error?.message || String(error)}；回滚保存也失败：${rollbackError?.message || String(rollbackError)}`);
+          throw new Error(`${error?.message || String(error)}; lưu hoàn tác cũng thất bại: ${rollbackError?.message || String(rollbackError)}`);
         }
         throw error;
       }
@@ -3496,25 +3496,25 @@ export async function commitCurrentFloorTemplateScopeOnly_ACU(
 
 function assertValidTemplateMetaUpdate_ACU(operation: Record<string, any>, sheetKey: string): void {
   if (!isPlainObjectRecord_ACU(operation.meta)) {
-    throw new Error(`当前楼层模板提交 meta_update.meta 必须是普通对象：${sheetKey}。`);
+    throw new Error(`Commit mẫu tầng hiện tại: meta_update.meta phải là đối tượng thường: ${sheetKey}. `);
   }
   const allowedKeys = new Set(['name', 'orderNo', 'sourceData', 'updateConfig', 'exportConfig']);
   if (Object.keys(operation.meta).some(key => !allowedKeys.has(key))) {
-    throw new Error(`当前楼层模板提交 meta_update 包含非法字段：${sheetKey}。`);
+    throw new Error(`Commit mẫu tầng hiện tại: meta_update chứa trường không hợp lệ: ${sheetKey}. `);
   }
   if (operation.meta.name !== undefined && typeof operation.meta.name !== 'string') {
-    throw new Error(`当前楼层模板提交 meta_update.name 无效：${sheetKey}。`);
+    throw new Error(`Commit mẫu tầng hiện tại: meta_update.name không hợp lệ: ${sheetKey}. `);
   }
   if (operation.meta.orderNo !== undefined && (typeof operation.meta.orderNo !== 'number' || !Number.isFinite(operation.meta.orderNo))) {
-    throw new Error(`当前楼层模板提交 meta_update.orderNo 无效：${sheetKey}。`);
+    throw new Error(`Commit mẫu tầng hiện tại: meta_update.orderNo không hợp lệ: ${sheetKey}. `);
   }
   for (const key of ['sourceData', 'updateConfig', 'exportConfig'] as const) {
     if (operation.meta[key] !== undefined && !isPlainObjectRecord_ACU(operation.meta[key])) {
-      throw new Error(`当前楼层模板提交 meta_update.${key} 必须是普通对象：${sheetKey}。`);
+      throw new Error(`Commit mẫu tầng hiện tại: meta_update.${key} phải là đối tượng thường: ${sheetKey}. `);
     }
   }
   if (operation.meta.sourceData && Object.prototype.hasOwnProperty.call(operation.meta.sourceData, 'ddl')) {
-    throw new Error(`当前楼层模板提交禁止 meta_update 修改 sourceData.ddl：${sheetKey}。`);
+    throw new Error(`Commit mẫu tầng hiện tại cấm meta_update sửa sourceData.ddl: ${sheetKey}. `);
   }
 }
 
@@ -3525,13 +3525,13 @@ async function assertValidInitialTemplateSnapshot_ACU(
 ): Promise<void> {
   const mate = data.mate;
   if (!isPlainObjectRecord_ACU(mate) || typeof mate.type !== 'string' || mate.type.length === 0) {
-    throw new Error('V2 首次模板提交的 templateSource.mate 无效。');
+    throw new Error('templateSource.mate của commit mẫu lần đầu V2 không hợp lệ.');
   }
   if (mate.version !== undefined && (!Number.isFinite(mate.version) || mate.version < 0)) {
-    throw new Error('V2 首次模板提交的 templateSource.mate.version 无效。');
+    throw new Error('templateSource.mate.version của commit mẫu lần đầu V2 không hợp lệ.');
   }
   if (mate.updateConfigUiSentinel !== undefined && !Number.isFinite(mate.updateConfigUiSentinel)) {
-    throw new Error('V2 首次模板提交的 templateSource.mate.updateConfigUiSentinel 无效。');
+    throw new Error('templateSource.mate.updateConfigUiSentinel của commit mẫu lần đầu V2 không hợp lệ.');
   }
   mate.version = mate.version ?? 1;
   mate.updateConfigUiSentinel = mate.updateConfigUiSentinel ?? 0;
@@ -3539,28 +3539,28 @@ async function assertValidInitialTemplateSnapshot_ACU(
 
   const invalidRootKey = Object.keys(data).find(key => key !== 'mate' && !key.startsWith('sheet_'));
   if (invalidRootKey) {
-    throw new Error(`V2 首次模板提交的 templateSource 包含非法根字段：${invalidRootKey}。`);
+    throw new Error(`templateSource của commit mẫu lần đầu V2 chứa trường gốc không hợp lệ: ${invalidRootKey}. `);
   }
   const sheetKeys = Object.keys(data).filter(key => key.startsWith('sheet_')).sort();
   if (sheetKeys.length === 0) {
-    throw new Error('V2 首次模板提交的 templateSource 不包含任何 Sheet。');
+    throw new Error('templateSource của commit mẫu lần đầu V2 không chứa Sheet nào.');
   }
   const normalizedGuideData = normalizeGuideData_ACU(deepClone_ACU(guideData));
   if (!normalizedGuideData) {
-    throw new Error('V2 首次模板提交的 guideData 无法规范化。');
+    throw new Error('guideData của commit mẫu lần đầu V2 không thể chuẩn hóa.');
   }
   const guideSheetKeys = Object.keys(normalizedGuideData).filter(key => key.startsWith('sheet_')).sort();
   if (sheetKeys.length !== guideSheetKeys.length || sheetKeys.some((key, index) => key !== guideSheetKeys[index])) {
-    throw new Error('V2 首次模板提交的 templateSource 与 guideData 的 Sheet 集合不一致。');
+    throw new Error('Tập Sheet của templateSource và guideData trong commit mẫu lần đầu V2 không nhất quán.');
   }
 
   for (const sheetKey of sheetKeys) {
     const sheet = data[sheetKey];
     if (!sheetIsValidForIntroductionHistory_ACU(sheet)) {
-      throw new Error(`V2 首次模板提交的 templateSource 包含无效 Sheet：${sheetKey}。`);
+      throw new Error(`templateSource của commit mẫu lần đầu V2 chứa Sheet không hợp lệ: ${sheetKey}. `);
     }
     if (sheet.content.length === 0 || sheet.content[0].length === 0 || sheet.content[0][0] !== 'row_id') {
-      throw new Error(`V2 首次模板提交的 templateSource Sheet 缺少 row_id 表头：${sheetKey}。`);
+      throw new Error(`Sheet của templateSource trong commit mẫu lần đầu V2 thiếu tiêu đề row_id: ${sheetKey}. `);
     }
     if (storageMode === 'sqlite') {
       if (!String(sheet.sourceData.ddl || '').trim()) {
@@ -3568,12 +3568,12 @@ async function assertValidInitialTemplateSnapshot_ACU(
       }
       const ddlValidation = validateDDLTextAgainstHeaders_ACU(sheet.sourceData.ddl, sheet.content[0]);
       if (!ddlValidation.valid) {
-        throw new Error(`V2 首次模板提交的 templateSource Sheet DDL 无法 strict hydrate：${sheetKey}：${ddlValidation.message}`);
+        throw new Error(`DDL Sheet của templateSource trong commit mẫu lần đầu V2 không thể strict hydrate: ${sheetKey}: ${ddlValidation.message}`);
       }
       try {
         createSheetInsertPlan(sheet as Sheet_ACU);
       } catch (error: any) {
-        throw new Error(`V2 首次模板提交的 templateSource Sheet 无法 hydrate：${sheetKey}：${error?.message || String(error)}`);
+        throw new Error(`Sheet của templateSource trong commit mẫu lần đầu V2 không thể hydrate: ${sheetKey}: ${error?.message || String(error)}`);
       }
     }
   }
@@ -3585,7 +3585,7 @@ async function assertValidInitialTemplateSnapshot_ACU(
       // 运行时注入/协调路径（template-state-reset / chat-template-reconciler）才允许降级。
       await hydrateTableDataStrict_ACU(data);
     } catch (error: any) {
-      throw new Error(`V2 首次模板提交的完整 templateSource 无法通过 SQLite strict hydrate：${error?.message || String(error)}`);
+      throw new Error(`templateSource đầy đủ của commit mẫu lần đầu V2 không thể qua SQLite strict hydrate: ${error?.message || String(error)}`);
     }
   }
 }
@@ -3607,10 +3607,10 @@ type TemplateDeleteMessageSnapshot_ACU = {
 
 function normalizeDeletedTemplateSheetKeys_ACU(value: unknown): string[] {
   if (value == null) return [];
-  if (!Array.isArray(value)) throw new Error('当前楼层模板提交的 deletedSheetKeys 必须为数组。');
+  if (!Array.isArray(value)) throw new Error('deletedSheetKeys của commit mẫu tầng hiện tại phải là mảng.');
   const keys = value.map(key => String(key || ''));
-  if (keys.some(key => !key.startsWith('sheet_'))) throw new Error('当前楼层模板提交包含非法 deletedSheetKey。');
-  if (new Set(keys).size !== keys.length) throw new Error('当前楼层模板提交不能包含重复 deletedSheetKey。');
+  if (keys.some(key => !key.startsWith('sheet_'))) throw new Error('Commit mẫu tầng hiện tại chứa deletedSheetKey không hợp lệ.');
+  if (new Set(keys).size !== keys.length) throw new Error('Commit mẫu tầng hiện tại không được chứa deletedSheetKey trùng.');
   return keys;
 }
 
@@ -3641,36 +3641,36 @@ function restoreTemplateDeleteMessageSnapshots_ACU(snapshots: TemplateDeleteMess
 
 function assertValidTemplateSheetChanges_ACU(sheetChanges: TemplateSheetChange_ACU[], deletedSheetKeys: string[]): void {
   if (sheetChanges.length === 0 && deletedSheetKeys.length === 0) {
-    throw new Error('当前楼层模板提交必须至少包含一个 sheet change 或 deletedSheetKey。');
+    throw new Error('Commit mẫu tầng hiện tại phải chứa ít nhất một sheet change hoặc deletedSheetKey.');
   }
   const sheetKeys = sheetChanges.map(change => String(change?.sheetKey || ''));
   if (sheetKeys.some(sheetKey => !sheetKey.startsWith('sheet_'))) {
-    throw new Error('当前楼层模板提交包含非法 sheetKey。');
+    throw new Error('Commit mẫu tầng hiện tại chứa sheetKey không hợp lệ.');
   }
   if (new Set(sheetKeys).size !== sheetKeys.length) {
-    throw new Error('当前楼层模板提交不能包含重复 sheetKey。');
+    throw new Error('Commit mẫu tầng hiện tại không được chứa sheetKey trùng.');
   }
   if (sheetKeys.some(sheetKey => deletedSheetKeys.includes(sheetKey))) {
-    throw new Error('当前楼层模板提交不能同时删除和变更同一 sheetKey。');
+    throw new Error('Commit mẫu tầng hiện tại không được vừa xóa vừa thay đổi cùng một sheetKey.');
   }
   for (const change of sheetChanges) {
     if (change.kind === 'introduction' || change.kind === 'rebase' || change.kind === 'reveal' || change.kind === 'hide') {
-      if (!isObjectRecord_ACU(change.sheetData)) throw new Error(`当前楼层模板提交缺少可恢复 Sheet：${change.sheetKey}。`);
+      if (!isObjectRecord_ACU(change.sheetData)) throw new Error(`Commit mẫu tầng hiện tại thiếu Sheet có thể khôi phục: ${change.sheetKey}. `);
       continue;
     }
     if (change.kind !== 'operations' || !isObjectRecord_ACU(change.targetSheetData) || !Array.isArray(change.operations) || change.operations.length === 0) {
-      throw new Error(`当前楼层模板提交 operations action 无效：${change.sheetKey}。`);
+      throw new Error(`Commit mẫu tầng hiện tại: operations action không hợp lệ: ${change.sheetKey}. `);
     }
     let migrationCount = 0;
     let metaUpdateCount = 0;
     for (const operation of change.operations) {
       if (!operation || (operation.kind !== 'sheet_schema_migrate' && operation.kind !== 'meta_update') || operation.sheetKey !== change.sheetKey) {
-        throw new Error(`当前楼层模板提交包含不允许或归属错误的 operation：${change.sheetKey}。`);
+        throw new Error(`Commit mẫu tầng hiện tại chứa operation không được phép hoặc sai chủ sở hữu: ${change.sheetKey}. `);
       }
       if (operation.kind === 'sheet_schema_migrate') {
         migrationCount += 1;
         if (!migrationIsValidForIntroductionHistory_ACU(operation as Record<string, any>)) {
-          throw new Error(`当前楼层模板提交包含畸形 sheet_schema_migrate：${change.sheetKey}。`);
+          throw new Error(`Commit mẫu tầng hiện tại chứa sheet_schema_migrate dị dạng: ${change.sheetKey}. `);
         }
       }
       if (operation.kind === 'meta_update') {
@@ -3679,7 +3679,7 @@ function assertValidTemplateSheetChanges_ACU(sheetChanges: TemplateSheetChange_A
       }
     }
     if (migrationCount > 1 || metaUpdateCount > 1 || (migrationCount === 1 && change.operations[0].kind !== 'sheet_schema_migrate')) {
-      throw new Error(`当前楼层模板提交 operation 顺序或数量无效：${change.sheetKey}。`);
+      throw new Error(`Commit mẫu tầng hiện tại: thứ tự hoặc số lượng operation không hợp lệ: ${change.sheetKey}. `);
     }
   }
 }
@@ -3694,7 +3694,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
   options: CommitCurrentFloorTemplateChangesOptions_ACU,
 ): Promise<CommitCurrentFloorTemplateChangesResult_ACU> {
   if (!options.guideData || typeof options.guideData !== 'object' || Array.isArray(options.guideData)) {
-    return { saved: false, error: '当前楼层模板提交必须提供有效的 guideData。' };
+    return { saved: false, error: 'Commit mẫu tầng hiện tại phải cung cấp guideData hợp lệ.' };
   }
   const requestedChanges = Array.isArray(options.sheetChanges) ? options.sheetChanges : [];
   let deletedSheetKeys: string[];
@@ -3708,7 +3708,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
   const storageMode = options.storageMode === 'native' ? 'native' : 'sqlite';
   const createdAt = options.createdAt ?? Date.now();
   if (!Number.isFinite(createdAt) || createdAt < 0) {
-    return { saved: false, error: '当前楼层模板提交 requires a finite non-negative createdAt.' };
+    return { saved: false, error: 'current-floor template commit requires a finite non-negative createdAt.' };
   }
 
   const isolationKey = options.isolationKey ?? getCurrentIsolationKey_ACU();
@@ -3731,28 +3731,28 @@ export async function commitCurrentFloorTemplateChanges_ACU(
     const latestAiTarget = findTargetAiMessage_ACU(chat, undefined);
     const target = findTargetAiMessage_ACU(chat, options.targetMessageIndex);
     if (!latestAiTarget || !target) {
-      throw new Error('当前聊天不存在可提交的 AI 楼层。');
+      throw new Error('Cuộc trò chuyện hiện tại không có tầng AI nào có thể commit.');
     }
     if (target.index !== latestAiTarget.index) {
-      throw new Error(`当前楼层模板提交只能写入最新 AI 楼层：requested=${target.index}, latest=${latestAiTarget.index}。`);
+      throw new Error(`Commit mẫu tầng hiện tại chỉ được ghi vào tầng AI mới nhất: requested=${target.index}, latest=${latestAiTarget.index}. `);
     }
 
     let storageState = classifyTemplateCommitStorageState_ACU(chat, isolationKey);
     if (storageState.kind === 'legacy_persisted_data') {
       const storageStateAfterDeletedSheets = classifyTemplateCommitStorageStateAfterDeletedSheets_ACU(chat, isolationKey, deletedSheetKeys);
       if (storageStateAfterDeletedSheets.kind === 'legacy_persisted_data') {
-        throw new Error(`当前楼层模板提交检测到 legacy 持久化数据，必须先完成迁移：${storageStateAfterDeletedSheets.details.join(', ')}。`);
+        throw new Error(`Commit mẫu tầng hiện tại phát hiện dữ liệu lưu trữ legacy, phải hoàn tất di chuyển trước: ${storageStateAfterDeletedSheets.details.join(', ')}. `);
       }
       storageState = storageStateAfterDeletedSheets;
     }
     if (storageState.kind === 'orphan_v2_artifacts') {
-      throw new Error(`当前楼层模板提交检测到缺少 full checkpoint 的 V2 存储痕迹，已拒绝覆盖：${storageState.details.join(', ')}。`);
+      throw new Error(`Commit mẫu tầng hiện tại phát hiện dấu vết lưu trữ V2 thiếu full checkpoint, đã từ chối ghi đè: ${storageState.details.join(', ')}. `);
     }
     const latestFullCheckpoint = storageState.kind === 'existing_full_checkpoint'
       ? storageState.checkpoint
       : null;
     if (latestFullCheckpoint && target.index < latestFullCheckpoint.index) {
-      throw new Error(`V2 当前楼层模板提交目标早于最近 full checkpoint：targetMessageIndex=${target.index}, latestFullCheckpointIndex=${latestFullCheckpoint.index}。`);
+      throw new Error(`Đích commit mẫu tầng hiện tại V2 sớm hơn full checkpoint gần nhất: targetMessageIndex=${target.index}, latestFullCheckpointIndex=${latestFullCheckpoint.index}. `);
     }
 
     transactionContext.assertFresh?.('commitCurrentFloorTemplateChanges:before_commit');
@@ -3763,7 +3763,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
 
     if (storageState.kind === 'pristine_without_checkpoint') {
       if (!isObjectRecord_ACU(options.templateSource)) {
-        throw new Error('预填表模板提交必须提供完整有效的 templateSource。');
+        throw new Error('Commit mẫu điền bảng trước phải cung cấp templateSource đầy đủ và hợp lệ.');
       }
       const templateSnapshot = deepClone_ACU(options.templateSource);
       // 这条分支不做增量删除：checkpoint 完全由 templateSource 重建，且此时没有任何
@@ -3771,7 +3771,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
       // 快照仍保留该表说明调用方状态不一致，必须拒绝而不是静默放行。
       const staleDeletedSheetKeys = deletedSheetKeys.filter(sheetKey => sheetKey in templateSnapshot);
       if (staleDeletedSheetKeys.length > 0) {
-        throw new Error(`预填表模板提交的 templateSource 仍包含已删除 Sheet：${staleDeletedSheetKeys.join(', ')}。`);
+        throw new Error(`templateSource của commit mẫu điền bảng trước vẫn chứa Sheet đã xóa: ${staleDeletedSheetKeys.join(', ')}. `);
       }
       await assertValidInitialTemplateSnapshot_ACU(templateSnapshot, options.guideData, storageMode);
       assertTemplateCommitChatContext_ACU(chat, options);
@@ -3781,12 +3781,12 @@ export async function commitCurrentFloorTemplateChanges_ACU(
         if (change.kind === 'hide') continue;
         const snapshotSheet: unknown = templateSnapshot[change.sheetKey];
         if (!isObjectRecord_ACU(snapshotSheet) || !Array.isArray(snapshotSheet.content)) {
-          throw new Error(`预填表模板提交的 templateSource 缺少变更 Sheet：${change.sheetKey}。`);
+          throw new Error(`templateSource của commit mẫu điền bảng trước thiếu Sheet thay đổi: ${change.sheetKey}. `);
         }
         const expectedSheet = deepClone_ACU(change.kind === 'operations' ? change.targetSheetData : change.sheetData);
         const expectedNormalization = normalizeCanonicalTableRows_ACU({ [change.sheetKey]: expectedSheet });
         if (expectedNormalization.errors.length > 0) {
-          throw new Error(`预填表模板提交目标 Sheet 行标识不合法：${formatCanonicalRowIssues_ACU(expectedNormalization.errors)}`);
+          throw new Error(`Định danh hàng của Sheet đích trong commit mẫu điền bảng trước không hợp lệ: ${formatCanonicalRowIssues_ACU(expectedNormalization.errors)}`);
         }
         if (storageMode === 'sqlite') {
           if (!expectedSheet.sourceData || typeof expectedSheet.sourceData !== 'object') expectedSheet.sourceData = {} as any;
@@ -3795,7 +3795,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
           }
         }
         if (canonicalJson_ACU(templateSheetPersistentProjection_ACU(snapshotSheet as Sheet_ACU)) !== canonicalJson_ACU(templateSheetPersistentProjection_ACU(expectedSheet))) {
-          throw new Error(`预填表模板提交的 templateSource 与目标 Sheet 不一致：${change.sheetKey}。`);
+          throw new Error(`templateSource của commit mẫu điền bảng trước không khớp Sheet đích: ${change.sheetKey}. `);
         }
       }
       const previousScopeContainer = cloneOptionalJson_ACU(peekChatScopedConfigContainer_ACU(chat));
@@ -3852,7 +3852,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
           source: options.source,
           updatedAt: createdAt,
         });
-        if (!guideUpdated) throw new Error('预填表模板提交无法原子写入 guideData 与 template scope。');
+        if (!guideUpdated) throw new Error('Commit mẫu điền bảng trước không thể ghi nguyên tử guideData và template scope.');
         assertTemplateCommitChatContext_ACU(chat, options);
         rollbackMaterialCheckpoint = beginMaterialCheckpointSync_ACU(chat, target.index);
         await saveChatToHostStrict_ACU();
@@ -3865,7 +3865,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
         try {
           await saveChatToHostStrict_ACU();
         } catch (rollbackError: any) {
-          throw new Error(`${error?.message || String(error)}；回滚保存也失败：${rollbackError?.message || String(rollbackError)}`);
+          throw new Error(`${error?.message || String(error)}; lưu hoàn tác cũng thất bại: ${rollbackError?.message || String(rollbackError)}`);
         }
         throw error;
       }
@@ -3879,7 +3879,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
     if (targetTagData !== null
       && !isV2TagData_ACU(targetTagData)
       && hasV2TableHistoryEvidence_ACU(targetTagData)) {
-      throw new Error('当前楼层模板提交检测到目标 AI 楼层存在损坏的 V2 storage frame；请先完成修复迁移。');
+      throw new Error('Commit mẫu tầng hiện tại phát hiện tầng AI đích có V2 storage frame bị hỏng; hãy hoàn tất di chuyển sửa chữa trước.');
     }
 
     const messageSnapshots = snapshotTemplateDeleteMessages_ACU(chat, deletedSheetKeys.length > 0);
@@ -3912,11 +3912,11 @@ export async function commitCurrentFloorTemplateChanges_ACU(
       const normalization = normalizeCanonicalTableRows_ACU({ [change.sheetKey]: targetSheetData });
       removedNullRowCount += normalization.removedRows.length;
       if (normalization.errors.length > 0) {
-        throw new Error(`V2 当前楼层模板提交行标识不合法：${formatCanonicalRowIssues_ACU(normalization.errors)}`);
+        throw new Error(`Commit mẫu tầng hiện tại V2: định danh hàng không hợp lệ: ${formatCanonicalRowIssues_ACU(normalization.errors)}`);
       }
       const headers = targetSheetData.content?.[0];
       if (!Array.isArray(headers) || headers[0] !== 'row_id') {
-        throw new Error(`V2 当前楼层模板提交缺少 row_id 表头：${change.sheetKey}。`);
+        throw new Error(`Commit mẫu tầng hiện tại V2 thiếu tiêu đề row_id: ${change.sheetKey}. `);
       }
       if (storageMode === 'sqlite') {
         if (!targetSheetData.sourceData || typeof targetSheetData.sourceData !== 'object') targetSheetData.sourceData = {} as any;
@@ -3925,7 +3925,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
         }
         const ddlValidation = validateDDLTextAgainstHeaders_ACU(targetSheetData.sourceData.ddl, headers);
         if (!ddlValidation.valid) {
-          throw new Error(`V2 当前楼层模板提交 DDL 无法 strict hydrate：${change.sheetKey}：${ddlValidation.message}`);
+          throw new Error(`Commit mẫu tầng hiện tại V2: DDL không thể strict hydrate: ${change.sheetKey}: ${ddlValidation.message}`);
         }
         createSheetInsertPlan(targetSheetData);
       }
@@ -3939,12 +3939,12 @@ export async function commitCurrentFloorTemplateChanges_ACU(
     // 保留既有 summaryVectorIndexState / summaryVectorIndexManifest。
     const frame = getOrInitV2Frame_ACU(isolatedData, isolationKey);
     if (!isV2TagData_ACU(isolatedData[isolationKey])) {
-      throw new Error('目标 V2 storage frame 在模板提交准备期间发生变化。');
+      throw new Error('V2 storage frame đích đã thay đổi trong lúc chuẩn bị commit mẫu.');
     }
     const activeReplay = await loadTableStateFromFramesV2Detailed_ACU(chat, isolationKey, { maxMessageIndex: target.index, updateRuntimeState: false });
     assertTemplateCommitChatContext_ACU(chat, options);
     if (!activeReplay) {
-      throw new Error('V2 当前楼层模板提交无法解析 active full checkpoint replay state。');
+      throw new Error('Commit mẫu tầng hiện tại V2 không thể phân tích active full checkpoint replay state.');
     }
     // 收敛会清空候选 frame 的 per-sheet checkpoints；先按目标 key 捕获不可变副本，
     // 仅供同楼层 reveal 在 bounded replay 找不到可见来源时使用。
@@ -3956,13 +3956,13 @@ export async function commitCurrentFloorTemplateChanges_ACU(
     if (activeReplay.requiresCheckpointConvergence || activeReplay.compatibilityRepairs?.length) {
       // F2：同 persist 写前门——宽容回放结果不是严格可写历史，模板提交直接失败。
       if (activeReplay.baseKind === 'compat_tolerant_replay') {
-        throw new Error(`V2 当前楼层模板提交检测到聊天历史仅可经兼容宽容回放读出（严格回放失败：${activeReplay.legacyToleranceDiagnosis?.strictError || '未知错误'}），不能继续写入；请先在数据管理中完成 V2 恢复收敛。`);
+        throw new Error(`Commit mẫu tầng hiện tại V2 phát hiện lịch sử trò chuyện 仅可经兼容宽容回放读出 (phát lại nghiêm ngặt thất bại: ${activeReplay.legacyToleranceDiagnosis?.strictError || 'Lỗi không xác định'}), không thể tiếp tục ghi; hãy hoàn tất hội tụ khôi phục V2 trong Quản lý dữ liệu trước.`);
       }
       if (!activeReplay.compatibilityRepairs?.length
         || hasStructuralReplayCompatibilityRepairs_ACU(activeReplay.compatibilityRepairs)) {
         const affectedSheetKeys = [...new Set((activeReplay.compatibilityRepairs || []).map(repair => repair.sheetKey))];
         throw new Error(
-          `V2 当前楼层模板提交检测到结构性 replay repair，不能自动收敛或继续写入：${affectedSheetKeys.join('、') || '未知 Sheet'}。`,
+          `Commit mẫu tầng hiện tại V2 phát hiện replay repair mang tính cấu trúc, không thể tự động hội tụ hoặc tiếp tục ghi: ${affectedSheetKeys.join(', ') || 'Sheet không xác định'}. `,
         );
       }
       const invariantViolation = assertSingleActiveFullCheckpointV2_ACU(
@@ -3972,7 +3972,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
       );
       if (invariantViolation) throw new Error(invariantViolation);
       if (!latestFullCheckpoint) {
-        throw new Error('V2 当前楼层模板提交收敛缺少既有 full checkpoint 根，已拒绝。');
+        throw new Error('Hội tụ commit mẫu tầng hiện tại V2 thiếu gốc full checkpoint sẵn có, đã từ chối.');
       }
       const anchorData = resolveConvergenceAnchorSheetData_ACU(
         chat,
@@ -4013,7 +4013,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
       }
       const tagData = isolatedData[isolationKey];
       if (!isV2TagData_ACU(tagData)) {
-        throw new Error('V2 当前楼层模板提交在 provisional 收敛准备期间缺少有效 storage frame。');
+        throw new Error('Commit mẫu tầng hiện tại V2 thiếu storage frame hợp lệ trong lúc chuẩn bị hội tụ provisional.');
       }
       tagData.recoveryBackup = {
         version: 1,
@@ -4046,7 +4046,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
         // 正常的 stale plan 应先被 baseRevision 拦截；保留这里作为跨入口/异常状态的最终保险。
         logDebug_ACU(`[V2 Persist] active_introduction_conflict: requestId=${options.requestId || 'unknown'}, sheetKey=${change.sheetKey}, messageIndex=${target.index}, baseRevision=${options.baseRevision ?? transactionContext.baseRevision ?? 'unknown'}。`);
         throw new Error(
-          `V2 active_introduction_conflict: 当前模板计划尝试将仍在使用的表作为新表引入，已拒绝覆盖已有数据：sheetKey=${change.sheetKey}，requestId=${options.requestId || 'unknown'}。请重新读取当前表格后重试。`,
+          `V2 active_introduction_conflict: Kế hoạch mẫu hiện tại cố đưa bảng đang sử dụng vào như bảng mới, đã từ chối ghi đè dữ liệu có sẵn: sheetKey=${change.sheetKey}, requestId=${options.requestId || 'unknown'}. Hãy đọc lại bảng hiện tại rồi thử lại.`,
         );
       }
       if (historyEvidence.status === 'indeterminate') {
@@ -4082,13 +4082,13 @@ export async function commitCurrentFloorTemplateChanges_ACU(
         }
         if (revealSource.status === 'indeterminate') {
           logDebug_ACU(`[V2 Persist] reveal_source_indeterminate: requestId=${options.requestId || 'unknown'}, sheetKey=${change.sheetKey}, historyMessageIndex=${historyEvidence.messageIndex ?? 'unknown'}, reason=${revealSource.reason}。`);
-          throw new Error(`V2 reveal_source_indeterminate: sheetKey=${change.sheetKey}, reason=${revealSource.reason}。`);
+          throw new Error(`V2 reveal_source_indeterminate: sheetKey=${change.sheetKey}, reason=${revealSource.reason}. `);
         }
         // revealSource.status === 'not_found'
         if (historyEvidence.status === 'present') {
           // 有确定的历史存在证据却找不到恢复来源：状态不一致，保持 fail-closed。
           logDebug_ACU(`[V2 Persist] reveal_source_missing: requestId=${options.requestId || 'unknown'}, sheetKey=${change.sheetKey}, historyMessageIndex=${historyEvidence.messageIndex ?? 'unknown'}。`);
-          throw new Error(`V2 reveal_source_missing: sheetKey=${change.sheetKey} 有历史存在证据但无法定位可信恢复来源，已拒绝写入。`);
+          throw new Error(`V2 reveal_source_missing: sheetKey=${change.sheetKey} có bằng chứng tồn tại trong lịch sử nhưng không thể xác định nguồn khôi phục đáng tin, đã từ chối ghi.`);
         }
         // may_exist + not_found：bounded replay 已扫过全部历史边界且该表从未可见，
         // 说明那条全局 artifact 并未真的建立过该表。此时按全新表 introduction 处理
@@ -4141,7 +4141,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
       }
       if (revealSource.status === 'indeterminate') {
         logDebug_ACU(`[V2 Persist] reveal_source_indeterminate: requestId=${options.requestId || 'unknown'}, sheetKey=${change.sheetKey}, reason=${revealSource.reason}。`);
-        throw new Error(`V2 reveal_source_indeterminate: sheetKey=${change.sheetKey}, reason=${revealSource.reason}。`);
+        throw new Error(`V2 reveal_source_indeterminate: sheetKey=${change.sheetKey}, reason=${revealSource.reason}. `);
       }
       // not_found：历史上从未见过该表。显式 reveal 通常由协调器在 hidden 生命周期下生成，
       // 理论上不应走到这里；但为兼容异常/旧历史，回退 caller 模板结构（等价 introduction）。
@@ -4152,7 +4152,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
     // 统一写入 reveal checkpoint（timeline: sheet_reveal，回放语义同 rebase）。
     for (const [sheetKey, revealData] of revealDataBySheet) {
       if (Object.prototype.hasOwnProperty.call(activeReplayState, sheetKey)) {
-        throw new Error(`V2 sheet reveal requires a hidden sheet: sheetKey=${sheetKey} 仍存在于 active checkpoint state。`);
+        throw new Error(`V2 sheet reveal requires a hidden sheet: sheetKey=${sheetKey} vẫn tồn tại trong active checkpoint state.`);
       }
       const existingCheckpoint = frame.perSheetCheckpoints?.[sheetKey];
       if (existingCheckpoint && Number(existingCheckpoint.createdAt) > createdAt) {
@@ -4196,7 +4196,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
         throw new Error(`V2 sheet rebase requires an existing sheet: sheetKey=${change.sheetKey} is absent from the active checkpoint state.`);
       }
       if (deletedSheetKeys.includes(change.sheetKey)) {
-        throw new Error(`V2 sheet rebase 不能与删除同一 sheetKey 组合：${change.sheetKey}。`);
+        throw new Error(`V2 sheet rebase không thể kết hợp với việc xóa cùng một sheetKey: ${change.sheetKey}. `);
       }
       const existingCheckpoint = frame.perSheetCheckpoints?.[change.sheetKey];
       if (existingCheckpoint && Number(existingCheckpoint.createdAt) > createdAt) {
@@ -4223,7 +4223,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
     // hide：将当前可见的表标记隐藏，数据完整保留在 checkpoint.data，不 purge。
     for (const sheetKey of hideSheetKeys) {
       if (deletedSheetKeys.includes(sheetKey)) {
-        throw new Error(`V2 sheet hide 不能与删除同一 sheetKey 组合：${sheetKey}。`);
+        throw new Error(`V2 sheet hide không thể kết hợp với việc xóa cùng một sheetKey: ${sheetKey}. `);
       }
       // hide 的语义是"当前可见 → 隐藏"：activeReplayState 中的当前数据就是权威来源，
       // 直接 O(1) 取用，避免对每次 hide 都做逐边界 bounded replay（阶段7：性能收敛）。
@@ -4242,10 +4242,10 @@ export async function commitCurrentFloorTemplateChanges_ACU(
       }
       assertTemplateCommitChatContext_ACU(chat, options);
       if (hideSource.status === 'indeterminate') {
-        throw new Error(`V2 sheet hide 数据来源无法确认：sheetKey=${sheetKey}，reason=${hideSource.reason}。`);
+        throw new Error(`Không thể xác nhận nguồn dữ liệu V2 sheet hide: sheetKey=${sheetKey}, reason=${hideSource.reason}. `);
       }
       if (hideSource.status === 'not_found') {
-        throw new Error(`V2 sheet hide 无法定位待隐藏表的当前数据：sheetKey=${sheetKey}。`);
+        throw new Error(`V2 sheet hide không thể xác định dữ liệu hiện tại của bảng cần ẩn: sheetKey=${sheetKey}. `);
       }
       const existingCheckpoint = frame.perSheetCheckpoints?.[sheetKey];
       if (existingCheckpoint && Number(existingCheckpoint.createdAt) > createdAt) {
@@ -4389,7 +4389,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
         source: options.source,
         updatedAt: createdAt,
       });
-      if (!guideUpdated) throw new Error('当前楼层模板提交无法写入 guideData。');
+      if (!guideUpdated) throw new Error('Commit mẫu tầng hiện tại không thể ghi guideData.');
       assertTemplateCommitChatContext_ACU(chat, options);
       if (hardDeleteCheckpointCreated) rollbackMaterialCheckpoint = beginMaterialCheckpointSync_ACU(chat, target.index);
       primarySaveAttempted = true;
@@ -4418,7 +4418,7 @@ export async function commitCurrentFloorTemplateChanges_ACU(
         try {
           await saveChatToHostStrict_ACU();
         } catch (rollbackError: any) {
-          throw new Error(`${error?.message || String(error)}；回滚保存也失败：${rollbackError?.message || String(rollbackError)}`);
+          throw new Error(`${error?.message || String(error)}; lưu hoàn tác cũng thất bại: ${rollbackError?.message || String(rollbackError)}`);
         }
       }
       throw error;

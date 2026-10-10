@@ -462,7 +462,7 @@ export function beginPlotSendDisguise_ACU(
     showing = true;
     restoreUi = beginHostGenerationUi_ACU();
     if (userInput !== undefined) {
-      if (!setSendTextareaValue_ACU('')) throw new Error('酒馆输入框不可用');
+      if (!setSendTextareaValue_ACU('')) throw new Error('Ô nhập của SillyTavern không khả dụng');
       holdsInput = true;
     }
     removeGuards = installDisguiseGuards_ACU(getHostWindow().document, onStop);

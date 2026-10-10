@@ -153,7 +153,7 @@ async function mountFormFillPage(
       selectedChatPresetLabel: ref('global-A（全局预设）'),
       isChatOverridden: computed(() => false),
       chatPresetItems: ref([
-        { value: 'global:', label: '默认预设（全局）', meta: '2 张表' },
+        { value: 'global:', label: 'Preset mặc định (toàn cục)', meta: '2 张表' },
         { value: 'global:global-A', label: 'global-A（全局预设）', meta: '2 张表' },
       ]),
       chatArchiveItems: ref([]),
@@ -197,7 +197,7 @@ async function mountFormFillPage(
     getSortedSheetKeys_ACU: (data: any) => Object.keys(data).filter(k => k.startsWith('sheet_')),
   }));
   vi.doMock('../../../src/service/template/template-preset-service', () => ({
-    getActiveTemplatePresetMeta_ACU: () => ({ displayName: '默认预设', scopeLabel: '全局' }),
+    getActiveTemplatePresetMeta_ACU: () => ({ displayName: 'Preset mặc định', scopeLabel: 'Toàn cục' }),
   }));
   vi.doMock('../../../src/service/table/table-history', () => ({
     collectV2CheckpointFloorsFromChat_ACU: () => checkpointFloors,
@@ -324,21 +324,21 @@ describe('FormFillPage', () => {
     const page = document.querySelector('.acu-v2-form-fill-page');
     expect(page).not.toBeNull();
     const text = page!.textContent || '';
-    expect(document.querySelector('.acu-v2-app__page-title')?.textContent || '').toContain('填表工作台');
-    expect(text).toContain('表格状态');
-    expect(text).toContain('当前聊天');
+    expect(document.querySelector('.acu-v2-app__page-title')?.textContent || '').toContain('Bàn điền bảng');
+    expect(text).toContain('Trạng thái bảng');
+    expect(text).toContain('Cuộc trò chuyện hiện tại');
     expect(text).toContain('chat-form-fill');
-    expect(text).toContain('AI回复累计层数');
+    expect(text).toContain('Số tầng phản hồi AI tích lũy');
     expect(text).toContain('角色状态');
     expect(text).toContain('事件记录');
     expect(text).not.toContain('就绪:角色状态');
-    expect(text).not.toContain('下一次:');
+    expect(text).not.toContain('Lần tiếp theo:');
     const statusLine = page!.querySelector('.acu-v2-form-fill-page__status-line');
     expect(statusLine).not.toBeNull();
-    expect((statusLine!.textContent || '').replace(/\s+/g, '')).toContain('当前聊天:chat-form-fill·AI回复累计层数:3');
-    expect(text).toContain('自动更新设置');
-    expect(text).toContain('自动填表间隔');
-    expect(text).toContain('最新层不填表');
+    expect((statusLine!.textContent || '').replace(/\s+/g, '')).toContain('Cuộctròchuyệnhiệntại:chat-form-fill·SốtầngphảnhồiAItíchlũy:3');
+    expect(text).toContain('Cài đặt cập nhật tự động');
+    expect(text).toContain('Khoảng cách tự động điền bảng');
+    expect(text).toContain('Không điền bảng tầng mới nhất');
     expect(text).not.toContain('并发策略');
     expect(text).not.toContain('历史数据保留');
     expect(text).not.toContain('沿用当前自定义参数');
@@ -349,33 +349,33 @@ describe('FormFillPage', () => {
     expect(text).not.toContain('填表注入目标世界书');
     expect(text).not.toContain('填表附加世界书条目');
     // 填表规则已并入填表工作台：提示词、标签筛选、写入目标与附加条目常驻本页。
-    expect(text).toContain('填表提示词');
-    expect(text).toContain('编辑提示词');
-    expect(text).toContain('标签筛选');
-    expect(text).toContain('附加世界书条目');
+    expect(text).toContain('Prompt điền bảng');
+    expect(text).toContain('Sửa prompt');
+    expect(text).toContain('Lọc theo thẻ');
+    expect(text).toContain('Mục sổ thế giới bổ sung');
     expect(text).not.toContain('段落数量');
     expect(text).not.toContain('保存状态');
-    expect(text).toContain('手动填表');
-    expect(text).toContain('填表 API 预设');
-    expect(text).toContain('本次填表附加要求');
-    expect(text).toContain('当前 full checkpoint');
-    expect(text).toContain('AI 第 1 层（初始基线）');
-    expect(text).toContain('AI 第 3 层（历史周期基线）');
-    expect(text).toContain('预计处理范围');
-    expect(text).toContain('执行手动填表');
-    expect(text).toContain('表格模板预设');
-    expect(text).toContain('打开可视化表格编辑器');
+    expect(text).toContain('Điền bảng thủ công');
+    expect(text).toContain('Preset API điền bảng');
+    expect(text).toContain('Yêu cầu bổ sung cho lần điền bảng này');
+    expect(text).toContain('full checkpoint hiện tại');
+    expect(text).toContain('Tầng AI 1 (Mốc cơ sở ban đầu)');
+    expect(text).toContain('Tầng AI 3 (Mốc cơ sở chu kỳ lịch sử)');
+    expect(text).toContain('phạm vi dự kiến xử lý');
+    expect(text).toContain('Chạy điền bảng thủ công');
+    expect(text).toContain('Preset mẫu bảng');
+    expect(text).toContain('Mở trình chỉnh sửa bảng trực quan');
     expect(text).not.toContain('立即构建交火纪要索引');
     expect(page!.querySelector('.acu-prompt-segs')).toBeNull();
     const panelTitles = Array.from(page!.querySelectorAll('.acu-v2-form-fill-page__grid > .acu-panel .acu-panel__title'))
       .map(title => (title.textContent || '').trim());
-    expect(panelTitles).toEqual(['表格状态', '自动更新设置', '手动填表', '表格模板预设']);
+    expect(panelTitles).toEqual(['Trạng thái bảng', 'Cài đặt cập nhật tự động', 'Điền bảng thủ công', 'Preset mẫu bảng']);
     const ruleTitles = Array.from(page!.querySelectorAll('.acu-v2-form-fill-page__col .acu-panel__title'))
       .map(title => (title.textContent || '').trim());
-    expect(ruleTitles).toEqual(['填表提示词', '标签筛选', '写入目标世界书', '附加世界书条目']);
+    expect(ruleTitles).toEqual(['Prompt điền bảng', 'Lọc theo thẻ', 'Sổ thế giới đích để ghi', 'Mục sổ thế giới bổ sung']);
     const mobileNavItems = Array.from(page!.querySelectorAll('.acu-mobile-panel-nav__item'))
       .map(item => (item.textContent || '').trim());
-    expect(mobileNavItems).toEqual(['表格状态', '自动更新', '手动填表', '表格模板预设', '提示词', '标签筛选', '写入目标世界书', '附加世界书条目']);
+    expect(mobileNavItems).toEqual(['Trạng thái bảng', 'Cập nhật tự động', 'Điền bảng thủ công', 'Preset mẫu bảng', 'Prompt', 'Lọc theo thẻ', 'Sổ thế giới đích để ghi', 'Mục sổ thế giới bổ sung']);
     expect(document.getElementById('form-fill-update-panel')).not.toBeNull();
     expect(page!.querySelector('.acu-v2-form-fill-page__panel--manual')).not.toBeNull();
 
@@ -418,19 +418,19 @@ describe('FormFillPage', () => {
     const { mount } = await mountFormFillPage();
 
     const updatePanel = Array.from(document.querySelectorAll<HTMLElement>('.acu-panel'))
-      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('自动更新设置'))!;
+      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('Cài đặt cập nhật tự động'))!;
     const apiRow = Array.from(updatePanel.querySelectorAll<HTMLElement>('.acu-form-row'))
-      .find(row => (row.textContent || '').includes('填表 API 预设'))!;
+      .find(row => (row.textContent || '').includes('Preset API điền bảng'))!;
     const acuSelect = apiRow.querySelector('.acu-select') as HTMLElement | null;
     expect(acuSelect).not.toBeNull();
     const trigger = acuSelect!.querySelector('.acu-select__trigger') as HTMLButtonElement;
-    expect(trigger.textContent).toContain('跟随当前活动 API（fast）');
+    expect(trigger.textContent).toContain('Theo API đang hoạt động (fast)');
     trigger.click();
     await Promise.resolve();
 
     const labels = Array.from(acuSelect!.querySelectorAll<HTMLElement>('.acu-select__item'))
       .map(item => (item.textContent || '').trim());
-    expect(labels[0]).toBe('跟随当前活动 API（fast）');
+    expect(labels[0]).toBe('Theo API đang hoạt động (fast)');
     expect(labels).toContain('fast');
 
     mount.__resetAcuV2MountForTests();
@@ -440,14 +440,14 @@ describe('FormFillPage', () => {
     const { mount, settings, saveSettings } = await mountFormFillPage();
 
     const updatePanel = Array.from(document.querySelectorAll<HTMLElement>('.acu-panel'))
-      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('自动更新设置'))!;
+      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('Cài đặt cập nhật tự động'))!;
     const advancedHeader = Array.from(updatePanel.querySelectorAll<HTMLButtonElement>('.acu-disclosure-group__header'))
-      .find(btn => (btn.textContent || '').includes('高级参数'))!;
+      .find(btn => (btn.textContent || '').includes('Tham số nâng cao'))!;
     advancedHeader.click();
     await Promise.resolve();
 
     const tokenRow = Array.from(updatePanel.querySelectorAll<HTMLElement>('.acu-disclosure-group .acu-form-row'))
-      .find(row => (row.textContent || '').includes('AI 回复最小长度'))!;
+      .find(row => (row.textContent || '').includes('Độ dài tối thiểu của phản hồi AI'))!;
     const tokenInput = tokenRow.querySelector<HTMLInputElement>('input[type="number"]')!;
     tokenInput.value = '7';
     tokenInput.dispatchEvent(new Event('change', { bubbles: true }));
@@ -473,23 +473,23 @@ describe('FormFillPage', () => {
     const { mount, settings, saveSettings } = await mountFormFillPage(optionSettings);
 
     const updatePanel = Array.from(document.querySelectorAll<HTMLElement>('.acu-panel'))
-      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('自动更新设置'))!;
+      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('Cài đặt cập nhật tự động'))!;
     expect(updatePanel.querySelectorAll<HTMLInputElement>('input[type="number"]')).toHaveLength(0);
-    expect(updatePanel.textContent || '').toContain('高级参数');
+    expect(updatePanel.textContent || '').toContain('Tham số nâng cao');
 
     const intervalRow = Array.from(updatePanel.querySelectorAll<HTMLElement>('.acu-form-row'))
-      .find(row => (row.textContent || '').includes('自动填表间隔'))!;
+      .find(row => (row.textContent || '').includes('Khoảng cách tự động điền bảng'))!;
     const intervalTrigger = intervalRow.querySelector<HTMLButtonElement>('.acu-select__trigger')!;
     intervalTrigger.click();
     await Promise.resolve();
-    expect(intervalRow.textContent || '').toContain('每 1 层：最及时');
+    expect(intervalRow.textContent || '').toContain('Mỗi 1 tầng: kịp thời nhất');
     expect(intervalRow.textContent || '').not.toContain('每 2 层：常用节奏');
-    expect(intervalRow.textContent || '').toContain('每 3 层：均衡');
-    expect(intervalRow.textContent || '').toContain('每 5 层：低频省 API');
+    expect(intervalRow.textContent || '').toContain('Mỗi 3 tầng: cân bằng');
+    expect(intervalRow.textContent || '').toContain('Mỗi 5 tầng: tần suất thấp, tiết kiệm API');
     expect(Array.from(intervalRow.querySelectorAll<HTMLElement>('.acu-select__item'))
-      .map(item => (item.textContent || '').trim())).not.toContain('自定义');
+      .map(item => (item.textContent || '').trim())).not.toContain('Tùy chỉnh');
     const everyOne = Array.from(intervalRow.querySelectorAll<HTMLElement>('.acu-select__item'))
-      .find(item => (item.textContent || '').trim() === '每 1 层：最及时')!;
+      .find(item => (item.textContent || '').trim() === 'Mỗi 1 tầng: kịp thời nhất')!;
     everyOne.click();
     await Promise.resolve();
     expect(settings.autoUpdateThreshold).toBe(3);
@@ -499,7 +499,7 @@ describe('FormFillPage', () => {
     intervalTrigger.click();
     await Promise.resolve();
     const everyThree = Array.from(intervalRow.querySelectorAll<HTMLElement>('.acu-select__item'))
-      .find(item => (item.textContent || '').trim() === '每 3 层：均衡')!;
+      .find(item => (item.textContent || '').trim() === 'Mỗi 3 tầng: cân bằng')!;
     everyThree.click();
     await Promise.resolve();
     expect(settings.autoUpdateThreshold).toBe(3);
@@ -509,7 +509,7 @@ describe('FormFillPage', () => {
     intervalTrigger.click();
     await Promise.resolve();
     const everyFive = Array.from(intervalRow.querySelectorAll<HTMLElement>('.acu-select__item'))
-      .find(item => (item.textContent || '').trim() === '每 5 层：低频省 API')!;
+      .find(item => (item.textContent || '').trim() === 'Mỗi 5 tầng: tần suất thấp, tiết kiệm API')!;
     everyFive.click();
     await Promise.resolve();
     expect(settings.autoUpdateThreshold).toBe(5);
@@ -517,7 +517,7 @@ describe('FormFillPage', () => {
     expect(settings.updateBatchSize).toBe(5);
 
     const skipRow = Array.from(updatePanel.querySelectorAll<HTMLElement>('.acu-form-row'))
-      .find(row => (row.textContent || '').includes('最新层不填表'))!;
+      .find(row => (row.textContent || '').includes('Không điền bảng tầng mới nhất'))!;
     skipRow.querySelector<HTMLButtonElement>('.acu-toggle')!.click();
     await Promise.resolve();
     expect(settings.skipUpdateFloors).toBe(1);
@@ -539,46 +539,46 @@ describe('FormFillPage', () => {
     });
 
     const updatePanel = Array.from(document.querySelectorAll<HTMLElement>('.acu-panel'))
-      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('自动更新设置'))!;
+      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('Cài đặt cập nhật tự động'))!;
     const intervalRow = Array.from(updatePanel.querySelectorAll<HTMLElement>('.acu-form-row'))
-      .find(row => (row.textContent || '').includes('自动填表间隔'))!;
-    expect(intervalRow.querySelector('.acu-select__trigger')?.textContent || '').toContain('每 3 层：均衡');
+      .find(row => (row.textContent || '').includes('Khoảng cách tự động điền bảng'))!;
+    expect(intervalRow.querySelector('.acu-select__trigger')?.textContent || '').toContain('Mỗi 3 tầng: cân bằng');
 
     const advancedHeader = Array.from(updatePanel.querySelectorAll<HTMLButtonElement>('.acu-disclosure-group__header'))
-      .find(btn => (btn.textContent || '').includes('高级参数'))!;
+      .find(btn => (btn.textContent || '').includes('Tham số nâng cao'))!;
     advancedHeader.click();
     await Promise.resolve();
 
     const advancedRows = Array.from(updatePanel.querySelectorAll<HTMLElement>('.acu-disclosure-group .acu-form-row'));
-    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('填表上下文层数');
-    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('自动填表频率');
-    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('批处理层数');
-    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('跳过最新回复数');
-    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('AI 回复最小长度');
-    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('填表最大重试');
+    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('Số tầng ngữ cảnh điền bảng');
+    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('Tần suất tự động điền bảng');
+    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('Số tầng mỗi lô');
+    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('Số phản hồi mới nhất bỏ qua');
+    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('Độ dài tối thiểu của phản hồi AI');
+    expect(advancedRows.map(row => (row.textContent || '').trim()).join('|')).toContain('Số lần thử lại tối đa khi điền bảng');
     expect(advancedRows).toHaveLength(6);
 
-    const batchRow = advancedRows.find(row => (row.textContent || '').includes('批处理层数'))!;
+    const batchRow = advancedRows.find(row => (row.textContent || '').includes('Số tầng mỗi lô'))!;
     const batchInput = batchRow.querySelector<HTMLInputElement>('input[type="number"]')!;
     batchInput.value = '2';
     batchInput.dispatchEvent(new Event('change', { bubbles: true }));
     await Promise.resolve();
 
     expect(settings.updateBatchSize).toBe(2);
-    expect(intervalRow.querySelector('.acu-select__trigger')?.textContent || '').toContain('自定义');
+    expect(intervalRow.querySelector('.acu-select__trigger')?.textContent || '').toContain('Tùy chỉnh');
     intervalRow.querySelector<HTMLButtonElement>('.acu-select__trigger')!.click();
     await Promise.resolve();
     expect(Array.from(intervalRow.querySelectorAll<HTMLElement>('.acu-select__item'))
-      .map(item => (item.textContent || '').trim())).not.toContain('自定义');
+      .map(item => (item.textContent || '').trim())).not.toContain('Tùy chỉnh');
 
-    const skipRow = advancedRows.find(row => (row.textContent || '').includes('跳过最新回复数'))!;
+    const skipRow = advancedRows.find(row => (row.textContent || '').includes('Số phản hồi mới nhất bỏ qua'))!;
     const skipInput = skipRow.querySelector<HTMLInputElement>('input[type="number"]')!;
     skipInput.value = '2';
     skipInput.dispatchEvent(new Event('change', { bubbles: true }));
     await Promise.resolve();
 
     expect(settings.skipUpdateFloors).toBe(2);
-    expect(updatePanel.textContent || '').toContain('最新层不填表：自定义');
+    expect(updatePanel.textContent || '').toContain('Không điền bảng tầng mới nhất: tùy chỉnh');
     expect(saveSettings).toHaveBeenCalled();
 
     mount.__resetAcuV2MountForTests();
@@ -594,7 +594,7 @@ describe('FormFillPage', () => {
     await Promise.resolve();
 
     const openButton = Array.from(document.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('编辑提示词')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Sửa prompt')) as HTMLButtonElement;
     openButton.click();
     await Promise.resolve();
 
@@ -609,16 +609,16 @@ describe('FormFillPage', () => {
     const { mount, settings, saveSettings } = await mountFormFillPage(createSettings(), 'form-fill');
 
     const excludePanel = Array.from(document.querySelectorAll('.acu-panel'))
-      .find(panel => (panel.textContent || '').includes('排除规则')) as HTMLElement;
+      .find(panel => (panel.textContent || '').includes('Quy tắc loại trừ')) as HTMLElement;
     // 非空规则列表默认折叠：先展开“排除规则”再点击“添加”按钮。
     const expandHeader = Array.from(excludePanel.querySelectorAll<HTMLButtonElement>('.acu-rule-pair-list__header'))
-      .find(btn => (btn.textContent || '').includes('排除规则')) as HTMLButtonElement;
+      .find(btn => (btn.textContent || '').includes('Quy tắc loại trừ')) as HTMLButtonElement;
     expect(expandHeader).toBeDefined();
     expandHeader.click();
     await Promise.resolve();
     const excludeList = expandHeader.closest('.acu-rule-pair-list') as HTMLElement;
     const addButton = Array.from(excludePanel.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('添加排除规则')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Thêm quy tắc loại trừ')) as HTMLButtonElement;
     addButton.click();
     await Promise.resolve();
 
@@ -650,7 +650,7 @@ describe('FormFillPage', () => {
 
     expect(document.querySelector('.acu-v2-table-page .acu-prompt-segs')).toBeNull();
     const openButton = Array.from(document.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('编辑提示词')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Sửa prompt')) as HTMLButtonElement;
     openButton.click();
     await Promise.resolve();
 
@@ -663,7 +663,7 @@ describe('FormFillPage', () => {
     await Promise.resolve();
 
     const saveButton = Array.from(drawer.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('保存提示词')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Lưu prompt')) as HTMLButtonElement;
     expect(saveButton.disabled).toBe(false);
     saveButton.click();
     await Promise.resolve();
@@ -678,7 +678,7 @@ describe('FormFillPage', () => {
     const { mount } = await mountFormFillPage(createSettings(), 'form-fill');
 
     const openButton = Array.from(document.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('编辑提示词')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Sửa prompt')) as HTMLButtonElement;
     openButton.click();
     await Promise.resolve();
 
@@ -688,12 +688,12 @@ describe('FormFillPage', () => {
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
     await Promise.resolve();
 
-    const closeButton = drawer.querySelector<HTMLButtonElement>('[title="关闭"]')!;
+    const closeButton = drawer.querySelector<HTMLButtonElement>('[title="Đóng"]')!;
     closeButton.click();
     await Promise.resolve();
 
     expect(document.querySelector('.acu-dialog-layer')?.textContent || '')
-      .toContain('你有未保存的填表提示词修改');
+      .toContain('Bạn có thay đổi prompt điền bảng chưa lưu');
     expect(document.querySelector('.acu-v2-drawer')).not.toBeNull();
 
     mount.__resetAcuV2MountForTests();
@@ -703,7 +703,7 @@ describe('FormFillPage', () => {
     const { mount } = await mountFormFillPage(createSettings(), 'form-fill');
 
     const openButton = Array.from(document.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('编辑提示词')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Sửa prompt')) as HTMLButtonElement;
     openButton.click();
     await Promise.resolve();
 
@@ -718,7 +718,7 @@ describe('FormFillPage', () => {
     await Promise.resolve();
 
     expect(document.querySelector('.acu-dialog-layer')?.textContent || '')
-      .toContain('你有未保存的填表提示词修改');
+      .toContain('Bạn có thay đổi prompt điền bảng chưa lưu');
     expect(document.getElementById('acu-app-v2')!.style.display).not.toBe('none');
     expect(document.querySelector('.acu-v2-drawer')).not.toBeNull();
 
@@ -734,27 +734,27 @@ describe('FormFillPage · 手动填表面板', () => {
     const page = document.querySelector('.acu-v2-form-fill-page');
     expect(page).not.toBeNull();
     const panel = Array.from(page!.querySelectorAll<HTMLElement>('.acu-v2-form-fill-page__grid > .acu-panel'))
-      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('手动填表'))!;
+      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('Điền bảng thủ công'))!;
     const text = panel.textContent || '';
-    expect(text).not.toContain('填表 API 预设');
-    expect(text).toContain('手动处理最近 N 层');
-    expect(text).toContain('每 N 层合并为一次填表');
-    expect(text).toContain('本次填表附加要求');
-    expect(text).toContain('当前 full checkpoint');
-    expect(text).toContain('AI 第 1 层（初始基线）');
-    expect(text).toContain('AI 第 3 层（历史周期基线）');
-    expect(text).toContain('选中表：角色状态（sheet_a）、事件记录（sheet_b）');
-    expect(text).toContain('执行手动填表');
-    expect(text).toContain('一键追平所选表未填楼层');
-    expect(text).toContain('不扫描历史前沿之前的内部空洞');
+    expect(text).not.toContain('Preset API điền bảng');
+    expect(text).toContain('Xử lý thủ công N tầng gần nhất');
+    expect(text).toContain('Gộp mỗi N tầng thành một lần điền bảng');
+    expect(text).toContain('Yêu cầu bổ sung cho lần điền bảng này');
+    expect(text).toContain('full checkpoint hiện tại');
+    expect(text).toContain('Tầng AI 1 (Mốc cơ sở ban đầu)');
+    expect(text).toContain('Tầng AI 3 (Mốc cơ sở chu kỳ lịch sử)');
+    expect(text).toContain('Bảng đã chọn: 角色状态 (sheet_a), 事件记录 (sheet_b)');
+    expect(text).toContain('Chạy điền bảng thủ công');
+    expect(text).toContain('Bắt kịp các tầng chưa điền của bảng đã chọn');
+    expect(text).toContain('không quét các khoảng trống nội bộ nằm trước mốc lịch sử');
     expect(panel.querySelector('.acu-v2-form-fill-page__manual-extra .acu-toggle')).toBeNull();
     expect(panel.querySelector('.acu-v2-form-fill-page__manual-extra textarea')).not.toBeNull();
 
     expect(panel.querySelector('.acu-panel__description-region .acu-info-banner')).not.toBeNull();
 
     const runPanel = Array.from(page!.querySelectorAll<HTMLElement>('.acu-v2-form-fill-page__grid > .acu-panel'))
-      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('自动更新设置'))!;
-    expect(runPanel.textContent || '').toContain('填表 API 预设');
+      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('Cài đặt cập nhật tự động'))!;
+    expect(runPanel.textContent || '').toContain('Preset API điền bảng');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -768,12 +768,12 @@ describe('FormFillPage · 手动填表面板', () => {
     ]);
 
     const panel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-form-fill-page__grid > .acu-panel'))
-      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('手动填表'))!;
+      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('Điền bảng thủ công'))!;
     const text = panel.textContent || '';
-    expect(text).toContain('AI 第 1 层（历史手动基线）');
-    expect(text).toContain('AI 第 2 层（保留边界基线）');
-    expect(text).toContain('AI 第 3 层（旧基线:weird）');
-    expect(text).toContain('AI 第 4 层（旧基线）');
+    expect(text).toContain('Tầng AI 1 (Mốc cơ sở thủ công lịch sử)');
+    expect(text).toContain('Tầng AI 2 (Mốc cơ sở ranh giới lưu giữ)');
+    expect(text).toContain('Tầng AI 3 (Mốc cơ sở cũ: weird)');
+    expect(text).toContain('Tầng AI 4 (Mốc cơ sở cũ)');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -782,11 +782,11 @@ describe('FormFillPage · 手动填表面板', () => {
     const { mount, settings, saveSettings } = await mountFormFillPage();
 
     const panel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-form-fill-page__grid > .acu-panel'))
-      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('手动填表'))!;
+      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('Điền bảng thủ công'))!;
     const depthRow = Array.from(panel.querySelectorAll<HTMLElement>('.acu-form-row'))
-      .find(row => (row.textContent || '').includes('手动处理最近 N 层'))!;
+      .find(row => (row.textContent || '').includes('Xử lý thủ công N tầng gần nhất'))!;
     const batchRow = Array.from(panel.querySelectorAll<HTMLElement>('.acu-form-row'))
-      .find(row => (row.textContent || '').includes('每 N 层合并为一次填表'))!;
+      .find(row => (row.textContent || '').includes('Gộp mỗi N tầng thành một lần điền bảng'))!;
     const depthInput = depthRow.querySelector<HTMLInputElement>('input[type="number"]')!;
     const batchInput = batchRow.querySelector<HTMLInputElement>('input[type="number"]')!;
 
@@ -828,9 +828,9 @@ describe('FormFillPage · 手动填表面板', () => {
     });
 
     const button = Array.from(document.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('执行手动填表')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Chạy điền bảng thủ công')) as HTMLButtonElement;
     button.click();
-    await clickDialogButton('确认并继续');
+    await clickDialogButton('Xác nhận và tiếp tục');
     await new Promise(r => setTimeout(r, 0));
 
     // 自动填表设置在整个执行期间保持原值；service 层通过 manual-update-settings 读取手动参数。
@@ -845,31 +845,31 @@ describe('FormFillPage · 手动填表面板', () => {
     const { mount, orchestrate, manualExtraHintSetter } = await mountFormFillPage();
 
     const button = Array.from(document.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('执行手动填表')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Chạy điền bảng thủ công')) as HTMLButtonElement;
     expect(button).not.toBeUndefined();
     button.click();
     await waitForDialogLayer();
 
     const dialogText = document.querySelector('.acu-dialog-layer')?.textContent || '';
-    expect(dialogText).toContain('即将执行手动填表');
-    expect(dialogText).toContain('当前 full checkpoint：AI 第 1 层（初始基线）、AI 第 3 层（历史周期基线）');
-    expect(dialogText).toContain('本次重填范围：AI 第 1~3 层');
-    expect(dialogText).toContain('选中表：角色状态（sheet_a）、事件记录（sheet_b）');
-    expect(dialogText).toContain('会先删除本次重填范围内选中表的 checkpoint 与 V2 增量日志');
-    expect(dialogText).toContain('此前楼层的表格数据将无法恢复');
-    expect(dialogText).toContain('范围外的 checkpoint、范围外聊天记录的表格数据和未选中的表不会被删除');
-    expect(dialogText).toContain('若在首批结果落盘前失败或中止，会自动恢复清理前的表格数据');
-    expect(dialogText).toContain('一旦已有批次成功提交，失败不会回滚清理');
-    expect(dialogText).not.toContain('会回滚到本次操作前的状态');
-    expect(dialogText).toContain('世界书注入目标：角色卡绑定世界书 · CharBookFF');
+    expect(dialogText).toContain('Sắp thực hiện điền bảng thủ công');
+    expect(dialogText).toContain('full checkpoint hiện tại: Tầng AI 1 (Mốc cơ sở ban đầu), Tầng AI 3 (Mốc cơ sở chu kỳ lịch sử)');
+    expect(dialogText).toContain('Phạm vi điền lại lần này: Tầng AI 1~3');
+    expect(dialogText).toContain('Bảng đã chọn: 角色状态 (sheet_a), 事件记录 (sheet_b)');
+    expect(dialogText).toContain('xóa trước checkpoint và nhật ký tăng thêm V2 của các bảng đã chọn trong phạm vi điền lại lần này');
+    expect(dialogText).toContain('dữ liệu bảng ở các tầng trước đó sẽ không thể khôi phục');
+    expect(dialogText).toContain('checkpoint ngoài phạm vi, dữ liệu bảng của lịch sử trò chuyện ngoài phạm vi và các bảng không được chọn sẽ không bị xóa');
+    expect(dialogText).toContain('Nếu thất bại hoặc bị dừng trước khi kết quả của đợt đầu được ghi xuống, dữ liệu bảng trước khi dọn sẽ được tự động khôi phục');
+    expect(dialogText).toContain('Một khi đã có đợt được cam kết thành công, thất bại sẽ không hoàn tác việc dọn');
+    expect(dialogText).not.toContain('sẽ quay về trạng thái trước thao tác này');
+    expect(dialogText).toContain('Đích chèn sổ thế giới: Thẻ nhân vật gắn sổ thế giới · CharBookFF');
     expect(dialogText).not.toContain('第二次破坏性确认');
-    expect(dialogText).toContain('确认并继续');
+    expect(dialogText).toContain('Xác nhận và tiếp tục');
     expect(dialogText).not.toContain('直接填表');
     expect(await readToastText(mount))
       .not.toContain('手动填表开始');
     expect(orchestrate).not.toHaveBeenCalled();
 
-    await clickDialogButton('确认并继续');
+    await clickDialogButton('Xác nhận và tiếp tục');
     await new Promise(r => setTimeout(r, 0));
 
     expect(orchestrate).toHaveBeenCalled();
@@ -893,28 +893,28 @@ describe('FormFillPage · 手动填表面板', () => {
     ]);
 
     const panel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-form-fill-page__grid > .acu-panel'))
-      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('手动填表'))!;
-    expect(panel.textContent || '').toContain('AI 第 1 层（初始基线）');
-    expect(panel.textContent || '').toContain('AI 第 3 层（历史周期基线）');
-    expect(panel.textContent || '').toContain('按当前设置预计处理范围：AI 第 1~3 层');
-    expect(panel.textContent || '').not.toContain('危险：当前聊天的所有 full checkpoint');
+      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('Điền bảng thủ công'))!;
+    expect(panel.textContent || '').toContain('Tầng AI 1 (Mốc cơ sở ban đầu)');
+    expect(panel.textContent || '').toContain('Tầng AI 3 (Mốc cơ sở chu kỳ lịch sử)');
+    expect(panel.textContent || '').toContain('theo cài đặt hiện tại, phạm vi dự kiến xử lý: Tầng AI 1~3');
+    expect(panel.textContent || '').not.toContain('Nguy hiểm: toàn bộ full checkpoint');
     expect(panel.querySelector('.acu-v2-form-fill-page__checkpoint-risk')).toBeNull();
 
     const button = Array.from(panel.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('执行手动填表')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Chạy điền bảng thủ công')) as HTMLButtonElement;
     button.click();
     await waitForDialogLayer();
 
     const danger = document.querySelector<HTMLElement>('.acu-dialog__danger-message');
     expect(danger).not.toBeNull();
     const dangerText = danger!.textContent || '';
-    expect(dangerText).toContain('所有 full checkpoint 都在本次重填范围内');
-    expect(dangerText).toContain('系统首次执行时只会做边界检查');
-    expect(dangerText).toContain('在下一步要求你单独确认是否替换本次范围内选中表的基底');
+    expect(dangerText).toContain('toàn bộ full checkpoint của cuộc trò chuyện hiện tại đều nằm trong phạm vi điền lại lần này');
+    expect(dangerText).toContain('hệ thống chỉ kiểm tra ranh giới');
+    expect(dangerText).toContain('bước tiếp theo sẽ yêu cầu bạn xác nhận riêng việc có thay thế nền của các bảng đã chọn trong phạm vi lần này hay không');
     expect(dangerText).not.toContain('首次确认后会立即替换 checkpoint 基底');
     expect(dangerText).not.toContain('空白结构');
     const confirmButton = Array.from(document.querySelectorAll<HTMLButtonElement>('.acu-dialog-layer button'))
-      .find(btn => btn.textContent?.includes('确认并继续'))!;
+      .find(btn => btn.textContent?.includes('Xác nhận và tiếp tục'))!;
     expect(confirmButton.className).toContain('danger');
 
     mount.__resetAcuV2MountForTests();
@@ -948,17 +948,17 @@ describe('FormFillPage · 手动填表面板', () => {
     });
 
     const panel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-form-fill-page__grid > .acu-panel'))
-      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('手动填表'))!;
+      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('Điền bảng thủ công'))!;
     const button = Array.from(panel.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('执行手动填表')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Chạy điền bảng thủ công')) as HTMLButtonElement;
     button.click();
-    await clickDialogButton('确认并继续');
+    await clickDialogButton('Xác nhận và tiếp tục');
     await new Promise(r => setTimeout(r, 0));
 
     const toastText = await readToastText(mount);
-    expect(toastText).toContain('批次 1/1 · 正在生成第 1/20 组手动填表结果...');
+    expect(toastText).toContain('Đợt 1/1 · 正在生成第 1/20 组kết quả điền bảng thủ công...');
     expect(toastText).not.toContain('调用 AI (1/20)');
-    expect(button.textContent || '').toContain('填表中...');
+    expect(button.textContent || '').toContain('Đang điền bảng...');
 
     expect(orchestrate).toHaveBeenCalled();
     releaseCore();
@@ -985,15 +985,15 @@ describe('FormFillPage · 手动填表面板', () => {
     });
 
     const panel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-form-fill-page__grid > .acu-panel'))
-      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('手动填表'))!;
+      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('Điền bảng thủ công'))!;
     const button = Array.from(panel.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('执行手动填表')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Chạy điền bảng thủ công')) as HTMLButtonElement;
     button.click();
-    await clickDialogButton('确认并继续');
+    await clickDialogButton('Xác nhận và tiếp tục');
     await new Promise(r => setTimeout(r, 0));
 
     expect(await readToastText(mount))
-      .toContain('批次 2/4 · 调用 AI（第 2/3 次尝试）');
+      .toContain('Đợt 2/4 · Gọi AI (lần thử 2/3)');
 
     releaseOrchestrate();
     await new Promise(r => setTimeout(r, 0));
@@ -1012,21 +1012,21 @@ describe('FormFillPage · 手动填表面板', () => {
     });
 
     const panel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-form-fill-page__grid > .acu-panel'))
-      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('手动填表'))!;
+      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('Điền bảng thủ công'))!;
     const button = Array.from(panel.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('执行手动填表')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Chạy điền bảng thủ công')) as HTMLButtonElement;
     button.click();
-    await clickDialogButton('确认并继续');
+    await clickDialogButton('Xác nhận và tiếp tục');
     await new Promise(r => setTimeout(r, 0));
 
-    await clickToastAction(mount, '终止');
+    await clickToastAction(mount, 'Dừng');
     await Promise.resolve();
 
     expect(setWasStoppedByUser).toHaveBeenCalledWith(false);
     expect(setWasStoppedByUser).toHaveBeenCalledWith(true);
     expect(abortAllActiveRequests).toHaveBeenCalledTimes(1);
     expect(setIsAutoUpdatingCard).toHaveBeenCalledWith(false);
-    expect(await readToastText(mount)).toContain('手动填表已终止');
+    expect(await readToastText(mount)).toContain('Đã dừng điền bảng thủ công');
 
     releaseOrchestrate();
     await new Promise(r => setTimeout(r, 0));
@@ -1038,7 +1038,7 @@ describe('FormFillPage · 手动填表面板', () => {
     const { mount, manualExtraHintSetter } = await mountFormFillPage();
 
     const panel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-form-fill-page__grid > .acu-panel'))
-      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('手动填表'))!;
+      .find(item => item.querySelector('.acu-panel__title')?.textContent?.includes('Điền bảng thủ công'))!;
     const textarea = panel.querySelector<HTMLTextAreaElement>('.acu-v2-form-fill-page__manual-extra textarea')!;
     expect(textarea).not.toBeNull();
 
@@ -1047,13 +1047,13 @@ describe('FormFillPage · 手动填表面板', () => {
     await Promise.resolve();
 
     const button = Array.from(panel.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('执行手动填表')) as HTMLButtonElement;
+      .find(btn => btn.textContent?.includes('Chạy điền bảng thủ công')) as HTMLButtonElement;
     button.click();
-    await clickDialogButton('确认并继续');
+    await clickDialogButton('Xác nhận và tiếp tục');
     await new Promise(r => setTimeout(r, 0));
 
     expect(manualExtraHintSetter).toHaveBeenCalledWith(
-      '以下为用户的额外填表要求,请严格遵守:\n只更新角色状态。',
+      'Sau đây là yêu cầu điền bảng bổ sung của người dùng, hãy tuân thủ nghiêm ngặt:\n只更新角色状态。',
     );
 
     mount.__resetAcuV2MountForTests();
@@ -1062,23 +1062,23 @@ describe('FormFillPage · 手动填表面板', () => {
   it('追平入口使用真实计划展示 wave、bucket、skip 与内部空洞边界，确认后才执行', async () => {
     const { mount, prepareCatchUp, orchestrateCatchUp, orchestrate } = await mountFormFillPage();
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(btn => btn.textContent?.includes('一键追平所选表未填楼层'))!;
+      .find(btn => btn.textContent?.includes('Bắt kịp các tầng chưa điền của bảng đã chọn'))!;
 
     button.click();
     await new Promise(r => setTimeout(r, 0));
 
     const dialogText = document.querySelector('.acu-dialog-layer')?.textContent || '';
     expect(prepareCatchUp).toHaveBeenCalledWith(['sheet_a', 'sheet_b']);
-    expect(dialogText).toContain('锁定目标：AI 第 3 层');
-    expect(dialogText).toContain('预计 2 个 wave、2 个 bucket');
-    expect(dialogText).toContain('跳过最新楼层：0 层');
-    expect(dialogText).toContain('Wave 1：AI 第 2 层；角色状态');
-    expect(dialogText).toContain('Wave 2：AI 第 3 层；角色状态、事件记录');
-    expect(dialogText).toContain('不扫描或修复历史前沿之前的内部空洞');
+    expect(dialogText).toContain('Mục tiêu khóa: tầng AI 3');
+    expect(dialogText).toContain('Dự kiến 2 wave, 2 bucket');
+    expect(dialogText).toContain('Bỏ qua tầng mới nhất: 0 tầng');
+    expect(dialogText).toContain('Wave 1: Tầng AI 2; 角色状态');
+    expect(dialogText).toContain('Wave 2: Tầng AI 3; 角色状态, 事件记录');
+    expect(dialogText).toContain('không quét hay sửa các khoảng trống nội bộ trước tiền tuyến lịch sử');
     expect(orchestrateCatchUp).not.toHaveBeenCalled();
     expect(orchestrate).not.toHaveBeenCalled();
 
-    await clickDialogButton('确认追平');
+    await clickDialogButton('Xác nhận bắt kịp');
     await new Promise(r => setTimeout(r, 0));
 
     expect(orchestrateCatchUp).toHaveBeenCalledTimes(1);
@@ -1100,13 +1100,13 @@ describe('FormFillPage · 手动填表面板', () => {
       plan: { targetAiFloor: 3, targetMessageIndex: 4, planSignature: 'none', waves: [] },
     });
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(btn => btn.textContent?.includes('一键追平所选表未填楼层'))!;
+      .find(btn => btn.textContent?.includes('Bắt kịp các tầng chưa điền của bảng đã chọn'))!;
 
     button.click();
     await new Promise(r => setTimeout(r, 0));
 
     expect(document.querySelector('.acu-dialog-layer')).toBeNull();
-    expect(await readToastText(mount)).toContain('所选表已追平');
+    expect(await readToastText(mount)).toContain('Các bảng đã chọn đã được bắt kịp');
     expect(orchestrateCatchUp).not.toHaveBeenCalled();
     expect(refreshMergedData).not.toHaveBeenCalled();
 
@@ -1123,19 +1123,19 @@ describe('FormFillPage · 手动填表面板', () => {
       return { success: false, outcome: 'stopped', committedBucketCount: 1 };
     });
     const catchUpButton = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(btn => btn.textContent?.includes('一键追平所选表未填楼层'))!;
+      .find(btn => btn.textContent?.includes('Bắt kịp các tầng chưa điền của bảng đã chọn'))!;
     const manualButton = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(btn => btn.textContent?.includes('执行手动填表'))!;
+      .find(btn => btn.textContent?.includes('Chạy điền bảng thủ công'))!;
 
     catchUpButton.click();
     await new Promise(r => setTimeout(r, 0));
     expect(manualButton.disabled).toBe(true);
-    await clickDialogButton('确认追平');
+    await clickDialogButton('Xác nhận bắt kịp');
     await new Promise(r => setTimeout(r, 0));
     expect(capturedController?.signal.aborted).toBe(false);
     expect(manualButton.disabled).toBe(true);
 
-    await clickToastAction(mount, '终止');
+    await clickToastAction(mount, 'Dừng');
     await Promise.resolve();
 
     expect(capturedController?.signal.aborted).toBe(true);
@@ -1146,7 +1146,7 @@ describe('FormFillPage · 手动填表面板', () => {
 
     releaseCatchUp();
     await new Promise(r => setTimeout(r, 0));
-    expect(await readToastText(mount)).toContain('已保留 1 个已提交 bucket');
+    expect(await readToastText(mount)).toContain('đã giữ lại 1 bucket đã cam kết');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -1160,15 +1160,15 @@ describe('FormFillPage · 手动填表面板', () => {
       error: '终态进度保存失败：strict save failed',
     });
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(btn => btn.textContent?.includes('一键追平所选表未填楼层'))!;
+      .find(btn => btn.textContent?.includes('Bắt kịp các tầng chưa điền của bảng đã chọn'))!;
 
     button.click();
     await new Promise(r => setTimeout(r, 0));
-    await clickDialogButton('确认追平');
+    await clickDialogButton('Xác nhận bắt kịp');
     await new Promise(r => setTimeout(r, 0));
 
     const toastText = await readToastText(mount);
-    expect(toastText).toContain('手动追平数据已提交，但完成状态记录失败');
+    expect(toastText).toContain('Dữ liệu bắt kịp thủ công đã được cam kết nhưng ghi nhận trạng thái hoàn tất thất bại');
     expect(toastText).toContain('strict save failed');
 
     mount.__resetAcuV2MountForTests();
@@ -1183,16 +1183,16 @@ describe('FormFillPage · 手动填表面板', () => {
       error: 'V2 replay 未恢复所选表：sheet_a；已从聊天持久化状态回载运行时。',
     });
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(btn => btn.textContent?.includes('一键追平所选表未填楼层'))!;
+      .find(btn => btn.textContent?.includes('Bắt kịp các tầng chưa điền của bảng đã chọn'))!;
 
     button.click();
     await new Promise(r => setTimeout(r, 0));
-    await clickDialogButton('确认追平');
+    await clickDialogButton('Xác nhận bắt kịp');
     await new Promise(r => setTimeout(r, 0));
 
     const toastText = await readToastText(mount);
-    expect(toastText).toContain('持久化完整性校验失败');
-    expect(toastText).toContain('已回载聊天中的已保存数据');
+    expect(toastText).toContain('Kiểm tra tính toàn vẹn lưu trữ của lần bắt kịp thủ công thất bại');
+    expect(toastText).toContain('đã nạp lại dữ liệu đã lưu trong cuộc trò chuyện');
     expect(toastText).toContain('V2 replay 未恢复所选表');
 
     mount.__resetAcuV2MountForTests();
@@ -1207,11 +1207,11 @@ describe('FormFillPage · 手动填表面板', () => {
       error: '手动追平目标早于未知 V2 checkpoint；请先执行 V2 恢复诊断。',
     });
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(btn => btn.textContent?.includes('一键追平所选表未填楼层'))!;
+      .find(btn => btn.textContent?.includes('Bắt kịp các tầng chưa điền của bảng đã chọn'))!;
 
     button.click();
     await new Promise(r => setTimeout(r, 0));
-    await clickDialogButton('确认追平');
+    await clickDialogButton('Xác nhận bắt kịp');
     await new Promise(r => setTimeout(r, 0));
 
     expect(await readToastText(mount)).toContain('请先执行 V2 恢复诊断');
@@ -1223,19 +1223,19 @@ describe('FormFillPage · 手动填表面板', () => {
     const { mount, orchestrateCatchUp, refreshMergedData } = await mountFormFillPage();
     orchestrateCatchUp.mockResolvedValueOnce({ success: true, outcome: 'sync_pending', committedBucketCount: 2 });
     const button = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(btn => btn.textContent?.includes('一键追平所选表未填楼层'))!;
+      .find(btn => btn.textContent?.includes('Bắt kịp các tầng chưa điền của bảng đã chọn'))!;
     button.click();
     await new Promise(r => setTimeout(r, 0));
-    await clickDialogButton('确认追平');
+    await clickDialogButton('Xác nhận bắt kịp');
     await new Promise(r => setTimeout(r, 0));
 
-    expect(await readToastText(mount)).toContain('世界书同步待重试');
-    await clickToastAction(mount, '仅同步重试');
+    expect(await readToastText(mount)).toContain('đồng bộ sổ thế giới đang chờ thử lại');
+    await clickToastAction(mount, 'Chỉ thử lại đồng bộ');
     await new Promise(r => setTimeout(r, 0));
 
     expect(refreshMergedData).toHaveBeenCalledTimes(1);
     expect(orchestrateCatchUp).toHaveBeenCalledTimes(1);
-    expect(await readToastText(mount)).toContain('没有再次调用 AI');
+    expect(await readToastText(mount)).toContain('không gọi lại AI');
 
     mount.__resetAcuV2MountForTests();
   });

@@ -1,18 +1,18 @@
 <template>
   <div class="acu-v2-wb-selector">
-    <AcuFormRow v-if="filterable" label="筛选">
-      <AcuInput v-model="filter" type="text" placeholder="筛选世界书..." />
+    <AcuFormRow v-if="filterable" label="Lọc">
+      <AcuInput v-model="filter" type="text" placeholder="Lọc Sổ thế giới..." />
     </AcuFormRow>
-    <AcuFormRow label="目标世界书">
+    <AcuFormRow label="Sổ thế giới đích">
       <AcuSelect
         :options="worldbookOptions"
         :model-value="modelValue"
         :disabled="status === 'loading'"
-        placeholder="未选择"
+        placeholder="Chưa chọn"
         @update:model-value="$emit('update:modelValue', $event)"
       />
     </AcuFormRow>
-    <AcuText v-if="status === 'error'" variant="error" class="acu-v2-wb-selector__error">{{ error || '加载失败' }}</AcuText>
+    <AcuText v-if="status === 'error'" variant="error" class="acu-v2-wb-selector__error">{{ error || 'Tải thất bại' }}</AcuText>
   </div>
 </template>
 
@@ -54,7 +54,7 @@ const worldbookOptions = computed<AcuSelectOption[]>(() => {
   const result: AcuSelectOption[] = [];
   if (props.charPrimary || props.showCharacterOption) {
     const label = props.characterOptionLabel
-      || (props.charPrimary ? `当前角色卡主世界书 · ${props.charPrimary}` : props.characterFallbackLabel || '当前角色卡主世界书');
+      || (props.charPrimary ? `Sổ thế giới chính của thẻ nhân vật hiện tại · ${props.charPrimary}` : props.characterFallbackLabel || 'Sổ thế giới chính của thẻ nhân vật hiện tại');
     result.push({ value: 'character', label });
   }
   for (const name of filteredNames.value) {

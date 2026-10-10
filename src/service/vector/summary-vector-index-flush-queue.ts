@@ -125,13 +125,13 @@ export function buildSummaryVectorIndexFlushScopeKey_ACU(
 }
 
 function normalizeErrorMessage_ACU(error: unknown): string {
-    if (error instanceof Error) return error.message || error.name || '未知错误';
+    if (error instanceof Error) return error.message || error.name || 'Lỗi không xác định';
     if (typeof error === 'string') return error;
     try {
         const text = JSON.stringify(error);
-        return text && text !== '{}' ? text : String(error || '未知错误');
+        return text && text !== '{}' ? text : String(error || 'Lỗi không xác định');
     } catch {
-        return String(error || '未知错误');
+        return String(error || 'Lỗi không xác định');
     }
 }
 
@@ -226,7 +226,7 @@ async function markFlushTaskFailure_ACU(
         && attemptCount >= SUMMARY_VECTOR_INDEX_FLUSH_MAX_ATTEMPTS_ACU;
     const finalTerminal = terminal || attemptsExhausted;
     const finalError = attemptsExhausted
-        ? `${error}（已连续失败 ${attemptCount} 次，达到自动重试上限，可通过“立即重建”手动恢复）`
+        ? `${error} (đã thất bại liên tiếp ${attemptCount} lần, đạt giới hạn tự động thử lại, có thể khôi phục thủ công bằng "Xây dựng lại ngay")`
         : error;
     const retryDelayMs = finalTerminal
         ? SUMMARY_VECTOR_INDEX_FLUSH_DEBOUNCE_MS_ACU
@@ -400,7 +400,7 @@ export async function flushSummaryVectorIndexTaskNow_ACU(scopeKey: string): Prom
     });
     const activeChatKey = activeScope.chatKey;
     if (task.chatKey !== activeChatKey) {
-        const message = `flush scope 与当前聊天上下文不一致：task=${task.chatKey}, active=${activeChatKey}`;
+        const message = `flush scope không khớp ngữ cảnh cuộc trò chuyện hiện tại: task=${task.chatKey}, active=${activeChatKey}`;
         await markFlushTaskFailure_ACU(task, message, false);
         logWarn_ACU('[交火向量索引] 跳过防抖 flush，当前上下文不匹配:', message);
         return { success: false, reason: 'flush_scope_mismatch', error: message };
@@ -424,7 +424,7 @@ export async function flushSummaryVectorIndexTaskNow_ACU(scopeKey: string): Prom
         || task.sourceTableKey !== taskScope.sourceTableKey
         || task.scopeKey !== expectedScopeKey) {
         // 除了可安全派生的默认空槽 task 外，其他旧格式没有足够身份字段可证明归属。
-        const message = `旧版 flush task 缺少可验证三元 scope，已从队列中清理：task=${task.scopeKey}`;
+        const message = `flush task phiên bản cũ thiếu scope ba thành phần có thể kiểm chứng, đã dọn khỏi hàng đợi: task=${task.scopeKey}`;
         clearFlushTimer_ACU(task.scopeKey);
         await deleteSummaryVectorFlushTask_ACU(task.scopeKey);
         logSummaryVectorIndexIdentityEvent_ACU('debug', 'flush', 'legacy_scope_purged', {
@@ -436,14 +436,14 @@ export async function flushSummaryVectorIndexTaskNow_ACU(scopeKey: string): Prom
     }
     const activeIsolationKey = activeScope.isolationKey;
     if (task.isolationKey !== activeIsolationKey) {
-        const message = `flush isolation 与当前上下文不一致：task=${task.isolationKey}, active=${activeIsolationKey}`;
+        const message = `flush isolation không khớp ngữ cảnh hiện tại: task=${task.isolationKey}, active=${activeIsolationKey}`;
         await markFlushTaskFailure_ACU(task, message, false);
         return { success: false, reason: 'flush_scope_mismatch', error: message };
     }
 
     const selectedSummary = findSummaryTable_ACU();
     if (!selectedSummary?.summaryKey || normalizeSummaryVectorIndexScope_ACU({ sourceTableKey: selectedSummary.summaryKey }).sourceTableKey !== task.sourceTableKey) {
-        const message = `flush scope 对应纪要表不可用：sourceTableKey=${task.sourceTableKey}`;
+        const message = `Bảng kỷ yếu tương ứng với flush scope không khả dụng: sourceTableKey=${task.sourceTableKey}`;
         await markFlushTaskFailure_ACU(task, message, false);
         logWarn_ACU('[交火向量索引] 跳过防抖 flush，纪要表不可用:', message);
         return { success: false, reason: 'summary_table_not_found_for_flush', error: message };
@@ -489,7 +489,7 @@ export async function flushSummaryVectorIndexTaskNow_ACU(scopeKey: string): Prom
             ].join('|'));
             const activeCooldown = getActiveCredentialCooldown_ACU(cooldownFingerprint);
             if (activeCooldown) {
-                const cooldownError = `凭据冷却中（${activeCooldown.reason}），停止重复扣费重试。`;
+                const cooldownError = `Thông tin xác thực đang trong thời gian chờ (${activeCooldown.reason}), dừng thử lại gây tính phí lặp.`;
                 logWarn_ACU(`[交火向量索引] 防抖 flush 因 credential cooldown 跳过：scope=${task.scopeKey}`);
                 await markFlushTaskFailure_ACU(task, cooldownError, true);
                 return { success: false, reason: 'credential_cooldown', result: undefined, error: cooldownError };
@@ -663,8 +663,8 @@ export function resolveCurrentSummaryVectorFlushScope_ACU(params: {
 } {
     const rawChatKey = String(currentChatFileIdentifier_ACU || '').trim();
     const rawSourceTableKey = String(params.sourceTableKey || '').trim();
-    if (!rawChatKey) throw new Error('清理交火向量 flush 队列失败：当前聊天标识为空');
-    if (!rawSourceTableKey) throw new Error('清理交火向量 flush 队列失败：纪要表标识为空');
+    if (!rawChatKey) throw new Error('Dọn hàng đợi flush vector giao hỏa thất bại: định danh cuộc trò chuyện hiện tại rỗng');
+    if (!rawSourceTableKey) throw new Error('Dọn hàng đợi flush vector giao hỏa thất bại: định danh bảng kỷ yếu rỗng');
     const { chatKey, isolationKey, sourceTableKey } = normalizeSummaryVectorIndexScope_ACU({
         chatKey: rawChatKey,
         isolationKey: params.isolationKey,
@@ -717,14 +717,14 @@ export async function restoreSummaryVectorIndexFlushQueueForCurrentChat_ACU(): P
             await deleteSummaryVectorFlushTask_ACU(task.scopeKey);
             logSummaryVectorIndexIdentityEvent_ACU('debug', 'flush', 'legacy_scope_purged', {
                 scopeFingerprint: task.scopeKey,
-                error: `restore 时发现身份不完整的旧版 flush task：task=${task.scopeKey}`,
+                error: `Khi restore phát hiện flush task phiên bản cũ có danh tính không đầy đủ: task=${task.scopeKey}`,
             });
             purgedLegacy += 1;
             continue;
         }
         if (task.status === 'ready' || task.status === 'failed_terminal') continue;
         if (task.status === 'flushing' && now - task.updatedAt > SUMMARY_VECTOR_INDEX_FLUSHING_STALE_MS_ACU) {
-            await markFlushTaskFailure_ACU(task, '上次 flush 在执行中断后超时，已重新排队。', false);
+            await markFlushTaskFailure_ACU(task, 'Lần flush trước đã quá hạn sau khi bị gián đoạn, đã xếp hàng lại.', false);
             const refreshed = await getSummaryVectorFlushTask_ACU(task.scopeKey);
             if (refreshed) {
                 scheduleFlushTaskTimer_ACU(refreshed);

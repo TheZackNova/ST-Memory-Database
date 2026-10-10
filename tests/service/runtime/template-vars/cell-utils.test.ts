@@ -46,17 +46,17 @@ describe('getCellValue_ACU', () => {
   it('表格不存在返回失败', () => {
     const result = getCellValue_ACU(mockTables, '不存在的表', '铁剑', '数量');
     expect(result.success).toBe(false);
-    expect(result.error).toContain('未找到表格');
+    expect(result.error).toContain('Không tìm thấy bảng');
   });
   it('列不存在返回失败', () => {
     const result = getCellValue_ACU(mockTables, '背包物品表', '铁剑', '不存在的列');
     expect(result.success).toBe(false);
-    expect(result.error).toContain('未找到列');
+    expect(result.error).toContain('Không tìm thấy cột');
   });
   it('行不存在返回失败', () => {
     const result = getCellValue_ACU(mockTables, '背包物品表', '不存在的行', '数量');
     expect(result.success).toBe(false);
-    expect(result.error).toContain('未找到行标识');
+    expect(result.error).toContain('Không tìm thấy định danh hàng');
   });
   it('表格数据为空返回失败', () => {
     const result = getCellValue_ACU(null, '背包物品表', '铁剑', '数量');

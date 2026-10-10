@@ -50,7 +50,7 @@ describe('canonical-row-normalizer', () => {
       { sheetKey: 'sheet_0', rowIndex: 2, reason: 'duplicate_row_id' },
       { sheetKey: 'sheet_0', rowIndex: 3, reason: 'invalid_row' },
     ]);
-    expect(formatCanonicalRowIssues_ACU(result.errors)).toBe('sheet_0 第 2 行：duplicate_row_id；sheet_0 第 3 行：invalid_row');
+    expect(formatCanonicalRowIssues_ACU(result.errors)).toBe('sheet_0 hàng 2: duplicate_row_id; sheet_0 hàng 3: invalid_row');
     expect(formatCanonicalRowIssues_ACU(result.errors)).not.toContain('不得进入错误文本');
   });
 

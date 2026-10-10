@@ -70,12 +70,12 @@ describe('AdvancedToolsPage log panel', () => {
 
     const page = getPage();
     const text = page.textContent || '';
-    expect(text).toContain('运行日志');
-    expect(text).toContain('全部级别');
-    expect(text).toContain('全部模块');
-    expect(text).toContain('SQL 控制台');
-    expect(page.querySelector<HTMLInputElement>('.acu-v2-advanced-tools-page input')?.placeholder).toBe('搜索日志内容');
-    expect(text).toContain('自动滚动');
+    expect(text).toContain('Nhật ký chạy');
+    expect(text).toContain('Mọi cấp độ');
+    expect(text).toContain('Mọi module');
+    expect(text).toContain('Bảng điều khiển SQL');
+    expect(page.querySelector<HTMLInputElement>('.acu-v2-advanced-tools-page input')?.placeholder).toBe('Tìm nội dung nhật ký');
+    expect(text).toContain('Tự động cuộn');
     expect(text).toContain('错误日志');
     expect(text).toContain('警告日志');
     expect(text).not.toContain('缓冲区状态');
@@ -89,10 +89,10 @@ describe('AdvancedToolsPage log panel', () => {
 
     const mobileNavItems = Array.from(page.querySelectorAll('.acu-mobile-panel-nav__item'))
       .map(item => item.textContent?.trim());
-    expect(mobileNavItems).toEqual(['SQL 控制台', '运行日志']);
-    expect(document.querySelector('.acu-v2-app__page-title')?.textContent?.trim()).toBe('高级工具');
+    expect(mobileNavItems).toEqual(['Bảng điều khiển SQL', 'Nhật ký chạy']);
+    expect(document.querySelector('.acu-v2-app__page-title')?.textContent?.trim()).toBe('Công cụ nâng cao');
     expect(page.querySelector('.acu-page-header')).toBeNull();
-    expect(page.querySelector('.acu-v2-advanced-tools-page__log-panel .acu-panel__header')?.textContent || '').toContain('实时更新中');
+    expect(page.querySelector('.acu-v2-advanced-tools-page__log-panel .acu-panel__header')?.textContent || '').toContain('Đang cập nhật theo thời gian thực');
 
     const controlRow = page.querySelector<HTMLElement>('.acu-v2-advanced-tools-page__log-control-row');
     expect(controlRow).not.toBeNull();
@@ -104,8 +104,8 @@ describe('AdvancedToolsPage log panel', () => {
     expect(toggles.classList.contains('acu-v2-advanced-tools-page__toggles')).toBe(true);
     const toggleLabels = Array.from(toggles.querySelectorAll<HTMLButtonElement>('.acu-toggle'))
       .map(toggle => toggle.textContent?.trim());
-    expect(toggleLabels).toEqual(['自动滚动', 'API 请求', 'Warn', 'Debug']);
-    expect(hint.textContent || '').toContain('当前显示');
+    expect(toggleLabels).toEqual(['Tự động cuộn', 'Yêu cầu API', 'Warn', 'Debug']);
+    expect(hint.textContent || '').toContain('hiện hiển thị');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -126,8 +126,8 @@ describe('AdvancedToolsPage log panel', () => {
     expect(hint).not.toBeNull();
     expect(hint!.dataset.hintId).toBe('http-429');
     expect(hint!.open).toBe(false);
-    expect(hint!.textContent).toContain('限流');
-    expect(hint!.textContent).toContain('怎么处理');
+    expect(hint!.textContent).toContain('giới hạn tốc độ');
+    expect(hint!.textContent).toContain('Cách xử lý');
     expect(hint!.querySelectorAll('.acu-v2-advanced-tools-page__log-hint-steps li').length).toBeGreaterThan(0);
 
     expect(warnRow.querySelector('.acu-v2-advanced-tools-page__log-hint')).toBeNull();
@@ -159,7 +159,7 @@ describe('AdvancedToolsPage log panel', () => {
     await waitForUi();
 
     text = document.querySelector('.acu-v2-advanced-tools-page__log-list')?.textContent || '';
-    expect(text).toContain('暂无匹配日志');
+    expect(text).toContain('Không có nhật ký phù hợp');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -201,21 +201,21 @@ describe('AdvancedToolsPage log panel', () => {
   it('暂停时新日志进入积压，恢复后刷新显示', async () => {
     const { mount, logBuffer } = await mountAdvancedToolsLogPanel(false, true);
 
-    findButton('暂停').click();
+    findButton('Tạm dừng').click();
     await waitForUi();
     logBuffer.pushLog('warn', ['[ACU]', '[暂停测试] 暂停期间新增']);
     await waitForUi(30);
 
     let pageText = getPage().textContent || '';
-    expect(pageText).toContain('1 条暂停期间新增日志等待显示');
+    expect(pageText).toContain('1 nhật ký mới phát sinh trong lúc tạm dừng');
     expect(document.querySelector('.acu-v2-advanced-tools-page__log-list')?.textContent || '').not.toContain('暂停期间新增');
 
-    findButton('暂停').click();
+    findButton('Tạm dừng').click();
     await waitForUi();
 
     pageText = getPage().textContent || '';
     expect(pageText).toContain('暂停期间新增');
-    expect(pageText).toContain('实时更新中');
+    expect(pageText).toContain('Đang cập nhật theo thời gian thực');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -245,10 +245,10 @@ describe('AdvancedToolsPage log panel', () => {
       expect(defaultText).not.toContain(`完整回复 ${tag}`);
     }
     expect(defaultText).not.toContain('no_tables_due');
-    expect(defaultText).toContain('API 请求开关独立采集');
-    expect(defaultText).toContain('关闭采集不会删除已有日志');
-    expect(defaultText).toContain('不代表最终网络请求');
-    expect(defaultText).toContain('检查隐私');
+    expect(defaultText).toContain('Công tắc yêu cầu API thu thập riêng');
+    expect(defaultText).toContain('Tắt thu thập không xóa nhật ký đã có');
+    expect(defaultText).toContain('không đại diện cho yêu cầu mạng cuối cùng');
+    expect(defaultText).toContain('kiểm tra quyền riêng tư');
     expect(logBuffer.isDebugLogEnabled()).toBe(false);
     expect(logBuffer.isApiLogEnabled()).toBe(false);
     expect(logBuffer.getAllLogs()).toHaveLength(0);
@@ -273,7 +273,7 @@ describe('AdvancedToolsPage log panel', () => {
 
     debugToggle!.click();
     const apiToggle = Array.from(document.querySelectorAll<HTMLButtonElement>('.acu-v2-advanced-tools-page .acu-toggle'))
-      .find(button => button.textContent?.trim() === 'API 请求');
+      .find(button => button.textContent?.trim() === 'Yêu cầu API');
     expect(apiToggle).not.toBeUndefined();
     expect(apiToggle!.getAttribute('aria-checked')).toBe('false');
     apiToggle!.click();
@@ -305,8 +305,8 @@ describe('AdvancedToolsPage log panel', () => {
     await waitForUi(30);
 
     const text = getPage().textContent || '';
-    expect(text).toContain('Debug 未采集');
-    expect(text).toContain('API 采集中');
+    expect(text).toContain('Không thu thập Debug');
+    expect(text).toContain('Đang thu thập API');
     expect(text).not.toContain('no_tables_due');
     expect(text).not.toContain('只开 API 不采集 Debug');
     expect(text).not.toContain('log-secret');
@@ -327,12 +327,12 @@ describe('AdvancedToolsPage log panel', () => {
     levelSelect.querySelector<HTMLButtonElement>('.acu-select__trigger')!.click();
     await waitForUi();
     const apiOption = Array.from(levelSelect.querySelectorAll<HTMLElement>('.acu-select__item'))
-      .find(item => item.textContent?.trim() === 'API 请求');
+      .find(item => item.textContent?.trim() === 'Yêu cầu API');
     expect(apiOption).not.toBeUndefined();
     apiOption!.click();
     await waitForUi();
     expect(getPage().querySelectorAll('.acu-v2-advanced-tools-page__log-row--api')).toHaveLength(8);
-    findButton('导出').click();
+    findButton('Xuất').click();
     await waitForUi();
     expect(URL.createObjectURL).toHaveBeenCalled();
 
@@ -377,7 +377,7 @@ describe('AdvancedToolsPage log panel', () => {
     await reloadedMount.openAcuV2App();
     await waitForUi();
     const reloadedToggle = Array.from(getPage().querySelectorAll<HTMLButtonElement>('.acu-toggle'))
-      .find(button => button.textContent?.trim() === 'API 请求')!;
+      .find(button => button.textContent?.trim() === 'Yêu cầu API')!;
     expect(reloadedToggle.getAttribute('aria-checked')).toBe('true');
     expect(getPage().textContent || '').toContain('重载后 API 请求');
     reloadedToggle.click();
@@ -398,17 +398,17 @@ describe('AdvancedToolsPage log panel', () => {
     logBuffer.setDebugLogEnabled(false);
     await waitForUi(30);
 
-    findButton('导出').click();
+    findButton('Xuất').click();
     await waitForUi();
     expect(URL.createObjectURL).toHaveBeenCalled();
     expect(HTMLAnchorElement.prototype.click).toHaveBeenCalled();
     expect(getPage().textContent || '').not.toContain('已导出 3 条日志');
 
-    findButton('清空').click();
+    findButton('Xóa').click();
     await waitForUi();
     const text = getPage().textContent || '';
     expect(text).not.toContain('日志缓冲区已清空');
-    expect(text).toContain('暂无匹配日志');
+    expect(text).toContain('Không có nhật ký phù hợp');
 
     mount.__resetAcuV2MountForTests();
   });

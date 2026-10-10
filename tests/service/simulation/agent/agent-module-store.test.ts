@@ -21,7 +21,7 @@ describe('world simulation materials snapshots', () => {
     const ref1 = recordWorldSimulationEvidence_ACU(registry, { operation: 'initial', address: 'ledger:first', status: 'ok', summary: 'first', exact: true }).evidenceRef!;
     const ref2 = recordWorldSimulationEvidence_ACU(registry, { operation: 'read', address: 'ledger:second', status: 'ok', summary: 'second', exact: true }).evidenceRef!;
     const snapshot = snapshotWorldSimulationEvidenceRegistry_ACU(registry);
-    await expect(writeWorldSimulationMaterialsSnapshot_ACU(resolveWorldSimulationAnchor_ACU(0, chat), firstLedger, ['unknown'], snapshot, chat)).rejects.toThrow(/未授权/);
+    await expect(writeWorldSimulationMaterialsSnapshot_ACU(resolveWorldSimulationAnchor_ACU(0, chat), firstLedger, ['unknown'], snapshot, chat)).rejects.toThrow(/chưa được ủy quyền/);
     await writeWorldSimulationMaterialsSnapshot_ACU(resolveWorldSimulationAnchor_ACU(0, chat), firstLedger, [ref1], snapshot, chat);
     await writeWorldSimulationMaterialsSnapshot_ACU(resolveWorldSimulationAnchor_ACU(1, chat), secondLedger, [ref2], snapshot, chat);
     expect(readLatestWorldSimulationMaterials_ACU(chat)).toMatchObject({ adoptedIndex: 1, snapshot: { ledgerRevision: 2 } });

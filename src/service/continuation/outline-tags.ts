@@ -331,14 +331,14 @@ function parseTurnEntry_ACU(entry: TagEntry_ACU): ParsedOutlineTagTurn_ACU {
  */
 export function parseOutlineTags_ACU(raw: string | null | undefined): ParsedOutlineTags_ACU {
   const text = typeof raw === 'string' ? stripReasoningBlocks_ACU(raw) : '';
-  if (!text.trim()) failParse_ACU('大纲返回为空');
+  if (!text.trim()) failParse_ACU('Đầu ra dàn ý rỗng');
   const nodeBlocks = readTagList_ACU(text, 'node');
   if (!nodeBlocks.length) {
-    failParse_ACU(`返回内容不包含任何 <node> 标签。模型返回片段：${text.trim().slice(0, 300)}`);
+    failParse_ACU(`Nội dung trả về không chứa thẻ <node> nào. Đoạn mô hình trả về: ${text.trim().slice(0, 300)}`);
   }
   const nodes = nodeBlocks.map((block, index) => {
     const turns = readTagEntries_ACU(block, 'turn').map(parseTurnEntry_ACU).filter(turn => turn.goal);
-    if (!turns.length) failParse_ACU(`第 ${index + 1} 个 <node> 中没有任何非空 <turn> 标签`);
+    if (!turns.length) failParse_ACU(`<node> thứ ${index + 1} không có thẻ <turn> không rỗng nào`);
     return { title: readTag_ACU(block, 'node_title'), goal: readTag_ACU(block, 'node_goal'), turns };
   });
   return {
@@ -366,7 +366,7 @@ export function buildStageOutlineFromTags_ACU(
 ): StageOutline_ACU {
   const nodes: StageNode_ACU[] = parsed.nodes.map((node, index) => ({
     id: allocateId('node'),
-    title: node.title || `节点${index + 1}`,
+    title: node.title || `Nút ${index + 1}`,
     goal: node.goal,
     suggestedTurns: node.turns.length,
     turns: node.turns.map(turn => ({
@@ -383,7 +383,7 @@ export function buildStageOutlineFromTags_ACU(
   const role = parsed.role ?? fallback?.role;
   // 首次生成时阶段标题/目标漏写不该让整份大纲作废：标题退到首节点标题，目标退到各节点目标的拼接。
   // 重规划（有 fallback）时留空，由拼接逻辑沿用旧大纲的标题与目标。
-  const derivedTitle = fallback ? '' : (parsed.nodes.find(node => node.title)?.title ?? '') || '未命名阶段';
+  const derivedTitle = fallback ? '' : (parsed.nodes.find(node => node.title)?.title ?? '') || 'Giai đoạn chưa đặt tên';
   const derivedGoal = fallback ? '' : parsed.nodes.map(node => node.goal).filter(Boolean).join('；');
   return {
     schemaVersion: CONTINUATION_SCHEMA_VERSION_ACU,

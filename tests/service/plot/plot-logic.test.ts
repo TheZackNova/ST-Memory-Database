@@ -263,7 +263,7 @@ describe('normalizePlotTask_ACU', () => {
   it('null 任务使用默认值', () => {
     const task = normalizePlotTask_ACU(null, { index: 0 });
     expect(task.id).toBe('plotTask1');
-    expect(task.name).toBe('剧情任务1');
+    expect(task.name).toBe('Tác vụ cốt truyện 1');
     expect(task.enabled).toBe(true);
   });
   it('id 中的特殊字符被替换', () => {

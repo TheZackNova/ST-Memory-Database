@@ -24,17 +24,17 @@ export function createZeroLayerTableSettlement_ACU(store: ZeroLayerStore_ACU): Z
     let current = envelope;
     const turn = current.turns.find(item => item.turnId === turnId && item.attemptId === attemptId);
     if (!turn || turn.branchId !== current.activeBranchId || turn.phase !== 'response-durable' || !turn.tableInput) {
-      throw new ZeroLayerError_ACU('effects-pending', '回合缺少已保存正文或可恢复的表格基底。');
+      throw new ZeroLayerError_ACU('effects-pending', 'Lượt thiếu nội dung chính đã lưu hoặc nền bảng có thể khôi phục.');
     }
     const input = turn.tableInput;
     const assertCurrent = () => {
-      if (signal.aborted) throw new ZeroLayerError_ACU('scope-changed', '表格结算已中止。');
+      if (signal.aborted) throw new ZeroLayerError_ACU('scope-changed', 'Quyết toán bảng đã bị hủy.');
       assertZeroLayerCarrier_ACU(context);
       const live = readZeroLayerCarrier_ACU(context);
       if (!live?.enabled || live.sessionId !== current.sessionId || live.revision !== current.revision
         || live.activeBranchId !== current.activeBranchId || String(currentChatFileIdentifier_ACU) !== input.chatKey
         || getCurrentIsolationKey_ACU() !== input.isolationKey || getCurrentStorageMode() !== input.storageMode) {
-        throw new ZeroLayerError_ACU('revision-conflict', '表格结算作用域或 revision 已变化。');
+        throw new ZeroLayerError_ACU('revision-conflict', 'Phạm vi hoặc revision của quyết toán bảng đã thay đổi.');
       }
     };
 
@@ -46,7 +46,7 @@ export function createZeroLayerTableSettlement_ACU(store: ZeroLayerStore_ACU): Z
       validateZeroLayerTableResult_ACU(result, turn.assistantFloor.floorId);
       if (previousReceipt.effectId !== effectId || previousReceipt.status !== 'durable'
         || previousReceipt.fingerprint !== getTableDataFingerprint_ACU(result)) {
-        throw new ZeroLayerError_ACU('corrupt-data', '表格回执与持久结果不匹配。');
+        throw new ZeroLayerError_ACU('corrupt-data', 'Biên nhận bảng không khớp với kết quả lưu bền.');
       }
       return;
     }
@@ -82,7 +82,7 @@ export function createZeroLayerTableSettlement_ACU(store: ZeroLayerStore_ACU): Z
       templateKeys.map(key => [key, structuredClone(input.tableData[key] ?? templateData[key])]),
     ) };
     if (input.autoUpdateEnabled && !input.scheduling) {
-      throw new ZeroLayerError_ACU('effects-pending', '持久表格输入缺少调度快照，禁止推测恢复计划。');
+      throw new ZeroLayerError_ACU('effects-pending', 'Đầu vào bảng lưu bền thiếu snapshot lập lịch, cấm suy đoán kế hoạch khôi phục.');
     }
     const plan = input.autoUpdateEnabled
       ? buildAutoUpdatePlan_ACU(messages, schedulingData, input.scheduling, input.isolationKey, undefined, {
@@ -100,7 +100,7 @@ export function createZeroLayerTableSettlement_ACU(store: ZeroLayerStore_ACU): Z
     }).sort((left, right) => left.indices[left.indices.length - 1] - right.indices[right.indices.length - 1]
       || left.groupKey.localeCompare(right.groupKey) || left.batchNumber - right.batchNumber);
     if (candidate.completedBucketIds.some(id => !buckets.some(bucket => bucket.id === id))) {
-      throw new ZeroLayerError_ACU('corrupt-data', '持久表格桶不属于本回合固定调度计划。');
+      throw new ZeroLayerError_ACU('corrupt-data', 'Nhóm bảng lưu bền không thuộc kế hoạch lập lịch cố định của lượt này.');
     }
 
     const controller = new AbortController();
@@ -133,7 +133,7 @@ export function createZeroLayerTableSettlement_ACU(store: ZeroLayerStore_ACU): Z
             const loaded = await readProvider.loadFromData(baseSnapshot);
             assertCurrent();
             if (loaded.error || !readProvider.isReady()) {
-              throw new ZeroLayerError_ACU('effects-pending', '表格结算的独立 SQLite 快照未能就绪。');
+              throw new ZeroLayerError_ACU('effects-pending', 'Snapshot SQLite độc lập của quyết toán bảng chưa thể sẵn sàng.');
             }
           }
           const runtimeData = readProvider?.getCurrentDataStrict_ACU();
@@ -145,7 +145,7 @@ export function createZeroLayerTableSettlement_ACU(store: ZeroLayerStore_ACU): Z
           const apiPresetSnapshot = structuredClone(getApiConfigByPreset_ACU(presetName));
           requireResolvedApiPreset_ACU(presetName, apiPresetSnapshot);
           if (apiPresetSnapshot.apiMode !== 'custom' || !apiPresetSnapshot.apiConfig.url || !apiPresetSnapshot.apiConfig.model) {
-            throw new ZeroLayerError_ACU('effects-pending', '逻辑填表需要数据库独立 API 配置。');
+            throw new ZeroLayerError_ACU('effects-pending', 'Điền bảng logic cần cấu hình API độc lập của cơ sở dữ liệu.');
           }
           const lastIndex = bucket.indices[bucket.indices.length - 1];
           const firstAiOffset = aiMessageIndices.indexOf(bucket.indices[0]);
@@ -162,7 +162,7 @@ export function createZeroLayerTableSettlement_ACU(store: ZeroLayerStore_ACU): Z
                 tableData: runtimeData! } : null },
           }, undefined, controller, { respectGlobalStop: false, assertCurrent, worldbookReadContext });
           assertCurrent();
-          if (!response.success) throw new ZeroLayerError_ACU('effects-pending', '逻辑填表请求未取得可应用的完整结果。');
+          if (!response.success) throw new ZeroLayerError_ACU('effects-pending', 'Yêu cầu điền bảng logic chưa nhận được kết quả đầy đủ có thể áp dụng.');
           const applied = await applyUnifiedGroupFillResponses_ACU([response], baseSnapshot, {
             logicalTarget, updateMode, isImportMode: false, chatKey: input.chatKey,
             isolationKey: input.isolationKey, templateScope, sqlApplyScope,
@@ -170,7 +170,7 @@ export function createZeroLayerTableSettlement_ACU(store: ZeroLayerStore_ACU): Z
           });
           assertCurrent();
           if (!applied.success || !applied.tableData) {
-            throw new ZeroLayerError_ACU('effects-pending', '逻辑填表候选应用失败，尚未确认本桶。');
+            throw new ZeroLayerError_ACU('effects-pending', 'Áp dụng ứng viên điền bảng logic thất bại, nhóm này chưa được xác nhận.');
           }
           // 仅合并授权目标表，detached runtime 的活动表投影不能删除其他持久表。
           const tableData = structuredClone(candidate.tableData);

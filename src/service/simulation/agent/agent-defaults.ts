@@ -3,6 +3,7 @@ import { isAgentSnapshotSlot_ACU, withAgentPromptLayout_ACU } from '../../../sha
 import { withCreativeIdentity_ACU } from '../../../shared/creative-identity.js';
 import { buildAgentQaLayout_ACU, migrateAgentQaLayout_ACU, isAgentFormatAnswer_ACU, type AgentQaOptions_ACU } from '../../../shared/agent-prompt-qa';
 import { worldSimulationOneShotProtocol_ACU } from './agent-format-protocol';
+import { worldSimulationDirectorProtocolVi_ACU, worldSimulationReadOnlyProtocolVi_ACU, worldSimulationReviewerProtocolVi_ACU } from './agent-protocol-vi';
 import { WORLD_SIMULATION_LEDGER_MODULES_ACU, WORLD_SIMULATION_SCHEMA_VERSION_ACU, formatWorldSimulationLedgerRequiredFields_ACU, formatWorldSimulationLedgerRequiredFieldsLegacy_ACU, type WorldSimulationPromptSegment_ACU } from '../model';
 import { formatWorldSimulationToolAddressHints_ACU, WORLD_SIMULATION_TOOL_ADDRESSES_ACU } from '../world-simulation-agent-tools';
 import { WORLD_SIMULATION_AGENT_CATALOG_ACU, findWorldSimulationAgentDefinition_ACU, getWorldSimulationAgentAccessProfile_ACU, worldSimulationAgentNativeTools_ACU, type WorldSimulationAgentName_ACU } from './agent-catalog';
@@ -123,20 +124,20 @@ function renderMissingSimulationSql_ACU(
   item: { module: string; id: string; missingFields: readonly string[] }, ledgerRevision: number,
 ): string | null {
   const samples: Record<string, Record<string, string>> = {
-    clock: { slot: "'午后'", storyTime: "'次日午后'", evidenceRefs: `'["evidence:本轮真实引用"]'` },
-    dimensions: { name: "'城中戒备'", kind: "'pressure'", value: '40', trend: "'rising'", rationale: "'入城盘查加强，守卫增加，进入城内的难度明显上升'", evidenceRefs: `'["evidence:本轮真实引用"]'` },
-    seeds: { title: "'禁区外泄'", status: "'incubating'", level: '2', catalyst: "'守门人离岗'", visibility: "'limited'", location: `'♯LOCATION♯'`, evidenceRefs: `'["evidence:本轮真实引用"]'` },
-    actors: { name: "'守门人'", interests: `'["守住禁区"]'`, location: "'禁区门口'", goals: `'["查明入城者来意"]'`, informationSources: `'["亲历值守"]'`, knownFacts: `'["晶屑由自己保管"]'` },
+    clock: { slot: "'Đầu giờ chiều'", storyTime: "'Chiều hôm sau'", evidenceRefs: `'["evidence:本轮真实引用"]'` },
+    dimensions: { name: "'Phòng bị trong thành'", kind: "'pressure'", value: '40', trend: "'rising'", rationale: "'Việc tra xét khi vào thành được siết chặt, lính canh tăng thêm, độ khó vào thành tăng rõ rệt'", evidenceRefs: `'["evidence:本轮真实引用"]'` },
+    seeds: { title: "'Rò rỉ khu cấm'", status: "'incubating'", level: '2', catalyst: "'Người gác cổng rời vị trí'", visibility: "'limited'", location: `'♯LOCATION♯'`, evidenceRefs: `'["evidence:本轮真实引用"]'` },
+    actors: { name: "'Người gác cổng'", interests: `'["Giữ vững khu cấm"]'`, location: "'Cổng khu cấm'", goals: `'["Tìm hiểu ý đồ của kẻ vào thành"]'`, informationSources: `'["Tự trải qua khi trực gác"]'`, knownFacts: `'["Tinh thể vụn do chính mình bảo quản"]'` },
     player: { location: `'♯LOCATION♯'`, contact: "'open'", evidenceRefs: `'["evidence:本轮真实引用"]'` },
-    rumors: { fact: "'城中正在增派守卫'", originDay: '2', channels: `'["市井"]'` },
-    chronicle: { summary: "'守门人开始盘查入城者'" },
-    guidance: { signals: `'[{"text":"城门新增禁入木牌","voice":"encounter","sourceId":"seed-1"}]'`, excludedFacts: `'[]'`, evidenceRefs: `'["evidence:本轮真实引用"]'` },
+    rumors: { fact: "'Trong thành đang tăng thêm lính canh'", originDay: '2', channels: `'["chợ búa"]'` },
+    chronicle: { summary: "'Người gác cổng bắt đầu tra xét kẻ vào thành'" },
+    guidance: { signals: `'[{"text":"Cổng thành mới treo biển cấm vào","voice":"encounter","sourceId":"seed-1"}]'`, excludedFacts: `'[]'`, evidenceRefs: `'["evidence:本轮真实引用"]'` },
   };
   const writable = samples[item.module];
   if (!writable || !item.missingFields.length || item.missingFields.some(field => !(field in writable))) return null;
   const assignments = item.missingFields.map(field => {
     const value = writable[field]!;
-    const sample = value.includes('♯LOCATION♯') ? value.replace('♯LOCATION♯', '{"region":"禁区门口"}') : value;
+    const sample = value.includes('♯LOCATION♯') ? value.replace('♯LOCATION♯', '{"region":"Cổng khu cấm"}') : value;
     return `${field.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)} = ${sample}`;
   });
   const singleton = ['clock', 'player', 'guidance'].includes(item.module);
@@ -151,28 +152,28 @@ export function renderWorldSimulationWriteRepair_ACU(
     ledgerRevision: number | null },
 ): string {
   if (receipt.partials === null || receipt.ledgerRevision === null) {
-    return '【write_sql 补栏】保存或恢复状态无法确认。先 read ledger:current 及 field:模块:ID 权威栏目，核实已存内容和当前 revision；不要按旧号重发 SQL。';
+    return '【write_sql bổ sung cột】Không thể xác nhận trạng thái lưu hoặc khôi phục. Hãy read ledger:current và cột có thẩm quyền field:module:ID trước, xác minh nội dung đã lưu và revision hiện tại; không gửi lại SQL theo số cũ.';
   }
   if (!receipt.rejected.length && !receipt.partials.some(item => item.missingFields.length || item.promotionError)) return '';
-  const lines = ['【write_sql 补栏】只以 status=committed 的 accepted 为已保存。修复步骤：先 read 回执指出的 field:模块:ID 核实已存栏目与当前 revision，再只 UPDATE 未保存的栏目；不重新 INSERT 已存在的草稿，也不重发已存栏目。真实示例：seeds 草稿 seed-1 只缺 title 与 status，就提交 UPDATE seeds SET title = \'禁区外泄\', status = \'incubating\' WHERE id = \'seed-1\' AND expected_revision = 0;（草稿补栏 expected_revision 用 0）。示例值只演示语法，正文须换成本轮真实事实与已颁发的证据引用。'];
+  const lines = ['【write_sql bổ sung cột】Chỉ coi accepted có status=committed là đã lưu. Các bước sửa: trước tiên read field:module:ID mà phiếu chỉ ra để xác minh các cột đã lưu và revision hiện tại, rồi chỉ UPDATE các cột chưa lưu; không INSERT lại bản nháp đã tồn tại, cũng không gửi lại các cột đã lưu. Ví dụ thật: bản nháp seed-1 của seeds chỉ thiếu title và status thì nộp UPDATE seeds SET title = \'Rò rỉ khu cấm\', status = \'incubating\' WHERE id = \'seed-1\' AND expected_revision = 0; (bổ sung cột cho bản nháp dùng expected_revision 0). Giá trị trong ví dụ chỉ minh họa cú pháp, nội dung thật phải thay bằng sự thật của lượt này và tham chiếu bằng chứng đã được cấp.'];
   for (const item of receipt.partials) {
     if (!modules.includes(item.module) || (!item.missingFields.length && !item.promotionError)) continue;
-    lines.push(`${item.module}#${item.id} 已是草稿；缺 ${item.missingFields.join('、') || '领域校验所需的修正'}。先 read field:${item.module}:${item.id} 核实已存栏目。`);
+    lines.push(`${item.module}#${item.id} đã là bản nháp; thiếu ${item.missingFields.join(', ') || 'phần sửa cần thiết cho kiểm tra miền'}. Hãy read field:${item.module}:${item.id} trước để xác minh các cột đã lưu.`);
     if (item.missingFields.length) {
       const sql = renderMissingSimulationSql_ACU(item, receipt.ledgerRevision);
-      if (sql) lines.push(`仅补缺栏范例：${sql}`);
-      else lines.push('缺栏不能直接按示例映射；先 read 权威栏目和 ledger:current，确认可写列后仅补未保存的栏目。');
+      if (sql) lines.push(`Ví dụ chỉ bổ sung cột thiếu: ${sql}`);
+      else lines.push('Cột thiếu không thể ánh xạ trực tiếp theo ví dụ; hãy read cột có thẩm quyền và ledger:current trước, xác nhận các cột có thể ghi rồi chỉ bổ sung các cột chưa lưu.');
     }
-    if (item.missingFields.includes('evidenceRefs')) lines.push('evidence_refs 只能填本轮注册表颁发的引用，示例里的 evidence:本轮真实引用 不能照抄。');
-    if (item.promotionError) lines.push(`提升失败：${item.promotionError}。若无 missingFields，先 read 已存栏目与当前修订号，仅改领域校验失败的栏目。`);
+    if (item.missingFields.includes('evidenceRefs')) lines.push('evidence_refs chỉ được điền tham chiếu do sổ đăng ký của lượt này cấp, không được chép evidence:本轮真实引用 trong ví dụ.');
+    if (item.promotionError) lines.push(`Nâng cấp thất bại: ${item.promotionError}. Nếu không có missingFields thì read các cột đã lưu và số sửa đổi hiện tại trước, chỉ sửa các cột không qua kiểm tra miền.`);
   }
   for (const item of receipt.rejected) {
-    lines.push(`${item.path}：${item.reason}。被拒栏目未写入；对照模块字段、枚举和证据，只补拒绝的栏目，不重发 accepted。`);
-    if (item.reason.startsWith('revision_conflict') || item.reason === 'id_exists') lines.push('先 read 回执所指的 field:模块:ID 与 ledger:current 核实已存内容和当前 revision；单例用当前账本 revision，草稿行用 0，正式数组条目用条目 revision。');
-    if (item.reason === 'not_found') lines.push('先 read field:模块:ID 确认确实不存在；只有确认为新记录时才用 INSERT，已有 partial 草稿用 UPDATE 补栏。');
-    if (item.reason.includes('字段数与值数量不一致') || item.reason.includes('字符串字面量未闭合')) lines.push('正文的单引号要写成两个单引号；逐项核对列和值。');
-    if (item.reason.includes('consistency_group')) lines.push('同时补齐一致性组：死亡的 life、died_at_day、death_summary；时限的 expires_at_day、missed_outcome；已接受的栏目先 read，勿重发。');
-    if (item.reason.includes('未授权证据') || item.reason.includes('引用不存在')) lines.push('evidence_refs 只能使用本轮真实注册引用；没有证据就不要捏造，记入 uncertainties。');
+    lines.push(`${item.path}: ${item.reason}. Cột bị từ chối chưa được ghi; hãy đối chiếu trường, enum và bằng chứng của module, chỉ bổ sung cột bị từ chối, không gửi lại accepted.`);
+    if (item.reason.startsWith('revision_conflict') || item.reason === 'id_exists') lines.push('Hãy read field:module:ID mà phiếu chỉ ra và ledger:current trước để xác minh nội dung đã lưu và revision hiện tại; singleton dùng revision sổ cái hiện tại, hàng bản nháp dùng 0, mục mảng chính thức dùng revision của mục.');
+    if (item.reason === 'not_found') lines.push('Hãy read field:module:ID trước để xác nhận thật sự không tồn tại; chỉ khi xác nhận là bản ghi mới mới dùng INSERT, bản nháp partial đã có thì dùng UPDATE để bổ sung cột.');
+    if (item.reason.includes('字段数与值数量不一致') || item.reason.includes('字符串字面量未闭合')) lines.push('Dấu nháy đơn trong nội dung phải viết thành hai dấu nháy đơn; đối chiếu từng cột và giá trị.');
+    if (item.reason.includes('consistency_group')) lines.push('Đồng thời bổ sung đủ nhóm nhất quán: life, died_at_day, death_summary của cái chết; expires_at_day, missed_outcome của thời hạn; các cột đã được chấp nhận thì read trước, đừng gửi lại.');
+    if (item.reason.includes('未授权证据') || item.reason.includes('引用不存在') || item.reason.includes('chưa ủy quyền')) lines.push('evidence_refs chỉ được dùng tham chiếu đã đăng ký thật của lượt này; không có bằng chứng thì đừng bịa, hãy ghi vào uncertainties.');
   }
   return lines.join('\n');
 }
@@ -274,8 +275,22 @@ function alignThinkPrefillProtocol_ACU(content: string): string {
     .split('不附加 Markdown、解释、思考标签或其他字段。').join('推理写在思维链里。闭合后不附加 Markdown、解释或其他字段。');
 }
 
-export function worldSimulationDirectorRuntimeProtocolInstruction_ACU(): string {
+/** Bản tiếng Trung cũ của các văn bản giao thức runtime; chỉ dùng để nhận diện prompt mặc định đã lưu trước khi Việt hóa. */
+export function worldSimulationDirectorRuntimeProtocolInstructionZhLegacy_ACU(): string {
   return alignThinkPrefillProtocol_ACU(applyWorldSimulationNativeToolPrompt_ACU('world-director', worldSimulationDirectorProtocolInstructionV31_ACU())).replace(/<UNTRUSTED_READ_BUDGET>[\s\S]*?<\/UNTRUSTED_READ_BUDGET>/g, '<UNTRUSTED_READ_BUDGET>阅读预算见本轮运行时快照。</UNTRUSTED_READ_BUDGET>');
+}
+
+export function worldSimulationReviewerRuntimeProtocolInstructionZhLegacy_ACU(): string {
+  return alignThinkPrefillProtocol_ACU(worldSimulationReviewerProtocolInstruction_ACU());
+}
+
+export function worldSimulationSpecialistRuntimeProtocolInstructionZhLegacy_ACU(name: WorldSimulationAgentName_ACU, writableModules: readonly string[]): string {
+  return alignThinkPrefillProtocol_ACU(applyWorldSimulationNativeToolPrompt_ACU(name, worldSimulationSpecialistProtocolInstruction_ACU(name, writableModules)));
+}
+
+/** Giao thức hiện hành của đạo diễn (tiếng Việt). Văn bản tiếng Trung cũ ở trên chỉ còn phục vụ các phiên bản lịch sử đóng băng. */
+export function worldSimulationDirectorRuntimeProtocolInstruction_ACU(): string {
+  return worldSimulationDirectorProtocolVi_ACU().runtime;
 }
 
 /** v31 导演改写：工作流升级后针对子代理反馈制定修缮方案并定向派工，而不是直接阻断。冻结协议与 v21/v30 构造器不变。 */
@@ -298,11 +313,12 @@ export function worldSimulationSpecialistRuntimeProtocolInstruction_ACU(
   name: WorldSimulationAgentName_ACU,
   writableModules: readonly string[],
 ): string {
+  if (!writableModules.length) return worldSimulationReadOnlyProtocolVi_ACU(name).runtime;
   return alignThinkPrefillProtocol_ACU(applyWorldSimulationNativeToolPrompt_ACU(name, worldSimulationSpecialistProtocolInstruction_ACU(name, writableModules)));
 }
 
 export function worldSimulationReviewerRuntimeProtocolInstruction_ACU(): string {
-  return alignThinkPrefillProtocol_ACU(worldSimulationReviewerProtocolInstruction_ACU());
+  return worldSimulationReviewerProtocolVi_ACU().runtime;
 }
 
 export function worldSimulationReviewerProtocolInstruction_ACU(): string {
@@ -333,6 +349,11 @@ const LEGACY_PROMPT_ROLE_FIELDS_ACU: Partial<Record<WorldSimulationAgentName_ACU
   'undercurrent-analyst': { description: '推演维度压力与暗流种子生命周期的幕后演变', writableModules: ['dimensions', 'seeds'] },
   'dramatis-keeper': { description: '推演行动者信息边界与玩家位置接触的幕后演变', writableModules: ['actors', 'player'] },
   'guidance-composer': { description: '通读全量账本、锚点正文与玩家信息边界，决定哪些事实以何语态进入台面投影', writableModules: ['guidance'] },
+  // 以下角色的描述原先直接取自目录；目录改为越南语后，历史默认需要冻结当时的中文描述。
+  'causality-reviewer': { description: '审核幕后演变的时间、空间、因果、revision、权限与证据，不写入 guidance', writableModules: [] },
+  'lore-researcher': { description: '补充外部公开设定资料支撑幕后推演，不写入世界账本', writableModules: [] },
+  timekeeper: { description: '推演世界时钟的幕后推进，产出 clockAdvance 候选', writableModules: ['clock'] },
+  chronicler: { description: '综合暗流完结、人物结局与错过清扫，记录台面下重大事件并维护世界里正在传播的传闻', writableModules: ['chronicle', 'rumors'] },
 };
 
 function historicalPromptDefinition_ACU(name: WorldSimulationAgentName_ACU) {

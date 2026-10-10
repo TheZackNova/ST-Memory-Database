@@ -83,7 +83,7 @@ export function allocOrder_ACU(usedSet: Set<number>, preferred = 1, min = 1, max
     const o = findFirstFreeOrder_ACU(used, preferred, min, max);
     if (o === null) {
         logWarn_ACU(`[世界书Order] allocOrder 失败: 无可用 order, preferred=${preferred}, range=[${min},${max}]`);
-        throw new Error('无法分配可用的世界书条目 order（插入深度）');
+        throw new Error('Không thể cấp order (độ sâu chèn) khả dụng cho mục sổ thế giới');
     }
     used.add(o);
     logDebug_ACU(`[世界书Order] allocOrder: preferred=${preferred} -> 分配=${o}`);
@@ -113,7 +113,7 @@ export function allocConsecutiveOrderBlock_ACU(usedSet: Set<number>, blockSize: 
 
     let s = tryFrom(start);
     if (s === null) s = tryFrom(min);
-    if (s === null) throw new Error('无法分配连续的世界书条目 order 区间');
+    if (s === null) throw new Error('Không thể cấp dải order liên tục cho mục sổ thế giới');
 
     for (let i = 0; i < size; i++) used.add(s + i);
     return s;

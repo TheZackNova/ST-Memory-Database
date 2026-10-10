@@ -1,6 +1,6 @@
 import { sha256HexSync_ACU } from '../../../shared/sha256-sync';
 import {
-  formatWorldSimulationLedgerRequiredFields_ACU,
+  formatWorldSimulationLedgerRequiredFieldsVi_ACU,
   type WorldCollisionReport_ACU,
   type WorldSimulationLedger_ACU,
   type WorldSimulationLedgerModule_ACU,
@@ -165,8 +165,8 @@ function fixesForAgent_ACU(ledger: WorldSimulationLedger_ACU, agentName: string)
 }
 
 function formatFixes_ACU(fixes: readonly WorldSimulationPendingFix_ACU[]): string {
-  if (!fixes.length) return '无';
-  return fixes.map(item => `${item.module} 第 ${item.attempts} 次：${item.violations.map(violation => `${violation.path}: ${violation.message}`).join('；') || item.lastError}`).join(' | ');
+  if (!fixes.length) return 'Không có';
+  return fixes.map(item => `${item.module} lần ${item.attempts}: ${item.violations.map(violation => `${violation.path}: ${violation.message}`).join('; ') || item.lastError}`).join(' | ');
 }
 
 function instructionFor_ACU(
@@ -178,10 +178,10 @@ function instructionFor_ACU(
   const modules = targetModules ?? findWorldSimulationAgentDefinition_ACU(agentName)?.writableModules ?? [];
   const fixes = fixesForAgent_ACU(ledger, agentName);
   const lines = [
-    `本轮焦点：${focus}`,
-    `只维护这些模块：${modules.join(', ') || '无'}。正文里已经发生或已经变化的事实，直接 upsert 到自己的模块。`,
-    `本模块待修复：${formatFixes_ACU(fixes)}`,
-    formatWorldSimulationLedgerRequiredFields_ACU(),
+    `Tiêu điểm lượt này: ${focus}`,
+    `Chỉ bảo trì các module sau: ${modules.join(', ') || 'Không có'}. Những sự kiện đã xảy ra hoặc đã thay đổi trong chính văn thì upsert thẳng vào module của mình.`,
+    `Module này cần sửa: ${formatFixes_ACU(fixes)}`,
+    formatWorldSimulationLedgerRequiredFieldsVi_ACU(),
   ];
   return lines.join('\n');
 }
@@ -307,7 +307,7 @@ function recordWorkflowIssues_ACU(
         violations: moduleIssues.map(issue => ({ path: issue.path, message: issue.message })),
         attempts: (previous?.attempts ?? 0) + 1,
         firstFailedAtDay: previous?.firstFailedAtDay ?? ledger.clock.day,
-        lastError: moduleIssues.map(issue => issue.message).join('；'),
+        lastError: moduleIssues.map(issue => issue.message).join('; '),
         source: moduleIssues[0]?.source ?? 'protocol_failed',
         completion: acceptedKeys.length ? 'partial' : 'failed',
         acceptedKeys: [...new Set([...(previous?.acceptedKeys ?? []), ...acceptedKeys])],
@@ -437,7 +437,7 @@ async function applyOneShotCandidates_ACU(
       const expectedModules = new Set(batch.flatMap(candidateModules_ACU));
       if (incomplete.length || [...expectedModules].some(module => !preview.appliedModules.includes(module))) {
         rejected.push(failedOutcome_ACU(candidate.agentName,
-          `整组候选未完整应用：${incomplete.map(fix => `${fix.module}: ${fix.lastError}`).join('；') || [...expectedModules].filter(module => !preview.appliedModules.includes(module)).join('、')}`,
+          `Cả nhóm ứng viên chưa được áp dụng đầy đủ: ${incomplete.map(fix => `${fix.module}: ${fix.lastError}`).join('; ') || [...expectedModules].filter(module => !preview.appliedModules.includes(module)).join(', ')}`,
           'transaction_rejected', required));
         continue;
       }
@@ -597,7 +597,7 @@ export async function runWorldSimulationWorkflow_ACU(input: WorldSimulationWorkf
   if (input.anchorMaterialsCommitted && anchorMaterialsComplete_ACU(base)) {
     return {
       outcome: 'no_change',
-      summary: '正文指纹未变且所有预期资料模块均已完成，整轮跳过',
+      summary: 'Dấu vân tay chính văn không đổi và mọi module tài liệu dự kiến đều đã hoàn tất, bỏ qua cả lượt',
       outcomes,
       finalProjection: { content: buildWorldSimulationProjection_ACU(base, input.settings.projection.template), sourceAgent: 'current-ledger', sourceRevision: base.revision, deliverable: true },
       pendingFixes: [],
@@ -700,10 +700,10 @@ export async function runWorldSimulationWorkflow_ACU(input: WorldSimulationWorkf
   ledger = { ...ledger, materialCompletion };
   const escalated = ledger.pendingFixes.length > 0;
   const summary = escalated
-    ? `工作流完成，仍有待修复模块需要主会话处理：${ledger.pendingFixes.map(item => `${item.module}(${item.attempts})`).join('、')}`
+    ? `Quy trình đã hoàn tất, vẫn còn module cần sửa do phiên chính xử lý: ${ledger.pendingFixes.map(item => `${item.module}(${item.attempts})`).join(', ')}`
     : accepted.length
-      ? `固定工作流已处理 ${accepted.length} 个候选`
-      : '固定工作流没有产生账本变更';
+      ? `Quy trình cố định đã xử lý ${accepted.length} ứng viên`
+      : 'Quy trình cố định không tạo thay đổi sổ cái';
   const evidenceRefs = [...new Set(accepted.flatMap(item => item.evidenceRefs))];
   const finalProjection = {
     content: buildWorldSimulationProjection_ACU(ledger, input.settings.projection.template),
@@ -749,7 +749,7 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
   const base = cloneLedger_ACU(requireLedger_ACU(input.readCurrent?.() ?? input.promptContext.worldState));
   const outcomes: WorldSimulationSubagentOutcome_ACU[] = [];
   if (input.anchorMaterialsCommitted && anchorMaterialsComplete_ACU(base)) {
-    return { outcome: 'no_change', summary: '正文指纹未变且资料模块已经完成', outcomes,
+    return { outcome: 'no_change', summary: 'Dấu vân tay chính văn không đổi và các module tài liệu đã hoàn tất', outcomes,
       pendingFixes: [], escalated: false, ledger: base,
       finalProjection: { content: buildWorldSimulationProjection_ACU(base, input.settings.projection.template), sourceAgent: 'current-ledger', sourceRevision: base.revision, deliverable: true } };
   }
@@ -773,12 +773,12 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
       : modulesForAgent_ACU(role).filter(module => !skip.has(module) && (!requested || requested.has(module)));
     targets.forEach(module => expected.add(module));
     if (input.isCurrent && !input.isCurrent()) throw new Error('WORLD_SIMULATION_RUN_STALE');
-    const label = role === 'undercurrent-analyst' ? '批次一：时序与伏线'
-      : role === 'dramatis-keeper' ? '批次一：人物谱'
-        : seq > 2 ? `碰撞修正：场外信号（第 ${seq - 2} 次）` : '批次二：纪要、风声与场外信号';
+    const label = role === 'undercurrent-analyst' ? 'Lô một: trình tự thời gian và phục bút'
+      : role === 'dramatis-keeper' ? 'Lô một: danh bạ nhân vật'
+        : seq > 2 ? `Sửa va chạm: tín hiệu ngoài màn (lần ${seq - 2})` : 'Lô hai: kỷ yếu, phong thanh và tín hiệu ngoài màn';
     const entryKey = `${role}:${seq}`;
     const entryId = logWorldSimulationSession_ACU(input.identity.chatIdentity, {
-      kind: 'delegation', title: `${label}正在执行`, agentName: role, status: 'running',
+      kind: 'delegation', title: `${label} đang thực thi`, agentName: role, status: 'running',
     });
     entries.set(entryKey, { entryId, label });
     let state: 'done' | 'failed' | 'running' = 'failed';
@@ -802,7 +802,7 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
       return failedOutcome_ACU(role, error, 'invoke_failed', targets);
     } finally {
       updateWorldSimulationSession_ACU(input.identity.chatIdentity, entryId, {
-        title: `${label}${state === 'done' ? '已完成' : state === 'running' ? '待事务校验' : '未完整完成'}`,
+        title: `${label} ${state === 'done' ? 'đã hoàn tất' : state === 'running' ? 'chờ kiểm tra giao dịch' : 'chưa hoàn tất đầy đủ'}`,
         ok: state === 'done', status: state,
       });
     }
@@ -813,7 +813,7 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
     if (!entry) return;
     const ok = acceptedCandidates.some(item => item.candidateId === outcome.candidate?.candidateId);
     updateWorldSimulationSession_ACU(input.identity.chatIdentity, entry.entryId, {
-      title: `${entry.label}${ok ? '已通过事务校验' : '事务校验失败'}`,
+      title: `${entry.label} ${ok ? 'đã qua kiểm tra giao dịch' : 'kiểm tra giao dịch thất bại'}`,
       ok, status: ok ? 'done' : 'failed',
     });
   };
@@ -825,7 +825,7 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
   let ledger = primary.ledger;
   const accepted = [...primary.accepted];
   const changes: string[] = [];
-  if (base.clock.day !== ledger.clock.day || base.clock.storyTime !== ledger.clock.storyTime) changes.push(`clock：第 ${base.clock.day} 日 → 第 ${ledger.clock.day} 日，${ledger.clock.storyTime}`);
+  if (base.clock.day !== ledger.clock.day || base.clock.storyTime !== ledger.clock.storyTime) changes.push(`clock: ngày ${base.clock.day} → ngày ${ledger.clock.day}, ${ledger.clock.storyTime}`);
   for (const module of ['dimensions', 'seeds', 'actors', 'rumors'] as const) {
     const before = new Map(base[module].map(row => [row.id, JSON.stringify(row)]));
     for (const row of ledger[module]) if (before.get(row.id) !== JSON.stringify(row)) {
@@ -833,15 +833,15 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
       changes.push(`${module} ${row.id}：${title}${'status' in row ? ` (${row.status})` : 'life' in row ? ` (${row.life})` : ''}`);
     }
     const after = new Set(ledger[module].map(row => row.id));
-    for (const id of before.keys()) if (!after.has(id)) changes.push(`${module} ${id}：删除`);
+    for (const id of before.keys()) if (!after.has(id)) changes.push(`${module} ${id}: xóa`);
   }
   if (JSON.stringify(base.player) !== JSON.stringify(ledger.player)) changes.push(`player：${JSON.stringify(ledger.player.location)} / ${ledger.player.contact}`);
   const secondTargets = !requested || ['chronicle', 'rumors', 'guidance'].some(module => requested.has(module as WorldSimulationLedgerModule_ACU));
-  const roundChangesText = changes.slice(0, 40).join('\n') || '本轮批次一无新增变更';
+  const roundChangesText = changes.slice(0, 40).join('\n') || 'Lô một của lượt này không có thay đổi mới';
   const guidanceWritable = !skip.has('guidance') && (!requested || requested.has('guidance'));
   // 〈与此同时〉每轮必写：批次二不再以批次一有无变更为门控，每轮都依据最新正文重新分析场外信号。
   // 场外信号是写给后续剧情的引导提示，不是正文补写；大变局时逐轮牵引。
-  const projectionDirective = '【本轮场外信号要求】每轮都必须依据本轮锚点正文与最新账本重新判断：剧情视角下一步快要碰到账本里的哪些事、世界大势正把故事往哪里推，并写成给后续剧情的引导提示，不写景物或旁白式的补充描写。signals 整列替换，至少 1 条，跟随剧情位置与人物变化更新；存在大变局时至少一条 ambient 指向它，并在上一轮基础上推进一步；删去已被正文写出、过时或不可达的旧信号；即使批次一无变更也必须提交 guidance，不得以无变化跳过。';
+  const projectionDirective = '【Yêu cầu tín hiệu ngoài màn của lượt này】Mỗi lượt đều phải đánh giá lại dựa trên chính văn neo của lượt này và sổ cái mới nhất: theo góc nhìn cốt truyện, bước tiếp theo sắp chạm tới những việc nào trong sổ cái, xu thế lớn của thế giới đang đẩy câu chuyện về đâu, và viết thành gợi ý dẫn dắt cho cốt truyện về sau, không viết miêu tả cảnh vật hay bổ sung kiểu lời dẫn. signals thay thế cả danh sách, ít nhất 1 mục, cập nhật theo vị trí cốt truyện và thay đổi của nhân vật; khi có biến cục lớn thì ít nhất một mục ambient trỏ tới nó và tiến thêm một bước so với lượt trước; xóa các tín hiệu cũ đã được chính văn viết ra, lỗi thời hoặc không thể chạm tới; ngay cả khi lô một không có thay đổi cũng phải nộp guidance, không được bỏ qua với lý do không đổi.';
   let lastRejection = '';
   // composer 调用本身失败（运行时已做过协议修正）时不再追加修正轮；只对偷懒无变化、事务拒绝、空信号与碰撞未兑现回灌。
   let composerFailed = false;
@@ -855,7 +855,7 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
       accepted.splice(0, accepted.length, ...preview.accepted);
       settleCandidate(second, preview.accepted, 2);
       outcomes.push(...preview.rejected);
-      lastRejection = preview.rejected.map(item => item.summary).join('；');
+      lastRejection = preview.rejected.map(item => item.summary).join('; ');
     } else {
       lastRejection = second.summary;
       composerFailed = second.status === 'failed' || second.status === 'blocked';
@@ -868,8 +868,8 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
   const projectionViolations = (): string[] => {
     const issues: string[] = [];
     const submitted = accepted.some(item => item.agentName === 'guidance-composer' && Object.prototype.hasOwnProperty.call(item.patch, 'guidance'));
-    if (!submitted) issues.push('本轮没有通过事务校验的 guidance：每轮必须重新分析并整列提交 signals');
-    else if (!ledger.guidance.signals.length) issues.push('本轮 guidance.signals 为空：至少需要 1 条贴合当前剧情的场外信号');
+    if (!submitted) issues.push('Lượt này không có guidance nào qua kiểm tra giao dịch: mỗi lượt phải phân tích lại và nộp cả danh sách signals');
+    else if (!ledger.guidance.signals.length) issues.push('guidance.signals của lượt này rỗng: cần ít nhất 1 tín hiệu ngoài màn bám sát cốt truyện hiện tại');
     if (strictCollision) issues.push(...assertCollisionFulfillment_ACU(collisionReport!, ledger.guidance, ledger));
     return issues;
   };
@@ -883,13 +883,13 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
       const feedback = [
         roundChangesText,
         projectionDirective,
-        `【场外信号未通过·第 ${attempt} 次修正】${violations.join('；')}`,
-        lastRejection ? `【上次提交未通过的原因】${lastRejection}` : '',
+        `【Tín hiệu ngoài màn không đạt - sửa lần ${attempt}】${violations.join('; ')}`,
+        lastRejection ? `【Lý do lần nộp trước không đạt】${lastRejection}` : '',
         requiredSeeds.length
-          ? `【本轮全部碰撞种子】${requiredSeeds.join('、')}：提交后的 signals 里每个都要各有一条 voice=encounter、sourceId 等于该种子 ID 的信号；已经兑现的那几条原样保留，碰撞 encounter 不受每轮条数上限限制。`
+          ? `【Toàn bộ hạt giống va chạm của lượt này】${requiredSeeds.join(', ')}: trong signals sau khi nộp, mỗi hạt giống đều phải có một tín hiệu với voice=encounter và sourceId bằng ID hạt giống đó; các tín hiệu đã thực hiện thì giữ nguyên, encounter va chạm không bị giới hạn số lượng mỗi lượt.`
           : '',
-        `【当前已生效的 signals】${JSON.stringify(ledger.guidance.signals)}`,
-        '只修正 guidance：signals 是整列替换，在当前已生效的 signals 基础上增删，仍成立的信号一并写回；移除泄露 latent/dead 传闻的信号。不要改纪要与风声。',
+        `【signals đang có hiệu lực】${JSON.stringify(ledger.guidance.signals)}`,
+        'Chỉ sửa guidance: signals thay thế cả danh sách, hãy thêm/bớt trên cơ sở signals đang có hiệu lực, các tín hiệu vẫn còn đúng thì ghi lại cùng; loại bỏ tín hiệu làm lộ tin đồn latent/dead. Không sửa kỷ yếu và phong thanh.',
       ].filter(Boolean).join('\n');
       const fix = await call('guidance-composer', ledger, seq, feedback, ['guidance']);
       outcomes.push(fix);
@@ -903,7 +903,7 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
       settleCandidate(fix, preview.accepted, seq);
       outcomes.push(...preview.rejected);
       if (!preview.accepted.some(item => item.candidateId === fixId)) {
-        lastRejection = preview.rejected.map(item => item.summary).join('；');
+        lastRejection = preview.rejected.map(item => item.summary).join('; ');
         continue;
       }
       ledger = preview.ledger;
@@ -913,9 +913,9 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
     }
     // 修正耗尽：以 guidance 模块级缺口显式落账，不伪装成无变化。碰撞 encounter 缺口与泄露信号
     // 由提交管线按 strict 规则程序补齐/删除（repairCollisionSignals_ACU），不再记成失败。
-    const unresolved = violations.filter(item => !/^碰撞种子 \S+ 缺少 encounter 信号$|^信号泄露了 /.test(item));
+    const unresolved = violations.filter(item => !/^Hạt giống va chạm \S+ thiếu tín hiệu encounter$|^Tín hiệu làm lộ tin đồn /.test(item));
     if (unresolved.length) {
-      outcomes.push(failedOutcome_ACU('guidance-composer', `场外信号修正耗尽：${unresolved.join('；')}`, 'protocol_failed', ['guidance']));
+      outcomes.push(failedOutcome_ACU('guidance-composer', `Hết lượt sửa tín hiệu ngoài màn: ${unresolved.join('; ')}`, 'protocol_failed', ['guidance']));
     }
   }
   ledger = recordWorkflowIssues_ACU(ledger, outcomes, input.identity);
@@ -928,8 +928,8 @@ export async function runWorldSimulationOneShotWorkflow_ACU(
   const failures = outcomes.filter(item => (item.status === 'failed' || item.status === 'blocked') && !(item.unresolvedIssues?.length));
   const reasons = [...ledger.pendingFixes.map(fix => `${fix.module}(${fix.lastError})`),
     ...failures.map(item => `${item.agentName}(${item.summary})`)];
-  const summary = blocked ? `资料维护失败：${reasons.join('、')}`
-    : accepted.length ? `固定工作流已处理 ${accepted.length} 个候选` : '固定工作流没有产生账本变更';
+  const summary = blocked ? `Bảo trì tài liệu thất bại: ${reasons.join(', ')}`
+    : accepted.length ? `Quy trình cố định đã xử lý ${accepted.length} ứng viên` : 'Quy trình cố định không tạo thay đổi sổ cái';
   return { outcome: blocked ? 'blocked' : accepted.length ? 'commit' : 'no_change', summary,
     outcomes, pendingFixes: ledger.pendingFixes, escalated: false, ledger,
     finalProjection: { content: buildWorldSimulationProjection_ACU(ledger, input.settings.projection.template),

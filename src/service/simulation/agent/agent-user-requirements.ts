@@ -24,7 +24,7 @@ import {
 } from './agent-model';
 
 /** 与续写 `AGENT_RESUME_KEYWORD_ACU` 对齐，并包含验收要求的「开始」。 */
-export const WORLD_SIMULATION_RESUME_KEYWORD_ACU = /^(继续|开始|恢复(?:任务)?|resume|continue)$/i;
+export const WORLD_SIMULATION_RESUME_KEYWORD_ACU = /^(继续|开始|恢复(?:任务)?|resume|continue|tiếp tục|bắt đầu|khôi phục)$/i;
 const LINE_CHAR_LIMIT_ACU = 8000;
 
 function isRecord_ACU(value: unknown): value is Record<string, unknown> {
@@ -66,14 +66,14 @@ export function emptyWorldSimulationUserRequirementsSnapshot_ACU(): WorldSimulat
 }
 
 export function validateWorldSimulationUserRequirementsSnapshot_ACU(raw: unknown): WorldSimulationUserRequirementsSnapshot_ACU {
-  if (!isRecord_ACU(raw)) reject_ACU('用户要求快照必须是对象');
+  if (!isRecord_ACU(raw)) reject_ACU('Snapshot yêu cầu của người dùng phải là đối tượng');
   const allowed = new Set(['schemaVersion', 'requirements', 'updatedAt']);
-  for (const key of allowed) if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU(`用户要求快照缺少字段：${key}`);
-  for (const key of Object.keys(raw)) if (!allowed.has(key)) reject_ACU(`用户要求快照存在未知字段：${key}`);
-  if (raw.schemaVersion !== WORLD_SIMULATION_USER_REQUIREMENTS_SCHEMA_VERSION_ACU) reject_ACU('用户要求快照 schemaVersion 非法');
-  if (typeof raw.updatedAt !== 'number' || !Number.isInteger(raw.updatedAt) || raw.updatedAt < 0) reject_ACU('用户要求快照 updatedAt 非法');
+  for (const key of allowed) if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU(`Snapshot yêu cầu của người dùng thiếu trường: ${key}`);
+  for (const key of Object.keys(raw)) if (!allowed.has(key)) reject_ACU(`Snapshot yêu cầu của người dùng có trường không xác định: ${key}`);
+  if (raw.schemaVersion !== WORLD_SIMULATION_USER_REQUIREMENTS_SCHEMA_VERSION_ACU) reject_ACU('schemaVersion của snapshot yêu cầu người dùng không hợp lệ');
+  if (typeof raw.updatedAt !== 'number' || !Number.isInteger(raw.updatedAt) || raw.updatedAt < 0) reject_ACU('updatedAt của snapshot yêu cầu người dùng không hợp lệ');
   const requirements = normalizeWorldSimulationUserRequirementLines_ACU(raw.requirements);
-  if (requirements === null) reject_ACU('用户要求必须是字符串数组，且每条 trim 后非空、不超过字数上限');
+  if (requirements === null) reject_ACU('Yêu cầu của người dùng phải là mảng chuỗi, mỗi mục sau khi trim phải không rỗng và không vượt quá giới hạn ký tự');
   return {
     schemaVersion: WORLD_SIMULATION_USER_REQUIREMENTS_SCHEMA_VERSION_ACU,
     requirements,
@@ -89,7 +89,7 @@ export function renderWorldSimulationUserRequirements_ACU(
   const lines = snapshot?.requirements.length
     ? snapshot.requirements
     : (fallback && !isMechanicalWorldSimulationResumeText_ACU(fallback) ? [fallback] : []);
-  if (!lines.length) return '（用户尚未提出任务要求）';
+  if (!lines.length) return '(Người dùng chưa đưa ra yêu cầu nhiệm vụ)';
   return lines.map(line => `- ${line}`).join('\n');
 }
 
@@ -105,7 +105,7 @@ export function readLatestWorldSimulationUserRequirements_ACU(chat?: any[]): Wor
     try {
       anchor = resolveWorldSimulationAnchor_ACU(index, messages);
     } catch (error) {
-      diagnostics.push(`楼层 ${index}: ${error instanceof Error ? error.message : String(error)}`);
+      diagnostics.push(`Tầng ${index}: ${error instanceof Error ? error.message : String(error)}`);
       continue;
     }
     try {
@@ -118,12 +118,12 @@ export function readLatestWorldSimulationUserRequirements_ACU(chat?: any[]): Wor
       if (snapshot) return { snapshot, diagnostics, adoptedIndex: index };
     } catch (error) {
       sawBrokenSnapshot = true;
-      diagnostics.push(`楼层 ${index}: ${error instanceof Error ? error.message : String(error)}`);
+      diagnostics.push(`Tầng ${index}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   if (sawBrokenSnapshot) {
-    diagnostics.push('当前有效分支存在用户要求字段，但没有任何候选通过严格校验。');
+    diagnostics.push('Nhánh hiệu lực hiện tại có trường yêu cầu của người dùng, nhưng không có ứng viên nào vượt qua kiểm tra nghiêm ngặt.');
   }
   return { snapshot: null, diagnostics, adoptedIndex: null };
 }
@@ -134,7 +134,7 @@ export async function writeWorldSimulationUserRequirementsSnapshot_ACU(
   chat?: any[],
 ): Promise<WorldSimulationUserRequirementsSnapshot_ACU> {
   const normalized = normalizeWorldSimulationUserRequirementLines_ACU([...requirements]);
-  if (normalized === null) reject_ACU('用户要求必须是字符串数组，且每条 trim 后非空、不超过字数上限', undefined, 'persist');
+  if (normalized === null) reject_ACU('Yêu cầu của người dùng phải là mảng chuỗi, mỗi mục sau khi trim phải không rỗng và không vượt quá giới hạn ký tự', undefined, 'persist');
   const snapshot: WorldSimulationUserRequirementsSnapshot_ACU = {
     schemaVersion: WORLD_SIMULATION_USER_REQUIREMENTS_SCHEMA_VERSION_ACU,
     requirements: normalized,
@@ -184,10 +184,10 @@ export async function replaceWorldSimulationUserRequirementsByUser_ACU(
     }
     return null;
   })();
-  if (!resolved) reject_ACU('当前聊天没有可承载用户要求快照的 assistant 楼层', undefined, 'persist');
+  if (!resolved) reject_ACU('Cuộc trò chuyện hiện tại không có tầng assistant nào để chứa snapshot yêu cầu của người dùng', undefined, 'persist');
   const normalized = normalizeWorldSimulationUserRequirementLines_ACU(raw);
   if (normalized === null) {
-    reject_ACU('用户要求必须是字符串数组，例如 ["不要提前揭底牌","继续用第一人称"]；空串或非字符串条目会整份拒绝', undefined, 'persist');
+    reject_ACU('Yêu cầu của người dùng phải là mảng chuỗi, ví dụ ["Đừng tiết lộ bài tẩy quá sớm","Tiếp tục dùng ngôi thứ nhất"]; chuỗi rỗng hoặc mục không phải chuỗi sẽ khiến cả danh sách bị từ chối', undefined, 'persist');
   }
   return writeWorldSimulationUserRequirementsSnapshot_ACU(resolved, normalized, messages);
 }

@@ -40,13 +40,13 @@ describe('buildFlightModeBigSummarySheet_ACU', () => {
   it('以不可变、连续且完整归纳的契约约束大总结新增', () => {
     const sheet = buildFlightModeBigSummarySheet_ACU(chronicle, { sheet_chronicle: chronicle });
 
-    expect(sheet.sourceData.note).toContain(`达到 ${RECENT_CHRONICLE_ROWS_PLACEHOLDER_ACU} 条`);
-    expect(sheet.sourceData.note).toContain('全部可见纪要');
-    expect(sheet.sourceData.note).toContain('辑连贯');
-    expect(sheet.sourceData.insertNode).toContain(`达到 ${RECENT_CHRONICLE_ROWS_PLACEHOLDER_ACU} 条`);
-    expect(sheet.sourceData.insertNode).toContain('全部可见内容');
-    expect(sheet.sourceData.updateNode).toContain('禁止修改');
-    expect(sheet.sourceData.deleteNode).toContain('禁止删除');
+    expect(sheet.sourceData.note).toContain(`đạt ${RECENT_CHRONICLE_ROWS_PLACEHOLDER_ACU} mục`);
+    expect(sheet.sourceData.note).toContain('toàn bộ kỷ yếu đang hiển thị');
+    expect(sheet.sourceData.note).toContain('mạch lạc về trình tự thời gian');
+    expect(sheet.sourceData.insertNode).toContain(`đạt ${RECENT_CHRONICLE_ROWS_PLACEHOLDER_ACU} mục`);
+    expect(sheet.sourceData.insertNode).toContain('toàn bộ nội dung đang hiển thị');
+    expect(sheet.sourceData.updateNode).toContain('Cấm sửa');
+    expect(sheet.sourceData.deleteNode).toContain('Cấm xóa');
   });
 
   it('不会命中既有纪要/总结特判，且物理表名不与既有表冲突', () => {

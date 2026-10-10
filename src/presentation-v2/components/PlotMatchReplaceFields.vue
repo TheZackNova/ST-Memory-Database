@@ -1,8 +1,8 @@
 <template>
   <fieldset class="acu-v2-plot-match-fields">
-    <legend>匹配替换（进阶）</legend>
+    <legend>Khớp và thay thế (nâng cao)</legend>
     <AcuText variant="hint" class="acu-v2-plot-match-fields__hint">
-      替换提示词占位符（sulv1~4、zhaohui），随当前剧情推进预设保存；导出 JSON 时默认值会自动省略。
+      Thay thế placeholder của prompt (sulv1~4, zhaohui), được lưu theo preset đẩy cốt truyện hiện tại; khi xuất JSON, giá trị mặc định sẽ tự động được lược bỏ.
     </AcuText>
     <div class="acu-v2-plot-match-fields__grid">
       <AcuFormRow label="sulv1">

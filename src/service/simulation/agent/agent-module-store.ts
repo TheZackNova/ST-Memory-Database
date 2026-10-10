@@ -24,21 +24,21 @@ function reject_ACU(message: string, details?: Record<string, unknown>): never {
 
 function validateEvidenceRefs_ACU(value: unknown): string[] {
   if (!Array.isArray(value) || value.some(item => typeof item !== 'string' || !item.trim())) {
-    reject_ACU('材料快照 evidenceRefs 必须是非空字符串数组');
+    reject_ACU('evidenceRefs của snapshot tài liệu phải là mảng chuỗi không rỗng');
   }
   return [...value] as string[];
 }
 
 export function validateWorldSimulationMaterialsSnapshot_ACU(raw: unknown): WorldSimulationMaterialsSnapshot_ACU {
-  if (!isRecord_ACU(raw)) reject_ACU('格林推演材料快照必须是对象');
+  if (!isRecord_ACU(raw)) reject_ACU('Snapshot tài liệu mô phỏng thế giới phải là đối tượng');
   const allowed = new Set(['schemaVersion', 'ledgerRevision', 'ledger', 'evidenceRefs', 'updatedAt']);
-  for (const key of allowed) if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU(`材料快照缺少字段：${key}`);
-  for (const key of Object.keys(raw)) if (!allowed.has(key)) reject_ACU(`材料快照存在未知字段：${key}`);
-  if (raw.schemaVersion !== WORLD_SIMULATION_MATERIALS_SCHEMA_VERSION_ACU) reject_ACU('材料快照 schemaVersion 非法');
-  if (typeof raw.ledgerRevision !== 'number' || !Number.isInteger(raw.ledgerRevision) || raw.ledgerRevision < 0) reject_ACU('材料快照 ledgerRevision 非法');
-  if (typeof raw.updatedAt !== 'number' || !Number.isInteger(raw.updatedAt) || raw.updatedAt < 0) reject_ACU('材料快照 updatedAt 非法');
+  for (const key of allowed) if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU(`Snapshot tài liệu thiếu trường: ${key}`);
+  for (const key of Object.keys(raw)) if (!allowed.has(key)) reject_ACU(`Snapshot tài liệu có trường không xác định: ${key}`);
+  if (raw.schemaVersion !== WORLD_SIMULATION_MATERIALS_SCHEMA_VERSION_ACU) reject_ACU('schemaVersion của snapshot tài liệu không hợp lệ');
+  if (typeof raw.ledgerRevision !== 'number' || !Number.isInteger(raw.ledgerRevision) || raw.ledgerRevision < 0) reject_ACU('ledgerRevision của snapshot tài liệu không hợp lệ');
+  if (typeof raw.updatedAt !== 'number' || !Number.isInteger(raw.updatedAt) || raw.updatedAt < 0) reject_ACU('updatedAt của snapshot tài liệu không hợp lệ');
   const ledger = validateWorldSimulationLedger_ACU(raw.ledger, 'agent_persist');
-  if (ledger.revision !== raw.ledgerRevision) reject_ACU('材料快照 ledgerRevision 与账本不一致');
+  if (ledger.revision !== raw.ledgerRevision) reject_ACU('ledgerRevision của snapshot tài liệu không khớp với sổ cái');
   return { schemaVersion: WORLD_SIMULATION_MATERIALS_SCHEMA_VERSION_ACU, ledgerRevision: raw.ledgerRevision, ledger, evidenceRefs: validateEvidenceRefs_ACU(raw.evidenceRefs), updatedAt: raw.updatedAt };
 }
 
@@ -87,7 +87,7 @@ export function readLatestWorldSimulationMaterials_ACU(chat?: any[]): WorldSimul
     try {
       anchor = resolveWorldSimulationAnchor_ACU(index, messages);
     } catch (error) {
-      diagnostics.push(`楼层 ${index}: ${error instanceof Error ? error.message : String(error)}`);
+      diagnostics.push(`Tầng ${index}: ${error instanceof Error ? error.message : String(error)}`);
       continue;
     }
 
@@ -103,12 +103,12 @@ export function readLatestWorldSimulationMaterials_ACU(chat?: any[]): WorldSimul
       }
     } catch (error) {
       sawBrokenSnapshot = true;
-      diagnostics.push(`楼层 ${index}: ${error instanceof Error ? error.message : String(error)}`);
+      diagnostics.push(`Tầng ${index}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   if (sawBrokenSnapshot) {
-    diagnostics.push('当前有效分支存在材料快照字段，但没有任何候选通过严格校验。');
+    diagnostics.push('Nhánh hiệu lực hiện tại có trường snapshot tài liệu, nhưng không có ứng viên nào vượt qua kiểm tra nghiêm ngặt.');
   }
   return { snapshot: null, diagnostics, adoptedIndex: null };
 }
@@ -123,7 +123,7 @@ export async function writeWorldSimulationMaterialsSnapshot_ACU(
 ): Promise<void> {
   const validatedLedger = validateWorldSimulationLedger_ACU(ledger, 'agent_persist');
   const unauthorized = findUnauthorizedWorldSimulationEvidenceRefs_ACU(evidenceRefs, evidenceRegistry);
-  if (unauthorized.length) reject_ACU('材料快照包含当前 run 未授权 evidenceRefs', { unauthorized });
+  if (unauthorized.length) reject_ACU('Snapshot tài liệu chứa evidenceRefs chưa được ủy quyền cho run hiện tại', { unauthorized });
   const snapshot: WorldSimulationMaterialsSnapshot_ACU = {
     schemaVersion: WORLD_SIMULATION_MATERIALS_SCHEMA_VERSION_ACU,
     ledgerRevision: validatedLedger.revision,

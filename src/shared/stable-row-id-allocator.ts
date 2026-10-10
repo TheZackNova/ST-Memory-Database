@@ -30,7 +30,7 @@ export function allocateStableRowId_ACU(reserved: Set<string>): string {
     }
   }
   if (maxRowId >= Number.MAX_SAFE_INTEGER) {
-    throw new Error('无法分配 row_id：已达到正安全整数上限。');
+    throw new Error('Không thể cấp phát row_id: đã đạt giới hạn số nguyên an toàn dương.');
   }
   const rowId = String(maxRowId + 1);
   reserved.add(rowId);

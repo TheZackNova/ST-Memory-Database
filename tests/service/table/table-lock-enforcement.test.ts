@@ -241,9 +241,9 @@ describe('formatLockRevertSummary_ACU', () => {
       { sheetKey: 'sheet_0', tableName: '背包', kind: 'row_restored', rowId: 'r2' },
       { sheetKey: 'sheet_0', tableName: '背包', kind: 'column_restored', colName: '备注' },
     ]);
-    expect(summary).toContain('锁定保护已回滚 3 处修改');
-    expect(summary).toContain('背包 行 r1 列「数量」已恢复（值被修改）');
-    expect(summary).toContain('背包 行 r2 已恢复（行被删除）');
-    expect(summary).toContain('背包 列「备注」已恢复（列被删除）');
+    expect(summary).toContain('Bảo vệ khóa đã hoàn tác 3 thay đổi');
+    expect(summary).toContain('背包 hàng r1 cột「数量」đã được khôi phục (giá trị bị sửa)');
+    expect(summary).toContain('背包 hàng r2 đã được khôi phục (hàng bị xóa)');
+    expect(summary).toContain('背包 cột「备注」đã được khôi phục (cột bị xóa)');
   });
 });

@@ -53,7 +53,7 @@ import {
       }
       
       if (!_acuVisState.currentSheetKey) {
-          $main.html('<div style="text-align:center; padding:50px; color:#888;">请选择一个表格</div>');
+          $main.html('<div style="text-align:center; padding:50px; color:#888;">Hãy chọn một bảng</div>');
           return;
       }
       
@@ -66,7 +66,7 @@ import {
           }
       }
       if (!sheet) {
-          $main.html('<div style="text-align:center; padding:50px; color:#888;">当前表格不可用，请重新选择或刷新数据。</div>');
+          $main.html('<div style="text-align:center; padding:50px; color:#888;">Bảng hiện tại không khả dụng, hãy chọn lại hoặc làm mới dữ liệu.</div>');
           return;
       }
 
@@ -85,39 +85,39 @@ import {
       const html = `
           <div class="acu-config-panel">
               <div class="acu-config-section">
-                  <h4>全局条目注入配置（跨表）</h4>
-                  <div class="acu-hint" style="margin-bottom:10px;">该配置独立于单表，跟随当前模板预设保存。</div>
+                  <h4>Cấu hình chèn mục toàn cục (liên bảng)</h4>
+                  <div class="acu-hint" style="margin-bottom:10px;">Cấu hình này độc lập với từng bảng, được lưu theo preset mẫu hiện tại.</div>
                   <div class="acu-form-group">
-                      <label>全局可读条目位置:</label>
+                      <label>Vị trí mục đọc được toàn cục:</label>
                       <select class="acu-form-input" id="cfg-global-readable-position">
-                          <option value="at_depth_as_system" ${readablePlacement.position === 'at_depth_as_system' ? 'selected' : ''}>系统</option>
-                          <option value="before_character_definition" ${readablePlacement.position === 'before_character_definition' ? 'selected' : ''}>角色定义前</option>
-                          <option value="after_character_definition" ${readablePlacement.position === 'after_character_definition' ? 'selected' : ''}>角色定义后</option>
+                          <option value="at_depth_as_system" ${readablePlacement.position === 'at_depth_as_system' ? 'selected' : ''}>Hệ thống</option>
+                          <option value="before_character_definition" ${readablePlacement.position === 'before_character_definition' ? 'selected' : ''}>Trước định nghĩa nhân vật</option>
+                          <option value="after_character_definition" ${readablePlacement.position === 'after_character_definition' ? 'selected' : ''}>Sau định nghĩa nhân vật</option>
                       </select>
                   </div>
                   <div class="acu-form-group">
-                      <label>全局可读条目插入深度 (Depth):</label>
+                      <label>Độ sâu chèn mục đọc được toàn cục (Depth):</label>
                       <input type="number" class="acu-form-input" id="cfg-global-readable-depth" step="1" value="${readablePlacement.depth}">
                   </div>
                   <div class="acu-form-group">
-                      <label>全局可读条目插入顺序 (Order):</label>
+                      <label>Thứ tự chèn mục đọc được toàn cục (Order):</label>
                       <input type="number" class="acu-form-input" id="cfg-global-readable-order" min="1" step="1" value="${readablePlacement.order}">
                   </div>
 
                   <div class="acu-form-group" style="margin-top:12px; padding-top:10px; border-top:1px dashed #ddd;">
-                      <label>全局包裹条目位置:</label>
+                      <label>Vị trí mục bao toàn cục:</label>
                       <select class="acu-form-input" id="cfg-global-wrapper-position">
-                          <option value="at_depth_as_system" ${wrapperPlacement.position === 'at_depth_as_system' ? 'selected' : ''}>系统</option>
-                          <option value="before_character_definition" ${wrapperPlacement.position === 'before_character_definition' ? 'selected' : ''}>角色定义前</option>
-                          <option value="after_character_definition" ${wrapperPlacement.position === 'after_character_definition' ? 'selected' : ''}>角色定义后</option>
+                          <option value="at_depth_as_system" ${wrapperPlacement.position === 'at_depth_as_system' ? 'selected' : ''}>Hệ thống</option>
+                          <option value="before_character_definition" ${wrapperPlacement.position === 'before_character_definition' ? 'selected' : ''}>Trước định nghĩa nhân vật</option>
+                          <option value="after_character_definition" ${wrapperPlacement.position === 'after_character_definition' ? 'selected' : ''}>Sau định nghĩa nhân vật</option>
                       </select>
                   </div>
                   <div class="acu-form-group">
-                      <label>全局包裹条目插入深度 (Depth):</label>
+                      <label>Độ sâu chèn mục bao toàn cục (Depth):</label>
                       <input type="number" class="acu-form-input" id="cfg-global-wrapper-depth" step="1" value="${wrapperPlacement.depth}">
                   </div>
                   <div class="acu-form-group">
-                      <label>全局包裹条目插入顺序 (Order):</label>
+                      <label>Thứ tự chèn mục bao toàn cục (Order):</label>
                       <input type="number" class="acu-form-input" id="cfg-global-wrapper-order" min="1" step="1" value="${wrapperPlacement.order}">
                   </div>
               </div>
@@ -169,7 +169,7 @@ import {
       html += `
           <div class="acu-data-card" style="justify-content:center; align-items:center; cursor:pointer; background:#f0f6ff; border:2px dashed #4a90e2;" id="acu-vis-add-row">
               <i class="fa-solid fa-plus" style="font-size:30px; color:#4a90e2;"></i>
-              <div style="margin-top:10px; color:#4a90e2; font-weight:bold;">添加新行</div>
+              <div style="margin-top:10px; color:#4a90e2; font-weight:bold;">Thêm hàng mới</div>
           </div>
       `;
 
@@ -179,7 +179,7 @@ import {
                       <div class="acu-card-header">
                           <span>#${rIdx + 1}</span>
                           <div style="display:flex; align-items:center; gap:8px;">
-                              <button class="acu-lock-btn acu-vis-lock-row ${rowLocked ? 'active' : ''}" data-idx="${rIdx}" title="锁定行（仅update）">
+                              <button class="acu-lock-btn acu-vis-lock-row ${rowLocked ? 'active' : ''}" data-idx="${rIdx}" title="Khóa hàng (chỉ update)">
                                   <i class="fa-solid ${rowLocked ? 'fa-lock' : 'fa-unlock'}"></i>
                               </button>
                               <button class="acu-vis-del-row" data-idx="${rIdx}" style="background:none; border:none; color:#e95e5e; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
@@ -195,16 +195,16 @@ import {
               const isSpecialIndex = (isSummaryTable && colIdx === specialIndexCol);
               const lockedClass = (rowLocked || colLocked || cellLocked || (isSpecialIndex && specialIndexLocked)) ? 'acu-locked-field' : '';
               const colLockButton = isSpecialIndex
-                  ? `<button class="acu-lock-btn special acu-vis-lock-special ${specialIndexLocked ? 'active' : ''}" data-col="${colIdx}" title="编码索引列特殊锁定">
+                  ? `<button class="acu-lock-btn special acu-vis-lock-special ${specialIndexLocked ? 'active' : ''}" data-col="${colIdx}" title="Khóa đặc biệt cột chỉ mục mã hóa">
                          <i class="fa-solid ${specialIndexLocked ? 'fa-lock' : 'fa-unlock'}"></i>
-                         <span>特锁</span>
+                         <span>Khóa ĐB</span>
                      </button>`
-                  : `<button class="acu-lock-btn acu-vis-lock-col ${colLocked ? 'active' : ''}" data-col="${colIdx}" title="锁定列（仅update）">
+                  : `<button class="acu-lock-btn acu-vis-lock-col ${colLocked ? 'active' : ''}" data-col="${colIdx}" title="Khóa cột (chỉ update)">
                          <i class="fa-solid ${colLocked ? 'fa-lock' : 'fa-unlock'}"></i>
                      </button>`;
               const cellLockButton = isSpecialIndex
                   ? ''
-                  : `<button class="acu-lock-btn acu-vis-lock-cell ${cellLocked ? 'active' : ''}" data-row="${rIdx}" data-col="${colIdx}" title="锁定单元格（仅update）">
+                  : `<button class="acu-lock-btn acu-vis-lock-cell ${cellLocked ? 'active' : ''}" data-row="${rIdx}" data-col="${colIdx}" title="Khóa ô (chỉ update)">
                          <i class="fa-solid ${cellLocked ? 'fa-lock' : 'fa-unlock'}"></i>
                      </button>`;
               html += `
@@ -258,7 +258,7 @@ import {
       
       $container.find('.acu-vis-del-row').on('click', function() {
           const rIdx = parseInt(jQuery_API_ACU(this).data('idx'));
-          if (confirm('确定删除此行吗？')) {
+          if (confirm('Xác nhận xóa hàng này?')) {
               const rowId = sheet.content[rIdx + 1]?.[0];
               assertVisualizerDataOpsEditable_ACU(_acuVisState);
               if (sheetKey) recordVisualizerRowDelete_ACU(_acuVisState, sheetKey, rowId);

@@ -506,7 +506,7 @@ export class ContinuationHostGenerationBridge_ACU {
       // 状态已由 orchestrator 记录（paused+lastError 或拒绝原因），自动链到此为止；
       // 但必须在会话流留痕——静默吞掉会让用户以为自动续写根本没触发。
       const message = error instanceof Error ? error.message : String(error);
-      logAgentSession_ACU({ kind: 'run_failed', title: '自动续写已暂停', detail: `${message}\n进度已保留，输入新指令后发送即可继续。`, ok: false });
+      logAgentSession_ACU({ kind: 'run_failed', title: 'Viết tiếp tự động đã tạm dừng', detail: `${message}\nTiến độ đã được giữ, nhập chỉ thị mới rồi gửi là có thể tiếp tục.`, ok: false });
     } finally {
       this.notifyStateChanges_ACU();
     }
@@ -577,7 +577,7 @@ export class ContinuationHostGenerationBridge_ACU {
     const chat = runtime.getChat();
     const mode = resolveHostRetryMode_ACU(chat, snapshot.pending.capture);
     if (!mode) {
-      logAgentSession_ACU({ kind: 'run_failed', title: '放弃宿主重发', detail: '楼层已与发送时不一致（承载指令的用户楼或上一轮正文已被删除），直接重发会落错位置。请发送一条消息让主 Agent 按现存楼层重新规划。', ok: false });
+      logAgentSession_ACU({ kind: 'run_failed', title: 'Bỏ gửi lại của máy chủ', detail: 'Tầng đã không còn khớp với lúc gửi (tầng người dùng chứa chỉ thị hoặc chính văn của lượt trước đã bị xóa), gửi lại trực tiếp sẽ rơi sai vị trí. Hãy gửi một tin nhắn để Agent chính hoạch định lại theo các tầng hiện có.', ok: false });
       return false;
     }
     const aiCount = countAiMessages_ACU(chat);

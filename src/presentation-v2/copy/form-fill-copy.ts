@@ -1,43 +1,43 @@
 export const formFillCopy = {
   nav: {
-    status: "表格状态",
-    update: "自动更新",
-    manual: "手动填表",
-    filter: "标签筛选",
-    prompt: "提示词",
+    status: "Trạng thái bảng",
+    update: "Cập nhật tự động",
+    manual: "Điền bảng thủ công",
+    filter: "Lọc theo thẻ",
+    prompt: "Prompt",
   },
   panels: {
     status: {
-      title: "表格状态",
+      title: "Trạng thái bảng",
       description:
-        "查看表格更新进度。更新中断时，可依据「上次更新」调整「自动更新设置」。",
+        "Xem tiến độ cập nhật bảng. Khi cập nhật bị gián đoạn, có thể dựa vào \"Lần cập nhật trước\" để điều chỉnh \"Cài đặt cập nhật tự động\".",
     },
     update: {
-      title: "自动更新设置",
-      description: "控制自动填表的各项参数。正常情况下不必手动修改高级参数。",
+      title: "Cài đặt cập nhật tự động",
+      description: "Điều khiển các tham số của việc tự động điền bảng. Thông thường không cần chỉnh tay các tham số nâng cao.",
     },
     filter: {
-      title: "标签筛选",
+      title: "Lọc theo thẻ",
       description:
-        "按标签提取内容，提升填表准确性。提取仅保留指定范围，排除移除指定范围。",
+        "Trích nội dung theo thẻ để điền bảng chính xác hơn. Trích xuất chỉ giữ lại phạm vi chỉ định, loại trừ sẽ bỏ phạm vi chỉ định.",
     },
     prompt: {
-      title: "填表提示词",
+      title: "Prompt điền bảng",
       description:
-        "控制AI如何理解与写入表格。建议保持默认或导入他人的填表提示词，不建议手动修改。",
+        "Điều khiển cách AI hiểu và ghi vào bảng. Nên giữ mặc định hoặc nhập prompt điền bảng của người khác, không khuyến khích sửa tay.",
     },
     manual: {
-      title: "手动填表",
+      title: "Điền bảng thủ công",
       description:
-        "可按指定上下文重填所选表，也可按已提交前沿追平尚未填写的后缀楼层。填表 API 使用「自动更新设置」中的配置。",
-      runLabel: "执行手动填表",
-      catchUpLabel: "一键追平所选表未填楼层",
-      catchUpBusyLabel: "追平中...",
+        "Có thể điền lại bảng đã chọn theo ngữ cảnh chỉ định, hoặc theo mốc đã commit để bắt kịp các tầng phía sau chưa được điền. API điền bảng dùng cấu hình trong \"Cài đặt cập nhật tự động\".",
+      runLabel: "Chạy điền bảng thủ công",
+      catchUpLabel: "Bắt kịp các tầng chưa điền của bảng đã chọn",
+      catchUpBusyLabel: "Đang bắt kịp...",
       catchUpBoundary:
-        "追平只补每张表已提交连续前沿之后的后缀缺口，不扫描历史前沿之前的内部空洞。",
+        "Bắt kịp chỉ bù phần thiếu ở phía sau mốc liên tục đã commit của mỗi bảng, không quét các khoảng trống nội bộ nằm trước mốc lịch sử.",
       syncPending:
-        "追平数据已保存，但世界书同步待重试。",
-      syncRetryLabel: "仅同步重试",
+        "Dữ liệu bắt kịp đã được lưu, nhưng việc đồng bộ sổ thế giới đang chờ thử lại.",
+      syncRetryLabel: "Chỉ thử đồng bộ lại",
     },
   },
 };

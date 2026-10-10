@@ -38,9 +38,9 @@ export interface AcuV2PageGroupMeta {
 }
 
 export const ACU_V2_PAGE_GROUPS: readonly AcuV2PageGroupMeta[] = [
-  { id: 'overview', title: '概览' },
-  { id: 'config', title: '配置' },
-  { id: 'feature', title: '功能' },
-  { id: 'tool', title: '工具' },
-  { id: 'developer', title: '开发者' },
+  { id: 'overview', title: 'Tổng quan' },
+  { id: 'config', title: 'Cấu hình' },
+  { id: 'feature', title: 'Chức năng' },
+  { id: 'tool', title: 'Công cụ' },
+  { id: 'developer', title: 'Nhà phát triển' },
 ];

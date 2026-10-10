@@ -21,10 +21,10 @@ import type { AgentWebRefSource_ACU, AgentWebRefStatus_ACU } from './agent-model
 export type AgentEncyclopediaSource_ACU = Exclude<AgentWebRefSource_ACU, 'web'>;
 
 export const AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU: Record<AgentEncyclopediaSource_ACU, string> = {
-  moegirl: '萌娘百科',
-  wikipedia_zh: '中文维基百科',
-  wikipedia_en: '英文维基百科',
-  baidu: '百度百科',
+  moegirl: 'Moegirl Wiki',
+  wikipedia_zh: 'Wikipedia tiếng Trung',
+  wikipedia_en: 'Wikipedia tiếng Anh',
+  baidu: 'Baidu Baike',
 };
 
 /** 单次出网请求超时。百科 API 通常 1–3 秒；网页抓取给宽一点。 */
@@ -154,7 +154,7 @@ export function extractReadableText_ACU(html: string): { title: string; text: st
  */
 export function truncateWebText_ACU(text: string, limit: number): string {
   if (text.length <= limit) return text;
-  return `${text.slice(0, limit)}\n（原文超出 ${limit} 字上限，已截断；未展示部分不代表不存在）`;
+  return `${text.slice(0, limit)}\n(Nguyên văn vượt giới hạn ${limit} chữ, đã cắt bớt; phần chưa hiển thị không có nghĩa là không tồn tại)`;
 }
 
 /**
@@ -176,20 +176,20 @@ export function evaluateWebUrlPolicy_ACU(rawUrl: string, blockedDomains: readonl
   try {
     url = new URL(String(rawUrl ?? '').trim());
   } catch {
-    return 'URL 格式非法（必须是完整的 http(s) 地址）';
+    return 'Định dạng URL không hợp lệ (phải là địa chỉ http(s) đầy đủ)';
   }
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') return '只允许 http / https 协议';
-  if (url.port && url.port !== '80' && url.port !== '443') return '不允许非标准端口';
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return 'Chỉ cho phép giao thức http / https';
+  if (url.port && url.port !== '80' && url.port !== '443') return 'Không cho phép cổng không chuẩn';
   const host = url.hostname.toLowerCase();
-  if (/^\d+\.\d+\.\d+\.\d+$/.test(host) || host.includes(':')) return '不允许直接访问 IP 地址';
-  if (ALWAYS_BLOCKED_HOST_PATTERNS_ACU.some(pattern => pattern.test(host))) return '内网或本机地址被拦截';
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(host) || host.includes(':')) return 'Không cho phép truy cập trực tiếp địa chỉ IP';
+  if (ALWAYS_BLOCKED_HOST_PATTERNS_ACU.some(pattern => pattern.test(host))) return 'Địa chỉ mạng nội bộ hoặc máy cục bộ bị chặn';
   if (hostOrigin) {
     try {
-      if (new URL(hostOrigin).hostname.toLowerCase() === host) return '不允许抓取酒馆服务器自身';
+      if (new URL(hostOrigin).hostname.toLowerCase() === host) return 'Không cho phép tải chính máy chủ SillyTavern';
     } catch { /* 宿主 origin 不可解析时忽略该项 */ }
   }
   for (const blocked of blockedDomains) {
-    if (host === blocked || host.endsWith(`.${blocked}`)) return `域名 ${host} 在黑名单内`;
+    if (host === blocked || host.endsWith(`.${blocked}`)) return `Tên miền ${host} nằm trong danh sách đen`;
   }
   return null;
 }
@@ -226,11 +226,11 @@ export class AgentWebClient_ACU {
         body: JSON.stringify({ url, html }),
       });
       if (!response.ok) {
-        return { ok: false, reason: response.status === 400 ? '酒馆服务器拒绝了该 URL（格式、端口或 IP 直连不被允许）' : `酒馆服务器转发失败（HTTP ${response.status}）：目标站点可能拒绝访问、返回了非 HTML 内容或需要登录` };
+        return { ok: false, reason: response.status === 400 ? 'Máy chủ SillyTavern đã từ chối URL này (định dạng, cổng hoặc kết nối IP trực tiếp không được phép)' : `Máy chủ SillyTavern chuyển tiếp thất bại (HTTP ${response.status}): trang đích có thể từ chối truy cập, trả về nội dung không phải HTML hoặc cần đăng nhập` };
       }
       return { ok: true, text: await response.text() };
     } catch (error) {
-      return { ok: false, reason: `酒馆服务器转发请求异常：${error instanceof Error ? error.message : String(error)}` };
+      return { ok: false, reason: `Yêu cầu chuyển tiếp của máy chủ SillyTavern bất thường: ${error instanceof Error ? error.message : String(error)}` };
     }
   }
 
@@ -239,14 +239,14 @@ export class AgentWebClient_ACU {
     const url = `${MEDIAWIKI_ENDPOINTS_ACU[source].api}?${search.toString()}`;
     try {
       const response = await this.fetchDirect_ACU(url, { method: 'GET' });
-      if (!response.ok) return { ok: false, reason: `${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]} 返回 HTTP ${response.status}` };
+      if (!response.ok) return { ok: false, reason: `${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]} trả về HTTP ${response.status}` };
       const data = await response.json();
       if (data && typeof data === 'object' && data.error) {
-        return { ok: false, reason: `${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]} API 错误：${String(data.error.info ?? data.error.code ?? '未知')}` };
+        return { ok: false, reason: `${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]} lỗi API: ${String(data.error.info ?? data.error.code ?? 'không rõ')}` };
       }
       return { ok: true, data };
     } catch (error) {
-      return { ok: false, reason: `${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]} 请求失败（网络不可达或被浏览器拦截）：${error instanceof Error ? error.message : String(error)}` };
+      return { ok: false, reason: `${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]} yêu cầu thất bại (không truy cập được mạng hoặc bị trình duyệt chặn): ${error instanceof Error ? error.message : String(error)}` };
     }
   }
 
@@ -256,7 +256,7 @@ export class AgentWebClient_ACU {
    */
   async searchEncyclopedia(source: AgentEncyclopediaSource_ACU, query: string): Promise<{ candidates: AgentEncyclopediaCandidate_ACU[]; note: string }> {
     const trimmed = query.trim();
-    if (!trimmed) return { candidates: [], note: '检索词为空' };
+    if (!trimmed) return { candidates: [], note: 'Từ khóa tra cứu rỗng' };
     if (source === 'baidu') {
       // 百度没有公开的检索接口，词条卡片按精确名称命中；命中即视为唯一候选。
       const card = await this.fetchBaiduCard_ACU(trimmed);
@@ -275,7 +275,7 @@ export class AgentWebClient_ACU {
         url: Array.isArray(urls) && typeof urls[index] === 'string' ? urls[index] : encyclopediaPageUrl_ACU(source, String(title)),
         snippet: '',
       }));
-      return { candidates, note: candidates.length ? '' : '萌娘百科 opensearch 无候选（它按标题前缀匹配，试试角色全名、作品名或去掉修饰词）' };
+      return { candidates, note: candidates.length ? '' : 'opensearch của Moegirl Wiki không có ứng viên (nó khớp theo tiền tố tiêu đề, hãy thử tên đầy đủ của nhân vật, tên tác phẩm hoặc bỏ từ bổ nghĩa)' };
     }
     const result = await this.fetchMediawikiJson_ACU(source, { action: 'query', list: 'search', srsearch: trimmed, srlimit: String(ENCYCLOPEDIA_CANDIDATE_LIMIT_ACU) });
     if (result.ok === false) return { candidates: [], note: result.reason };
@@ -284,7 +284,7 @@ export class AgentWebClient_ACU {
       const title = typeof hit?.title === 'string' ? hit.title : '';
       return title ? [{ source, title, url: encyclopediaPageUrl_ACU(source, title), snippet: stripTags_ACU(String(hit.snippet ?? '')) }] : [];
     });
-    return { candidates, note: candidates.length ? '' : `${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]} 无命中` };
+    return { candidates, note: candidates.length ? '' : `${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]} không có kết quả khớp` };
   }
 
   /**
@@ -296,7 +296,7 @@ export class AgentWebClient_ACU {
   async readEncyclopedia(source: AgentEncyclopediaSource_ACU, title: string, charLimit: number): Promise<AgentFetchedPage_ACU> {
     const trimmed = title.trim();
     const url = encyclopediaPageUrl_ACU(source, trimmed);
-    if (!trimmed) return { source, title: '', url, text: '', status: 'unavailable', note: '词条标题为空' };
+    if (!trimmed) return { source, title: '', url, text: '', status: 'unavailable', note: 'Tiêu đề mục từ rỗng' };
     if (source === 'baidu') {
       const card = await this.fetchBaiduCard_ACU(trimmed);
       if (card.ok === false) return { source, title: trimmed, url, text: '', status: 'unavailable', note: card.reason };
@@ -307,11 +307,11 @@ export class AgentWebClient_ACU {
     const pages = result.data?.query?.pages;
     const page = pages && typeof pages === 'object' ? Object.values(pages as Record<string, any>)[0] : null;
     if (!page || page.missing !== undefined || typeof page.extract !== 'string') {
-      return { source, title: trimmed, url, text: '', status: 'unavailable', note: `${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]} 没有名为「${trimmed}」的词条；先用 encyclopedia_search 找准确标题` };
+      return { source, title: trimmed, url, text: '', status: 'unavailable', note: `${AGENT_ENCYCLOPEDIA_SOURCE_LABELS_ACU[source]} không có mục từ tên "${trimmed}"; hãy dùng encyclopedia_search để tìm tiêu đề chính xác trước` };
     }
     const resolvedTitle = typeof page.title === 'string' && page.title ? page.title : trimmed;
     const text = collapseWhitespace_ACU(page.extract);
-    if (!text) return { source, title: resolvedTitle, url: encyclopediaPageUrl_ACU(source, resolvedTitle), text: '', status: 'unavailable', note: '词条存在但正文为空（可能是消歧义页或纯模板页）' };
+    if (!text) return { source, title: resolvedTitle, url: encyclopediaPageUrl_ACU(source, resolvedTitle), text: '', status: 'unavailable', note: 'Mục từ tồn tại nhưng nội dung rỗng (có thể là trang định hướng hoặc trang chỉ có mẫu)' };
     return { source, title: resolvedTitle, url: encyclopediaPageUrl_ACU(source, resolvedTitle), text: truncateWebText_ACU(text, charLimit), status: 'ok', note: '' };
   }
 
@@ -319,16 +319,16 @@ export class AgentWebClient_ACU {
   private async fetchBaiduCard_ACU(key: string): Promise<{ ok: true; title: string; url: string; desc: string; text: string } | { ok: false; reason: string }> {
     const api = `https://baike.baidu.com/api/openapi/BaikeLemmaCardApi?scope=103&format=json&appid=379020&bk_key=${encodeURIComponent(key)}&bk_length=${BAIDU_ABSTRACT_LENGTH_ACU}`;
     const visited = await this.visitViaHost_ACU(api, false);
-    if (visited.ok === false) return { ok: false, reason: `百度百科不可用：${visited.reason}` };
+    if (visited.ok === false) return { ok: false, reason: `Baidu Baike không khả dụng: ${visited.reason}` };
     let data: any;
     try {
       data = JSON.parse(visited.text);
     } catch {
-      return { ok: false, reason: '百度百科返回了非 JSON 内容（接口可能已变更或触发了验证）' };
+      return { ok: false, reason: 'Baidu Baike trả về nội dung không phải JSON (giao diện có thể đã thay đổi hoặc kích hoạt xác minh)' };
     }
     if (!data || typeof data !== 'object' || (!data.title && !data.abstract)) {
-      const message = typeof data?.errmsg === 'string' ? data.errmsg : '无此词条';
-      return { ok: false, reason: `百度百科无命中「${key}」：${message}。百度只按精确词条名匹配，试试角色全名或作品内译名` };
+      const message = typeof data?.errmsg === 'string' ? data.errmsg : 'Không có mục từ này';
+      return { ok: false, reason: `Baidu Baike không có kết quả khớp "${key}": ${message}. Baidu chỉ khớp theo đúng tên mục từ, hãy thử tên đầy đủ của nhân vật hoặc tên dịch trong tác phẩm` };
     }
     const title = String(data.title ?? key);
     const url = typeof data.url === 'string' && data.url ? String(data.url).replace(/^http:/, 'https:') : encyclopediaPageUrl_ACU('baidu', title);
@@ -338,11 +338,11 @@ export class AgentWebClient_ACU {
       for (const item of data.card) {
         const name = stripTags_ACU(String(item?.name ?? ''));
         const values = Array.isArray(item?.value) ? item.value.map((value: unknown) => stripTags_ACU(String(value ?? ''))).filter(Boolean) : [];
-        if (name && values.length) cardLines.push(`${name}：${values.join('、')}`);
+        if (name && values.length) cardLines.push(`${name}: ${values.join(', ')}`);
       }
     }
     const abstract = collapseWhitespace_ACU(stripTags_ACU(String(data.abstract ?? '')));
-    const text = [desc ? `简介：${desc}` : '', cardLines.length ? `【词条卡片】\n${cardLines.join('\n')}` : '', abstract ? `【概述】\n${abstract}` : ''].filter(Boolean).join('\n\n');
+    const text = [desc ? `Giới thiệu: ${desc}` : '', cardLines.length ? `【Thẻ mục từ】\n${cardLines.join('\n')}` : '', abstract ? `【Tổng quan】\n${abstract}` : ''].filter(Boolean).join('\n\n');
     return { ok: true, title, url, desc, text };
   }
 
@@ -353,7 +353,7 @@ export class AgentWebClient_ACU {
    */
   async webSearch(query: string, settings: Pick<ContinuationWebResearchSettings_ACU, 'searchProvider' | 'searxngBaseUrl'>): Promise<{ hits: AgentWebSearchHit_ACU[]; note: string }> {
     const trimmed = query.trim();
-    if (!trimmed) return { hits: [], note: '检索词为空' };
+    if (!trimmed) return { hits: [], note: 'Từ khóa tra cứu rỗng' };
     const provider: ContinuationWebSearchProvider_ACU = settings.searchProvider;
     if (provider === 'duckduckgo') return this.searchDuckDuckGo_ACU(trimmed);
     if (provider === 'searxng') return this.searchSearxng_ACU(trimmed, settings.searxngBaseUrl);
@@ -362,22 +362,22 @@ export class AgentWebClient_ACU {
 
   private async searchDuckDuckGo_ACU(query: string): Promise<{ hits: AgentWebSearchHit_ACU[]; note: string }> {
     const visited = await this.visitViaHost_ACU(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, true);
-    if (visited.ok === false) return { hits: [], note: `DuckDuckGo 不可用：${visited.reason}` };
+    if (visited.ok === false) return { hits: [], note: `DuckDuckGo không khả dụng: ${visited.reason}` };
     return { hits: parseDuckDuckGoHtml_ACU(visited.text), note: '' };
   }
 
   private async searchSearxng_ACU(query: string, baseUrl: string): Promise<{ hits: AgentWebSearchHit_ACU[]; note: string }> {
-    if (!baseUrl.trim()) return { hits: [], note: 'SearXNG 实例地址未配置（续写设置 → 网页检索）' };
+    if (!baseUrl.trim()) return { hits: [], note: 'Chưa cấu hình địa chỉ phiên bản SearXNG (Cài đặt viết tiếp → Tra cứu web)' };
     try {
       const response = await this.fetchDirect_ACU('/api/search/searxng', {
         method: 'POST',
         headers: { ...this.dependencies.hostHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ baseUrl: baseUrl.trim(), query }),
       });
-      if (!response.ok) return { hits: [], note: `SearXNG 请求失败（HTTP ${response.status}）` };
+      if (!response.ok) return { hits: [], note: `SearXNG yêu cầu thất bại (HTTP ${response.status})` };
       return { hits: parseSearxngHtml_ACU(await response.text()), note: '' };
     } catch (error) {
-      return { hits: [], note: `SearXNG 请求异常：${error instanceof Error ? error.message : String(error)}` };
+      return { hits: [], note: `SearXNG yêu cầu bất thường: ${error instanceof Error ? error.message : String(error)}` };
     }
   }
 
@@ -388,24 +388,24 @@ export class AgentWebClient_ACU {
         headers: { ...this.dependencies.hostHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
       });
-      if (response.status === 400) return { hits: [], note: `${provider} 未在酒馆里配置 API key（酒馆设置 → API 密钥）` };
-      if (!response.ok) return { hits: [], note: `${provider} 请求失败（HTTP ${response.status}）` };
+      if (response.status === 400) return { hits: [], note: `${provider} chưa được cấu hình API key trong SillyTavern (Cài đặt SillyTavern → Khóa API)` };
+      if (!response.ok) return { hits: [], note: `${provider} yêu cầu thất bại (HTTP ${response.status})` };
       const data: any = await response.json();
       const hits: AgentWebSearchHit_ACU[] = [];
       if (provider === 'serper') {
         for (const item of Array.isArray(data?.organic) ? data.organic : []) {
           if (typeof item?.link === 'string') hits.push({ title: String(item.title ?? ''), url: item.link, snippet: String(item.snippet ?? '') });
         }
-        if (data?.answerBox?.snippet) hits.unshift({ title: String(data.answerBox.title ?? '精选摘要'), url: String(data.answerBox.link ?? ''), snippet: String(data.answerBox.snippet) });
+        if (data?.answerBox?.snippet) hits.unshift({ title: String(data.answerBox.title ?? 'Tóm tắt nổi bật'), url: String(data.answerBox.link ?? ''), snippet: String(data.answerBox.snippet) });
       } else {
         for (const item of Array.isArray(data?.results) ? data.results : []) {
           if (typeof item?.url === 'string') hits.push({ title: String(item.title ?? ''), url: item.url, snippet: String(item.content ?? '') });
         }
-        if (typeof data?.answer === 'string' && data.answer.trim()) hits.unshift({ title: 'Tavily 综合回答', url: '', snippet: data.answer.trim() });
+        if (typeof data?.answer === 'string' && data.answer.trim()) hits.unshift({ title: 'Câu trả lời tổng hợp của Tavily', url: '', snippet: data.answer.trim() });
       }
       return { hits: hits.slice(0, SEARCH_RESULT_LIMIT_ACU), note: '' };
     } catch (error) {
-      return { hits: [], note: `${provider} 请求异常：${error instanceof Error ? error.message : String(error)}` };
+      return { hits: [], note: `${provider} yêu cầu bất thường: ${error instanceof Error ? error.message : String(error)}` };
     }
   }
 
@@ -422,7 +422,7 @@ export class AgentWebClient_ACU {
     const visited = await this.visitViaHost_ACU(trimmed, true);
     if (visited.ok === false) return { source: 'web', title: '', url: trimmed, text: '', status: 'unavailable', note: visited.reason };
     const extracted = extractReadableText_ACU(visited.text);
-    if (!extracted.text) return { source: 'web', title: extracted.title, url: trimmed, text: '', status: 'unavailable', note: '页面没有可读文本（可能是纯脚本渲染的页面）' };
+    if (!extracted.text) return { source: 'web', title: extracted.title, url: trimmed, text: '', status: 'unavailable', note: 'Trang không có văn bản đọc được (có thể là trang hoàn toàn render bằng script)' };
     return { source: 'web', title: extracted.title || trimmed, url: trimmed, text: truncateWebText_ACU(extracted.text, settings.pageCharLimit), status: 'ok', note: '' };
   }
 }

@@ -61,15 +61,15 @@ export async function runFollowGlobalTemplateFlow_ACU({
   let result = await applyWithSingleStaleRetry(false);
   if (result && result.saved === false && Array.isArray(result.blockers) && result.blockers.length > 0) {
     const destructiveBlockers = result.blockers.filter((blocker: unknown) => (
-      typeof blocker === 'string' && /删除(?:表|列).+需要显式确认/.test(blocker)
+      typeof blocker === 'string' && (/删除(?:表|列).+需要显式确认/.test(blocker) || /Xóa (?:bảng|cột) .+ cần xác nhận (?:rõ ràng|tường minh)/.test(blocker))
     ));
     if (destructiveBlockers.length > 0) {
       const confirmed = await dialogStore.confirm({
-        title: '确认破坏性模板变更',
-        message: `跟随全局模板会删除现有表或列：\n${destructiveBlockers.join('\n')}`,
-        dangerMessage: '确认后将按 V2 原子提交执行。删除的数据只能通过聊天备份或 checkpoint 恢复。',
-        confirmLabel: '确认删除并继续',
-        cancelLabel: '取消',
+        title: 'Xác nhận thay đổi mẫu có tính phá hủy',
+        message: `Việc theo mẫu toàn cục sẽ xóa bảng hoặc cột hiện có:\n${destructiveBlockers.join('\n')}`,
+        dangerMessage: 'Sau khi xác nhận sẽ thực hiện theo cam kết nguyên tử V2. Dữ liệu đã xóa chỉ có thể khôi phục qua bản sao lưu trò chuyện hoặc checkpoint.',
+        confirmLabel: 'Xác nhận xóa và tiếp tục',
+        cancelLabel: 'Hủy',
         confirmVariant: 'danger',
       });
       if (!confirmed) return false;
@@ -78,18 +78,18 @@ export async function runFollowGlobalTemplateFlow_ACU({
   }
 
   if (!result || result.saved !== true) {
-    toast.error((result && typeof result.error === 'string' && result.error) || '跟随全局模板失败。');
+    toast.error((result && typeof result.error === 'string' && result.error) || 'Theo mẫu toàn cục thất bại.');
     return false;
   }
   if (result.alreadyFollowing) {
-    toast.info('当前聊天已跟随全局模板，无需清除覆盖。');
+    toast.info('Cuộc trò chuyện hiện tại đã theo mẫu toàn cục, không cần xóa ghi đè.');
     return true;
   }
   const warning = typeof result.postCommitWarning === 'string' ? result.postCommitWarning : '';
   if (warning) {
     toast.warning(warning, { muteable: false, durationMs: 6000 });
   } else {
-    toast.success('已清除聊天模板覆盖，当前聊天跟随全局模板。', { muteable: false });
+    toast.success('Đã xóa ghi đè mẫu của cuộc trò chuyện, cuộc trò chuyện hiện tại theo mẫu toàn cục.', { muteable: false });
   }
   return true;
 }
@@ -111,10 +111,10 @@ export async function promptFollowGlobalAfterSetDefault_ACU({
   newDefaultName: string;
 }): Promise<boolean> {
   const confirmed = await dialogStore.confirm({
-    title: '清除当前聊天的模板覆盖？',
-    message: `「${newDefaultName || '默认预设'}」已设为全局默认，但当前聊天正在使用聊天级模板覆盖，新的全局默认不会在本聊天生效。\n是否清除覆盖，让当前聊天跟随全局模板？`,
-    confirmLabel: '清除覆盖并跟随全局',
-    cancelLabel: '保留聊天覆盖',
+    title: 'Xóa ghi đè mẫu của cuộc trò chuyện hiện tại?',
+    message: `「${newDefaultName || 'Preset mặc định'}」đã được đặt làm mặc định toàn cục, nhưng cuộc trò chuyện hiện tại đang dùng ghi đè mẫu cấp cuộc trò chuyện, mặc định toàn cục mới sẽ không có hiệu lực trong cuộc trò chuyện này.\nXóa ghi đè để cuộc trò chuyện hiện tại theo mẫu toàn cục?`,
+    confirmLabel: 'Xóa ghi đè và theo toàn cục',
+    cancelLabel: 'Giữ ghi đè của cuộc trò chuyện',
   });
   if (!confirmed) return false;
   return runFollowGlobalTemplateFlow_ACU({ dialogStore, toast, signal });

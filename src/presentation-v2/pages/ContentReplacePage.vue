@@ -13,8 +13,8 @@
         :description="contentReplaceCopy.panels.basic.description"
       >
         <AcuFormRow
-          label="API 预设"
-          hint="默认使用当前 API，选择后仅影响正文替换。"
+          label="Preset API"
+          hint="Mặc định dùng API hiện tại; sau khi chọn chỉ ảnh hưởng việc thay thế nội dung."
         >
           <AcuSelect
             :options="apiOptions"
@@ -25,7 +25,7 @@
         </AcuFormRow>
 
         <div class="acu-v2-content-replace-page__number-grid">
-          <AcuFormRow label="最小正文长度" hint="低于此值跳过优化。">
+          <AcuFormRow label="Độ dài nội dung tối thiểu" hint="Thấp hơn giá trị này thì bỏ qua tối ưu.">
             <AcuInput
               :model-value="store.minLength"
               type="number"
@@ -34,7 +34,7 @@
               @change="store.setNumber('minLength', $event)"
             />
           </AcuFormRow>
-          <AcuFormRow label="最大替换项数" hint="单次最多接受的建议条数。">
+          <AcuFormRow label="Số mục thay thế tối đa" hint="Số đề xuất tối đa chấp nhận trong một lần.">
             <AcuInput
               :model-value="store.maxOptimizations"
               type="number"
@@ -45,8 +45,8 @@
             />
           </AcuFormRow>
           <AcuFormRow
-            label="循环优化次数"
-            hint="再次检查优化结果，过高会增加等待时间。"
+            label="Số vòng tối ưu"
+            hint="Kiểm tra lại kết quả tối ưu; đặt quá cao sẽ tăng thời gian chờ."
           >
             <AcuInput
               :model-value="store.loopCount"
@@ -57,7 +57,7 @@
               @change="store.setNumber('loopCount', $event)"
             />
           </AcuFormRow>
-          <AcuFormRow label="自动重试次数" hint="失败时重试次数上限。">
+          <AcuFormRow label="Số lần tự thử lại" hint="Số lần thử lại tối đa khi thất bại.">
             <AcuInput
               :model-value="store.retryCount"
               type="number"
@@ -78,28 +78,28 @@
         <div class="acu-v2-content-replace-page__choice-list">
           <AcuCheckbox
             :model-value="store.seamlessMode"
-            label="无感替换模式"
+            label="Chế độ thay thế êm"
             @update:model-value="store.setBoolean('seamlessMode', $event)"
           />
           <AcuCheckbox
             :model-value="store.autoApply"
-            label="自动应用替换结果"
+            label="Tự động áp dụng kết quả thay thế"
             @update:model-value="store.setBoolean('autoApply', $event)"
           />
           <AcuCheckbox
             :model-value="store.showDiff"
-            label="显示优化对比"
+            label="Hiển thị so sánh tối ưu"
             @update:model-value="store.setBoolean('showDiff', $event)"
           />
           <AcuCheckbox
             :model-value="store.parallelMode"
-            label="填表与正文替换并行执行"
+            label="Chạy song song điền bảng và thay thế nội dung"
             @update:model-value="store.setBoolean('parallelMode', $event)"
           />
         </div>
 
         <div class="acu-v2-content-replace-page__mini-status">
-          <span>最近可重新优化</span>
+          <span>Gần nhất có thể tối ưu lại</span>
           <strong>{{ store.lastOptimizedLabel }}</strong>
         </div>
 
@@ -110,7 +110,7 @@
             @click="store.reoptimizeLatest"
           >
             <i class="fa-solid fa-rotate-right"></i>
-            重新优化最近一次
+            Tối ưu lại lần gần nhất
           </AcuButton>
         </div>
       </AcuPanel>
@@ -127,10 +127,10 @@
         </template>
 
         <p class="acu-v2-content-replace-page__status-line">
-          当前提示词:
+          Prompt hiện tại:
           <strong>{{ store.activePresetLabel }}</strong>
           <span class="acu-v2-content-replace-page__badge">
-            {{ store.promptSegmentCount }} 段提示词
+            {{ store.promptSegmentCount }} đoạn prompt
           </span>
         </p>
 
@@ -139,8 +139,8 @@
             :items="presetDropdownItems"
             :model-value="store.selectedPresetName"
             default-name=""
-            empty-text="暂无正文替换预设"
-            placeholder="自定义提示词"
+            empty-text="Chưa có preset thay thế nội dung"
+            placeholder="Prompt tùy chỉnh"
             :show-default-action="false"
             @update:model-value="store.selectPreset($event)"
           />
@@ -148,15 +148,15 @@
             icon="fa-solid fa-pen"
             :title="
               canEditCurrentPrompt
-                ? '编辑当前提示词'
-                : '默认预设不能直接编辑，请从默认新建后修改'
+                ? 'Sửa prompt hiện tại'
+                : 'Không thể sửa trực tiếp preset mặc định, hãy tạo mới từ mặc định rồi sửa'
             "
             :disabled="!canEditCurrentPrompt"
             @click="openPromptDrawerForCurrent"
           />
           <AcuFileButton
             icon-only
-            title="导入预设 JSON"
+            title="Nhập JSON preset"
             accept="application/json,.json"
             :disabled="!!store.busyAction"
             @file="store.importPresets"
@@ -165,14 +165,14 @@
           </AcuFileButton>
           <AcuIconButton
             icon="fa-solid fa-gear"
-            title="管理预设"
+            title="Quản lý preset"
             @click="presetDrawerOpen = true"
           />
         </div>
 
         <AcuMessage v-if="promptGroupMissingContent" kind="warning">
-          正文替换提示词缺少
-          $CONTENT，占位符为空时运行时无法知道要检查哪段正文；请打开编辑器载入默认提示词或补回占位符。
+          Prompt thay thế nội dung thiếu
+          $CONTENT; khi placeholder trống, lúc chạy không biết phải kiểm tra đoạn nội dung nào; hãy mở trình sửa để nạp prompt mặc định hoặc bổ sung lại placeholder.
         </AcuMessage>
       </AcuPanel>
 
@@ -182,21 +182,21 @@
         :description="contentReplaceCopy.panels.filter.description"
       >
         <div class="acu-v2-content-replace-page__form-grid">
-          <AcuFormRow label="提取标签" hint="多个标签逗号分隔，留空不提取。">
+          <AcuFormRow label="Thẻ trích xuất" hint="Nhiều thẻ phân cách bằng dấu phẩy, để trống thì không trích xuất.">
             <AcuInput
               :model-value="store.extractTags"
               type="text"
-              placeholder="例如: content,正文"
+              placeholder="Ví dụ: content,正文"
               @update:model-value="
                 store.setString('extractTags', String($event))
               "
             />
           </AcuFormRow>
-          <AcuFormRow label="排除标签" hint="多个逗号分隔，留空不排除。">
+          <AcuFormRow label="Thẻ loại trừ" hint="Nhiều thẻ phân cách bằng dấu phẩy, để trống thì không loại trừ.">
             <AcuInput
               :model-value="store.excludeTags"
               type="text"
-              placeholder="例如: think,thinking"
+              placeholder="Ví dụ: think,thinking"
               @update:model-value="
                 store.setString('excludeTags', String($event))
               "
@@ -206,19 +206,19 @@
 
         <div class="acu-v2-content-replace-page__rule-stack">
           <AcuRulePairList
-            label="正文标签提取规则"
+            label="Quy tắc trích xuất thẻ nội dung"
             :model-value="store.extractRules"
-            start-placeholder="开始词（例如：<content>）"
-            end-placeholder="结束词（例如：</content>）"
-            add-label="添加提取规则"
+            start-placeholder="Từ bắt đầu (ví dụ: <content>)"
+            end-placeholder="Từ kết thúc (ví dụ: </content>)"
+            add-label="Thêm quy tắc trích xuất"
             @update:model-value="store.setExtractRules"
           />
           <AcuRulePairList
-            label="标签排除规则"
+            label="Quy tắc loại trừ thẻ"
             :model-value="store.excludeRules"
-            start-placeholder="开始词（例如：<think>）"
-            end-placeholder="结束词（例如：</think>）"
-            add-label="添加排除规则"
+            start-placeholder="Từ bắt đầu (ví dụ: <think>)"
+            end-placeholder="Từ kết thúc (ví dụ: </think>)"
+            add-label="Thêm quy tắc loại trừ"
             @update:model-value="store.setExcludeRules"
           />
         </div>
@@ -230,13 +230,13 @@
         :description="contentReplaceCopy.panels.test.description"
       >
         <AcuFormRow
-          label="测试文本"
-          hint="输入一段模拟 AI 正文，用于验证提示词和返回格式。"
+          label="Văn bản kiểm thử"
+          hint="Nhập một đoạn nội dung AI mô phỏng để kiểm tra prompt và định dạng trả về."
         >
           <AcuTextarea
             :model-value="store.testInput"
             :rows="5"
-            placeholder="输入模拟正文，验证提示词与返回格式。"
+            placeholder="Nhập nội dung mô phỏng để kiểm tra prompt và định dạng trả về."
             @update:model-value="store.setString('testInput', $event)"
           />
         </AcuFormRow>
@@ -247,7 +247,7 @@
             :loading="store.busyAction === 'test'"
             @click="store.runTest"
           >
-            执行优化测试
+            Chạy thử tối ưu
           </AcuButton>
         </div>
 
@@ -344,30 +344,30 @@ const presetDropdownItems = computed<PresetDropdownItem[]>(() =>
     ? [
         {
           value: CUSTOM_CONTENT_REPLACE_PRESET_VALUE,
-          label: "自定义提示词",
-          meta: "未保存为预设",
+          label: "Prompt tùy chỉnh",
+          meta: "Chưa lưu thành preset",
         },
         {
           value: "",
-          label: "默认预设",
-          meta: `${store.defaultPromptSegmentCount} 段提示词`,
+          label: "Preset mặc định",
+          meta: `${store.defaultPromptSegmentCount} đoạn prompt`,
         },
         ...store.promptPresets.map((preset) => ({
           value: preset.name,
           label: preset.name,
-          meta: `${preset.promptGroup.length} 段提示词`,
+          meta: `${preset.promptGroup.length} đoạn prompt`,
         })),
       ]
     : [
         {
           value: "",
-          label: "默认预设",
-          meta: `${store.defaultPromptSegmentCount} 段提示词`,
+          label: "Preset mặc định",
+          meta: `${store.defaultPromptSegmentCount} đoạn prompt`,
         },
         ...store.promptPresets.map((preset) => ({
           value: preset.name,
           label: preset.name,
-          meta: `${preset.promptGroup.length} 段提示词`,
+          meta: `${preset.promptGroup.length} đoạn prompt`,
         })),
       ],
 );
@@ -390,7 +390,7 @@ const promptGroupMissingContent = computed(
     ),
 );
 const promptTemplateBadgeLabel = computed(() =>
-  store.promptTemplateMode === "default" ? "使用默认提示词" : "已自定义提示词",
+  store.promptTemplateMode === "default" ? "Dùng prompt mặc định" : "Đã tùy chỉnh prompt",
 );
 const promptTemplateBadgeVariant = computed<AcuBadgeVariant>(() =>
   store.promptTemplateMode === "default" ? "neutral" : "accent",
@@ -400,9 +400,9 @@ const canEditCurrentPrompt = computed(() => store.selectedPresetName !== "");
 async function onDeletePreset(name: string): Promise<void> {
   if (!name) return;
   const confirmed = await dialogStore.confirm({
-    title: "删除正文替换预设",
-    message: `删除正文替换预设"${name}"？`,
-    confirmLabel: "删除预设",
+    title: "Xóa preset thay thế nội dung",
+    message: `Xóa preset thay thế nội dung "${name}"?`,
+    confirmLabel: "Xóa preset",
     confirmVariant: "danger",
   });
   if (!confirmed) return;
@@ -411,11 +411,11 @@ async function onDeletePreset(name: string): Promise<void> {
 
 async function onRenamePreset(name: string): Promise<void> {
   const next = await dialogStore.prompt({
-    title: "重命名正文替换预设",
-    message: `将正文替换预设"${name}"重命名为：`,
-    label: "预设名称",
+    title: "Đổi tên preset thay thế nội dung",
+    message: `Đổi tên preset thay thế nội dung "${name}" thành:`,
+    label: "Tên preset",
     defaultValue: name,
-    confirmLabel: "重命名",
+    confirmLabel: "Đổi tên",
   });
   if (!next) return;
   store.renamePreset(name, next);
@@ -448,10 +448,10 @@ function onSavePromptGroup(): void {
 
 async function onResetPromptGroup(): Promise<void> {
   const confirmed = await dialogStore.confirm({
-    title: "载入默认提示词组",
+    title: "Nạp nhóm prompt mặc định",
     message:
-      "载入默认正文替换提示词组？这会覆盖当前编辑器里的提示词内容，需要保存后才会生效。",
-    confirmLabel: "载入默认",
+      "Nạp nhóm prompt thay thế nội dung mặc định? Việc này sẽ ghi đè nội dung prompt trong trình sửa hiện tại, cần lưu mới có hiệu lực.",
+    confirmLabel: "Nạp mặc định",
     confirmVariant: "danger",
   });
   if (!confirmed)
@@ -469,9 +469,9 @@ function onPromptUpdate(index: number, patch: Partial<PromptSegment>): void {
 function confirmPromptClose(): boolean | Promise<boolean> {
   if (!promptDrawerOpen.value || !store.promptDirty) return true;
   return dialogStore.confirm({
-    title: "关闭新 UI",
-    message: "你有未保存的正文替换提示词修改，确定要关闭新 UI 吗？",
-    confirmLabel: "关闭新 UI",
+    title: "Đóng UI mới",
+    message: "Bạn có thay đổi prompt thay thế nội dung chưa lưu, chắc chắn đóng UI mới?",
+    confirmLabel: "Đóng UI mới",
     confirmVariant: "danger",
   });
 }

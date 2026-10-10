@@ -234,7 +234,7 @@ describe('向量索引 registry 持久化', () => {
 
     await expect(registerVectorIndexFiles_ACU([{
       role: 'manifest', path: 'orphan-v2-path', byteSize: 1, checksum: 'checksum', createdAt: '', updatedAt: '', status: 'ready',
-    }])).rejects.toThrow('registry 保存失败');
+    }])).rejects.toThrow('Lưu registry thất bại');
   });
 });
 

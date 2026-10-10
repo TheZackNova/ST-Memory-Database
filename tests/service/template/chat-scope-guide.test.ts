@@ -286,7 +286,7 @@ describe('materializeDataFromSheetGuide_ACU', () => {
     };
 
     expect(() => materializeDataFromSheetGuide_ACU(guide, { includeSeedRows: true }))
-      .toThrow('重复 row_id');
+      .toThrow('bị trùng');
   });
 
   it('includeSeedRows=false 时只包含表头', () => {
@@ -417,7 +417,7 @@ describe('getChatSheetGuideDataForIsolationKey_ACU', () => {
         sheet_0: { name: '坏表', content: [['名称', '行号']], seedRows: [['铁剑', '1']] },
       },
     });
-    expect(() => getChatSheetGuideDataForIsolationKey_ACU('')).toThrow(/Sheet Guide row_id 结构无效/);
+    expect(() => getChatSheetGuideDataForIsolationKey_ACU('')).toThrow(/Cấu trúc row_id của Sheet Guide không hợp lệ/);
   });
 });
 

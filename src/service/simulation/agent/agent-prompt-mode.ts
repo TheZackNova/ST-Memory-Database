@@ -1,9 +1,11 @@
 import type { AgentToolMode_ACU } from '../../ai/agent-tool-mode';
 import type { WorldSimulationPromptSegment_ACU } from '../model';
 import { findWorldSimulationAgentDefinition_ACU, type WorldSimulationAgentName_ACU } from './agent-catalog';
-import { buildDefaultWorldSimulationAgentPrompts_ACU, buildV20WorldSimulationAgentPrompt_ACU, isWorldSimulationModeVariantSegment_ACU, type WorldSimulationAgentPrompts_ACU } from './agent-defaults';
+import { buildDefaultWorldSimulationAgentPrompts_ACU, buildV20WorldSimulationAgentPrompt_ACU, isWorldSimulationModeVariantSegment_ACU, worldSimulationDirectorRuntimeProtocolInstructionZhLegacy_ACU, worldSimulationReviewerRuntimeProtocolInstructionZhLegacy_ACU, worldSimulationSpecialistRuntimeProtocolInstructionZhLegacy_ACU, type WorldSimulationAgentPrompts_ACU } from './agent-defaults';
+import { worldSimulationOneShotProtocolLegacyZh_ACU } from './agent-format-protocol-legacy';
 import { AGENT_FORMAT_ANSWER_MARKER_ACU, isAgentFormatAnswer_ACU } from '../../../shared/agent-prompt-qa';
 import { worldSimulationOneShotProtocol_ACU, type WorldSimulationOneShotProtocolRole_ACU } from './agent-format-protocol';
+import { worldSimulationDirectorProtocolVi_ACU, worldSimulationReadOnlyProtocolVi_ACU, worldSimulationReviewerProtocolVi_ACU } from './agent-protocol-vi';
 
 const JSON_SWAPS_ACU: ReadonlyArray<readonly [string, string]> = [
   ['read 与 search 使用函数调用，不要写成 JSON。决策只输出一个主动作 JSON：open_round、delegate、finalize 或 block。', '仅输出一个主动作 JSON：read、search、open_round、delegate、finalize 或 block。'],
@@ -22,8 +24,42 @@ function swap_ACU(text: string, pairs: ReadonlyArray<readonly [string, string]>)
   return text;
 }
 
+function viProtocolFor_ACU(name: WorldSimulationAgentName_ACU) {
+  const definition = findWorldSimulationAgentDefinition_ACU(name);
+  if (!definition) return null;
+  if (definition.kind === 'director') return worldSimulationDirectorProtocolVi_ACU();
+  if (definition.kind === 'reviewer') return worldSimulationReviewerProtocolVi_ACU();
+  if (!definition.writableModules.length && (definition.kind === 'researcher' || definition.kind === 'specialist')) return worldSimulationReadOnlyProtocolVi_ACU(name);
+  return null;
+}
+
+/** Các biến thể giao thức tiếng Trung cũ (runtime / json / tools) của từng vai trò, để nhận diện prompt mặc định đã lưu. */
+function legacyZhFormatVariants_ACU(name: WorldSimulationAgentName_ACU): { runtime: string; json: string; tools: string } | null {
+  const definition = findWorldSimulationAgentDefinition_ACU(name);
+  if (!definition) return null;
+  if (['undercurrent-analyst', 'dramatis-keeper', 'guidance-composer'].includes(name)) {
+    const role = name as WorldSimulationOneShotProtocolRole_ACU;
+    const json = worldSimulationOneShotProtocolLegacyZh_ACU(role, definition.writableModules, 'json');
+    return { runtime: json, json, tools: worldSimulationOneShotProtocolLegacyZh_ACU(role, definition.writableModules, 'tools') };
+  }
+  const runtime = definition.kind === 'director' ? worldSimulationDirectorRuntimeProtocolInstructionZhLegacy_ACU()
+    : definition.kind === 'reviewer' ? worldSimulationReviewerRuntimeProtocolInstructionZhLegacy_ACU()
+      : !definition.writableModules.length && (definition.kind === 'researcher' || definition.kind === 'specialist')
+        ? worldSimulationSpecialistRuntimeProtocolInstructionZhLegacy_ACU(name, definition.writableModules) : null;
+  if (runtime === null) return null;
+  return { runtime, json: legacyZhProtocolForMode_ACU(name, runtime, 'json'), tools: legacyZhProtocolForMode_ACU(name, runtime, 'tools') };
+}
+
 /** 仅供内置正文与动态协议守卫使用；用户正文必须先逐段精确识别。 */
 export function worldSimulationProtocolForMode_ACU(name: WorldSimulationAgentName_ACU, content: string, mode: AgentToolMode_ACU): string {
+  // Giao thức tiếng Việt hiện hành: biến thể json/tools được ghép sẵn, thay trực tiếp bản runtime.
+  const vi = viProtocolFor_ACU(name);
+  if (vi && content.includes(vi.runtime)) return content.split(vi.runtime).join(mode === 'json' ? vi.json : vi.tools);
+  return legacyZhProtocolForMode_ACU(name, content, mode);
+}
+
+/** Đường thay chuỗi cũ cho văn bản giao thức tiếng Trung (prompt người dùng đã lưu trước khi Việt hóa). */
+function legacyZhProtocolForMode_ACU(name: WorldSimulationAgentName_ACU, content: string, mode: AgentToolMode_ACU): string {
   if (content.startsWith(AGENT_FORMAT_ANSWER_MARKER_ACU) && ['undercurrent-analyst', 'dramatis-keeper', 'guidance-composer'].includes(name)) {
     return AGENT_FORMAT_ANSWER_MARKER_ACU + worldSimulationOneShotProtocol_ACU(name as WorldSimulationOneShotProtocolRole_ACU,
       findWorldSimulationAgentDefinition_ACU(name)!.writableModules, mode);
@@ -140,6 +176,12 @@ export function adaptWorldSimulationPromptSegmentsToToolMode_ACU(
     }
     if (legacy.some(item => item.role === segment.role && item.content === segment.content)) {
       return { ...segment, content: worldSimulationProtocolForMode_ACU(name, segment.content, mode) };
+    }
+    const zh = legacyZhFormatVariants_ACU(name);
+    if (zh && isAgentFormatAnswer_ACU(segment)) {
+      // Prompt mặc định tiếng Trung đã lưu trước khi Việt hóa: vẫn theo công tắc, giữ nguyên tiếng Trung và các chỉnh sửa khác.
+      const hit = [zh.runtime, zh.json, zh.tools].find(text => segment.content.includes(text));
+      if (hit !== undefined) return { ...segment, content: segment.content.split(hit).join(mode === 'json' ? zh.json : zh.tools) };
     }
     return { ...segment };
   });

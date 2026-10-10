@@ -1,15 +1,15 @@
 import type { WorldSimulationSessionEntry_ACU } from '../../service/simulation/agent/agent-session-log'; // arch-ok: 仅类型导入，进度卡从会话 kinds 推导展示阶段
 
 export const WORLD_SIMULATION_PROGRESS_LABELS_ACU = {
-  survey: '世界线测绘',
-  intel: '信息取证',
-  backstage: '幕后演算',
-  batchOne: '批次一：时序与伏线 / 人物谱',
-  batchTwo: '批次二：纪要、风声与场外信号',
-  review: '因果审核',
-  anchor: '提交',
-  completed: '推演完成',
-  interrupted: '推演中断',
+  survey: 'Khảo sát dòng thế giới',
+  intel: 'Thu thập thông tin',
+  backstage: 'Suy diễn hậu trường',
+  batchOne: 'Đợt 1: Trình tự thời gian, mạch ngầm / Phổ nhân vật',
+  batchTwo: 'Đợt 2: Kỷ yếu, tin đồn và tín hiệu ngoài cảnh',
+  review: 'Thẩm định nhân quả',
+  anchor: 'Cam kết',
+  completed: 'Mô phỏng hoàn tất',
+  interrupted: 'Mô phỏng bị gián đoạn',
 } as const;
 
 export type WorldSimulationProgressPhase_ACU = keyof typeof WORLD_SIMULATION_PROGRESS_LABELS_ACU;
@@ -78,9 +78,9 @@ export function deriveWorldSimulationProgressView_ACU(
       return { visible: true, phase: 'batchTwo', label: WORLD_SIMULATION_PROGRESS_LABELS_ACU.batchTwo, concurrent, terminal: false };
     }
     if (runningSpecialists.every(item => item.agentName === 'undercurrent-analyst' || item.agentName === 'dramatis-keeper')) {
-      return { visible: true, phase: 'batchOne', label: `${WORLD_SIMULATION_PROGRESS_LABELS_ACU.batchOne} · ${concurrent} 路并行`, concurrent, terminal: false };
+      return { visible: true, phase: 'batchOne', label: `${WORLD_SIMULATION_PROGRESS_LABELS_ACU.batchOne} · ${concurrent} luồng song song`, concurrent, terminal: false };
     }
-    return { visible: true, phase: 'backstage', label: `${WORLD_SIMULATION_PROGRESS_LABELS_ACU.backstage} · ${concurrent} 路并行`, concurrent, terminal: false };
+    return { visible: true, phase: 'backstage', label: `${WORLD_SIMULATION_PROGRESS_LABELS_ACU.backstage} · ${concurrent} luồng song song`, concurrent, terminal: false };
   }
   if (last?.kind === 'stage_plan' || (run.some(item => item.kind === 'stage_plan') && !run.some(item => item.kind === 'main_action' || item.kind === 'tool_read' || item.kind === 'delegation'))) {
     return { visible: true, phase: 'survey', label: WORLD_SIMULATION_PROGRESS_LABELS_ACU.survey, concurrent: 0, terminal: false };

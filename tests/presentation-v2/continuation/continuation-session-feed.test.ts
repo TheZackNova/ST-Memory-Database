@@ -68,7 +68,7 @@ describe('ContinuationSessionFeed', () => {
     const { el } = mountFeed(entriesOf_ACU(41));
     const button = foldButton(el);
     expect(button).not.toBeNull();
-    expect(button!.textContent).toContain('已折叠 1 条更早消息');
+    expect(button!.textContent).toContain('Đã thu gọn 1 tin cũ hơn');
     const titles = renderedTitles(el);
     expect(titles).toHaveLength(40);
     expect(titles[0]).toBe('条目 2');
@@ -77,15 +77,15 @@ describe('ContinuationSessionFeed', () => {
 
   it('点击横幅每次多展开一批（40 条），展完后横幅消失', async () => {
     const { el } = mountFeed(entriesOf_ACU(100));
-    expect(foldButton(el)!.textContent).toContain('已折叠 60 条更早消息');
-    expect(foldButton(el)!.textContent).toContain('展开更早的 40 条');
+    expect(foldButton(el)!.textContent).toContain('Đã thu gọn 60 tin cũ hơn');
+    expect(foldButton(el)!.textContent).toContain('bấm để mở thêm 40 tin cũ hơn');
 
     foldButton(el)!.click();
     await nextTick();
     expect(renderedTitles(el)).toHaveLength(80);
     // 剩余不足一批时，横幅如实标注剩余可展开数量。
-    expect(foldButton(el)!.textContent).toContain('已折叠 20 条更早消息');
-    expect(foldButton(el)!.textContent).toContain('展开更早的 20 条');
+    expect(foldButton(el)!.textContent).toContain('Đã thu gọn 20 tin cũ hơn');
+    expect(foldButton(el)!.textContent).toContain('bấm để mở thêm 20 tin cũ hơn');
 
     foldButton(el)!.click();
     await nextTick();
@@ -110,7 +110,7 @@ describe('ContinuationSessionFeed', () => {
     entries.value = entriesOf_ACU(50);
     await nextTick();
     expect(renderedTitles(el)).toHaveLength(40);
-    expect(foldButton(el)!.textContent).toContain('已折叠 10 条更早消息');
+    expect(foldButton(el)!.textContent).toContain('Đã thu gọn 10 tin cũ hơn');
   });
 
   it('交接条目以「交接」标签渲染，且带 handoff 样式类', () => {
@@ -120,7 +120,7 @@ describe('ContinuationSessionFeed', () => {
     ]);
     const card = el.querySelector('.acu-v2-session-feed__card--handoff');
     expect(card).not.toBeNull();
-    expect(card!.querySelector('.acu-v2-session-feed__badge')!.textContent).toBe('交接');
+    expect(card!.querySelector('.acu-v2-session-feed__badge')!.textContent).toBe('Bàn giao');
     expect(card!.textContent).toContain('早期会话交接报告（此前内容对当前 AI 不可见）');
   });
 
@@ -132,6 +132,6 @@ describe('ContinuationSessionFeed', () => {
       entry_ACU(4, { kind: 'delegation', agentName: 'unknown-agent', title: 'unknown-agent 执行中', status: 'running' }),
     ]);
     const labels = [...el.querySelectorAll('.acu-v2-session-feed__badge')].map(node => node.textContent);
-    expect(labels).toEqual(['网页检索', '故事总纲', '大纲子代理', 'unknown-agent']);
+    expect(labels).toEqual(['Tra cứu web', 'Tổng cương câu chuyện', 'Agent phụ dàn ý', 'unknown-agent']);
   });
 });

@@ -963,7 +963,7 @@ describe('summary-vector-index-archive-service pending 归档', () => {
     expect(result.credentialFingerprint!.length).toBeGreaterThan(0);
     // errors 是单元素数组：`Embedding 请求失败（kind, HTTP status）: detail`，detail = providerMessage || message。
     expect(result.errors).toHaveLength(1);
-    expect(result.errors[0]).toContain('Embedding 请求失败（credential, HTTP 403）');
+    expect(result.errors[0]).toContain('Yêu cầu Embedding thất bại (credential, HTTP 403)');
     expect(result.errors[0]).toContain('insufficient balance');
     // 指纹只应包含哈希，不应泄漏 apiKey 明文。
     expect(result.credentialFingerprint).not.toContain('test-key');

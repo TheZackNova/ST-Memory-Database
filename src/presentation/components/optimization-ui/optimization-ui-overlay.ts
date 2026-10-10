@@ -30,13 +30,13 @@ import { getActivePlotEditorSettings_ACU, getPlotPromptContentByIdFromSettings_A
       current.update(message);
       return;
     }
-    const task = beginNoticeTask_ACU('正文优化', {
+    const task = beginNoticeTask_ACU('Tối ưu nội dung', {
       detail: message,
       action: {
-        label: '取消优化',
+        label: 'Hủy tối ưu',
         variant: 'danger',
         run: () => {
-          const cancelResult = cancelContentOptimization_ACU('正文优化已取消。');
+          const cancelResult = cancelContentOptimization_ACU('Đã hủy tối ưu nội dung.');
           if (cancelResult.cancelled) showToastr_ACU('warning', cancelResult.reason);
           hideOptimizationProgressToast_ACU();
         },
@@ -46,7 +46,7 @@ import { getActivePlotEditorSettings_ACU, getPlotPromptContentByIdFromSettings_A
   }
 
   /** 无感替换模式的进度入口；遮罩已退役，与普通模式共用同一个气泡任务。 */
-  export function showOptimizationOverlay_ACU(message = '正在优化正文...') {
+  export function showOptimizationOverlay_ACU(message = 'Đang tối ưu nội dung...') {
     showOptimizationTask_ACU(message);
   }
 
@@ -54,7 +54,7 @@ import { getActivePlotEditorSettings_ACU, getPlotPromptContentByIdFromSettings_A
    * 显示正文优化进度任务（非无感替换模式）
    * @param {string} message - 提示消息
    */
-  export function showOptimizationProgressToast_ACU(message = '正在进行正文优化...') {
+  export function showOptimizationProgressToast_ACU(message = 'Đang tối ưu nội dung...') {
     showOptimizationTask_ACU(message);
   }
 

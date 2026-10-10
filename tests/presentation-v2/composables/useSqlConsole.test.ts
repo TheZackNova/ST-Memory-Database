@@ -135,7 +135,7 @@ describe('useSqlConsole', () => {
 
     expect(deps.getStorageProvider).not.toHaveBeenCalled();
     expect(flow.result.value.kind).toBe('error');
-    expect(flow.result.value.error).toContain('SQLite 模式');
+    expect(flow.result.value.error).toContain('chế độ SQLite');
     expect(flow.history.value).toHaveLength(0);
   });
 });

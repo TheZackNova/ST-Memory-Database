@@ -172,13 +172,13 @@ describe('executeSql', () => {
     await executeSql('SELECT * FROM t;', $resultArea, $execStatus);
     expect(mockResolveReadSql).toHaveBeenCalledWith('SELECT * FROM t;');
     expect(mockExecuteQuery).toHaveBeenCalledWith('SELECT * FROM t;');
-    expect($execStatus.html).toHaveBeenCalledWith(expect.stringContaining('1 行'));
+    expect($execStatus.html).toHaveBeenCalledWith(expect.stringContaining('1 hàng'));
   });
 
   it('SELECT 查询无结果', async () => {
     mockExecuteQuery.mockReturnValue({ columns: ['id'], values: [], rowCount: 0 });
     await executeSql('SELECT * FROM t WHERE 1=0;', $resultArea, $execStatus);
-    expect($resultArea.html).toHaveBeenCalledWith(expect.stringContaining('无结果'));
+    expect($resultArea.html).toHaveBeenCalledWith(expect.stringContaining('không có kết quả'));
   });
 
   it('INSERT 变更调用 SQL API 公共提交模型', async () => {
@@ -186,21 +186,21 @@ describe('executeSql', () => {
     await executeSql("INSERT INTO t VALUES (1);", $resultArea, $execStatus);
     expect(mockExecuteSqlMutation).toHaveBeenCalledWith({ sql: "INSERT INTO t VALUES (1);", trackingSheetKeys: [] });
     expect(mockExecuteMutation).not.toHaveBeenCalled();
-    expect($execStatus.html).toHaveBeenCalledWith(expect.stringContaining('1 行受影响'));
+    expect($execStatus.html).toHaveBeenCalledWith(expect.stringContaining('1 hàng bị ảnh hưởng'));
   });
 
   it('变更失败显示错误', async () => {
     mockExecuteSqlMutation.mockResolvedValue({ errors: ['SQL 语法错误'], changes: 0 });
     await executeSql('INVALID SQL', $resultArea, $execStatus);
     expect($resultArea.html).toHaveBeenCalledWith(expect.stringContaining('SQL 语法错误'));
-    expect($execStatus.html).toHaveBeenCalledWith(expect.stringContaining('失败'));
+    expect($execStatus.html).toHaveBeenCalledWith(expect.stringContaining('Thực thi thất bại'));
   });
 
   it('provider 抛出异常时显示错误', async () => {
     mockExecuteQuery.mockImplementation(() => { throw new Error('数据库未初始化'); });
     await executeSql('SELECT 1;', $resultArea, $execStatus);
     expect($resultArea.html).toHaveBeenCalledWith(expect.stringContaining('数据库未初始化'));
-    expect($execStatus.html).toHaveBeenCalledWith(expect.stringContaining('失败'));
+    expect($execStatus.html).toHaveBeenCalledWith(expect.stringContaining('Thất bại'));
   });
 
   it('执行后记录历史（成功）', async () => {

@@ -162,8 +162,8 @@ export async function bindDataEvents_ACU(): Promise<void> {
           showToastr_ACU(
               modeEnabled ? 'success' : 'info',
               modeEnabled
-                  ? '交火模式向量索引已启用：后续会随纪要表数据维护外置索引文件。'
-                  : '交火模式向量索引已关闭：已有外置索引文件不会自动删除，可在下方手动删除当前索引。',
+                  ? 'Đã bật chỉ mục vector chế độ giao hỏa: về sau sẽ duy trì tệp chỉ mục ngoài theo dữ liệu bảng kỷ yếu.'
+                  : 'Đã tắt chỉ mục vector chế độ giao hỏa: tệp chỉ mục ngoài hiện có sẽ không tự xóa, có thể xóa thủ công chỉ mục hiện tại bên dưới.',
           );
       };
 
@@ -177,7 +177,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
               if (!opened) throw new Error('V2 visualizer failed to open.');
           } catch (e: any) {
               logError_ACU('打开可视化表格编辑器失败:', e);
-              showToastr_ACU('error', `打开可视化表格编辑器失败: ${e?.message || '未知错误'}`);
+              showToastr_ACU('error', `Mở trình chỉnh sửa bảng trực quan thất bại: ${e?.message || 'Lỗi không xác định'}`);
           }
       };
 
@@ -198,7 +198,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
       if ($vectorIndexRefreshButton_ACU.length) {
           $vectorIndexRefreshButton_ACU.off('click.acu_vector_index').on('click.acu_vector_index', async () => {
               await refreshVectorIndexStatsPanel_ACU();
-              showToastr_ACU('success', '交火模式索引状态已刷新。');
+              showToastr_ACU('success', 'Đã làm mới trạng thái chỉ mục chế độ giao hỏa.');
           });
       }
       if ($vectorIndexClearCacheButton_ACU.length) {
@@ -206,63 +206,63 @@ export async function bindDataEvents_ACU(): Promise<void> {
               await clearVectorIndexTempCache_ACU();
               await clearSummaryVectorHotCache_ACU();
               await refreshVectorIndexStatsPanel_ACU();
-              showToastr_ACU('success', '交火模式临时缓存与热缓存已清空。');
+              showToastr_ACU('success', 'Đã xóa bộ nhớ đệm tạm và bộ nhớ đệm nóng của chế độ giao hỏa.');
           });
       }
       if ($buildVectorIndexNowButton_ACU.length) {
           $buildVectorIndexNowButton_ACU.off('click.acu_vector_index_archive').on('click.acu_vector_index_archive', async () => {
-              $buildVectorIndexNowButton_ACU.prop('disabled', true).text('正在重建交火索引快照...');
+              $buildVectorIndexNowButton_ACU.prop('disabled', true).text('Đang dựng lại snapshot chỉ mục giao hỏa...');
               try {
                   const result = await rebuildCurrentSummaryVectorIndexNow_ACU();
                   await refreshVectorIndexStatsPanel_ACU();
                   if (result.success && !result.skipped) {
                       try { (topLevelWindow_ACU as any).AutoCardUpdaterAPI?._notifyTableUpdate?.(); } catch (_) {}
-                      showToastr_ACU('success', `交火索引快照重建完成：${result.indexedRowCount || 0} 行，${result.chunkCount || 0} 个 chunks。`);
+                      showToastr_ACU('success', `Dựng lại snapshot chỉ mục giao hỏa hoàn tất: ${result.indexedRowCount || 0} hàng, ${result.chunkCount || 0} chunk.`);
                       return;
                   }
-                  const reasonText = result.errors?.length ? result.errors.join('；') : (result.reason || '无可重建内容');
-                  showToastr_ACU(result.success ? 'info' : 'error', `交火索引快照未完成：${reasonText}`);
+                  const reasonText = result.errors?.length ? result.errors.join('; ') : (result.reason || 'Không có nội dung để dựng lại');
+                  showToastr_ACU(result.success ? 'info' : 'error', `Snapshot chỉ mục giao hỏa chưa hoàn tất: ${reasonText}`);
               } catch (e: any) {
                   logError_ACU('交火索引快照重建按钮执行失败:', e);
-                  showToastr_ACU('error', `交火索引快照重建失败: ${e?.message || '未知错误'}`);
+                  showToastr_ACU('error', `Dựng lại snapshot chỉ mục giao hỏa thất bại: ${e?.message || 'Lỗi không xác định'}`);
               } finally {
-                  $buildVectorIndexNowButton_ACU.prop('disabled', false).html('<i class="fa-solid fa-brain"></i> 立即重建交火索引快照');
+                  $buildVectorIndexNowButton_ACU.prop('disabled', false).html('<i class="fa-solid fa-brain"></i> Dựng lại snapshot chỉ mục giao hỏa ngay');
               }
           });
       }
       if ($vectorIndexMigrateLegacyButton_ACU.length) {
           $vectorIndexMigrateLegacyButton_ACU.off('click.acu_vector_index_migrate').on('click.acu_vector_index_migrate', async () => {
-              $vectorIndexMigrateLegacyButton_ACU.prop('disabled', true).text('正在迁移...');
+              $vectorIndexMigrateLegacyButton_ACU.prop('disabled', true).text('Đang di chuyển...');
               try {
                   const report = await inspectSummaryVectorIndexHealth_ACU();
                   const legacyCount = report.legacyManifestCount || 0;
                   if (legacyCount === 0) {
-                      showToastr_ACU('info', '当前没有可迁移的旧交火索引。');
+                      showToastr_ACU('info', 'Hiện không có chỉ mục giao hỏa cũ nào để di chuyển.');
                       return;
                   }
                   const result = await migrateLegacySummaryVectorIndex_ACU();
                   await refreshVectorIndexStatsPanel_ACU();
                   if (result.success && !result.skipped) {
-                      showToastr_ACU('success', `旧交火索引非破坏迁移完成：${result.indexedRowCount || 0} 行，${result.chunkCount || 0} 个 chunks。旧楼层引用保持不变。`);
+                      showToastr_ACU('success', `Di chuyển không phá hủy chỉ mục giao hỏa cũ hoàn tất: ${result.indexedRowCount || 0} hàng, ${result.chunkCount || 0} chunk. Tham chiếu tầng cũ giữ nguyên.`);
                       return;
                   }
-                  const reasonText = result.errors?.length ? result.errors.join('；') : (result.reason || '无可迁移内容');
-                  showToastr_ACU(result.success ? 'info' : 'warning', `旧交火索引迁移未执行：${reasonText}`);
+                  const reasonText = result.errors?.length ? result.errors.join('; ') : (result.reason || 'Không có nội dung để di chuyển');
+                  showToastr_ACU(result.success ? 'info' : 'warning', `Di chuyển chỉ mục giao hỏa cũ chưa thực hiện: ${reasonText}`);
               } catch (e: any) {
                   logError_ACU('旧交火索引迁移按钮执行失败:', e);
-                  showToastr_ACU('error', `旧交火索引迁移失败: ${e?.message || '未知错误'}`);
+                  showToastr_ACU('error', `Di chuyển chỉ mục giao hỏa cũ thất bại: ${e?.message || 'Lỗi không xác định'}`);
               } finally {
-                  $vectorIndexMigrateLegacyButton_ACU.prop('disabled', false).text('非破坏迁移旧索引');
+                  $vectorIndexMigrateLegacyButton_ACU.prop('disabled', false).text('Di chuyển không phá hủy chỉ mục cũ');
               }
           });
       }
 
       if ($vectorIndexDeleteCurrentButton_ACU.length) {
           $vectorIndexDeleteCurrentButton_ACU.off('click.acu_vector_index').on('click.acu_vector_index', async () => {
-              if (!confirm('确定要删除当前交火模式外置向量索引吗？这会删除 /user/files 中的索引分片，并清除聊天记录中的 manifest。')) return;
+              if (!confirm('Xác nhận xóa chỉ mục vector ngoài của chế độ giao hỏa hiện tại? Thao tác này sẽ xóa các phân đoạn chỉ mục trong /user/files và xóa manifest trong lịch sử trò chuyện.')) return;
               const deleted = await deleteCurrentSummaryVectorIndexFromChat_ACU();
               await refreshVectorIndexStatsPanel_ACU();
-              showToastr_ACU(deleted ? 'success' : 'info', deleted ? '当前交火模式索引已删除。' : '当前聊天没有可删除的交火模式索引。');
+              showToastr_ACU(deleted ? 'success' : 'info', deleted ? 'Đã xóa chỉ mục chế độ giao hỏa hiện tại.' : 'Cuộc trò chuyện hiện tại không có chỉ mục chế độ giao hỏa để xóa.');
           });
       }
 
@@ -279,7 +279,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
             $dataIsolationHistoryList.empty();
             if (!history.length) {
                 $dataIsolationHistoryList.append(
-                    `<li class="acu-history-empty" style="padding: 6px 10px; color: var(--text-dim); user-select: none;">暂无历史记录</li>`,
+                    `<li class="acu-history-empty" style="padding: 6px 10px; color: var(--text-dim); user-select: none;">Chưa có lịch sử</li>`,
                 );
                 return;
             }
@@ -288,7 +288,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
                 $dataIsolationHistoryList.append(
                     `<li class="acu-history-item" data-code="${safeCode}" title="${safeCode}" style="padding: 6px 10px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
                         <span class="acu-history-text" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${safeCode}</span>
-                        <button type="button" class="acu-remove-code" data-code="${safeCode}" title="删除该标识" style="border: none; background: transparent; color: var(--error-color); cursor: pointer; font-size: 12px; line-height: 1;">×</button>
+                        <button type="button" class="acu-remove-code" data-code="${safeCode}" title="Xóa mã định danh này" style="border: none; background: transparent; color: var(--error-color); cursor: pointer; font-size: 12px; line-height: 1;">×</button>
                     </li>`,
                 );
             });
@@ -304,9 +304,9 @@ export async function bindDataEvents_ACU(): Promise<void> {
         // [新增] 删除按钮事件
         if ($dataIsolationDeleteButton.length) {
             $dataIsolationDeleteButton.on('click', async function() {
-                if (confirm('确定要删除当前标识下的所有注入世界书条目吗？\n(这不会删除聊天记录中的数据)')) {
+                if (confirm('Xác nhận xóa tất cả mục sổ thế giới đã chèn dưới mã định danh hiện tại?\n(Thao tác này không xóa dữ liệu trong lịch sử trò chuyện)')) {
                     await deleteAllGeneratedEntries_ACU(); // 此函数已修改为支持隔离逻辑
-                    showToastr_ACU('success', '已删除相关世界书条目。');
+                    showToastr_ACU('success', 'Đã xóa các mục sổ thế giới liên quan.');
                 }
             });
         }
@@ -316,8 +316,8 @@ export async function bindDataEvents_ACU(): Promise<void> {
             $dataIsolationSaveButton.on('click', async function() {
                 const code = String($dataIsolationCodeInput.val() || '').trim();
 
-                if (code) showToastr_ACU('info', `正在切换到标识 [${code}] 的整套设置/模板/数据...`);
-                else showToastr_ACU('info', `标识为空：正在切换到默认整套设置/模板/数据...`);
+                if (code) showToastr_ACU('info', `Đang chuyển sang toàn bộ cài đặt/mẫu/dữ liệu của mã định danh [${code}]...`);
+                else showToastr_ACU('info', `Mã định danh trống: đang chuyển sang toàn bộ cài đặt/mẫu/dữ liệu mặc định...`);
 
                 // [Profile] 切换标识 = 切换 profile（设置+模板），标识列表跨 profile 共享
                 await switchIsolationProfile_ACU(code);
@@ -346,7 +346,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
                     updateCardUpdateStatusDisplay_ACU();
                 }
                 
-                showToastr_ACU('success', '数据载入完成！');
+                showToastr_ACU('success', 'Đã tải dữ liệu xong!');
             });
         }
         
@@ -441,12 +441,12 @@ export async function bindDataEvents_ACU(): Promise<void> {
             const useMainApi = jQuery_API_ACU(this).is(':checked');
             const result = setUseMainApi_ACU(useMainApi);
             if (!result.ok) {
-              showToastr_ACU('error', result.message || '保存主API开关失败，已回滚。');
+              showToastr_ACU('error', result.message || 'Lưu công tắc API chính thất bại, đã khôi phục.');
               jQuery_API_ACU(this).prop('checked', !useMainApi);
               return;
             }
             updateCustomApiInputsState_ACU();
-            showToastr_ACU('info', `自定义API已切换为 ${useMainApi ? '使用主API' : '使用独立配置'}`);
+            showToastr_ACU('info', `API tùy chỉnh đã chuyển sang ${useMainApi ? 'dùng API chính' : 'dùng cấu hình riêng'}`);
         });
       }
       if ($loadModelsButton_ACU.length) $loadModelsButton_ACU.on('click', fetchModelsAndConnect_ACU);
@@ -476,18 +476,18 @@ export async function bindDataEvents_ACU(): Promise<void> {
         if (presetName) {
           loadApiPreset_ACU(presetName);
         } else {
-          showToastr_ACU('warning', '请先选择一个预设。');
+          showToastr_ACU('warning', 'Vui lòng chọn một preset trước.');
         }
       });
 
       $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-delete-api-preset`).on('click', function() {
         const presetName = String($popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-api-preset-select`).val() || '');
         if (presetName) {
-          if (confirm(`确定要删除API预设 "${presetName}" 吗？`)) {
+          if (confirm(`Xác nhận xóa preset API "${presetName}"?`)) {
             deleteApiPreset_ACU(presetName);
           }
         } else {
-          showToastr_ACU('warning', '请先选择一个预设。');
+          showToastr_ACU('warning', 'Vui lòng chọn một preset trước.');
         }
       });
 
@@ -496,7 +496,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
         const next = String(jQuery_API_ACU(this).val() || '');
         const result = setFeatureApiPreset_ACU('table', next);
         if (!result.ok) {
-          showToastr_ACU('error', result.message || '保存填表API预设失败，已回滚。');
+          showToastr_ACU('error', result.message || 'Lưu preset API điền bảng thất bại, đã khôi phục.');
           return;
         }
         logDebug_ACU(`填表API预设已切换为: ${next || '当前配置'}`);
@@ -506,40 +506,40 @@ export async function bindDataEvents_ACU(): Promise<void> {
       $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-table-context-extract-add-rule`).on('click', function() {
         appendExcludeRuleRow_ACU(
           `#${SCRIPT_ID_PREFIX_ACU}-table-context-extract-rules`,
-          { startPlaceholder: '开始词（例如：<think）', endPlaceholder: '结束词（例如：</think>）' },
+          { startPlaceholder: 'Từ bắt đầu (ví dụ: <think)', endPlaceholder: 'Từ kết thúc (ví dụ: </think>)' },
         );
       });
       $popupInstance_ACU.on('input', `#${SCRIPT_ID_PREFIX_ACU}-table-context-extract-rules .acu-exclude-rule-start, #${SCRIPT_ID_PREFIX_ACU}-table-context-extract-rules .acu-exclude-rule-end`, function() {
         const rules = readExcludeRulesFromRows_ACU(`#${SCRIPT_ID_PREFIX_ACU}-table-context-extract-rules`);
         const result = setTableContextRules_ACU('extract', rules);
-        if (!result.ok) showToastr_ACU('error', result.message || '保存填表提取规则失败，已回滚。');
+        if (!result.ok) showToastr_ACU('error', result.message || 'Lưu quy tắc trích xuất điền bảng thất bại, đã khôi phục.');
       });
       $popupInstance_ACU.on('click', `#${SCRIPT_ID_PREFIX_ACU}-table-context-extract-rules .acu-exclude-rule-delete`, function() {
         const $row = jQuery_API_ACU(this).closest('.acu-exclude-rule-row');
         if ($row.length) $row.remove();
         const rules = readExcludeRulesFromRows_ACU(`#${SCRIPT_ID_PREFIX_ACU}-table-context-extract-rules`);
         const result = setTableContextRules_ACU('extract', rules);
-        if (!result.ok) showToastr_ACU('error', result.message || '保存填表提取规则失败，已回滚。');
+        if (!result.ok) showToastr_ACU('error', result.message || 'Lưu quy tắc trích xuất điền bảng thất bại, đã khôi phục.');
       });
 
       // 填表正文标签排除规则编辑器
       $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-table-context-exclude-add-rule`).on('click', function() {
         appendExcludeRuleRow_ACU(
           `#${SCRIPT_ID_PREFIX_ACU}-table-context-exclude-rules`,
-          { startPlaceholder: '开始词（例如：<thinking）', endPlaceholder: '结束词（例如：</thinking>）' },
+          { startPlaceholder: 'Từ bắt đầu (ví dụ: <thinking)', endPlaceholder: 'Từ kết thúc (ví dụ: </thinking>)' },
         );
       });
       $popupInstance_ACU.on('input', `#${SCRIPT_ID_PREFIX_ACU}-table-context-exclude-rules .acu-exclude-rule-start, #${SCRIPT_ID_PREFIX_ACU}-table-context-exclude-rules .acu-exclude-rule-end`, function() {
         const rules = readExcludeRulesFromRows_ACU(`#${SCRIPT_ID_PREFIX_ACU}-table-context-exclude-rules`);
         const result = setTableContextRules_ACU('exclude', rules);
-        if (!result.ok) showToastr_ACU('error', result.message || '保存填表排除规则失败，已回滚。');
+        if (!result.ok) showToastr_ACU('error', result.message || 'Lưu quy tắc loại trừ điền bảng thất bại, đã khôi phục.');
       });
       $popupInstance_ACU.on('click', `#${SCRIPT_ID_PREFIX_ACU}-table-context-exclude-rules .acu-exclude-rule-delete`, function() {
         const $row = jQuery_API_ACU(this).closest('.acu-exclude-rule-row');
         if ($row.length) $row.remove();
         const rules = readExcludeRulesFromRows_ACU(`#${SCRIPT_ID_PREFIX_ACU}-table-context-exclude-rules`);
         const result = setTableContextRules_ACU('exclude', rules);
-        if (!result.ok) showToastr_ACU('error', result.message || '保存填表排除规则失败，已回滚。');
+        if (!result.ok) showToastr_ACU('error', result.message || 'Lưu quy tắc loại trừ điền bảng thất bại, đã khôi phục.');
       });
 
       // 剧情推进API预设选择器
@@ -547,7 +547,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
         const next = String(jQuery_API_ACU(this).val() || '');
         const result = setFeatureApiPreset_ACU('plot', next);
         if (!result.ok) {
-          showToastr_ACU('error', result.message || '保存剧情推进API预设失败，已回滚。');
+          showToastr_ACU('error', result.message || 'Lưu preset API đẩy cốt truyện thất bại, đã khôi phục.');
           return;
         }
         logDebug_ACU(`剧情推进API预设已切换为: ${next || '当前配置'}`);
@@ -586,11 +586,11 @@ export async function bindDataEvents_ACU(): Promise<void> {
             const firstResult = await apply(false);
             if (!firstResult || firstResult.saved !== false || !Array.isArray(firstResult.blockers)) return firstResult;
             const destructiveBlockers = firstResult.blockers.filter((blocker: unknown) => (
-                typeof blocker === 'string' && /删除(?:表|列).+需要显式确认/.test(blocker)
+                typeof blocker === 'string' && (/删除(?:表|列).+需要显式确认/.test(blocker) || /Xóa (?:bảng|cột) .+ cần xác nhận (?:rõ ràng|tường minh)/.test(blocker))
             ));
             if (destructiveBlockers.length === 0) return firstResult;
             const confirmed = confirm(
-                `此模板变更会删除现有表或列：\n${destructiveBlockers.join('\n')}\n\n确认后将按 V2 原子提交执行。删除的数据只能通过聊天备份或 checkpoint 恢复。`,
+                `Thay đổi mẫu này sẽ xóa bảng hoặc cột hiện có:\n${destructiveBlockers.join('\n')}\n\nSau khi xác nhận sẽ thực hiện theo commit nguyên tử V2. Dữ liệu đã xóa chỉ có thể khôi phục qua bản sao lưu cuộc trò chuyện hoặc checkpoint.`,
             );
             return confirmed ? apply(true) : firstResult;
         };
@@ -614,7 +614,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
             if (!applied || ('saved' in applied && applied.saved === false)) {
                 const error = applied && typeof applied === 'object' && 'error' in applied && typeof applied.error === 'string'
                     ? applied.error
-                    : '当前聊天模板预设保存失败。';
+                    : 'Lưu preset mẫu của cuộc trò chuyện hiện tại thất bại.';
                 showToastr_ACU('error', error, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                 return false;
             }
@@ -625,7 +625,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
                     : '';
                 showToastr_ACU(
                     warning ? 'warning' : 'success',
-                    warning || `当前聊天预设已保存${resolvedPresetName ? `（预设名：${resolvedPresetName}）` : '（默认预设）'}；后续在此聊天再次保存会直接覆盖同名聊天预设。`,
+                    warning || `Đã lưu preset của cuộc trò chuyện hiện tại${resolvedPresetName ? ` (tên preset: ${resolvedPresetName})` : ' (preset mặc định)'}; lần lưu sau trong cuộc trò chuyện này sẽ ghi đè preset cùng tên.`,
                     { acuToastCategory: warning ? ACU_TOAST_CATEGORY_ACU.ERROR : ACU_TOAST_CATEGORY_ACU.IMPORT },
                 );
             }
@@ -637,7 +637,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
             const chatScopeState = getCurrentChatTemplateScopeState_ACU();
             const snapshot = sanitizeTemplateSnapshotForChat_ACU(chatScopeState?.templateStr || TABLE_TEMPLATE_ACU);
             if (!snapshot?.templateObj) {
-                showToastr_ACU('error', '读取当前聊天模板快照失败。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+                showToastr_ACU('error', 'Đọc snapshot mẫu của cuộc trò chuyện hiện tại thất bại.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                 return;
             }
 
@@ -651,7 +651,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            showToastr_ACU('success', `当前聊天模板快照已导出${effectivePresetName ? `（预设名：${effectivePresetName}）` : ''}。`, {
+            showToastr_ACU('success', `Đã xuất snapshot mẫu của cuộc trò chuyện hiện tại${effectivePresetName ? ` (tên preset: ${effectivePresetName})` : ''}.`, {
                 acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT,
             });
         };
@@ -662,8 +662,8 @@ export async function bindDataEvents_ACU(): Promise<void> {
         if ($templatePresetSelect_ACU && $templatePresetSelect_ACU.length) {
             $templatePresetSelect_ACU.off('change.acu_template_preset').on('change.acu_template_preset', async function() {
                 const name = normalizeTemplatePresetSelectionValue_ACU(jQuery_API_ACU(this).val());
-                const displayName = name || '默认预设';
-                showToastr_ACU('info', `正在切换全局模板预设：${displayName}...`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                const displayName = name || 'Preset mặc định';
+                showToastr_ACU('info', `Đang chuyển preset mẫu toàn cục: ${displayName}...`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                 // S1-3：inherit_global 聊天下全局切换经协调器，破坏性 blockers 需确认重试，
                 // saved:false（fail-closed，全局未变）必须按失败处理。
                 const result = await applyChatTemplateWithDestructiveConfirmation_ACU(destructiveChangeConfirmed => applyTemplatePresetToCurrent_ACU(name, {
@@ -681,12 +681,12 @@ export async function bindDataEvents_ACU(): Promise<void> {
                     if (warning) {
                         showToastr_ACU('warning', warning, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     } else {
-                        showToastr_ACU('success', `全局模板预设已切换：${displayName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                        showToastr_ACU('success', `Đã chuyển preset mẫu toàn cục: ${displayName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                     }
                 } else {
                     const error = result && typeof result === 'object' && 'error' in result && typeof result.error === 'string' && result.error
                         ? result.error
-                        : `全局模板预设切换失败：${displayName}`;
+                        : `Chuyển preset mẫu toàn cục thất bại: ${displayName}`;
                     showToastr_ACU('error', error, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     refreshPresetUIAfterSwitch_ACU({ keepTemplateGlobalValue: false });
                 }
@@ -695,8 +695,8 @@ export async function bindDataEvents_ACU(): Promise<void> {
         if ($templateChatPresetSelect_ACU && $templateChatPresetSelect_ACU.length) {
             $templateChatPresetSelect_ACU.off('change.acu_template_preset').on('change.acu_template_preset', async function() {
                 const name = normalizeTemplatePresetSelectionValue_ACU(jQuery_API_ACU(this).val());
-                const displayName = name || '默认预设';
-                showToastr_ACU('info', `正在切换当前聊天模板预设：${displayName}...`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                const displayName = name || 'Preset mặc định';
+                showToastr_ACU('info', `Đang chuyển preset mẫu của cuộc trò chuyện hiện tại: ${displayName}...`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                 const result = await applyChatTemplateWithDestructiveConfirmation_ACU(destructiveChangeConfirmed => applyTemplatePresetToCurrent_ACU(name, {
                     source: 'ui_chat_select',
                     updateGlobal: false,
@@ -712,12 +712,12 @@ export async function bindDataEvents_ACU(): Promise<void> {
                     if (warning) {
                         showToastr_ACU('warning', warning, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     } else if ((result as any).mode === 'chat_override') {
-                        showToastr_ACU('success', `当前聊天已切换到本地模板预设：${displayName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                        showToastr_ACU('success', `Cuộc trò chuyện hiện tại đã chuyển sang preset mẫu cục bộ: ${displayName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                     } else {
-                        showToastr_ACU('success', `当前聊天已切换到引用预设：${displayName}；当前聊天尚未生成本地快照。`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                        showToastr_ACU('success', `Cuộc trò chuyện hiện tại đã chuyển sang preset tham chiếu: ${displayName}; cuộc trò chuyện chưa tạo snapshot cục bộ.`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                     }
                 } else {
-                    showToastr_ACU('error', `当前聊天模板预设切换失败：${displayName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+                    showToastr_ACU('error', `Chuyển preset mẫu của cuộc trò chuyện hiện tại thất bại: ${displayName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     refreshPresetUIAfterSwitch_ACU({ keepTemplateGlobalValue: true });
                 }
             });
@@ -727,21 +727,21 @@ export async function bindDataEvents_ACU(): Promise<void> {
                 const currentSelectedName = normalizeTemplatePresetSelectionValue_ACU(jQuery_API_ACU($templatePresetSelect_ACU).val());
                 let finalName = currentSelectedName;
                 if (isDefaultTemplatePresetSelection_ACU(currentSelectedName)) {
-                    const promptedName = prompt('请输入要保存的全局模板预设名称：', '新模板预设');
+                    const promptedName = prompt('Nhập tên preset mẫu toàn cục cần lưu:', 'Preset mẫu mới');
                     if (!promptedName) return;
                     finalName = String(promptedName).trim();
-                } else if (!confirm(`确定要用当前模板覆盖全局预设 "${currentSelectedName}" 吗？同名全局预设会被覆盖，当前聊天的本地预设不会被自动清除。`)) {
+                } else if (!confirm(`Xác nhận dùng mẫu hiện tại để ghi đè preset toàn cục "${currentSelectedName}"? Preset toàn cục cùng tên sẽ bị ghi đè, preset cục bộ của cuộc trò chuyện hiện tại sẽ không tự bị xóa.`)) {
                     return;
                 }
                 if (!finalName) return;
                 const norm = normalizeTemplateForPresetSave_ACU();
                 if (!norm) {
-                    showToastr_ACU('error', '保存全局模板预设失败：无法解析当前模板。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+                    showToastr_ACU('error', 'Lưu preset mẫu toàn cục thất bại: không thể phân tích mẫu hiện tại.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     return;
                 }
                 const ok = upsertTemplatePreset_ACU(finalName, norm.templateStr);
                 if (!ok) {
-                    showToastr_ACU('error', '保存全局模板预设失败：无法写入设置存储。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+                    showToastr_ACU('error', 'Lưu preset mẫu toàn cục thất bại: không thể ghi vào kho cài đặt.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     return;
                 }
                 const applied = await applyTemplatePresetToCurrent_ACU(finalName, {
@@ -753,33 +753,33 @@ export async function bindDataEvents_ACU(): Promise<void> {
                 if (!applied || (typeof applied === 'object' && 'saved' in applied && applied.saved === false)) {
                     const error = applied && typeof applied === 'object' && 'error' in applied && typeof applied.error === 'string' && applied.error
                         ? applied.error
-                        : '保存后切换全局模板预设失败。';
+                        : 'Chuyển preset mẫu toàn cục sau khi lưu thất bại.';
                     showToastr_ACU('error', error, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     return;
                 }
-                showToastr_ACU('success', `已保存全局模板预设：${finalName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                showToastr_ACU('success', `Đã lưu preset mẫu toàn cục: ${finalName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
             });
         }
         if ($templatePresetSaveAsBtn_ACU && $templatePresetSaveAsBtn_ACU.length) {
             $templatePresetSaveAsBtn_ACU.off('click.acu_template_preset').on('click.acu_template_preset', async function() {
                 const cur = normalizeTemplatePresetSelectionValue_ACU(jQuery_API_ACU($templatePresetSelect_ACU).val());
-                const defaultName = cur ? `${cur}_副本` : '新模板预设';
-                const raw = prompt('另存为全局模板预设名称：', defaultName);
+                const defaultName = cur ? `${cur}_bản sao` : 'Preset mẫu mới';
+                const raw = prompt('Tên preset mẫu toàn cục khi lưu thành:', defaultName);
                 if (!raw) return;
                 const norm = normalizeTemplateForPresetSave_ACU();
                 if (!norm) {
-                    showToastr_ACU('error', '另存为全局模板预设失败：无法解析当前模板。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+                    showToastr_ACU('error', 'Lưu thành preset mẫu toàn cục thất bại: không thể phân tích mẫu hiện tại.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     return;
                 }
                 const requested = String(raw).trim();
                 if (!requested) return;
                 const finalName = ensureUniqueTemplatePresetName_ACU(requested);
                 if (finalName !== requested) {
-                    if (!confirm(`预设名已存在，将自动另存为 "${finalName}"。是否继续？`)) return;
+                    if (!confirm(`Tên preset đã tồn tại, sẽ tự động lưu thành "${finalName}". Tiếp tục?`)) return;
                 }
                 const ok = upsertTemplatePreset_ACU(finalName, norm.templateStr);
                 if (!ok) {
-                    showToastr_ACU('error', '另存为全局模板预设失败：无法写入设置存储。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+                    showToastr_ACU('error', 'Lưu thành preset mẫu toàn cục thất bại: không thể ghi vào kho cài đặt.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     return;
                 }
                 const applied = await applyTemplatePresetToCurrent_ACU(finalName, {
@@ -791,32 +791,32 @@ export async function bindDataEvents_ACU(): Promise<void> {
                 if (!applied || (typeof applied === 'object' && 'saved' in applied && applied.saved === false)) {
                     const error = applied && typeof applied === 'object' && 'error' in applied && typeof applied.error === 'string' && applied.error
                         ? applied.error
-                        : '另存为后切换全局模板预设失败。';
+                        : 'Chuyển preset mẫu toàn cục sau khi lưu thành thất bại.';
                     showToastr_ACU('error', error, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     return;
                 }
-                showToastr_ACU('success', `已另存为全局模板预设：${finalName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                showToastr_ACU('success', `Đã lưu thành preset mẫu toàn cục: ${finalName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
             });
         }
         if ($templatePresetRenameBtn_ACU && $templatePresetRenameBtn_ACU.length) {
             $templatePresetRenameBtn_ACU.off('click.acu_template_preset').on('click.acu_template_preset', function() {
                 const oldName = normalizeTemplatePresetSelectionValue_ACU(jQuery_API_ACU($templatePresetSelect_ACU).val());
                 if (isDefaultTemplatePresetSelection_ACU(oldName)) {
-                    showToastr_ACU('warning', '默认全局预设不能重命名。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                    showToastr_ACU('warning', 'Không thể đổi tên preset toàn cục mặc định.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                     return;
                 }
                 const preset = getTemplatePreset_ACU(oldName);
                 if (!preset?.templateStr) {
-                    showToastr_ACU('warning', '找不到当前选中的全局模板预设。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                    showToastr_ACU('warning', 'Không tìm thấy preset mẫu toàn cục đang chọn.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                     return;
                 }
-                const newName = prompt(`将全局模板预设 "${oldName}" 重命名为：`, oldName);
+                const newName = prompt(`Đổi tên preset mẫu toàn cục "${oldName}" thành:`, oldName);
                 if (!newName) return;
                 const nn = String(newName).trim();
                 if (!nn) return;
                 const saveOk = upsertTemplatePreset_ACU(nn, preset.templateStr);
                 if (!saveOk) {
-                    showToastr_ACU('error', '重命名全局模板预设失败：无法写入设置存储。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+                    showToastr_ACU('error', 'Đổi tên preset mẫu toàn cục thất bại: không thể ghi vào kho cài đặt.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     return;
                 }
                 if (nn !== oldName) {
@@ -827,28 +827,28 @@ export async function bindDataEvents_ACU(): Promise<void> {
                     saveSettingsAndNotify_ACU();
                 }
                 refreshPresetUIAfterSwitch_ACU({ templateGlobalSelectName: nn, keepTemplateGlobalValue: false });
-                showToastr_ACU('success', `全局模板预设已重命名：${oldName} → ${nn}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                showToastr_ACU('success', `Đã đổi tên preset mẫu toàn cục: ${oldName} → ${nn}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
             });
         }
         if ($templatePresetDeleteBtn_ACU && $templatePresetDeleteBtn_ACU.length) {
             $templatePresetDeleteBtn_ACU.off('click.acu_template_preset').on('click.acu_template_preset', function() {
                 const name = normalizeTemplatePresetSelectionValue_ACU(jQuery_API_ACU($templatePresetSelect_ACU).val());
                 if (isDefaultTemplatePresetSelection_ACU(name)) {
-                    showToastr_ACU('warning', '默认全局预设不能删除。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                    showToastr_ACU('warning', 'Không thể xóa preset toàn cục mặc định.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                     return;
                 }
-                if (!confirm(`确定要删除全局模板预设 "${name}" 吗？此操作不可撤销。`)) return;
+                if (!confirm(`Xác nhận xóa preset mẫu toàn cục "${name}"? Thao tác này không thể hoàn tác.`)) return;
                 const ok = deleteTemplatePreset_ACU(name);
                 refreshPresetUIAfterSwitch_ACU({ keepTemplateGlobalValue: false });
                 if (ok) {
                     const activeGlobalName = normalizeTemplatePresetSelectionValue_ACU(getCurrentTemplatePresetName_ACU(settings_ACU, { requireExisting: false }));
                     if (activeGlobalName === name) {
-                        showToastr_ACU('success', `已从全局模板库删除预设：${name}。当前 profile 仍保留这份模板快照，直到你再次切换或恢复默认。`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                        showToastr_ACU('success', `Đã xóa preset khỏi thư viện mẫu toàn cục: ${name}. Profile hiện tại vẫn giữ snapshot mẫu này cho đến khi bạn chuyển lại hoặc khôi phục mặc định.`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                     } else {
-                        showToastr_ACU('success', `已删除全局模板预设：${name}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                        showToastr_ACU('success', `Đã xóa preset mẫu toàn cục: ${name}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                     }
                 } else {
-                    showToastr_ACU('warning', `删除失败或全局模板预设不存在：${name}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                    showToastr_ACU('warning', `Xóa thất bại hoặc preset mẫu toàn cục không tồn tại: ${name}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
                 }
             });
         }
@@ -867,21 +867,21 @@ export async function bindDataEvents_ACU(): Promise<void> {
                 const currentSelectedName = normalizeTemplatePresetSelectionValue_ACU(jQuery_API_ACU($templateChatPresetSelect_ACU).val());
                 let finalName = currentSelectedName;
                 if (isDefaultTemplatePresetSelection_ACU(currentSelectedName)) {
-                    const promptedName = prompt('请输入要保存到全局的模板预设名称：', '新模板预设');
+                    const promptedName = prompt('Nhập tên preset mẫu cần lưu vào toàn cục:', 'Preset mẫu mới');
                     if (!promptedName) return;
                     finalName = String(promptedName).trim();
-                } else if (!confirm(`确定要用当前聊天正在使用的模板覆盖全局预设 "${currentSelectedName}" 吗？`)) {
+                } else if (!confirm(`Xác nhận dùng mẫu đang dùng trong cuộc trò chuyện hiện tại để ghi đè preset toàn cục "${currentSelectedName}"?`)) {
                     return;
                 }
                 if (!finalName) return;
                 const norm = normalizeTemplateForPresetSave_ACU();
                 if (!norm) {
-                    showToastr_ACU('error', '保存到全局失败：无法解析当前模板。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+                    showToastr_ACU('error', 'Lưu vào toàn cục thất bại: không thể phân tích mẫu hiện tại.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     return;
                 }
                 const ok = upsertTemplatePreset_ACU(finalName, norm.templateStr);
                 if (!ok) {
-                    showToastr_ACU('error', '保存到全局失败：无法写入设置存储。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+                    showToastr_ACU('error', 'Lưu vào toàn cục thất bại: không thể ghi vào kho cài đặt.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     return;
                 }
                 const applied = await applyTemplatePresetToCurrent_ACU(finalName, {
@@ -893,12 +893,12 @@ export async function bindDataEvents_ACU(): Promise<void> {
                 if (!applied || (typeof applied === 'object' && 'saved' in applied && applied.saved === false)) {
                     const error = applied && typeof applied === 'object' && 'error' in applied && typeof applied.error === 'string' && applied.error
                         ? applied.error
-                        : '保存到全局后切换全局模板预设失败。';
+                        : 'Chuyển preset mẫu toàn cục sau khi lưu vào toàn cục thất bại.';
                     showToastr_ACU('error', error, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
                     return;
                 }
                 refreshPresetUIAfterSwitch_ACU({ templateGlobalSelectName: finalName, keepTemplateGlobalValue: false });
-                showToastr_ACU('success', `当前聊天模板配置已保存到全局预设：${finalName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
+                showToastr_ACU('success', `Đã lưu cấu hình mẫu của cuộc trò chuyện hiện tại vào preset toàn cục: ${finalName}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT });
             });
         }
         if ($templateChatImportBtn_ACU && $templateChatImportBtn_ACU.length) {
@@ -917,7 +917,7 @@ export async function bindDataEvents_ACU(): Promise<void> {
                     try {
                         const content = String(readerEvent?.target?.result || '');
                         const prepared = parseImportedTemplateData_ACU(content);
-                        const fallbackLabel = `导入模板_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`;
+                        const fallbackLabel = `Mau_nhap_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`;
                 const selectedChatPresetName = normalizeTemplatePresetSelectionValue_ACU(jQuery_API_ACU($templateChatPresetSelect_ACU).val() as string);
                         const presetName = normalizeTemplatePresetSelectionValue_ACU(
                             deriveTemplatePresetNameForImport_ACU({
@@ -931,18 +931,18 @@ export async function bindDataEvents_ACU(): Promise<void> {
                             destructiveChangeConfirmed,
                         }));
                         if (!applied.saved) {
-                            throw new Error(applied.error || '模板结构无效，无法生成当前聊天模板预设。');
+                            throw new Error(applied.error || 'Cấu trúc mẫu không hợp lệ, không thể tạo preset mẫu cho cuộc trò chuyện hiện tại.');
                         }
                         refreshPresetUIAfterSwitch_ACU({ keepTemplateGlobalValue: true });
                         const warning = typeof applied.postCommitWarning === 'string' ? applied.postCommitWarning : '';
                         showToastr_ACU(
                             warning ? 'warning' : 'success',
-                            warning || `当前聊天模板预设已导入${presetName ? `（预设名：${presetName}）` : ''}；同名聊天预设会直接覆盖。`,
+                            warning || `Đã nhập preset mẫu của cuộc trò chuyện hiện tại${presetName ? ` (tên preset: ${presetName})` : ''}; preset cùng tên sẽ bị ghi đè.`,
                             { acuToastCategory: warning ? ACU_TOAST_CATEGORY_ACU.ERROR : ACU_TOAST_CATEGORY_ACU.IMPORT },
                         );
                     } catch (error) {
                         logError_ACU('[TemplateScope] 导入当前聊天模板预设失败:', error);
-                        showToastr_ACU('error', `导入当前聊天模板预设失败: ${error.message}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR, timeOut: 10000 });
+                        showToastr_ACU('error', `Nhập preset mẫu của cuộc trò chuyện hiện tại thất bại: ${error.message}`, { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR, timeOut: 10000 });
                     } finally {
                         $templateChatPresetFileInput_ACU.val('');
                     }
@@ -976,12 +976,12 @@ export async function bindDataEvents_ACU(): Promise<void> {
                 settings_ACU.deleteEndFloor = endFloor;
                 saveSettingsAndNotify_ACU();
 
-                const identityText = settings_ACU.dataIsolationEnabled ? `标识 [${settings_ACU.dataIsolationCode}]` : "所有标识";
-                const rangeText = startFloor && endFloor ? `第${startFloor}到${endFloor}AI楼层` :
-                                startFloor ? `从第${startFloor}AI楼层开始` :
-                                endFloor ? `到第${endFloor}AI楼层结束` : "全部AI楼层";
+                const identityText = settings_ACU.dataIsolationEnabled ? `mã định danh [${settings_ACU.dataIsolationCode}]` : "tất cả mã định danh";
+                const rangeText = startFloor && endFloor ? `tầng AI ${startFloor} đến ${endFloor}` :
+                                startFloor ? `từ tầng AI ${startFloor} trở đi` :
+                                endFloor ? `đến hết tầng AI ${endFloor}` : "tất cả tầng AI";
 
-                if (confirm(`警告：这将永久删除当前聊天记录中${rangeText}所有属于 ${identityText} 的数据库数据。\n\n此操作不可恢复！\n\n确定要继续吗？`)) {
+                if (confirm(`Cảnh báo: thao tác này sẽ xóa vĩnh viễn toàn bộ dữ liệu cơ sở dữ liệu thuộc ${identityText} ở ${rangeText} trong lịch sử trò chuyện hiện tại.\n\nThao tác không thể khôi phục!\n\nXác nhận tiếp tục?`)) {
                     deleteLocalDataInChat_ACU('current', startFloor, endFloor);
                 }
             });
@@ -1004,26 +1004,26 @@ export async function bindDataEvents_ACU(): Promise<void> {
                 const isFullRange = isFullRangeDeletionRequest_ACU(startFloor, endFloor, aiMessageCount);
 
                 if (!isFullRange) {
-                    const rangeText = startFloor && endFloor ? `第${startFloor}到${endFloor}AI楼层`
-                        : startFloor ? `从第${startFloor}AI楼层开始`
-                        : `到第${endFloor}AI楼层结束`;
-                    if (confirm(`警告：这将永久删除${rangeText}所有标识的数据库数据。\n\n`
-                         + '仅清除该范围内楼层的填表数据；聊天级模板 scope 与 guide 容器保留。\n\n'
-                            + '此操作不可恢复！确定要继续吗？')) {
+                    const rangeText = startFloor && endFloor ? `tầng AI ${startFloor} đến ${endFloor}`
+                        : startFloor ? `từ tầng AI ${startFloor} trở đi`
+                        : `đến hết tầng AI ${endFloor}`;
+                    if (confirm(`Cảnh báo: thao tác này sẽ xóa vĩnh viễn dữ liệu cơ sở dữ liệu của mọi mã định danh ở ${rangeText}.\n\n`
+                         + 'Chỉ xóa dữ liệu điền bảng của các tầng trong phạm vi này; scope mẫu cấp cuộc trò chuyện và vùng chứa guide được giữ lại.\n\n'
+                            + 'Thao tác không thể khôi phục! Xác nhận tiếp tục?')) {
                         deleteLocalDataInChat_ACU('all', startFloor, endFloor);
                     }
                     return;
                 }
 
-                if (confirm('严重警告：当前删除范围覆盖全部 AI 楼层，将硬清空当前聊天的全部本地数据库状态。\n\n'
-                        + '· 清除所有隔离标识的本地数据；\n'
-                        + '· 含用户首条消息上的字段；\n'
-                        + '· 清除聊天级模板 scope 与 guide 容器（模板选择回到继承全局）；\n'
-                        + '· 不保留 init 锚点，重新填表时 sheetKey 会重新分配；\n'
-                        + '· 结果等价于全新会话，不可恢复。\n\n'
-                        + '若只想删除部分楼层，请先设置上方起止楼层范围。\n'
-                        + '全局、提示词与聊天正文不受影响。确定要继续吗？')) {
-                    if (confirm('再次确认：您真的要清空当前聊天所有数据库存档吗？此操作不可撤销。')) {
+                if (confirm('Cảnh báo nghiêm trọng: phạm vi xóa hiện tại bao trùm toàn bộ tầng AI, sẽ xóa sạch toàn bộ trạng thái cơ sở dữ liệu cục bộ của cuộc trò chuyện hiện tại.\n\n'
+                        + '· Xóa dữ liệu cục bộ của mọi mã định danh cô lập;\n'
+                        + '· Bao gồm các trường trên tin nhắn đầu tiên của người dùng;\n'
+                        + '· Xóa scope mẫu cấp cuộc trò chuyện và vùng chứa guide (lựa chọn mẫu quay về kế thừa toàn cục);\n'
+                        + '· Không giữ neo init, khi điền bảng lại sheetKey sẽ được cấp phát lại;\n'
+                        + '· Kết quả tương đương một phiên hoàn toàn mới, không thể khôi phục.\n\n'
+                        + 'Nếu chỉ muốn xóa một phần tầng, hãy đặt phạm vi tầng bắt đầu/kết thúc ở trên trước.\n'
+                        + 'Toàn cục, prompt và nội dung trò chuyện không bị ảnh hưởng. Xác nhận tiếp tục?')) {
+                    if (confirm('Xác nhận lại: bạn thật sự muốn xóa sạch toàn bộ bản lưu cơ sở dữ liệu của cuộc trò chuyện hiện tại? Thao tác này không thể hoàn tác.')) {
                         deleteLocalDataInChat_ACU('all', startFloor, endFloor);
                     }
                 }

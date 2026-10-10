@@ -66,7 +66,7 @@ describe('deriveWorldSimulationProgressView_ACU', () => {
     expect(view).toMatchObject({
       visible: true,
       phase: 'backstage',
-      label: `${WORLD_SIMULATION_PROGRESS_LABELS_ACU.backstage} · 2 路并行`,
+      label: `${WORLD_SIMULATION_PROGRESS_LABELS_ACU.backstage} · 2 luồng song song`,
       concurrent: 2,
     });
   });

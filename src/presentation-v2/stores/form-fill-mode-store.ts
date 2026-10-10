@@ -133,8 +133,8 @@ export const useFormFillModeStore = defineStore('acu-v2-form-fill-mode', {
 });
 
 export const FORM_FILL_MODE_OPTIONS: Array<{ value: FillMode; label: string }> = [
-  { value: 'classic', label: '经典表格模式' },
-  { value: 'vector', label: '向量表格模式' },
-  { value: 'llm', label: 'LLM模型逻辑召回模式' },
-  { value: 'crossfire', label: '交火模式' },
+  { value: 'classic', label: 'Chế độ bảng cổ điển' },
+  { value: 'vector', label: 'Chế độ bảng vector' },
+  { value: 'llm', label: 'Chế độ truy hồi logic mô hình LLM' },
+  { value: 'crossfire', label: 'Chế độ giao hỏa' },
 ];

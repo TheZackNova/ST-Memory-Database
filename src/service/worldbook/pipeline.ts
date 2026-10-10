@@ -245,7 +245,7 @@ export   async function updateReadableLorebookEntry_ACU(createIfNeeded = false, 
 
             // [新增] 创建 WrapperStart 条目
             const wrapperStartEntry = entries.find(e => e.comment === WRAPPER_START_COMMENT);
-            const wrapperStartContent = '<最新数据与记录>\n以下是在这个时间点，当前场景下剧情相关的最新数据与记录，你在进行剧情分析时必须以此最新的数据为准，以下数据与记录的优先级高于其他任何背景设定：\n\n';
+            const wrapperStartContent = '<最新数据与记录>\nDưới đây là dữ liệu và ghi chép mới nhất liên quan đến cốt truyện trong bối cảnh hiện tại tại thời điểm này; khi phân tích cốt truyện, bạn phải lấy dữ liệu mới nhất này làm chuẩn, dữ liệu và ghi chép dưới đây có độ ưu tiên cao hơn mọi thiết lập bối cảnh khác:\n\n';
             if (!wrapperStartEntry) {
                 await gwCreateLorebookEntries_ACU(primaryLorebookName, [applyPlacementToEntry_ACU({
                     comment: WRAPPER_START_COMMENT,
@@ -310,7 +310,7 @@ export   async function updateReadableLorebookEntry_ACU(createIfNeeded = false, 
                 }
                 
                 // 构建 MemoryStart 条目内容
-                let memoryStartContent = '<过往记忆>\n\n以下是你回忆起的跟当前剧情有关的过往的记忆，你要特地注意该记忆所标注的时间，以及分析与当前剧情的相关性，完美地将其融入本轮的剧情编写中：\n\n';
+                let memoryStartContent = '<过往记忆>\n\nDưới đây là những ký ức quá khứ liên quan đến cốt truyện hiện tại mà bạn nhớ lại; hãy đặc biệt chú ý đến thời gian được đánh dấu của ký ức đó, phân tích mức độ liên quan với cốt truyện hiện tại, và hòa nhập chúng một cách hoàn hảo vào phần viết cốt truyện của lượt này:\n\n';
                 if (summaryHeaderContent) {
                     memoryStartContent += summaryHeaderContent + '\n\n';
                 }

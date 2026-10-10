@@ -23,15 +23,15 @@ export function stageExitSimulation_ACU(chat: Record<string, unknown>[], input: 
   const state = input.materials.simulation!;
   const envelope = state.envelope;
   requireExit_ACU(!state.runState && !state.runProof && !envelope?.task?.activeRun,
-    '推演仍有未收尾运行、恢复游标或写入证明。');
+    'Mô phỏng vẫn còn lần chạy chưa kết thúc, con trỏ khôi phục hoặc bằng chứng ghi.');
   requireExit_ACU(!envelope?.task || !['running', 'drafting', 'stopping_after_inflight'].includes(envelope.task.status),
-    '推演任务尚未停止。');
+    'Tác vụ mô phỏng chưa dừng.');
   if (envelope) assertWorldSimulationHostEnvelope_ACU(envelope);
-  requireExit_ACU(!envelope?.ledger.pendingFixes.length, '推演仍有待修复栏目。');
+  requireExit_ACU(!envelope?.ledger.pendingFixes.length, 'Mô phỏng vẫn còn mục chờ sửa.');
   for (const message of chat) {
     requireExit_ACU(message[WORLD_SIMULATION_RUN_STATE_FIELD_ACU] === undefined
       && message[WORLD_SIMULATION_RUN_WRITE_FIELD_ACU] === undefined,
-    '普通前缀仍有运行恢复字段，不能覆盖其来源。');
+    'Tiền tố thường vẫn còn trường khôi phục lần chạy, không thể ghi đè nguồn của nó.');
     for (const field of fields) delete message[field];
   }
 
@@ -58,12 +58,12 @@ export function stageExitSimulation_ACU(chat: Record<string, unknown>[], input: 
   const replay = foldWorldSimulationLedger_ACU(chat);
   requireExit_ACU(envelope ? replay && fingerprint([replay.ledger, replay.fields])
     === fingerprint([envelope.ledger, state.fields]) : replay === null,
-  '退出推演账本或分栏回放不等价。');
+  'Phát lại sổ cái hoặc phân mục mô phỏng khi thoát không tương đương.');
   requireExit_ACU(fingerprint(foldWorldSimulationArchive_ACU(chat).snapshot) === fingerprint(state.archive),
-    '退出推演归档回放不等价。');
+    'Phát lại lưu trữ mô phỏng khi thoát không tương đương.');
   requireExit_ACU(fingerprint(readWorldSimulationConversationRecordStrict_ACU(chat)) === fingerprint(state.conversation),
-    '退出推演会话回放不等价。');
+    'Phát lại hội thoại mô phỏng khi thoát không tương đương.');
   requireExit_ACU(fingerprint(readWorldSimulationBucketEntry_ACU(WORLD_SIMULATION_USER_REQUIREMENTS_FIELD_ACU,
     anchor, validateWorldSimulationUserRequirementsSnapshot_ACU, chat)) === fingerprint(state.userRequirements),
-  '退出推演用户要求回放不等价。');
+  'Phát lại yêu cầu người dùng của mô phỏng khi thoát không tương đương.');
 }

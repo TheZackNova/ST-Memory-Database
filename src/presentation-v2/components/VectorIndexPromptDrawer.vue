@@ -1,7 +1,7 @@
 <template>
   <AcuDrawer
     :is-open="isOpen"
-    title="编辑关键词生成提示词"
+    title="Sửa prompt tạo từ khóa"
     width="720px"
     :before-close="confirmIfDirty"
     @close="$emit('close')"
@@ -11,7 +11,7 @@
     </AcuMessage>
 
     <div class="acu-vector-prompt-drawer__toolbar">
-      <AcuButton size="sm" @click="$emit('reset')">载入默认提示词</AcuButton>
+      <AcuButton size="sm" @click="$emit('reset')">Nạp prompt mặc định</AcuButton>
     </div>
 
     <AcuPromptSegments
@@ -19,15 +19,15 @@
       :show-slot="false"
       :role-options="roleOptions"
       :rows="8"
-      empty-text="暂无关键词提示词段。点击下方按钮添加第一段。"
+      empty-text="Chưa có đoạn prompt từ khóa. Bấm nút bên dưới để thêm đoạn đầu tiên."
       @add="$emit('add', $event)"
       @delete="$emit('delete', $event)"
       @update="(index, patch) => $emit('update', index, patch)"
     />
 
     <footer class="acu-vector-prompt-drawer__actions">
-      <AcuButton @click="requestClose">关闭</AcuButton>
-      <AcuButton variant="primary" :disabled="!dirty" @click="$emit('save')">保存提示词</AcuButton>
+      <AcuButton @click="requestClose">Đóng</AcuButton>
+      <AcuButton variant="primary" :disabled="!dirty" @click="$emit('save')">Lưu prompt</AcuButton>
     </footer>
   </AcuDrawer>
 </template>
@@ -63,9 +63,9 @@ const dialogStore = useDialogStore();
 async function confirmIfDirty(): Promise<boolean> {
   if (!props.dirty) return true;
   return dialogStore.confirm({
-    title: '关闭提示词编辑器',
-    message: '你有未保存的关键词生成提示词修改，确定要关闭吗？',
-    confirmLabel: '关闭',
+    title: 'Đóng trình sửa prompt',
+    message: 'Bạn có thay đổi prompt tạo từ khóa chưa lưu, chắc chắn đóng?',
+    confirmLabel: 'Đóng',
     confirmVariant: 'danger',
   });
 }

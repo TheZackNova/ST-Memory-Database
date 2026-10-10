@@ -74,12 +74,12 @@ describe('sql mutation table rebind', () => {
       ['INSERT INTO missing_table VALUES (1)'],
       new Map([['known', 'runtime_known']]),
       { requireKnownTables: true },
-    )).toThrow('无法识别的目标表「missing_table」');
+    )).toThrow('chứa bảng đích không nhận ra “missing_table”');
     expect(() => rebindSqlMutationTableReferences_ACU(
       ['UPDATE known SET row_id = row_id WHERE EXISTS (SELECT 1 FROM missing_table)'],
       new Map([['known', 'runtime_known']]),
       { requireKnownTables: true },
-    )).toThrow('无法识别的关联表「missing_table」');
+    )).toThrow('chứa bảng liên kết không nhận ra “missing_table”');
   });
 
   it('严格写入模式仍允许已知表的 CTE，并重绑定真实表引用', () => {
@@ -349,14 +349,14 @@ describe('sql mutation table rebind', () => {
       ['INSERT INTO shared_legacy (row_id) VALUES (1)'],
       new Map([['jiabiao', 'jiabiao'], ['yibiao', 'yibiao']]),
       { requireKnownTables: true, ambiguousAliases: new Set(['shared_legacy']) },
-    )).toThrow('SQL 写入引用了歧义表名「shared_legacy」：该名称同时指向多张物理表，无法安全路由');
+    )).toThrow('SQL ghi dữ liệu tham chiếu tên bảng mơ hồ “shared_legacy”: tên này cùng lúc trỏ tới nhiều bảng vật lý, không thể định tuyến an toàn');
 
     // 关联表位置同样拒绝。
     expect(() => rebindSqlMutationTableReferences_ACU(
       ['UPDATE jiabiao SET row_id = row_id WHERE EXISTS (SELECT 1 FROM shared_legacy)'],
       new Map([['jiabiao', 'jiabiao']]),
       { requireKnownTables: true, ambiguousAliases: new Set(['shared_legacy']) },
-    )).toThrow('SQL 写入引用了歧义表名「shared_legacy」');
+    )).toThrow('SQL ghi dữ liệu tham chiếu tên bảng mơ hồ “shared_legacy”');
   });
 
   it('唯一英文名与当前物理名都正确定位；重复英文 DDL 名不污染物理名的唯一映射', () => {

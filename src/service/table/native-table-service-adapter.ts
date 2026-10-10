@@ -101,14 +101,14 @@ export class NativeTableServiceAdapter implements ITableStorageProvider {
     _params?: (string | number | null)[],
     _options?: SqlQueryExecutionOptions_ACU,
   ): SqlQueryResult {
-    throw new Error('SQL 查询仅在 SQLite 模式下可用。请在设置中切换到 SQLite 模式。');
+    throw new Error('Truy vấn SQL chỉ khả dụng ở chế độ SQLite. Hãy chuyển sang chế độ SQLite trong Cài đặt.');
   }
 
   /**
    * SQL 变更 — 原生模式不支持
    */
   executeMutation(_sql: string, _params?: (string | number | null)[]): SqlMutationResult {
-    throw new Error('SQL 变更仅在 SQLite 模式下可用。请在设置中切换到 SQLite 模式。');
+    throw new Error('Thay đổi SQL chỉ khả dụng ở chế độ SQLite. Hãy chuyển sang chế độ SQLite trong Cài đặt.');
   }
 
   /**

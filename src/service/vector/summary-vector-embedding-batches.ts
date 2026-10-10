@@ -107,7 +107,7 @@ export async function executeEmbeddingBatchPlan_ACU<T extends EmbeddingBatchSour
                 missing = batch.sources.filter(item => !slots[item.sourceIndex]);
             }
             if (missing.length > 0) {
-                throw new Error(`Embedding 响应缺失 ${missing.length}/${batch.chunkCount} 条向量。`);
+                throw new Error(`Phản hồi Embedding thiếu ${missing.length}/${batch.chunkCount} vector.`);
             }
             successfulBatchCount += 1;
         } catch (error) {
@@ -134,7 +134,7 @@ export async function executeEmbeddingBatchPlan_ACU<T extends EmbeddingBatchSour
         elapsedMs: Date.now() - startedAt,
     };
     if (firstFailure) {
-        const message = firstFailure.error instanceof Error ? firstFailure.error.message : String(firstFailure.error || 'Embedding 批次失败');
+        const message = firstFailure.error instanceof Error ? firstFailure.error.message : String(firstFailure.error || 'Lô Embedding thất bại');
         throw new EmbeddingBatchExecutionError_ACU(message, firstFailure.batch, firstFailure.error);
     }
     return { embeddings: slots.map(vector => vector || []), stats };

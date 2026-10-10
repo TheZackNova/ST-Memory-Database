@@ -142,7 +142,7 @@ describe('schema migration preflight', () => {
     const result = await preflightSchemaMigrations_ACU({ baselineData: baseline, candidateData: candidate });
 
     expect(result.operations).toEqual([]);
-    expect(result.blockers.join('\n')).toContain('operation 应用结果与 candidate 不一致');
+    expect(result.blockers.join('\n')).toContain('Kết quả áp dụng migration operation không khớp candidate');
   });
 
   it('无法解析的 candidate DDL 返回 blocker 而不是抛出异常', async () => {
@@ -150,7 +150,7 @@ describe('schema migration preflight', () => {
     const candidate = state(sheet({ sourceData: { ddl: 'not sql' } }));
 
     await expect(preflightSchemaMigrations_ACU({ baselineData: baseline, candidateData: candidate })).resolves.toMatchObject({
-      operations: [], blockers: [expect.stringContaining('DDL/表头不一致')],
+      operations: [], blockers: [expect.stringContaining('DDL/tiêu đề không nhất quán')],
     });
   });
 
@@ -180,7 +180,7 @@ describe('schema migration preflight', () => {
     const result = await preflightSchemaMigrations_ACU({ baselineData: baseline, candidateData: candidate });
 
     expect(result.operations).toEqual([]);
-    expect(result.blockers).toEqual([expect.stringContaining('无法唯一推导')]);
+    expect(result.blockers).toEqual([expect.stringContaining('không thể suy ra duy nhất')]);
     expect(result.decisions).toEqual([expect.objectContaining({
       status: 'needs_choice', choices: [expect.objectContaining({ id: 'map:name->quality' })],
     })]);
@@ -222,7 +222,7 @@ describe('schema migration preflight', () => {
     const result = await preflightSchemaMigrations_ACU({ baselineData: baseline, candidateData: candidate });
 
     expect(result.operations).toEqual([]);
-    expect(result.blockers.join('\n')).toContain('完整 candidate SQLite hydrate 失败');
+    expect(result.blockers.join('\n')).toContain('SQLite hydrate candidate đầy đủ thất bại');
   });
 });
 
@@ -330,7 +330,7 @@ describe('schema migration preflight', () => {
     const result = await preflightSchemaMigrations_ACU({ baselineData: baseline, candidateData: candidate });
 
     expect(result.operations).toEqual([]);
-    expect(result.blockers.join('\n')).toContain('完整 candidate SQLite hydrate 失败');
+    expect(result.blockers.join('\n')).toContain('SQLite hydrate candidate đầy đủ thất bại');
   });
 
   it('首次定义 DDL：baseline 无 DDL + candidate 合法 + headers 未变 → 按候选整表 rebase 放行', async () => {
@@ -353,7 +353,7 @@ describe('schema migration preflight', () => {
     const result = await preflightSchemaMigrations_ACU({ baselineData: baseline, candidateData: candidate });
 
     expect(result.operations).toEqual([]);
-    expect(result.blockers.join('\n')).toContain('DDL/表头不一致');
+    expect(result.blockers.join('\n')).toContain('DDL/tiêu đề không nhất quán');
   });
 
   it('首次定义防放宽：headers 同时变化时仍走原规划路径（不被首次定义分支放行）', async () => {

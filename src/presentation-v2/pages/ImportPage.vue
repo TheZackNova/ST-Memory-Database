@@ -20,7 +20,7 @@
         :title="importCopy.panels.splitEncoding.title"
         :description="importCopy.panels.splitEncoding.description"
       >
-        <AcuFormRow label="每段字符数">
+        <AcuFormRow label="Số ký tự mỗi đoạn">
           <AcuInput
             type="number"
             :min="100"
@@ -29,7 +29,7 @@
             @change="store.setSplitSize(Number($event))"
           />
         </AcuFormRow>
-        <AcuFormRow label="文件编码">
+        <AcuFormRow label="Mã hóa tệp">
           <AcuSelect
             :options="encodingOptions"
             :model-value="store.encoding"
@@ -48,7 +48,7 @@
           :sheet-keys="store.availableSheetKeys"
           :selected-keys="store.selectedSheetKeys"
           :sheet-names="store.sheetNames"
-          empty-text="尚未加载可选表格。请先确认数据库模板是否已就绪。"
+          empty-text="Chưa tải được bảng để chọn. Hãy xác nhận mẫu CSDL đã sẵn sàng."
           @update:selected-keys="store.setSelectedSheetKeys($event)"
           @select-all="store.selectAllSheets"
           @select-none="store.selectNoneSheets"
@@ -70,7 +70,7 @@
             accept=".txt"
             :disabled="store.busy"
             @file="onFileSelected"
-            >选择并拆分</AcuFileButton
+            >Chọn và tách</AcuFileButton
           >
           <AcuButton
             block
@@ -79,13 +79,13 @@
             @click="inject"
           >
             {{ injectLabel }}
-            <template #loading-text>写入中...</template>
+            <template #loading-text>Đang ghi...</template>
           </AcuButton>
           <AcuButton block :disabled="store.busy" @click="onClearStaging"
-            >清空缓存</AcuButton
+            >Xóa bộ nhớ đệm</AcuButton
           >
           <AcuButton block variant="danger" :disabled="store.busy" @click="onDelete"
-            >删除条目</AcuButton
+            >Xóa mục</AcuButton
           >
         </div>
       </AcuPanel>
@@ -114,8 +114,8 @@ import { useImportFlowStore } from "../stores/import-flow-store";
 
 const encodingOptions: AcuSelectOption[] = [
   { value: "UTF-8", label: "UTF-8" },
-  { value: "GBK", label: "GBK (简体中文)" },
-  { value: "Big5", label: "Big5 (繁体中文)" },
+  { value: "GBK", label: "GBK (Tiếng Trung giản thể)" },
+  { value: "Big5", label: "Big5 (Tiếng Trung phồn thể)" },
 ];
 
 const store = useImportFlowStore();
@@ -142,9 +142,9 @@ const injectLabel = computed(() => {
     store.staging.processedIndex >= 0 &&
     store.staging.processedIndex < store.staging.chunkCount
   ) {
-    return "继续写入";
+    return "Ghi tiếp";
   }
-  return "写入";
+  return "Ghi";
 });
 
 async function refreshAll(): Promise<void> {

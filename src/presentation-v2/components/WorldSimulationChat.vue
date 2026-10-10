@@ -3,9 +3,9 @@
     <div class="acu-v2-agent-chat__status">
       <span class="acu-v2-agent-chat__badge" :class="`acu-v2-agent-chat__badge--${statusTone}`">{{ statusText }}</span>
       <span class="acu-v2-agent-chat__status-item">{{ stageText }}</span>
-      <span v-if="revisionText" class="acu-v2-agent-chat__status-item">计划 {{ revisionText }}</span>
+      <span v-if="revisionText" class="acu-v2-agent-chat__status-item">Kế hoạch {{ revisionText }}</span>
       <!-- 冻结锚点：本轮推演写入的 assistant 楼层与 swipe，运行中不随新增楼层漂移。 -->
-      <span v-if="anchorText" class="acu-v2-agent-chat__status-item">锚点 {{ anchorText }}</span>
+      <span v-if="anchorText" class="acu-v2-agent-chat__status-item">Điểm neo {{ anchorText }}</span>
     </div>
     <p v-if="anchorStaleDiff" class="acu-v2-agent-chat__anchor-diff">{{ anchorStaleDiff }}</p>
 
@@ -23,9 +23,9 @@
         @keydown="onKeydown"
       />
       <div class="acu-v2-agent-chat__composer-actions">
-        <span class="acu-v2-agent-chat__hint">{{ inFlight ? '进行中可点停止' : 'Ctrl / ⌘ + Enter 发送' }}</span>
-        <AcuButton v-if="inFlight" variant="danger" @click="emit('stop')">停止</AcuButton>
-        <AcuButton v-else variant="primary" :disabled="!draft.trim()" @click="send">发送</AcuButton>
+        <span class="acu-v2-agent-chat__hint">{{ inFlight ? 'Đang chạy, có thể bấm Dừng' : 'Ctrl / ⌘ + Enter để gửi' }}</span>
+        <AcuButton v-if="inFlight" variant="danger" @click="emit('stop')">Dừng</AcuButton>
+        <AcuButton v-else variant="primary" :disabled="!draft.trim()" @click="send">Gửi</AcuButton>
       </div>
     </div>
   </div>
@@ -78,14 +78,14 @@ const statusTone = computed(() => {
 });
 
 const placeholder = computed(() => {
-  if (!props.task) return '描述你希望世界侧推进、保留或撤销的方向，发送后主 Agent 会创建任务并开始规划...';
-  if (props.task.status === 'running' || props.task.status === 'drafting' || props.running) return '格林推演 Agent 正在工作。点「停止」可打断；要接着做就打字再发送。';
-  return '继续和主 Agent 对话，写好后再发送...';
+  if (!props.task) return 'Mô tả hướng bạn muốn thế giới đẩy tới, giữ lại hoặc hoàn tác; sau khi gửi, Agent chính sẽ tạo tác vụ và bắt đầu lên kế hoạch...';
+  if (props.task.status === 'running' || props.task.status === 'drafting' || props.running) return 'Agent Mô phỏng thế giới đang làm việc. Bấm «Dừng» để ngắt; muốn làm tiếp thì gõ rồi gửi.';
+  return 'Tiếp tục trò chuyện với Agent chính, soạn xong rồi gửi...';
 });
 
 const notice = computed(() => {
-  if (props.task?.stopReason) return `任务已停止：${props.task.stopReason}。输入新指令后发送即可继续。`;
-  if (props.lastError) return `上一次失败：${props.lastError.message}`;
+  if (props.task?.stopReason) return `Tác vụ đã dừng: ${props.task.stopReason}. Nhập chỉ dẫn mới rồi gửi để tiếp tục.`;
+  if (props.lastError) return `Lần trước thất bại: ${props.lastError.message}`;
   return '';
 });
 

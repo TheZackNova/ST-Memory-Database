@@ -133,12 +133,12 @@ function formatRecentContextByAiLayers_ACU(messages: AgentContextMessage_ACU[], 
   return pairs
     .map((pair, index) => {
       const isLatestLayer = index === pairs.length - 1;
-      const lines = [`【最近上下文 AI层 ${index + 1}】`];
+      const lines = [`【Ngữ cảnh gần nhất tầng AI ${index + 1}】`];
       if (isLatestLayer) {
         const userText = getMessageText_ACU(pair.user);
-        if (userText) lines.push(`${getMessageSpeaker_ACU(pair.user, '用户')}: ${userText}`);
+        if (userText) lines.push(`${getMessageSpeaker_ACU(pair.user, 'Người dùng')}: ${userText}`);
         const userPlot = getPlotTextFromMessage_ACU(pair.user);
-        if (userPlot) lines.push(`剧情推进记录: ${userPlot}`);
+        if (userPlot) lines.push(`Bản ghi đẩy cốt truyện: ${userPlot}`);
       }
       const aiText = getMessageText_ACU(pair.ai);
       if (aiText) lines.push(`${getMessageSpeaker_ACU(pair.ai, 'AI')}: ${aiText}`);
@@ -206,10 +206,10 @@ function hasUsableWorldbookSkillMeta_ACU(meta: ReturnType<typeof parseWorldbookS
 function buildFallbackWorldbookSummaryText_ACU(entry: Record<string, any>, comment: string, keys: string[]): { description: string; triggerWhen: string } {
   const normalizedComment = stripWorldbookSkillMetaBlock_ACU(stripAgentTakeoverMetaBlockStrict_ACU(comment)).trim();
   const name = String(entry?.name || '').trim();
-  const description = normalizedComment || name || keys.join('、') || '未命名世界书条目';
+  const description = normalizedComment || name || keys.join('、') || 'Mục sổ thế giới chưa đặt tên';
   const triggerWhen = keys.length > 0
-    ? `关键词：${keys.join('、')}`
-    : '未提供 Skill 元数据；请根据条目名称与上下文判断是否相关';
+    ? `Từ khóa: ${keys.join('、')}`
+    : 'Chưa cung cấp siêu dữ liệu Skill; hãy dựa vào tên mục và ngữ cảnh để đánh giá có liên quan hay không';
   return { description, triggerWhen };
 }
 
@@ -312,7 +312,7 @@ function formatWorldbookPromptEntries_ACU(
     triggerWhen: summary.triggerWhen || '',
     tk: summary.tk,
     tokenEstimate: summary.tk,
-    tokenDescription: `预计消耗 ${summary.tk} Token；tk 是兼容字段，与 tokenEstimate 含义相同`,
+    tokenDescription: `Dự kiến tiêu tốn ${summary.tk} Token; tk là trường tương thích, cùng ý nghĩa với tokenEstimate`,
   }));
 }
 
@@ -602,15 +602,15 @@ function buildAgentDecisionPrompt_ACU(params: {
       unit: 'Token',
       min: params.minTkBudget ?? params.contextSettings.greenlightMinTkBudget,
       max: params.maxTkBudget ?? params.contextSettings.greenlightMaxTkBudget,
-      selectionRule: '每个通道和每个任务必须优先选择相关条目；相关条目足够时尽可能超过 min；相关条目总 Token 不足 min 时全选相关条目；任何情况下不得超过 max；不得为凑 min 选择无关条目。',
+      selectionRule: 'Mỗi kênh và mỗi tác vụ phải ưu tiên chọn các mục liên quan; khi có đủ mục liên quan thì cố gắng vượt min; khi tổng Token của mục liên quan không đủ min thì chọn hết các mục liên quan; trong mọi trường hợp không được vượt max; không được chọn mục không liên quan chỉ để đủ min.',
     },
     'agent.shard.index': (params.shardIndex ?? 0) + 1,
     'agent.shard.count': params.shardCount ?? 1,
     'agent.shard.candidateCount': params.worldbookSummaries.length,
     'agent.outputSchemaJson': {
       taskPlan: [{ taskId: '...', run: true, effectiveStage: 1, effectiveOrder: 0, mode: 'sequential', reason: '...' }],
-      plotGreenlights: { taskId: [{ entries: [1, 2], reason: '每个编号一句话说明；也兼容旧 bookName/uid 格式' }] },
-      finalGenerationGreenlights: [{ entries: [1], reason: '一句话说明；也兼容旧 bookName/uid 格式' }],
+      plotGreenlights: { taskId: [{ entries: [1, 2], reason: 'Mỗi số thứ tự một câu giải thích; cũng tương thích định dạng bookName/uid cũ' }] },
+      finalGenerationGreenlights: [{ entries: [1], reason: 'Một câu giải thích; cũng tương thích định dạng bookName/uid cũ' }],
       fallbackMode: false,
       reason: '...',
     },

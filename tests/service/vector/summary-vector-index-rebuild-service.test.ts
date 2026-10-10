@@ -77,7 +77,7 @@ describe('rebuildCurrentSummaryVectorIndexNow_ACU', () => {
 
   it('数据库未加载时先尝试载入，仍无数据则抛错', async () => {
     h.data = null;
-    await expect(rebuildCurrentSummaryVectorIndexNow_ACU()).rejects.toThrow('数据库未加载');
+    await expect(rebuildCurrentSummaryVectorIndexNow_ACU()).rejects.toThrow('Cơ sở dữ liệu chưa được tải');
     expect(h.load).toHaveBeenCalled();
     expect(h.rebuild).not.toHaveBeenCalled();
   });

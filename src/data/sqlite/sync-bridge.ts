@@ -119,7 +119,7 @@ export class SyncBridge {
   ): void {
     if (!data || typeof data !== 'object') return;
     if (!this.engine.isReady) {
-      throw new Error('SyncBridge: SqliteEngine 未初始化');
+      throw new Error('SyncBridge: SqliteEngine chưa được khởi tạo');
     }
 
     // strict hydrate 必须在副本上校验，失败时不得清洗或改写调用方快照。
@@ -138,7 +138,7 @@ export class SyncBridge {
       const normalization = normalizeCanonicalTableRows_ACU(workingData);
       const canonicalIssues = [...normalization.errors, ...normalization.removedRows];
       if (canonicalIssues.length > 0) {
-        const message = `[SyncBridge] snapshot 行标识不合法：${formatCanonicalRowIssues_ACU(canonicalIssues)}`;
+        const message = `[SyncBridge] Định danh hàng của snapshot không hợp lệ: ${formatCanonicalRowIssues_ACU(canonicalIssues)}`;
         if (options.strict) {
           throw new Error(message);
         }
@@ -150,7 +150,7 @@ export class SyncBridge {
         .filter(([sheetKey, sheet]) => sheetKey.startsWith('sheet_') && Array.isArray((sheet as any)?.content))
         .flatMap(([sheetKey, sheet]) => validateCanonicalCheckpointSheet_ACU(sheet, sheetKey, 'data').issues);
       if (canonicalIssues.length > 0) {
-        throw new Error(`[SyncBridge] snapshot 结构不合法：${canonicalIssues.map(issue => `${issue.type}: ${issue.sheetKey || 'unknown'}${issue.rowIndex === undefined ? '' : ` 第 ${issue.rowIndex} 行`}`).join('；')}`);
+        throw new Error(`[SyncBridge] Cấu trúc snapshot không hợp lệ: ${canonicalIssues.map(issue => `${issue.type}: ${issue.sheetKey || 'unknown'}${issue.rowIndex === undefined ? '' : ` hàng thứ ${issue.rowIndex}`}`).join('; ')}`);
       }
     }
     this.engine.run(META_TABLE_DDL);
@@ -180,7 +180,7 @@ export class SyncBridge {
         );
       } catch (e: any) {
         const errorMessage = e?.message || String(e);
-        const message = `[SyncBridge] 加载表 ${key} (${sheet.name}) 失败: ${formatSqliteLoadFailure_ACU(errorMessage)}`;
+        const message = `[SyncBridge] Tải bảng ${key} (${sheet.name}) thất bại: ${formatSqliteLoadFailure_ACU(errorMessage)}`;
         logError_ACU(message);
         if (options.strict) {
           throw new Error(message);
@@ -217,7 +217,7 @@ export class SyncBridge {
     legacyDuplicateRowIds: boolean,
   ): TableDataObject_ACU {
     if (!this.engine.isReady) {
-      throw new Error('SyncBridge: SqliteEngine 未初始化');
+      throw new Error('SyncBridge: SqliteEngine chưa được khởi tạo');
     }
 
     const result: TableDataObject_ACU = { mate: originalMate };
@@ -232,7 +232,7 @@ export class SyncBridge {
       // 查找对应的元数据
       const meta = this._findMetaByTableName(metaMap, tableName);
       if (!meta) {
-        if (options.strict) throw new Error(`[SyncBridge] 用户表 ${tableName} 缺少可识别的元数据。`);
+        if (options.strict) throw new Error(`[SyncBridge] Bảng người dùng ${tableName} thiếu metadata có thể nhận diện.`);
         continue;
       }
 
@@ -241,7 +241,7 @@ export class SyncBridge {
         result[meta.sheetKey] = sheet;
       } catch (e: any) {
         if (options.strict) {
-          throw new Error(`[SyncBridge] 导出表 ${tableName} 失败: ${e?.message || String(e)}`);
+          throw new Error(`[SyncBridge] Xuất bảng ${tableName} thất bại: ${e?.message || String(e)}`);
         }
         logError_ACU(`[SyncBridge] 导出表 ${tableName} 失败:`, e?.message || e);
       }
@@ -251,7 +251,7 @@ export class SyncBridge {
       const normalization = normalizeCanonicalTableRows_ACU(result);
       const canonicalIssues = [...normalization.errors, ...normalization.removedRows];
       if (canonicalIssues.length > 0) {
-        const message = `[SyncBridge] 导出结果存在行标识问题：${formatCanonicalRowIssues_ACU(canonicalIssues)}`;
+        const message = `[SyncBridge] Kết quả xuất có vấn đề về định danh hàng: ${formatCanonicalRowIssues_ACU(canonicalIssues)}`;
         if (options.strict) throw new Error(message);
         logWarn_ACU(message);
       }
@@ -295,7 +295,7 @@ export class SyncBridge {
         ? downgradeRowIdPrimaryKeyForLegacyReplay_ACU(candidate.effectiveDDL)
         : candidate.effectiveDDL;
       const tableName = parseDDLTableName(effectiveDDL);
-      if (!tableName) throw new Error(`无法从 DDL 中解析表名: ${effectiveDDL.substring(0, 100)}`);
+      if (!tableName) throw new Error(`Không thể phân tích tên bảng từ DDL: ${effectiveDDL.substring(0, 100)}`);
 
       // 映射或行数据错误必须在执行 DDL 前失败，绝不能被 runtime schema fallback 掩盖。
       const plan = createSheetInsertPlan(sheet, candidate.columnMap);
@@ -329,8 +329,8 @@ export class SyncBridge {
     } catch (error: any) {
       // runBatch 已保证失败事务回滚。仅首条 CREATE TABLE 执行失败才允许一次 runtime fallback；
       // INSERT/约束/映射错误必须原样 fail closed，防止用全 TEXT 表偷偷吞掉数据完整性问题。
-      if (resolvedDDL.source !== 'explicit' || !allowRuntimeDdlFallback || !/^第 1 条语句失败:/.test(error?.message || '')) throw error;
-      const fallback = buildRuntimeFallbackDDL_ACU(sheet, runtimeTableName || sheet.uid || sheetKey, 'fallback_invalid', '显式 DDL 无法在 runtime SQLite 执行，已使用 fallback schema。');
+      if (resolvedDDL.source !== 'explicit' || !allowRuntimeDdlFallback || !/^Câu lệnh thứ 1 thất bại:/.test(error?.message || '')) throw error;
+      const fallback = buildRuntimeFallbackDDL_ACU(sheet, runtimeTableName || sheet.uid || sheetKey, 'fallback_invalid', 'DDL tường minh không thể thực thi trong runtime SQLite, đã dùng fallback schema.');
       this._recordRuntimeFallbackDiagnostic(sheetKey, fallback, 'runtime_ddl_retry', error?.message || String(error));
       executeResolvedDDL(fallback);
       this._recordRuntimeEffectiveSchema(sheetKey, fallback);
@@ -504,15 +504,15 @@ interface SheetMeta {
  * 保留批量写入的可行动诊断，但绝不把 INSERT 的 VALUES（用户业务数据）传播到日志或 UI。
  */
 function formatSqliteLoadFailure_ACU(errorMessage: string): string {
-  const batchFailure = /^第 (\d+) 条语句失败:\s*([\s\S]*?)\s*→\s*([\s\S]+)$/.exec(errorMessage);
+  const batchFailure = /^Câu lệnh thứ (\d+) thất bại:\s*([\s\S]*?)\s*→\s*([\s\S]+)$/.exec(errorMessage);
   if (!batchFailure) return errorMessage;
 
   const [, statementIndex, statement, sqliteError] = batchFailure;
   const operation = /^(INSERT\s+INTO|CREATE\s+TABLE|UPDATE|DELETE\s+FROM)\s+([a-zA-Z_][a-zA-Z0-9_]*)\b/i.exec(statement.trim());
   const statementSummary = operation
     ? `${operation[1].replace(/\s+/g, ' ').toUpperCase()} ${operation[2]}`
-    : 'SQLite 语句';
-  return `SQLite 写入失败：第 ${statementIndex} 条语句失败（${statementSummary}）：${sqliteError.trim()}`;
+    : 'Câu lệnh SQLite';
+  return `Ghi SQLite thất bại: câu lệnh thứ ${statementIndex} thất bại (${statementSummary}): ${sqliteError.trim()}`;
 }
 
 /** 安全的 JSON 解析 */

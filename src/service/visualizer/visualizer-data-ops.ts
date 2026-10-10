@@ -55,10 +55,10 @@ function ensurePendingOps_ACU(state: any): PendingVisualizerDataOps_ACU {
 
 export function assertVisualizerDataOpsEditable_ACU(state: { pendingDataOps?: PendingVisualizerDataOps_ACU | null; isSaving?: boolean }): void {
     if (state?.isSaving) {
-        throw new Error('保存正在进行中，期间不能继续编辑。');
+        throw new Error('Đang lưu, trong lúc này không thể tiếp tục chỉnh sửa.');
     }
     if (ensurePendingOps_ACU(state).committed) {
-        throw new Error('数据已持久化但本地刷新尚未完成。请先重试保存完成恢复，期间不能继续编辑。');
+        throw new Error('Dữ liệu đã được lưu bền nhưng làm mới cục bộ chưa hoàn tất. Hãy thử lưu lại để hoàn tất khôi phục, trong lúc này không thể tiếp tục chỉnh sửa.');
     }
 }
 
@@ -165,7 +165,7 @@ function findRowIndexById_ACU(sheet: any, rowId: string): number {
     let matchedIndex = -1;
     for (let index = 1; index < content.length; index += 1) {
         if (String(content[index]?.[0] ?? '') !== rowId) continue;
-        if (matchedIndex >= 0) throw new Error(`行标识 ${rowId} 重复，无法确定要操作的行。`);
+        if (matchedIndex >= 0) throw new Error(`Định danh hàng ${rowId} bị trùng, không thể xác định hàng cần thao tác.`);
         matchedIndex = index;
     }
     return matchedIndex;
@@ -178,28 +178,28 @@ function assertValidPersistedRowIds_ACU(sheet: any, sheetKey: string, action: st
         const rowId = String(content[index]?.[0] ?? '').trim();
         const numericId = Number(rowId);
         if (!/^[1-9]\d*$/.test(rowId) || !Number.isSafeInteger(numericId) || String(numericId) !== rowId) {
-            throw new Error(`${action}失败：表 ${sheetKey} 的行标识 ${rowId || '(空)'} 必须是正安全整数。`);
+            throw new Error(`${action} thất bại: định danh hàng ${rowId || '(rỗng)'} của bảng ${sheetKey} phải là số nguyên an toàn dương.`);
         }
-        if (rowIds.has(rowId)) throw new Error(`${action}失败：表 ${sheetKey} 的行标识 ${rowId} 重复。`);
+        if (rowIds.has(rowId)) throw new Error(`${action} thất bại: định danh hàng ${rowId} của bảng ${sheetKey} bị trùng.`);
         rowIds.add(rowId);
     }
 }
 
 function getValidatedHeaders_ACU(sheet: any, sheetKey: string, action: string): any[] {
     const headers = Array.isArray(sheet?.content?.[0]) ? sheet.content[0] : null;
-    if (!headers || headers.length === 0) throw new Error(`${action}失败：表 ${sheetKey} 的表头无效。`);
+    if (!headers || headers.length === 0) throw new Error(`${action} thất bại: tiêu đề của bảng ${sheetKey} không hợp lệ.`);
     const columnNames = headers.slice(1).map((header: any) => String(header ?? '').trim());
-    if (columnNames.some(columnName => !columnName)) throw new Error(`${action}失败：表 ${sheetKey} 存在空列名。`);
-    if (new Set(columnNames).size !== columnNames.length) throw new Error(`${action}失败：表 ${sheetKey} 存在重复列名。`);
+    if (columnNames.some(columnName => !columnName)) throw new Error(`${action} thất bại: bảng ${sheetKey} có tên cột rỗng.`);
+    if (new Set(columnNames).size !== columnNames.length) throw new Error(`${action} thất bại: bảng ${sheetKey} có tên cột trùng.`);
     return headers;
 }
 
 function assertCompleteRow_ACU(row: any, headers: any[], sheetKey: string, rowId: string, action: string): any[] {
     if (!Array.isArray(row) || row.length !== headers.length) {
-        throw new Error(`${action}失败：表 ${sheetKey} 的行 ${rowId} 与表头长度不一致。`);
+        throw new Error(`${action} thất bại: hàng ${rowId} của bảng ${sheetKey} có độ dài không khớp tiêu đề.`);
     }
     if (String(row[0] ?? '').trim() !== rowId) {
-        throw new Error(`${action}失败：表 ${sheetKey} 的行标识不一致。`);
+        throw new Error(`${action} thất bại: định danh hàng của bảng ${sheetKey} không nhất quán.`);
     }
     return row;
 }
@@ -214,9 +214,9 @@ function buildInsertCells_ACU(state: any, sheetKey: string, clientRowId: string,
     const tempRow = tempContent.find((row: any[], index: number) => index > 0 && Array.isArray(row) && String(row[0] ?? '') === clientRowId);
     if (!Array.isArray(tempRow)) return null;
 
-    const headers = getValidatedHeaders_ACU(runtimeSheet, sheetKey, '新增行');
-    assertValidPersistedRowIds_ACU(runtimeSheet, sheetKey, '新增行');
-    if (tempRow.length !== headers.length) throw new Error(`新增行失败：表 ${sheetKey} 的临时行与表头长度不一致。`);
+    const headers = getValidatedHeaders_ACU(runtimeSheet, sheetKey, 'Thêm hàng');
+    assertValidPersistedRowIds_ACU(runtimeSheet, sheetKey, 'Thêm hàng');
+    if (tempRow.length !== headers.length) throw new Error(`Thêm hàng thất bại: hàng tạm của bảng ${sheetKey} có độ dài không khớp tiêu đề.`);
     const cells = toPersistedCells_ACU(tempRow);
     cells[0] = allocateStableRowId_ACU(reservedRowIds);
     return cells;
@@ -234,7 +234,7 @@ export function replaceVisualizerTemporaryRowIds_ACU(state: any, insertedRowIds:
 
 async function refreshVisualizerRuntimeFromReplay_ACU(isolationKey: string): Promise<any | undefined> {
     const replay = await loadTableStateFromFramesV2Detailed_ACU(getChatArray_ACU(), isolationKey);
-    if (!replay) throw new Error('V2 replay 未产生表格数据，已阻止刷新运行时。');
+    if (!replay) throw new Error('V2 replay không tạo ra dữ liệu bảng, đã chặn làm mới runtime.');
     _set_currentJsonTableData_ACU(replay.data);
     if (isSqliteMode()) {
         // 阶段 E：post-save replay 的 canonical 直接 hydrate provider，避免
@@ -279,13 +279,13 @@ export async function applyVisualizerPendingDataOps_ACU(state: any): Promise<{ s
                 ? { success: true, changed: true, changedSheetKeys, insertedRowIds, ...(canonicalData ? { canonicalData } : {}) }
                 : { success: true, changed: true, changedSheetKeys, ...(canonicalData ? { canonicalData } : {}) };
         } catch (error: any) {
-            return { success: false, changed: false, error: `数据已持久化，但本地运行时刷新失败：${error?.message || String(error)}` };
+            return { success: false, changed: false, error: `Dữ liệu đã được lưu bền, nhưng làm mới runtime cục bộ thất bại: ${error?.message || String(error)}` };
         }
     }
     if (!hasVisualizerPendingDataOps_ACU(state)) return { success: true, changed: false };
 
     const migration = await ensureLegacyStorageMigratedBeforeWrite_ACU('visualizer_save_v2_replay');
-    if (!migration.success) return { success: false, changed: false, error: migration.error || '旧存储迁移失败，已阻止可视化编辑器保存。' };
+    if (!migration.success) return { success: false, changed: false, error: migration.error || 'Di chuyển lưu trữ cũ thất bại, đã chặn Trình chỉnh sửa trực quan lưu.' };
     if (migration.migrated) await reloadStorageProvider();
 
     const writeSet = buildVisualizerWriteSet_ACU(pending);
@@ -294,22 +294,22 @@ export async function applyVisualizerPendingDataOps_ACU(state: any): Promise<{ s
         const chat = getChatArray_ACU();
         const fullCheckpointIndex = getLatestV2FullCheckpointMessageIndex_ACU(chat, isolationKey);
         if (fullCheckpointIndex < 0) {
-            return { success: false, changed: false, error: '找不到 V2 full checkpoint，已阻止写入 log-only 增量。' };
+            return { success: false, changed: false, error: 'Không tìm thấy V2 full checkpoint, đã chặn ghi gia tăng log-only.' };
         }
         // afterData must be ops(V2 replay base). Runtime snapshots can carry seedRows /
         // type drift / unrelated fields and falsely fail batch candidate validation.
         const replay = await loadTableStateFromFramesV2Detailed_ACU(chat, isolationKey, { updateRuntimeState: false });
         if (!replay) {
-            return { success: false, changed: false, error: 'V2 replay 未产生表格数据，已阻止可视化编辑器保存。' };
+            return { success: false, changed: false, error: 'V2 replay không tạo ra dữ liệu bảng, đã chặn Trình chỉnh sửa trực quan lưu.' };
         }
         // F2：宽容回放结果不是严格可写历史，且不是 provisional temporary_sheet_anchor
         // 模型——batch persist 的收敛分支依赖 repairs 定位锚点，不会收敛宽容态；提前
         // 拒绝是唯一正确路径。
         if (replay.baseKind === 'compat_tolerant_replay') {
-            return { success: false, changed: false, error: `当前 V2 历史仅可经兼容宽容回放读出（严格回放失败：${replay.legacyToleranceDiagnosis?.strictError || '未知错误'}）；请先在数据管理中完成 V2 恢复收敛，再使用可视化编辑器保存。` };
+            return { success: false, changed: false, error: `Lịch sử V2 hiện tại chỉ đọc được qua phát lại khoan dung tương thích (phát lại nghiêm ngặt thất bại: ${replay.legacyToleranceDiagnosis?.strictError || 'Lỗi không xác định'}); hãy hoàn tất hội tụ khôi phục V2 trong Quản lý dữ liệu trước, rồi dùng Trình chỉnh sửa trực quan để lưu.` };
         }
         if (hasStructuralReplayCompatibilityRepairs_ACU(replay.compatibilityRepairs)) {
-            return { success: false, changed: false, error: '当前 V2 回放存在结构性兼容修复，不能自动收敛；请先在数据管理中完成恢复，再使用可视化编辑器保存。' };
+            return { success: false, changed: false, error: 'Phát lại V2 hiện tại có sửa chữa tương thích về cấu trúc, không thể tự động hội tụ; hãy hoàn tất khôi phục trong Quản lý dữ liệu trước, rồi dùng Trình chỉnh sửa trực quan để lưu.' };
         }
         // provisional temporary_sheet_anchor 由 batch persist 在同一候选提交中收敛；
         // 此处提前拒绝只会绕过该事务、backup 与 strict replay 路径。
@@ -320,7 +320,7 @@ export async function applyVisualizerPendingDataOps_ACU(state: any): Promise<{ s
             writeSet,
             initialData: replay.data,
         }, async (transactionContext, workingData) => {
-            if (!workingData) throw new Error('运行时表格数据为空，已阻止可视化编辑器保存。');
+            if (!workingData) throw new Error('Dữ liệu bảng runtime rỗng, đã chặn Trình chỉnh sửa trực quan lưu.');
             const data = workingData as any;
             const operationsBySheet = new Map<string, TableMutationOperationV2_ACU[]>();
             const insertedRowIds: Record<string, string> = {};
@@ -333,32 +333,32 @@ export async function applyVisualizerPendingDataOps_ACU(state: any): Promise<{ s
             for (const op of Object.values(pending.insertsByClientRowId)) {
                 if (rowIdReservationsBySheet.has(op.sheetKey)) continue;
                 const sheet = data[op.sheetKey];
-                if (!sheet || !Array.isArray(sheet.content)) throw new Error(`新增行失败：表 ${op.sheetKey} 在运行时不存在。`);
+                if (!sheet || !Array.isArray(sheet.content)) throw new Error(`Thêm hàng thất bại: bảng ${op.sheetKey} không tồn tại trong runtime.`);
                 rowIdReservationsBySheet.set(op.sheetKey, createStableRowIdReservation_ACU(sheet.content.slice(1)));
             }
 
             for (const op of Object.values(pending.deletesByRow)) {
                 const sheet = data[op.sheetKey];
-                if (!sheet || !Array.isArray(sheet.content)) throw new Error(`删除行失败：表 ${op.sheetKey} 在运行时不存在。`);
-                assertValidPersistedRowIds_ACU(sheet, op.sheetKey, '删除行');
+                if (!sheet || !Array.isArray(sheet.content)) throw new Error(`Xóa hàng thất bại: bảng ${op.sheetKey} không tồn tại trong runtime.`);
+                assertValidPersistedRowIds_ACU(sheet, op.sheetKey, 'Xóa hàng');
                 const rowIndex = findRowIndexById_ACU(sheet, op.rowId);
-                if (rowIndex < 1) throw new Error(`删除行失败：表 ${op.sheetKey} 的行 ${op.rowId} 不存在。`);
-                const headers = getValidatedHeaders_ACU(sheet, op.sheetKey, '删除行');
-                assertCompleteRow_ACU(sheet.content[rowIndex], headers, op.sheetKey, op.rowId, '删除行');
+                if (rowIndex < 1) throw new Error(`Xóa hàng thất bại: hàng ${op.rowId} của bảng ${op.sheetKey} không tồn tại.`);
+                const headers = getValidatedHeaders_ACU(sheet, op.sheetKey, 'Xóa hàng');
+                assertCompleteRow_ACU(sheet.content[rowIndex], headers, op.sheetKey, op.rowId, 'Xóa hàng');
                 sheet.content.splice(rowIndex, 1);
                 appendOperation(op.sheetKey, { kind: 'row_delete', sheetKey: op.sheetKey, rowId: op.rowId });
             }
             for (const op of Object.values(pending.updatesByRow)) {
                 const sheet = data[op.sheetKey];
-                if (!sheet || !Array.isArray(sheet.content)) throw new Error(`更新行失败：表 ${op.sheetKey} 在运行时不存在。`);
-                assertValidPersistedRowIds_ACU(sheet, op.sheetKey, '更新行');
+                if (!sheet || !Array.isArray(sheet.content)) throw new Error(`Cập nhật hàng thất bại: bảng ${op.sheetKey} không tồn tại trong runtime.`);
+                assertValidPersistedRowIds_ACU(sheet, op.sheetKey, 'Cập nhật hàng');
                 const rowIndex = findRowIndexById_ACU(sheet, op.rowId);
-                if (rowIndex < 1) throw new Error(`更新行失败：表 ${op.sheetKey} 的行 ${op.rowId} 不存在。`);
-                const headers = getValidatedHeaders_ACU(sheet, op.sheetKey, '更新行');
-                const row = assertCompleteRow_ACU(sheet.content[rowIndex], headers, op.sheetKey, op.rowId, '更新行');
+                if (rowIndex < 1) throw new Error(`Cập nhật hàng thất bại: hàng ${op.rowId} của bảng ${op.sheetKey} không tồn tại.`);
+                const headers = getValidatedHeaders_ACU(sheet, op.sheetKey, 'Cập nhật hàng');
+                const row = assertCompleteRow_ACU(sheet.content[rowIndex], headers, op.sheetKey, op.rowId, 'Cập nhật hàng');
                 for (const [columnName, value] of Object.entries(op.data)) {
                     const columnIndex = headers.indexOf(columnName);
-                    if (columnIndex < 1) throw new Error(`更新行失败：表 ${op.sheetKey} 不存在列 ${columnName}。`);
+                    if (columnIndex < 1) throw new Error(`Cập nhật hàng thất bại: bảng ${op.sheetKey} không có cột ${columnName}.`);
                     row[columnIndex] = value;
                 }
                 const cells = toPersistedCells_ACU(row);
@@ -368,11 +368,11 @@ export async function applyVisualizerPendingDataOps_ACU(state: any): Promise<{ s
             }
             for (const op of Object.values(pending.insertsByClientRowId)) {
                 const sheet = data[op.sheetKey];
-                if (!sheet || !Array.isArray(sheet.content)) throw new Error(`新增行失败：表 ${op.sheetKey} 在运行时不存在。`);
+                if (!sheet || !Array.isArray(sheet.content)) throw new Error(`Thêm hàng thất bại: bảng ${op.sheetKey} không tồn tại trong runtime.`);
                 const reservedRowIds = rowIdReservationsBySheet.get(op.sheetKey);
-                if (!reservedRowIds) throw new Error(`新增行失败：表 ${op.sheetKey} 缺少 row_id 分配保留区。`);
+                if (!reservedRowIds) throw new Error(`Thêm hàng thất bại: bảng ${op.sheetKey} thiếu vùng dự trữ cấp phát row_id.`);
                 const cells = buildInsertCells_ACU(state, op.sheetKey, op.clientRowId, sheet, reservedRowIds);
-                if (!cells) throw new Error(`新增行失败：表 ${op.sheetKey} 的临时行已丢失或表头无效。`);
+                if (!cells) throw new Error(`Thêm hàng thất bại: hàng tạm của bảng ${op.sheetKey} đã mất hoặc tiêu đề không hợp lệ.`);
                 sheet.content.push(cells);
                 const rowId = String(cells[0]);
                 insertedRowIds[op.clientRowId] = rowId;
@@ -395,7 +395,7 @@ export async function applyVisualizerPendingDataOps_ACU(state: any): Promise<{ s
                 revisionWriteSet: writeSet,
                 transactionContext,
             });
-            if (!saved.saved) throw new Error(saved.error || 'V2 行级增量持久化失败。');
+            if (!saved.saved) throw new Error(saved.error || 'Lưu bền gia tăng cấp hàng V2 thất bại.');
             return { afterData: data, insertedRowIds, changedSheetKeys: Array.from(operationsBySheet.keys()) };
         });
         pending.committed = result;
@@ -441,7 +441,7 @@ export async function applyVisualizerPendingDataOps_ACU(state: any): Promise<{ s
                 ? { success: true, changed: true, ...payload }
                 : { success: true, changed: true, ...payload };
         } catch (error: any) {
-            return { success: false, changed: false, error: `数据已持久化，但本地运行时刷新失败：${error?.message || String(error)}` };
+            return { success: false, changed: false, error: `Dữ liệu đã được lưu bền, nhưng làm mới runtime cục bộ thất bại: ${error?.message || String(error)}` };
         }
     } catch (error: any) {
         return { success: false, changed: false, error: error?.message || String(error) };

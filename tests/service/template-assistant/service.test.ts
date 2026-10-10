@@ -158,7 +158,7 @@ describe('template assistant service', () => {
       summary: 'x',
       warnings: [],
       operations: [],
-    })).toThrow(/selectedSheetKey 必须是非空字符串/);
+    })).toThrow(/selectedSheetKey phải là chuỗi không rỗng/);
   });
 
   it('v1 selectedSheetKey 与 patch op 的 sheetKey 不一致时报错', async () => {
@@ -199,7 +199,7 @@ describe('template assistant service', () => {
           ddl: 'CREATE TABLE loot (row_id INTEGER PRIMARY KEY, item_name TEXT);',
         },
       }],
-    })).toThrow(/add_sheet\.sourceData 不能直接修改 ddl/);
+    })).toThrow(/add_sheet\.sourceData không được sửa trực tiếp ddl/);
   });
 
   it('patch_sheet_source_data.patch.ddl 在 draft 校验阶段直接拒绝', () => {
@@ -219,26 +219,26 @@ describe('template assistant service', () => {
           ddl: 'CREATE TABLE loot (row_id INTEGER PRIMARY KEY, item_name TEXT);',
         },
       }],
-    })).toThrow(/patch_sheet_source_data\.patch 不能直接修改 ddl/);
+    })).toThrow(/patch_sheet_source_data\.patch không được sửa trực tiếp ddl/);
   });
 
   it.each([
-    ['缺少必填字段', {}, /physicalColumnMappings 必须是数组/],
+    ['缺少必填字段', {}, /physicalColumnMappings phải là mảng/],
     ['未知顶层字段', {
       physicalColumnMappings: [], fills: {}, conversions: [], migrationPolicy: { destructiveChangeConfirmed: false, lossyConversionConfirmed: false }, unexpected: true,
-    }, /migrationIntent 包含未知字段: unexpected/],
+    }, /migrationIntent chứa trường không xác định: unexpected/],
     ['错误 mapping', {
       physicalColumnMappings: [{ fromPhysicalName: 'name' }], fills: {}, conversions: [], migrationPolicy: { destructiveChangeConfirmed: false, lossyConversionConfirmed: false },
-    }, /toPhysicalName 必须是非空字符串/],
+    }, /toPhysicalName phải là chuỗi không rỗng/],
     ['错误 fill kind', {
       physicalColumnMappings: [], fills: { added: { kind: 'computed', literal: { kind: 'string', sql: "'x'", value: 'x' } } }, conversions: [], migrationPolicy: { destructiveChangeConfirmed: false, lossyConversionConfirmed: false },
-    }, /fills\.added\.kind 不受支持/],
+    }, /fills\.added\.kind không được hỗ trợ/],
     ['错误 conversion policy', {
       physicalColumnMappings: [], fills: {}, conversions: [{ fromPhysicalName: 'name', toPhysicalName: 'renamed', policy: { kind: 'rename' } }], migrationPolicy: { destructiveChangeConfirmed: false, lossyConversionConfirmed: false },
-    }, /policy\.kind 不受支持/],
+    }, /policy\.kind không được hỗ trợ/],
     ['缺少 migrationPolicy 确认值', {
       physicalColumnMappings: [], fills: {}, conversions: [], migrationPolicy: { destructiveChangeConfirmed: false },
-    }, /必须提供 destructiveChangeConfirmed 和 lossyConversionConfirmed 两个 boolean/],
+    }, /phải cung cấp hai boolean destructiveChangeConfirmed và lossyConversionConfirmed/],
   ])('patch_sheet_schema 的 migrationIntent %s 时在草稿校验阶段拒绝', (_caseName, migrationIntent, error) => {
     expect(() => validateTemplateAssistantDraft_ACU({
       protocolVersion: 2,
@@ -278,7 +278,7 @@ describe('template assistant service', () => {
           migrationIntent: { physicalColumnMappings: [], fills: {}, conversions: [], migrationPolicy: 'confirmed' },
         },
       }],
-    })).toThrow(/migrationPolicy 必须是普通对象/);
+    })).toThrow(/migrationPolicy phải là đối tượng thuần/);
   });
 
   it('v2 允许跨表 patch op', async () => {
@@ -306,7 +306,7 @@ describe('template assistant service', () => {
     const aiRawText = `<templateAssistantDraft>{"protocolVersion":2,"mode":"modify_current_template_incremental","requestId":"req-bad","baseFingerprint":"${fp}","atomic":true,"selectedSheetKey":"sheet_a","summary":"x","warnings":[],"operations":[{"op":"create_sheet","sheetName":"战利品表"}]}</templateAssistantDraft>`;
     mockCallAIWithPreset.mockResolvedValue(aiRawText);
 
-    await expect(generateTemplateAssistantDraft_ACU({ tempData, currentSheetKey: 'sheet_a', sheetOrder: ['sheet_a'], userRequest: '帮我新建一个战利品表吧', protocolVersion: 2 })).rejects.toThrow(/包含当前协议不支持的操作/);
+    await expect(generateTemplateAssistantDraft_ACU({ tempData, currentSheetKey: 'sheet_a', sheetOrder: ['sheet_a'], userRequest: '帮我新建一个战利品表吧', protocolVersion: 2 })).rejects.toThrow(/chứa thao tác không được giao thức hiện tại hỗ trợ/);
 
     expect(mockLogError).toHaveBeenCalledTimes(1);
     expect(mockLogError).toHaveBeenCalledWith('[TemplateAssistant] draft 解析失败', expect.objectContaining({
@@ -314,7 +314,7 @@ describe('template assistant service', () => {
       baseFingerprint: fp,
       userRequest: '帮我新建一个战利品表吧',
       aiRawText,
-      errorMessage: expect.stringMatching(/包含当前协议不支持的操作/),
+      errorMessage: expect.stringMatching(/chứa thao tác không được giao thức hiện tại hỗ trợ/),
     }));
   });
 
@@ -329,7 +329,7 @@ describe('template assistant service', () => {
       currentSheetKey: null,
       sheetOrder: ['sheet_a'],
       userRequest: '修改当前表',
-    })).rejects.toThrow(/请先选中一个表/);
+    })).rejects.toThrow(/Hãy chọn một bảng trước/);
     expect(mockCallAIWithPreset).not.toHaveBeenCalled();
   });
 
@@ -369,39 +369,39 @@ describe('template assistant service', () => {
     const result = await generateTemplateAssistantDraft_ACU({ tempData, currentSheetKey: 'sheet_a', sheetOrder: ['sheet_a'], userRequest: '新增角色关系表', protocolVersion: 2 });
     const systemPrompt = result.messages[0]?.content || '';
 
-    expect(systemPrompt).toContain('每个 operations[i] 必须使用 op 字段表示操作名');
-    expect(systemPrompt).toContain('add_sheet 必须同时提供非空 sheetName 和至少一个 headers 项');
-    expect(systemPrompt).toContain('应尽量同时提供 sourceData.note、sourceData.initNode、sourceData.insertNode、sourceData.updateNode、sourceData.deleteNode');
-    expect(systemPrompt).toContain('add_sheet.sourceData 与 patch_sheet_source_data.patch 只允许 note、initNode、insertNode、updateNode、deleteNode 五个字段');
-    expect(systemPrompt).toContain('除非用户明确要求 DDL、字段类型、约束或 SQLite 建表语句，否则不要主动输出 patch_sheet_schema.ddl');
-    expect(systemPrompt).toContain('即使用户要求“顺便写 SQL/DDL”，也不要把 ddl 或 sql 塞进 add_sheet.sourceData');
-    expect(systemPrompt).toContain('当用户对【已存在的表】明确要求 DDL、字段类型、约束或 SQLite 建表语句时，不得因为表已存在就返回空 operations');
-    expect(systemPrompt).toContain('如果当前 headers 主要是中文，自定义 ddl 只有在你能提供英文/ASCII 物理列名');
-    expect(systemPrompt).toContain('ASCII/英文 headers 必须由同名物理列匹配；中文 headers 必须使用英文/ASCII 物理列名');
+    expect(systemPrompt).toContain('Mỗi operations[i] phải dùng trường op để chỉ tên thao tác');
+    expect(systemPrompt).toContain('add_sheet phải đồng thời cung cấp sheetName không rỗng và ít nhất một mục headers');
+    expect(systemPrompt).toContain('nên cố gắng cung cấp sourceData.note, sourceData.initNode, sourceData.insertNode, sourceData.updateNode, sourceData.deleteNode');
+    expect(systemPrompt).toContain('add_sheet.sourceData và patch_sheet_source_data.patch chỉ cho phép năm trường note, initNode, insertNode, updateNode, deleteNode');
+    expect(systemPrompt).toContain('trừ khi người dùng yêu cầu rõ DDL, kiểu trường, ràng buộc hoặc câu lệnh tạo bảng SQLite, nếu không đừng chủ động xuất patch_sheet_schema.ddl');
+    expect(systemPrompt).toContain('Dù người dùng yêu cầu "tiện thể viết SQL/DDL", cũng đừng nhét ddl hoặc sql vào add_sheet.sourceData');
+    expect(systemPrompt).toContain('Khi người dùng yêu cầu rõ DDL, kiểu trường, ràng buộc hoặc câu lệnh tạo bảng SQLite cho [bảng đã tồn tại], không được vì bảng đã tồn tại mà trả về operations rỗng');
+    expect(systemPrompt).toContain('Nếu headers hiện tại chủ yếu là tiếng Trung, ddl tự viết chỉ an toàn khi bạn có thể cung cấp tên cột vật lý tiếng Anh/ASCII');
+    expect(systemPrompt).toContain('headers ASCII/tiếng Anh phải khớp với cột vật lý cùng tên; headers tiếng Trung phải dùng tên cột vật lý tiếng Anh/ASCII');
     expect(systemPrompt).toContain('time_span TEXT NOT NULL, -- 时间跨度');
     expect(systemPrompt).toContain('row_id INTEGER PRIMARY KEY, -- 行号');
-    expect(systemPrompt).toContain('即使是 row_id INTEGER PRIMARY KEY 这一行，也必须保留 `-- 行号` 注释');
-    expect(systemPrompt).toContain('这种把中文表头直接写成物理列名的 ddl 会被拒绝');
-    expect(systemPrompt).toContain('即使再写 `-- 物品名称` 这类同名注释也不合法');
-    expect(systemPrompt).toContain('patch_sheet_schema.patch 只允许使用 renameColumns、addColumns、deleteColumns、ddl、migrationIntent');
-    expect(systemPrompt).toContain('physicalColumnMappings（每项 {fromPhysicalName,toPhysicalName}）');
+    expect(systemPrompt).toContain('Ngay cả dòng row_id INTEGER PRIMARY KEY này cũng phải giữ chú thích `-- 行号`');
+    expect(systemPrompt).toContain('ddl viết thẳng tiêu đề cột tiếng Trung làm tên cột vật lý như vậy sẽ bị từ chối');
+    expect(systemPrompt).toContain('dù có thêm chú thích cùng tên như `-- 物品名称` cũng không hợp lệ');
+    expect(systemPrompt).toContain('patch_sheet_schema.patch chỉ được dùng renameColumns, addColumns, deleteColumns, ddl, migrationIntent');
+    expect(systemPrompt).toContain('physicalColumnMappings (mỗi mục {fromPhysicalName,toPhysicalName})');
     expect(systemPrompt).toContain('destructiveChangeConfirmed,lossyConversionConfirmed');
     expect(systemPrompt).toContain('"fromPhysicalName":"name","toPhysicalName":"item_name"');
     expect(systemPrompt).toContain('ddl_literal_default');
-    expect(systemPrompt).toContain('不要为刚 add_sheet 的新表生成依赖真实 sheetKey 的 follow-up patch');
-    expect(systemPrompt).toContain('operations 输出空数组');
+    expect(systemPrompt).toContain('Đừng tạo patch tiếp theo phụ thuộc vào sheetKey thật để bổ sung DDL');
+    expect(systemPrompt).toContain('operations xuất mảng rỗng');
     expect(systemPrompt).toContain('{"op":"add_sheet","sheetName":"角色关系表","headers":["角色A","角色B","关系","备注"]}');
     expect(systemPrompt).toContain('{"op":"add_sheet","sheetName":"战利品表","headers":["物品名称","数量","描述/效果","类别"]');
-    expect(systemPrompt).toContain('从 `syntax-reference (1).md` 和 `SQL模板语法从0开始上手教程.txt` 摘取的原文片段');
-    expect(systemPrompt).toContain('【原文嵌入 / syntax-reference (1).md / 导读：两种运行模式的能力差异】');
-    expect(systemPrompt).toContain('【原文嵌入 / SQL模板语法从0开始上手教程.txt / 第一个能用的例子（先看这个）】');
-    expect(systemPrompt).toContain('语法能否生效取决于当前运行模式。**在看每一节前先对照这张表**：');
-    expect(systemPrompt).toContain('你身上有 {[db.背包物品表.where(\'物品名称\', \'铁剑\').get(\'数量\')]} 把铁剑。');
-    expect(systemPrompt).toContain('### 3.2 `<if cell="表达式">`');
-    expect(systemPrompt).toContain('变量 · 存一个值反复用（as 和 $v:）');
-    expect(systemPrompt).toContain('· 只能用英文、数字、下划线');
-    expect(systemPrompt).toContain('· 不能用中文');
-    expect(systemPrompt).toContain('如果你写了 {[db...]} 结果屏幕上原样显示没变成数字，就是模式没开。');
+    expect(systemPrompt).toContain('các đoạn nguyên văn trích từ `syntax-reference (1).md` và `SQL模板语法从0开始上手教程.txt`');
+    expect(systemPrompt).toContain('【Nhúng nguyên văn / syntax-reference (1).md / Dẫn nhập: khác biệt khả năng giữa hai chế độ chạy】');
+    expect(systemPrompt).toContain('【Nhúng nguyên văn / SQL模板语法从0开始上手教程.txt / Ví dụ dùng được đầu tiên (xem cái này trước)】');
+    expect(systemPrompt).toContain('Cú pháp có hiệu lực hay không phụ thuộc vào chế độ chạy hiện tại. **Trước khi đọc từng mục, hãy đối chiếu bảng này**:');
+    expect(systemPrompt).toContain('Bạn có {[db.背包物品表.where(\'物品名称\', \'铁剑\').get(\'数量\')]} thanh kiếm sắt.');
+    expect(systemPrompt).toContain('### 3.2 `<if cell="biểu thức">`');
+    expect(systemPrompt).toContain('Biến · lưu một giá trị để dùng lại nhiều lần (as và $v:)');
+    expect(systemPrompt).toContain('· Chỉ được dùng chữ cái tiếng Anh, chữ số, dấu gạch dưới');
+    expect(systemPrompt).toContain('· Không được dùng tiếng Trung');
+    expect(systemPrompt).toContain('Nếu bạn viết {[db...]} mà màn hình hiển thị nguyên văn, không biến thành con số, nghĩa là chế độ chưa được bật.');
   });
 
   it('生成阶段将 compiler 收集的 migration intent 传给共享 preflight', async () => {
@@ -649,7 +649,7 @@ describe('template assistant service', () => {
     expect(result.session.repairRetriesUsed).toBe(1);
     expect(result.session.lastFailure).toEqual({
       kind: 'validate',
-      message: expect.stringMatching(/包含当前协议不支持的操作/),
+      message: expect.stringMatching(/chứa thao tác không được giao thức hiện tại hỗ trợ/),
       rawText: aiRawText,
     });
     expect(result.rounds).toHaveLength(0);
@@ -853,7 +853,7 @@ describe('template assistant service', () => {
           sheetOrder: ['sheet_a'],
           userRequest: hugeRequest,
         }),
-      ).rejects.toThrow(/预算超限|context budget/i);
+      ).rejects.toThrow(/vượt giới hạn|context budget/i);
       expect(mockCallAIWithPreset).not.toHaveBeenCalled();
     });
 

@@ -2,7 +2,7 @@
  * tests/service/ai/prompt-prepare-sql-mode.test.ts
  * prepareAIInput_ACU 在 SQL 模式下的行为测试
  *
- * 策略：mock 所有外部依赖，验证 SQL 模式下的表格格式化和 SQL 编辑格式说明追加
+ * 策略：mock 所有外部依赖，验证 SQL 模式下的表格格式化和 Hướng dẫn định dạng chỉnh sửa SQL追加
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -170,7 +170,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     await expect(prepareAIInput_ACU([], 'standard')).resolves.toEqual({
       ok: false,
       failureCode: 'runtime_export_null',
-      message: 'SQLite 运行时未导出可用表格数据。',
+      message: 'Runtime SQLite không xuất ra dữ liệu bảng khả dụng.',
       retryable: true,
     });
   });
@@ -184,7 +184,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     await expect(prepareAIInput_ACU([], 'standard')).resolves.toEqual({
       ok: false,
       failureCode: 'runtime_loading',
-      message: 'SQLite 运行时正在加载，请等待加载完成后重试。',
+      message: 'Runtime SQLite đang tải, hãy chờ tải xong rồi thử lại.',
       retryable: true,
     });
   });
@@ -198,7 +198,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     await expect(prepareAIInput_ACU([], 'standard')).resolves.toEqual({
       ok: false,
       failureCode: 'provider_fallback',
-      message: 'SQLite 运行时加载失败，当前未使用 SQLite 数据库。',
+      message: 'Tải runtime SQLite thất bại, hiện chưa dùng cơ sở dữ liệu SQLite.',
       retryable: false,
     });
   });
@@ -209,7 +209,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     await expect(prepareAIInput_ACU([], 'standard')).resolves.toEqual({
       ok: false,
       failureCode: 'runtime_export_null',
-      message: 'SQLite 运行时未导出可用表格数据。',
+      message: 'Runtime SQLite không xuất ra dữ liệu bảng khả dụng.',
       retryable: true,
     });
   });
@@ -234,11 +234,11 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     expect(result).not.toBeNull();
     expect(result!.tableDataText).toContain('CREATE TABLE inventory');
     expect(result!.tableDataText).not.toContain('CREATE TABLE beibaowupinbiao');
-    expect(result!.tableDataText).toContain('SQL 写入必须严格使用本表上方 CREATE TABLE 中的表名 inventory；不得使用其他名称。');
+    expect(result!.tableDataText).toContain('Khi ghi SQL phải dùng đúng tên bảng inventory trong CREATE TABLE phía trên bảng này; không được dùng tên khác.');
     // 应输出 Note 注释
     expect(result!.tableDataText).toContain('-- Note: 记录角色背包中的物品');
     // 应输出当前数据（注释格式）
-    expect(result!.tableDataText).toContain('-- 当前数据');
+    expect(result!.tableDataText).toContain('-- Dữ liệu hiện tại');
   });
 
   it('飞行模式 SQLite prompt 排除隐藏纪要行且不修改运行时物理数据', async () => {
@@ -435,7 +435,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     expect(result!.tableDataText).toContain('CREATE TABLE yibiao');
     // 唯一英文名 C 不受冲突组影响，继续使用英文名。
     expect(result!.tableDataText).toContain('CREATE TABLE characters');
-    expect(result!.tableDataText).toContain('SQL 写入必须严格使用本表上方 CREATE TABLE 中的表名 characters；不得使用其他名称。');
+    expect(result!.tableDataText).toContain('Khi ghi SQL phải dùng đúng tên bảng characters trong CREATE TABLE phía trên bảng này; không được dùng tên khác.');
   });
 
   it('英文名缺失的表降级为当前拼音物理名', async () => {
@@ -446,7 +446,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     const result = await prepareAIInput_ACU([], 'standard');
     expect(result).not.toBeNull();
     expect(result!.tableDataText).toContain('CREATE TABLE beibaowupinbiao');
-    expect(result!.tableDataText).toContain('-- WARNING: DDL 缺失，已使用运行时 fallback schema。 原始 DDL 未被改写。');
+    expect(result!.tableDataText).toContain('-- WARNING: DDL bị thiếu, đã dùng fallback schema của runtime. DDL gốc không bị sửa đổi.');
   });
 
   it('英文名大小写/引号规范化后相同的表视为同一冲突组，各自降级为物理名', async () => {
@@ -471,7 +471,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     const result = await prepareAIInput_ACU([], 'standard');
     expect(result).not.toBeNull();
     expect(result!.tableDataText).toContain('CREATE TABLE inventory');
-    expect(result!.tableDataText).toContain('SQL 写入必须严格使用本表上方 CREATE TABLE 中的表名 inventory；不得使用其他名称。');
+    expect(result!.tableDataText).toContain('Khi ghi SQL phải dùng đúng tên bảng inventory trong CREATE TABLE phía trên bảng này; không được dùng tên khác.');
   });
 
   it('当前物理名本身冲突（拼音物理名碰撞）时前置失败，不得回退英文名掩盖真实 SQLite 冲突', async () => {
@@ -531,7 +531,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     const after = await prepareAIInput_ACU([], 'standard');
     expect(after).not.toBeNull();
     expect(after!.tableDataText).toContain('CREATE TABLE inventory');
-    expect(after!.tableDataText).toContain('SQL 写入必须严格使用本表上方 CREATE TABLE 中的表名 inventory；不得使用其他名称。');
+    expect(after!.tableDataText).toContain('Khi ghi SQL phải dùng đúng tên bảng inventory trong CREATE TABLE phía trên bảng này; không được dùng tên khác.');
   });
 
   it('无 DDL 的表在 SQLite 模式下使用 effective fallback DDL，且不使用 seedRows', async () => {
@@ -550,7 +550,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     const result = await prepareAIInput_ACU([], 'standard');
     expect(result).not.toBeNull();
     expect(result!.tableDataText).toContain('CREATE TABLE beibaowupinbiao');
-    expect(result!.tableDataText).toContain('-- WARNING: DDL 缺失，已使用运行时 fallback schema。 原始 DDL 未被改写。');
+    expect(result!.tableDataText).toContain('-- WARNING: DDL bị thiếu, đã dùng fallback schema của runtime. DDL gốc không bị sửa đổi.');
     expect(result!.tableDataText).toContain('-- | row_id | item_name | quantity |');
     expect(result!.tableDataText).not.toContain('不应出现');
   });
@@ -796,7 +796,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     const result = await prepareAIInput_ACU([], 'standard');
 
     expect(result).not.toBeNull();
-    expect(result!.tableDataText).toContain('-- (该表格为空，请进行初始化。)');
+    expect(result!.tableDataText).toContain('-- (Bảng này đang trống, hãy khởi tạo.)');
     expect(result!.tableDataText).not.toContain('格里芬临时基地-指挥室');
   });
 
@@ -814,18 +814,18 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
 
     const result = await prepareAIInput_ACU([], 'standard');
     expect(result).not.toBeNull();
-    expect(result!.tableDataText).toContain('SQL 编辑格式说明');
+    expect(result!.tableDataText).toContain('Hướng dẫn định dạng chỉnh sửa SQL');
     expect(result!.tableDataText).toContain('INSERT INTO');
     expect(result!.tableDataText).toContain('INSERT OR REPLACE INTO');
     expect(result!.tableDataText).toContain('REPLACE INTO');
-    expect(result!.tableDataText).toContain('普通 INSERT 必须显式列出业务列，不得包含 row_id');
-    expect(result!.tableDataText).toContain('row_id 由系统在执行前分配稳定身份');
+    expect(result!.tableDataText).toContain('INSERT thường phải liệt kê rõ các cột nghiệp vụ, không được chứa row_id');
+    expect(result!.tableDataText).toContain('row_id do hệ thống cấp danh tính ổn định trước khi thực thi');
     expect(result!.tableDataText).not.toContain('row_id 值为当前表最大 row_id + 1');
-    expect(result!.tableDataText).toContain('UNIQUE 约束');
-    expect(result!.tableDataText).toContain('SQL 表名和列名必须严格照抄上方对应 CREATE TABLE 中提供的标识符，不得翻译、缩写、猜测或改写。');
-    expect(result!.tableDataText).toContain('<tableEdit> 标签内');
-    expect(result!.tableDataText).toContain('表达式更新');
-    expect(result!.tableDataText).toContain('按 SQLite 原生整行替换语义执行');
+    expect(result!.tableDataText).toContain('ràng buộc UNIQUE');
+    expect(result!.tableDataText).toContain('Tên bảng và tên cột SQL phải sao chép đúng nguyên văn các định danh được cung cấp trong CREATE TABLE tương ứng ở trên, không được dịch, viết tắt, đoán hoặc sửa.');
+    expect(result!.tableDataText).toContain('Trong thẻ <tableEdit>');
+    expect(result!.tableDataText).toContain('cập nhật bằng biểu thức');
+    expect(result!.tableDataText).toContain('thực thi theo ngữ nghĩa thay thế cả hàng gốc của SQLite');
   });
 
   it('strict JSON 模式沿用同一英文标识符契约', async () => {
@@ -843,8 +843,8 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     expect(result).not.toBeNull();
     expect(result!.tableDataText).toContain('CREATE TABLE inventory');
     expect(result!.tableDataText).not.toContain('CREATE TABLE beibaowupinbiao');
-    expect(result!.tableDataText).toContain('响应 JSON 的 sql 字符串中');
-    expect(result!.tableDataText).toContain('SQL 表名和列名必须严格照抄上方对应 CREATE TABLE 中提供的标识符，不得翻译、缩写、猜测或改写。');
+    expect(result!.tableDataText).toContain('Trong chuỗi sql của JSON phản hồi');
+    expect(result!.tableDataText).toContain('Tên bảng và tên cột SQL phải sao chép đúng nguyên văn các định danh được cung cấp trong CREATE TABLE tương ứng ở trên, không được dịch, viết tắt, đoán hoặc sửa.');
   });
 
   it('固定 row_id 约束不再生成专用 REPLACE 许可注释', async () => {
@@ -879,7 +879,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     const result = await prepareAIInput_ACU([], 'standard');
     expect(result).not.toBeNull();
     expect(result!.tableDataText).not.toContain('-- REPLACE:');
-    expect(result!.tableDataText).toContain('按 SQLite 原生整行替换语义执行');
+    expect(result!.tableDataText).toContain('thực thi theo ngữ nghĩa thay thế cả hàng gốc của SQLite');
   });
 
   it('非 SQL 模式下不追加 SQL 编辑格式说明', async () => {
@@ -897,7 +897,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
 
     const result = await prepareAIInput_ACU([], 'standard');
     expect(result).not.toBeNull();
-    expect(result!.tableDataText).not.toContain('SQL 编辑格式说明');
+    expect(result!.tableDataText).not.toContain('Hướng dẫn định dạng chỉnh sửa SQL');
   });
 
   it('混合表格：有 DDL 和无 DDL 的表共存', async () => {
@@ -1022,7 +1022,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
 
     const result = await prepareAIInput_ACU([], 'standard');
     expect(result).not.toBeNull();
-    expect(result!.messagesText).toContain('无最新对话内容');
+    expect(result!.messagesText).toContain('Không có nội dung hội thoại mới nhất');
   });
 
   it('sqlApplyScope.runtimeData 冻结数据优先于 live provider，且不再次读取 provider', async () => {
@@ -1102,7 +1102,7 @@ describe('prepareAIInput_ACU — SQL 模式', () => {
     expect(result).not.toBeNull();
     expect(result!.tableDataText).toContain('CREATE TABLE frozen_table');
     expect(result!.tableDataText).toContain('第一批结果');
-    expect(result!.tableDataText).not.toContain('该表格为空');
+    expect(result!.tableDataText).not.toContain('Bảng này đang trống');
     expect(mockEnsureStorageProviderReady).not.toHaveBeenCalled();
   });
 

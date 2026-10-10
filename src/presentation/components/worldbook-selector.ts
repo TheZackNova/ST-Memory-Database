@@ -58,12 +58,12 @@ import { $popupInstance_ACU } from '../state/ui-refs';
       if (!$popupInstance_ACU) return;
       const $listContainer = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-worldbook-select`);
       if (!$listContainer.length) return;
-      $listContainer.empty().html('<em>正在加载...</em>');
+      $listContainer.empty().html('<em>Đang tải...</em>');
       try {
           const bookNames = await getWorldbookNames_ACU();
           $listContainer.empty();
           if (bookNames.length === 0) {
-              $listContainer.html('<em>未找到世界书</em>');
+              $listContainer.html('<em>Không tìm thấy sổ thế giới</em>');
               return;
           }
           const cfg = getPlotWorldbookConfig_ACU();
@@ -82,7 +82,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
           } catch (e) {}
       } catch (error) {
           logError_ACU('[剧情推进] 加载手动世界书列表失败:', { phase: 'plot_worldbook_list', error: { category: 'unknown' } });
-          $listContainer.html('<em>加载失败</em>');
+          $listContainer.html('<em>Tải thất bại</em>');
       }
   }
 
@@ -90,7 +90,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
       if (!$popupInstance_ACU) return;
       const $list = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-plot-worldbook-entry-list`);
       if (!$list.length) return;
-      $list.empty().html('<em>正在加载条目...</em>');
+      $list.empty().html('<em>Đang tải mục...</em>');
 
       const cfg = getPlotWorldbookConfig_ACU();
       const source = cfg.source;
@@ -104,13 +104,13 @@ import { $popupInstance_ACU } from '../state/ui-refs';
           }
       } catch (error) {
           logError_ACU('[剧情推进] 读取角色绑定世界书失败:', { phase: 'plot_character_binding', error: { category: 'unknown' } });
-          $list.html('<em>加载条目失败。</em>');
+          $list.html('<em>Tải mục thất bại.</em>');
           return;
       }
 
       bookNames = [...new Set((Array.isArray(bookNames) ? bookNames : []).filter(Boolean))];
       if (bookNames.length === 0) {
-          $list.html('<em>请先选择世界书或为角色绑定世界书。</em>');
+          $list.html('<em>Hãy chọn sổ thế giới hoặc gắn sổ thế giới cho nhân vật trước.</em>');
           return;
       }
 
@@ -167,8 +167,8 @@ import { $popupInstance_ACU } from '../state/ui-refs';
                   visibleEntries.push({
                       uid: entry.uid,
                       bookName,
-                      label: entry.comment || `条目 ${entry.uid}`,
-                      searchText: `${bookName} ${entry.comment || entry.name || `条目 ${entry.uid}`}`,
+                      label: entry.comment || `Mục ${entry.uid}`,
+                      searchText: `${bookName} ${entry.comment || entry.name || `Mục ${entry.uid}`}`,
                       checked: enabledEntries.includes(entry.uid),
                       disabled: !entry.enabled,
                       checkboxId: buildWorldbookEntryCheckboxId_ACU('plot-wb-entry', bookName, entry.uid),
@@ -189,7 +189,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
           }
           renderLazyWorldbookEntryList_ACU($list, groups, {
               checkboxIdPrefix: 'plot-wb-entry',
-              emptyText: '<em>所选世界书中无条目。</em>',
+              emptyText: '<em>Sổ thế giới đã chọn không có mục nào.</em>',
           });
           // 应用筛选（若存在）
           try {
@@ -198,7 +198,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
           } catch (e) {}
       } catch (error) {
           logError_ACU('[剧情推进] 加载剧情世界书条目失败:', { phase: 'plot_worldbook_entries', error: { category: 'unknown' } });
-          $list.html('<em>加载条目失败。</em>');
+          $list.html('<em>Tải mục thất bại.</em>');
       }
   }
 
@@ -210,7 +210,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
       try {
           const bookNames = await getWorldbookNames_ACU();
           // 添加默认选项
-          $select.append(`<option value="character">角色卡绑定世界书</option>`);
+          $select.append(`<option value="character">Sổ thế giới gắn với thẻ nhân vật</option>`);
           bookNames.forEach((bookName: string) => {
               $select.append(`<option value="${escapeHtml_ACU(bookName)}">${escapeHtml_ACU(bookName)}</option>`);
           });
@@ -224,7 +224,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
           } catch (e) {}
       } catch (error) {
           logError_ACU('Failed to populate injection target selector:', error);
-          $select.append('<option value="character">加载列表失败</option>');
+          $select.append('<option value="character">Tải danh sách thất bại</option>');
       }
   }
 
@@ -261,8 +261,8 @@ import { $popupInstance_ACU } from '../state/ui-refs';
           groups: normalizedGroups,
           pageSize: Number(options?.pageSize) > 0 ? Number(options.pageSize) : WORLDBOOK_ENTRY_LAZY_PAGE_SIZE_ACU,
           checkboxIdPrefix: String(options?.checkboxIdPrefix || 'wb-entry'),
-          emptyText: options?.emptyText || '<em>所选世界书中无条目。</em>',
-          emptyGroupText: options?.emptyGroupText || '<em>当前分组没有可显示的条目。</em>',
+          emptyText: options?.emptyText || '<em>Sổ thế giới đã chọn không có mục nào.</em>',
+          emptyGroupText: options?.emptyGroupText || '<em>Nhóm hiện tại không có mục nào để hiển thị.</em>',
           isFiltering: false,
       };
   }
@@ -297,11 +297,11 @@ import { $popupInstance_ACU } from '../state/ui-refs';
       const sourceEntries = getLazyWorldbookEntrySource_ACU(group);
       const loadedCount = Math.min(group.loadedCount || 0, sourceEntries.length);
       const metaText = sourceEntries.length === 0
-          ? '0 条'
-          : (loadedCount < sourceEntries.length ? `已加载 ${loadedCount} / ${sourceEntries.length} 条` : `共 ${sourceEntries.length} 条`);
+          ? '0 mục'
+          : (loadedCount < sourceEntries.length ? `Đã tải ${loadedCount} / ${sourceEntries.length} mục` : `Tổng ${sourceEntries.length} mục`);
 
       $group.find('.qrf_worldbook_entry_group_meta').text(metaText);
-      $group.find('.qrf_worldbook_entry_toggle').text(group.expanded ? '收起' : '展开');
+      $group.find('.qrf_worldbook_entry_toggle').text(group.expanded ? 'Thu gọn' : 'Mở rộng');
       $group.find('.qrf_worldbook_entry_group_body').toggle(group.expanded);
       $group.find('.qrf_worldbook_entry_group_footer').toggle(group.expanded && sourceEntries.length > 0);
       $group.find('.qrf_worldbook_entry_load_more').toggle(group.expanded && loadedCount < sourceEntries.length);
@@ -328,7 +328,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
       const html = visibleEntries.length > 0
           ? visibleEntries.map((entry: Record<string, any>) => {
               const checkboxId = entry.checkboxId || buildWorldbookEntryCheckboxId_ACU(state.checkboxIdPrefix, entry.bookName || bookName, entry.uid);
-              const labelText = entry.label || `条目 ${entry.uid}`;
+              const labelText = entry.label || `Mục ${entry.uid}`;
               const disabledStyle = entry.disabled ? 'style="opacity:0.6; text-decoration: line-through;"' : '';
               return `
                   <div class="qrf_worldbook_entry_item" data-book-name="${escapeHtml_ACU(String(entry.bookName || bookName))}" data-entry-uid="${escapeHtml_ACU(String(entry.uid ?? ''))}">
@@ -355,13 +355,13 @@ import { $popupInstance_ACU } from '../state/ui-refs';
       const html = state.groups.map((group: Record<string, any>) => `
           <div class="qrf_worldbook_entry_group" data-book-name="${escapeHtml_ACU(group.bookName)}" style="margin-bottom: 8px;">
               <div class="qrf_worldbook_entry_header" data-book-name="${escapeHtml_ACU(group.bookName)}" style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-weight: bold; border-bottom: 1px solid; padding-bottom: 4px;">
-                  <button type="button" class="qrf_worldbook_entry_toggle button" style="padding: 2px 8px; font-size: 0.8em;">${group.expanded ? '收起' : '展开'}</button>
+                  <button type="button" class="qrf_worldbook_entry_toggle button" style="padding: 2px 8px; font-size: 0.8em;">${group.expanded ? 'Thu gọn' : 'Mở rộng'}</button>
                   <span class="qrf_worldbook_entry_header_text" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml_ACU(group.bookName)}</span>
                   <span class="qrf_worldbook_entry_group_meta" style="font-weight: normal; font-size: 0.85em; color: var(--text_secondary);"></span>
               </div>
               <div class="qrf_worldbook_entry_group_body" style="display: ${group.expanded ? 'block' : 'none'};"></div>
               <div class="qrf_worldbook_entry_group_footer" style="display: ${group.expanded ? 'block' : 'none'}; margin-top: 6px;">
-                  <button type="button" class="qrf_worldbook_entry_load_more button" style="padding: 2px 8px; font-size: 0.8em; display: none;">继续加载</button>
+                  <button type="button" class="qrf_worldbook_entry_load_more button" style="padding: 2px 8px; font-size: 0.8em; display: none;">Tải tiếp</button>
               </div>
           </div>`).join('');
 
@@ -444,7 +444,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
               group.filteredEntries = Array.isArray(group.entries) ? group.entries.slice() : [];
           } else {
               group.filteredEntries = (Array.isArray(group.entries) ? group.entries : []).filter((entry: any) => {
-                  const hay = String(entry.searchText || entry.label || `条目 ${entry.uid}`).toLowerCase();
+                  const hay = String(entry.searchText || entry.label || `Mục ${entry.uid}`).toLowerCase();
                   return hay.includes(q);
               });
           }
@@ -556,12 +556,12 @@ import { $popupInstance_ACU } from '../state/ui-refs';
   export async function populateWorldbookList_ACU() {
       if (!$popupInstance_ACU) return;
       const $listContainer = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-worldbook-select`);
-      $listContainer.empty().html('<em>正在加载...</em>');
+      $listContainer.empty().html('<em>Đang tải...</em>');
       try {
           const bookNames = await getWorldbookNames_ACU();
           $listContainer.empty();
           if (bookNames.length === 0) {
-              $listContainer.html('<em>未找到世界书</em>');
+              $listContainer.html('<em>Không tìm thấy sổ thế giới</em>');
               return;
           }
           const worldbookConfig = getCurrentWorldbookConfig_ACU();
@@ -580,14 +580,14 @@ import { $popupInstance_ACU } from '../state/ui-refs';
           } catch (e) {}
       } catch (error) {
           logError_ACU('Failed to populate worldbook list:', error);
-          $listContainer.html('<em>加载失败</em>');
+          $listContainer.html('<em>Tải thất bại</em>');
       }
   }
 
   export async function populateWorldbookEntryList_ACU() {
       if (!$popupInstance_ACU) return;
       const $list = $popupInstance_ACU.find(`#${SCRIPT_ID_PREFIX_ACU}-worldbook-entry-list`);
-      $list.empty().html('<em>正在加载条目...</em>');
+      $list.empty().html('<em>Đang tải mục...</em>');
       
       const worldbookConfig = getCurrentWorldbookConfig_ACU();
       const source = worldbookConfig.source;
@@ -603,7 +603,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
 
       bookNames = [...new Set((Array.isArray(bookNames) ? bookNames : []).filter(Boolean))];
       if (bookNames.length === 0) {
-          $list.html('<em>请先选择世界书或为角色绑定世界书。</em>');
+          $list.html('<em>Hãy chọn sổ thế giới hoặc gắn sổ thế giới cho nhân vật trước.</em>');
           return;
       }
 
@@ -652,8 +652,8 @@ import { $popupInstance_ACU } from '../state/ui-refs';
                   visibleEntries.push({
                       uid: entry.uid,
                       bookName,
-                      label: entry.comment || `条目 ${entry.uid}`,
-                      searchText: `${bookName} ${entry.comment || `条目 ${entry.uid}`}`,
+                      label: entry.comment || `Mục ${entry.uid}`,
+                      searchText: `${bookName} ${entry.comment || `Mục ${entry.uid}`}`,
                       checked: enabledEntries.includes(entry.uid),
                       disabled: !entry.enabled,
                       checkboxId: buildWorldbookEntryCheckboxId_ACU('wb-entry', bookName, entry.uid),
@@ -675,7 +675,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
 
           renderLazyWorldbookEntryList_ACU($list, groups, {
               checkboxIdPrefix: 'wb-entry',
-              emptyText: '<em>所选世界书中无条目。</em>',
+              emptyText: '<em>Sổ thế giới đã chọn không có mục nào.</em>',
           });
           // 应用筛选（若存在）
           try {
@@ -684,7 +684,7 @@ import { $popupInstance_ACU } from '../state/ui-refs';
           } catch (e) {}
       } catch (error) {
           logError_ACU('Failed to populate worldbook entry list:', error);
-          $list.html('<em>加载条目失败。</em>');
+          $list.html('<em>Tải mục thất bại.</em>');
       }
   }
 

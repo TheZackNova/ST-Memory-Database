@@ -109,7 +109,7 @@ export async function planAgentHistoryCompaction_ACU(input: AgentHistoryCompacti
     id: compactedThroughId,
     kind: 'handoff',
     text: summary.report,
-    digest: `交接报告（浓缩 ${droppedTurns} 个轮次）`,
+    digest: `Báo cáo bàn giao (cô đọng ${droppedTurns} lượt)`,
     turnKey: '',
     at,
   };

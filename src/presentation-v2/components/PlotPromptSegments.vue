@@ -4,7 +4,7 @@
     :show-slot="true"
     :allow-move="true"
     :rows="6"
-    empty-text="当前任务还没有提示词段。点击下方按钮添加第一段。"
+    empty-text="Tác vụ hiện tại chưa có đoạn prompt. Bấm nút bên dưới để thêm đoạn đầu tiên."
     @add="$emit('add', $event)"
     @delete="$emit('delete', $event)"
     @move="(index, delta) => $emit('move', index, delta)"

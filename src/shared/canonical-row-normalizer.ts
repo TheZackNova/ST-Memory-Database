@@ -68,8 +68,8 @@ export function isEmptyCanonicalRowId_ACU(value: unknown): boolean {
 
 export function formatCanonicalRowIssues_ACU(issues: CanonicalRowIssue_ACU[]): string {
   return issues
-    .map(issue => `${issue.sheetKey} 第 ${issue.rowIndex} 行：${issue.reason}`)
-    .join('；');
+    .map(issue => `${issue.sheetKey} hàng ${issue.rowIndex}: ${issue.reason}`)
+    .join('; ');
 }
 
 /**

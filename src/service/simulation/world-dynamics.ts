@@ -35,7 +35,7 @@ export function sweepWorldLedger_ACU(ledger: WorldSimulationLedger_ACU, settings
     seed.status = 'retired';
     seed.retiredReason = 'missed';
     seed.revision += 1;
-    next.chronicle.push({ id: `sweep:${seed.id}:${day}`, at: next.clock.storyTime, summary: `[错过] ${seed.missedOutcome ?? ''}`, relatedIds: [seed.id], evidenceRefs: [], missedNote: null });
+    next.chronicle.push({ id: `sweep:${seed.id}:${day}`, at: next.clock.storyTime, summary: `[Bỏ lỡ] ${seed.missedOutcome ?? ''}`, relatedIds: [seed.id], evidenceRefs: [], missedNote: null });
     sweptSeedIds.push(seed.id);
   }
   for (const rumor of next.rumors) {
@@ -109,7 +109,7 @@ export function detectWorldCollisions_ACU(ledger: WorldSimulationLedger_ACU): Wo
   return {
     playerRegion,
     playerContact,
-    secludedNote: secluded ? '闭关/隔绝中，传闻渠道不可用' : null,
+    secludedNote: secluded ? 'Đang bế quan/cách ly, kênh tin đồn không khả dụng' : null,
     collidedSeeds,
     ripeRumors,
   };
@@ -126,13 +126,13 @@ export function assertCollisionFulfillment_ACU(report: WorldCollisionReport_ACU,
     const seed = seeds.get(seedId);
     if (!seed || seed.exposePolicy !== 'on_collision') continue;
     if (!guidance.signals.some(signal => signal.voice === 'encounter' && signal.sourceId === seedId)) {
-      violations.push(`碰撞种子 ${seedId} 缺少 encounter 信号`);
+      violations.push(`Hạt giống va chạm ${seedId} thiếu tín hiệu encounter`);
     }
   }
   const blocked = ledger.rumors.filter(item => item.status === 'latent' || item.status === 'dead');
   for (const signal of guidance.signals) {
     for (const rumor of blocked) {
-      if (leaksRumor_ACU(signal, rumor)) violations.push(`信号泄露了 ${rumor.status} 传闻 ${rumor.id}`);
+      if (leaksRumor_ACU(signal, rumor)) violations.push(`Tín hiệu làm lộ tin đồn ${rumor.status} ${rumor.id}`);
     }
   }
   return violations;
@@ -163,7 +163,7 @@ export function repairCollisionSignals_ACU(report: WorldCollisionReport_ACU, gui
     const seed = seeds.get(seedId);
     if (!seed || seed.exposePolicy !== 'on_collision') continue;
     if (filled.some(signal => signal.voice === 'encounter' && signal.sourceId === seedId)) continue;
-    filled.push({ voice: 'encounter', sourceId: seedId, text: `可借眼前的动静或旁人的话头，引出「${seed.title}」`.slice(0, 80) });
+    filled.push({ voice: 'encounter', sourceId: seedId, text: `Có thể mượn động tĩnh trước mắt hoặc lời nói của người bên cạnh để dẫn tới "${seed.title}"`.slice(0, 80) });
     filledSeedIds.push(seedId);
   }
   return { guidance: { ...guidance, signals: filled }, filledSeedIds, removedSignals: guidance.signals.length - kept.length };

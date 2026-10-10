@@ -5,11 +5,11 @@ export const globalStateSheet = {
   uid: "sheet_dCudvUnH",
   name: "全局数据表",
   sourceData: {
-    note: "记录当前主角所在地点及时间相关参数。此表有且仅有一行。（列号为 0 基，与表格数据中的列标一致）\n- 列0: 主角当前所在地点 - 主角当前所在的具体场景名称。\n- 列1: 当前时间 - 游戏世界的当前时间。格式：\u201CYYYY-MM-DD HH:MM\u201D，初始化时如果剧情没有明确具体的日期和时间，则必须根据世界观和设定自行设定一个明确的日期时间。\n- 列2: 上轮场景时间 - 上一轮交互结束时的时间。\n- 列3: 经过的时间 - 根据当前与上轮时间计算得出的文本描述（如：\u201C几分钟\u201D）。",
-    initNode: "插入一条关于当前世界状态的记录。",
-    deleteNode: "禁止删除。",
-    updateNode: "当主角从当前所在区域离开时，更新所在地点。每轮必须更新时间。\nSQL示例: UPDATE global_state SET current_location = '新地点', prev_scene_time = cur_time, cur_time = '2024-03-15 16:00', elapsed_time = '约1小时' WHERE row_id = 1;",
-    insertNode: "禁止操作。",
+    note: "Ghi lại địa điểm hiện tại của nhân vật chính và các tham số liên quan đến thời gian. Bảng này có đúng một hàng. (Số cột đánh số từ 0, khớp với chỉ số cột trong dữ liệu bảng)\n- Cột 0: 主角当前所在地点 (Địa điểm hiện tại của nhân vật chính) - Tên cảnh cụ thể nơi nhân vật chính đang ở.\n- Cột 1: 当前时间 (Thời gian hiện tại) - Thời gian hiện tại trong thế giới game. Định dạng: \u201CYYYY-MM-DD HH:MM\u201D, khi khởi tạo nếu cốt truyện không nêu rõ ngày giờ cụ thể thì phải tự đặt một ngày giờ rõ ràng dựa trên thế giới quan và thiết lập.\n- Cột 2: 上轮场景时间 (Thời gian cảnh lượt trước) - Thời gian khi lượt tương tác trước kết thúc.\n- Cột 3: 经过的时间 (Thời gian đã trôi qua) - Mô tả bằng văn bản được tính từ thời gian hiện tại và thời gian lượt trước (ví dụ: \u201Cvài phút\u201D).",
+    initNode: "Chèn một bản ghi về trạng thái thế giới hiện tại.",
+    deleteNode: "Cấm xóa.",
+    updateNode: "Khi nhân vật chính rời khỏi khu vực hiện tại thì cập nhật địa điểm. Mỗi lượt bắt buộc cập nhật thời gian.\nVí dụ SQL: UPDATE global_state SET current_location = 'Địa điểm mới', prev_scene_time = cur_time, cur_time = '2024-03-15 16:00', elapsed_time = 'khoảng 1 giờ' WHERE row_id = 1;",
+    insertNode: "Cấm thao tác.",
     ddl: `CREATE TABLE global_state ( -- 全局数据表
   row_id INTEGER PRIMARY KEY, -- 行号
   current_location TEXT NOT NULL, -- 主角当前所在地点

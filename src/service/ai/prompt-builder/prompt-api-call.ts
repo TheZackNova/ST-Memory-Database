@@ -32,7 +32,7 @@ import { logAutoFillStage_ACU, logAutoFillSkip_ACU } from '../../../shared/trigg
 export class RetryableAiResponseError_ACU extends Error {
   readonly code = 'empty_or_invalid_api_response';
 
-  constructor(message = 'API响应格式不正确或内容为空。') {
+  constructor(message = 'Định dạng phản hồi API không đúng hoặc nội dung rỗng.') {
     super(message);
     this.name = 'RetryableAiResponseError';
   }
@@ -79,7 +79,7 @@ export class RetryableAiResponseError_ACU extends Error {
     try {
     options?.assertCurrent?.();
     if (options?.isolatedSnapshot && (!forceDirectApi || !skipProfileSwitch)) {
-        throw new Error('隔离填表必须使用数据库独立 API，禁止宿主预设切换。');
+        throw new Error('Điền bảng cô lập phải dùng API độc lập của cơ sở dữ liệu, cấm chuyển preset của host.');
     }
     const readPresetName = () => String(options?.tableApiPreset !== undefined
         ? String(options.tableApiPreset)
@@ -91,7 +91,7 @@ export class RetryableAiResponseError_ACU extends Error {
         requireResolvedApiPreset_ACU(name, channel);
         if (options?.isolatedSnapshot && (channel.apiMode !== 'custom'
             || !channel.apiConfig.url || !channel.apiConfig.model)) {
-            throw new Error('隔离填表缺少数据库独立 API 配置，禁止回退宿主生成。');
+            throw new Error('Điền bảng cô lập thiếu cấu hình API độc lập của cơ sở dữ liệu, cấm quay lại tạo bằng host.');
         }
         return channel;
     };
@@ -241,7 +241,7 @@ export class RetryableAiResponseError_ACU extends Error {
         effectiveTableApiPreset = options?.isolatedSnapshot ? initialPresetName : readPresetName();
         apiPresetConfig = options?.isolatedSnapshot ? initialChannel : readChannel(effectiveTableApiPreset);
         if (canUseTools(apiPresetConfig) !== tableFillToolChannelAvailable) {
-            throw Object.assign(new Error('填表准备期间 API 工具协议再次变化，请重新发起请求。'), {
+            throw Object.assign(new Error('Giao thức công cụ API đã thay đổi lần nữa trong lúc chuẩn bị điền bảng, hãy gửi lại yêu cầu.'), {
                 code: 'api_channel_changed_during_preparation',
             });
         }

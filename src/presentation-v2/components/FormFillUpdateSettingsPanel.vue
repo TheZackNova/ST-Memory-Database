@@ -6,8 +6,8 @@
     <div class="acu-form-fill-update-settings-panel__settings-groups">
       <section class="acu-form-fill-update-settings-panel__setting-group">
         <AcuFormRow
-          label="填表 API 预设"
-          hint="默认使用当前 API，选择后仅影响填表功能。"
+          label="Preset API điền bảng"
+          hint="Mặc định dùng API hiện tại; sau khi chọn chỉ ảnh hưởng chức năng điền bảng."
         >
           <AcuSelect
             :options="tableApiPresetOptions"
@@ -18,13 +18,13 @@
         </AcuFormRow>
 
         <AcuFormRow
-          label="自动填表间隔"
-          hint="累计到所选数量的可更新 AI 回复后，自动填表一次。"
+          label="Khoảng cách tự động điền bảng"
+          hint="Sau khi tích lũy đủ số phản hồi AI có thể cập nhật đã chọn, tự động điền bảng một lần."
         >
           <AcuSelect
             :options="updateEveryOptions"
             :model-value="selectedUpdateEvery"
-            :placeholder="selectedUpdateEvery === 'custom' ? '自定义' : '选择更新间隔'"
+            :placeholder="selectedUpdateEvery === 'custom' ? 'Tùy chỉnh' : 'Chọn khoảng cập nhật'"
             @update:model-value="applyUpdateEvery"
           />
         </AcuFormRow>
@@ -43,7 +43,7 @@
       <AcuDisclosureGroup
         v-if="showAdvanced"
         class="acu-form-fill-update-settings-panel__advanced"
-        label="高级参数"
+        label="Tham số nâng cao"
         :meta="advancedMetaLabel"
         :expanded="advancedExpanded"
         body-id="acu-form-fill-update-advanced"
@@ -107,9 +107,9 @@ const {
 const advancedExpanded = ref(false);
 
 const updateEveryOptions: AcuSelectOption[] = [
-  { value: "1", label: "每 1 层：最及时" },
-  { value: "3", label: "每 3 层：均衡" },
-  { value: "5", label: "每 5 层：低频省 API" },
+  { value: "1", label: "Mỗi 1 tầng: kịp thời nhất" },
+  { value: "3", label: "Mỗi 3 tầng: cân bằng" },
+  { value: "5", label: "Mỗi 5 tầng: tần suất thấp, tiết kiệm API" },
 ];
 const advancedKeys = new Set<NumberSettingKey>([
   "autoUpdateThreshold",
@@ -123,7 +123,7 @@ const advancedKeys = new Set<NumberSettingKey>([
 const advancedFields = computed(() =>
   settings.numberFields.value.filter((field) => advancedKeys.has(field.key)),
 );
-const advancedMetaLabel = computed(() => (isCustomCadence.value || isCustomSkip.value ? "自定义" : "默认"));
+const advancedMetaLabel = computed(() => (isCustomCadence.value || isCustomSkip.value ? "Tùy chỉnh" : "Mặc định"));
 const selectedUpdateEvery = computed<UpdateEveryId>(() => {
   for (const id of ["1", "3", "5"] as const) {
     const interval = Number(id);
@@ -143,14 +143,14 @@ const isCustomCadence = computed(() => selectedUpdateEvery.value === "custom");
 const isCustomSkip = computed(() => numberValue("skipUpdateFloors") > 1);
 const skipLatestLayer = computed(() => numberValue("skipUpdateFloors") >= 1);
 const skipLatestLayerLabel = computed(() =>
-  isCustomSkip.value ? "最新层不填表：自定义" : "最新层不填表",
+  isCustomSkip.value ? "Không điền bảng tầng mới nhất: tùy chỉnh" : "Không điền bảng tầng mới nhất",
 );
 const skipLatestLayerHint = computed(() => {
   const skip = numberValue("skipUpdateFloors");
   if (skip > 1) {
-    return `当前高级参数设置为跳过最新 ${skip} 层；关闭会改为不跳过，开启会改为只让最新层不填表。`;
+    return `Tham số nâng cao hiện đặt bỏ qua ${skip} tầng mới nhất; tắt sẽ đổi thành không bỏ qua, bật sẽ đổi thành chỉ bỏ qua tầng mới nhất.`;
   }
-  return "开启后，最新一条 AI 回复先不写入表格，等下一层出现后再处理；建议在经常需要重roll最新楼层时开启。";
+  return "Khi bật, phản hồi AI mới nhất chưa được ghi vào bảng, đợi tầng kế tiếp xuất hiện mới xử lý; nên bật nếu thường phải reroll tầng mới nhất.";
 });
 
 function numberValue(

@@ -126,7 +126,7 @@ describe('validateMergeParams_ACU', () => {
     mockCurrentJsonTableData = null;
     const result = validateMergeParams_ACU('默认提示词');
     expect(result.valid).toBe(false);
-    expect(result.error).toContain('数据库未加载');
+    expect(result.error).toContain('Cơ sở dữ liệu chưa được tải');
   });
 
   it('未找到纪要表时返回错误', () => {
@@ -135,7 +135,7 @@ describe('validateMergeParams_ACU', () => {
     };
     const result = validateMergeParams_ACU('默认提示词');
     expect(result.valid).toBe(false);
-    expect(result.error).toContain('未找到');
+    expect(result.error).toContain('Không tìm thấy');
   });
 
   it('纪要表为空时返回错误', () => {
@@ -144,7 +144,7 @@ describe('validateMergeParams_ACU', () => {
     };
     const result = validateMergeParams_ACU('默认提示词');
     expect(result.valid).toBe(false);
-    expect(result.error).toContain('没有纪要数据');
+    expect(result.error).toContain('không có dữ liệu kỷ yếu');
   });
 
   it('正常情况返回 valid', () => {
@@ -175,7 +175,7 @@ describe('validateMergeParams_ACU', () => {
     };
     const result = validateMergeParams_ACU('默认提示词');
     expect(result.valid).toBe(false);
-    expect(result.error).toContain('超出');
+    expect(result.error).toContain('vượt quá');
   });
 
   it('提示词模板为空时返回错误', () => {
@@ -188,7 +188,7 @@ describe('validateMergeParams_ACU', () => {
     };
     const result = validateMergeParams_ACU(''); // defaultMergePrompt 也为空
     expect(result.valid).toBe(false);
-    expect(result.error).toContain('提示词');
+    expect(result.error).toContain('prompt');
   });
 });
 
@@ -215,7 +215,7 @@ describe('prepareMergeSummary_ACU', () => {
     mockIsAutoUpdating = true;
     const result = await prepareMergeSummary_ACU('默认提示词');
     expect(result.valid).toBe(false);
-    expect(result.error).toContain('后台已有任务');
+    expect(result.error).toContain('Đang có tác vụ nền');
   });
 
   it('校验通过时返回 confirmInfo', async () => {
@@ -256,7 +256,7 @@ describe('prepareMergeSummary_ACU', () => {
   });
 
   it('校验失败时返回错误', async () => {
-    mockCurrentJsonTableData = null; // 数据库未加载
+    mockCurrentJsonTableData = null; // Cơ sở dữ liệu chưa được tải
 
     const result = await prepareMergeSummary_ACU('默认提示词');
     expect(result.valid).toBe(false);
@@ -619,7 +619,7 @@ describe('executeMergeBatches_ACU', () => {
     );
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('用户终止');
+    expect(result.error).toContain('Người dùng đã chấm dứt');
     expect(result.failedBatchIndex).toBe(0);
   });
 
@@ -674,7 +674,7 @@ describe('executeMergeBatches_ACU', () => {
     const result = await executeMergeBatches_ACU(config);
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('失败');
+    expect(result.error).toContain('thất bại');
   });
 
   it('进度回调被正确调用', async () => {
@@ -794,7 +794,7 @@ describe('executeMergeBatches_ACU max_tokens 回退', () => {
     mockSettings.apiMode = 'tavern';
     mockSettings.apiConfig = { max_tokens: 0, model: 'gpt-4' };
     mockSettings.tavernProfile = 'default';
-    mockSettings.charCardPrompt = [{ role: 'USER', content: '提示词', isMain: true, mainSlot: 'A' }];
+    mockSettings.charCardPrompt = [{ role: 'USER', content: 'prompt', isMain: true, mainSlot: 'A' }];
     mockSettings.streamingEnabled = false;
 
     const { sendConnectionManagerRequest_ACU } = await import('../../../src/service/ai/ai-service');
@@ -828,7 +828,7 @@ describe('executeMergeBatches_ACU max_tokens 回退', () => {
   it('custom 分支 max_tokens=0 不被 4096 覆盖', async () => {
     mockSettings.apiMode = 'custom';
     mockSettings.apiConfig = { url: 'https://api.example.com', model: 'gpt-4', max_tokens: 0 };
-    mockSettings.charCardPrompt = [{ role: 'USER', content: '提示词', isMain: true, mainSlot: 'A' }];
+    mockSettings.charCardPrompt = [{ role: 'USER', content: 'prompt', isMain: true, mainSlot: 'A' }];
     mockSettings.streamingEnabled = false;
 
     mockBuildCustomBody.mockReturnValue({ messages: [], model: 'gpt-4', max_tokens: 0, temperature: 1.0, top_p: 0.95, stream: false });
@@ -861,4 +861,4 @@ describe('executeMergeBatches_ACU max_tokens 回退', () => {
 
     expect(overrides.stripModelPrefix).toBe(false);
   });
-});
+});

@@ -48,15 +48,15 @@ function findTableLockViolationForCrud_ACU(
     if (!identities.hasAny) return null;
     const rowId = String(content?.[check.rowIndex]?.[0] ?? '').trim();
     if (!rowId) return null; // 目标行尚不存在（updateRow 扩容路径），无锁可判
-    if (identities.rowIds.has(rowId)) return `行（row_id=${rowId}）已被行锁锁定`;
+    if (identities.rowIds.has(rowId)) return `Hàng (row_id=${rowId}) đã bị khóa bởi khóa hàng`;
     if (check.kind === 'delete') {
         const lockedCell = identities.cellPairs.find(([cellRowId]) => cellRowId === rowId);
-        return lockedCell ? `行（row_id=${rowId}）含锁定单元格「${lockedCell[1]}」，不可删除` : null;
+        return lockedCell ? `Hàng (row_id=${rowId}) chứa ô bị khóa "${lockedCell[1]}", không thể xóa` : null;
     }
     for (const colName of check.colNames || []) {
-        if (identities.colNames.has(colName)) return `列「${colName}」已被列锁锁定`;
+        if (identities.colNames.has(colName)) return `Cột "${colName}" đã bị khóa bởi khóa cột`;
         if (identities.cellPairs.some(([cellRowId, cellColName]) => cellRowId === rowId && cellColName === colName)) {
-            return `单元格（row_id=${rowId}，列「${colName}」）已被锁定`;
+            return `Ô (row_id=${rowId}, cột "${colName}") đã bị khóa`;
         }
     }
     return null;

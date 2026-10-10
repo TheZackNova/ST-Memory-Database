@@ -78,7 +78,7 @@ const plans_ACU = new Map<string, RecoveryPlan_ACU>();
 function clone_ACU<T>(value: T): T { return JSON.parse(JSON.stringify(value)); }
 function buildPlanId_ACU(): string { return `v2_recovery_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`; }
 function getErrorMessage_ACU(error: unknown): string {
-  return error instanceof Error ? error.message : String(error || '未知错误');
+  return error instanceof Error ? error.message : String(error || 'Lỗi không xác định');
 }
 function getFrameFingerprint_ACU(frame: TableStorageFrameV2_ACU): string {
   return JSON.stringify(frame);
@@ -214,7 +214,7 @@ function findAmbiguousRowIdReference_ACU(
     for (const entry of item.frame.logEntries || []) {
       for (const operation of [...(entry.operations || []), ...(entry.patches || [])]) {
         const rowId = operationReferencesRemappedRowId_ACU(operation, remappedRowIdKeys);
-        if (rowId) return `messageIndex=${item.messageIndex}、seq=${entry.seq} 的 ${operation.kind} 引用了重映射前的 row_id=${rowId}`;
+        if (rowId) return `messageIndex=${item.messageIndex}, seq=${entry.seq}: ${operation.kind} tham chiếu row_id trước khi ánh xạ lại, row_id=${rowId}`;
       }
     }
   }
@@ -258,29 +258,29 @@ function planAffectedFramesUnchanged_ACU(plan: RecoveryPlan_ACU): string | null 
     const tagData = readIsolatedTagData_ACU(message, plan.isolationKey);
     const frame = isV2TagData_ACU(tagData) ? tagData.storageFrame : null;
     if (!frame || getFrameFingerprint_ACU(frame) !== item.fingerprint) {
-      return `受影响帧已变化：messageIndex=${item.messageIndex}。`;
+      return `Khung bị ảnh hưởng đã thay đổi: messageIndex=${item.messageIndex}. `;
     }
   }
   for (const item of plan.affectedTagDataFingerprints || []) {
     if (getTagDataFingerprint_ACU(plan.chat, plan.isolationKey, item.messageIndex) !== item.fingerprint) {
-      return `过渡根放置目标楼层已变化：messageIndex=${item.messageIndex}，请重新诊断。`;
+      return `Tầng đích đặt gốc chuyển tiếp đã thay đổi: messageIndex=${item.messageIndex}, hãy chẩn đoán lại.`;
     }
   }
   const sourceFrame = getPlanSourceFrame_ACU(plan);
   if (!sourceFrame || getFrameFingerprint_ACU(sourceFrame) !== plan.sourceFrameFingerprint) {
-    return '恢复源 frame 已变化，请重新诊断。';
+    return 'frame nguồn khôi phục đã thay đổi, hãy chẩn đoán lại.';
   }
   return null;
 }
 function buildRecoveredCandidateChat_ACU(plan: RecoveryPlan_ACU): any[] {
   const sourceMessageIndex = plan.sourceMessageIndex;
-  if (!Number.isInteger(sourceMessageIndex)) throw new Error('恢复计划缺少 sourceMessageIndex。');
+  if (!Number.isInteger(sourceMessageIndex)) throw new Error('Kế hoạch khôi phục thiếu sourceMessageIndex.');
   const candidateChat = clone_ACU(plan.chat);
   if (plan.kind === 'compat_tolerant_replay_fixation') {
     // 过渡根写在 tagData.compatTransitionCheckpoint，不改写任何 storageFrame：原始
     // 历史（含被宽容的坏 entry）原样保留，可随时删除过渡根回到兼容读取。
     const placements = plan.compatTransitionPlacements || [];
-    if (placements.length === 0) throw new Error('兼容回放固化计划缺少过渡根放置。');
+    if (placements.length === 0) throw new Error('Kế hoạch cố định phát lại tương thích thiếu vị trí đặt gốc chuyển tiếp.');
     applyCompatTransitionPlacementsToChat_ACU(candidateChat, plan.isolationKey, placements);
     return candidateChat;
   }
@@ -290,12 +290,12 @@ function buildRecoveredCandidateChat_ACU(plan: RecoveryPlan_ACU): any[] {
     // 根帧 data 已含全部累计状态（convergence full 由该根之上的 replay 构造），
     // 降级多余 full 后回放输出必须与降级前完全一致（P4-6 强校验）。
     const redundantIndices = plan.redundantFullIndices || [];
-    if (redundantIndices.length === 0) throw new Error('单 full 收敛计划缺少冗余 full 帧索引。');
+    if (redundantIndices.length === 0) throw new Error('Kế hoạch hội tụ single-full thiếu chỉ số khung full dư thừa.');
     for (const messageIndex of redundantIndices) {
       const message = candidateChat[messageIndex as number];
-      if (!message) throw new Error(`降级目标消息缺失：messageIndex=${messageIndex}。`);
+      if (!message) throw new Error(`Thiếu tin nhắn đích để hạ cấp: messageIndex=${messageIndex}. `);
       const tagData = readIsolatedTagData_ACU(message, plan.isolationKey);
-      if (!isV2TagData_ACU(tagData)) throw new Error(`降级目标消息不再包含 V2 storage frame：messageIndex=${messageIndex}。`);
+      if (!isV2TagData_ACU(tagData)) throw new Error(`Tin nhắn đích để hạ cấp không còn chứa V2 storage frame: messageIndex=${messageIndex}. `);
       const originalFrame = clone_ACU(tagData.storageFrame);
       const originalCheckpoint = originalFrame.checkpoint;
       const originalEntries = originalFrame.logEntries || [];
@@ -343,7 +343,7 @@ function buildRecoveredCandidateChat_ACU(plan: RecoveryPlan_ACU): any[] {
 
   const sourceMessage = candidateChat[sourceMessageIndex as number];
   const sourceTagData = readIsolatedTagData_ACU(sourceMessage, plan.isolationKey);
-  if (!isV2TagData_ACU(sourceTagData)) throw new Error('恢复源消息不再包含 V2 storage frame。');
+  if (!isV2TagData_ACU(sourceTagData)) throw new Error('Tin nhắn nguồn khôi phục không còn chứa V2 storage frame.');
 
   const checkpointBuild = buildCanonicalFullCheckpoint_ACU({
     createdAt: Date.now(),
@@ -381,8 +381,8 @@ async function validateRecoveredCandidateReplay_ACU(plan: RecoveryPlan_ACU, cand
     updateRuntimeState: false,
     compatibilityMode: 'disabled',
   });
-  if (!replay) throw new Error('恢复候选未产生可回放表数据。');
-  if (replay.requiresCheckpointConvergence || replay.compatibilityRepairs?.length) throw new Error('恢复候选仍依赖临时 Sheet 补锚。');
+  if (!replay) throw new Error('Ứng viên khôi phục không tạo ra dữ liệu bảng có thể phát lại.');
+  if (replay.requiresCheckpointConvergence || replay.compatibilityRepairs?.length) throw new Error('Ứng viên khôi phục vẫn phụ thuộc neo bù Sheet tạm.');
   if (plan.kind === 'compat_tolerant_replay_fixation') {
     // 每个放置楼层的 bounded 严格回放都必须以过渡根为基底：追平/写前门闸做的正是
     // bounded 回放，只验证无界回放通过不足以证明它们不再被拒绝。
@@ -392,13 +392,13 @@ async function validateRecoveredCandidateReplay_ACU(plan: RecoveryPlan_ACU, cand
         compatibilityMode: 'disabled',
         maxMessageIndex: placement.messageIndex,
       });
-      if (!bounded) throw new Error(`过渡根楼层 #${placement.messageIndex} 的 bounded 回放未产生表数据。`);
+      if (!bounded) throw new Error(`Phát lại bounded của tầng gốc chuyển tiếp #${placement.messageIndex} không tạo ra dữ liệu bảng.`);
       if (bounded.baseKind !== 'compat_transition_checkpoint') {
-        throw new Error(`过渡根楼层 #${placement.messageIndex} 的 bounded 回放未以过渡根为基底（baseKind=${bounded.baseKind}）。`);
+        throw new Error(`Phát lại bounded của tầng gốc chuyển tiếp #${placement.messageIndex} không dùng gốc chuyển tiếp làm nền (baseKind=${bounded.baseKind}).`);
       }
     }
     if (getTableDataFingerprint_ACU(replay.data) !== getTableDataFingerprint_ACU(plan.candidateData)) {
-      throw new Error('固化后严格回放结果与诊断时的探针结果不一致，拒绝提交。');
+      throw new Error('Kết quả phát lại nghiêm ngặt sau khi cố định không khớp kết quả thăm dò lúc chẩn đoán, từ chối commit.');
     }
     return;
   }
@@ -409,18 +409,18 @@ async function validateRecoveredCandidateReplay_ACU(plan: RecoveryPlan_ACU, cand
       updateRuntimeState: false,
       compatibilityMode: 'disabled',
     });
-    if (!baselineReplay) throw new Error('收敛前原始历史不可回放，拒绝执行单 full 收敛。');
+    if (!baselineReplay) throw new Error('Lịch sử gốc trước khi hội tụ không thể phát lại, từ chối thực hiện hội tụ single-full.');
     if (baselineReplay.requiresCheckpointConvergence || baselineReplay.compatibilityRepairs?.length) {
-      throw new Error('收敛前原始历史仍依赖临时 Sheet 补锚，拒绝执行单 full 收敛。');
+      throw new Error('Lịch sử gốc trước khi hội tụ vẫn phụ thuộc neo bù Sheet tạm, từ chối thực hiện hội tụ single-full.');
     }
     if (getTableDataFingerprint_ACU(baselineReplay.data) !== getTableDataFingerprint_ACU(replay.data)) {
-      throw new Error('单 full 收敛前后 replay 结果不一致，拒绝提交。');
+      throw new Error('Kết quả replay trước và sau hội tụ single-full không nhất quán, từ chối commit.');
     }
   }
   // 基底修复后的 suffix 必须被严格回放；其结果不应再与修复时的基底本身相等。
   if (plan.kind !== 'repaired_full_checkpoint'
     && getTableDataFingerprint_ACU(replay.data) !== getTableDataFingerprint_ACU(plan.candidateData)) {
-    throw new Error('恢复候选 replay 结果与修复数据不一致。');
+    throw new Error('Kết quả replay của ứng viên khôi phục không khớp dữ liệu đã sửa.');
   }
 }
 function repairCandidate_ACU(data: unknown): { candidateData: TableDataObject_ACU | null; idRemap: UpgradeIdRemap_ACU[]; status: 'clean' | 'repairable' | 'requires_confirmation' | 'unrecoverable' } {
@@ -465,19 +465,19 @@ function describeIdentityConflict_ACU(
   const sameStructure = sameHeader && rowsList.every(rows => JSON.stringify(rows) === JSON.stringify(rowsList[0]));
   const rowCounts = rowsList.map(rows => rows.length).join(' vs ');
 
-  if (allEmpty) return { category: 'empty_shell', detail: '双方均无数据行（仅表头或空壳）。' };
-  if (sameStructure) return { category: 'duplicate_structure', detail: '列结构相同且数据完全一致，是重复 key 而非新数据。' };
+  if (allEmpty) return { category: 'empty_shell', detail: 'Cả hai bên đều không có hàng dữ liệu (chỉ tiêu đề hoặc vỏ rỗng).' };
+  if (sameStructure) return { category: 'duplicate_structure', detail: 'Cấu trúc cột giống nhau và dữ liệu hoàn toàn trùng khớp, đây là key trùng chứ không phải dữ liệu mới.' };
   if (sameHeader) {
     const rowIdSets = rowsList.map(rows => new Set(rows.map(row => String((row as unknown[])?.[0] ?? '').trim()).filter(Boolean)));
     const hasSharedRowId = rowIdSets.length === 2 && [...rowIdSets[0]].some(rowId => rowIdSets[1].has(rowId));
     if (hasSharedRowId) {
-      return { category: 'ambiguous_conflict', detail: `列结构相同但存在同 row_id 冲突（行数 ${rowCounts}），不能仅凭 row_id 选赢家。` };
+      return { category: 'ambiguous_conflict', detail: `Cấu trúc cột giống nhau nhưng có xung đột cùng row_id (số hàng ${rowCounts}), không thể chỉ dựa vào row_id để chọn bên thắng.` };
     }
-    return { category: 'heterogeneous_with_data', detail: `列结构相同但数据行不同（行数 ${rowCounts}），可按 row_id 补并但需要确认旧 key 是否同属一张表。` };
+    return { category: 'heterogeneous_with_data', detail: `Cấu trúc cột giống nhau nhưng hàng dữ liệu khác nhau (số hàng ${rowCounts}), có thể gộp bổ sung theo row_id nhưng cần xác nhận các key cũ có cùng thuộc một bảng hay không.` };
   }
   return {
     category: 'heterogeneous_with_data',
-    detail: `列结构不同（${headers.map((header, index) => `${collision.sheetKeys[index]}:[${header.join('、')}]`).join(' vs ')}}）且存在数据。`,
+    detail: `Cấu trúc cột khác nhau (${headers.map((header, index) => `${collision.sheetKeys[index]}:[${header.join(', ')}]`).join(' vs ')}}) và có dữ liệu.`,
   };
 }
 
@@ -499,21 +499,21 @@ function buildIdentityConflictSummary_ACU(
   const detail = conflicts
     .map(collision => {
       const described = describeIdentityConflict_ACU(collision, data);
-      return `物理表名「${collision.physicalTableName}」← ${collision.sheetNames.map((name, index) => `「${name}」(${collision.sheetKeys[index]})`).join(' / ')}；原因=${collision.reason}；分类=${described.category}；${described.detail}`;
+      return `Tên bảng vật lý「${collision.physicalTableName}」← ${collision.sheetNames.map((name, index) => `「${name}」(${collision.sheetKeys[index]})`).join(' / ')}; lý do=${collision.reason}; phân loại=${described.category}; ${described.detail}`;
     })
-    .join('；');
+    .join('; ');
   return {
     status: 'unrecoverable_identity_conflict',
     isolationKey,
     sourceMessageIndex,
     affectedSheetKeys: [...new Set(conflicts.flatMap(collision => collision.sheetKeys))],
     requiresConfirmation: false,
-    message: `检测到 ${conflicts.length} 组物理表名冲突（双身份）：${detail}同一规范表名被保留为多个 sheetKey 时需先完成身份归并（identity_merge_failed）；不同表拼音同名需用户重命名。已拒绝自动恢复。`,
+    message: `Phát hiện ${conflicts.length} nhóm xung đột tên bảng vật lý (song danh tính): ${detail} Khi cùng một tên bảng chuẩn được giữ lại cho nhiều sheetKey, cần hoàn tất gộp danh tính trước (identity_merge_failed); các bảng khác nhau trùng tên pinyin cần người dùng đổi tên. Đã từ chối khôi phục tự động.`,
   };
 }
 async function diagnoseV2Recovery_ACU(chat: any[], isolationKey: string): Promise<V2RecoveryDiagnosis_ACU> {
   const frames = getFrames_ACU(chat, isolationKey);
-  if (frames.length === 0) return { summary: { status: 'unrecoverable_no_base', isolationKey, requiresConfirmation: false, message: '当前隔离标识不存在 V2 storage frame。' } };
+  if (frames.length === 0) return { summary: { status: 'unrecoverable_no_base', isolationKey, requiresConfirmation: false, message: 'Định danh cô lập hiện tại không có V2 storage frame.' } };
   const latestFull = [...frames].reverse().find(item => item.frame.checkpoint?.kind === 'full');
   if (latestFull?.frame.checkpoint) {
     // 单根不变量：同一隔离键下同一时刻只能存在一个 full checkpoint。
@@ -538,7 +538,7 @@ async function diagnoseV2Recovery_ACU(chat: any[], isolationKey: string): Promis
         sourceMessageIndex: rootIndex,
         affectedSheetKeys: [],
         requiresConfirmation: false,
-        message: `检测到 ${fullCheckpoints.length} 个 full checkpoint（#${fullCheckpoints.map(item => item.messageIndex).join('、')}）；将保留末位 #${rootIndex} 为唯一回放根，其余（#${redundantIndices.join('、')}）无损降级为 data_replace fallback 并各自原帧入 recoveryBackup。`,
+        message: `Phát hiện ${fullCheckpoints.length} full checkpoint (#${fullCheckpoints.map(item => item.messageIndex).join(', ')}); sẽ giữ cái cuối #${rootIndex} làm gốc phát lại duy nhất, các cái còn lại (#${redundantIndices.join(', ')}) được hạ cấp không mất dữ liệu thành data_replace fallback và khung gốc của từng cái được đưa vào recoveryBackup.`,
       };
       return { summary, plan: {
         ...summary,
@@ -568,7 +568,7 @@ async function diagnoseV2Recovery_ACU(chat: any[], isolationKey: string): Promis
       try {
         replay = await loadTableStateFromFramesV2Detailed_ACU(chat, isolationKey, { updateRuntimeState: false, backgroundFixation: 'skip' });
       } catch (error) {
-        return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: latestFull.messageIndex, requiresConfirmation: false, message: `full checkpoint 虽通过静态审计，但完整回放失败：${getErrorMessage_ACU(error)}` } };
+        return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: latestFull.messageIndex, requiresConfirmation: false, message: `full checkpoint tuy qua kiểm tra tĩnh nhưng phát lại đầy đủ thất bại: ${getErrorMessage_ACU(error)}` } };
       }
       // F2：Tier-1 宽容回放结果是「兼容只读」诊断，不是 temporary_sheet_anchor 模型
       //（无 compatibilityRepairs，下方 AND 门不会命中，历史会被「已通过完整性审计，
@@ -582,15 +582,15 @@ async function diagnoseV2Recovery_ACU(chat: any[], isolationKey: string): Promis
           await flushPendingCompatTransitionFixations_ACU();
           const recheck = await loadTableStateFromFramesV2Detailed_ACU(chat, isolationKey, { updateRuntimeState: false, backgroundFixation: 'skip' });
           if (recheck?.baseKind !== 'compat_tolerant_replay') {
-            return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: latestFull.messageIndex, requiresConfirmation: false, message: '兼容宽容回放结果已在后台固化为过渡根，当前历史可严格回放，无需恢复。' } };
+            return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: latestFull.messageIndex, requiresConfirmation: false, message: 'Kết quả phát lại tương thích khoan dung đã được cố định ngầm thành gốc chuyển tiếp, lịch sử hiện tại có thể phát lại nghiêm ngặt, không cần khôi phục.' } };
           }
           replay = recheck;
         }
         const identityRemaps = replay.legacyToleranceDiagnosis?.identityRemaps || [];
         const remapDetail = identityRemaps.length > 0
-          ? identityRemaps.map(remap => `${remap.fromKey}→${remap.toKey}「${remap.canonicalName}」（覆盖 ${remap.overriddenRows} 行、并入 ${remap.appendedRows} 行）`).join('；')
-          : '无';
-        const baseMessage = `V2 严格回放失败，当前数据经 Tier-1 兼容宽容回放读出（严格错误：${replay.legacyToleranceDiagnosis?.strictError || '未知错误'}）。兼容数据仅可读：写入/模板提交/追平会被拒绝，直到恢复收敛完成。tolerances=${(replay.legacyToleranceDiagnosis?.tolerances || []).join(', ') || '无'}；身份归并=${remapDetail}。${identityRemaps.length > 0 ? '含身份归并的兼容结果不会自动固化为过渡根，需要在此显式确认后固化（归并结果将成为持久历史的身份权威）。' : '无身份归并的兼容结果会在加载时后台固化为过渡根；也可在此立即固化。'}`;
+          ? identityRemaps.map(remap => `${remap.fromKey}→${remap.toKey}「${remap.canonicalName}」(ghi đè ${remap.overriddenRows} hàng, gộp ${remap.appendedRows} hàng)`).join('; ')
+          : 'không có';
+        const baseMessage = `Phát lại nghiêm ngặt V2 thất bại, dữ liệu hiện tại được đọc qua phát lại tương thích khoan dung Tier-1 (lỗi nghiêm ngặt: ${replay.legacyToleranceDiagnosis?.strictError || 'Lỗi không xác định'}). Dữ liệu tương thích chỉ đọc được: ghi/commit mẫu/bắt kịp sẽ bị từ chối cho tới khi hoàn tất hội tụ khôi phục. tolerances=${(replay.legacyToleranceDiagnosis?.tolerances || []).join(', ') || 'không có'}; gộp danh tính=${remapDetail}. ${identityRemaps.length > 0 ? 'Kết quả tương thích có gộp danh tính sẽ không tự động được cố định thành gốc chuyển tiếp, cần xác nhận tường minh tại đây rồi mới cố định (kết quả gộp sẽ trở thành thẩm quyền danh tính của lịch sử lưu bền).' : 'Kết quả tương thích không có gộp danh tính sẽ được cố định ngầm thành gốc chuyển tiếp khi tải; cũng có thể cố định ngay tại đây.'}`;
         const summaryBase: V2RecoverySummary_ACU = {
           status: 'recoverable_compat_tolerant_replay',
           isolationKey,
@@ -608,16 +608,16 @@ async function diagnoseV2Recovery_ACU(chat: any[], isolationKey: string): Promis
             allowIdentityRemaps: true,
           });
         } catch (error) {
-          return { summary: { ...summaryBase, message: `${baseMessage}自动固化不可用：${getErrorMessage_ACU(error)}` } };
+          return { summary: { ...summaryBase, message: `${baseMessage}Cố định tự động không khả dụng: ${getErrorMessage_ACU(error)}` } };
         }
         if (fixation.ok === false) {
-          return { summary: { ...summaryBase, message: `${baseMessage}自动固化不可用：${fixation.reason}` } };
+          return { summary: { ...summaryBase, message: `${baseMessage}Cố định tự động không khả dụng: ${fixation.reason}` } };
         }
         const placementIndices = fixation.placements.map(placement => placement.messageIndex);
         const affectedIndices = collectCompatTransitionAffectedIndices_ACU(chat, isolationKey, fixation.placements);
         const summary: V2RecoverySummary_ACU = {
           ...summaryBase,
-          message: `${baseMessage}固化方案：在楼层 #${placementIndices.join('、#')} 写入兼容过渡根（tolerances=${fixation.tolerances.join(', ') || '无'}；行身份修复 ${fixation.rowIdentityRepairs.length} 处），固化后严格回放已通过探针验证；原始 storage frame 不会被改写。`,
+          message: `${baseMessage}Phương án cố định: ghi gốc chuyển tiếp tương thích tại tầng #${placementIndices.join(', #')} (tolerances=${fixation.tolerances.join(', ') || 'không có'}; sửa danh tính hàng ${fixation.rowIdentityRepairs.length} vị trí), sau khi cố định phát lại nghiêm ngặt đã qua xác minh thăm dò; storage frame gốc sẽ không bị sửa.`,
         };
         return { summary, plan: {
           ...summary,
@@ -642,13 +642,13 @@ async function diagnoseV2Recovery_ACU(chat: any[], isolationKey: string): Promis
       if (replay?.requiresCheckpointConvergence && replay.compatibilityRepairs?.length) {
         const source = frames[frames.length - 1];
         const repairedSheetKeys = [...new Set(replay.compatibilityRepairs.map(item => item.sheetKey))];
-        const repairPositions = replay.compatibilityRepairs.map(item => `#${item.messageIndex}/seq=${item.seq}/op=${item.operationIndex}`).join('、');
+        const repairPositions = replay.compatibilityRepairs.map(item => `#${item.messageIndex}/seq=${item.seq}/op=${item.operationIndex}`).join(', ');
         const summary: V2RecoverySummary_ACU = {
           status: 'recoverable_temporary_sheet_anchor', isolationKey, sourceMessageIndex: source.messageIndex,
           affectedSheetKeys: repairedSheetKeys,
           compatibilityRepairs: clone_ACU(replay.compatibilityRepairs),
           requiresConfirmation: false,
-          message: `检测到历史回放依赖临时 Sheet 补锚（${repairedSheetKeys.join('、')}，位置 ${repairPositions}）；可通过 integrity_repair full checkpoint 自动收敛。`,
+          message: `Phát hiện phát lại lịch sử phụ thuộc neo bù Sheet tạm (${repairedSheetKeys.join(', ')}, vị trí ${repairPositions}); có thể tự động hội tụ qua integrity_repair full checkpoint.`,
         };
         return { summary, plan: {
           ...summary, kind: 'temporary_sheet_anchor_convergence', chat,
@@ -664,7 +664,7 @@ async function diagnoseV2Recovery_ACU(chat: any[], isolationKey: string): Promis
             isolationKey,
             sourceMessageIndex: lateCheckpoint.checkpointMessageIndex,
             requiresConfirmation: false,
-            message: `检测到较晚的 canonical ${latestFull.frame.checkpoint.reason} checkpoint（#${lateCheckpoint.checkpointMessageIndex}）两侧均存在 V2 replay artifact；自动前移会改变后缀回放语义，已拒绝自动恢复。请先导出 recovery backup，再人工核对并执行 V2 恢复诊断。`,
+            message: `Phát hiện checkpoint canonical ${latestFull.frame.checkpoint.reason} muộn hơn (#${lateCheckpoint.checkpointMessageIndex}) có V2 replay artifact ở cả hai phía; tự động dời lên sẽ làm đổi ngữ nghĩa phát lại phần hậu tố, đã từ chối khôi phục tự động. Hãy xuất recovery backup trước, rồi kiểm tra thủ công và chạy chẩn đoán khôi phục V2.`,
           },
         };
       }
@@ -676,30 +676,30 @@ async function diagnoseV2Recovery_ACU(chat: any[], isolationKey: string): Promis
           sourceMessageIndex: latestFull.messageIndex,
           requiresConfirmation: false,
           message: isTemplateFallbackRoot
-            ? '最新 full checkpoint 是可正常回放的手动重填模板临时根；无需完整性恢复，后续边界 compaction 会将其固化为正式 checkpoint。'
-            : '最新 full checkpoint 已通过完整性审计，无需恢复。',
+            ? 'full checkpoint mới nhất là gốc tạm của mẫu điền lại thủ công có thể phát lại bình thường; không cần khôi phục tính toàn vẹn, compaction biên sau đó sẽ cố định nó thành checkpoint chính thức.'
+            : 'full checkpoint mới nhất đã qua kiểm tra tính toàn vẹn, không cần khôi phục.',
         },
       };
     }
-    if (!repair.candidateData) return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: latestFull.messageIndex, requiresConfirmation: false, message: '最新 full checkpoint 不可无损自动修复；请先导出原始 frame。' } };
+    if (!repair.candidateData) return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: latestFull.messageIndex, requiresConfirmation: false, message: 'full checkpoint mới nhất không thể tự động sửa mà không mất dữ liệu; hãy xuất frame gốc trước.' } };
     const ambiguity = findAmbiguousRowIdReference_ACU(frames, latestFull.messageIndex, repair.idRemap);
     if (ambiguity) {
-      const message = `重复 row_id 修复会改变后续引用的语义：${ambiguity}；拒绝猜测。`;
+      const message = `Sửa row_id trùng sẽ làm đổi ngữ nghĩa của các tham chiếu phía sau: ${ambiguity}; từ chối đoán.`;
       return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: latestFull.messageIndex, requiresConfirmation: false, message } };
     }
     const suffixCount = frames.filter(item => item.messageIndex > latestFull.messageIndex && hasAnyReplayArtifacts_ACU(item.frame)).length
       + (hasReplayArtifactsAfterCheckpoint_ACU(latestFull.frame) ? 1 : 0);
-    const summary: V2RecoverySummary_ACU = { status: 'recoverable_repaired_checkpoint', isolationKey, sourceMessageIndex: latestFull.messageIndex, requiresConfirmation: false, message: suffixCount > 0 ? '已生成 full 修复候选；将保留并严格回放后缀 artifact。' : '已生成 full 修复候选。' };
+    const summary: V2RecoverySummary_ACU = { status: 'recoverable_repaired_checkpoint', isolationKey, sourceMessageIndex: latestFull.messageIndex, requiresConfirmation: false, message: suffixCount > 0 ? 'Đã tạo ứng viên sửa full; sẽ giữ lại và phát lại nghiêm ngặt artifact hậu tố.' : 'Đã tạo ứng viên sửa full.' };
     return { summary, plan: { ...summary, kind: 'repaired_full_checkpoint', chat, chatKey: String(currentChatFileIdentifier_ACU || '').trim(), sourceFrameFingerprint: getFrameFingerprint_ACU(latestFull.frame), candidateData: repair.candidateData } };
   }
   for (const item of [...frames].reverse()) {
     if (!isIsolatedDataReplaceFrame_ACU(item.frame)) continue;
-    if (hasLaterReplayArtifacts_ACU(frames, item.messageIndex)) return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: item.messageIndex, requiresConfirmation: false, message: '无锚点 data_replace 之后仍存在 V2 replay artifact；无法证明替换不会截断数据，拒绝自动恢复。' } };
+    if (hasLaterReplayArtifacts_ACU(frames, item.messageIndex)) return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: item.messageIndex, requiresConfirmation: false, message: 'Sau data_replace không có neo vẫn còn V2 replay artifact; không thể chứng minh việc thay thế không cắt cụt dữ liệu, từ chối khôi phục tự động.' } };
     const candidateData = findOrphanDataReplace_ACU(item.frame);
     if (!candidateData) continue;
     const repair = repairCandidate_ACU(candidateData);
-    if (repair.status !== 'clean' && !repair.candidateData) return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: item.messageIndex, requiresConfirmation: false, message: '无锚点 data_replace 不满足无损自动修复条件。' } };
-    const summary: V2RecoverySummary_ACU = { status: 'recoverable_orphan_data_replace', isolationKey, sourceMessageIndex: item.messageIndex, requiresConfirmation: true, message: '检测到无锚点 data_replace；必须明确确认后才会提升为 full checkpoint。' };
+    if (repair.status !== 'clean' && !repair.candidateData) return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: item.messageIndex, requiresConfirmation: false, message: 'data_replace không có neo không thỏa điều kiện tự động sửa không mất dữ liệu.' } };
+    const summary: V2RecoverySummary_ACU = { status: 'recoverable_orphan_data_replace', isolationKey, sourceMessageIndex: item.messageIndex, requiresConfirmation: true, message: 'Phát hiện data_replace không có neo; phải xác nhận rõ ràng mới được nâng lên thành full checkpoint.' };
     return { summary, plan: { ...summary, kind: 'confirmed_orphan_data_replace', chat, chatKey: String(currentChatFileIdentifier_ACU || '').trim(), sourceFrameFingerprint: getFrameFingerprint_ACU(item.frame), candidateData: repair.candidateData || candidateData } };
   }
   // 空信封无锚点状态（手动重填全范围清理删除唯一 full checkpoint 后遗留）：
@@ -718,18 +718,18 @@ async function diagnoseV2Recovery_ACU(chat: any[], isolationKey: string): Promis
     const candidateData = backupCheckpoint.data as TableDataObject_ACU;
     const repair = repairCandidate_ACU(candidateData);
     if (repair.status !== 'clean' && !repair.candidateData) {
-      return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: messageIndex, requiresConfirmation: false, message: 'recoveryBackup 内的 full checkpoint 数据不满足无损自动修复条件。' } };
+      return { summary: { status: 'unrecoverable', isolationKey, sourceMessageIndex: messageIndex, requiresConfirmation: false, message: 'Dữ liệu full checkpoint trong recoveryBackup không thỏa điều kiện tự động sửa không mất dữ liệu.' } };
     }
     const summary: V2RecoverySummary_ACU = {
       status: 'recoverable_from_recovery_backup',
       isolationKey,
       sourceMessageIndex: messageIndex,
       requiresConfirmation: false,
-      message: `检测到无锚点 V2 空信封，但其 tagData 保留 recoveryBackup（kind=${backup.recoveryKind || 'unknown'}）；可用备份中的 full checkpoint 数据重建 integrity_repair 根。应用修复时原始 frame 会保留为隔离备份。`,
+      message: `Phát hiện phong bì rỗng V2 không có neo, nhưng tagData của nó còn giữ recoveryBackup (kind=${backup.recoveryKind || 'unknown'}); có thể dùng dữ liệu full checkpoint trong bản sao lưu để dựng lại gốc integrity_repair. Khi áp dụng sửa chữa, frame gốc sẽ được giữ làm bản sao lưu cô lập.`,
     };
     return { summary, plan: { ...summary, kind: 'restored_from_recovery_backup', chat, chatKey: String(currentChatFileIdentifier_ACU || '').trim(), sourceFrameFingerprint: getFrameFingerprint_ACU(backup.storageFrame), candidateData: repair.candidateData || candidateData } };
   }
-  return { summary: { status: 'unrecoverable_no_base', isolationKey, requiresConfirmation: false, message: '仅检测到无 base 的 V2 日志；无法编造恢复数据。' } };
+  return { summary: { status: 'unrecoverable_no_base', isolationKey, requiresConfirmation: false, message: 'Chỉ phát hiện nhật ký V2 không có base; không thể bịa dữ liệu khôi phục.' } };
 }
 export async function scanV2IsolationDiagnostics_ACU(chat: any[] = getChatArray_ACU()): Promise<V2IsolationDiagnostic_ACU[]> {
   const isolationKeys = new Set<string>();
@@ -761,19 +761,19 @@ export async function commitPreparedV2Recovery_ACU(
 ): Promise<V2RecoveryCommitResult_ACU> {
   const plan = plans_ACU.get(planId);
   const failure = (error: string): V2RecoveryCommitResult_ACU => ({ status: 'commit_failed_rolled_back', planId, error });
-  if (!plan) return failure('恢复计划不存在或已失效，请重新诊断。');
+  if (!plan) return failure('Kế hoạch khôi phục không tồn tại hoặc đã hết hiệu lực, hãy chẩn đoán lại.');
   if (plan.requiresConfirmation) {
     if (plan.kind === 'compat_tolerant_replay_fixation') {
       if (options.confirmCompatTolerantFixation !== true) {
-        return failure('含 sheetKey 身份归并的兼容回放固化必须显式确认。');
+        return failure('Cố định phát lại tương thích có gộp danh tính sheetKey phải được xác nhận tường minh.');
       }
     } else if (options.confirmOrphanDataReplace !== true) {
-      return failure('无锚点 data_replace 恢复必须显式确认。');
+      return failure('Khôi phục data_replace không có neo phải được xác nhận tường minh.');
     }
   }
   if (!currentScopeMatches_ACU(plan)) {
     plans_ACU.delete(planId);
-    return failure('恢复计划作用域已变化，请重新诊断。');
+    return failure('Phạm vi của kế hoạch khôi phục đã thay đổi, hãy chẩn đoán lại.');
   }
   const affectedChanged = planAffectedFramesUnchanged_ACU(plan);
   if (affectedChanged) {
@@ -785,12 +785,12 @@ export async function commitPreparedV2Recovery_ACU(
   try {
     candidateChat = buildRecoveredCandidateChat_ACU(plan);
   } catch (error) {
-    return failure(`恢复候选构造失败：${getErrorMessage_ACU(error)}`);
+    return failure(`Dựng ứng viên khôi phục thất bại: ${getErrorMessage_ACU(error)}`);
   }
   try {
     await validateRecoveredCandidateReplay_ACU(plan, candidateChat);
   } catch (error) {
-    return failure(`恢复候选 replay 校验失败，未保存任何更改：${getErrorMessage_ACU(error)}`);
+    return failure(`Kiểm tra replay ứng viên khôi phục thất bại, chưa lưu thay đổi nào: ${getErrorMessage_ACU(error)}`);
   }
 
   const commitResult = await runTableWriteTransaction_ACU<V2RecoveryCommitResult_ACU>({
@@ -804,7 +804,7 @@ export async function commitPreparedV2Recovery_ACU(
       return await ctx.runCommit(async () => {
         if (!currentScopeMatches_ACU(plan)) {
           plans_ACU.delete(planId);
-          return failure('恢复计划作用域已变化，请重新诊断。');
+          return failure('Phạm vi của kế hoạch khôi phục đã thay đổi, hãy chẩn đoán lại.');
         }
         const affectedChanged = planAffectedFramesUnchanged_ACU(plan);
         if (affectedChanged) {
@@ -818,12 +818,12 @@ export async function commitPreparedV2Recovery_ACU(
           await saveChatToHostStrict_ACU();
         } catch (error) {
           plan.chat.splice(0, plan.chat.length, ...beforeChat);
-          return failure(`宿主保存失败，已恢复内存聊天：${getErrorMessage_ACU(error)}`);
+          return failure(`Lưu host thất bại, đã khôi phục cuộc trò chuyện trong bộ nhớ: ${getErrorMessage_ACU(error)}`);
         }
 
         plans_ACU.delete(planId);
         if (!currentScopeMatches_ACU(plan)) {
-          return failure('宿主保存后恢复计划作用域已变化。');
+          return failure('Sau khi host lưu, phạm vi của kế hoạch khôi phục đã thay đổi.');
         }
         return { status: 'committed', planId };
       });
@@ -838,10 +838,10 @@ export async function commitPreparedV2Recovery_ACU(
     if (expectedStorageMode === 'sqlite') {
       await reloadStorageProvider();
       if (didSqliteFallbackAfterReload_ACU(expectedStorageMode)) {
-        throw new Error('SQLite 运行时重载后已静默回退到 native provider。');
+        throw new Error('Sau khi tải lại runtime SQLite, hệ thống đã âm thầm lùi về native provider.');
       }
     }
-    if (!currentScopeMatches_ACU(plan)) throw new Error('宿主保存后运行时重载期间恢复计划作用域已变化。');
+    if (!currentScopeMatches_ACU(plan)) throw new Error('Phạm vi của kế hoạch khôi phục đã thay đổi trong lúc tải lại runtime sau khi host lưu.');
     return commitResult;
   } catch (error) {
     return { status: 'committed_postcondition_failed', planId, error: getErrorMessage_ACU(error) };

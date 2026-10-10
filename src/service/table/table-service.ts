@@ -88,7 +88,7 @@ export async function ensureLegacyStorageMigratedBeforeWrite_ACU(reason = 'table
   const mergedLegacyData = await mergeAllIndependentTablesLegacyV1_ACU();
   const sourceInventory = consumeLastMergeSourceInventory_ACU();
   if (!mergedLegacyData || !Object.keys(mergedLegacyData).some(k => k.startsWith('sheet_'))) {
-    return { success: false, error: '旧存储迁移失败：无法从 legacy-v1 合并出有效表格数据。' };
+    return { success: false, error: 'Di chuyển kho cũ thất bại: không thể gộp dữ liệu bảng hợp lệ từ legacy-v1.' };
   }
 
   const migrationResult = await migrateLegacyStorageToV2OnLoad_ACU({
@@ -99,15 +99,15 @@ export async function ensureLegacyStorageMigratedBeforeWrite_ACU(reason = 'table
     sourceInventory,
   });
   if (!migrationResult.migrated) {
-    return { success: false, error: `旧存储迁移到 V2 失败: ${migrationResult.error || '未执行迁移'}` };
+    return { success: false, error: `Di chuyển kho cũ sang V2 thất bại: ${migrationResult.error || 'chưa thực hiện di chuyển'}` };
   }
   if (!migrationResult.data) {
-    return { success: false, error: '旧存储迁移到 V2 失败: 迁移成功结果缺少修复后的表格数据。' };
+    return { success: false, error: 'Di chuyển kho cũ sang V2 thất bại: kết quả di chuyển thành công thiếu dữ liệu bảng đã sửa.' };
   }
 
   const postStrategy = resolveTableStorageStrategy_ACU(chat, isolationKey, isolationConfig);
   if (postStrategy.mode === 'legacy-v1') {
-    return { success: false, error: `旧存储迁移后仍检测到 legacy-v1: ${postStrategy.reason}` };
+    return { success: false, error: `Sau khi di chuyển kho cũ vẫn phát hiện legacy-v1: ${postStrategy.reason}` };
   }
 
   const migratedData = migrationResult.data;
@@ -358,10 +358,10 @@ async function initializeJsonTableInChatHistory_ACU(): Promise<{ initialized: bo
   } catch (error) {
     logError_ACU('Failed to parse template and initialize database in memory:', error);
     _set_currentJsonTableData_ACU(null);
-    return { initialized: false, error: '从模板解析数据库失败，请检查模板格式。' };
+    return { initialized: false, error: 'Phân tích CSDL từ mẫu thất bại, hãy kiểm tra định dạng mẫu.' };
   }
   if (!currentJsonTableData_ACU) {
-    return { initialized: false, error: '从模板解析数据库失败，请检查模板格式。' };
+    return { initialized: false, error: 'Phân tích CSDL từ mẫu thất bại, hãy kiểm tra định dạng mẫu.' };
   }
 
   logDebug_ACU('Database initialized in memory. It will be saved to chat history on the first update.');

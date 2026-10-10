@@ -12,14 +12,14 @@ export function captureZeroLayerTableInput_ACU(envelope: ZeroLayerEnvelope_ACU, 
   const chatKey = String(currentChatFileIdentifier_ACU || '');
   const isolationKey = getCurrentIsolationKey_ACU();
   const storageMode = getCurrentStorageMode();
-  if (!chatKey || chatKey === 'unknown_chat_init') throw new ZeroLayerError_ACU('chat-unavailable', '表格聊天身份尚未就绪。');
+  if (!chatKey || chatKey === 'unknown_chat_init') throw new ZeroLayerError_ACU('chat-unavailable', 'Danh tính cuộc trò chuyện của bảng chưa sẵn sàng.');
   const bridge = envelope.branches.find(branch => branch.branchId === envelope.activeBranchId)?.bridge;
   if (!envelope.enabled || bridge?.phase !== 'reconciled' || !bridge.candidate) {
-    throw new ZeroLayerError_ACU('effects-pending', '表格首基线尚未确认，禁止回退普通存储。');
+    throw new ZeroLayerError_ACU('effects-pending', 'Đường cơ sở đầu tiên của bảng chưa được xác nhận, cấm quay lại lưu trữ thường.');
   }
   const baseline = bridge.candidate.table.input;
   if (baseline.chatKey !== chatKey || baseline.isolationKey !== isolationKey || baseline.storageMode !== storageMode) {
-    throw new ZeroLayerError_ACU('scope-changed', '表格作用域与已确认桥接基线不一致。');
+    throw new ZeroLayerError_ACU('scope-changed', 'Phạm vi bảng không khớp với đường cơ sở cầu nối đã xác nhận.');
   }
   const path = getPublishedZeroLayerPath_ACU(envelope);
   const parent = path[path.length - 1];

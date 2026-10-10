@@ -169,7 +169,7 @@ describe('runOptimizationLogic_ACU', () => {
     const result = await runOptimizationLogic_ACU(sensitiveText);
     expect(result.success).toBe(false);
     expect(result.errorType).toBe('exception');
-    expect(result.errorMessage).toBe('剧情规划大师在处理时发生错误。');
+    expect(result.errorMessage).toBe('Bậc thầy lập kế hoạch cốt truyện gặp lỗi khi xử lý.');
     expect(result).not.toHaveProperty('error');
     expect(JSON.stringify(result)).not.toContain(sensitiveText);
     expect(mockLogError).toHaveBeenCalledWith('[剧情推进] 在核心优化逻辑中发生错误:', expect.objectContaining({
@@ -223,7 +223,7 @@ describe('runOptimizationLogic_ACU', () => {
     const result = await runOptimizationLogic_ACU('继续');
     expect(result.success).toBe(false);
     expect(result.errorType).toBe('exception');
-    expect(result.errorMessage).toBe('剧情规划大师在处理时发生错误。');
+    expect(result.errorMessage).toBe('Bậc thầy lập kế hoạch cốt truyện gặp lỗi khi xử lý.');
     expect(JSON.stringify(mockLogError.mock.calls)).not.toContain('部落生活');
     expect(JSON.stringify(mockLogError.mock.calls)).not.toContain('StrictLorebookRead:');
   });
@@ -238,7 +238,7 @@ describe('runOptimizationLogic_ACU', () => {
     const result = await runOptimizationLogic_ACU('继续');
     expect(result.success).toBe(false);
     expect(result.errorType).toBe('worldbook_preflight_failure');
-    expect(result.errorMessage).toBe('剧情推进的世界书预检失败，请检查绑定/选择的世界书。');
+    expect(result.errorMessage).toBe('Kiểm tra trước Sổ thế giới của đẩy cốt truyện thất bại, hãy kiểm tra Sổ thế giới đã liên kết/chọn.');
     expect(mockLogError).toHaveBeenCalledWith('[剧情推进] 世界书预检失败，正文发送已停止。', expect.objectContaining({
       phase: 'clear_final_generation_greenlights',
     }));

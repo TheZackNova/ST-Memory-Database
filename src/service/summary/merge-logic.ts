@@ -110,7 +110,7 @@ export function prepareAutoMergeBatches_ACU(options: {
         currentJsonTableData_ACU[k].name === '总结表'
     );
 
-    if (!summaryKey) throw new Error('未找到纪要表');
+    if (!summaryKey) throw new Error('Không tìm thấy bảng kỷ yếu');
 
     let allSummaryRows = (currentJsonTableData_ACU[summaryKey].content || [])
         .slice(1)
@@ -162,7 +162,7 @@ export async function executeAutoMergeBatch_ACU(
     };
 
     const formatRows = (rows: any[], globalStartIndex: number) => rows.map((r: any[], idx: number) => `[${globalStartIndex + idx}] ${r.slice(1).join(', ')}`).join('\n');
-    const textA = batchRows.length > 0 ? formatRows(batchRows, globalStartOffset) : "(本批次无新增纪要数据)";
+    const textA = batchRows.length > 0 ? formatRows(batchRows, globalStartOffset) : "(Lô này không có dữ liệu kỷ yếu mới)";
 
     let textBase = "";
 
@@ -222,7 +222,7 @@ export async function executeAutoMergeBatch_ACU(
             if (settings_ACU.apiMode === 'tavern') {
                 const result = await sendConnectionManagerRequest_ACU(settings_ACU.tavernProfile, finalMessages, settings_ACU.apiConfig.max_tokens ?? settings_ACU.apiConfig.maxTokens ?? 4096);
                 if (result && result.ok) aiResponseText = result.result.choices[0].message.content;
-                else throw new Error('API请求返回不成功状态');
+                else throw new Error('Yêu cầu API trả về trạng thái không thành công');
             } else {
                 if (settings_ACU.apiConfig.useMainApi) {
                     aiResponseText = isGenerateRawAvailable_ACU()
@@ -236,13 +236,13 @@ export async function executeAutoMergeBatch_ACU(
                     });
                     if (!res.ok) throw new Error(`API请求失败: ${res.status} ${await res.text()}`);
                     aiResponseText = await handleApiResponse_ACU(res);
-                    if (!aiResponseText) throw new Error('API返回的数据格式不正确');
+                    if (!aiResponseText) throw new Error('Định dạng dữ liệu API trả về không đúng');
                 }
             }
 
             const extractResult = extractTableEditInner_ACU(aiResponseText, { allowNoTableEditTags: true });
             if (!extractResult || !extractResult.inner) {
-                throw new Error('AI未返回有效的 <tableEdit> 块');
+                throw new Error('AI không trả về khối <tableEdit> hợp lệ');
             }
 
             const editsString = extractResult.inner;
@@ -259,11 +259,11 @@ export async function executeAutoMergeBatch_ACU(
                             const dataColumns = sortedKeys.map((k: string) => rowData[k]);
                             rowData = dataColumns;
                         }
-                        if (!Array.isArray(rowData)) throw new Error('insertRow 数据必须是对象或数组。');
+                        if (!Array.isArray(rowData)) throw new Error('Dữ liệu insertRow phải là đối tượng hoặc mảng.');
                         rowData = [allocateSummaryRowId(), ...rowData];
                         const header = Array.isArray(summaryTableObj?.content?.[0]) ? summaryTableObj.content[0] : null;
                         if (header) {
-                            if (rowData.length > header.length) throw new Error('自动合并结果列数超过纪要表表头。');
+                            if (rowData.length > header.length) throw new Error('Số cột kết quả tự động gộp vượt quá tiêu đề của bảng kỷ yếu.');
                             while (rowData.length < header.length) rowData.push('');
                         }
                         if (tableIdx === 0 && summaryKey) newSummaryRows.push(rowData);
@@ -272,7 +272,7 @@ export async function executeAutoMergeBatch_ACU(
             });
 
             if (newSummaryRows.length === 0) {
-                throw new Error('AI返回了内容，但未能解析出任何有效的数据行。');
+                throw new Error('AI có trả về nội dung nhưng không phân tích được hàng dữ liệu hợp lệ nào.');
             }
 
             return { accumulatedSummary: accumulatedSummary.concat(newSummaryRows) };
@@ -283,7 +283,7 @@ export async function executeAutoMergeBatch_ACU(
         }
     }
 
-    throw new Error(`批次 ${batchIndex + 1} 在 ${maxRetries} 次尝试后均失败`);
+    throw new Error(`Lô ${batchIndex + 1} đều thất bại sau ${maxRetries} lần thử`);
 }
 
 // ═══ 自动合并纪要：写回结果 ═══

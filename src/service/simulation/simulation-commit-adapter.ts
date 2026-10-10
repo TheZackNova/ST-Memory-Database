@@ -75,37 +75,37 @@ function lastCatalyzedAtDayBySeed_ACU(timeline: readonly WorldSimulationTimeline
 function assertRun_ACU(envelope: WorldSimulationEnvelope_ACU, input: CommitInput_ACU): void {
   const run = envelope.task?.activeRun;
   const candidate = input.commitCandidate;
-  if (!run || envelope.task?.taskId !== input.identity.taskId || run.runId !== input.identity.runId) reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', '提交租约已失效');
-  if (envelope.activeStageId !== input.identity.stageId || run.stageRevision !== input.identity.stageRevision) reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', '提交阶段已失效');
-  if (!input.runWrites?.hasConfirmedWrites && envelope.ledger.revision !== input.identity.baseLedgerRevision) reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', '提交基础账本 revision 已变化');
+  if (!run || envelope.task?.taskId !== input.identity.taskId || run.runId !== input.identity.runId) reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', 'Hợp đồng nộp đã hết hiệu lực');
+  if (envelope.activeStageId !== input.identity.stageId || run.stageRevision !== input.identity.stageRevision) reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', 'Giai đoạn nộp đã hết hiệu lực');
+  if (!input.runWrites?.hasConfirmedWrites && envelope.ledger.revision !== input.identity.baseLedgerRevision) reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', 'Revision sổ cái cơ sở của lần nộp đã thay đổi');
   if (candidate.runId !== input.identity.runId || candidate.taskId !== input.identity.taskId || candidate.stageId !== input.identity.stageId || candidate.stageRevision !== input.identity.stageRevision || candidate.baseLedgerRevision !== input.identity.baseLedgerRevision) {
-    reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', 'commit candidate 身份与运行租约不一致');
+    reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', 'Danh tính ứng viên commit không khớp với hợp đồng chạy');
   }
 }
 
 function exactKeys_ACU(raw: Record_ACU, allowed: readonly string[], path: string): void {
   for (const key of Object.keys(raw)) {
-    if (!allowed.includes(key)) reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path}.${key} 是未知字段`);
+    if (!allowed.includes(key)) reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path}.${key} là trường không xác định`);
   }
   for (const key of allowed) {
-    if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path}.${key} 缺失`);
+    if (!Object.prototype.hasOwnProperty.call(raw, key)) reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path}.${key} bị thiếu`);
   }
 }
 
 function validateConversationAnchor_ACU(raw: unknown, path: string): WorldSimulationAnchorIdentity_ACU {
-  if (!isRecord_ACU(raw)) reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path} 必须是对象`);
+  if (!isRecord_ACU(raw)) reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path} phải là đối tượng`);
   exactKeys_ACU(raw, ['chatIdentity', 'messageIndex', 'messageId', 'messageKey', 'swipeId', 'contentDigest'], path);
   const messageId = raw.messageId;
   if ((typeof messageId !== 'string' || !messageId.trim())
     && (typeof messageId !== 'number' || !Number.isInteger(messageId))) {
-    reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path}.messageId 非法`);
+    reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path}.messageId không hợp lệ`);
   }
   if (typeof raw.chatIdentity !== 'string' || !raw.chatIdentity.trim()
     || typeof raw.messageKey !== 'string' || !raw.messageKey.trim()
     || typeof raw.swipeId !== 'string' || !raw.swipeId.trim()
     || typeof raw.contentDigest !== 'string' || !raw.contentDigest.trim()
     || typeof raw.messageIndex !== 'number' || !Number.isInteger(raw.messageIndex) || raw.messageIndex < 0) {
-    reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path} 身份字段非法`);
+    reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path} trường danh tính không hợp lệ`);
   }
   return {
     chatIdentity: raw.chatIdentity,
@@ -133,20 +133,20 @@ function conversationBucketWithMigratedEntry_ACU(
   );
   const normalized = legacy ?? raw;
   if (!isRecord_ACU(normalized) || normalized.schemaVersion !== 1 || !isRecord_ACU(normalized.entries)) {
-    reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${WORLD_SIMULATION_CONVERSATION_FIELD_ACU} 分桶结构损坏`);
+    reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${WORLD_SIMULATION_CONVERSATION_FIELD_ACU} cấu trúc phân nhóm bị hỏng`);
   }
   exactKeys_ACU(normalized, ['schemaVersion', 'entries'], WORLD_SIMULATION_CONVERSATION_FIELD_ACU);
   const entries: WorldSimulationBucket_ACU<WorldSimulationConversationFloorRecord_ACU>['entries'] = {};
   for (const [key, candidate] of Object.entries(normalized.entries)) {
     const path = `${WORLD_SIMULATION_CONVERSATION_FIELD_ACU}.entries.${key}`;
-    if (!isRecord_ACU(candidate)) reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path} 必须是对象`);
+    if (!isRecord_ACU(candidate)) reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path} phải là đối tượng`);
     exactKeys_ACU(candidate, ['anchor', 'value', 'updatedAt'], path);
     const anchor = validateConversationAnchor_ACU(candidate.anchor, `${path}.anchor`);
     if (!isWorldSimulationBucketKey_ACU(key, anchor)) {
-      reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path} 的 key 与 anchor 不一致`);
+      reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path} có key không khớp với anchor`);
     }
     if (typeof candidate.updatedAt !== 'number' || !Number.isInteger(candidate.updatedAt) || candidate.updatedAt < 0) {
-      reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path}.updatedAt 必须是非负整数`);
+      reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', `${path}.updatedAt phải là số nguyên không âm`);
     }
     entries[key] = {
       anchor,
@@ -213,12 +213,12 @@ async function commitWithinQueue_ACU(input: CommitInput_ACU): Promise<WorldSimul
   const chat = getChatArray_ACU();
   const chatIdentity = getActiveChatStorageIdentity_ACU(chat);
   if (chatIdentity !== input.identity.chatIdentity || chatIdentity !== input.anchor.chatIdentity) {
-    reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', '提交目标聊天已变化');
+    reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', 'Cuộc trò chuyện đích của lần nộp đã thay đổi');
   }
   const currentAnchor = resolveCurrentWorldSimulationAnchor_ACU(input.anchor, chat);
   const firstMessage = isRecord_ACU(chat[0]) ? chat[0] : null;
   const anchorMessage = isRecord_ACU(chat[currentAnchor.messageIndex]) ? chat[currentAnchor.messageIndex] : null;
-  if (!firstMessage || !anchorMessage) reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', '提交目标楼层不可用');
+  if (!firstMessage || !anchorMessage) reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', 'Tầng đích của lần nộp không khả dụng');
 
   const rawEnvelope = firstMessage[WORLD_SIMULATION_FIRST_FLOOR_FIELD_ACU];
   const validatedEnvelope = validateWorldSimulationEnvelope_ACU(rawEnvelope, 'persist');
@@ -234,7 +234,7 @@ async function commitWithinQueue_ACU(input: CommitInput_ACU): Promise<WorldSimul
   input.runWrites?.assertPersistedProof(input.identity, runWriteProof);
   input.runWrites?.assertCandidatesDisjoint(input.commitCandidate.acceptedCandidates);
   if (!input.commitCandidate.acceptedCandidates.length && !input.runWrites?.hasConfirmedWrites) {
-    reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', '提交缺少已确认写入和候选');
+    reject_ACU('WORLD_SIMULATION_SNAPSHOT_INVALID', 'Lần nộp thiếu ghi đã xác nhận và ứng viên');
   }
   const { ledger, extraTimeline, archiveSnapshot } = await planWorldSimulationFinalCommit_ACU(envelope, input, storyText, archiveBefore);
   const projection = buildWorldSimulationProjection_ACU(ledger, envelope.settings.projection.template);
@@ -335,7 +335,7 @@ export async function planWorldSimulationFinalCommit_ACU(
     if (violations.length) extraTimeline.push({
       id: `${input.timelineId}:collision`, at: input.completedAt, kind: 'failed',
       taskId: input.identity.taskId, stageId: input.identity.stageId, revision: input.identity.stageRevision, runId: input.identity.runId,
-      message: violations.join('；'), errorCode: 'WORLD_SIMULATION_SNAPSHOT_INVALID',
+      message: violations.join('; '), errorCode: 'WORLD_SIMULATION_SNAPSHOT_INVALID',
     });
   }
   const archiveSnapshot: WorldChronicleArchiveSnapshot_ACU = {
@@ -426,17 +426,17 @@ async function persistHostFinalCommit_ACU(
     }
     if (getChatArray_ACU() !== chat || getActiveChatStorageIdentity_ACU(chat) !== input.identity.chatIdentity
       || !messagesIntact() || !originalFields.every(field => JSON.stringify(field.value) === field.content)) {
-      reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', '提交前聊天或旧字段已变化');
+      reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', 'Cuộc trò chuyện hoặc trường cũ đã thay đổi trước khi nộp');
     }
     stagedFields = snapshots.map(({ target, key }) => ({ target, key,
       content: JSON.stringify(target[key]), existed: Object.prototype.hasOwnProperty.call(target, key) }));
     saveAttempted = true;
     await saveChatToHostStrict_ACU();
     if (getChatArray_ACU() !== chat || getActiveChatStorageIdentity_ACU(chat) !== input.identity.chatIdentity) {
-      reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', '宿主保存后聊天上下文已变化');
+      reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', 'Ngữ cảnh cuộc trò chuyện đã thay đổi sau khi host lưu');
     }
     refreshIndex = resolveCurrentWorldSimulationAnchor_ACU(persistedAnchor, chat).messageIndex;
-    if (!currentFieldsIntact()) reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', '宿主保存期间提交字段已变化');
+    if (!currentFieldsIntact()) reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', 'Trường nộp đã thay đổi trong lúc host lưu');
     if (hasPartialWorldSimulationRunWrites_ACU(projectedView)) {
       const persistedProof = readWorldSimulationRunWriteProof_ACU(persistedAnchor, chat);
       const expectedProof = rebaseWorldSimulationRunWriteProof_ACU(runWriteProof!, runWriteView, projectedView);
@@ -452,7 +452,7 @@ async function persistHostFinalCommit_ACU(
     // 宿主监听器若原地改写已保存对象，不能把自己的旧快照覆盖其新状态并声称补偿成功。
     if (saveAttempted && (!stillActive || !currentFieldsIntact() || !originalFields.every(field =>
       JSON.stringify(field.value) === field.content))) {
-      reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', '格林推演保存期间状态已变化，无法安全补偿', {
+      reject_ACU('WORLD_SIMULATION_REVISION_CONFLICT', 'Trạng thái đã thay đổi trong lúc lưu mô phỏng thế giới, không thể bù đắp an toàn', {
         message: error instanceof Error ? error.message : String(error), recovery: 'unavailable',
       });
     }
@@ -461,20 +461,20 @@ async function persistHostFinalCommit_ACU(
       try {
         await saveChatToHostStrict_ACU();
       } catch (rollbackError) {
-        reject_ACU('WORLD_SIMULATION_PERSIST_FAILED', '格林推演联合提交与补偿保存均失败', {
+        reject_ACU('WORLD_SIMULATION_PERSIST_FAILED', 'Nộp kết hợp mô phỏng thế giới và lưu bù đắp đều thất bại', {
           primaryMessage: error instanceof Error ? error.message : String(error),
           rollbackMessage: rollbackError instanceof Error ? rollbackError.message : String(rollbackError), recovery: 'failed',
         });
       }
       if (getChatArray_ACU() !== chat || getActiveChatStorageIdentity_ACU(chat) !== input.identity.chatIdentity
         || !fieldsIntact(originalFields)) {
-        reject_ACU('WORLD_SIMULATION_PERSIST_FAILED', '格林推演补偿保存后状态已变化，无法确认恢复', {
+        reject_ACU('WORLD_SIMULATION_PERSIST_FAILED', 'Trạng thái đã thay đổi sau khi lưu bù đắp mô phỏng thế giới, không thể xác nhận đã khôi phục', {
           message: error instanceof Error ? error.message : String(error), recovery: 'unavailable',
         });
       }
     }
     if (error instanceof WorldSimulationValidationError_ACU) throw error;
-    reject_ACU('WORLD_SIMULATION_PERSIST_FAILED', '格林推演联合提交失败，内存快照已恢复', {
+    reject_ACU('WORLD_SIMULATION_PERSIST_FAILED', 'Nộp kết hợp mô phỏng thế giới thất bại, snapshot trong bộ nhớ đã được khôi phục', {
       message: error instanceof Error ? error.message : String(error),
       ...(saveAttempted ? { recovery: 'saved' } : {}),
     });

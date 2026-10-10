@@ -124,11 +124,11 @@ function withFirstIdentitySegment_ACU<T extends { content: string }>(segments: T
 }
 
 export function buildDefaultAgentDecisionPromptSegments_ACU() {
-  return withFirstIdentitySegment_ACU(buildLegacyAgentDecisionPromptSegments_ACU(), '剧情推进决策');
+  return localizeDefaultSegments_ACU(withFirstIdentitySegment_ACU(buildLegacyAgentDecisionPromptSegments_ACU(), '剧情推进决策'));
 }
 
 export function buildDefaultAgentSkillifyPromptSegments_ACU() {
-  return withFirstIdentitySegment_ACU(buildLegacyAgentSkillifyPromptSegments_ACU(), '世界书 Skill 元数据');
+  return localizeDefaultSegments_ACU(withFirstIdentitySegment_ACU(buildLegacyAgentSkillifyPromptSegments_ACU(), '世界书 Skill 元数据'));
 }
 
 export function buildDefaultAgentWorldbookPromptTemplates_ACU() {
@@ -271,7 +271,7 @@ export const defaultVectorMemoryConfig_ACU = {
   rerankEndpoint: '',
   rerankApiKey: '',
   rerankModel: '',
-  rerankInstruction: '请根据当前用户输入及关键词，判断每个候选纪要条目的相关性，并将最相关的条目按相关性从高到低降序排列。优先选择能够直接回答、延续或补全当前用户输入意图的条目。',
+  rerankInstruction: 'Hãy dựa vào đầu vào hiện tại của người dùng và từ khóa để đánh giá mức độ liên quan của từng mục kỷ yếu ứng viên, và sắp xếp các mục liên quan nhất theo mức độ liên quan từ cao xuống thấp. Ưu tiên chọn các mục có thể trả lời trực tiếp, tiếp nối hoặc bổ sung ý định đầu vào hiện tại của người dùng.',
   // 每批送往 rerank 的 documents 条数；服务商单请求通常限 500 条以内，300 条 × 纪要正文仍在 token 限额内。
   rerankBatchSize: 300,
   vectorNamespace: 'chat',
@@ -369,6 +369,9 @@ export const CREATIVE_IDENTITY_LEGACY_SHARED_PROMPTS_ACU = {
 };
 defaultVectorMemoryConfig_ACU.keywordPromptGroup = withFirstIdentitySegment_ACU(defaultVectorMemoryConfig_ACU.keywordPromptGroup, '检索关键词', '交火关键词生成助手');
 defaultVectorMemoryConfig_ACU.summaryPromptGroup = withFirstIdentitySegment_ACU(defaultVectorMemoryConfig_ACU.summaryPromptGroup, '远记忆大总结', '远记忆总结助手');
+// Việt hóa: snapshot legacy (tiếng Trung) đã chụp ở trên; bản mặc định hiện tại chuyển sang tiếng Việt.
+localizeDefaultSegments_ACU(defaultVectorMemoryConfig_ACU.keywordPromptGroup);
+localizeDefaultSegments_ACU(defaultVectorMemoryConfig_ACU.summaryPromptGroup);
 
 // --- 全局世界书默认配置 ---
 export const defaultWorldbookConfig_ACU = {
@@ -388,6 +391,7 @@ export const defaultWorldbookConfig_ACU = {
 import { DEFAULT_CONTENT_OPTIMIZATION_PROMPT_GROUP_ACU } from './defaults-json.js';
 import { USER_PREFILL_CONTENT_ACU } from './user-prefill.js';
 import { withCreativeIdentity_ACU } from './creative-identity.js';
+import { localizeDefaultSegments_ACU } from './defaults-json-vi.js';
 
 /** 构建默认正文优化提示词组（纯数据构造，无运行时依赖） */
 export function buildDefaultContentOptimizationPromptGroup_ACU({ mainContent = '' } = {}) {

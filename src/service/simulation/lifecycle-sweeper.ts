@@ -40,7 +40,7 @@ export function sweepWorldLifecycle_ACU(
   next.rumors = next.rumors.filter(rumor => {
     if (rumor.status !== 'revealed' || rumor.revealedAtDay === null || day - rumor.revealedAtDay <= ttl) return true;
     if (!factRegistered_ACU(next, [rumor.id, rumor.fact])) {
-      skipped.push({ kind: 'rumor', id: rumor.id, reason: 'revealed rumor 缺少 chronicle/overview 事实登记' });
+      skipped.push({ kind: 'rumor', id: rumor.id, reason: 'revealed rumor thiếu đăng ký sự kiện chronicle/overview' });
       return true;
     }
     droppedRumorIds.push(rumor.id);
@@ -51,7 +51,7 @@ export function sweepWorldLifecycle_ACU(
     const expired = seed.expiresAtDay !== null && seed.expiresAtDay < day;
     if (!(seed.status === 'resolved' || seed.status === 'retired') || !expired) return true;
     if (!factRegistered_ACU(next, [seed.id, seed.title, seed.missedOutcome ?? '', seed.retiredReason ?? ''])) {
-      skipped.push({ kind: 'seed', id: seed.id, reason: '到期种子缺少 chronicle/overview 事实登记' });
+      skipped.push({ kind: 'seed', id: seed.id, reason: 'Hạt giống hết hạn thiếu đăng ký sự kiện chronicle/overview' });
       return true;
     }
     droppedSeedIds.push(seed.id);
@@ -61,7 +61,7 @@ export function sweepWorldLifecycle_ACU(
   next.actors = next.actors.filter(actor => {
     if (actor.life !== 'dead' || actor.diedAtDay === null || day - actor.diedAtDay <= ttl * 2) return true;
     if (!factRegistered_ACU(next, [actor.id, actor.name, actor.deathSummary ?? ''])) {
-      skipped.push({ kind: 'actor', id: actor.id, reason: '死亡行动者缺少 chronicle/overview 事实登记' });
+      skipped.push({ kind: 'actor', id: actor.id, reason: 'Actor đã chết thiếu đăng ký sự kiện chronicle/overview' });
       return true;
     }
     droppedActorIds.push(actor.id);

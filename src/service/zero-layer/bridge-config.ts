@@ -12,12 +12,12 @@ import { ZeroLayerError_ACU } from './model';
 export function captureBridgeConfig_ACU(chat: any[]): ZeroLayerBridgeConfig_ACU {
   const chatKey = String(currentChatFileIdentifier_ACU || '');
   if (!chatKey || chatKey === 'unknown_chat_init') {
-    throw new ZeroLayerError_ACU('chat-unavailable', '桥接表格聊天身份尚未就绪。');
+    throw new ZeroLayerError_ACU('chat-unavailable', 'Danh tính cuộc trò chuyện của bảng cầu nối chưa sẵn sàng.');
   }
   const isolationKey = getCurrentIsolationKey_ACU();
   const storageMode = getCurrentStorageMode();
   const guideData = getChatSheetGuideDataForIsolationKey_ACU(isolationKey, { chat });
-  if (!guideData) throw new ZeroLayerError_ACU('migration-conflict', '桥接模板来源不可用，禁止伪造空基线。');
+  if (!guideData) throw new ZeroLayerError_ACU('migration-conflict', 'Nguồn mẫu cầu nối không khả dụng, cấm giả mạo đường cơ sở rỗng.');
   let templateData = materializeDataFromSheetGuide_ACU(guideData, { includeSeedRows: true }) as TableDataObject_ACU;
   validateZeroLayerTableData_ACU(templateData);
   if (storageMode === 'sqlite') templateData = captureSqlTableApplyScope_ACU({ chat: [], isolationKey, templateData }).templateDataWithRows;
@@ -35,6 +35,6 @@ export function captureBridgeConfig_ACU(chat: any[]): ZeroLayerBridgeConfig_ACU 
 
 export function assertBridgeConfig_ACU(chat: any[], expected: string): void {
   if (checkpointFingerprint_ACU(captureBridgeConfig_ACU(chat)) !== expected) {
-    throw new ZeroLayerError_ACU('migration-conflict', '桥接模板或配置已变化，保留旧读取路径。');
+    throw new ZeroLayerError_ACU('migration-conflict', 'Mẫu hoặc cấu hình cầu nối đã thay đổi, giữ lại đường đọc cũ.');
   }
 }

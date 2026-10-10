@@ -132,7 +132,7 @@ function buildRecentContext_ACU(pairCount: number): string {
     const limit = Math.max(2, Math.min(chat.length, Math.max(1, pairCount) * 2 + 2));
     return chat.slice(Math.max(0, chat.length - limit))
         .map((message: any) => {
-            const role = message?.is_user ? '用户' : 'AI';
+            const role = message?.is_user ? 'Người dùng' : 'AI';
             const text = normalizeText_ACU(message?.mes).replace(/<[^>]+>/g, '').trim();
             return text ? `${role}: ${text}` : '';
         })
@@ -323,7 +323,7 @@ async function rerankCandidates_ACU(
         });
         if (byIndex.size === 0) {
             logError_ACU(`[交火模式纪要索引] Rerank 响应没有任何可用的评分（endpoint=${endpoint}, model=${model}），本轮回退到 Embedding 排序。请检查服务商返回格式是否为 results[].index / relevance_score。`);
-            return { candidates: rowCandidates, status: 'empty_response', error: 'rerank 响应中没有可用评分', documentCount: documents.length };
+            return { candidates: rowCandidates, status: 'empty_response', error: 'Phản hồi rerank không có điểm dùng được', documentCount: documents.length };
         }
         return {
             status: 'applied',
@@ -348,7 +348,7 @@ function escapeMarkdownTableCell_ACU(value: any): string {
 
 function buildFallbackSummaryIndexOverwriteContent_ACU(selectedRows: ChatSummaryVectorIndexRow_ACU[]): string {
     const lines = [
-        '# 纪要索引',
+        '# Chỉ mục kỷ yếu',
         '',
         '| 时间 | 地点 | 概要 | 编码索引 |',
         '|---|---|---|---|',
@@ -359,7 +359,7 @@ function buildFallbackSummaryIndexOverwriteContent_ACU(selectedRows: ChatSummary
     });
 
     if (selectedRows.length === 0) {
-        lines.push('|  |  | （无命中纪要） |  |');
+        lines.push('|  |  | (Không có kỷ yếu khớp) |  |');
     }
 
     return lines.join('\n');
@@ -437,13 +437,13 @@ function buildSummaryIndexOverwriteContent_ACU(candidates: SummaryIndexSelectedC
             if (selectedRows.length === 0) {
                 const markerCol = spec.columns.findIndex((col) => SUMMARY_SUMMARY_COLUMN_ALIASES_ACU.includes(String(col).trim()));
                 const markerIdx = markerCol >= 0 ? markerCol : 0;
-                lines.push(`| ${spec.columns.map((_, i) => (i === markerIdx ? '（无命中纪要）' : '')).join(' | ')} |`);
+                lines.push(`| ${spec.columns.map((_, i) => (i === markerIdx ? '(Không có kỷ yếu khớp)' : '')).join(' | ')} |`);
             }
             const tableText = lines.join('\n');
             if (spec.template && spec.template.includes('$1')) {
                 return spec.template.replace('$1', tableText);
             }
-            return `# 纪要索引\n\n${tableText}`;
+            return `# Chỉ mục kỷ yếu\n\n${tableText}`;
         }
     } catch (error) {
         logWarn_ACU('[交火模式纪要索引] 自定义列拼表失败，回退固定4列:', error);
@@ -832,7 +832,7 @@ async function tryRealignSummaryVectorIndexPointerFromDisk_ACU(params: {
         logSummaryVectorIndexIdentityEvent_ACU('warn', 'realign', 'noncanonical_scope_rejected', {
             manifest: blobManifest,
             path: snapshotPath,
-            error: 'V2 单文件快照包含非 canonical isolationKey；拒绝将非 canonical 对象写回聊天指针。',
+            error: 'Snapshot đơn tệp V2 chứa isolationKey không canonical; từ chối ghi đối tượng không canonical trở lại con trỏ cuộc trò chuyện.',
         });
         return null;
     }
@@ -1017,7 +1017,7 @@ export async function processSummaryVectorIndexBeforeGeneration_ACU(
         return await finalizeRecall({
             success: false,
             reason: 'vector_rerank_not_configured',
-            error: '向量表格模式需要 rerank 服务，请先配置 rerank 接口与模型',
+            error: 'Chế độ bảng vector cần dịch vụ rerank, hãy cấu hình API và mô hình rerank trước',
         });
     }
 
@@ -1146,13 +1146,13 @@ export async function processSummaryVectorIndexBeforeGeneration_ACU(
             return await finalizeRecall({
                 success: false,
                 reason: 'empty_query_embedding',
-                error: 'query embedding 返回空向量',
+                error: 'Query embedding trả về vector rỗng',
                 keywordCount: keywords.length,
             }, rows);
         }
     } catch (error: any) {
         assertActive();
-        const message = error?.message || String(error || 'embedding 调用失败');
+        const message = error?.message || String(error || 'Gọi embedding thất bại');
         logWarn_ACU('[交火模式纪要索引] query embedding 失败，已中止召回并恢复纪要索引概览:', message);
         return await finalizeRecall({
             success: false,
@@ -1225,7 +1225,7 @@ export async function processSummaryVectorIndexBeforeGeneration_ACU(
         return await finalizeRecall({
             success: false,
             reason: 'vector_rerank_failed',
-            error: rerank.error || `rerank 未生效（${rerank.status}），向量表格模式不回退 embedding 排序`,
+            error: rerank.error || `rerank chưa có hiệu lực (${rerank.status}), chế độ bảng vector không quay lại sắp xếp theo embedding`,
             keywordCount: keywords.length,
             candidateCount: candidates.length,
             denseCandidateCount: denseCandidates.length,
@@ -1255,7 +1255,7 @@ export async function processSummaryVectorIndexBeforeGeneration_ACU(
             return await finalizeRecall({
                 success: false,
                 reason: 'rerank_failed',
-                error: rerank.error || 'rerank 失败且没有可注入的可信结果',
+                error: rerank.error || 'rerank thất bại và không có kết quả tin cậy để chèn',
                 keywordCount: keywords.length,
                 candidateCount: candidates.length,
                 denseCandidateCount: denseCandidates.length,

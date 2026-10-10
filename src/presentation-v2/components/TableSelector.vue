@@ -3,10 +3,10 @@
     <div v-if="!sheetKeys.length" class="acu-v2-table-selector__empty">{{ emptyText }}</div>
     <template v-else>
       <div class="acu-v2-table-selector__actions">
-        <AcuButton size="sm" :disabled="disabled" @click="$emit('select-all')">全选</AcuButton>
-        <AcuButton size="sm" :disabled="disabled" @click="$emit('select-none')">全不选</AcuButton>
-        <span class="acu-v2-table-selector__count">已选 {{ selectedKeys.length }} / {{ sheetKeys.length }}</span>
-        <span v-if="disabled" class="acu-v2-table-selector__readonly-hint">仅展示模板：数据库运行时未加载，暂不可选择执行目标</span>
+        <AcuButton size="sm" :disabled="disabled" @click="$emit('select-all')">Chọn tất cả</AcuButton>
+        <AcuButton size="sm" :disabled="disabled" @click="$emit('select-none')">Bỏ chọn tất cả</AcuButton>
+        <span class="acu-v2-table-selector__count">Đã chọn {{ selectedKeys.length }} / {{ sheetKeys.length }}</span>
+        <span v-if="disabled" class="acu-v2-table-selector__readonly-hint">Chỉ hiển thị mẫu: runtime CSDL chưa tải, tạm thời chưa thể chọn mục tiêu thực thi</span>
       </div>
       <div class="acu-v2-table-selector__grid">
         <div
@@ -46,7 +46,7 @@ const emit = defineEmits<{
 }>();
 
 const selectedSet = computed<Set<string>>(() => new Set(props.selectedKeys));
-const emptyText = computed(() => props.emptyText || '尚无可选表格。');
+const emptyText = computed(() => props.emptyText || 'Chưa có bảng để chọn.');
 
 function nameFor(key: string): string {
   return props.sheetNames?.[key] || key;

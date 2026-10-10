@@ -212,28 +212,28 @@ export function isSummaryVectorMirrorCheckpoint_ACU(value: unknown): value is Su
  * 返回 null 表示合法，否则返回原因。
  */
 export function validateSummaryVectorMirrorDelta_ACU(value: unknown): string | null {
-    if (!isPlainObject_ACU(value)) return 'delta 不是对象';
-    if (!Number.isFinite(value.seq)) return 'seq 不是有限数';
-    if (!isNonEmptyString_ACU(value.entryId)) return 'entryId 为空';
-    if (!Number.isFinite(value.createdAt)) return 'createdAt 不是有限数';
+    if (!isPlainObject_ACU(value)) return 'delta không phải đối tượng';
+    if (!Number.isFinite(value.seq)) return 'seq không phải số hữu hạn';
+    if (!isNonEmptyString_ACU(value.entryId)) return 'entryId rỗng';
+    if (!Number.isFinite(value.createdAt)) return 'createdAt không phải số hữu hạn';
     const source = value.sourceTableEntry;
-    if (!isPlainObject_ACU(source) || !isNonEmptyString_ACU(source.entryId)) return 'sourceTableEntry.entryId 为空';
-    if (source.commitRevision !== null && typeof source.commitRevision !== 'string') return 'sourceTableEntry.commitRevision 类型非法';
-    if (!isSummaryVectorEmbeddingIdentity_ACU(value.embedding)) return 'embedding 身份非法';
-    if (!Array.isArray(value.packRefs) || !value.packRefs.every(isPackRef_ACU)) return 'packRefs 非法';
-    if (!Array.isArray(value.operations) || value.operations.length === 0) return 'operations 为空';
+    if (!isPlainObject_ACU(source) || !isNonEmptyString_ACU(source.entryId)) return 'sourceTableEntry.entryId rỗng';
+    if (source.commitRevision !== null && typeof source.commitRevision !== 'string') return 'Kiểu của sourceTableEntry.commitRevision không hợp lệ';
+    if (!isSummaryVectorEmbeddingIdentity_ACU(value.embedding)) return 'Danh tính embedding không hợp lệ';
+    if (!Array.isArray(value.packRefs) || !value.packRefs.every(isPackRef_ACU)) return 'packRefs không hợp lệ';
+    if (!Array.isArray(value.operations) || value.operations.length === 0) return 'operations rỗng';
     const ownPackHashes = new Set<string>((value.packRefs as SummaryVectorPackRef_ACU[]).map((ref) => ref.packHash));
     for (const operation of value.operations as unknown[]) {
-        if (!isPlainObject_ACU(operation)) return 'operation 不是对象';
-        if (!isNonEmptyString_ACU(operation.rowId)) return 'operation.rowId 为空';
+        if (!isPlainObject_ACU(operation)) return 'operation không phải đối tượng';
+        if (!isNonEmptyString_ACU(operation.rowId)) return 'operation.rowId rỗng';
         if (operation.kind === 'row_remove') continue;
-        if (operation.kind !== 'row_add') return `未知 operation kind=${String(operation.kind)}`;
-        if (!Array.isArray(operation.chunks) || operation.chunks.length === 0) return `row_add rowId=${operation.rowId} 缺少 chunks`;
-        if (!operation.chunks.every(isChunkRef_ACU)) return `row_add rowId=${operation.rowId} 的 chunk 引用非法`;
-        if (typeof operation.vectorSourceHash !== 'string') return `row_add rowId=${operation.rowId} 缺少 vectorSourceHash`;
+        if (operation.kind !== 'row_add') return `operation kind không xác định=${String(operation.kind)}`;
+        if (!Array.isArray(operation.chunks) || operation.chunks.length === 0) return `row_add rowId=${operation.rowId} thiếu chunks`;
+        if (!operation.chunks.every(isChunkRef_ACU)) return `row_add rowId=${operation.rowId} có tham chiếu chunk không hợp lệ`;
+        if (typeof operation.vectorSourceHash !== 'string') return `row_add rowId=${operation.rowId} thiếu vectorSourceHash`;
         for (const chunk of operation.chunks as SummaryVectorChunkRef_ACU[]) {
             if (!ownPackHashes.has(chunk.packHash)) {
-                return `row_add rowId=${operation.rowId} 引用的 pack ${chunk.packHash} 不在本 delta 的 packRefs 中`;
+                return `row_add rowId=${operation.rowId} tham chiếu pack ${chunk.packHash} không nằm trong packRefs của delta này`;
             }
         }
     }
@@ -267,11 +267,11 @@ export function assertSummaryVectorMirrorFrameInvariantsV2_ACU(
         const mirror: unknown = ref.frame.summaryVectorIndexFrame;
         if (mirror === undefined) continue;
         if (!isSummaryVectorMirrorFrame_ACU(mirror)) {
-            return `V2 ${context} 违反向量镜像不变量：楼层 #${ref.messageIndex} 的 summaryVectorIndexFrame 结构非法。`;
+            return `V2 ${context} vi phạm bất biến bản sao vector: cấu trúc summaryVectorIndexFrame của tầng #${ref.messageIndex} không hợp lệ.`;
         }
         if (mirror.checkpoint) {
             if (ref.frame.checkpoint?.kind !== 'full') {
-                return `V2 ${context} 违反向量镜像不变量：楼层 #${ref.messageIndex} 没有表格 full checkpoint 却存在 vector checkpoint。`;
+                return `V2 ${context} vi phạm bất biến bản sao vector: tầng #${ref.messageIndex} không có full checkpoint của bảng nhưng lại có vector checkpoint.`;
             }
             checkpointFrames.push(ref.messageIndex);
         }
@@ -279,16 +279,16 @@ export function assertSummaryVectorMirrorFrameInvariantsV2_ACU(
         for (const delta of mirror.logEntries) {
             const reason = validateSummaryVectorMirrorDelta_ACU(delta);
             if (reason) {
-                return `V2 ${context} 违反向量镜像不变量：楼层 #${ref.messageIndex} 的 vector delta 非法（${reason}）。`;
+                return `V2 ${context} vi phạm bất biến bản sao vector: vector delta của tầng #${ref.messageIndex} không hợp lệ (${reason}).`;
             }
             if (seenEntryIds.has(delta.entryId)) {
-                return `V2 ${context} 违反向量镜像不变量：楼层 #${ref.messageIndex} 存在重复的 vector delta entryId=${delta.entryId}。`;
+                return `V2 ${context} vi phạm bất biến bản sao vector: tầng #${ref.messageIndex} có vector delta entryId trùng lặp ${delta.entryId}.`;
             }
             seenEntryIds.add(delta.entryId);
         }
     }
     if (checkpointFrames.length > 1) {
-        return `V2 ${context} 违反向量镜像不变量：同一隔离键下存在 ${checkpointFrames.length} 个 vector checkpoint（${checkpointFrames.map((index) => `#${index}`).join('、')}）。`;
+        return `V2 ${context} vi phạm bất biến bản sao vector: dưới cùng một khóa cô lập có ${checkpointFrames.length} vector checkpoint (${checkpointFrames.map((index) => `#${index}`).join(', ')}).`;
     }
     return null;
 }
@@ -338,7 +338,7 @@ function sortDeltasBySeq_ACU(
                 code: 'duplicate_delta_seq',
                 messageIndex,
                 entryId: typeof delta?.entryId === 'string' ? delta.entryId : undefined,
-                detail: `楼层 #${messageIndex} 存在重复的 vector delta seq=${seq}，按数组顺序应用。`,
+                detail: `Tầng #${messageIndex} có vector delta seq=${seq} trùng lặp, áp dụng theo thứ tự mảng.`,
             });
         }
         seenSeq.add(seq);
@@ -359,14 +359,14 @@ function checkDeltaChainConsistency_ACU(
     const seen = new Set<string>();
     for (const operation of operations) {
         if (seen.has(operation.rowId)) {
-            return { rowId: operation.rowId, detail: `同一 delta 内 rowId=${operation.rowId} 出现多次` };
+            return { rowId: operation.rowId, detail: `Trong cùng một delta, rowId=${operation.rowId} xuất hiện nhiều lần` };
         }
         seen.add(operation.rowId);
         if (operation.kind === 'row_add' && head.has(operation.rowId)) {
-            return { rowId: operation.rowId, detail: `row_add 的 rowId=${operation.rowId} 已存在于 head（中间没有 row_remove）` };
+            return { rowId: operation.rowId, detail: `rowId=${operation.rowId} của row_add đã tồn tại trong head (ở giữa không có row_remove)` };
         }
         if (operation.kind === 'row_remove' && !head.has(operation.rowId)) {
-            return { rowId: operation.rowId, detail: `row_remove 的 rowId=${operation.rowId} 不在 head 中` };
+            return { rowId: operation.rowId, detail: `rowId=${operation.rowId} của row_remove không có trong head` };
         }
     }
     return null;
@@ -406,7 +406,7 @@ export async function resolveSummaryVectorMirrorHead_ACU(
         diagnostics.push({
             code: 'manifest_load_failed',
             messageIndex: base.messageIndex,
-            detail: `读取 checkpoint manifest 失败：${error?.message || String(error || '未知错误')}`,
+            detail: `Đọc checkpoint manifest thất bại: ${error?.message || String(error || 'Lỗi không xác định')}`,
         });
         manifest = null;
     }
@@ -415,7 +415,7 @@ export async function resolveSummaryVectorMirrorHead_ACU(
             diagnostics.push({
                 code: 'manifest_load_failed',
                 messageIndex: base.messageIndex,
-                detail: 'checkpoint manifest 结构非法。',
+                detail: 'Cấu trúc checkpoint manifest không hợp lệ.',
             });
         }
         return buildEmptyResult_ACU('manifest_unavailable', sourceTableKey, base.messageIndex, checkpoint, diagnostics);
@@ -429,7 +429,7 @@ export async function resolveSummaryVectorMirrorHead_ACU(
                 code: 'manifest_duplicate_row_id',
                 messageIndex: base.messageIndex,
                 rowId: row.rowId,
-                detail: `checkpoint manifest 中 rowId=${row.rowId} 重复，后者覆盖前者。`,
+                detail: `rowId=${row.rowId} trong checkpoint manifest bị trùng, cái sau ghi đè cái trước.`,
             });
         }
         head.set(row.rowId, (row.chunks as SummaryVectorChunkRef_ACU[]).filter(isChunkRef_ACU).map((chunk) => ({ ...chunk })));
@@ -451,7 +451,7 @@ export async function resolveSummaryVectorMirrorHead_ACU(
             diagnostics.push({
                 code: 'invalid_delta',
                 messageIndex: ref.messageIndex,
-                detail: `楼层 #${ref.messageIndex} 的 summaryVectorIndexFrame 结构非法，本层 delta 全部跳过。`,
+                detail: `Cấu trúc summaryVectorIndexFrame của tầng #${ref.messageIndex} không hợp lệ, bỏ qua toàn bộ delta của tầng này.`,
             });
             stale = true;
             continue;
@@ -462,14 +462,14 @@ export async function resolveSummaryVectorMirrorHead_ACU(
             diagnostics.push({
                 code: 'misplaced_checkpoint',
                 messageIndex: ref.messageIndex,
-                detail: `楼层 #${ref.messageIndex} 没有表格 full checkpoint 却存在 vector checkpoint，已忽略；只认基底楼层 #${base.messageIndex}。`,
+                detail: `Tầng #${ref.messageIndex} không có full checkpoint của bảng nhưng lại có vector checkpoint, đã bỏ qua; chỉ nhận tầng nền #${base.messageIndex}.`,
             });
         }
         if (mirror.sourceTableKey !== sourceTableKey) {
             diagnostics.push({
                 code: 'invalid_delta',
                 messageIndex: ref.messageIndex,
-                detail: `楼层 #${ref.messageIndex} 的镜像 sourceTableKey=${mirror.sourceTableKey} 与当前纪要表 ${sourceTableKey} 不一致，本层 delta 全部跳过。`,
+                detail: `sourceTableKey=${mirror.sourceTableKey} của bản sao tầng #${ref.messageIndex} không khớp bảng kỷ yếu hiện tại ${sourceTableKey}, bỏ qua toàn bộ delta của tầng này.`,
             });
             stale = true;
             continue;
@@ -488,7 +488,7 @@ export async function resolveSummaryVectorMirrorHead_ACU(
                     code: 'invalid_delta',
                     messageIndex: ref.messageIndex,
                     entryId: typeof delta?.entryId === 'string' ? delta.entryId : undefined,
-                    detail: `楼层 #${ref.messageIndex} 的 vector delta 结构非法（${invalidReason}），已丢弃。`,
+                    detail: `Cấu trúc vector delta của tầng #${ref.messageIndex} không hợp lệ (${invalidReason}), đã loại bỏ.`,
                 });
                 stale = true;
                 continue;
@@ -498,7 +498,7 @@ export async function resolveSummaryVectorMirrorHead_ACU(
                     code: 'orphan_delta',
                     messageIndex: ref.messageIndex,
                     entryId: delta.entryId,
-                    detail: `楼层 #${ref.messageIndex} 的 vector delta 来源 table entry ${delta.sourceTableEntry.entryId} 已不存在，已丢弃。`,
+                    detail: `table entry nguồn ${delta.sourceTableEntry.entryId} của vector delta tầng #${ref.messageIndex} không còn tồn tại, đã loại bỏ.`,
                 });
                 stale = true;
                 continue;
@@ -508,7 +508,7 @@ export async function resolveSummaryVectorMirrorHead_ACU(
                     code: 'delta_embedding_mismatch',
                     messageIndex: ref.messageIndex,
                     entryId: delta.entryId,
-                    detail: `楼层 #${ref.messageIndex} 的 vector delta embedding 身份（${delta.embedding.model}/${delta.embedding.dimension}）与 checkpoint（${checkpoint.embedding.model}/${checkpoint.embedding.dimension}）不一致，已丢弃。`,
+                    detail: `Danh tính embedding của vector delta tầng #${ref.messageIndex} (${delta.embedding.model}/${delta.embedding.dimension}) không khớp checkpoint (${checkpoint.embedding.model}/${checkpoint.embedding.dimension}), đã loại bỏ.`,
                 });
                 stale = true;
                 continue;
@@ -520,7 +520,7 @@ export async function resolveSummaryVectorMirrorHead_ACU(
                     messageIndex: ref.messageIndex,
                     entryId: delta.entryId,
                     rowId: conflict.rowId,
-                    detail: `楼层 #${ref.messageIndex} 的 vector delta 链冲突：${conflict.detail}，整条 delta 已丢弃。`,
+                    detail: `Chuỗi vector delta của tầng #${ref.messageIndex} xung đột: ${conflict.detail}, toàn bộ delta đã bị loại bỏ.`,
                 });
                 chainConflict = true;
                 stale = true;

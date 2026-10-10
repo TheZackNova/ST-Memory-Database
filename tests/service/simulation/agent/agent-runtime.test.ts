@@ -71,9 +71,9 @@ describe('格林推演 Agent runtime', () => {
           worldbookSnapshot: Promise.resolve({ available, entries: [] }) });
       expect(result.outcome).toBe('blocked');
       const messages = invoke.mock.calls[0][1] as readonly { content: string }[];
-      const snapshot = messages.filter(message => message.content.includes('【本次格林推演最新快照】'));
+      const snapshot = messages.filter(message => message.content.includes('【Snapshot mới nhất của lần mô phỏng thế giới này】'));
       expect(snapshot).toHaveLength(1);
-      expect(snapshot[0].content.includes('【世界书快照读取失败】')).toBe(!available);
+      expect(snapshot[0].content.includes('【Đọc snapshot Sổ thế giới thất bại】')).toBe(!available);
       expect(subagents.run).not.toHaveBeenCalled();
     }
   });
@@ -93,7 +93,7 @@ describe('格林推演 Agent runtime', () => {
       apiPreset, countTokens: async () => 1 }).run({ identity, settings: settings(), promptContext, registry, tools,
       worldbookSnapshot: Promise.resolve({ available: true, entries: [entry, hidden] }) });
     const messages = invoke.mock.calls[0][1] as readonly { content: string }[];
-    expect(messages.filter(message => message.content.includes(`### 常开（设定集#7）\n${entry.content}`))).toHaveLength(1);
+    expect(messages.filter(message => message.content.includes(`### 常开 (设定集#7)\n${entry.content}`))).toHaveLength(1);
     expect(messages.every(message => !message.content.includes(hidden.content))).toBe(true);
   });
 
@@ -166,7 +166,7 @@ describe('格林推演 Agent runtime', () => {
     await fresh.run({ identity, anchor, chat, settings: settings(), promptContext, registry, tools, persistSessionEvent: async () => undefined });
     expect(freshSent[0].filter(item => item.role === 'assistant' && item.tool_calls)).toHaveLength(2);
     expect(freshSent[0].filter(item => item.content.includes('已读完整正文'))).toHaveLength(1);
-    expect(freshSent[0].some(item => item.content.includes('主 Agent 正在读取资料'))).toBe(false);
+    expect(freshSent[0].some(item => item.content.includes('Agent chính đang đọc tài liệu'))).toBe(false);
   });
 
   it('最终完整请求超阈值才持久总结旧完整动作/回执，重启不重复且撤销楼层可恢复原文', async () => {
@@ -204,7 +204,7 @@ describe('格林推演 Agent runtime', () => {
     await run();
     const sent = invoke.mock.calls[0][1] as readonly { role: string; content: string }[];
     expect(sent.some(item => item.content === oldRead || item.content === oldReceipt)).toBe(false);
-    expect(sent.filter(item => item.content.includes('更早格林推演会话交接'))).toHaveLength(1);
+    expect(sent.filter(item => item.content.includes('Bàn giao phiên mô phỏng thế giới giai đoạn trước'))).toHaveLength(1);
     for (let index = 0; index < 4; index += 1) {
       expect(sent.filter(item => item.content === `RECENT_ACTION_${index}`)).toHaveLength(1);
       expect(sent.filter(item => item.content === `RECENT_RECEIPT_${index}`)).toHaveLength(1);
@@ -368,7 +368,7 @@ describe('格林推演 Agent runtime', () => {
     expect(sent).toHaveLength(2);
     expect(sent[0].slice(0, 5)).toEqual(sent[1].slice(0, 5));
     // 协议在格式回答（assistant）里，属于稳定前缀。
-    expect(sent[0].slice(0, 5).some(item => item.role === 'assistant' && item.content.includes('调阅调用 read / search；决策单独调用 open_round / delegate / finalize / block'))).toBe(true);
+    expect(sent[0].slice(0, 5).some(item => item.role === 'assistant' && item.content.includes('Thu thập tài liệu gọi read / search; quyết định gọi riêng một trong open_round / delegate / finalize / block'))).toBe(true);
     const snapshotAt = sent[0].findIndex(item => item.content.includes('只推演北境'));
     expect(snapshotAt).toBeGreaterThan(4);
     expect(sent[0][snapshotAt].role).toBe('system');
@@ -576,7 +576,7 @@ describe('格林推演 Agent runtime', () => {
     expect(receipt(1, 'call-sql-1')).toContain('"status":"committed"');
     expect(receipt(1, 'call-sql-1')).toContain('"missingFields"');
     const supplement = receipt(1, 'call-sql-1');
-    expect(supplement).toContain("仅补缺栏范例：UPDATE dimensions SET kind = 'pressure', value = 40, trend = 'rising'");
+    expect(supplement).toContain("Ví dụ chỉ bổ sung cột thiếu: UPDATE dimensions SET kind = 'pressure', value = 40, trend = 'rising'");
     expect(supplement).toContain("WHERE id = 'dim-loop' AND expected_revision = 0;");
     expect(supplement).not.toContain('UPDATE dimensions SET name =');
     expect(supplement).not.toContain('纠错范例：INSERT INTO dimensions');
@@ -623,8 +623,8 @@ describe('格林推演 Agent runtime', () => {
     const repair = renderWorldSimulationWriteRepair_ACU(['seeds'], {
       rejected: [], partials: [{ module: 'seeds', id: 'seed-1', missingFields: ['location'] }], ledgerRevision: 2,
     });
-    const sql = repair.split('仅补缺栏范例：')[1]?.split(String.fromCharCode(10))[0] ?? '';
-    expect(sql).toContain(`location = '{"region":"禁区门口"}'`);
+    const sql = repair.split('Ví dụ chỉ bổ sung cột thiếu: ')[1]?.split(String.fromCharCode(10))[0] ?? '';
+    expect(sql).toContain(`location = '{"region":"Cổng khu cấm"}'`);
     expect(parseWorldSimulationSqlFieldWrites_ACU(sql, 'undercurrent-analyst').rejected).toEqual([]);
   });
 
@@ -634,7 +634,7 @@ describe('格林推演 Agent runtime', () => {
       rejected: [{ path: 'chronicle#chr-1.summary', reason: '必须是非空字符串' }],
       partials: [{ module: 'chronicle', id: 'chr-1', missingFields: ['summary'] }], ledgerRevision: 2,
     });
-    expect(repair).toContain("UPDATE chronicle SET summary = '守门人开始盘查入城者' WHERE id = 'chr-1' AND expected_revision = 0;");
+    expect(repair).toContain("UPDATE chronicle SET summary = 'Người gác cổng bắt đầu tra xét kẻ vào thành' WHERE id = 'chr-1' AND expected_revision = 0;");
     expect(repair).not.toContain('INSERT INTO chronicle');
   });
 
@@ -643,7 +643,7 @@ describe('格林推演 Agent runtime', () => {
     const repair = renderWorldSimulationWriteRepair_ACU(['dimensions'], {
       rejected: [{ path: 'host', reason: 'readback_failed' }], partials: null, ledgerRevision: null,
     });
-    expect(repair).toContain('先 read ledger:current');
+    expect(repair).toContain('read ledger:current');
     expect(repair).not.toContain('UPDATE dimensions SET');
     expect(repair).not.toContain('INSERT INTO dimensions');
   });
@@ -662,7 +662,7 @@ describe('格林推演 Agent runtime', () => {
     await runtime.run({ delegation: { agentName: 'undercurrent-analyst', instruction: '分析', reads: [] },
       settings: settings(), promptContext, registry, tools, runId, writeSql });
     expect(writeSql).toHaveBeenCalledOnce();
-    expect(sent[1].some(message => message.role === 'tool' && (message as { tool_call_id?: string }).tool_call_id === 'call-invalid-write' && message.content.includes('你上一次的输出没有被采纳'))).toBe(true);
+    expect(sent[1].some(message => message.role === 'tool' && (message as { tool_call_id?: string }).tool_call_id === 'call-invalid-write' && message.content.includes('Đầu ra lần trước của bạn không được chấp nhận'))).toBe(true);
     expect(sent[1].some(message => message.role === 'tool' && message.content.includes('"status":"committed"'))).toBe(false);
     expect(sent[2].find(message => message.role === 'tool' && (message as { tool_call_id?: string }).tool_call_id === 'call-valid-write')?.content).toContain('"remainingWriteRounds":2');
   });
@@ -682,7 +682,7 @@ describe('格林推演 Agent runtime', () => {
     expect(invoke).toHaveBeenCalledTimes(3);
     expect(writeSql).toHaveBeenCalledTimes(1);
     const last = invoke.mock.calls[2][1] as readonly { role: string; content: string }[];
-    expect(last.find(message => message.role === 'tool' && message.content.includes('write_sql 轮次已用尽'))?.content).toContain('write_sql 轮次已用尽');
+    expect(last.find(message => message.role === 'tool' && message.content.includes('Đã hết lượt write_sql'))?.content).toContain('Đã hết lượt write_sql');
     expect(last.find(message => message.role === 'tool' && message.content.includes('"remainingWriteRounds":0'))?.content).toContain('"remainingWriteRounds":0');
   });
 
@@ -720,7 +720,7 @@ describe('格林推演 Agent runtime', () => {
     expect(receipt).toMatchObject({ status: 'rejected', accepted: [], partials: null, ledgerRevision: null,
       readAddresses: [], remainingReadRounds: 1, remainingWriteRounds: 2 });
     expect(receipt.reason).toContain('锚点已失效');
-    expect(receipt.repair).toContain('先 read ledger:current');
+    expect(receipt.repair).toContain('read ledger:current');
     expect(outcome.status).toBe('failed');
     expect(outcome.unresolvedIssues).toEqual(expect.arrayContaining([expect.objectContaining({ path: 'write_state' })]));
   });
@@ -786,10 +786,12 @@ describe('格林推演 Agent runtime', () => {
       expect(item.messages.some(message => message.content.endsWith(triggeredWorldbook))).toBe(true);
       const snapshot = item.messages.filter(message => message.content.includes('【本回合运行时数据】'));
       expect(snapshot).toHaveLength(1);
-      expect(snapshot[0].content).toContain(`锚点正文：${promptContext.anchorMessage}`);
-      expect(snapshot[0].content).toContain('世界状态：');
+      // timekeeper 是沿用 V20 seam 的退役角色（中文标签）；其余为越南语默认提示词。
+      const [anchorLabel, stateLabel] = item.name === 'timekeeper' ? ['锚点正文：', '世界状态：'] : ['Chính văn neo: ', 'Trạng thái thế giới: '];
+      expect(snapshot[0].content).toContain(`${anchorLabel}${promptContext.anchorMessage}`);
+      expect(snapshot[0].content).toContain(stateLabel);
       expect(item.body).not.toContain(directorMaterials);
-      expect(item.body).toContain('锚点正文：正文');
+      expect(item.body).toContain(`${anchorLabel}正文`);
     }
   });
 
@@ -816,7 +818,7 @@ describe('格林推演 Agent runtime', () => {
     await runtime.runReviewer(reviewer);
     expect(sent.map(item => item.name)).toEqual(['timekeeper', 'causality-reviewer']);
     for (const item of sent) {
-      const bodies = item.messages.filter(message => message.content.includes(`### 常开（设定集#7）\n${entry.content}`));
+      const bodies = item.messages.filter(message => message.content.includes(`### 常开 (设定集#7)\n${entry.content}`));
       expect(bodies).toHaveLength(1);
       expect(bodies[0].content.endsWith(triggeredWorldbook)).toBe(true);
     }
@@ -847,7 +849,7 @@ describe('格林推演 Agent runtime', () => {
     };
     expect(state('timekeeper')).toHaveProperty('clock');
     expect(state('timekeeper')).not.toHaveProperty('player');
-    expect(state('timekeeper').readHint).toContain('仅按当前角色授权');
+    expect(state('timekeeper').readHint).toContain('Chỉ gọi read theo địa chỉ danh mục');
     expect(state('dramatis-keeper')).toHaveProperty('player');
     expect(state('guidance-composer')).toHaveProperty('player');
   });
@@ -934,8 +936,8 @@ describe('格林推演 Agent runtime', () => {
     await runtime.run({ delegation: { agentName: 'timekeeper', instruction: '核对', reads: [] },
       settings: configured, promptContext, registry, tools: { read, search: tools.search }, runId,
       roundId: 'round-address-denied', readRoundState: createWorldSimulationReadRoundState_ACU() });
-    expect(sent[0].some(message => message.content.includes('剩余 read 轮次'))).toBe(true);
-    expect(sent[0].some(message => message.content.includes('剩余 read/search 轮次'))).toBe(false);
+    expect(sent[0].some(message => message.content.includes('còn lại lượt read'))).toBe(true);
+    expect(sent[0].some(message => message.content.includes('còn lại lượt read/search'))).toBe(false);
     const denied = sent[1].find(message => message.role === 'tool' && message.tool_call_id === 'denied-batch')?.content ?? '';
     const allowed = sent[2].find(message => message.role === 'tool' && message.tool_call_id === 'allowed-retry')?.content ?? '';
     expect(denied).toContain('read-address-unauthorized');
@@ -971,8 +973,8 @@ describe('格林推演 Agent runtime', () => {
     const runtime = new WorldSimulationSubagentRuntime_ACU({ invoke, apiPreset, countTokens: async () => 1 });
     await runtime.runReviewer({ candidates: [candidate], settings: configured, promptContext, registry,
       tools: { read, search: tools.search } });
-    expect(sent[0].some(message => message.content.includes('剩余 read 轮次'))).toBe(true);
-    expect(sent[0].some(message => message.content.includes('剩余 read/search 轮次'))).toBe(false);
+    expect(sent[0].some(message => message.content.includes('còn lại lượt read'))).toBe(true);
+    expect(sent[0].some(message => message.content.includes('còn lại lượt read/search'))).toBe(false);
     const receipt = (index: number, id: string) => sent[index].find(message => message.role === 'tool' && message.tool_call_id === id)?.content ?? '';
     expect(receipt(1, 'review-first') + receipt(1, 'review-cut')).not.toContain('PRIVATE_REVIEW_ANCHOR');
     expect(receipt(1, 'review-first')).toContain('WORLD_SIMULATION_READ_BATCH_FAILED');
@@ -994,7 +996,7 @@ describe('格林推演 Agent runtime', () => {
   it('specialist 省略绑定身份时由运行时补齐 agentName', async () => {
     const { registry, promptContext, runId } = fixture('specialist-bound-identity');
     const invoke = vi.fn(async (_role: string, messages: readonly { role: string; content: string }[]) => {
-      expect(messages.some(message => message.content.includes('剩余 read/search 轮次'))).toBe(true);
+      expect(messages.some(message => message.content.includes('còn lại lượt read/search'))).toBe(true);
       return JSON.stringify({ status: 'no_change', summary: '无需修改', evidenceRefs: [], uncertainties: [] });
     });
     const runtime = new WorldSimulationSubagentRuntime_ACU({ invoke, apiPreset, countTokens: async () => 1 });
@@ -1034,7 +1036,7 @@ describe('格林推演 Agent runtime', () => {
     expect(invoke).toHaveBeenCalledTimes(2);
     expect(tools.read).not.toHaveBeenCalled();
     const last = invoke.mock.calls[1][1] as readonly { role: string; content: string }[];
-    expect(last.find(message => message.role === 'tool' && message.content.includes('read 轮次已用尽'))?.content).toContain('read 轮次已用尽');
+    expect(last.find(message => message.role === 'tool' && message.content.includes('Đã hết lượt read'))?.content).toContain('Đã hết lượt read');
     expect(last.at(-1)?.role).toBe('user');
   });
 
@@ -1079,7 +1081,7 @@ describe('格林推演 Agent runtime', () => {
       .resolves.toMatchObject({ verdict: 'accept', summary: '审核通过', acceptedCandidateIds: [candidate.candidateId] });
     expect(invoke).toHaveBeenCalledTimes(2);
     const initialMessages = invoke.mock.calls[0][1] as readonly { role: string; content: string }[];
-    expect(initialMessages.some(message => message.role === 'assistant' && message.content.includes('verdict 必须精确为 accept、revise、reject'))).toBe(true);
+    expect(initialMessages.some(message => message.role === 'assistant' && message.content.includes('verdict phải chính xác là một trong accept, revise, reject'))).toBe(true);
     const retryMessages = invoke.mock.calls[1][1] as readonly { role: string; content: string }[];
     const rejection = retryMessages.find(message => message.role === 'user' && message.content.includes('INVALID_REVIEW_VERDICT'))?.content ?? '';
     expect(rejection).toContain('"verdict":"accept"');
@@ -1102,9 +1104,9 @@ describe('格林推演 Agent runtime', () => {
     expect(invoke).toHaveBeenCalledTimes(2);
     const retryMessages = invoke.mock.calls[1][1] as readonly { role: string; content: string }[];
     const rejection = retryMessages.find(message => message.role === 'user' && message.content.includes('INVALID_SPECIALIST_STATUS'))?.content ?? '';
-    expect(rejection).toContain('status 必须精确为 candidate、no_change、failed、blocked');
-    expect(rejection).toContain('agentName 必须精确为 timekeeper');
-    expect(rejection).toContain('sql 只允许写：clock');
+    expect(rejection).toContain('status phải chính xác là một trong candidate, no_change, failed, blocked');
+    expect(rejection).toContain('agentName phải chính xác là timekeeper');
+    expect(rejection).toContain('sql của candidate chỉ được ghi: clock');
     expect(rejection).toContain('UPDATE clock SET days');
     expect(rejection).toContain('"status":"candidate"');
   });
@@ -1333,7 +1335,7 @@ describe('格林推演 Agent runtime', () => {
     const result = await loop.run({ identity, settings: settings(), promptContext, registry, tools });
     expect(result).toMatchObject({ outcome: 'blocked', summary: '修正后阻断' });
     expect(invoke).toHaveBeenCalledTimes(2);
-    expect(sent.every(messages => messages.some(message => message.role === 'assistant' && message.content.includes('仅输出一个主动作 JSON：read、search、open_round、delegate、finalize 或 block')))).toBe(true);
+    expect(sent.every(messages => messages.some(message => message.role === 'assistant' && message.content.includes('Chỉ xuất một JSON hành động chính: read, search, open_round, delegate, finalize hoặc block')))).toBe(true);
     expect(sent[1].find(message => message.role === 'user' && message.content.includes('INVALID_ACTION'))).toMatchObject({ role: 'user', content: expect.stringContaining('INVALID_ACTION') });
     expect(sent[1].some(message => message.role === 'assistant' && message.content.includes('"action":"unknown"'))).toBe(true);
     expect(subagents.run).not.toHaveBeenCalled();
@@ -1371,14 +1373,14 @@ describe('格林推演 Agent runtime', () => {
     await vi.waitFor(() => expect(invoke).toHaveBeenCalledOnce());
     const running = readWorldSimulationSessionLog_ACU(identity.chatIdentity);
     const runningCard = running.find(item => item.kind === 'main_action');
-    expect(runningCard).toMatchObject({ title: '主 Agent 第 1 轮正在工作', status: 'running', agentName: 'world-director' });
+    expect(runningCard).toMatchObject({ title: 'Agent chính đang làm việc ở lượt 1', status: 'running', agentName: 'world-director' });
 
     resolveInvoke(JSON.stringify({ action: 'block', reason: '等待外部证据', unresolved: ['missing'] }));
     await expect(pending).resolves.toMatchObject({ outcome: 'blocked' });
 
     const completed = readWorldSimulationSessionLog_ACU(identity.chatIdentity);
     const completedCard = completed.find(item => item.id === runningCard?.id);
-    expect(completedCard).toMatchObject({ title: '主 Agent 动作：block', status: 'done', ok: true });
+    expect(completedCard).toMatchObject({ title: 'Hành động của Agent chính: block', status: 'done', ok: true });
     expect(completed.filter(item => item.kind === 'main_action')).toHaveLength(1);
   });
 
@@ -1402,14 +1404,14 @@ describe('格林推演 Agent runtime', () => {
     await vi.waitFor(() => expect(liveTools.read).toHaveBeenCalledOnce());
     const running = readWorldSimulationSessionLog_ACU(identity.chatIdentity);
     const runningCard = running.find(item => item.kind === 'tool_read');
-    expect(runningCard).toMatchObject({ title: '主 Agent 正在读取资料', status: 'running', agentName: 'world-director' });
+    expect(runningCard).toMatchObject({ title: 'Agent chính đang đọc tài liệu', status: 'running', agentName: 'world-director' });
 
     resolveRead({ status: 'empty', summary: '当前账本为空' });
     await expect(pending).resolves.toMatchObject({ outcome: 'blocked' });
 
     const completed = readWorldSimulationSessionLog_ACU(identity.chatIdentity);
     const completedCard = completed.find(item => item.id === runningCard?.id);
-    expect(completedCard).toMatchObject({ title: '资料读取完成（1 项）', status: 'done', ok: true });
+    expect(completedCard).toMatchObject({ title: 'Đọc tài liệu hoàn tất (1 mục)', status: 'done', ok: true });
     expect(completed.filter(item => item.kind === 'tool_read')).toHaveLength(1);
   });
 
@@ -1606,10 +1608,10 @@ describe('格林推演 Agent runtime', () => {
     const result = await loop.run({ identity, settings: runSettings, promptContext, registry, tools });
 
     expect(result).toMatchObject({ outcome: 'commit', summary: '提交修订候选' });
-    expect(JSON.stringify(invoke.mock.calls)).toContain('revision 冲突');
-    expect(JSON.stringify(invoke.mock.calls)).toContain('重新派工');
-    expect(JSON.stringify(invoke.mock.calls)).toContain('完整必填字段模板');
-    expect(JSON.stringify(invoke.mock.calls)).toContain('字段纪律（逐栏 SQL）：dimensions 新行需 name,kind');
+    expect(JSON.stringify(invoke.mock.calls)).toContain('xung đột revision');
+    expect(JSON.stringify(invoke.mock.calls)).toContain('giao việc lại');
+    expect(JSON.stringify(invoke.mock.calls)).toContain('Mẫu trường bắt buộc đầy đủ');
+    expect(JSON.stringify(invoke.mock.calls)).toContain('Kỷ luật trường (SQL theo cột): hàng mới của dimensions cần name,kind');
     expect(subagents.run).toHaveBeenCalledTimes(2);
     expect(subagents.runReviewer.mock.calls.at(-1)![0].candidates).toEqual([corrected]);
   });
@@ -1642,7 +1644,7 @@ describe('格林推演 Agent runtime', () => {
     expect(invoke).toHaveBeenCalledTimes(2);
     expect(subagents.run).toHaveBeenCalledOnce();
     expect(subagents.runReviewer).toHaveBeenCalledOnce();
-    expect(JSON.stringify(invoke.mock.calls)).not.toContain('缺少必填字段：kind,value,trend');
+    expect(JSON.stringify(invoke.mock.calls)).not.toContain('thiếu trường bắt buộc: kind,value,trend');
   });
 
   it('显式 block 后保留同一 task/cursor 的候选并在恢复时避免重复派工', async () => {
@@ -1839,10 +1841,10 @@ describe('格林推演 Agent runtime', () => {
     // 第一段：仅做一次读取即耗尽迭代预算，形成 'iteration budget exhausted' 恢复标记。
     const firstLoop = new WorldSimulationMainLoop_ACU({ invoke: vi.fn(async () => ({ content: '', toolCalls: [{ id: 'call-budget-clock', name: 'read', arguments: JSON.stringify({ reads: ['$CLOCK'] }) }] })), subagents, apiPreset, countTokens: async () => 1 });
     await expect(firstLoop.run({ identity, settings: runSettings, promptContext, registry, tools, anchor, chat }))
-      .resolves.toMatchObject({ outcome: 'blocked', summary: '格林推演主循环迭代预算耗尽' });
+      .resolves.toMatchObject({ outcome: 'blocked', summary: 'Ngân sách lặp của vòng lặp chính mô phỏng thế giới đã hết' });
     const exhausted = readWorldSimulationRunState_ACU(identity.chatIdentity, identity.taskId, `${identity.stageId}#${identity.stageRevision}#${identity.baseLedgerRevision}`);
     expect(exhausted).toMatchObject({ budgetExhausted: true, reviewerFeedback: 'iteration budget exhausted' });
-    expect(exhausted?.handoffSummary).toContain('交接');
+    expect(exhausted?.handoffSummary).toContain('àn giao');
     await new Promise(resolve => setTimeout(resolve, 0));
     resetWorldSimulationRunCacheForTests_ACU();
 
@@ -1907,7 +1909,7 @@ describe('格林推演 Agent runtime', () => {
 
     expect(result).toMatchObject({ outcome: 'commit', summary: '对话恢复后提交' });
     expect(resumedInvoke.mock.calls.length).toBeGreaterThan(0);
-    expect(JSON.stringify(resumedInvoke.mock.calls[0][1])).toContain('reviewer 驳回或要求修订候选');
+    expect(JSON.stringify(resumedInvoke.mock.calls[0][1])).toContain('reviewer bác bỏ hoặc yêu cầu sửa ứng viên');
     expect(JSON.stringify(resumedInvoke.mock.calls[0][1])).toContain('EVIDENCE_GAP');
     _set_SillyTavern_API_ACU(undefined);
   });
@@ -2042,8 +2044,8 @@ describe('格林推演 Agent runtime', () => {
 
     const result = await loop.run({ identity, settings: runSettings, promptContext, registry, tools });
 
-    expect(result).toMatchObject({ outcome: 'blocked', summary: '派工被预算门禁拦截，无可派工角色' });
-    expect(result.unresolved?.join('\n')).toContain('同角色派工预算已耗尽');
+    expect(result).toMatchObject({ outcome: 'blocked', summary: 'Giao việc bị chặn bởi ngưỡng ngân sách, không có vai trò nào có thể giao' });
+    expect(result.unresolved?.join('\n')).toContain('Ngân sách giao việc cho cùng vai trò đã hết');
     expect(subagents.run).not.toHaveBeenCalled();
     expect(subagents.runReviewer).not.toHaveBeenCalled();
     expect(invoke).toHaveBeenCalledOnce();
@@ -2051,7 +2053,7 @@ describe('格林推演 Agent runtime', () => {
     expect(readWorldSimulationSessionLog_ACU(identity.chatIdentity).some(item => item.kind === 'block')).toBe(true);
     const state = readWorldSimulationRunState_ACU(identity.chatIdentity, identity.taskId, `${identity.stageId}#${identity.stageRevision}#${identity.baseLedgerRevision}`);
     expect(state).toMatchObject({ budgetExhausted: true, reviewerFeedback: 'delegation gate exhausted' });
-    expect(state?.handoffSummary).toContain('交接');
+    expect(state?.handoffSummary).toContain('àn giao');
   });
 
   it('部分派工被并行预算拦截时只回灌原因且不调用被拦角色', async () => {
@@ -2079,8 +2081,8 @@ describe('格林推演 Agent runtime', () => {
     expect(subagents.run).toHaveBeenCalledOnce();
     expect(subagents.run.mock.calls[0][0].delegation.agentName).toBe('timekeeper');
     const secondCall = JSON.stringify(invoke.mock.calls[1][1]);
-    expect(secondCall).toContain('预算门禁拦截');
-    expect(secondCall).toContain('并行派工预算已耗尽');
+    expect(secondCall).toContain('bị chặn bởi ngưỡng ngân sách');
+    expect(secondCall).toContain('Ngân sách giao việc song song đã hết');
     expect(secondCall).toContain('lore-researcher');
     expect(readWorldSimulationSessionLog_ACU(identity.chatIdentity).filter(item => item.kind === 'delegation')).toHaveLength(1);
   });
@@ -2112,7 +2114,7 @@ describe('格林推演 Agent runtime', () => {
     const history = readWorldSimulationDirectorHistory_ACU(chat);
     expect(history).toHaveLength(4);
     expect(history[0].content).toBe(delegation);
-    expect(history[1].content).toContain('并行派工预算已耗尽');
+    expect(history[1].content).toContain('Ngân sách giao việc song song đã hết');
     expect(history[1].content).toContain('no_change');
     expect(sent[1].filter(item => item.content === delegation)).toHaveLength(1);
     expect(sent[1].filter(item => item.content === history[1].content)).toHaveLength(1);
@@ -2218,13 +2220,13 @@ describe('格林推演 Agent runtime', () => {
     const runSettings = settings();
     runSettings.agentRunBudget.maxDelegations = 0;
     const result = await loop.run({ identity, settings: runSettings, promptContext, registry, tools });
-    expect(result).toMatchObject({ outcome: 'blocked', summary: '派工预算已耗尽', unresolved: ['delegation budget exhausted'] });
+    expect(result).toMatchObject({ outcome: 'blocked', summary: 'Ngân sách giao việc đã hết', unresolved: ['delegation budget exhausted'] });
     expect(invoke).toHaveBeenCalledOnce();
     expect(subagents.run).not.toHaveBeenCalled();
     const state = readWorldSimulationRunState_ACU(identity.chatIdentity, identity.taskId, `${identity.stageId}#${identity.stageRevision}#${identity.baseLedgerRevision}`);
     expect(state).toMatchObject({ budgetExhausted: true, reviewerFeedback: 'delegation budget exhausted' });
-    expect(state?.handoffSummary).toContain('交接');
-    expect(readWorldSimulationSessionLog_ACU(identity.chatIdentity).some(item => item.kind === 'block' && item.title === '派工预算已耗尽')).toBe(true);
+    expect(state?.handoffSummary).toContain('àn giao');
+    expect(readWorldSimulationSessionLog_ACU(identity.chatIdentity).some(item => item.kind === 'block' && item.title === 'Ngân sách giao việc đã hết')).toBe(true);
   });
 
   it('三种预算终局恢复后都重置窗口并注入交接摘要', async () => {
@@ -2412,8 +2414,8 @@ describe('格林推演 Agent runtime', () => {
       tools: { read: vi.fn(async () => ({ status: 'ok' as const, content: '山雨将至', summary: '正文' })), search: tools.search },
     });
     expect(result).toMatchObject({ outcome: 'blocked' });
-    expect(sent[0]?.some(message => message.role === 'system' && message.content.includes('本次格林推演最新快照'))).toBe(true);
-    expect(sent[1]?.some(message => message.role === 'system' && message.content.includes('本次格林推演最新快照'))).toBe(true);
+    expect(sent[0]?.some(message => message.role === 'system' && message.content.includes('Snapshot mới nhất của lần mô phỏng thế giới này'))).toBe(true);
+    expect(sent[1]?.some(message => message.role === 'system' && message.content.includes('Snapshot mới nhất của lần mô phỏng thế giới này'))).toBe(true);
     expect(sent[1]?.some(message => message.role === 'tool' && message.tool_call_id === 'call-rain' && message.content.includes('山雨将至'))).toBe(true);
   });
 

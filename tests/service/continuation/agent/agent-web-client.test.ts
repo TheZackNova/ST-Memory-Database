@@ -31,12 +31,12 @@ describe('URL 策略与文本处理', () => {
     expect(blocked).toEqual(['example.com', 'bad.org', 'foo.net']);
     expect(evaluateWebUrlPolicy_ACU('ftp://x.org/a', blocked)).toContain('http');
     expect(evaluateWebUrlPolicy_ACU('http://127.0.0.1/a', blocked)).toContain('IP');
-    expect(evaluateWebUrlPolicy_ACU('http://localhost/a', blocked)).toContain('内网');
-    expect(evaluateWebUrlPolicy_ACU('http://router.local/', blocked)).toContain('内网');
-    expect(evaluateWebUrlPolicy_ACU('https://my.tavern.host/api', blocked, 'https://my.tavern.host:8000')).toContain('酒馆');
-    expect(evaluateWebUrlPolicy_ACU('https://sub.example.com/x', blocked)).toContain('黑名单');
+    expect(evaluateWebUrlPolicy_ACU('http://localhost/a', blocked)).toContain('mạng nội bộ');
+    expect(evaluateWebUrlPolicy_ACU('http://router.local/', blocked)).toContain('mạng nội bộ');
+    expect(evaluateWebUrlPolicy_ACU('https://my.tavern.host/api', blocked, 'https://my.tavern.host:8000')).toContain('SillyTavern');
+    expect(evaluateWebUrlPolicy_ACU('https://sub.example.com/x', blocked)).toContain('danh sách đen');
     expect(evaluateWebUrlPolicy_ACU('https://zh.moegirl.org.cn/x', blocked)).toBeNull();
-    expect(evaluateWebUrlPolicy_ACU('not a url', blocked)).toContain('非法');
+    expect(evaluateWebUrlPolicy_ACU('not a url', blocked)).toContain('không hợp lệ');
   });
 
   it('HTML 抽纯文本：去脚本样式导航、块级换行、解实体、折叠空白', () => {
@@ -56,7 +56,7 @@ describe('URL 策略与文本处理', () => {
     expect(truncateWebText_ACU('短文', 10)).toBe('短文');
     const long = truncateWebText_ACU('一二三四五六七八九十一二', 10);
     expect(long.startsWith('一二三四五六七八九十')).toBe(true);
-    expect(long).toContain('已截断');
+    expect(long).toContain('đã cắt bớt');
   });
 
   it('按设置得到启用的百科来源', () => {
@@ -111,7 +111,7 @@ describe('AgentWebClient_ACU 百科通道', () => {
     });
     const search = await client.searchEncyclopedia('wikipedia_zh', '不存在');
     expect(search.candidates).toEqual([]);
-    expect(search.note).toContain('无命中');
+    expect(search.note).toContain('không có kết quả khớp');
     const page = await client.readEncyclopedia('wikipedia_zh', '不存在', 4000);
     expect(page.status).toBe('unavailable');
     expect(page.note).toContain('encyclopedia_search');
@@ -131,9 +131,9 @@ describe('AgentWebClient_ACU 百科通道', () => {
     const page = await client.readEncyclopedia('baidu', '鲁迪乌斯·格雷拉特', 4000);
     expect(page.status).toBe('ok');
     expect(page.url).toBe('https://baike.baidu.com/item/x');
-    expect(page.text).toContain('简介：轻小说男主角');
-    expect(page.text).toContain('别名：鲁迪、泥沼');
-    expect(page.text).toContain('【概述】\n前世是尼特。');
+    expect(page.text).toContain('Giới thiệu: 轻小说男主角');
+    expect(page.text).toContain('别名: 鲁迪, 泥沼');
+    expect(page.text).toContain('【Tổng quan】\n前世是尼特。');
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
@@ -141,7 +141,7 @@ describe('AgentWebClient_ACU 百科通道', () => {
     const { client } = client_ACU(() => textResponse_ACU('', 500));
     const page = await client.readEncyclopedia('baidu', 'x', 4000);
     expect(page.status).toBe('unavailable');
-    expect(page.note).toContain('酒馆服务器转发失败');
+    expect(page.note).toContain('Máy chủ SillyTavern chuyển tiếp thất bại');
   });
 });
 
@@ -163,13 +163,13 @@ describe('AgentWebClient_ACU 通用搜索与网页抓取', () => {
     const { client: noKey } = client_ACU(() => textResponse_ACU('', 400));
     const missing = await noKey.webSearch('q', { searchProvider: 'serper', searxngBaseUrl: '' });
     expect(missing.hits).toEqual([]);
-    expect(missing.note).toContain('未在酒馆里配置');
+    expect(missing.note).toContain('chưa được cấu hình API key');
   });
 
   it('SearXNG 未填地址时给出可操作提示', async () => {
     const { client, fetch } = client_ACU(() => textResponse_ACU(''));
     const result = await client.webSearch('q', { searchProvider: 'searxng', searxngBaseUrl: '' });
-    expect(result.note).toContain('SearXNG 实例地址未配置');
+    expect(result.note).toContain('Chưa cấu hình địa chỉ phiên bản SearXNG');
     expect(fetch).not.toHaveBeenCalled();
   });
 
@@ -182,6 +182,6 @@ describe('AgentWebClient_ACU 通用搜索与网页抓取', () => {
     expect(page.status).toBe('ok');
     expect(page.title).toBe('页');
     expect(page.text.startsWith('正文一\n正')).toBe(true);
-    expect(page.text).toContain('已截断');
+    expect(page.text).toContain('đã cắt bớt');
   });
 });

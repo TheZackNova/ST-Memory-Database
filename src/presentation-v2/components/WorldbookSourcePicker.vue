@@ -1,17 +1,17 @@
 <template>
   <div class="acu-v2-wb-source-picker">
-    <AcuFormRow label="来源">
+    <AcuFormRow label="Nguồn">
       <AcuSegmentedControl
         :model-value="source"
         :options="sourceOptions"
-        aria-label="世界书来源"
+        aria-label="Nguồn Sổ thế giới"
         @update:model-value="onSourceChange"
       />
     </AcuFormRow>
 
     <template v-if="source === 'manual'">
-      <AcuFormRow v-if="filterable" label="筛选">
-        <AcuInput v-model="filter" type="text" placeholder="筛选世界书..." />
+      <AcuFormRow v-if="filterable" label="Lọc">
+        <AcuInput v-model="filter" type="text" placeholder="Lọc Sổ thế giới..." />
       </AcuFormRow>
 
       <div
@@ -36,13 +36,13 @@
           ></i>
         </button>
         <div v-if="!filteredNames.length" class="acu-v2-wb-source-picker__empty">
-          {{ status === 'loading' ? '正在加载世界书...' : '无可选世界书' }}
+          {{ status === 'loading' ? 'Đang tải Sổ thế giới...' : 'Không có Sổ thế giới để chọn' }}
         </div>
       </div>
     </template>
 
     <AcuText v-if="status === 'error'" variant="error" class="acu-v2-wb-source-picker__error">
-      {{ error || '加载失败' }}
+      {{ error || 'Tải thất bại' }}
     </AcuText>
   </div>
 </template>
@@ -76,8 +76,8 @@ const emit = defineEmits<{
 const filter = ref('');
 
 const sourceOptions: AcuSegmentedOption[] = [
-  { value: 'character', label: '跟随角色卡' },
-  { value: 'manual', label: '手动选择' },
+  { value: 'character', label: 'Theo thẻ nhân vật' },
+  { value: 'manual', label: 'Chọn thủ công' },
 ];
 
 const selectedSet = computed(() => new Set(props.selectedNames.filter(Boolean)));

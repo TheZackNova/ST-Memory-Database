@@ -43,20 +43,20 @@ export function progressionPlan_ACU(input: WorldProgressionPlanInput_ACU): World
     const cool = cooled_ACU(day, last, COOLDOWN_DAYS_ACU[circle]);
     const frequentEnough = cooled_ACU(day, last, FREQUENCY_DAYS_ACU[circle]);
     if (expired || seed.status === 'resolved' || seed.status === 'retired') {
-      return { seedId: seed.id, advance: 'none', reason: 'R4 到期或已结束，交清扫不推进', circle };
+      return { seedId: seed.id, advance: 'none', reason: 'R4 đã hết hạn hoặc kết thúc, giao cho dọn dẹp, không đẩy tiến', circle };
     }
     if (days <= 0) {
-      return { seedId: seed.id, advance: 'tick', reason: 'R1 正文未过时间，只 tick', circle };
+      return { seedId: seed.id, advance: 'tick', reason: 'R1 chính văn chưa qua thời gian, chỉ tick', circle };
     }
     if (!cool) {
-      return { seedId: seed.id, advance: 'tick', reason: `R7 ${circle} 圈催化冷却中`, circle };
+      return { seedId: seed.id, advance: 'tick', reason: `R7 vòng ${circle} đang trong thời gian hồi xúc tác`, circle };
     }
     if (collided.has(seed.id)) {
-      return { seedId: seed.id, advance: 'catalyze', reason: 'R6 碰撞种子本轮优先催化', circle };
+      return { seedId: seed.id, advance: 'catalyze', reason: 'R6 hạt giống va chạm được ưu tiên xúc tác trong lượt này', circle };
     }
     if (!frequentEnough) {
-      return { seedId: seed.id, advance: 'tick', reason: `R2 ${circle} 圈未到催化频率`, circle };
+      return { seedId: seed.id, advance: 'tick', reason: `R2 vòng ${circle} chưa đến tần suất xúc tác`, circle };
     }
-    return { seedId: seed.id, advance: 'catalyze', reason: `R2 ${circle} 圈允许催化`, circle };
+    return { seedId: seed.id, advance: 'catalyze', reason: `R2 vòng ${circle} cho phép xúc tác`, circle };
   });
 }

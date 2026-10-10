@@ -68,12 +68,12 @@ describe('Agent 文本协议 JSON 提取', () => {
 
   it('完全无 JSON 时报错并附模型原文片段', () => {
     expect(() => parseAgentJsonPayload_ACU('我拒绝输出任何结构化内容', AGENT_PREFILLS_ACU.main, ['action']))
-      .toThrowError(/模型返回片段：我拒绝输出任何结构化内容/);
+      .toThrowError(/Đoạn mô hình trả về: 我拒绝输出任何结构化内容/);
   });
 
   it('空返回与无 JSON 返回都按协议错误处理', () => {
-    expect(() => parseAgentJsonPayload_ACU('   ')).toThrowError(/返回为空/);
-    expect(() => parseAgentJsonPayload_ACU('我拒绝输出 JSON')).toThrowError(/不包含可解析的 JSON/);
+    expect(() => parseAgentJsonPayload_ACU('   ')).toThrowError(/trả về rỗng/);
+    expect(() => parseAgentJsonPayload_ACU('我拒绝输出 JSON')).toThrowError(/không chứa đối tượng JSON có thể phân tích/);
   });
 });
 
@@ -83,23 +83,23 @@ describe('主 Agent 动作解析', () => {
     expect(parseAgentMainAction_ACU(action, true)).toMatchObject({ kind: 'correct_materials', settlementStartIndex: 3 });
     expect(parseAgentMainOutput_ACU(JSON.stringify(action), AGENT_PREFILLS_ACU.main, true)).toEqual(parseAgentMainAction_ACU(action, true));
     expect(() => parseAgentMainAction_ACU({ ...action, userMessageId: undefined }, true)).toThrow(/userMessageId/);
-    expect(() => parseAgentMainAction_ACU({ ...action, settlementStartIndex: -1 }, true)).toThrow(/非负整数/);
-    expect(() => parseAgentMainAction_ACU({ ...action, settledThroughIndex: 3 }, true)).toThrow(/未声明/);
-    expect(() => parseAgentMainAction_ACU({ action: 'correct_materials', reason: '没有动作' }, true)).toThrow(/必须提供/);
+    expect(() => parseAgentMainAction_ACU({ ...action, settlementStartIndex: -1 }, true)).toThrow(/số nguyên không âm/);
+    expect(() => parseAgentMainAction_ACU({ ...action, settledThroughIndex: 3 }, true)).toThrow(/chưa khai báo/);
+    expect(() => parseAgentMainAction_ACU({ action: 'correct_materials', reason: '没有动作' }, true)).toThrow(/phải cung cấp/);
     const correction = { action: 'correct_materials', reason: '已核对字段', sql: "UPDATE hooks SET status='paid' WHERE id='H1' AND expected_revision=2" };
     expect(parseAgentMainOutput_ACU(`<think>仅是推理</think>\n${JSON.stringify(correction)}`, AGENT_PREFILLS_ACU.main, true))
       .toEqual(parseAgentMainAction_ACU(correction, true));
     for (const reason of [undefined, '  ', null, 7]) {
-      expect(() => parseAgentMainAction_ACU({ ...correction, reason }, true)).toThrow(/实际字段状态：reason=/);
+      expect(() => parseAgentMainAction_ACU({ ...correction, reason }, true)).toThrow(/trạng thái trường thực tế: reason=/);
     }
     expect(() => parseAgentMainAction_ACU({ action: 'correct_materials', reason: '已核对字段', sql: '' }, true))
-      .toThrow(/reason=nonempty，sql=empty，settlementStartIndex=missing/);
+      .toThrow(/reason=nonempty, sql=empty, settlementStartIndex=missing/);
     expect(() => parseAgentMainAction_ACU({ action: 'correct_materials', reason: '已核对字段', sql: {} }, true))
       .toThrow(/sql=type:object/);
     const sql = "UPDATE hooks SET status='paid' WHERE id='H1' AND expected_revision=2; UPDATE story_arc SET title='新标题' WHERE id='VOL-01' AND expected_revision=1";
     expect(parseAgentModuleSqlFieldWrites_ACU(sql, 'main').intents.map(item => item.module)).toEqual(['hooks', 'storyArc']);
     expect(parseAgentModuleSqlFieldWrites_ACU(sql, 'hook-cognition-maintainer').rejected).toEqual([
-      expect.objectContaining({ path: 'sql[1].story_arc', reason: expect.stringContaining('无权') }),
+      expect.objectContaining({ path: 'sql[1].story_arc', reason: expect.stringContaining('không có quyền') }),
     ]);
     expect(parseAgentModuleSqlFieldWrites_ACU("INSERT INTO web_refs (name) VALUES ('越权')", 'main').intents).toEqual([]);
     expect(parseAgentModuleSqlFieldWrites_ACU("INSERT INTO user_requirements (value) VALUES ('越权')", 'main').rejected.length).toBeGreaterThan(0);
@@ -109,19 +109,19 @@ describe('主 Agent 动作解析', () => {
     const action = parseAgentMainAction_ACU({ action: 'delegate', thought: '先结算', delegations: [{ agentName: 'hook-cognition-maintainer', prompt: '结算未处理正文', reads: ['$HISTORY_UNSETTLED'], writes: ['$HOOKS_LEDGER'] }] }, true);
     expect(action).toMatchObject({ kind: 'delegate' });
 
-    expect(() => parseAgentMainAction_ACU({ action: 'delegate', delegations: [] }, true)).toThrowError(/非空的 delegations/);
-    expect(() => parseAgentMainAction_ACU({ action: 'delegate', delegations: [{ prompt: '干活' }] }, true)).toThrowError(/agentName 不能为空/);
+    expect(() => parseAgentMainAction_ACU({ action: 'delegate', delegations: [] }, true)).toThrowError(/mảng delegations không rỗng/);
+    expect(() => parseAgentMainAction_ACU({ action: 'delegate', delegations: [{ prompt: '干活' }] }, true)).toThrowError(/agentName không được rỗng/);
   });
 
   it('预算最后一轮禁用 delegate', () => {
-    expect(() => parseAgentMainAction_ACU({ action: 'delegate', delegations: [{ agentName: 'mainline-planner', prompt: '策划' }] }, false)).toThrowError(/预算最后一轮/);
+    expect(() => parseAgentMainAction_ACU({ action: 'delegate', delegations: [{ agentName: 'mainline-planner', prompt: '策划' }] }, false)).toThrowError(/lượt cuối của ngân sách/);
   });
 
   it('finalize 必须给出 instruction，constraints 缺省为 null', () => {
     expect(parseAgentMainAction_ACU({ action: 'finalize', instruction: '本轮指导', summary: '要点' }, true)).toMatchObject({ kind: 'finalize', constraints: null });
     expect(parseAgentMainAction_ACU({ action: 'finalize', instruction: '本轮指导', constraints: { add: ['红线一'], retire: ['C01-1'] } }, true))
       .toMatchObject({ constraints: { add: ['红线一'], retire: ['C01-1'] } });
-    expect(() => parseAgentMainAction_ACU({ action: 'finalize' }, true)).toThrowError(/非空 instruction/);
+    expect(() => parseAgentMainAction_ACU({ action: 'finalize' }, true)).toThrowError(/instruction không rỗng/);
   });
 
   it('finalize 的 constraints 兼容旧全量键：current 并入 add、retired 并入 retire，空对象归一为 null', () => {
@@ -136,7 +136,7 @@ describe('主 Agent 动作解析', () => {
     expect(() => parseAgentMainAction_ACU({
       action: 'edit_outline',
       edits: [{ op: 'set_turn_goal', turnId: 'turn-3', goal: '让守门人先露破绽' }],
-    }, true)).toThrowError(/阶段大纲修改单独 delegate outline-architect/);
+    }, true)).toThrowError(/sửa dàn ý giai đoạn thì delegate riêng outline-architect/);
   });
 
   it('维护类的 patch 只收显式字段，至少要带一个可改字段', () => {
@@ -151,9 +151,9 @@ describe('主 Agent 动作解析', () => {
     expect(output.delta.infoGapPatches).toEqual([{ id: 'E1', revealStatus: 'partial', revealIndex: 5 }]);
     expect(output.delta.hooks).toHaveLength(0);
 
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { hooks: [{ action: 'patch', id: 'H1' }] } })).toThrowError(/至少要带一个要修改的字段/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { hooks: [{ action: 'patch', summary: '缺 id' }] } })).toThrowError(/patch 需要 id/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { infoGap: [{ action: 'patch', id: 'E1', revealStatus: '瞎写' }] } })).toThrowError(/revealStatus 非法/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { hooks: [{ action: 'patch', id: 'H1' }] } })).toThrowError(/ít nhất một trường cần sửa/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { hooks: [{ action: 'patch', summary: '缺 id' }] } })).toThrowError(/cần id/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { infoGap: [{ action: 'patch', id: 'E1', revealStatus: '瞎写' }] } })).toThrowError(/patch\.revealStatus/);
     const rejected = parseAgentMaintainerOutputDraft_ACU({ summary: '待修', delta: {
       hooks: [{ action: 'patch', id: 'H004' }, { action: 'patch', id: 'H005', status: 'invalid' },
         { action: 'patch', id: 'H006', summary: 42 }],
@@ -183,23 +183,23 @@ describe('主 Agent 动作解析', () => {
       id: 'VOL-02', narrativeRole: 'development', targetStageRange: { min: 4, max: 6 }, targetTimeSpan: '两个月', progressCeiling: '只查明幕后势力的外围组织', sustainingThreads: ['主角与账房的互信'], payoffTargets: ['兑现第三方签名的来源'],
       continuationRationale: '第一卷留下的第三方签名将商行争夺推向幕后势力', completionStageNumber: null, completionState: '',
     });
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { storyArc: [{ action: 'patch', id: 'VOL-01', completionStageNumber: 0 }] } })).toThrowError(/completionStageNumber 必须是从 1 起的整数或 null/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { storyArc: [{ action: 'patch', id: 'VOL-01', targetStageRange: { min: 6, max: 4 } }] } })).toThrowError(/min 不能大于 max/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { storyArc: [{ action: 'patch', id: 'VOL-01', sustainingThreads: [''] }] } })).toThrowError(/必须是非空字符串/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { storyArc: [{ action: 'patch', id: 'VOL-01', completionStageNumber: 0 }] } })).toThrowError(/completionStageNumber phải là số nguyên bắt đầu từ 1 hoặc null/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { storyArc: [{ action: 'patch', id: 'VOL-01', targetStageRange: { min: 6, max: 4 } }] } })).toThrowError(/min không được lớn hơn max/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { storyArc: [{ action: 'patch', id: 'VOL-01', sustainingThreads: [''] }] } })).toThrowError(/phải là chuỗi không rỗng/);
   });
 
   it('block 必须带明确理由', () => {
     expect(parseAgentMainAction_ACU({ action: 'block', reason: '关键资料缺失', unresolved: ['缺角色表'] }, true)).toMatchObject({ kind: 'block', unresolved: ['缺角色表'] });
-    expect(() => parseAgentMainAction_ACU({ action: 'block' }, true)).toThrowError(/必须提供 reason/);
+    expect(() => parseAgentMainAction_ACU({ action: 'block' }, true)).toThrowError(/phải cung cấp reason/);
   });
 
   it('未知动作和已退役的大纲动作直接拒绝', () => {
-    expect(() => parseAgentMainAction_ACU({ action: 'write_story' }, true)).toThrowError(/action 必须是/);
-    expect(() => parseAgentMainAction_ACU({ action: 'revise_outline', replanInstruction: '改' }, true)).toThrowError(/action 必须是 read \/ search \/ delegate \/ open_round \/ correct_materials \/ adjust_progress \/ finalize \/ block/);
+    expect(() => parseAgentMainAction_ACU({ action: 'write_story' }, true)).toThrowError(/action phải là/);
+    expect(() => parseAgentMainAction_ACU({ action: 'revise_outline', replanInstruction: '改' }, true)).toThrowError(/action phải là một trong read \/ search \/ delegate \/ open_round \/ correct_materials \/ adjust_progress \/ finalize \/ block/);
     expect(parseAgentMainAction_ACU({ action: 'open_round', focus: '接住守门人的回避' }, true)).toMatchObject({
       kind: 'open_round', focus: '接住守门人的回避', dispatchWebResearcher: false,
     });
-    expect(() => parseAgentMainAction_ACU({ action: 'open_round', focus: '  ' }, true)).toThrowError(/非空 focus/);
+    expect(() => parseAgentMainAction_ACU({ action: 'open_round', focus: '  ' }, true)).toThrowError(/focus không rỗng/);
   });
 });
 
@@ -255,7 +255,7 @@ describe('子代理输出解析', () => {
 
   it('维护类的非法 action 与非数组 delta 都被拒绝', () => {
     expect(() => parseAgentMaintainerOutput_ACU({ delta: { hooks: [{ action: 'delete', id: 'H1' }] } })).toThrowError(/upsert \/ patch \/ retire/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { infoGap: '不是数组' } })).toThrowError(/必须是数组/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { infoGap: '不是数组' } })).toThrowError(/phải là mảng/);
   });
 
   it('年代学写集正向解析：证据楼层去重升序，expectedRevisions 纳入 chronology', () => {
@@ -277,16 +277,16 @@ describe('子代理输出解析', () => {
 
   it('年代学写集的非法 action、precision、空证据与非整数证据全部拒绝', () => {
     const item = { action: 'upsert', id: 'T1', anchor: '入城后的第七天', elapsed: '约十七日', precision: 'approximate', transition: '休整七日', evidenceIndexes: [4] };
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, action: 'delete' }] } })).toThrowError(/action 必须是 upsert \/ patch \/ retire/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, precision: '大概吧' }] } })).toThrowError(/precision 必须是 exact \/ approximate \/ unknown/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, evidenceIndexes: [] }] } })).toThrowError(/evidenceIndexes 必须是非空数组/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, evidenceIndexes: [1.5] }] } })).toThrowError(/必须是非负整数楼层号/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, evidenceIndexes: ['5'] }] } })).toThrowError(/必须是非负整数楼层号/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, anchor: '' }] } })).toThrowError(/anchor 不能为空/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, elapsed: ' ' }] } })).toThrowError(/elapsed 不能为空/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, transition: '' }] } })).toThrowError(/transition 不能为空/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, id: '' }] } })).toThrowError(/需要非空 id/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: '不是数组' } })).toThrowError(/delta\.chronology 必须是数组/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, action: 'delete' }] } })).toThrowError(/action phải là upsert \/ patch \/ retire/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, precision: '大概吧' }] } })).toThrowError(/precision phải là exact \/ approximate \/ unknown/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, evidenceIndexes: [] }] } })).toThrowError(/evidenceIndexes phải là mảng không rỗng/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, evidenceIndexes: [1.5] }] } })).toThrowError(/phải là số tầng nguyên không âm/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, evidenceIndexes: ['5'] }] } })).toThrowError(/phải là số tầng nguyên không âm/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, anchor: '' }] } })).toThrowError(/anchor không được rỗng/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, elapsed: ' ' }] } })).toThrowError(/elapsed không được rỗng/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, transition: '' }] } })).toThrowError(/transition không được rỗng/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ ...item, id: '' }] } })).toThrowError(/cần id không rỗng/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: '不是数组' } })).toThrowError(/delta\.chronology phải là mảng/);
   });
 
   it('受限 SQL 写集映射为维护事务，保留修订号、信息边界与显式退役', () => {
@@ -302,15 +302,15 @@ describe('子代理输出解析', () => {
 
   it('SQL 拒绝越权、未知字段、额外 WHERE、混用 JSON 写集和非法修订号', () => {
     const parse = (sql: string) => parseAgentMaintainerOutput_ACU({ summary: '测试', sql });
-    expect(() => parse("INSERT INTO web_refs (name) VALUES ('越权')")).toThrow(/无权/);
-    expect(() => parse("INSERT INTO hooks (arbitrary) VALUES ('值')")).toThrow(/白名单/);
-    expect(() => parse("UPDATE hooks SET summary = '假' WHERE id = 'H1' AND reason = '忽略' AND expected_revision = 0")).toThrow(/WHERE 不允许/);
-    expect(() => parse("DELETE FROM hooks WHERE id = 'H1' AND reason = '删' AND expected_revision = -1")).toThrow(/非负整数/);
-    expect(() => parseAgentMaintainerOutput_ACU({ sql: "DELETE FROM hooks WHERE id = 'H1' AND reason = '删'", delta: {} })).toThrow(/不能同时包含/);
-    expect(() => parse(' ; ; ')).toThrow(/空写集/);
-    expect(() => parseAgentResearcherOutput_ACU({ sql: ' ; ; ' })).toThrow(/空写集/);
-    expect(() => parseAgentMaintainerOutput_ACU({ sql: "INSERT INTO hooks (id, summary) VALUES ('H1', '正常');", volumes: [{ id: 'V1', action: 'upsert', title: '夹带' }] })).toThrow(/不能同时包含 sql 与 JSON 写集字段 volumes/);
-    expect(() => parseAgentMaintainerOutput_ACU({ sql: "INSERT INTO hooks (id, summary) VALUES ('H1', '正常');", expectedRevisions: { hooks: 999 } })).toThrow(/不能同时包含 sql 与 JSON 写集字段 expectedRevisions/);
+    expect(() => parse("INSERT INTO web_refs (name) VALUES ('越权')")).toThrow(/không có quyền/);
+    expect(() => parse("INSERT INTO hooks (arbitrary) VALUES ('值')")).toThrow(/danh sách trắng/);
+    expect(() => parse("UPDATE hooks SET summary = '假' WHERE id = 'H1' AND reason = '忽略' AND expected_revision = 0")).toThrow(/WHERE không cho phép/);
+    expect(() => parse("DELETE FROM hooks WHERE id = 'H1' AND reason = '删' AND expected_revision = -1")).toThrow(/số nguyên không âm/);
+    expect(() => parseAgentMaintainerOutput_ACU({ sql: "DELETE FROM hooks WHERE id = 'H1' AND reason = '删'", delta: {} })).toThrow(/không được chứa đồng thời/);
+    expect(() => parse(' ; ; ')).toThrow(/tập ghi rỗng/);
+    expect(() => parseAgentResearcherOutput_ACU({ sql: ' ; ; ' })).toThrow(/tập ghi rỗng/);
+    expect(() => parseAgentMaintainerOutput_ACU({ sql: "INSERT INTO hooks (id, summary) VALUES ('H1', '正常');", volumes: [{ id: 'V1', action: 'upsert', title: '夹带' }] })).toThrow(/không được chứa đồng thời sql và trường tập ghi JSON volumes/);
+    expect(() => parseAgentMaintainerOutput_ACU({ sql: "INSERT INTO hooks (id, summary) VALUES ('H1', '正常');", expectedRevisions: { hooks: 999 } })).toThrow(/không được chứa đồng thời sql và trường tập ghi JSON expectedRevisions/);
   });
 
 
@@ -330,28 +330,28 @@ describe('子代理输出解析', () => {
     expect(chronology.delta.expectedRevisions).toMatchObject({ chronology: 4 });
     expect(chronology.delta.chronology).toEqual([]);
     expect(chronology.delta.chronologyPatches).toEqual([{ id: 'T1', evidenceIndexes: [2, 5] }]);
-    expect(() => parseAgentResearcherOutput_ACU({ sql: "UPDATE hooks SET summary = '越权' WHERE id = 'H1';" })).toThrow(/只允许写入 web_refs/);
-    expect(() => parseAgentMaintainerOutput_ACU({ sql: "UPDATE chronology SET precision = '大概吧' WHERE id = 'T1' AND expected_revision = 4;" })).toThrow(/precision 必须是/);
-    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ action: 'patch', id: 'T1' }] } })).toThrow(/至少要带一个/);
-    expect(() => parseAgentResearcherOutput_ACU({ delta: { webRefs: [{ action: 'patch', id: 'WR-001' }] } })).toThrow(/至少要带一个/);
+    expect(() => parseAgentResearcherOutput_ACU({ sql: "UPDATE hooks SET summary = '越权' WHERE id = 'H1';" })).toThrow(/chỉ được ghi web_refs/);
+    expect(() => parseAgentMaintainerOutput_ACU({ sql: "UPDATE chronology SET precision = '大概吧' WHERE id = 'T1' AND expected_revision = 4;" })).toThrow(/patch\.precision/);
+    expect(() => parseAgentMaintainerOutput_ACU({ delta: { chronology: [{ action: 'patch', id: 'T1' }] } })).toThrow(/ít nhất một trường/);
+    expect(() => parseAgentResearcherOutput_ACU({ delta: { webRefs: [{ action: 'patch', id: 'WR-001' }] } })).toThrow(/ít nhất một trường/);
   });
 
   it('策划类必须给出 recommendation，资料不足应改走工具调用', () => {
     expect(parseAgentPlannerOutput_ACU({ summary: '要点', recommendation: '这样推进', mustPreserve: ['林瑶有伤'], risks: ['提前回收'] }))
       .toMatchObject({ recommendation: '这样推进', mustPreserve: ['林瑶有伤'] });
-    expect(() => parseAgentPlannerOutput_ACU({ summary: '只有摘要' })).toThrowError(/必须给出 recommendation/);
+    expect(() => parseAgentPlannerOutput_ACU({ summary: '只有摘要' })).toThrowError(/phải đưa ra recommendation/);
   });
 
   it('审查类判词非法时直接拒绝，由重试机制纠正', () => {
     expect(parseAgentReviewerOutput_ACU({ verdict: 'revise', reason: '与 H1 冲突', fixes: ['改为部分回收'] }))
       .toMatchObject({ verdict: 'revise', fixes: ['改为部分回收'] });
-    expect(() => parseAgentReviewerOutput_ACU({ verdict: '说不清' })).toThrowError(/verdict 必须是/);
+    expect(() => parseAgentReviewerOutput_ACU({ verdict: '说不清' })).toThrowError(/verdict của/);
   });
 
   it('instruction-composer 拒绝空 instruction，并收下 constraints 增量', () => {
     expect(parseAgentComposerOutput_ACU({ instruction: '从守门人的回避写起', summary: '试探', constraints: { add: ['不得揭穿'], retire: [] } }))
       .toEqual({ instruction: '从守门人的回避写起', summary: '试探', constraints: { add: ['不得揭穿'], retire: [] } });
-    expect(() => parseAgentComposerOutput_ACU({ instruction: '  ', summary: '空' })).toThrowError(/非空 instruction/);
+    expect(() => parseAgentComposerOutput_ACU({ instruction: '  ', summary: '空' })).toThrowError(/instruction không rỗng/);
   });
 });
 describe('协议错误压缩', () => {
@@ -373,7 +373,7 @@ describe('逐栏 write_sql 意图解析', () => {
       'hook-cognition-maintainer',
     );
     expect(parsed.intents).toEqual([{ kind: 'update', module: 'hooks', id: 'H1', expectedRevision: 2, fields: { summary: '新内容', status: 'active' } }]);
-    expect(parsed.rejected).toEqual([{ path: 'hooks#H1.bogus', reason: expect.stringContaining('白名单') }]);
+    expect(parsed.rejected).toEqual([{ path: 'hooks#H1.bogus', reason: expect.stringContaining('danh sách trắng') }]);
     const systemOnly = parseAgentModuleSqlFieldWrites_ACU(
       "UPDATE hooks SET recent_floor=8, expected_revision=3 WHERE id='H1' AND expected_revision=2",
       'hook-cognition-maintainer',
@@ -431,7 +431,7 @@ describe('逐栏 write_sql 意图解析', () => {
     const invalid = parseAgentModuleSqlFieldWrites_ACU("UPDATE hooks SET summary='甲' WHERE id='H1'; UPDATE hooks SET summary=() WHERE id='H1'; INSERT INTO chronology (anchor, 入城后第七天, elapsed, precision, transition, evidence_indexes) VALUES ('入城后第七天', '七日', 'approximate', '迁居客栈', '[1]'); UPDATE hooks SET summary='丙' WHERE id='H2'", 'hook-cognition-maintainer');
     expect(invalid.intents.map(item => item.fields)).toEqual([{ summary: '甲' }, { summary: '丙' }]);
     expect(invalid.rejected).toEqual([
-      { path: 'sql[1]', reason: expect.stringContaining('该语句未写入'), repairTarget: { module: 'hooks', column: 'id', value: 'H1', fields: ['summary'] } },
+      { path: 'sql[1]', reason: expect.stringContaining('câu lệnh này chưa được ghi'), repairTarget: { module: 'hooks', column: 'id', value: 'H1', fields: ['summary'] } },
       { path: 'sql[2]', reason: expect.stringContaining('6 个字段、5 个值'), repairTarget: { module: 'chronology', column: 'anchor', value: '入城后第七天', fields: ['anchor', 'elapsed', 'precision', 'transition', 'evidenceIndexes'] } },
     ]);
     expect(invalid.rejected[1].reason).toContain('不要把正文内容写进列名');

@@ -117,7 +117,7 @@ describe('createRerankScores_ACU 分批', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(createRerankScores_ACU({ endpoint: 'https://rerank.test', model: 'm', query: 'q', documents: Array.from({ length: 20 }, (_, i) => `d${i}`), batchSize: 10 }))
-      .rejects.toThrow(/第 2\/2 批.*503/);
+      .rejects.toThrow(/Lô 2\/2.*503/);
   });
 
   it('单条 document 超长会被截断到上限，请求头只带 Content-Type 与 Authorization', async () => {

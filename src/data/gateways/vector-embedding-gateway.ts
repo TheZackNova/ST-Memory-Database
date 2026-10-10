@@ -133,7 +133,7 @@ async function throwEmbeddingHttpErrorAsync_ACU(
     const detail = providerMessage || raw || response.statusText;
     throw new VectorEmbeddingError_ACU({
         kind,
-        message: `Embedding 请求失败 ${status}: ${detail}`,
+        message: `Yêu cầu Embedding thất bại ${status}: ${detail}`,
         httpStatus: status,
         providerCode,
         providerMessage: providerMessage || detail,
@@ -168,8 +168,8 @@ async function fetchEmbeddingWithTimeout_ACU(
         throw new VectorEmbeddingError_ACU({
             kind: 'retryable',
             message: isAbort
-                ? `Embedding 请求超时（${VECTOR_EMBEDDING_TIMEOUT_MS_ACU}ms），已中断。`
-                : `Embedding 请求网络失败：${error?.message || String(error || '未知错误')}`,
+                ? `Yêu cầu Embedding hết thời gian (${VECTOR_EMBEDDING_TIMEOUT_MS_ACU}ms), đã ngắt.`
+                : `Yêu cầu Embedding lỗi mạng: ${error?.message || String(error || 'Lỗi không xác định')}`,
             endpoint,
             model,
         });
@@ -204,7 +204,7 @@ async function requestEmbeddingsOnce_ACU(
     } catch (_error) {
         throw new VectorEmbeddingError_ACU({
             kind: 'provider-contract',
-            message: `Embedding 响应不是合法 JSON（前 200 字符：${rawBody.slice(0, 200)}）。`,
+            message: `Phản hồi Embedding không phải JSON hợp lệ (200 ký tự đầu: ${rawBody.slice(0, 200)}).`,
             httpStatus: response.status,
             endpoint,
             model,
@@ -214,7 +214,7 @@ async function requestEmbeddingsOnce_ACU(
     if (normalized.length === 0) {
         throw new VectorEmbeddingError_ACU({
             kind: 'provider-contract',
-            message: 'Embedding 响应中没有可用向量。',
+            message: 'Phản hồi Embedding không có vector khả dụng.',
             httpStatus: response.status,
             endpoint,
             model,
@@ -229,10 +229,10 @@ export async function createEmbeddings_ACU(request: VectorEmbeddingRequest_ACU):
     const model = String(request.model || '').trim();
     const input = Array.isArray(request.input) ? request.input.map((item) => String(item ?? '')) : [];
     if (!endpoint) {
-        throw new Error('缺少 embeddingEndpoint，无法生成纪要向量索引。');
+        throw new Error('Thiếu embeddingEndpoint, không thể tạo chỉ mục vector kỷ yếu.');
     }
     if (!model) {
-        throw new Error('缺少 embeddingModel，无法生成纪要向量索引。');
+        throw new Error('Thiếu embeddingModel, không thể tạo chỉ mục vector kỷ yếu.');
     }
     if (input.length === 0) {
         return [];
@@ -265,5 +265,5 @@ export async function createEmbeddings_ACU(request: VectorEmbeddingRequest_ACU):
             await runWithAbortSignal_ACU(request.signal, () => new Promise<void>((resolve) => setTimeout(resolve, waitMs)));
         }
     }
-    throw lastError instanceof Error ? lastError : new Error(String(lastError || 'Embedding 请求失败'));
+    throw lastError instanceof Error ? lastError : new Error(String(lastError || 'Yêu cầu Embedding thất bại'));
 }

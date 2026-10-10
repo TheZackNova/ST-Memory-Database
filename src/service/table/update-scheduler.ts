@@ -339,7 +339,7 @@ export async function executeAutoUpdatePlan_ACU(
                 runId: performanceContext?.runId, stage: 'group', failedGroupCount: groupedResult.failedGroups.length,
             });
             failedGroupKeys.push(...groupedResult.failedGroups);
-            const groupedError = groupedResult.error || '分组更新失败，未返回具体错误。';
+            const groupedError = groupedResult.error || 'Cập nhật theo nhóm thất bại, không có lỗi cụ thể được trả về.';
             groupedResult.failedGroups.forEach(groupKey => pushGroupError_ACU(groupKey, groupedError));
         }
     };
@@ -376,7 +376,7 @@ export async function executeAutoUpdatePlan_ACU(
             results.forEach((result, idx) =>{
                 if (result.status === 'rejected') {
                     failedGroupKeys.push(chunkKeys[idx]);
-                    pushGroupError_ACU(chunkKeys[idx], result.reason || '分组更新异常退出。');
+                    pushGroupError_ACU(chunkKeys[idx], result.reason || 'Cập nhật theo nhóm thoát bất thường.');
                     return;
                 }
                 const rawResult = result.value?.success;
@@ -387,7 +387,7 @@ export async function executeAutoUpdatePlan_ACU(
                     failedGroupKeys.push(chunkKeys[idx]);
                     const error = rawResult && typeof rawResult === 'object' && 'error' in rawResult
                         ? (rawResult as { error?: unknown }).error
-                        : '分组更新失败，未返回具体错误。';
+                        : 'Cập nhật theo nhóm thất bại, không có lỗi cụ thể được trả về.';
                     pushGroupError_ACU(chunkKeys[idx], error);
                 }
             });
@@ -411,7 +411,7 @@ export async function executeAutoUpdatePlan_ACU(
             chunkKeys.forEach(key => {
                 runnerUnavailableGroupKeys.push(key);
                 failedGroupKeys.push(key);
-                pushGroupError_ACU(key, 'staging_runner_unavailable：跨 replay 根的分组缺少 staging runner，已阻止本次填表。');
+                pushGroupError_ACU(key, 'staging_runner_unavailable: nhóm vượt qua gốc replay thiếu staging runner, đã chặn lần điền bảng này.');
             });
         }
     }

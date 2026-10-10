@@ -98,6 +98,6 @@ export function assertWorldSimulationEvidenceRefsAuthorized_ACU(refs: readonly s
   const unauthorized = findUnauthorizedWorldSimulationEvidenceRefs_ACU(refs, snapshot);
   if (!unauthorized.length) return;
   throw new WorldSimulationValidationError_ACU(createWorldSimulationError_ACU(
-    'WORLD_SIMULATION_EVIDENCE_UNAUTHORIZED', 'agent_loop', 'evidenceRefs 包含当前 run 未授权引用', false, { unauthorized },
+    'WORLD_SIMULATION_EVIDENCE_UNAUTHORIZED', 'agent_loop', 'evidenceRefs chứa tham chiếu chưa được ủy quyền cho run hiện tại', false, { unauthorized },
   ));
 }

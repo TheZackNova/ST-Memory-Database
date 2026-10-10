@@ -377,7 +377,7 @@ export interface V2ReplayEntryAppliedContext_ACU {
  */
 export class V2ReplayAbortedError_ACU extends Error {
   readonly code = 'v2_replay_aborted';
-  constructor(message = '[V2 Replay] 回放已取消。') {
+  constructor(message = '[V2 Replay] Phát lại đã bị hủy.') {
     super(message);
     this.name = 'V2ReplayAbortedError_ACU';
   }
@@ -426,9 +426,9 @@ export function buildCompatReadonlyWriteRejectionMessage_ACU(
   replay: Pick<TableReplayResultV2_ACU, 'legacyToleranceDiagnosis'> | null | undefined,
   extra?: string,
 ): string {
-  const strictError = replay?.legacyToleranceDiagnosis?.strictError || '未知错误';
-  const suffix = extra ? `；${extra}` : '';
-  return `${scope}检测到聊天历史${V2_COMPAT_READONLY_MARKER_ACU}（严格回放失败：${strictError}），不能继续写入${suffix}；请在数据管理 → 「诊断 V2 数据恢复」中把兼容回放结果固化为过渡根后重试。`;
+  const strictError = replay?.legacyToleranceDiagnosis?.strictError || 'Lỗi không xác định';
+  const suffix = extra ? `; ${extra}` : '';
+  return `${scope} phát hiện lịch sử trò chuyện ${V2_COMPAT_READONLY_MARKER_ACU} (phát lại nghiêm ngặt thất bại: ${strictError}), không thể tiếp tục ghi${suffix}; hãy vào Quản lý dữ liệu → 「Chẩn đoán khôi phục dữ liệu V2」 để cố định kết quả phát lại tương thích thành gốc chuyển tiếp rồi thử lại.`;
 }
 
 export function isCompatReadonlyWriteRejection_ACU(error: unknown): boolean {
@@ -443,7 +443,7 @@ export function isCompatReadonlyWriteRejection_ACU(error: unknown): boolean {
 export const V2_WRITE_GUARD_MARKER_ACU = '写入时基底与回放基底不一致';
 
 export function buildAppendedOperationsWriteRejectionMessage_ACU(detail: string): string {
-  return `V2 写入被拒绝：本次增量与聊天历史回放状态不一致（${V2_WRITE_GUARD_MARKER_ACU}），已阻止写出不可严格回放的历史：${detail}`;
+  return `Ghi V2 bị từ chối: phần tăng lượng lần này không khớp trạng thái phát lại lịch sử trò chuyện (${V2_WRITE_GUARD_MARKER_ACU}), đã chặn ghi ra lịch sử không thể phát lại nghiêm ngặt: ${detail}`;
 }
 
 export function isAppendedOperationsWriteRejection_ACU(error: unknown): boolean {
@@ -1055,7 +1055,7 @@ function normalizeSheetCheckpointTimelineForReplay_ACU(
   if (!timeline || typeof timeline !== 'object' || Array.isArray(timeline)
     || (timeline.kind !== 'sheet_introduction' && timeline.kind !== 'sheet_rebase'
       && timeline.kind !== 'sheet_reveal' && timeline.kind !== 'sheet_hide')) {
-    throw new Error(`perSheetCheckpoints.${context.recordKey} 包含非法 timeline`);
+    throw new Error(`perSheetCheckpoints.${context.recordKey} chứa timeline không hợp lệ`);
   }
 
   const repairs: string[] = [];
@@ -1064,16 +1064,16 @@ function normalizeSheetCheckpointTimelineForReplay_ACU(
     activateAtMessageIndex = context.frameMessageIndex;
     repairs.push(`activateAtMessageIndex→${activateAtMessageIndex}`);
   } else if (!Number.isInteger(activateAtMessageIndex) || activateAtMessageIndex < 0) {
-    throw new Error(`perSheetCheckpoints.${context.recordKey} 包含非法 timeline`);
+    throw new Error(`perSheetCheckpoints.${context.recordKey} chứa timeline không hợp lệ`);
   }
   let afterSeq = timeline.afterSeq;
   if (afterSeq === undefined) {
     throw new Error(
-      `perSheetCheckpoints.${context.recordKey} 缺少 afterSeq，无法确定相对日志顺序：`
+      `perSheetCheckpoints.${context.recordKey} thiếu afterSeq, không thể xác định thứ tự nhật ký tương đối: `
       + `sheetKey=${context.sheetKey}, messageIndex=${context.frameMessageIndex}`,
     );
   } else if (!Number.isInteger(afterSeq) || afterSeq < 0) {
-    throw new Error(`perSheetCheckpoints.${context.recordKey} 包含非法 timeline`);
+    throw new Error(`perSheetCheckpoints.${context.recordKey} chứa timeline không hợp lệ`);
   }
   if (repairs.length === 0) return timeline;
 
@@ -1102,20 +1102,20 @@ function getValidatedSheetCheckpoints_ACU(
   const checkpoints = frame.perSheetCheckpoints;
   if (checkpoints === undefined) return [];
   if (!checkpoints || typeof checkpoints !== 'object' || Array.isArray(checkpoints)) {
-    throw new Error('perSheetCheckpoints 必须是按 sheetKey 索引的对象');
+    throw new Error('perSheetCheckpoints phải là đối tượng được lập chỉ mục theo sheetKey');
   }
   const isSheetKey = (value: unknown): value is string => typeof value === 'string' && value.startsWith('sheet_');
   const normalized = Object.entries(checkpoints).map(([recordKey, checkpoint]) => {
     if (!checkpoint || typeof checkpoint !== 'object' || Array.isArray(checkpoint)
       || checkpoint.kind !== 'sheet_full') {
-      throw new Error(`perSheetCheckpoints.${recordKey} 缺少有效的 sheet_full checkpoint`);
+      throw new Error(`perSheetCheckpoints.${recordKey} thiếu sheet_full checkpoint hợp lệ`);
     }
     if (!checkpoint.data || typeof checkpoint.data !== 'object' || Array.isArray(checkpoint.data)) {
-      throw new Error(`perSheetCheckpoints.${recordKey} 缺少有效的单表 data`);
+      throw new Error(`perSheetCheckpoints.${recordKey} thiếu data bảng đơn hợp lệ`);
     }
     const declaredKey = checkpoint.sheetKey;
     if (!isSheetKey(recordKey) && !isSheetKey(declaredKey)) {
-      throw new Error(`perSheetCheckpoints 包含非法键: ${recordKey}`);
+      throw new Error(`perSheetCheckpoints chứa khóa không hợp lệ: ${recordKey}`);
     }
 
     const sheetKey = isSheetKey(recordKey) ? recordKey : declaredKey;
@@ -1147,7 +1147,7 @@ function getValidatedSheetCheckpoints_ACU(
     (checkpoint, index) => normalized.findIndex(other => other.sheetKey === checkpoint.sheetKey) !== index,
   );
   if (duplicateKey) {
-    throw new Error(`perSheetCheckpoints 归一化后存在重复 sheetKey: ${duplicateKey.sheetKey}`);
+    throw new Error(`perSheetCheckpoints sau khi chuẩn hóa có sheetKey trùng: ${duplicateKey.sheetKey}`);
   }
   return normalized;
 }
@@ -1170,7 +1170,7 @@ function getReplayOrderedFrameLogEntries_ACU(
   const entries = Array.isArray(rawEntries)
     ? rawEntries
     : (rawEntries && typeof rawEntries === 'object' ? [rawEntries] : null);
-  if (!entries) throw new Error('logEntries 必须是数组或旧版单条日志对象');
+  if (!entries) throw new Error('logEntries phải là mảng hoặc đối tượng nhật ký đơn kiểu cũ');
 
   const usesCanonicalOrder = entries.every((entry, index) => {
     const seq = (entry as any)?.seq;
@@ -1180,7 +1180,7 @@ function getReplayOrderedFrameLogEntries_ACU(
 
   const normalized = entries.map((entry, index) => {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-      throw new Error(`logEntries[${index}] 必须是对象，无法按物理顺序兼容。`);
+      throw new Error(`logEntries[${index}] phải là đối tượng, không thể tương thích theo thứ tự vật lý.`);
     }
     return { ...(entry as TableMutationLogEntryV2_ACU), seq: index };
   });
@@ -1264,7 +1264,7 @@ function normalizeReplayState_ACU(state: TableDataObject_ACU, context: string): 
   const normalization = normalizeCanonicalTableRows_ACU(candidate);
   const canonicalIssues = [...normalization.errors, ...normalization.removedRows];
   if (canonicalIssues.length > 0) {
-    throw new Error(`[V2 Replay] ${context} 行标识不合法：${formatCanonicalRowIssues_ACU(canonicalIssues)}`);
+    throw new Error(`[V2 Replay] ${context} định danh hàng không hợp lệ: ${formatCanonicalRowIssues_ACU(canonicalIssues)}`);
   }
   replaceState_ACU(state, candidate);
 }
@@ -1291,16 +1291,16 @@ function normalizeHistoricalReplayState_ACU(state: TableDataObject_ACU, context:
   if (conservation.rowCountAfter !== conservation.rowCountBefore
     || conservation.businessCellCountAfter !== conservation.businessCellCountBefore) {
     throw new Error(
-      `[V2 Replay] ${context} 历史行身份兼容破坏数据守恒：`
+      `[V2 Replay] ${context} tương thích danh tính hàng lịch sử phá vỡ bảo toàn dữ liệu: `
       + `rows ${conservation.rowCountBefore}→${conservation.rowCountAfter}, `
-      + `cells ${conservation.businessCellCountBefore}→${conservation.businessCellCountAfter}。`,
+      + `cells ${conservation.businessCellCountBefore}→${conservation.businessCellCountAfter}. `,
     );
   }
 
   const normalization = normalizeCanonicalTableRows_ACU(candidate);
   const canonicalIssues = [...normalization.errors, ...normalization.removedRows];
   if (canonicalIssues.length > 0) {
-    throw new Error(`[V2 Replay] ${context} 行标识不合法：${formatCanonicalRowIssues_ACU(canonicalIssues)}`);
+    throw new Error(`[V2 Replay] ${context} định danh hàng không hợp lệ: ${formatCanonicalRowIssues_ACU(canonicalIssues)}`);
   }
 
   if (identity.repairs.length > 0) {
@@ -1364,7 +1364,7 @@ function normalizeLegacyDuplicateCheckpointState_ACU(state: TableDataObject_ACU)
       canonicalReasons: [...normalization.removedRows, ...nonDuplicateErrors].map(issue => issue.reason),
     });
     logWarn_ACU(`[V2 Replay] 旧 full checkpoint 重复 row_id 兼容修复未执行：${diagnostics}。`);
-    normalizeHistoricalReplayState_ACU(state, `full checkpoint（${diagnostics}）`);
+    normalizeHistoricalReplayState_ACU(state, `full checkpoint (${diagnostics}) `);
     return;
   }
 
@@ -1393,7 +1393,7 @@ function normalizeLegacyDuplicateCheckpointState_ACU(state: TableDataObject_ACU)
     });
     logWarn_ACU(`[V2 Replay] 旧 full checkpoint 重复 row_id 兼容修复未执行：${diagnostics}。`
       + '该 checkpoint 不可无损自动修复，请先导出原始 frame 后在数据管理执行 V2 恢复。');
-    normalizeHistoricalReplayState_ACU(state, `full checkpoint（${diagnostics}）`);
+    normalizeHistoricalReplayState_ACU(state, `full checkpoint (${diagnostics}) `);
     return;
   }
   const repair = repairTableDataFromAudit_ACU(audit);
@@ -1405,7 +1405,7 @@ function normalizeLegacyDuplicateCheckpointState_ACU(state: TableDataObject_ACU)
       requiresConfirmation: repair.requiresConfirmation,
     });
     logWarn_ACU(`[V2 Replay] 旧 full checkpoint 重复 row_id 兼容修复未执行：${diagnostics}。`);
-    normalizeHistoricalReplayState_ACU(state, `full checkpoint（${diagnostics}）`);
+    normalizeHistoricalReplayState_ACU(state, `full checkpoint (${diagnostics}) `);
     return;
   }
   const candidate = repair.candidateData as TableDataObject_ACU;
@@ -1535,7 +1535,7 @@ function supersedeSameNameSheetForReplay_ACU(
       supersededRows: rows,
     };
     identity.merges.push(remap);
-    details.push(`${key}（${rows} 行）`);
+    details.push(`${key}(${rows} hàng)`);
   }
   if (incomingKey !== canonicalKey) registerReplayKeyRedirect_ACU(identity, incomingKey, canonicalKey);
   if (aliasContext?.enabled) invalidateReplayAliasContext_ACU(aliasContext);
@@ -1543,8 +1543,8 @@ function supersedeSameNameSheetForReplay_ACU(
   const totalSuperseded = identity.merges
     .filter(remap => remap.toKey === canonicalKey && remap.supersededRows !== undefined)
     .reduce((sum, remap) => sum + (remap.supersededRows || 0), 0);
-  const message = `[V2 Replay] 同名表接管（${stage}）：「${String(incomingSheet.name || '')}」事件 key=${incomingKey} 接管 ${details.join('、')}，`
-    + `按规范 key=${canonicalKey} 继续回放；表内容以事件数据为准（历史写入时该表即为此状态）。原 storage frame 未修改。`;
+  const message = `[V2 Replay] tiếp quản bảng cùng tên (${stage}): 「${String(incomingSheet.name || '')}」 sự kiện key=${incomingKey} tiếp quản ${details.join(', ')}, `
+    + `tiếp tục phát lại theo key chuẩn=${canonicalKey}; nội dung bảng lấy theo dữ liệu sự kiện (khi ghi lịch sử bảng đã ở trạng thái này). storage frame gốc không bị sửa.`;
   if (totalSuperseded > 0) logWarn_ACU(message);
   else logDebug_ACU(message);
   return canonicalKey;
@@ -1576,12 +1576,12 @@ function mergeSameNameSheetIdentitiesForReplay_ACU(
   if (aliasContext?.enabled) invalidateReplayAliasContext_ACU(aliasContext);
   else if (metrics) metrics.aliasInvalidateCount += 1;
   const detail = merge.remaps
-    .map(remap => `${remap.fromKey}→${remap.toKey}「${remap.canonicalName}」（并入 ${remap.appendedRows} 行、同 id ${remap.overriddenRows} 行`
-      + `${remap.conflictingRowIds.length > 0 ? `、冲突 ${remap.conflictingRowIds.length} 行` : ''}`
-      + `${remap.droppedColumns.length > 0 ? `、丢弃列 ${remap.droppedColumns.join('/')}` : ''}）`)
-    .join('；');
+    .map(remap => `${remap.fromKey}→${remap.toKey}「${remap.canonicalName}」(gộp ${remap.appendedRows} hàng, cùng id ${remap.overriddenRows} hàng`
+      + `${remap.conflictingRowIds.length > 0 ? `, xung đột ${remap.conflictingRowIds.length} hàng` : ''}`
+      + `${remap.droppedColumns.length > 0 ? `, bỏ cột ${remap.droppedColumns.join('/')}` : ''})`)
+    .join('; ');
   const hasLoss = merge.remaps.some(remap => remap.conflictingRowIds.length > 0 || remap.droppedColumns.length > 0);
-  const message = `[V2 Replay] 同名 sheetKey 身份归并（${stage}）：${detail}。原 storage frame 未修改；下次 checkpoint 固化后历史只保留归并后的 key。`;
+  const message = `[V2 Replay] gộp danh tính sheetKey cùng tên (${stage}): ${detail}. storage frame gốc không bị sửa; sau lần checkpoint cố định tiếp theo, lịch sử chỉ giữ key đã gộp.`;
   if (hasLoss) logWarn_ACU(message);
   else logDebug_ACU(message);
 }
@@ -1631,7 +1631,7 @@ function getExportedSqlReplayRuntimeState_ACU(
   const next = options.legacyDuplicateRowIds
     ? runtime.syncBridge.exportSpv79LegacyDuplicateRowIdHistory(mate)
     : runtime.syncBridge.exportToTableData(mate, { strict: true });
-  if (!options.legacyDuplicateRowIds) normalizeReplayState_ACU(next, 'SQL 导出结果');
+  if (!options.legacyDuplicateRowIds) normalizeReplayState_ACU(next, 'kết quả xuất SQL');
   return next;
 }
 
@@ -1798,7 +1798,7 @@ function buildReplaySqlTableAliases_ACU(
       const existingTarget = aliases.get(historical);
       if (historical && existingTarget && existingTarget !== target) {
         throw new Error(
-          `[V2 Replay] sql_sheet_batch 历史表名与其他 Sheet 冲突：sheetKey=${operation.sheetKey}, tableName=${operation.tableName}, target=${target}, occupiedBy=${existingTarget}。`,
+          `[V2 Replay] sql_sheet_batch tên bảng lịch sử xung đột với Sheet khác: sheetKey=${operation.sheetKey}, tableName=${operation.tableName}, target=${target}, occupiedBy=${existingTarget}. `,
         );
       }
     } else {
@@ -1916,7 +1916,7 @@ function assertMetaUpdateDoesNotChangeDdl_ACU(patch: Extract<TablePatchV2_ACU, {
   if (sourceData && typeof sourceData === 'object' && !Array.isArray(sourceData)
     && Object.prototype.hasOwnProperty.call(sourceData, 'ddl')) {
     throw new Error(
-      '[V2 Replay] legacy meta_update.sourceData.ddl 无法安全回放；该结构变更需要迁移为 sheet_schema_migrate 或 sheet_replace。',
+      '[V2 Replay] legacy meta_update.sourceData.ddl không thể phát lại an toàn; thay đổi cấu trúc này cần được di chuyển thành sheet_schema_migrate hoặc sheet_replace.',
     );
   }
 }
@@ -1936,9 +1936,9 @@ function applyTablePatchLegacyDuplicateRowIds_ACU(
     return;
   }
   if (patch.kind === 'row_upsert') {
-    if (!Array.isArray(patch.cells)) throw new Error(`[V2 Replay] legacy row_upsert cells 必须是数组：sheetKey=${patch.sheetKey}。`);
+    if (!Array.isArray(patch.cells)) throw new Error(`[V2 Replay] legacy row_upsert cells phải là mảng: sheetKey=${patch.sheetKey}.`);
     const rowId = String(patch.rowId ?? patch.cells[0] ?? '').trim();
-    if (!rowId) throw new Error(`[V2 Replay] legacy row_upsert 缺少 row_id：sheetKey=${patch.sheetKey}。`);
+    if (!rowId) throw new Error(`[V2 Replay] legacy row_upsert thiếu row_id: sheetKey=${patch.sheetKey}.`);
     const rowIndex = sheet.content.findIndex((row, index) => index > 0 && Array.isArray(row) && String(row[0] ?? '').trim() === rowId);
     const row = deepClone_ACU(patch.cells);
     if (row.length > 0) row[0] = rowId;
@@ -1984,7 +1984,7 @@ export function applyTablePatchV2_ACU(state: TableDataObject_ACU, patch: TablePa
       && isEmptyCanonicalRowId_ACU(patch.cells[0]);
     if (isLegacyRowUpsertDelete) {
       throw new Error(
-        `[V2 Replay] legacy row_upsert 删除目标 Sheet 缺失或 content 非法：sheetKey=${patch.sheetKey}。`,
+        `[V2 Replay] legacy row_upsert xóa: Sheet đích thiếu hoặc content không hợp lệ: sheetKey=${patch.sheetKey}. `,
       );
     }
     logWarn_ACU(`[V2 Replay] 跳过 patch，缺少表或 content: ${patch.sheetKey}`);
@@ -1993,27 +1993,27 @@ export function applyTablePatchV2_ACU(state: TableDataObject_ACU, patch: TablePa
 
   if (patch.kind === 'row_upsert') {
     if (!Array.isArray(patch.cells)) {
-      throw new Error(`[V2 Replay] row_upsert cells 必须是数组：sheetKey=${patch.sheetKey}。`);
+      throw new Error(`[V2 Replay] row_upsert cells phải là mảng: sheetKey=${patch.sheetKey}.`);
     }
     const nextCells = deepClone_ACU(patch.cells);
     const header = sheet.content[0];
     if (isEmptyCanonicalRowId_ACU(nextCells[0])) {
       const targetRowId = String(patch.rowId ?? '').trim();
       if (!targetRowId) {
-        throw new Error(`[V2 Replay] legacy row_upsert 删除缺少 row_id：sheetKey=${patch.sheetKey}。`);
+        throw new Error(`[V2 Replay] legacy row_upsert xóa thiếu row_id: sheetKey=${patch.sheetKey}.`);
       }
       if (!Array.isArray(header) || header[0] !== 'row_id') {
-        throw new Error(`[V2 Replay] legacy row_upsert 删除要求 row_id 表头：sheetKey=${patch.sheetKey}。`);
+        throw new Error(`[V2 Replay] legacy row_upsert xóa yêu cầu tiêu đề row_id: sheetKey=${patch.sheetKey}.`);
       }
       const matchingIndexes = sheet.content.reduce<number[]>((indexes, row, index) => {
         if (index > 0 && Array.isArray(row) && String(row[0] ?? '').trim() === targetRowId) indexes.push(index);
         return indexes;
       }, []);
       if (matchingIndexes.length === 0) {
-        throw new Error(`[V2 Replay] legacy row_upsert 删除目标 row_id 不存在：sheetKey=${patch.sheetKey}。`);
+        throw new Error(`[V2 Replay] legacy row_upsert xóa: row_id đích không tồn tại: sheetKey=${patch.sheetKey}.`);
       }
       if (matchingIndexes.length > 1) {
-        throw new Error(`[V2 Replay] legacy row_upsert 删除遇到重复 row_id：sheetKey=${patch.sheetKey}。`);
+        throw new Error(`[V2 Replay] legacy row_upsert xóa gặp row_id trùng: sheetKey=${patch.sheetKey}.`);
       }
       sheet.content.splice(matchingIndexes[0], 1);
       return;
@@ -2021,20 +2021,20 @@ export function applyTablePatchV2_ACU(state: TableDataObject_ACU, patch: TablePa
     const rowId = String(patch.rowId ?? '').trim();
     const cellsRowId = String(nextCells[0]).trim();
     if (!rowId || rowId !== cellsRowId) {
-      throw new Error(`[V2 Replay] row_upsert 身份不一致：sheetKey=${patch.sheetKey}。`);
+      throw new Error(`[V2 Replay] row_upsert danh tính không nhất quán: sheetKey=${patch.sheetKey}.`);
     }
     if (!Array.isArray(header) || header[0] !== 'row_id') {
-      throw new Error(`[V2 Replay] row_upsert 要求 row_id 表头：sheetKey=${patch.sheetKey}。`);
+      throw new Error(`[V2 Replay] row_upsert yêu cầu tiêu đề row_id: sheetKey=${patch.sheetKey}.`);
     }
     if (nextCells.length !== header.length) {
-      throw new Error(`[V2 Replay] row_upsert 行宽不匹配：sheetKey=${patch.sheetKey}。`);
+      throw new Error(`[V2 Replay] row_upsert độ rộng hàng không khớp: sheetKey=${patch.sheetKey}.`);
     }
     const matchingIndexes = sheet.content.reduce<number[]>((indexes, row, index) => {
       if (index > 0 && Array.isArray(row) && String(row[0] ?? '').trim() === rowId) indexes.push(index);
       return indexes;
     }, []);
     if (matchingIndexes.length > 1) {
-      throw new Error(`[V2 Replay] row_upsert 遇到重复 row_id：sheetKey=${patch.sheetKey}。`);
+      throw new Error(`[V2 Replay] row_upsert gặp row_id trùng: sheetKey=${patch.sheetKey}.`);
     }
     nextCells[0] = rowId;
     if (matchingIndexes.length === 1) sheet.content[matchingIndexes[0]] = nextCells;
@@ -2243,7 +2243,7 @@ async function applyTableOperationV2Core_ACU(
       logWarn_ACU('[V2 Compat Replay] 跳过缺少有效 kind 的 operation（spv7.9 兼容语义）。');
       return;
     }
-    throw new Error('[V2 Replay] operation 缺少有效 kind。');
+    throw new Error('[V2 Replay] operation thiếu kind hợp lệ.');
   }
   // 同名接管 / 归并后的 key 重定向：引用被淘汰 key 的 operation 一律改绑到规范 key
   // （sheet_replace 自身的同名接管在其分支内再判定一次，这里先把已知重定向套上）。
@@ -2347,7 +2347,7 @@ async function applyTableOperationV2Core_ACU(
       logWarn_ACU(`[V2 Compat Replay] 跳过未知 operation kind: ${String((operation as any).kind)}（spv7.9 兼容语义）。`);
       return;
     }
-    throw new Error(`[V2 Replay] 不支持的 operation kind: ${(operation as any).kind}`);
+    throw new Error(`[V2 Replay] operation kind không được hỗ trợ: ${(operation as any).kind}`);
   } finally {
     if (ownedRuntime) disposeSqlReplayRuntime_ACU(ownedRuntime);
   }
@@ -2430,7 +2430,7 @@ async function loadTableStateFromFramesV2DetailedCore_ACU(
   options: LoadTableStateFromFramesV2Options_ACU = {},
 ): Promise<TableReplayResultV2_ACU | null> {
   if (typeof options.onEntryApplied === 'function' && options.updateRuntimeState !== false) {
-    throw new Error('[V2 Replay] onEntryApplied 仅在 updateRuntimeState:false 的只读路径下允许。');
+    throw new Error('[V2 Replay] onEntryApplied chỉ được phép ở đường dẫn chỉ đọc với updateRuntimeState:false.');
   }
   const chat = chatArg || getChatArray_ACU();
   if (!Array.isArray(chat) || chat.length === 0) return null;
@@ -2745,7 +2745,7 @@ async function loadTableStateFromFramesV2DetailedCore_ACU(
       // 该 boundary」完全一致。
       if (captureBoundarySet.size > 0 && captureBoundarySet.has(ref.messageIndex)) {
         if (options.updateRuntimeState !== false) {
-          throw new Error('[V2 Replay] captureBoundaries 仅在 updateRuntimeState:false 的只读路径下允许。');
+          throw new Error('[V2 Replay] captureBoundaries chỉ được phép ở đường dẫn chỉ đọc với updateRuntimeState:false.');
         }
         // captureBoundaries 非空时 capturedBoundaries 恒为实际容器（传入的
         // captureSink 或内部临时 Map），此处直接写入。快照携带该 boundary 的
@@ -2906,7 +2906,7 @@ export async function loadTableStateFromFramesV2Detailed_ACU(
   options: LoadTableStateFromFramesV2Options_ACU = {},
 ): Promise<TableReplayResultV2_ACU | null> {
   if (typeof options.onEntryApplied === 'function' && options.updateRuntimeState !== false) {
-    throw new Error('[V2 Replay] onEntryApplied 仅在 updateRuntimeState:false 的只读路径下允许。');
+    throw new Error('[V2 Replay] onEntryApplied chỉ được phép ở đường dẫn chỉ đọc với updateRuntimeState:false.');
   }
   const chat = chatArg || getChatArray_ACU();
   const isolationKey = isolationKeyArg ?? getCurrentIsolationKey_ACU();
@@ -3138,7 +3138,7 @@ export async function loadTableStatesAtBoundariesFromFramesV2Detailed_ACU(
   const chat = chatArg || getChatArray_ACU();
   if (!Array.isArray(chat) || chat.length === 0) return new Map();
   if (options.updateRuntimeState !== false) {
-    throw new Error('[V2 Replay] loadTableStatesAtBoundariesFromFramesV2Detailed_ACU 仅支持 updateRuntimeState:false 只读路径。');
+    throw new Error('[V2 Replay] loadTableStatesAtBoundariesFromFramesV2Detailed_ACU chỉ hỗ trợ đường dẫn chỉ đọc updateRuntimeState:false.');
   }
   if (!Array.isArray(boundaries) || boundaries.length === 0) return new Map();
 
@@ -3175,7 +3175,7 @@ export async function loadTableStatesAtBoundariesFromFramesV2Detailed_ACU(
       captureSink,
     });
     if (!result || result.baseKind !== 'full_checkpoint') {
-      throw new Error('[V2 Replay] 多 boundary 前向捕获未建立正式 full checkpoint 基底。');
+      throw new Error('[V2 Replay] Việc bắt tiến nhiều boundary chưa thiết lập nền full checkpoint chính thức.');
     }
     // 主结果只反映最终 boundary 的 state；各 boundary 快照从 sink 读回。校验：
     // 1) 每个 boundary 都命中（sink 覆盖全部传入值）——部分未命中说明该 boundary
@@ -3205,10 +3205,10 @@ export async function loadTableStatesAtBoundariesFromFramesV2Detailed_ACU(
       maxMessageIndex: boundary,
     });
     if (!replay || replay.baseKind !== 'full_checkpoint') {
-      throw new Error(`[V2 Replay] 多 boundary 回退 replay 未建立正式基底：boundary=${boundary}。`);
+      throw new Error(`[V2 Replay] replay lùi nhiều boundary chưa thiết lập nền chính thức: boundary=${boundary}.`);
     }
     if (replay.compatibilityRepairs?.length || replay.requiresCheckpointConvergence) {
-      throw new Error(`[V2 Replay] 多 boundary 回退 replay 依赖兼容修复：boundary=${boundary}。`);
+      throw new Error(`[V2 Replay] replay lùi nhiều boundary phụ thuộc sửa chữa tương thích: boundary=${boundary}.`);
     }
     results.set(boundary, { ...replay, capturedBoundary: boundary });
   }
@@ -3245,7 +3245,7 @@ function getLegacyTolerantOrderedEntries_ACU(
   const list = Array.isArray(rawEntries)
     ? rawEntries
     : (rawEntries && typeof rawEntries === 'object' ? [rawEntries] : null);
-  if (!list) throw new Error('logEntries 必须是数组或旧版单条日志对象');
+  if (!list) throw new Error('logEntries phải là mảng hoặc đối tượng nhật ký đơn kiểu cũ');
   const allHaveSeq = list.every(entry => Number.isInteger((entry as any)?.seq) && (entry as any).seq >= 0);
   if (!allHaveSeq) return getReplayOrderedFrameLogEntries_ACU(frame, { warnOnRepair: false });
   const sorted = [...list].sort((left, right) => (left as any).seq - (right as any).seq);
@@ -3273,13 +3273,13 @@ export async function replayWithLegacyTolerances_ACU(
   const toleranceReport = createLegacyToleranceReport_ACU();
   const frameRefs = getV2FrameRefs_ACU(chat, isolationKey)
     .filter(ref => options.maxMessageIndex === undefined || ref.messageIndex <= options.maxMessageIndex);
-  if (frameRefs.length === 0) throw new Error('SPv7.9 兼容回放缺少 V2 storage frame。');
+  if (frameRefs.length === 0) throw new Error('Phát lại tương thích SPv7.9 thiếu V2 storage frame.');
 
   const baseIndex = findLastFullCheckpointFrameIndex_ACU(frameRefs);
-  if (baseIndex < 0) throw new Error('SPv7.9 兼容回放缺少 full checkpoint 基底。');
+  if (baseIndex < 0) throw new Error('Phát lại tương thích SPv7.9 thiếu nền full checkpoint.');
   const baseRef = frameRefs[baseIndex];
   const checkpoint = baseRef.frame.checkpoint;
-  if (!checkpoint || checkpoint.kind !== 'full') throw new Error('SPv7.9 兼容回放基底不是有效 full checkpoint。');
+  if (!checkpoint || checkpoint.kind !== 'full') throw new Error('Nền phát lại tương thích SPv7.9 không phải full checkpoint hợp lệ.');
   // 基底结构校验：data 必须是承载表数据的 plain object（含 sheet_* 或 mate）。
   // 垃圾基底（字符串/数组/空对象等）若不拦截，后续 merge/normalize 对非对象
   // state 全部静默 no-op，会让 Tier-1"成功"返回不可用状态，绕过上游阻塞防线。
@@ -3287,7 +3287,7 @@ export async function replayWithLegacyTolerances_ACU(
   const baseDataIsPlainObject = !!baseData && typeof baseData === 'object' && !Array.isArray(baseData);
   const baseDataHasTableShape = baseDataIsPlainObject
     && Object.keys(baseData as Record<string, unknown>).some(key => key.startsWith('sheet_') || key === 'mate');
-  if (!baseDataHasTableShape) throw new Error('SPv7.9 兼容回放基底 full checkpoint data 结构非法（非表数据对象）。');
+  if (!baseDataHasTableShape) throw new Error('Cấu trúc data của full checkpoint nền phát lại tương thích SPv7.9 không hợp lệ (không phải đối tượng dữ liệu bảng).');
 
   // 身份归并 hint：当前模板/指导表侧的 key 优先保留。
   let headerOnlyTemplate: TableDataObject_ACU | null = null;
@@ -3416,8 +3416,8 @@ function findLastAiMessageIndex_ACU(chat: any[]): number {
 
 function describeIdentityRemaps_ACU(remaps: SheetIdentityRemap_ACU[]): string {
   return remaps
-    .map(remap => `${remap.fromKey}→${remap.toKey}（覆盖 ${remap.overriddenRows} 行、并入 ${remap.appendedRows} 行）`)
-    .join('；');
+    .map(remap => `${remap.fromKey}→${remap.toKey}(ghi đè ${remap.overriddenRows} hàng, gộp ${remap.appendedRows} hàng)`)
+    .join('; ');
 }
 
 function hasTransitionCheckpointTagData_ACU(tagData: unknown): boolean {
@@ -3482,7 +3482,7 @@ export function applyCompatTransitionPlacementsToChat_ACU(
   try {
     for (const messageIndex of affectedIndices) {
       const target = chat[messageIndex];
-      if (!target || target.is_user) throw new Error(`兼容过渡 checkpoint 的目标 AI 楼层已变化：messageIndex=${messageIndex}。`);
+      if (!target || target.is_user) throw new Error(`Tầng AI đích của checkpoint chuyển tiếp tương thích đã thay đổi: messageIndex=${messageIndex}. `);
       const previousIsolatedData = target.TavernDB_ACU_IsolatedData;
       const isolatedData = previousIsolatedData && typeof previousIsolatedData === 'object' && !Array.isArray(previousIsolatedData)
         ? deepClone_ACU(previousIsolatedData)
@@ -3552,9 +3552,9 @@ async function runCompatFixationStrictProbe_ACU(
         updateRuntimeState: false,
         compatibilityMode: 'disabled',
       });
-      if (!replay) return { ok: false, error: new Error(`严格探针未产生回放结果（bound=${bound ?? 'latest'}）。`) };
+      if (!replay) return { ok: false, error: new Error(`Thăm dò nghiêm ngặt không tạo ra kết quả phát lại (bound=${bound ?? 'latest'}).`) };
       if (replay.baseKind === 'compat_tolerant_replay') {
-        return { ok: false, error: new Error('严格探针仍返回兼容宽容回放结果。') };
+        return { ok: false, error: new Error('Thăm dò nghiêm ngặt vẫn trả về kết quả phát lại tương thích khoan dung.') };
       }
       lastData = replay.data;
     } catch (error) {
@@ -3580,7 +3580,7 @@ export async function buildCompatTransitionFixationPlan_ACU(
 ): Promise<CompatTransitionFixationPlan_ACU> {
   const lastAiIndex = findLastAiMessageIndex_ACU(chat);
   if (lastAiIndex < 0) {
-    return { ok: false, code: 'no_ai_floor', reason: '缺少可写入的 AI 楼层。' };
+    return { ok: false, code: 'no_ai_floor', reason: 'Thiếu tầng AI có thể ghi.' };
   }
   const initialAnchor = options.strictFailure
     && Number.isInteger(options.strictFailure.messageIndex)
@@ -3606,14 +3606,14 @@ export async function buildCompatTransitionFixationPlan_ACU(
       return {
         ok: false,
         code: 'tolerant_replay_failed',
-        reason: `锚点楼层 ${anchorIndex} 的兼容宽容回放失败：${error instanceof Error ? error.message : String(error)}`,
+        reason: `Phát lại tương thích khoan dung của tầng neo ${anchorIndex} thất bại: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
     if (tolerant.toleranceReport.identityRemaps.length > 0 && !options.allowIdentityRemaps) {
       return {
         ok: false,
         code: 'identity_remaps',
-        reason: `兼容结果含 sheetKey 身份归并（${describeIdentityRemaps_ACU(tolerant.toleranceReport.identityRemaps)}），按 key 优先级的归并不能作为持久权威根；请在数据管理中执行 V2 恢复（身份归一化）。`,
+        reason: `Kết quả tương thích chứa gộp danh tính sheetKey (${describeIdentityRemaps_ACU(tolerant.toleranceReport.identityRemaps)}); việc gộp theo mức ưu tiên key không thể làm gốc có thẩm quyền lâu dài; hãy thực hiện khôi phục V2 trong Quản lý dữ liệu (chuẩn hóa danh tính).`,
       };
     }
     for (const remap of tolerant.toleranceReport.identityRemaps) {
@@ -3628,7 +3628,7 @@ export async function buildCompatTransitionFixationPlan_ACU(
       return {
         ok: false,
         code: 'canonical_violation',
-        reason: `去重结果不满足 canonical 行身份契约：${formatCanonicalRowIssues_ACU(issues)}。`,
+        reason: `Kết quả khử trùng không thỏa hợp đồng danh tính hàng canonical: ${formatCanonicalRowIssues_ACU(issues)}. `,
       };
     }
     rowIdentityRepairs.push(...deduped.repairs);
@@ -3645,7 +3645,7 @@ export async function buildCompatTransitionFixationPlan_ACU(
       return {
         ok: false,
         code: 'already_covered',
-        reason: `楼层 ${anchorIndex} 已存在覆盖 cutoff=${JSON.stringify(existingCheckpoint.cutoff)} 的过渡根，但该楼层的严格回放仍失败；需要人工核对该楼层历史。`,
+        reason: `Tầng ${anchorIndex} đã có gốc chuyển tiếp bao phủ cutoff=${JSON.stringify(existingCheckpoint.cutoff)} nhưng phát lại nghiêm ngặt của tầng này vẫn thất bại; cần kiểm tra thủ công lịch sử tầng này.`,
       };
     }
     let scheduleSummary: TableScheduleSummaryV2_ACU | undefined;
@@ -3688,7 +3688,7 @@ export async function buildCompatTransitionFixationPlan_ACU(
       return {
         ok: false,
         code: 'strict_probe_failed',
-        reason: `放置过渡根后严格探针仍失败：${probe.error instanceof Error ? probe.error.message : String(probe.error)}`,
+        reason: `Sau khi đặt gốc chuyển tiếp, thăm dò nghiêm ngặt vẫn thất bại: ${probe.error instanceof Error ? probe.error.message : String(probe.error)}`,
       };
     }
     anchorIndex = nextFailure.messageIndex;
@@ -3696,7 +3696,7 @@ export async function buildCompatTransitionFixationPlan_ACU(
   return {
     ok: false,
     code: 'placement_limit',
-    reason: `严格失败点超过 ${MAX_COMPAT_TRANSITION_PLACEMENTS_ACU} 处，放弃自动固化；请在数据管理中导出原始数据后人工处理。`,
+    reason: `Số điểm thất bại nghiêm ngặt vượt quá ${MAX_COMPAT_TRANSITION_PLACEMENTS_ACU}, bỏ cố định tự động; hãy xuất dữ liệu gốc trong Quản lý dữ liệu rồi xử lý thủ công.`,
   };
 }
 
@@ -3778,7 +3778,7 @@ function startCompatTransitionFixation_ACU(
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       logWarn_ACU(`[V2 Compat Replay] 兼容过渡根固化失败（不影响当前数据使用，下次加载重试）：${message}`);
-      return { fixed: false, code: 'save_failed', reason: `兼容过渡根固化失败：${message}` };
+      return { fixed: false, code: 'save_failed', reason: `Cố định gốc chuyển tiếp tương thích thất bại: ${message}` };
     } finally {
       pendingCompatTransitionFixations_ACU.delete(isolationKey);
     }
@@ -3820,8 +3820,8 @@ export async function validateCurrentChatTableRecovery_ACU(
       return {
         success: false,
         diagnosticCode: 'replay_requires_checkpoint_convergence',
-        error: `当前 V2 历史${V2_COMPAT_READONLY_MARKER_ACU}（严格回放失败：${replay.legacyToleranceDiagnosis?.strictError || '未知错误'}）。`
-          + '在数据管理 → 「诊断 V2 数据恢复」中把兼容回放结果固化为过渡根前，写入与追平会被拒绝。',
+        error:`Lịch sử V2 hiện tại ${V2_COMPAT_READONLY_MARKER_ACU} (phát lại nghiêm ngặt thất bại: ${replay.legacyToleranceDiagnosis?.strictError || 'Lỗi không xác định'}).`
+          + 'Trước khi cố định kết quả phát lại tương thích thành gốc chuyển tiếp trong Quản lý dữ liệu → 「Chẩn đoán khôi phục dữ liệu V2」, việc ghi và bắt kịp sẽ bị từ chối.',
       };
     }
     if (replay?.requiresCheckpointConvergence || replay?.compatibilityRepairs?.length) {
@@ -3830,14 +3830,14 @@ export async function validateCurrentChatTableRecovery_ACU(
         success: false,
         diagnosticCode: 'replay_requires_checkpoint_convergence',
         affectedSheetKeys,
-        error: `当前 V2 历史仍依赖临时 Sheet 补锚：${affectedSheetKeys.join('、') || '未知 Sheet'}。请先在数据管理中完成恢复收敛。`,
+        error: `Lịch sử V2 hiện tại vẫn phụ thuộc neo bù Sheet tạm: ${affectedSheetKeys.join(', ') || 'Sheet không xác định'}. Hãy hoàn tất hội tụ khôi phục trong Quản lý dữ liệu trước.`,
       };
     }
     return { success: true };
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : String(error || '未知错误'),
+      error: error instanceof Error ? error.message : String(error || 'Lỗi không xác định'),
     };
   }
 }

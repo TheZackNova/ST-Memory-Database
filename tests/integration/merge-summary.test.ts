@@ -122,7 +122,7 @@ describe('I4: 合并纪要完整流程', () => {
       };
       const result = validateMergeParams_ACU('默认提示词');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('纪要表');
+      expect(result.error).toContain('kỷ yếu');
     });
 
     it('有效参数时返回 valid=true 和完整数据', () => {
@@ -191,7 +191,7 @@ describe('I4: 合并纪要完整流程', () => {
 
       const result = await executeMergeBatches_ACU(config, undefined, () => true);
       expect(result.success).toBe(false);
-      expect(result.error).toContain('终止');
+      expect(result.error).toContain('chấm dứt');
     });
   });
 
@@ -213,4 +213,4 @@ describe('I4: 合并纪要完整流程', () => {
       expect(result).toContain('合并纪要1');
     });
   });
-});
+});

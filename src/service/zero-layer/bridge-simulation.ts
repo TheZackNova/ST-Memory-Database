@@ -26,10 +26,10 @@ export function buildBridgeSimulation_ACU(chat: Record<string, unknown>[], cut: 
   state: ZeroLayerSimulationState_ACU; availability: 'persisted' | 'absent';
   hostCompletion: ZeroLayerBridgeCandidate_ACU['simulationHostCompletion'];
 } {
-  if (chat.length !== cut.messageCount) fail('推演源长度与桥接切点不一致。');
+  if (chat.length !== cut.messageCount) fail('Độ dài nguồn mô phỏng không khớp với điểm cắt cầu nối.');
   const raw = chat[0]?.[WORLD_SIMULATION_FIRST_FLOOR_FIELD_ACU];
   const envelope = raw === undefined ? null : validateWorldSimulationEnvelope_ACU(raw);
-  if (envelope?.task?.activeRun) fail('旧推演仍有未收尾运行，请先在普通模式收尾。');
+  if (envelope?.task?.activeRun) fail('Mô phỏng cũ vẫn còn lần chạy chưa kết thúc, hãy kết thúc ở chế độ thường trước.');
   const anchors = new Map<number, ReturnType<typeof resolveWorldSimulationAnchor_ACU>>();
   let persisted = raw !== undefined;
 
@@ -38,11 +38,11 @@ export function buildBridgeSimulation_ACU(chat: Record<string, unknown>[], cut: 
   for (const [index, message] of chat.entries()) {
     const hasFields = fields.some(field => message[field] !== undefined);
     if (message.is_user === true || message.is_system === true) {
-      if (hasFields) fail('推演字段不在有效 assistant 来源上。');
+      if (hasFields) fail('Trường mô phỏng không nằm trên nguồn assistant hợp lệ.');
       continue;
     }
     const anchor = resolveWorldSimulationAnchor_ACU(index, chat);
-    if (cut.refs[index]?.swipeId !== Number(anchor.swipeId)) fail('推演 swipe 与桥接切点不一致。');
+    if (cut.refs[index]?.swipeId !== Number(anchor.swipeId)) fail('Swipe mô phỏng không khớp với điểm cắt cầu nối.');
     anchors.set(index, anchor);
     for (const field of fields) {
       const value = readWorldSimulationBucketEntry_ACU(field, anchor, rawValue => rawValue, chat);
@@ -50,7 +50,7 @@ export function buildBridgeSimulation_ACU(chat: Record<string, unknown>[], cut: 
     }
     const runState = readWorldSimulationBucketEntry_ACU(WORLD_SIMULATION_RUN_STATE_FIELD_ACU,
       anchor, validateWorldSimulationRunStateRecord_ACU, chat);
-    if (runState) fail('旧推演仍有恢复游标，不能丢弃未收尾运行。');
+    if (runState) fail('Mô phỏng cũ vẫn còn con trỏ khôi phục, không thể bỏ lần chạy chưa kết thúc.');
     const proof = readWorldSimulationBucketEntry_ACU(WORLD_SIMULATION_RUN_WRITE_FIELD_ACU,
       anchor, validateWorldSimulationRunWriteProof_ACU, chat);
     if (proof) latestProof = proof;
@@ -61,23 +61,23 @@ export function buildBridgeSimulation_ACU(chat: Record<string, unknown>[], cut: 
   const conflict = assertSingleActiveSimulationCheckpoint_ACU(chat);
   if (conflict) fail(conflict);
   const folded = foldWorldSimulationLedger_ACU(chat);
-  if (!envelope && folded) fail('旧推演账本缺少首楼权威信封。');
+  if (!envelope && folded) fail('Sổ cái mô phỏng cũ thiếu phong bì có thẩm quyền của tầng đầu.');
   if (envelope && folded) envelope.ledger = structuredClone(folded.ledger);
   const state: ZeroLayerSimulationState_ACU = { schemaVersion: 1, envelope,
     fields: folded?.fields ?? (envelope ? seedLedgerFieldView_ACU(envelope.ledger, envelope.updatedAt) : { records: {} }),
     archive: foldWorldSimulationArchive_ACU(chat).snapshot,
     conversation: readWorldSimulationConversationRecordStrict_ACU(chat), userRequirements,
     runState: null, runProof: null, confirmed: [] };
-  if (envelope?.ledger.pendingFixes.length) fail('旧推演存在待修复栏目，请先在普通模式补齐。');
+  if (envelope?.ledger.pendingFixes.length) fail('Mô phỏng cũ có mục chờ sửa, hãy bổ sung ở chế độ thường trước.');
   if (envelope && hasPartialWorldSimulationRunWrites_ACU({ ledger: envelope.ledger,
-    fields: state.fields, archive: state.archive }) && latestProof) fail('旧推演存在未收尾的逐栏写入证明。');
+    fields: state.fields, archive: state.archive }) && latestProof) fail('Mô phỏng cũ có bằng chứng ghi từng mục chưa kết thúc.');
   let hostCompletion: ZeroLayerBridgeCandidate_ACU['simulationHostCompletion'] = null;
   const completed = envelope?.task?.completedAutoAnchor;
   if (completed) {
-    if (completed.kind === 'logical') fail('旧推演完成锚点不能借用其他逻辑会话。');
+    if (completed.kind === 'logical') fail('Neo hoàn tất của mô phỏng cũ không được mượn phiên logic khác.');
     const matches = [...anchors].filter(([, anchor]) => anchor.chatIdentity === completed.chatIdentity
       && anchor.messageKey === completed.messageKey && anchor.swipeId === completed.swipeId);
-    if (matches.length !== 1) fail('旧推演完成锚点不能唯一映射到桥接来源。');
+    if (matches.length !== 1) fail('Neo hoàn tất của mô phỏng cũ không thể ánh xạ duy nhất tới nguồn cầu nối.');
     hostCompletion = { taskId: envelope!.task!.taskId,
       ref: structuredClone(cut.refs[matches[0][0]]), anchor: structuredClone(completed) };
   }

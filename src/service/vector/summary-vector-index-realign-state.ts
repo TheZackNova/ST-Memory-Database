@@ -22,7 +22,7 @@ export function markSummaryVectorIndexDirtyForRealign_ACU(
     reason: SummaryVectorIndexRealignDirtyReason_ACU,
 ): SummaryVectorIndexRealignDirtyState_ACU {
     const normalizedScopeKey = normalizeScopeKey_ACU(scopeKey);
-    if (!normalizedScopeKey) throw new Error('交火向量索引 realign dirty 缺少 scopeKey。');
+    if (!normalizedScopeKey) throw new Error('Realign dirty của chỉ mục vector giao hỏa thiếu scopeKey.');
     const state: SummaryVectorIndexRealignDirtyState_ACU = {
         dirty: true,
         reason: String(reason || 'runtime_stale_rows'),

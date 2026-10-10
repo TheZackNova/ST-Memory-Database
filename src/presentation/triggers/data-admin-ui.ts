@@ -44,20 +44,20 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
                 combinedData = JSON.parse(content as string);
             } catch (error) {
                 logError_ACU('导入合并配置失败：JSON解析错误。', error);
-                showToastr_ACU('error', '文件不是有效的JSON格式。', { timeOut: 5000 });
+                showToastr_ACU('error', 'Tệp không phải định dạng JSON hợp lệ.', { timeOut: 5000 });
                 return;
             }
             
             try {
                 // Validation
                 if (!combinedData.prompt || !combinedData.template) {
-                    throw new Error('JSON文件缺少 "prompt" 或 "template" 键。');
+                    throw new Error('Tệp JSON thiếu khóa "prompt" hoặc "template".');
                 }
                 if (!Array.isArray(combinedData.prompt)) {
-                    throw new Error('"prompt" 的值必须是一个数组。');
+                    throw new Error('Giá trị của "prompt" phải là một mảng.');
                 }
                 if (typeof combinedData.template !== 'object' || combinedData.template === null) {
-                    throw new Error('"template" 的值必须是一个对象。');
+                    throw new Error('Giá trị của "template" phải là một đối tượng.');
                 }
 
                 // [重构] 调用 service 层导入配置
@@ -66,7 +66,7 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
 
                 // UI 操作：渲染提示词段落
                 renderPromptSegments_ACU(combinedData.prompt);
-                showToastr_ACU('success', '提示词预设已成功导入并保存！');
+                showToastr_ACU('success', 'Đã nhập và lưu preset prompt thành công!');
 
                 // 合并总结 UI 已停用；导入兼容仍保留 merge 字段，但不再尝试同步已移除的合并控件。
                 if (modifiedFields.includes('mergeTargetCount')) {
@@ -92,21 +92,21 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
                     const reason = appliedTemplate && typeof appliedTemplate === 'object' && 'error' in appliedTemplate && typeof (appliedTemplate as any).error === 'string'
                         ? (appliedTemplate as any).error
                         : '';
-                    throw new Error(reason || '合并配置中的表格模板已解析，但应用到全局模板失败。');
+                    throw new Error(reason || 'Mẫu bảng trong cấu hình gộp đã được phân tích nhưng áp dụng vào mẫu toàn cục thất bại.');
                 }
 
-                showToastr_ACU('success', '表格模板已成功导入！模板已更新，但不会影响当前聊天记录的本地数据。');
+                showToastr_ACU('success', 'Đã nhập mẫu bảng thành công! Mẫu đã được cập nhật nhưng không ảnh hưởng dữ liệu cục bộ của cuộc trò chuyện hiện tại.');
 
                 // 刷新模板预设下拉 UI，确保预设列表与状态文案同步
                 refreshPresetUIAfterSwitch_ACU();
 
                 // [优化] 不再触发表格数据初始化，仅修改当前插件模板
                 // 只有在新开卡或之前没有用过插件的聊天记录里才会使用新的通用模板作为基底
-                showToastr_ACU('success', '合并配置已成功导入！');
+                showToastr_ACU('success', 'Đã nhập cấu hình gộp thành công!');
 
             } catch (error) {
                 logError_ACU('导入合并配置失败：结构验证失败。', error);
-                showToastr_ACU('error', `导入失败: ${error.message}`, { timeOut: 10000 });
+                showToastr_ACU('error', `Nhập thất bại: ${error.message}`, { timeOut: 10000 });
             }
         };
         reader.readAsText(file, 'UTF-8');
@@ -120,7 +120,7 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
   export async function deleteLocalDataInChat_ACU(mode: 'current' | 'all' = 'current', startFloor: any = null, endFloor: any = null) {
       const chat = getChatArray_ACU();
       if (!chat || chat.length === 0) {
-          showToastr_ACU('warning', '聊天记录为空，无法执行删除操作。');
+          showToastr_ACU('warning', 'Lịch sử trò chuyện trống, không thể thực hiện thao tác xóa.');
           return;
       }
 
@@ -131,7 +131,7 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
       // purge 仍需清理用户首条消息字段与 chat[0] scope/guide 镜像。
       // 只有走 range 路径且确实没有 AI 楼层时才提示无可删数据。
       if (outcome.path === 'range' && aiMessageCount === 0) {
-          showToastr_ACU('warning', '聊天记录中没有AI消息，无法执行范围删除。');
+          showToastr_ACU('warning', 'Lịch sử trò chuyện không có tin nhắn AI, không thể xóa theo phạm vi.');
           return;
       }
 
@@ -159,9 +159,9 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
               updateCardUpdateStatusDisplay_ACU();
           }
 
-          showToastr_ACU('success', `已成功删除 ${deletedCount} 条消息中的本地数据 (${mode === 'all' ? '所有标识' : '当前标识'})。`);
+          showToastr_ACU('success', `Đã xóa thành công dữ liệu cục bộ trong ${deletedCount} tin nhắn (${mode === 'all' ? 'tất cả mã định danh' : 'mã định danh hiện tại'}).`);
       } else {
-          showToastr_ACU('info', '没有发现符合删除条件的数据。');
+          showToastr_ACU('info', 'Không tìm thấy dữ liệu thỏa điều kiện xóa.');
       }
   }
 
@@ -177,18 +177,18 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
    */
   export async function applyPurgeResultToUi_ACU(result: { saved: boolean; clearedMessageCount: number; removedMetadata: string[]; cleanupWarnings?: string[]; error?: string }): Promise<void> {
       if (!result.saved) {
-          showToastr_ACU('error', result.error || '硬清空失败，详情见运行日志。', { timeOut: 10000 });
+          showToastr_ACU('error', result.error || 'Xóa sạch thất bại, xem chi tiết trong nhật ký chạy.', { timeOut: 10000 });
           return;
       }
       await refreshMergedDataAndNotifyWithUI_ACU();
       if (typeof updateCardUpdateStatusDisplay_ACU === 'function') {
           updateCardUpdateStatusDisplay_ACU();
       }
-      const removed = result.removedMetadata.length ? `，移除元数据：${result.removedMetadata.join('、')}` : '';
+      const removed = result.removedMetadata.length ? `, đã gỡ metadata: ${result.removedMetadata.join(', ')}` : '';
       if (result.cleanupWarnings?.length) {
-          showToastr_ACU('warning', `已硬清空全部本地数据（${result.clearedMessageCount} 条消息）${removed}。警告：${result.cleanupWarnings[0]}`, { timeOut: 10000 });
+          showToastr_ACU('warning', `Đã xóa sạch toàn bộ dữ liệu cục bộ (${result.clearedMessageCount} tin nhắn)${removed}. Cảnh báo: ${result.cleanupWarnings[0]}`, { timeOut: 10000 });
       } else {
-          showToastr_ACU('success', `已删除所有本地数据（${result.clearedMessageCount} 条消息）${removed}。`);
+          showToastr_ACU('success', `Đã xóa toàn bộ dữ liệu cục bộ (${result.clearedMessageCount} tin nhắn)${removed}.`);
       }
   }
 
@@ -198,30 +198,30 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
     try {
         const result = await migrateLegacySummaryVectorIndexToContentAddressed_ACU();
         if (result.success && !result.skipped) {
-            showToastr_ACU('success', `旧交火索引已非破坏迁移：${result.indexedRowCount || 0} 行，${result.chunkCount || 0} 个 chunks。旧外置文件仍保留给历史楼层回退使用。`);
+            showToastr_ACU('success', `Chỉ mục giao hỏa cũ đã được di chuyển không phá hủy: ${result.indexedRowCount || 0} hàng, ${result.chunkCount || 0} chunk. Tệp ngoài cũ vẫn được giữ cho các tầng lịch sử khôi phục.`);
             return result;
         }
         if (result.success && result.skipped) {
             const reason = result.reason === 'already_content_addressed'
-                ? '当前交火索引已经是内容寻址协议，无需迁移。'
-                : '当前聊天没有可迁移的旧交火索引。';
+                ? 'Chỉ mục giao hỏa hiện tại đã dùng giao thức định địa chỉ theo nội dung, không cần di chuyển.'
+                : 'Cuộc trò chuyện hiện tại không có chỉ mục giao hỏa cũ để di chuyển.';
             showToastr_ACU('info', reason);
             return result;
         }
-        const reasonText = result.errors?.length ? result.errors.join('；') : (result.reason || '未知原因');
-        showToastr_ACU('error', `旧交火索引迁移失败：${reasonText}`);
+        const reasonText = result.errors?.length ? result.errors.join('; ') : (result.reason || 'Lý do không xác định');
+        showToastr_ACU('error', `Di chuyển chỉ mục giao hỏa cũ thất bại: ${reasonText}`);
         return result;
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error || '未知错误');
+        const message = error instanceof Error ? error.message : String(error || 'Lỗi không xác định');
         logError_ACU('旧交火索引迁移失败:', error);
-        showToastr_ACU('error', `旧交火索引迁移失败：${message}`);
+        showToastr_ACU('error', `Di chuyển chỉ mục giao hỏa cũ thất bại: ${message}`);
         return { success: false, skipped: false, indexedRowCount: 0, skippedRowCount: 0, chunkCount: 0, reason: 'exception', errors: [message] };
     }
   }
 
   export function exportCurrentJsonData_ACU() {
     if (!currentJsonTableData_ACU) {
-        showToastr_ACU('warning', '没有可导出的数据库。请先开始一个对话。');
+        showToastr_ACU('warning', 'Không có cơ sở dữ liệu để xuất. Hãy bắt đầu một cuộc hội thoại trước.');
         return;
     }
     try {
@@ -239,10 +239,10 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showToastr_ACU('success', '数据库JSON文件已成功导出！');
+        showToastr_ACU('success', 'Đã xuất tệp JSON cơ sở dữ liệu thành công!');
     } catch (error) {
         logError_ACU('导出JSON数据失败:', error);
-        showToastr_ACU('error', '导出JSON失败，请检查控制台获取详情。');
+        showToastr_ACU('error', 'Xuất JSON thất bại, hãy kiểm tra console để biết chi tiết.');
     }
   }
 
@@ -253,7 +253,7 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
         const selectedPresetName = String(getTemplatePresetSelectJQ_ACU()?.val?.() || '');
         const resolved = resolveTemplateForExport_ACU(normalizedScope, selectedPresetName);
         if (!resolved) {
-            throw new Error('无法解析当前模板。');
+            throw new Error('Không thể phân tích mẫu hiện tại.');
         }
 
         const { jsonData, fromPresetName } = resolved;
@@ -280,20 +280,20 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
         URL.revokeObjectURL(url);
 
         if (normalizedScope === 'chat') {
-            showToastr_ACU('success', fromPresetName ? `当前聊天模板快照已成功导出：${fromPresetName}` : '当前聊天模板快照已成功导出！');
+            showToastr_ACU('success', fromPresetName ? `Đã xuất snapshot mẫu cuộc trò chuyện hiện tại thành công: ${fromPresetName}` : 'Đã xuất snapshot mẫu cuộc trò chuyện hiện tại thành công!');
         } else {
-            showToastr_ACU('success', fromPresetName ? `全局表格模板预设已成功导出：${fromPresetName}` : '全局表格模板已成功导出！(已包含最新导出参数)');
+            showToastr_ACU('success', fromPresetName ? `Đã xuất preset mẫu bảng toàn cục thành công: ${fromPresetName}` : 'Đã xuất mẫu bảng toàn cục thành công! (đã gồm tham số xuất mới nhất)');
         }
         return true;
     } catch (error) {
         logError_ACU('导出模板失败:', error);
-        showToastr_ACU('error', '导出模板失败，请检查控制台获取详情。');
+        showToastr_ACU('error', 'Xuất mẫu thất bại, hãy kiểm tra console để biết chi tiết.');
         return false;
     }
   }
 
   export async function resetAllToDefaults_ACU() {
-      if (!confirm('确定要同时恢复【默认AI指令预设】和【默认表格模板】吗？\n\n这将覆盖您当前的自定义设置。此操作不可撤销。')) {
+      if (!confirm('Xác nhận khôi phục đồng thời [Preset chỉ thị AI mặc định] và [Mẫu bảng mặc định]?\n\nThao tác này sẽ ghi đè cài đặt tùy chỉnh hiện tại của bạn và không thể hoàn tác.')) {
           return false;
       }
 
@@ -301,7 +301,7 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
           // [V1 收敛] 委托 service 事务式恢复默认提示词（含保存失败回滚），不再直写 settings_ACU。
           const promptResetResult = resetAllPromptsToDefault_ACU();
           if (!promptResetResult.ok) {
-              showToastr_ACU('error', promptResetResult.message || '恢复默认提示词失败，已回滚。');
+              showToastr_ACU('error', promptResetResult.message || 'Khôi phục prompt mặc định thất bại, đã khôi phục trạng thái cũ.');
               return false;
           }
 
@@ -314,48 +314,48 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
               source: 'reset_all_defaults',
           });
           if (!templateResetOk) {
-              showToastr_ACU('error', '恢复默认设置失败：默认表格模板恢复失败。');
+              showToastr_ACU('error', 'Khôi phục cài đặt mặc định thất bại: không khôi phục được mẫu bảng mặc định.');
               return false;
           }
 
           refreshTemplatePresetSelectInUI_ACU({ selectName: '', keepValue: false });
-          showToastr_ACU('success', '已恢复默认预设及模板！模板已更新，但不会影响当前聊天记录的本地数据。');
+          showToastr_ACU('success', 'Đã khôi phục preset và mẫu mặc định! Mẫu đã được cập nhật nhưng không ảnh hưởng dữ liệu cục bộ của cuộc trò chuyện hiện tại.');
           return true;
       } catch (error) {
           logError_ACU('恢复默认设置失败:', error);
-          showToastr_ACU('error', '恢复默认设置失败，请检查控制台获取详情。');
+          showToastr_ACU('error', 'Khôi phục cài đặt mặc định thất bại, hãy kiểm tra console để biết chi tiết.');
           return false;
       }
   }
 
   // [新增] 使用通用模板覆盖最新层所有表格数据的函数
   export async function overrideLatestLayerWithTemplate_ACU() {
-      if (!confirm('⚠️ 警告：此操作将使用当前通用模板覆盖聊天记录中最新一层的所有表格数据！\n\n' +
-                  '• 模板中有的表格会被覆盖（只保留表头，数据清空）\n' +
-                  '• 模板中没有的表格会被忽略（本地数据保持不变）\n' +
-                  '• 此操作仅影响最新的一条AI消息\n' +
-                  '• 删除最新层的聊天数据后即可恢复正常\n\n' +
-                  '确定要继续吗？')) {
+      if (!confirm('⚠️ Cảnh báo: thao tác này sẽ dùng mẫu chung hiện tại để ghi đè toàn bộ dữ liệu bảng ở tầng mới nhất trong lịch sử trò chuyện!\n\n' +
+                  '• Các bảng có trong mẫu sẽ bị ghi đè (chỉ giữ tiêu đề cột, xóa dữ liệu)\n' +
+                  '• Các bảng không có trong mẫu sẽ bị bỏ qua (dữ liệu cục bộ giữ nguyên)\n' +
+                  '• Thao tác này chỉ ảnh hưởng tin nhắn AI mới nhất\n' +
+                  '• Xóa dữ liệu trò chuyện của tầng mới nhất là có thể khôi phục bình thường\n\n' +
+                  'Xác nhận tiếp tục?')) {
           return;
       }
 
       const chat = getChatArray_ACU();
       if (!chat || chat.length === 0) {
-          showToastr_ACU('error', '聊天记录为空，无法执行覆盖操作。');
+          showToastr_ACU('error', 'Lịch sử trò chuyện trống, không thể thực hiện thao tác ghi đè.');
           return;
       }
 
       // 解析通用模板
       const templateData = parseTableTemplateJson_ACU({ stripSeedRows: true });
       if (!templateData) {
-          showToastr_ACU('error', '无法解析通用模板，请检查模板格式。');
+          showToastr_ACU('error', 'Không thể phân tích mẫu chung, hãy kiểm tra định dạng mẫu.');
           return;
       }
 
       // 检查是否有AI消息
       const hasAiMessage = chat.some((msg: any) => !msg.is_user);
       if (!hasAiMessage) {
-          showToastr_ACU('error', '聊天记录中没有AI消息，无法执行覆盖操作。');
+          showToastr_ACU('error', 'Lịch sử trò chuyện không có tin nhắn AI, không thể thực hiện thao tác ghi đè.');
           return;
       }
 
@@ -367,9 +367,9 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
           await loadOrCreateJsonTableFromChatHistory_ACU();
           await refreshMergedDataAndNotifyWithUI_ACU();
 
-          showToastr_ACU('success', `已使用通用模板覆盖最新层的${Object.keys(templateData).filter(k => k.startsWith('sheet_')).length}个表格数据。`);
+          showToastr_ACU('success', `Đã dùng mẫu chung ghi đè dữ liệu của ${Object.keys(templateData).filter(k => k.startsWith('sheet_')).length} bảng ở tầng mới nhất.`);
       } else {
-          showToastr_ACU('warning', '没有找到需要覆盖的表格数据。');
+          showToastr_ACU('warning', 'Không tìm thấy dữ liệu bảng cần ghi đè.');
       }
   }
 
@@ -378,7 +378,7 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
     try {
         const snapshot = getDefaultTemplateSnapshot_ACU();
         if (!snapshot?.templateStr) {
-            throw new Error('无法解析默认模板。');
+            throw new Error('Không thể phân tích mẫu mặc định.');
         }
 
         const result = await applyTemplateSnapshotToScope_ACU(snapshot.templateStr, {
@@ -389,7 +389,7 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
             persistChatScope: normalizedScope === 'chat',
         });
         if (!result || (typeof result === 'object' && 'saved' in result && result.saved === false)) {
-            throw new Error('应用默认模板快照失败。');
+            throw new Error('Áp dụng snapshot mẫu mặc định thất bại.');
         }
 
         if (showToast) {
@@ -397,11 +397,11 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
                 const warning = typeof result === 'object' && 'postCommitWarning' in result && typeof result.postCommitWarning === 'string'
                     ? result.postCommitWarning
                     : '';
-                showToastr_ACU(warning ? 'warning' : 'success', warning || '当前聊天模板已恢复为默认值！仅影响当前聊天，不会改动全局模板。', {
+                showToastr_ACU(warning ? 'warning' : 'success', warning || 'Mẫu của cuộc trò chuyện hiện tại đã khôi phục về mặc định! Chỉ ảnh hưởng cuộc trò chuyện hiện tại, không đổi mẫu toàn cục.', {
                     acuToastCategory: warning ? ACU_TOAST_CATEGORY_ACU.ERROR : ACU_TOAST_CATEGORY_ACU.IMPORT,
                 });
             } else {
-                showToastr_ACU('success', '全局模板已恢复为默认值！模板已更新，但不会影响当前聊天记录的本地数据。');
+                showToastr_ACU('success', 'Mẫu toàn cục đã khôi phục về mặc định! Mẫu đã được cập nhật nhưng không ảnh hưởng dữ liệu cục bộ của cuộc trò chuyện hiện tại.');
             }
         }
         logDebug_ACU(`Table template has been reset to default for scope: ${normalizedScope}. updatePresetSelection=${updatePresetSelection}`);
@@ -409,7 +409,7 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
     } catch (error) {
         logError_ACU('恢复默认模板失败:', error);
         if (showToast) {
-            showToastr_ACU('error', '恢复默认模板失败，请检查控制台获取详情。');
+            showToastr_ACU('error', 'Khôi phục mẫu mặc định thất bại, hãy kiểm tra console để biết chi tiết.');
         }
         return false;
     }
@@ -432,7 +432,7 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
                 const derivedPresetName = deriveTemplatePresetNameForImport_ACU({
                     filename: file?.name,
                     fallbackLabel: normalizedScope === 'global'
-                        ? `导入模板_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`
+                        ? `Mau_nhap_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`
                         : '',
                 });
 
@@ -453,15 +453,15 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
                     refreshPresetUIAfterSwitch_ACU({ keepTemplateGlobalValue: true });
 
                     if (savePresetOk) {
-                        showToastr_ACU('success', `模板已保存为全局预设：${derivedPresetName}（同名自动覆盖）。你可以在"全局模板预设"下拉中手动切换到它。`, {
+                        showToastr_ACU('success', `Đã lưu mẫu thành preset toàn cục: ${derivedPresetName} (cùng tên sẽ tự ghi đè). Bạn có thể chuyển thủ công sang nó trong danh sách "Preset mẫu toàn cục".`, {
                             acuToastCategory: ACU_TOAST_CATEGORY_ACU.IMPORT,
                         });
                     } else if (derivedPresetName) {
-                        showToastr_ACU('warning', `模板已解析，但保存到预设库失败：${derivedPresetName}`, {
+                        showToastr_ACU('warning', `Mẫu đã được phân tích nhưng lưu vào thư viện preset thất bại: ${derivedPresetName}`, {
                             acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR,
                         });
                     } else {
-                        showToastr_ACU('warning', '模板已解析，但无法确定预设名称，未保存到预设库。', {
+                        showToastr_ACU('warning', 'Mẫu đã được phân tích nhưng không xác định được tên preset, chưa lưu vào thư viện preset.', {
                             acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR,
                         });
                     }
@@ -472,7 +472,7 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
                         presetName: derivedPresetName,
                     });
                     if (!applied.saved) {
-                        throw new Error(applied.error || '模板已解析，但应用到当前聊天失败。');
+                        throw new Error(applied.error || 'Mẫu đã được phân tích nhưng áp dụng vào cuộc trò chuyện hiện tại thất bại.');
                     }
 
                     refreshPresetUIAfterSwitch_ACU({ keepTemplateGlobalValue: true });
@@ -481,14 +481,14 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
                         : '';
                     showToastr_ACU(
                         warning ? 'warning' : 'success',
-                        warning || `当前聊天模板快照已导入${derivedPresetName ? `（预设名：${derivedPresetName}）` : ''}。`,
+                        warning || `Đã nhập snapshot mẫu cuộc trò chuyện hiện tại${derivedPresetName ? ` (tên preset: ${derivedPresetName})` : ''}.`,
                         { acuToastCategory: warning ? ACU_TOAST_CATEGORY_ACU.ERROR : ACU_TOAST_CATEGORY_ACU.IMPORT },
                     );
                     logDebug_ACU(`[TemplateScope] Template imported to chat scope: ${derivedPresetName}.`);
                 }
             } catch (error) {
                 logError_ACU('导入模板失败：', error);
-                showToastr_ACU('error', `导入失败: ${error.message}`, {
+                showToastr_ACU('error', `Nhập thất bại: ${error.message}`, {
                     acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR,
                     timeOut: 10000,
                 });
@@ -496,7 +496,7 @@ import { migrateLegacySummaryVectorIndexToContentAddressed_ACU } from '../../ser
         };
         reader.onerror = error => {
             logError_ACU('导入模板失败：文件读取失败。', error);
-            showToastr_ACU('error', '读取模板文件失败，请重试。', {
+            showToastr_ACU('error', 'Đọc tệp mẫu thất bại, vui lòng thử lại.', {
                 acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR,
                 timeOut: 10000,
             });

@@ -37,7 +37,7 @@ export function useWorldbookSelector(): UseWorldbookSelector {
       status.value = 'success';
     } catch (e: any) {
       logError_ACU('[ACU-V2] useWorldbookSelector refresh failed', e);
-      error.value = e?.message ?? '世界书列表加载失败';
+      error.value = e?.message ?? 'Tải danh sách sổ thế giới thất bại';
       status.value = 'error';
     }
   }

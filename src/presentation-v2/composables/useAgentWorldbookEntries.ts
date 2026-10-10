@@ -123,7 +123,7 @@ export function useAgentWorldbookEntries(options: UseAgentWorldbookEntriesOption
     } catch (cause: any) {
       logError_ACU('[ACU-V2] useAgentWorldbookEntries loadEntries failed', cause);
       if (isStale()) return null;
-      error.value = cause?.message || '加载 Agent 世界书条目失败';
+      error.value = cause?.message || 'Tải mục sổ thế giới Agent thất bại';
       status.value = 'error';
       return [];
     }

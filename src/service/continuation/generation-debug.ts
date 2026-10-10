@@ -1,24 +1,24 @@
 import { logAgentSession_ACU, updateAgentSession_ACU } from './agent/agent-session-log';
 
 const stages_ACU = {
-  page_ready: '页面收到写作指导', page_discarded: '页面未交接指导',
-  page_handoff: '页面调用发送入口', send_returned: '发送入口返回',
-  bridge_entered: '生成桥收到指导', host_turn_recording: '登记等待轮',
-  host_turn_recorded: '等待轮已登记', input_writing: '写入宿主输入框',
-  input_written: '完整指导已写入', host_call: '调用宿主生成',
-  host_dispatched: '宿主调用已发出（尚不代表生成成功）',
-  host_resolved: '宿主生成 Promise 已结束', host_rejected: '宿主生成调用失败',
-  generation_started: '收到并认领 GENERATION_STARTED',
-  generation_ignored: '生成事件未被本轮认领', after_commands: '到达 GENERATION_AFTER_COMMANDS',
-  plot_start: '开始剧情发送前处理', plot_result: '剧情处理返回',
-  plot_skip: '剧情处理已跳过', plot_blocked: '剧情处理阻断发送',
-  ended_signal: '收到 GENERATION_ENDED', body_resolved: '已定位对应正文楼层',
-  confirm_start: '开始确认正文', confirmed: '正文确认完成',
-  result_rejected: '正文未通过确认', binding_failed: '生成序列绑定失败',
-  stopped: '本轮生成停止', failed: '交接异常',
-  logical_entered: '零层发送入口收到指导', logical_loading: '装配零层运行时',
-  logical_preparing: '准备零层剧情与正文', logical_recorded: '逻辑等待轮已登记',
-  logical_published: '逻辑正文已发布',
+  page_ready: 'Trang đã nhận chỉ dẫn viết', page_discarded: 'Trang không bàn giao chỉ dẫn',
+  page_handoff: 'Trang gọi cổng gửi', send_returned: 'Cổng gửi đã trả về',
+  bridge_entered: 'Cầu tạo đã nhận chỉ dẫn', host_turn_recording: 'Đăng ký lượt chờ',
+  host_turn_recorded: 'Lượt chờ đã đăng ký', input_writing: 'Ghi vào ô nhập của máy chủ',
+  input_written: 'Chỉ dẫn đầy đủ đã được ghi', host_call: 'Gọi máy chủ tạo',
+  host_dispatched: 'Lệnh gọi máy chủ đã được gửi (chưa có nghĩa là tạo thành công)',
+  host_resolved: 'Promise tạo của máy chủ đã kết thúc', host_rejected: 'Lệnh gọi tạo của máy chủ thất bại',
+  generation_started: 'Đã nhận và xác nhận GENERATION_STARTED',
+  generation_ignored: 'Sự kiện tạo không được lượt này xác nhận', after_commands: 'Đã đến GENERATION_AFTER_COMMANDS',
+  plot_start: 'Bắt đầu xử lý cốt truyện trước khi gửi', plot_result: 'Xử lý cốt truyện đã trả về',
+  plot_skip: 'Xử lý cốt truyện đã bị bỏ qua', plot_blocked: 'Xử lý cốt truyện chặn việc gửi',
+  ended_signal: 'Đã nhận GENERATION_ENDED', body_resolved: 'Đã định vị tầng chính văn tương ứng',
+  confirm_start: 'Bắt đầu xác nhận chính văn', confirmed: 'Xác nhận chính văn hoàn tất',
+  result_rejected: 'Chính văn không qua xác nhận', binding_failed: 'Gắn chuỗi tạo thất bại',
+  stopped: 'Việc tạo lượt này đã dừng', failed: 'Bàn giao bất thường',
+  logical_entered: 'Cổng gửi Tầng 0 đã nhận chỉ dẫn', logical_loading: 'Lắp ráp thời gian chạy Tầng 0',
+  logical_preparing: 'Chuẩn bị cốt truyện và chính văn Tầng 0', logical_recorded: 'Lượt chờ logic đã đăng ký',
+  logical_published: 'Chính văn logic đã phát hành',
 } as const;
 export type ContinuationDebugStage_ACU = keyof typeof stages_ACU;
 export interface ContinuationDebugFields_ACU {
@@ -84,9 +84,9 @@ export class ContinuationGenerationDebug_ACU {
     try {
       if (!this.isCurrent()) { this.cancel(); return; }
       this.lastStage = stage;
-      this.lines.push(`+${Math.max(0, Date.now() - this.startedAt)}ms ${stage}：${stages_ACU[stage]}${safeFields_ACU(fields)}`);
+      this.lines.push(`+${Math.max(0, Date.now() - this.startedAt)}ms ${stage}: ${stages_ACU[stage]}${safeFields_ACU(fields)}`);
       while (this.lines.join('\n').length > 1500 && this.lines.length > 1) this.lines.shift();
-      const patch = { title: `[续写 DEBUG #${this.number}] ${stages_ACU[stage]}`, detail: this.lines.join('\n'), status: 'running' as const };
+      const patch = { title: `[Viết tiếp DEBUG #${this.number}] ${stages_ACU[stage]}`, detail: this.lines.join('\n'), status: 'running' as const };
       if (this.entryId === undefined) this.entryId = logAgentSession_ACU({ kind: 'handoff', ...patch });
       else updateAgentSession_ACU(this.entryId, patch);
     } catch { /* 诊断不可影响生成 */ }
@@ -100,8 +100,8 @@ export class ContinuationGenerationDebug_ACU {
       try {
         if (this.closed || !this.isCurrent() || !isCurrent() || this.entryId === undefined) return;
         updateAgentSession_ACU(this.entryId, {
-          title: `[续写 DEBUG #${this.number}] 仍在等待：${stages_ACU[this.lastStage]}`,
-          detail: `${this.lines.join('\n')}\n已等待至少 ${CONTINUATION_DEBUG_WAIT_MS_ACU / 1000} 秒；尚未观察到下一阶段，不等于生成失败。此提示不会暂停或重发。`,
+          title: `[Viết tiếp DEBUG #${this.number}] Vẫn đang chờ: ${stages_ACU[this.lastStage]}`,
+          detail: `${this.lines.join('\n')}\nĐã chờ ít nhất ${CONTINUATION_DEBUG_WAIT_MS_ACU / 1000} giây; chưa quan sát thấy giai đoạn kế tiếp, không có nghĩa là tạo thất bại. Gợi ý này sẽ không tạm dừng hay gửi lại.`,
         });
       } catch { /* 作用域失效或观察失败时保持静默 */ }
     }, CONTINUATION_DEBUG_WAIT_MS_ACU);

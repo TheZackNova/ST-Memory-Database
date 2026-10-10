@@ -80,7 +80,7 @@ describe('mixed-storage-decision-registry', () => {
     mocks.scope.isolationKey = 'beta';
 
     expect(getActiveMixedStorageDecisionSummary_ACU()).toBeNull();
-    expect(() => buildRegisteredMixedStorageSnapshotTransfer_ACU(item.decisionId)).toThrow('不存在、已失效或已被替换');
+    expect(() => buildRegisteredMixedStorageSnapshotTransfer_ACU(item.decisionId)).toThrow('không tồn tại, đã hết hiệu lực hoặc đã bị thay thế');
     expect(mocks.snapshot).not.toHaveBeenCalled();
     expect(mocks.commit).not.toHaveBeenCalled();
   });

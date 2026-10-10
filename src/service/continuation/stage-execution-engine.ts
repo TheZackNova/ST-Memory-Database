@@ -50,17 +50,17 @@ function fail_ACU(code: 'CONTINUATION_TASK_NOT_FOUND' | 'CONTINUATION_TASK_STATE
 
 function currentSnapshot_ACU(envelope: ContinuationEnvelope_ACU | null): ContinuationExecutionSnapshot_ACU {
   const task = envelope?.activeTask;
-  if (!task) fail_ACU('CONTINUATION_TASK_NOT_FOUND', '当前聊天没有智能续写任务');
-  if (task.status !== 'running' || !task.activeStageId) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前任务不允许生成每轮指令');
+  if (!task) fail_ACU('CONTINUATION_TASK_NOT_FOUND', 'Cuộc trò chuyện hiện tại không có tác vụ viết tiếp thông minh');
+  if (task.status !== 'running' || !task.activeStageId) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Tác vụ hiện tại không cho phép tạo chỉ thị mỗi lượt');
   const stage = task.stages.find(item => item.stageId === task.activeStageId);
-  if (!stage || stage.status !== 'running') fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前阶段不允许生成每轮指令');
+  if (!stage || stage.status !== 'running') fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Giai đoạn hiện tại không cho phép tạo chỉ thị mỗi lượt');
   const revision = stage.revisions.find(item => item.revision === stage.activeRevision);
-  if (!revision || !revision.frozen) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前阶段大纲尚未冻结');
+  if (!revision || !revision.frozen) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Dàn ý giai đoạn hiện tại chưa được đóng băng');
   const node = revision.outline.nodes[stage.activeNodeIndex];
   const turn = node?.turns[stage.activeTurnIndex];
-  if (!node || !turn) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前阶段游标无效');
+  if (!node || !turn) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Con trỏ giai đoạn hiện tại không hợp lệ');
   const previousTurns = revision.outline.nodes.slice(0, stage.activeNodeIndex).reduce((total, item) => total + item.turns.length, 0) + stage.activeTurnIndex;
-  if (stage.completedTurns !== previousTurns) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前阶段游标与已完成轮数不一致');
+  if (stage.completedTurns !== previousTurns) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Con trỏ giai đoạn hiện tại không khớp với số lượt đã hoàn thành');
   return { envelope, task, stage, revision, node, turn, turnNumber: previousTurns + 1, nodeTurnNumber: stage.activeTurnIndex + 1 };
 }
 
@@ -71,8 +71,8 @@ function currentSnapshot_ACU(envelope: ContinuationEnvelope_ACU | null): Continu
  */
 export function currentAgentContext_ACU(envelope: ContinuationEnvelope_ACU | null): ContinuationAgentExecutionContext_ACU {
   const task = envelope?.activeTask;
-  if (!task) fail_ACU('CONTINUATION_TASK_NOT_FOUND', '当前聊天没有智能续写任务');
-  if (task.status !== 'running' || task.stopReason !== null) fail_ACU('CONTINUATION_TASK_STATE_INVALID', '当前任务不允许生成每轮指令');
+  if (!task) fail_ACU('CONTINUATION_TASK_NOT_FOUND', 'Cuộc trò chuyện hiện tại không có tác vụ viết tiếp thông minh');
+  if (task.status !== 'running' || task.stopReason !== null) fail_ACU('CONTINUATION_TASK_STATE_INVALID', 'Tác vụ hiện tại không cho phép tạo chỉ thị mỗi lượt');
   const empty: ContinuationAgentExecutionContext_ACU = { envelope: envelope!, task, stage: null, revision: null, node: null, turn: null, turnNumber: null, nodeTurnNumber: null };
   const stage = task.activeStageId ? task.stages.find(item => item.stageId === task.activeStageId) ?? null : null;
   if (!stage) return empty;
@@ -168,7 +168,7 @@ export class StageExecutionEngine_ACU {
     if (attempt.chatIdentity !== chatIdentity || attempt.taskId !== snapshot.task.taskId
       || attempt.stageId !== snapshot.stage.stageId || attempt.revision !== snapshot.revision.revision
       || attempt.nodeId !== snapshot.node.id || attempt.turnId !== snapshot.turn.id) {
-      fail_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', '正文重试身份已不属于当前阶段游标');
+      fail_ACU('CONTINUATION_INTERNAL_REQUEST_STALE', 'Danh tính thử lại chính văn không còn thuộc con trỏ giai đoạn hiện tại');
     }
   }
 }

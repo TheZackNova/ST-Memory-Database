@@ -1,17 +1,17 @@
 <template>
   <div class="acu-viz-config" data-acu-visualizer-config>
     <AcuPanel
-      title="基本信息与列定义"
-      description="这里改表名和列名。AI 会按这些名称理解字段；如果填表结果找错字段，先检查这里。"
+      title="Thông tin cơ bản và định nghĩa cột"
+      description="Sửa tên bảng và tên cột tại đây. AI hiểu các trường theo những tên này; nếu kết quả điền bảng nhầm trường, hãy kiểm tra ở đây trước."
     >
       <div class="acu-viz-config__grid">
-        <AcuFormRow label="表格名称">
+        <AcuFormRow label="Tên bảng">
           <AcuInput
             :model-value="config.currentSheet.value?.name || ''"
             @update:model-value="config.renameSheet"
           />
         </AcuFormRow>
-        <AcuFormRow label="表级 API 预设">
+        <AcuFormRow label="Preset API cấp bảng">
           <AcuSelect
             :model-value="config.currentTableApiPreset.value"
             :options="config.apiPresetOptions.value"
@@ -35,28 +35,28 @@
             icon="fa-solid fa-trash"
             size="sm"
             variant="danger"
-            title="删除列"
+            title="Xóa cột"
             @click="$emit('request-delete-column', column.columnIndex)"
           />
         </article>
         <p v-if="config.visibleColumnEntries.value.length === 0" class="acu-viz-config__empty">
-          当前表没有可编辑列。新增列后，已有数据行会自动补一个空值。
+          Bảng hiện tại không có cột nào để sửa. Sau khi thêm cột, các hàng dữ liệu có sẵn sẽ tự động được bổ sung một giá trị rỗng.
         </p>
         <div class="acu-viz-config__column-operation">
           <AcuButton size="sm" variant="primary" @click="$emit('request-add-column')">
             <i class="fa-solid fa-plus"></i>
-            新增列
+            Thêm cột
           </AcuButton>
         </div>
       </div>
     </AcuPanel>
 
     <AcuPanel
-      title="自动化更新参数"
-      description="这里调当前表自动更新的范围和频率。不确定时用 -1；想停用当前表自动更新时，把更新频率设为 0。"
+      title="Tham số cập nhật tự động"
+      description="Chỉnh phạm vi và tần suất cập nhật tự động của bảng hiện tại tại đây. Khi không chắc dùng -1; muốn tắt cập nhật tự động của bảng hiện tại thì đặt tần suất cập nhật là 0."
     >
       <div class="acu-viz-config__grid acu-viz-config__grid--three">
-        <AcuFormRow label="上下文层数">
+        <AcuFormRow label="Số tầng ngữ cảnh">
           <AcuInput
             type="number"
             :model-value="updateConfig.contextDepth"
@@ -65,7 +65,7 @@
             @update:model-value="value => config.updateUpdateConfig('contextDepth', value)"
           />
         </AcuFormRow>
-        <AcuFormRow label="更新频率">
+        <AcuFormRow label="Tần suất cập nhật">
           <AcuInput
             type="number"
             :model-value="updateConfig.updateFrequency"
@@ -74,7 +74,7 @@
             @update:model-value="value => config.updateUpdateConfig('updateFrequency', value)"
           />
         </AcuFormRow>
-        <AcuFormRow label="批处理大小">
+        <AcuFormRow label="Kích thước lô xử lý">
           <AcuInput
             type="number"
             :model-value="updateConfig.batchSize"
@@ -83,7 +83,7 @@
             @update:model-value="value => config.updateUpdateConfig('batchSize', value)"
           />
         </AcuFormRow>
-        <AcuFormRow label="分组编号">
+        <AcuFormRow label="Số nhóm">
           <AcuInput
             type="number"
             :model-value="updateConfig.groupId"
@@ -92,7 +92,7 @@
             @update:model-value="value => config.updateUpdateConfig('groupId', value)"
           />
         </AcuFormRow>
-        <AcuFormRow label="跳过楼层">
+        <AcuFormRow label="Bỏ qua tầng">
           <AcuInput
             type="number"
             :model-value="updateConfig.skipFloors"
@@ -101,7 +101,7 @@
             @update:model-value="value => config.updateUpdateConfig('skipFloors', value)"
           />
         </AcuFormRow>
-        <AcuFormRow label="发送最新行数">
+        <AcuFormRow label="Số hàng mới nhất gửi đi">
           <AcuInput
             type="number"
             :model-value="updateConfig.sendLatestRows"
@@ -113,8 +113,8 @@
       </div>
       <AcuFormRow
         v-if="config.isSQLite.value"
-        label="填表发送数据模板"
-        hint="高级功能：只替换发送给填表 AI 的“当前数据”部分。建议直接 SELECT row_id 和需要的字段；系统会把多列结果展开为“字段: 值”的记录行。留空则继续使用“发送最新行数”。"
+        label="Mẫu dữ liệu gửi khi điền bảng"
+        hint="Tính năng nâng cao: chỉ thay phần “dữ liệu hiện tại” gửi cho AI điền bảng. Nên SELECT thẳng row_id và các trường cần thiết; hệ thống sẽ mở kết quả nhiều cột thành các dòng bản ghi dạng “trường: giá trị”. Để trống thì tiếp tục dùng “Số hàng mới nhất gửi đi”."
       >
         <AcuTextarea
           :model-value="updateConfig.sendRowsSqlTemplate"
@@ -127,11 +127,11 @@
     </AcuPanel>
 
     <AcuPanel
-      title="AI 触发提示词"
-      description="这里写给 AI 的表格说明和增删改触发词。AI 不按预期新增、更新或删除时，先检查这些文本是否清楚。"
+      title="Prompt kích hoạt AI"
+      description="Viết mô tả bảng và từ kích hoạt thêm/sửa/xóa cho AI tại đây. Khi AI không thêm, cập nhật hoặc xóa như mong đợi, hãy kiểm tra các văn bản này có rõ ràng không."
     >
       <div class="acu-viz-config__prompts">
-        <AcuFormRow label="表格说明">
+        <AcuFormRow label="Mô tả bảng">
           <AcuTextarea
             :model-value="sourceData.note"
             :rows="3"
@@ -139,7 +139,7 @@
             @update:model-value="value => config.updateSourceData('note', value)"
           />
         </AcuFormRow>
-        <AcuFormRow label="初始化触发">
+        <AcuFormRow label="Kích hoạt khởi tạo">
           <AcuTextarea
             :model-value="sourceData.initNode"
             :rows="2"
@@ -147,7 +147,7 @@
             @update:model-value="value => config.updateSourceData('initNode', value)"
           />
         </AcuFormRow>
-        <AcuFormRow label="新增触发">
+        <AcuFormRow label="Kích hoạt thêm">
           <AcuTextarea
             :model-value="sourceData.insertNode"
             :rows="2"
@@ -155,7 +155,7 @@
             @update:model-value="value => config.updateSourceData('insertNode', value)"
           />
         </AcuFormRow>
-        <AcuFormRow label="更新触发">
+        <AcuFormRow label="Kích hoạt cập nhật">
           <AcuTextarea
             :model-value="sourceData.updateNode"
             :rows="2"
@@ -163,7 +163,7 @@
             @update:model-value="value => config.updateSourceData('updateNode', value)"
           />
         </AcuFormRow>
-        <AcuFormRow label="删除触发">
+        <AcuFormRow label="Kích hoạt xóa">
           <AcuTextarea
             :model-value="sourceData.deleteNode"
             :rows="2"
@@ -176,10 +176,10 @@
 
     <AcuPanel
       v-if="config.isSQLite.value"
-      title="DDL 定义"
-      description="SQLite 表在这里维护建表语句。表头和 CREATE TABLE 不一致时，SQL 可能报错或写错列。"
+      title="Định nghĩa DDL"
+      description="Bảng SQLite duy trì câu lệnh tạo bảng tại đây. Khi tiêu đề cột và CREATE TABLE không khớp, SQL có thể báo lỗi hoặc ghi nhầm cột."
     >
-      <AcuFormRow label="CREATE TABLE 语句">
+      <AcuFormRow label="Câu lệnh CREATE TABLE">
         <AcuTextarea
           class="acu-viz-config__ddl"
           :model-value="sourceData.ddl"
@@ -191,7 +191,7 @@
       <div class="acu-viz-config__inline-actions">
         <AcuButton size="sm" @click="validateDDL">
           <i class="fa-solid fa-check-circle"></i>
-          校验 DDL
+          Kiểm tra DDL
         </AcuButton>
         <AcuBadge v-if="ddlValidation" :variant="ddlValidation.valid ? 'accent' : 'warning'">
           {{ ddlValidation.message }}
@@ -200,23 +200,23 @@
     </AcuPanel>
 
     <AcuPanel
-      title="世界书注入配置"
-      description="控制这张表是否进入世界书、写成哪些条目、放在哪个位置。世界书内容缺失、重复或位置不对时检查这里。"
+      title="Cấu hình chèn vào Sổ thế giới"
+      description="Điều khiển bảng này có vào Sổ thế giới không, được ghi thành những mục nào và đặt ở vị trí nào. Kiểm tra ở đây khi nội dung Sổ thế giới thiếu, trùng lặp hoặc sai vị trí."
     >
       <div class="acu-viz-config__toggles">
         <AcuCheckbox
           :model-value="exportConfig.injectIntoWorldbook !== false"
-          label="注入到世界书条目"
+          label="Chèn vào mục Sổ thế giới"
           @update:model-value="value => config.updateExportConfig('injectIntoWorldbook', value)"
         />
         <AcuCheckbox
           :model-value="exportConfig.enabled === true"
-          label="启用独立导出"
+          label="Bật xuất độc lập"
           @update:model-value="value => config.updateExportConfig('enabled', value)"
         />
       </div>
 
-      <AcuFormRow v-if="config.isSQLite.value" label="SQL 注入模板">
+      <AcuFormRow v-if="config.isSQLite.value" label="Mẫu chèn SQL">
         <AcuTextarea
           :model-value="exportConfig.sqlInjectionTemplate || ''"
           :rows="5"
@@ -230,31 +230,31 @@
         <div class="acu-viz-config__toggles">
           <AcuCheckbox
             :model-value="exportConfig.splitByRow === true"
-            label="按行拆分独立条目"
+            label="Tách mục độc lập theo hàng"
             @update:model-value="value => config.updateExportConfig('splitByRow', value)"
           />
           <AcuCheckbox
             :model-value="exportConfig.preventRecursion !== false"
-            label="防止递归触发"
+            label="Ngăn kích hoạt đệ quy"
             @update:model-value="value => config.updateExportConfig('preventRecursion', value)"
           />
         </div>
 
         <div class="acu-viz-config__grid">
-          <AcuFormRow label="条目名称">
+          <AcuFormRow label="Tên mục">
             <AcuInput
               :model-value="exportConfig.entryName || ''"
               @update:model-value="value => config.updateExportConfig('entryName', value)"
             />
           </AcuFormRow>
-          <AcuFormRow label="条目类型">
+          <AcuFormRow label="Loại mục">
             <AcuSelect
               :model-value="exportConfig.entryType || 'constant'"
               :options="config.entryTypeOptions"
               @update:model-value="value => config.updateExportConfig('entryType', value)"
             />
           </AcuFormRow>
-          <AcuFormRow label="关键词">
+          <AcuFormRow label="Từ khóa">
             <AcuInput
               :model-value="exportConfig.keywords || ''"
               @update:model-value="value => config.updateExportConfig('keywords', value)"
@@ -262,7 +262,7 @@
           </AcuFormRow>
         </div>
 
-        <AcuFormRow label="自定义注入模板">
+        <AcuFormRow label="Mẫu chèn tùy chỉnh">
           <AcuTextarea
             :model-value="exportConfig.injectionTemplate || ''"
             :rows="3"
@@ -271,7 +271,7 @@
         </AcuFormRow>
 
         <PlacementEditor
-          title="主条目位置"
+          title="Vị trí mục chính"
           :placement="config.getPlacement('entryPlacement')"
           :options="config.placementOptions"
           :update-field="(field, value) => config.updatePlacement('entryPlacement', field, value)"
@@ -280,19 +280,19 @@
         <div class="acu-viz-config__subsection">
           <AcuCheckbox
             :model-value="exportConfig.extraIndexEnabled === true"
-            label="额外增加索引条目"
+            label="Thêm mục chỉ mục bổ sung"
             @update:model-value="value => config.updateExportConfig('extraIndexEnabled', value)"
           />
           <template v-if="exportConfig.extraIndexEnabled">
             <div class="acu-viz-config__grid">
-              <AcuFormRow label="索引条目名称">
+              <AcuFormRow label="Tên mục chỉ mục">
                 <AcuInput
                   :model-value="exportConfig.extraIndexEntryName || ''"
                   @update:model-value="value => config.updateExportConfig('extraIndexEntryName', value)"
                 />
               </AcuFormRow>
             </div>
-            <AcuFormRow label="索引条目模板">
+            <AcuFormRow label="Mẫu mục chỉ mục">
               <AcuTextarea
                 :model-value="exportConfig.extraIndexInjectionTemplate || ''"
                 :rows="3"
@@ -320,7 +320,7 @@
               </article>
             </div>
             <PlacementEditor
-              title="索引条目位置"
+              title="Vị trí mục chỉ mục"
               :placement="config.getPlacement('extraIndexPlacement')"
               :options="config.placementOptions"
               :update-field="(field, value) => config.updatePlacement('extraIndexPlacement', field, value)"
@@ -332,18 +332,18 @@
 
     <AcuPanel
       v-if="config.fixedConfigEnabled.value"
-      title="固定条目注入配置"
-      description="控制总结表、总体大纲、重要人物表等固定条目的位置。固定条目重复或顺序不对时检查这里。"
+      title="Cấu hình chèn mục cố định"
+      description="Điều khiển vị trí của các mục cố định như 总结表, 总体大纲, 重要人物表. Kiểm tra ở đây khi mục cố định bị trùng hoặc sai thứ tự."
     >
       <PlacementEditor
-        title="固定主条目位置"
+        title="Vị trí mục chính cố định"
         :placement="config.getPlacement('fixedEntryPlacement')"
         :options="config.placementOptions"
         :update-field="(field, value) => config.updatePlacement('fixedEntryPlacement', field, value)"
       />
       <PlacementEditor
         v-if="config.importantPersonsFixedIndexEnabled.value"
-        title="固定索引条目位置"
+        title="Vị trí mục chỉ mục cố định"
         :placement="config.getPlacement('fixedIndexPlacement')"
         :options="config.placementOptions"
         :update-field="(field, value) => config.updatePlacement('fixedIndexPlacement', field, value)"
@@ -352,13 +352,13 @@
 
     <AcuPanel
       v-if="config.specialIndex.value.enabled"
-      title="编码索引自动编号"
-      description="用于维护总结表、总体大纲里的 AM0001 这类编码。开启后会自动重排；关闭后需要你自己保持唯一和顺序。"
+      title="Tự động đánh số chỉ mục mã"
+      description="Dùng để duy trì các mã dạng AM0001 trong 总结表, 总体大纲. Khi bật sẽ tự động sắp xếp lại; khi tắt bạn phải tự giữ tính duy nhất và thứ tự."
     >
       <div class="acu-viz-config__toggles">
         <AcuCheckbox
           :model-value="config.specialIndex.value.locked"
-          label="保存和 AI 更新时自动重排编码"
+          label="Tự động sắp xếp lại mã khi lưu và khi AI cập nhật"
           @update:model-value="config.setSpecialIndexLock"
         />
         <AcuBadge :variant="config.specialIndex.value.index >= 0 ? 'neutral' : 'warning'">
@@ -391,7 +391,7 @@ defineEmits<{
 
 const config = useVisualizerConfigEditing();
 const ddlValidation = ref<{ valid: boolean; message: string } | null>(null);
-const sqlInjectionTemplatePlaceholder = '留空则使用默认表格内容。支持 {[sql "SELECT ..."]} / {[db.表名.where(...).get(...)]}，会原样写入世界书并在发送前展开。';
+const sqlInjectionTemplatePlaceholder = 'Để trống thì dùng nội dung bảng mặc định. Hỗ trợ {[sql "SELECT ..."]} / {[db.ten_bang.where(...).get(...)]}, sẽ được ghi nguyên vào Sổ thế giới và mở ra trước khi gửi.';
 
 const updateConfig = computed(() => {
   const raw = config.currentSheet.value?.updateConfig || {};
@@ -426,10 +426,10 @@ const sendRowsSqlTemplatePlaceholder = computed(() => {
   const tableNameMatch = String(sourceData.value.ddl || '').match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([^\s(]+)/i);
   const tableName = tableNameMatch?.[1] || 'your_table';
   return [
-    `建议查询列：${headers.join(', ')}`,
-    `展开格式示例：row_id: 1, ${headers.slice(1).map((header, index) => `${header}: 值${index + 1}`).join(', ')}`,
+    `Cột nên truy vấn: ${headers.join(', ')}`,
+    `Ví dụ định dạng mở rộng: row_id: 1, ${headers.slice(1).map((header, index) => `${header}: giá trị ${index + 1}`).join(', ')}`,
     '',
-    '示例模板：',
+    'Mẫu ví dụ:',
     `{[sql "SELECT ${headers.join(', ')} FROM ${tableName} ORDER BY row_id ASC LIMIT 10"]}`,
   ].join('\n');
 });
@@ -446,8 +446,8 @@ const extraIndexColumnModes = computed<Record<string, string>>(() =>
 
 const specialIndexLabel = computed(() => {
   const info = config.specialIndex.value;
-  if (info.index < 0) return '未识别编码索引列，将按默认方式处理';
-  return `当前识别列：#${info.index + 1} ${info.header || '未命名列'}`;
+  if (info.index < 0) return 'Chưa nhận diện được cột chỉ mục mã, sẽ xử lý theo cách mặc định';
+  return `Cột đã nhận diện: #${info.index + 1} ${info.header || 'Cột chưa đặt tên'}`;
 });
 
 function validateDDL(): void {

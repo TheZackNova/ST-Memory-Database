@@ -132,8 +132,8 @@ async function requestRerankBatch_ACU(request: RerankBatchRequest_ACU): Promise<
     } catch (error: any) {
         request.signal?.throwIfAborted();
         throw new Error(error?.name === 'AbortError'
-            ? `Rerank 请求超时（${VECTOR_RERANK_TIMEOUT_MS_ACU}ms，${request.batchLabel}），已中断。`
-            : `Rerank 请求网络失败（${request.batchLabel}）：${error?.message || String(error || '未知错误')}`);
+            ? `Yêu cầu Rerank hết thời gian (${VECTOR_RERANK_TIMEOUT_MS_ACU}ms, ${request.batchLabel}), đã ngắt.`
+            : `Yêu cầu Rerank lỗi mạng (${request.batchLabel}): ${error?.message || String(error || 'Lỗi không xác định')}`);
     } finally {
         request.signal?.removeEventListener('abort', abort);
         clearTimeout(timer);
@@ -142,7 +142,7 @@ async function requestRerankBatch_ACU(request: RerankBatchRequest_ACU): Promise<
 
     if (!response.ok) {
         const detail = await response.text().catch(() => response.statusText);
-        throw new Error(`Rerank 请求失败（${request.batchLabel}）: ${response.status} ${detail}`);
+        throw new Error(`Yêu cầu Rerank thất bại (${request.batchLabel}): ${response.status} ${detail}`);
     }
 
     const rawBody = await response.text().catch((): string => '');
@@ -151,7 +151,7 @@ async function requestRerankBatch_ACU(request: RerankBatchRequest_ACU): Promise<
     try {
         responsePayload = JSON.parse(rawBody);
     } catch (_error) {
-        throw new Error(`Rerank 响应不是合法 JSON（${request.batchLabel}，前 200 字符：${rawBody.slice(0, 200)}）。`);
+        throw new Error(`Phản hồi Rerank không phải JSON hợp lệ (${request.batchLabel}, 200 ký tự đầu: ${rawBody.slice(0, 200)}).`);
     }
     return extractRerankResults_ACU(responsePayload);
 }
@@ -171,10 +171,10 @@ export async function createRerankScores_ACU(request: VectorRerankRequest_ACU): 
         : [];
 
     if (!endpoint) {
-        throw new Error('Rerank endpoint 为空。');
+        throw new Error('Rerank endpoint rỗng.');
     }
     if (!model) {
-        throw new Error('Rerank model 为空。');
+        throw new Error('Rerank model rỗng.');
     }
     if (!query) {
         return [];
@@ -197,7 +197,7 @@ export async function createRerankScores_ACU(request: VectorRerankRequest_ACU): 
             query,
             instruction,
             documents: batch.documents,
-            batchLabel: `第 ${round + waveIndex + 1}/${batches.length} 批，${batch.documents.length} 条`,
+            batchLabel: `Lô ${round + waveIndex + 1}/${batches.length}, ${batch.documents.length} mục`,
             signal: request.signal,
         })));
         request.signal?.throwIfAborted();

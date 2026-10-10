@@ -85,7 +85,7 @@ describe('AcuRulePairList', () => {
     expect(header).not.toBeNull();
     expect(header!.getAttribute('aria-expanded')).toBe('false');
     expect(header!.textContent).toContain('提取规则');
-    expect(header!.textContent).toContain('2 条');
+    expect(header!.textContent).toContain('2 mục');
   });
 
   it('非空规则列表默认折叠，body 不可见', () => {
@@ -128,7 +128,7 @@ describe('AcuRulePairList', () => {
 
     const header = getHeader(el)!;
     expect(header.getAttribute('aria-expanded')).toBe('false');
-    expect(header.textContent).toContain('暂无');
+    expect(header.textContent).toContain('Chưa có');
     expect(isVisible(getBody(el))).toBe(false);
 
     header.click();
@@ -169,6 +169,6 @@ describe('AcuRulePairList', () => {
     addBtn.click();
     await Promise.resolve();
 
-    expect(getHeader(el)!.textContent).toContain('2 条');
+    expect(getHeader(el)!.textContent).toContain('2 mục');
   });
 });

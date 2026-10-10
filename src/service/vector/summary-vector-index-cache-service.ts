@@ -31,13 +31,13 @@ export async function clearAllSummaryVectorIndexCaches_ACU(): Promise<void> {
 }
 
 function normalizeErrorMessage_ACU(error: unknown): string {
-    if (error instanceof Error) return error.message || error.name || '未知错误';
+    if (error instanceof Error) return error.message || error.name || 'Lỗi không xác định';
     if (typeof error === 'string') return error;
     try {
         const json = JSON.stringify(error);
-        return json && json !== '{}' ? json : String(error || '未知错误');
+        return json && json !== '{}' ? json : String(error || 'Lỗi không xác định');
     } catch (_jsonError) {
-        return String(error || '未知错误');
+        return String(error || 'Lỗi không xác định');
     }
 }
 
@@ -61,7 +61,7 @@ export async function clearLatestSummaryVectorIndexStateForMissingExternalFiles_
     indexId: string;
     sourceTableKey: string;
 }): Promise<ClearMissingSummaryVectorIndexResult_ACU> {
-    return clearLatestSummaryVectorIndexStateUnderScopeLock_ACU(params, '外置文件缺失');
+    return clearLatestSummaryVectorIndexStateUnderScopeLock_ACU(params, 'thiếu tệp bên ngoài');
 }
 
 export async function clearLatestSummaryVectorIndexStateForInvalidExternalFiles_ACU(params: {
@@ -70,7 +70,7 @@ export async function clearLatestSummaryVectorIndexStateForInvalidExternalFiles_
     indexId: string;
     sourceTableKey: string;
 }): Promise<ClearMissingSummaryVectorIndexResult_ACU> {
-    return clearLatestSummaryVectorIndexStateUnderScopeLock_ACU(params, '身份无效');
+    return clearLatestSummaryVectorIndexStateUnderScopeLock_ACU(params, 'danh tính không hợp lệ');
 }
 
 async function clearLatestSummaryVectorIndexStateUnderScopeLock_ACU(

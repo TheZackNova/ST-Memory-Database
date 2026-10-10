@@ -195,13 +195,13 @@ describe('useVisualizerConfigEditing', () => {
     const config = useVisualizerConfigEditing();
     store.setSaving(true);
 
-    expect(() => config.setTableApiPreset('beta')).toThrow('保存正在进行中');
+    expect(() => config.setTableApiPreset('beta')).toThrow('Đang lưu, trong lúc này không thể tiếp tục chỉnh sửa.');
     expect(runtimeMock.settings_ACU.tableApiPresetOverridesByName).toEqual({});
     expect(saveSettingsMock.saveSettings_ACU).not.toHaveBeenCalled();
 
     store.setSaving(false);
     store.pendingDataOps.committed = { afterData: {}, insertedRowIds: {} };
-    expect(() => config.setTableApiPreset('beta')).toThrow('数据已持久化但本地刷新尚未完成');
+    expect(() => config.setTableApiPreset('beta')).toThrow('Dữ liệu đã được lưu bền nhưng làm mới cục bộ chưa hoàn tất. Hãy thử lưu lại để hoàn tất khôi phục, trong lúc này không thể tiếp tục chỉnh sửa.');
     expect(runtimeMock.settings_ACU.tableApiPresetOverridesByName).toEqual({});
     expect(saveSettingsMock.saveSettings_ACU).not.toHaveBeenCalled();
   });
@@ -259,7 +259,7 @@ describe('useVisualizerConfigEditing', () => {
     store.pendingDataOps.committed = { afterData: {}, insertedRowIds: {} };
     const before = JSON.stringify({ content: store.currentSheet.content, locks: store.tableLockDrafts, dirty: store.dirty });
 
-    expect(() => config.setSpecialIndexLock(true)).toThrow('数据已持久化但本地刷新尚未完成');
+    expect(() => config.setSpecialIndexLock(true)).toThrow('Dữ liệu đã được lưu bền nhưng làm mới cục bộ chưa hoàn tất. Hãy thử lưu lại để hoàn tất khôi phục, trong lúc này không thể tiếp tục chỉnh sửa.');
 
     expect(JSON.stringify({ content: store.currentSheet.content, locks: store.tableLockDrafts, dirty: store.dirty })).toBe(before);
   });
@@ -315,13 +315,13 @@ describe('useVisualizerConfigEditing', () => {
     ];
     store.setSaving(true);
     const beforeSaving = JSON.stringify(store.tempData);
-    actions.forEach(action => expect(action).toThrow('保存正在进行中'));
+    actions.forEach(action => expect(action).toThrow('Đang lưu, trong lúc này không thể tiếp tục chỉnh sửa.'));
     expect(JSON.stringify(store.tempData)).toBe(beforeSaving);
 
     store.setSaving(false);
     store.pendingDataOps.committed = { afterData: {}, insertedRowIds: {} };
     const beforeCommitted = JSON.stringify(store.tempData);
-    actions.forEach(action => expect(action).toThrow('数据已持久化但本地刷新尚未完成'));
+    actions.forEach(action => expect(action).toThrow('Dữ liệu đã được lưu bền nhưng làm mới cục bộ chưa hoàn tất. Hãy thử lưu lại để hoàn tất khôi phục, trong lúc này không thể tiếp tục chỉnh sửa.'));
     expect(JSON.stringify(store.tempData)).toBe(beforeCommitted);
   });
 
@@ -332,7 +332,7 @@ describe('useVisualizerConfigEditing', () => {
 
     expect(config.entryTypeOptions).toContainEqual({
       value: 'keyword',
-      label: '关键词触发条目',
+      label: 'Mục kích hoạt theo từ khóa',
     });
 
     config.updateExportConfig('entryType', 'keyword');

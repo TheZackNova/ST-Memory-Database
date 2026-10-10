@@ -89,7 +89,7 @@ describe('续写固定工作流', () => {
       'instruction-composer:ok',
     ]);
     expect(harness.calls[0].prompt).toContain('守门人的回避');
-    expect(harness.calls[0].prompt).toContain('不调用 write_sql');
+    expect(harness.calls[0].prompt).toContain('không gọi write_sql');
     expect(harness.calls[0].prompt).not.toContain('delta 留空');
     expect(harness.composerPrompts[0]).toContain('守门人的回避');
     expect(result.snapshot.revisions.hooks).toBe(1);
@@ -226,7 +226,7 @@ describe('续写固定工作流', () => {
     expect(failedCalls.every(call => call.billing !== 'repair')).toBe(true);
     expect(failedResult).toMatchObject({ outcome: 'escalate', escalationKind: 'pending_fix' });
     expect(failedResult.pendingFixes[0].violations).toContainEqual({ path: 'hooks#H1.status', message: '缺栏', source: 'missing_field' });
-    expect(failedMaintainerCalls[1].prompt).toContain('额度已用尽时不重复 read');
+    expect(failedMaintainerCalls[1].prompt).toContain('Khi hạn mức đã dùng hết thì không read lặp');
     expect(failedCalls).toEqual(failedMaintainerCalls);
     expect(failed.composerPrompts).toEqual([]);
   });

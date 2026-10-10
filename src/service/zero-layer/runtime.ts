@@ -14,20 +14,20 @@ import type { ZeroLayerExitSelection_ACU } from './exit-model';
 export class ZeroLayerRuntime_ACU {
   readonly store = new ZeroLayerStore_ACU();
   readonly session = new ZeroLayerSession_ACU(this.store, async (...args) => {
-    if (!this.settlement) throw new ZeroLayerError_ACU('effects-pending', '零层结算适配器尚未就绪。');
+    if (!this.settlement) throw new ZeroLayerError_ACU('effects-pending', 'Bộ chuyển đổi quyết toán Tầng 0 chưa sẵn sàng.');
     await this.settlement(...args);
     const [envelope, turnId, attemptId, signal] = args;
     const current = await this.store.read();
     const turn = current?.turns.find(item => item.turnId === turnId && item.attemptId === attemptId);
     if (!current || current.sessionId !== envelope.sessionId || !turn) {
-      throw new ZeroLayerError_ACU('revision-conflict', '正文结算身份已变化。');
+      throw new ZeroLayerError_ACU('revision-conflict', 'Danh tính quyết toán nội dung chính đã thay đổi.');
     }
     await getWorldSimulationRuntime_ACU().handleLogicalCompletion(current, turnId, attemptId, signal);
     const settled = await this.store.read();
     if (turn.continuationIdentity) {
-      if (!this.continuationSettlement) throw new ZeroLayerError_ACU('effects-pending', '续写确认端口尚未接通。');
+      if (!this.continuationSettlement) throw new ZeroLayerError_ACU('effects-pending', 'Cổng xác nhận viết tiếp chưa được kết nối.');
       if (!settled || settled.sessionId !== current.sessionId || settled.activeBranchId !== current.activeBranchId) {
-        throw new ZeroLayerError_ACU('scope-changed', '推演结算后续写作用域已变化。');
+        throw new ZeroLayerError_ACU('scope-changed', 'Phạm vi viết tiếp đã thay đổi sau quyết toán mô phỏng.');
       }
       await this.continuationSettlement(settled, turnId, attemptId, signal);
     }
@@ -54,12 +54,12 @@ export class ZeroLayerRuntime_ACU {
   }
 
   setSettlement(settlement: ZeroLayerResponseSettlement_ACU): void {
-    if (this.submitting) throw new ZeroLayerError_ACU('pending-turn', '在途请求不能替换结算适配器。');
+    if (this.submitting) throw new ZeroLayerError_ACU('pending-turn', 'Yêu cầu đang chạy không thể thay bộ chuyển đổi quyết toán.');
     this.settlement = settlement;
   }
 
   registerContinuationSettlement(settlement: ZeroLayerResponseSettlement_ACU): () => void {
-    if (this.submitting) throw new ZeroLayerError_ACU('pending-turn', '在途请求不能替换续写确认端口。');
+    if (this.submitting) throw new ZeroLayerError_ACU('pending-turn', 'Yêu cầu đang chạy không thể thay cổng xác nhận viết tiếp.');
     this.continuationSettlement = settlement;
     return () => { if (this.continuationSettlement === settlement) this.continuationSettlement = null; };
   }
@@ -83,8 +83,8 @@ export class ZeroLayerRuntime_ACU {
     prepare: () => Promise<ZeroLayerPreparedInvocation_ACU>,
     beforeSend?: (ref: ContinuationLogicalRef_ACU) => Promise<void>,
   ): Promise<ZeroLayerEnvelope_ACU> {
-    if (!this.uninstall) throw new ZeroLayerError_ACU('mode-disabled', '零层请求拦截器尚未安装。');
-    if (!this.settlement) throw new ZeroLayerError_ACU('effects-pending', '零层结算链尚未接通，禁止发送正文请求。');
+    if (!this.uninstall) throw new ZeroLayerError_ACU('mode-disabled', 'Bộ chặn yêu cầu Tầng 0 chưa được cài đặt.');
+    if (!this.settlement) throw new ZeroLayerError_ACU('effects-pending', 'Chuỗi quyết toán Tầng 0 chưa được kết nối, cấm gửi yêu cầu nội dung chính.');
     requireZeroLayerHostGeneration_ACU();
     return this.runExclusive(async () => {
       const prepared = await prepare();
@@ -101,7 +101,7 @@ export class ZeroLayerRuntime_ACU {
 
   /** 只恢复指定持久化回合的效果；不要求宿主生成能力，不发送正文请求。 */
   async recoverSettlement(turnId: string, attemptId: string): Promise<ZeroLayerEnvelope_ACU> {
-    if (!this.settlement) throw new ZeroLayerError_ACU('effects-pending', '零层结算适配器尚未就绪。');
+    if (!this.settlement) throw new ZeroLayerError_ACU('effects-pending', 'Bộ chuyển đổi quyết toán Tầng 0 chưa sẵn sàng.');
     return this.runExclusive(() => this.session.recoverSettlement(turnId, attemptId));
   }
 
@@ -118,7 +118,7 @@ export class ZeroLayerRuntime_ACU {
   /** 显式启停共用 session 写租约；首次启用先严格确认桥接首基线。 */
   async setEnabled(enabled: boolean, apiPresetName?: string): Promise<ZeroLayerEnvelope_ACU> {
     if (enabled) return this.runExclusive(() => this.session.setEnabled(true, apiPresetName));
-    if (this.closing) throw new ZeroLayerError_ACU('pending-turn', '零层关闭正在收尾。');
+    if (this.closing) throw new ZeroLayerError_ACU('pending-turn', 'Việc tắt Tầng 0 đang kết thúc.');
     const context = captureZeroLayerCarrier_ACU();
     const previous = this.closeBlocks.get(context.key);
     if (!previous || previous.context.carrier !== context.carrier) {
@@ -191,14 +191,14 @@ export class ZeroLayerRuntime_ACU {
   }
 
   registerContinuationStop(stop: () => Promise<void>): () => void {
-    if (this.closing) throw new ZeroLayerError_ACU('pending-turn', '关闭期间不能装配续写运行时。');
+    if (this.closing) throw new ZeroLayerError_ACU('pending-turn', 'Không thể lắp ráp runtime viết tiếp trong lúc đang tắt.');
     this.continuationStops.add(stop);
     return () => { this.continuationStops.delete(stop); };
   }
 
   private async runExclusive<T>(work: () => Promise<T>, access: 'normal' | 'close' | 'recover' = 'normal'): Promise<T> {
     if (this.submitting || this.closing && access !== 'close') {
-      throw new ZeroLayerError_ACU('pending-turn', '已有零层操作正在执行或关闭收尾。');
+      throw new ZeroLayerError_ACU('pending-turn', 'Đang có thao tác Tầng 0 chạy hoặc đang kết thúc việc tắt.');
     }
     if (access === 'normal') this.store.assertCanOperate();
     this.submitting = true;

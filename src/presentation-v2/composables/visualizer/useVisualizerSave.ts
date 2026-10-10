@@ -243,18 +243,18 @@ function prepareTemplateSheetsForCommit_ACU(
   const scopedData = Object.fromEntries(sheetKeys.map(sheetKey => [sheetKey, data[sheetKey]]));
   const normalization = normalizeCanonicalTableRows_ACU(scopedData);
   if (normalization.errors.length > 0) {
-    throw new Error(`模板保存被拒绝：存在无法自动合并的 row_id 问题。`);
+    throw new Error(`Từ chối lưu mẫu: có vấn đề row_id không thể tự động gộp.`);
   }
   for (const sheetKey of sheetKeys) {
     const sheet = data[sheetKey];
     const headers = sheet?.content?.[0];
     if (!sheet || !Array.isArray(headers) || headers[0] !== 'row_id') {
-      throw new Error(`模板保存被拒绝：${sheetKey} 缺少 row_id 表头。`);
+      throw new Error(`Từ chối lưu mẫu: ${sheetKey} thiếu tiêu đề row_id.`);
     }
     if (!sheet.sourceData || typeof sheet.sourceData !== 'object') sheet.sourceData = {};
     if (!String(sheet.sourceData.ddl || '').trim()) sheet.sourceData.ddl = generateDDL(sheet, sheet.uid || sheetKey);
     const ddlValidation = validateDDLTextAgainstHeaders_ACU(sheet.sourceData.ddl, headers);
-    if (!ddlValidation.valid) throw new Error(`模板保存被拒绝：${sheetKey} 的 DDL 无法 strict hydrate：${ddlValidation.message}`);
+    if (!ddlValidation.valid) throw new Error(`Từ chối lưu mẫu: ${sheetKey} - DDL không thể strict hydrate: ${ddlValidation.message}`);
   }
   return { removedNullRowCount: normalization.removedRows.length };
 }
@@ -300,7 +300,7 @@ async function saveGlobalTemplateSnapshot(
   let finalGlobalPresetName = activePresetName;
   if (isDefaultTemplatePresetSelection_ACU(finalGlobalPresetName)) {
     const promptedName = interactions.requestGlobalPresetName
-      ? await interactions.requestGlobalPresetName('新模板预设')
+      ? await interactions.requestGlobalPresetName('Preset mẫu mới')
       : null;
     if (!promptedName) return { status: 'cancelled' };
     finalGlobalPresetName = normalizeTemplatePresetSelectionValue_ACU(String(promptedName).trim());
@@ -317,11 +317,11 @@ async function saveGlobalTemplateSnapshot(
   // 目标预设不存在（新建场景）视为有变化，必须落库。
   const targetPresetStr = getTemplatePreset_ACU(finalGlobalPresetName)?.templateStr || '';
   if (!preparedSnapshot?.templateStr) {
-    throw new Error('无法生成模板快照。');
+    throw new Error('Không thể tạo snapshot mẫu.');
   }
   if (targetPresetStr && preparedSnapshot.templateStr === targetPresetStr) return { status: 'unchanged' };
   const presetSaved = upsertTemplatePreset_ACU(finalGlobalPresetName, preparedSnapshot.templateStr);
-  if (!presetSaved) throw new Error('无法写入全局预设库。');
+  if (!presetSaved) throw new Error('Không thể ghi vào thư viện preset toàn cục.');
 
   const applied = await applyTemplatePresetToCurrent_ACU(finalGlobalPresetName, {
     source: 'visualizer_v2_save_to_global',
@@ -329,11 +329,11 @@ async function saveGlobalTemplateSnapshot(
     save: true,
     persistChatScope: false,
   });
-  if (!applied) throw new Error('模板快照应用失败。');
+  if (!applied) throw new Error('Áp dụng snapshot mẫu thất bại.');
   // S1-3：inherit_global 聊天下全局切换经协调器，失败（含破坏性 blockers）时
   // 全局预设名/生效模板未变，抛错让保存流程按失败收尾。
   if (typeof applied === 'object' && 'saved' in applied && applied.saved === false) {
-    throw new Error(typeof (applied as any).error === 'string' && (applied as any).error ? (applied as any).error : '模板快照应用失败。');
+    throw new Error(typeof (applied as any).error === 'string' && (applied as any).error ? (applied as any).error : 'Áp dụng snapshot mẫu thất bại.');
   }
   return { status: 'saved', presetName: finalGlobalPresetName };
 }
@@ -448,7 +448,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
     try {
       return await task();
     } catch (error) {
-      const message = error instanceof Error ? error.message : '保存失败，请查看控制台日志。';
+      const message = error instanceof Error ? error.message : 'Lưu thất bại, vui lòng xem nhật ký console.';
       logWarn_ACU('[ACU-V2 Visualizer] save failed:', error);
       toastStore.error(message, { muteable: false });
       return false;
@@ -464,7 +464,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
       )];
       const hasDataChanges = hasVisualizerPendingDataOps_ACU(visualizer);
       if (hasDataChanges && deletedSheetKeys.length > 0) {
-        toastStore.error('行数据增量与整表删除无法原子提交；请分别保存行数据和删表操作。', { muteable: false });
+        toastStore.error('Phần tăng thêm dữ liệu hàng và xóa cả bảng không thể cam kết nguyên tử; vui lòng lưu dữ liệu hàng và thao tác xóa bảng riêng.', { muteable: false });
         return false;
       }
       const hasLockChanges = visualizer.lockDirty;
@@ -472,7 +472,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
         ? await applyVisualizerPendingDataOps_ACU(visualizer)
         : { success: true, changed: false };
       if (!result.success) {
-        toastStore.error(result.error || '数据保存失败。', { muteable: false });
+        toastStore.error(result.error || 'Lưu dữ liệu thất bại.', { muteable: false });
         return false;
       }
       if (!result.changed && deletedSheetKeys.length === 0 && !hasLockChanges) {
@@ -484,8 +484,8 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
         ).mateChanged;
         toastStore.info(
           mateChanged
-            ? '全局注入配置属于模板层，请使用「保存模板到当前聊天」保存。'
-            : '没有需要保存的数据、锁或删表增量。',
+            ? 'Cấu hình chèn toàn cục thuộc tầng mẫu, vui lòng dùng「Lưu mẫu vào cuộc trò chuyện hiện tại」để lưu.'
+            : 'Không có dữ liệu, khóa hoặc phần tăng thêm xóa bảng cần lưu.',
           { muteable: false });
         return false;
       }
@@ -508,7 +508,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
         await refreshMergedDataAndNotify_ACU({ canonicalData: result.canonicalData || null });
       } catch (error: any) {
         if (visualizer.pendingDataOps?.committed) {
-          throw new Error(`数据已持久化，但本地运行时刷新失败：${error?.message || String(error)}`);
+          throw new Error(`Dữ liệu đã được lưu bền nhưng làm mới runtime cục bộ thất bại: ${error?.message || String(error)}`);
         }
         throw error;
       }
@@ -528,10 +528,10 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
       } catch {}
       visualizer.markSaved('data');
       toastStore.success(
-        deletedSheetKeys.length > 0 ? '数据增量、锁设置与删表清理已保存到当前消息。'
-          : result.changed && hasLockChanges ? '数据增量与锁设置已保存到当前消息。'
-            : result.changed ? '数据增量已保存到当前消息。'
-            : '表格锁设置已保存。',
+        deletedSheetKeys.length > 0 ? 'Phần tăng thêm dữ liệu, cài đặt khóa và dọn xóa bảng đã được lưu vào tin nhắn hiện tại.'
+          : result.changed && hasLockChanges ? 'Phần tăng thêm dữ liệu và cài đặt khóa đã được lưu vào tin nhắn hiện tại.'
+            : result.changed ? 'Phần tăng thêm dữ liệu đã được lưu vào tin nhắn hiện tại.'
+            : 'Đã lưu cài đặt khóa bảng.',
         { muteable: false },
       );
       return true;
@@ -546,7 +546,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
         const hasSheetBaseline = visualizer.templateBaseData
           && Object.keys(visualizer.templateBaseData).some(key => key.startsWith('sheet_'));
         if (!hasSheetBaseline) {
-          toastStore.error('模板基线缺失，无法安全保存全局配置；请重新载入当前聊天后重试。', { muteable: false });
+          toastStore.error('Thiếu mốc cơ sở của mẫu, không thể lưu cấu hình toàn cục an toàn; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
           return false;
         }
         // 2. 构建 guideData（复用现有写法，含 preserveSeedRowsFromGuideData 与 seedRowsFromTemplateObj）。
@@ -558,13 +558,13 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
           orderedKeys: [...visualizer.sheetOrder],
         });
         if (!guideData || !Object.keys(guideData).some(key => key.startsWith('sheet_'))) {
-          throw new Error('无法为当前模板结构生成聊天指导表。');
+          throw new Error('Không thể tạo bảng hướng dẫn trò chuyện cho cấu trúc mẫu hiện tại.');
         }
         // 3. switchMode 分流。
         const switchMode = resolveTemplateSwitchMode_ACU(getChatArray_ACU(), guideIsolationKey);
         logDebug_ACU(`[ACU-V2 Visualizer] saveTemplateToCurrentChat mate-only 分流: mode=${switchMode.mode}${switchMode.mode === 'blocked' ? `, reason=${switchMode.reason}` : ''}。`);
         if (switchMode.mode === 'blocked') {
-          toastStore.error(`模板保存已阻止：${switchMode.reason}`, { muteable: false });
+          toastStore.error(`Đã chặn lưu mẫu: ${switchMode.reason}`, { muteable: false });
           return false;
         }
         let commitResult;
@@ -577,7 +577,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
           if (!demotion.ok && demotion.noReplayRoot === true) {
             logDebug_ACU(`[ACU-V2 Visualizer] 聊天无回放根，跳过降级直接 scope-only：${demotion.reason}`);
           } else if (!demotion.ok) {
-            toastStore.error(`模板保存被降级预检阻止：${demotion.reason || 'template_only_root 降级失败。'}`, { muteable: false });
+            toastStore.error(`Lưu mẫu bị chặn bởi kiểm tra trước hạ cấp: ${demotion.reason || 'hạ cấp template_only_root thất bại.'}`, { muteable: false });
             return false;
           }
           // 注意：与既有非-mate pristine 分支不同，此处**不得**传 pristineOverride: true。
@@ -613,11 +613,11 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
         }
         // 5. 失败处理：投影不一致时追加可执行指引。
         if (!commitResult.saved) {
-          const errorText = commitResult.error || '全局配置保存失败。';
+          const errorText = commitResult.error || 'Lưu cấu hình toàn cục thất bại.';
           const projectionMismatch = errorText.includes('scope-only 模板提交要求 baseline 与 candidate 的持久化 Sheet 投影完全一致');
           toastStore.error(
             projectionMismatch
-              ? `${errorText}存在未提交的表内容差异，请先保存数据到当前消息，再保存全局配置。`
+              ? `${errorText} Có khác biệt nội dung bảng chưa cam kết, vui lòng lưu dữ liệu vào tin nhắn hiện tại trước rồi mới lưu cấu hình toàn cục.`
               : errorText,
             { muteable: false },
           );
@@ -628,13 +628,13 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
           applyTemplateScopeForCurrentChat_ACU();
         } catch (error) {
           logWarn_ACU('[ACU-V2 Visualizer] mate-only commit saved but applyTemplateScopeForCurrentChat failed:', error);
-          toastStore.warning('模板已保存，但模板作用域运行时同步失败；请重新载入当前聊天后重试。', { muteable: false });
+          toastStore.warning('Đã lưu mẫu nhưng đồng bộ runtime theo phạm vi mẫu thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
         }
         try {
           _set_currentJsonTableData_ACU(cloneData(orderedData));
         } catch (error) {
           logWarn_ACU('[ACU-V2 Visualizer] mate-only commit saved but runtime data synchronization failed:', error);
-          toastStore.warning('全局配置已保存，但运行时数据同步失败；请重新载入当前聊天后重试。', { muteable: false });
+          toastStore.warning('Đã lưu cấu hình toàn cục nhưng đồng bộ dữ liệu runtime thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
         }
         let lockSaveFailed = false;
         if (options.hasPendingLocks) {
@@ -643,7 +643,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
           } catch (error) {
             lockSaveFailed = true;
             logWarn_ACU('[ACU-V2 Visualizer] mate-only commit saved but lock drafts failed:', error);
-            toastStore.warning('全局配置已保存，但表格锁定设置未保存；请重试保存。', { muteable: false });
+            toastStore.warning('Đã lưu cấu hình toàn cục nhưng chưa lưu cài đặt khóa bảng; vui lòng thử lưu lại.', { muteable: false });
           }
         }
         if (isSqliteMode()) {
@@ -651,14 +651,14 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
             await reloadStorageProvider();
           } catch (error) {
             logWarn_ACU('[ACU-V2 Visualizer] mate-only commit saved but reloadStorageProvider failed:', error);
-            toastStore.warning('全局配置已保存，但 SQLite 运行时刷新失败；请重新载入当前聊天后重试。', { muteable: false });
+            toastStore.warning('Đã lưu cấu hình toàn cục nhưng làm mới runtime SQLite thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
           }
         }
         try {
           await refreshMergedDataAndNotify_ACU();
         } catch (error) {
           logWarn_ACU('[ACU-V2 Visualizer] mate-only commit saved but refreshMergedDataAndNotify failed:', error);
-          toastStore.warning('全局配置已保存，但合并数据刷新失败；请重新载入当前聊天后重试。', { muteable: false });
+          toastStore.warning('Đã lưu cấu hình toàn cục nhưng làm mới dữ liệu gộp thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
         }
         try {
           (topLevelWindow_ACU as any).AutoCardUpdaterAPI?._notifyTableUpdate?.();
@@ -671,14 +671,14 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
         notifyTemplateRuntimeCommitted_ACU();
         toastStore.success(
           options.hasPendingLocks
-            ? '全局注入配置与表格锁定设置已保存到当前聊天。'
-            : '全局注入配置已保存到当前聊天。',
+            ? 'Cấu hình chèn toàn cục và cài đặt khóa bảng đã được lưu vào cuộc trò chuyện hiện tại.'
+            : 'Cấu hình chèn toàn cục đã được lưu vào cuộc trò chuyện hiện tại.',
           { muteable: false },
         );
         return true;
       };
       if (hasVisualizerPendingDataOps_ACU(visualizer)) {
-        toastStore.error('存在未保存的数据增量；本次是模板保存，已阻止混合提交。', { muteable: false });
+        toastStore.error('Có phần tăng thêm dữ liệu chưa lưu; lần này là lưu mẫu, đã chặn cam kết hỗn hợp.', { muteable: false });
         return false;
       }
       const orderedData = buildOrderedData(visualizer.tempData, visualizer.sheetOrder, visualizer.tableLockDrafts, {
@@ -707,10 +707,10 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
           if (visualizer.pendingLockChanges.length > 0 || visualizer.lockDirty) {
             saveLockDrafts(visualizer.tableLockDrafts, visualizer.tempData);
             visualizer.markSaved('template-chat');
-            toastStore.success('表格锁定设置已保存。', { muteable: false });
+            toastStore.success('Đã lưu cài đặt khóa bảng.', { muteable: false });
             return true;
           }
-          toastStore.info('模板结构没有变化。', { muteable: false });
+          toastStore.info('Cấu trúc mẫu không thay đổi.', { muteable: false });
           return false;
         }
         // mate-only（可叠加锁变更）→ 走 scope-only 通道。
@@ -754,7 +754,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
               const rebaseChoiceId = `rebase:${decision.sheetKey}`;
               const selectedId = await interactions.requestSchemaMigrationChoice({
                 sheetKey: decision.sheetKey,
-                message: decision.message || '请选择该 Sheet 的历史列映射。',
+                message: decision.message || 'Vui lòng chọn ánh xạ cột lịch sử của Sheet này.',
                 choices: (decision.choices || []).map(choice => ({ id: choice.id, label: choice.label })),
                 rebaseChoiceId,
               });
@@ -765,7 +765,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
               }
               const selected = (decision.choices || []).find(choice => choice.id === selectedId);
               if (!selected) {
-                toastStore.error(`schema migration 返回了无效选择：${decision.sheetKey}。`, { muteable: false });
+                toastStore.error(`schema migration trả về lựa chọn không hợp lệ: ${decision.sheetKey}.`, { muteable: false });
                 return false;
               }
               schemaMigrationIntents[decision.sheetKey] = cloneData(selected.intent);
@@ -777,7 +777,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
               pendingLockChanges: cloneData(visualizer.pendingLockChanges), lockDirty: visualizer.lockDirty,
             };
             if (!sameTemplateValue_ACU(preflightSnapshot, currentChoiceSnapshot)) {
-              toastStore.warning('模板结构在 schema migration 选择期间已变化；请重新保存。', { muteable: false });
+              toastStore.warning('Cấu trúc mẫu đã thay đổi trong lúc chọn schema migration; vui lòng lưu lại.', { muteable: false });
               return false;
             }
             preflight = await preflightSchemaMigrations_ACU({
@@ -794,7 +794,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
             && confirmationIssues.length === preflight.blockers.length
             && confirmationIssues.every(issue => issue.code === 'DESTRUCTIVE_COLUMN_DROP_CONFIRMATION_REQUIRED');
           if (!onlyDestructiveDropConfirmation) {
-            toastStore.error(`模板结构未通过 schema migration preflight：${preflight.blockers.join('；')}`, { muteable: false });
+            toastStore.error(`Cấu trúc mẫu không qua được schema migration preflight: ${preflight.blockers.join('; ')}`, { muteable: false });
             return false;
           }
           const confirmed = interactions.confirmDestructiveSchemaChange
@@ -819,7 +819,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
             lockDirty: visualizer.lockDirty,
           };
           if (!sameTemplateValue_ACU(preflightSnapshot, currentConfirmationSnapshot)) {
-            toastStore.warning('模板结构在危险确认期间已变化；请重新保存。', { muteable: false });
+            toastStore.warning('Cấu trúc mẫu đã thay đổi trong lúc xác nhận nguy hiểm; vui lòng lưu lại.', { muteable: false });
             return false;
           }
           preflight = await preflightSchemaMigrations_ACU({
@@ -830,7 +830,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
             destructiveChangeConfirmed: true,
           });
           if (preflight.blockers.length > 0) {
-            toastStore.error(`模板结构未通过已确认 schema migration preflight：${preflight.blockers.join('；')}`, { muteable: false });
+            toastStore.error(`Cấu trúc mẫu không qua được schema migration preflight đã xác nhận: ${preflight.blockers.join('; ')}`, { muteable: false });
             return false;
           }
         }
@@ -859,7 +859,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
           && new Set(actionKeys).size === actionKeys.length
           && actionKeys.every(sheetKey => expectedSchemaKeys.includes(sheetKey));
         if (!actionValid) {
-          toastStore.error('模板结构预检未为每个变更 Sheet 返回 migration 或 rebase action，已拒绝保存。', { muteable: false });
+          toastStore.error('Kiểm tra trước cấu trúc mẫu không trả về migration hoặc rebase action cho từng Sheet thay đổi, đã từ chối lưu.', { muteable: false });
           return false;
         }
         for (const [sheetKey, mode] of Object.entries(applyModes)) {
@@ -877,7 +877,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
           lockDirty: visualizer.lockDirty,
         };
         if (!sameTemplateValue_ACU(preflightSnapshot, currentPreflightSnapshot)) {
-          toastStore.warning('模板结构在 schema migration preflight 期间已变化；请重新保存。', { muteable: false });
+          toastStore.warning('Cấu trúc mẫu đã thay đổi trong lúc schema migration preflight; vui lòng lưu lại.', { muteable: false });
           return false;
         }
       }
@@ -888,7 +888,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
         orderedKeys: [...visualizer.sheetOrder],
       });
       if (!guideData || !Object.keys(guideData).some(key => key.startsWith('sheet_'))) {
-        throw new Error('无法为当前模板结构生成聊天指导表。');
+        throw new Error('Không thể tạo bảng hướng dẫn trò chuyện cho cấu trúc mẫu hiện tại.');
       }
       const preparation = prepareTemplateSheetsForCommit_ACU(orderedData, changedSheetKeys);
       const templateScopeSource = cloneData(orderedData);
@@ -912,7 +912,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
           });
         }
         if (operations.length === 0) {
-          throw new Error(`模板保存缺少可持久化的变更 operation：${sheetKey}。`);
+          throw new Error(`Lưu mẫu thiếu operation thay đổi có thể lưu bền: ${sheetKey}.`);
         }
         return {
           kind: 'operations' as const,
@@ -930,7 +930,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
       const switchMode = resolveTemplateSwitchMode_ACU(getChatArray_ACU(), guideIsolationKey);
       logDebug_ACU(`[ACU-V2 Visualizer] saveTemplateToCurrentChat 分流: mode=${switchMode.mode}${switchMode.mode === 'blocked' ? `, reason=${switchMode.reason}` : ''}, deletedSheetKeys=${deletedSheetKeys.join(',') || 'none'}, changedSheetKeys=${changedSheetKeys.join(',') || 'none'}。`);
       if (switchMode.mode === 'blocked') {
-        toastStore.error(`模板保存已阻止：${switchMode.reason}`, { muteable: false });
+        toastStore.error(`Đã chặn lưu mẫu: ${switchMode.reason}`, { muteable: false });
         return false;
       }
       let commitResult;
@@ -953,7 +953,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
         if (!demotion.ok && demotion.noReplayRoot === true) {
           logDebug_ACU(`[ACU-V2 Visualizer] 聊天无回放根，跳过降级直接 scope-only：${demotion.reason}`);
         } else if (!demotion.ok) {
-          toastStore.error(`模板保存被降级预检阻止：${demotion.reason || 'template_only_root 降级失败。'}`, { muteable: false });
+          toastStore.error(`Lưu mẫu bị chặn bởi kiểm tra trước hạ cấp: ${demotion.reason || 'hạ cấp template_only_root thất bại.'}`, { muteable: false });
           return false;
         }
         const scopeOnlyBaseline = visualizer.templateBaseData && Object.keys(visualizer.templateBaseData).length > 0
@@ -971,7 +971,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
           pristineOverride: true,
         });
         if (!commitResult.saved) {
-          toastStore.error(commitResult.error || '模板/结构保存失败。', { muteable: false });
+          toastStore.error(commitResult.error || 'Lưu mẫu/cấu trúc thất bại.', { muteable: false });
           return false;
         }
         // scope-only 不处理 deletedSheetKeys 硬删除：pristine 定义为无实质数据，但可能
@@ -985,7 +985,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
             }
           } catch (error) {
             logWarn_ACU('[ACU-V2 Visualizer] scope-only 模板保存后 deletedSheetKeys 痕迹清理失败:', error);
-            toastStore.warning('模板已保存，但已删除表的存储痕迹清理失败；请重新载入当前聊天后重试。', { muteable: false });
+            toastStore.warning('Đã lưu mẫu nhưng dọn dấu vết lưu trữ của bảng đã xóa thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
           }
         }
       } else {
@@ -1004,7 +1004,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
           baseRevision,
         });
         if (!commitResult.saved) {
-          toastStore.error(commitResult.error || '模板/结构保存失败。', { muteable: false });
+          toastStore.error(commitResult.error || 'Lưu mẫu/cấu trúc thất bại.', { muteable: false });
           return false;
         }
       }
@@ -1013,13 +1013,13 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
         applyTemplateScopeForCurrentChat_ACU();
       } catch (error) {
         logWarn_ACU('[ACU-V2 Visualizer] template commit saved but applyTemplateScopeForCurrentChat failed:', error);
-        toastStore.warning('模板已保存，但模板作用域运行时同步失败；请重新载入当前聊天后重试。', { muteable: false });
+        toastStore.warning('Đã lưu mẫu nhưng đồng bộ runtime theo phạm vi mẫu thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
       }
       try {
         _set_currentJsonTableData_ACU(cloneData(orderedData));
       } catch (error) {
         logWarn_ACU('[ACU-V2 Visualizer] template commit saved but runtime data synchronization failed:', error);
-        toastStore.warning('模板已保存，但运行时数据同步失败；请重新载入当前聊天后重试。', { muteable: false });
+        toastStore.warning('Đã lưu mẫu nhưng đồng bộ dữ liệu runtime thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
       }
       for (const sheetKey of deletedSheetKeys) {
         delete visualizer.tableLockDrafts[sheetKey];
@@ -1029,7 +1029,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
         for (const sheetKey of deletedSheetKeys) deleteTableLocksForSheet_ACU(sheetKey);
       } catch (error) {
         logWarn_ACU('[ACU-V2 Visualizer] template commit saved but deleted-sheet lock cleanup failed:', error);
-        toastStore.warning('模板已保存，但已删除表的锁定状态清理失败；请重新载入当前聊天后重试。', { muteable: false });
+        toastStore.warning('Đã lưu mẫu nhưng dọn trạng thái khóa của bảng đã xóa thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
       }
       let lockSaveFailed = false;
       const hasPendingLocks = visualizer.lockDirty || visualizer.pendingLockChanges.length > 0;
@@ -1038,14 +1038,14 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
       } catch (error) {
         lockSaveFailed = true;
         logWarn_ACU('[ACU-V2 Visualizer] template commit saved but lock drafts failed:', error);
-        toastStore.warning('模板已保存，但表格锁定设置未保存；请重试保存。', { muteable: false });
+        toastStore.warning('Đã lưu mẫu nhưng chưa lưu cài đặt khóa bảng; vui lòng thử lưu lại.', { muteable: false });
       }
       if (isSqliteMode()) {
         try {
           await reloadStorageProvider();
         } catch (error) {
           logWarn_ACU('[ACU-V2 Visualizer] template commit saved but reloadStorageProvider failed:', error);
-          toastStore.warning('模板已保存，但 SQLite 运行时刷新失败；请重新载入当前聊天后重试。', { muteable: false });
+          toastStore.warning('Đã lưu mẫu nhưng làm mới runtime SQLite thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
         }
       }
       if (deletedSummarySheetKeys.length > 0) {
@@ -1061,14 +1061,14 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
           }
         } catch (error) {
           logWarn_ACU('[ACU-V2 Visualizer] template commit saved but summary vector index cleanup failed:', error);
-          toastStore.warning('模板已保存，但摘要向量索引清理失败；请重新载入当前聊天后重试。', { muteable: false });
+          toastStore.warning('Đã lưu mẫu nhưng dọn chỉ mục vector tóm tắt thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
         }
       }
       try {
         await refreshMergedDataAndNotify_ACU();
       } catch (error) {
         logWarn_ACU('[ACU-V2 Visualizer] template commit saved but refreshMergedDataAndNotify failed:', error);
-        toastStore.warning('模板已保存，但合并数据刷新失败；请重新载入当前聊天后重试。', { muteable: false });
+        toastStore.warning('Đã lưu mẫu nhưng làm mới dữ liệu gộp thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.', { muteable: false });
       }
       try {
         (topLevelWindow_ACU as any).AutoCardUpdaterAPI?._notifyTableUpdate?.();
@@ -1081,14 +1081,14 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
       notifyTemplateRuntimeCommitted_ACU();
       const removedCount = preparation.removedNullRowCount + ((commitResult as any)?.removedNullRowCount || 0);
       const scopeOnlyMessage = switchMode.mode !== 'inherit' && commitResult.mode === 'scope_only'
-        ? '（模板结构已同步到聊天配置，未写入任何数据帧）'
+        ? ' (cấu trúc mẫu đã được đồng bộ vào cấu hình trò chuyện, không ghi vào khung dữ liệu nào)'
         : '';
       toastStore.success(
         removedCount > 0
-          ? `模板/结构已保存到当前聊天${scopeOnlyMessage}，已删除 ${deletedSheetKeys.length} 张表并移除 ${removedCount} 条缺少 row_id 的数据行。`
+          ? `Mẫu/cấu trúc đã được lưu vào cuộc trò chuyện hiện tại${scopeOnlyMessage}, đã xóa ${deletedSheetKeys.length} bảng và gỡ ${removedCount} dòng dữ liệu thiếu row_id.`
           : deletedSheetKeys.length > 0
-            ? `模板/结构已保存到当前聊天${scopeOnlyMessage}，已删除 ${deletedSheetKeys.length} 张表。`
-            : `模板/结构已保存到当前聊天${scopeOnlyMessage}。`,
+            ? `Mẫu/cấu trúc đã được lưu vào cuộc trò chuyện hiện tại${scopeOnlyMessage}, đã xóa ${deletedSheetKeys.length} bảng.`
+            : `Mẫu/cấu trúc đã được lưu vào cuộc trò chuyện hiện tại${scopeOnlyMessage}.`,
         { muteable: false });
       return true;
     });
@@ -1097,7 +1097,7 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
   async function saveTemplateToGlobal(): Promise<boolean> {
     return runSaving(async () => {
       if (hasVisualizerPendingDataOps_ACU(visualizer)) {
-        toastStore.error('存在未保存的数据增量；本次是模板保存，已阻止混合提交。', { muteable: false });
+        toastStore.error('Có phần tăng thêm dữ liệu chưa lưu; lần này là lưu mẫu, đã chặn cam kết hỗn hợp.', { muteable: false });
         return false;
       }
       const orderedData = buildOrderedData(visualizer.tempData, visualizer.sheetOrder, visualizer.tableLockDrafts, {
@@ -1111,9 +1111,9 @@ export function useVisualizerSave(interactions: VisualizerSaveInteractions = {})
       await refreshMergedDataAndNotify_ACU();
       visualizer.recordGlobalTemplateSaved();
       if (globalTemplateResult.status === 'saved') {
-        toastStore.success(`模板/结构已保存到全局预设：${globalTemplateResult.presetName}。`, { muteable: false });
+        toastStore.success(`Mẫu/cấu trúc đã được lưu vào preset toàn cục: ${globalTemplateResult.presetName}.`, { muteable: false });
       } else {
-        toastStore.info('全局模板无变化。', { muteable: false });
+        toastStore.info('Mẫu toàn cục không thay đổi.', { muteable: false });
       }
       return true;
     });

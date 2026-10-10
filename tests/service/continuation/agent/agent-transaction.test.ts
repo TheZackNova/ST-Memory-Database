@@ -69,15 +69,15 @@ function storyArcItem_ACU(patch: Record<string, unknown> = {}) {
 describe('Agent 总纲写集事务', () => {
   it('storyArc 不在授权写集时整份拒绝', () => {
     const input = delta_ACU({ storyArc: [storyArcItem_ACU()] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), input, ['hooks'], 6)).toThrowError(/未授权模块/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), input, ['hooks'], 6)).toThrowError(/mô-đun chưa được cấp quyền/);
   });
 
   it('upsert 校验必填字段：title、direction 与卷台阶的 escalation', () => {
     const noTitle = delta_ACU({ storyArc: [storyArcItem_ACU({ title: '  ' })] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), noTitle, ['storyArc'], 6)).toThrowError(/title 不能为空/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), noTitle, ['storyArc'], 6)).toThrowError(/title của mục tổng cương/);
 
     const noDirection = delta_ACU({ storyArc: [storyArcItem_ACU({ direction: '' })] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), noDirection, ['storyArc'], 6)).toThrowError(/direction 不能为空/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), noDirection, ['storyArc'], 6)).toThrowError(/direction của mục tổng cương/);
 
     const noEscalation = delta_ACU({ storyArc: [storyArcItem_ACU({ escalation: '' })] });
     expect(() => appliedDelta_ACU(baseSnapshot_ACU(), noEscalation, ['storyArc'], 6)).toThrowError(/escalation/);
@@ -85,10 +85,10 @@ describe('Agent 总纲写集事务', () => {
 
   it('总纲 upsert 与显式 patch 拒绝格式伪值，不重验旧条目的历史内容', () => {
     expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ storyArc: [storyArcItem_ACU({ direction: '本层推进方向与人物驱动力' })] }), ['storyArc'], 6))
-      .toThrowError(/direction 照抄了格式范例/);
+      .toThrowError(/đã chép nguyên ví dụ định dạng/);
     const seeded = appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ storyArc: [storyArcItem_ACU()] }), ['storyArc'], 6);
     expect(() => appliedDelta_ACU(seeded, delta_ACU({ storyArcPatches: [{ id: 'VOL-01', progressCeiling: 'volume upsert 时必填的主线推进上限' }] }), ['storyArc'], 7))
-      .toThrowError(/progressCeiling 照抄了格式范例/);
+      .toThrowError(/progressCeiling của mục tổng cương/);
     const legacy = { ...seeded, storyArc: seeded.storyArc.map(entry => ({ ...entry, direction: '本层推进方向与人物驱动力' })) };
     const patched = appliedDelta_ACU(legacy, delta_ACU({ storyArcPatches: [{ id: 'VOL-01', title: '新的商行之乱' }] }), ['storyArc'], 7);
     expect(patched.storyArc.find(entry => entry.id === 'VOL-01')?.title).toBe('新的商行之乱');
@@ -106,25 +106,25 @@ describe('Agent 总纲写集事务', () => {
     expect(volume.status).toBe('active');
     // 明确写了 status 才会进入状态校验：active → planned 是倒退，被生命周期规则拒绝。
     const explicit = delta_ACU({ storyArc: [storyArcItem_ACU({ status: 'planned', statusProvided: true })] });
-    expect(() => appliedDelta_ACU(second, explicit, ['storyArc'], 8)).toThrowError(/单向推进/);
+    expect(() => appliedDelta_ACU(second, explicit, ['storyArc'], 8)).toThrowError(/một chiều/);
   });
 
   it('新卷的 P2 契约必须完整、范围合法，story 条目不得携带卷级字段', () => {
     expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({
       storyArc: [storyArcItem_ACU({ payoffTargets: undefined })],
-    }), ['storyArc'], 6)).toThrowError(/至少需要一条 payoffTargets/);
+    }), ['storyArc'], 6)).toThrowError(/cần ít nhất một payoffTargets/);
     expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({
       storyArc: [storyArcItem_ACU({ targetStageRange: { min: 0, max: 2 } })],
     }), ['storyArc'], 6)).toThrowError(/targetStageRange/);
     expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({
       storyArc: [storyArcItem_ACU({ sustainingThreads: [''] })],
-    }), ['storyArc'], 6)).toThrowError(/sustainingThreads 不得包含空项/);
+    }), ['storyArc'], 6)).toThrowError(/sustainingThreads của bậc thang tập .* không được chứa mục rỗng/);
     expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({
       storyArc: [storyArcItem_ACU({
         id: 'ARC-STORY', scope: 'story', escalation: '', targetStageRange: undefined, targetTimeSpan: undefined,
         progressCeiling: undefined, sustainingThreads: undefined, payoffTargets: undefined, completionRationale: undefined,
       })],
-    }), ['storyArc'], 6)).toThrowError(/不得携带卷级容量字段/);
+    }), ['storyArc'], 6)).toThrowError(/không được mang các trường dung lượng cấp tập/);
   });
 
   it('全书方向只能有一条活跃条目，同一份写集里先 retire 再 upsert 放行', () => {
@@ -134,7 +134,7 @@ describe('Agent 总纲写集事务', () => {
         storyArcItem_ACU({ id: 'ARC-STORY-2', scope: 'story', title: '另一个全书方向', escalation: '', narrativeRole: undefined, targetStageRange: undefined, targetTimeSpan: undefined, progressCeiling: undefined, sustainingThreads: undefined, payoffTargets: undefined, completionRationale: undefined }),
       ],
     });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), twoStories, ['storyArc'], 6)).toThrowError(/只能有一条活跃条目/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), twoStories, ['storyArc'], 6)).toThrowError(/chỉ được có một mục đang hoạt động/);
 
     const seeded = appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ storyArc: [storyArcItem_ACU({ id: 'ARC-STORY', scope: 'story', escalation: '', narrativeRole: undefined, targetStageRange: undefined, targetTimeSpan: undefined, progressCeiling: undefined, sustainingThreads: undefined, payoffTargets: undefined, completionRationale: undefined })] }), ['storyArc'], 6);
     const replaced = appliedDelta_ACU(seeded, delta_ACU({
@@ -148,11 +148,11 @@ describe('Agent 总纲写集事务', () => {
 
   it('retire 必须命中既有条目并给出理由', () => {
     const unknown = delta_ACU({ storyArc: [storyArcItem_ACU({ action: 'retire', id: 'VOL-09', reason: '不再需要' })] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), unknown, ['storyArc'], 6)).toThrowError(/retire 的总纲条目不存在/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), unknown, ['storyArc'], 6)).toThrowError(/Mục tổng cương của retire không tồn tại/);
 
     const seeded = appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ storyArc: [storyArcItem_ACU()] }), ['storyArc'], 6);
     const noReason = delta_ACU({ storyArc: [storyArcItem_ACU({ action: 'retire', reason: '' })] });
-    expect(() => appliedDelta_ACU(seeded, noReason, ['storyArc'], 6)).toThrowError(/必须给出理由/);
+    expect(() => appliedDelta_ACU(seeded, noReason, ['storyArc'], 6)).toThrowError(/phải nêu lý do/);
   });
 
   it('patch 回写阶段进度只改给定字段，且只给 storyArc 升版本、不动结算水位', () => {
@@ -190,14 +190,14 @@ describe('Agent 总纲写集事务', () => {
     }), ['storyArc'], 6, [1, 2]);
 
     expect(() => appliedDelta_ACU(seeded, delta_ACU({ storyArcPatches: [{ id: 'VOL-01', status: 'done', completionStageNumber: 2 }] }), ['storyArc'], 8, [1, 2]))
-      .toThrowError(/必须说明已达到的卷末状态/);
+      .toThrowError(/phải nêu trạng thái cuối tập đã đạt được/);
     expect(() => appliedDelta_ACU(seeded, delta_ACU({ storyArcPatches: [{ id: 'VOL-01', status: 'done', completionStageNumber: 3, completionState: '商行控制权已夺回' }] }), ['storyArc'], 8, [1, 2]))
-      .toThrowError(/必须已登记进 stageNumbers/);
+      .toThrowError(/phải đã được đăng ký vào stageNumbers/);
 
     expect(() => appliedDelta_ACU(seeded, delta_ACU({ storyArcPatches: [
       { id: 'VOL-01', status: 'done', completionStageNumber: 2, completionState: '主角夺回印信，第三方签名浮出水面' },
       { id: 'VOL-02', status: 'active' },
-    ] }), ['storyArc'], 8, [1, 2])).toThrowError(/payoffTargets 的兑现证据/);
+    ] }), ['storyArc'], 8, [1, 2])).toThrowError(/bằng chứng thu hồi của payoffTargets/);
 
     const advanced = appliedDelta_ACU(seeded, delta_ACU({ storyArcPatches: [
       {
@@ -218,7 +218,7 @@ describe('Agent 总纲写集事务', () => {
     expect(() => appliedDelta_ACU(seeded, delta_ACU({ storyArcPatches: [{
       id: 'VOL-01', status: 'done', completionStageNumber: 5,
       completionState: '已兑现主角夺回印信的期待；主角与账房逐步建立信任转入下一卷继续经营。',
-    }] }), ['storyArc'], 7, [1, 2, 3, 4, 5])).toThrowError(/偏离目标 2–4 时必须给出 completionRationale/);
+    }] }), ['storyArc'], 7, [1, 2, 3, 4, 5])).toThrowError(/khi lệch mục tiêu 2–4 phải nêu completionRationale/);
 
     const legacy = storyArcItem_ACU({ narrativeRole: undefined, targetStageRange: undefined, targetTimeSpan: undefined, progressCeiling: undefined, sustainingThreads: undefined, payoffTargets: undefined, completionRationale: undefined, stageNumbers: [1] });
     const { action: _legacyAction, reason: _legacyReason, ...legacyEntry } = legacy;
@@ -242,11 +242,11 @@ describe('Agent 总纲写集事务', () => {
     }] }), ['storyArc'], 7, [1]);
 
     expect(() => appliedDelta_ACU(completed, delta_ACU({ storyArcPatches: [{ id: 'VOL-01', status: 'active' }] }), ['storyArc'], 8, [1]))
-      .toThrowError(/不可重新激活/);
+      .toThrowError(/không thể kích hoạt lại/);
     expect(() => appliedDelta_ACU(completed, delta_ACU({ storyArc: [storyArcItem_ACU({
       id: 'VOL-02', title: '第二卷', direction: '追查第三方签名', escalation: '收在第三方主动灭口', withheld: '第三方身份', status: 'active',
     })] }), ['storyArc'], 8, [1]))
-      .toThrowError(/必须说明续卷依据/);
+      .toThrowError(/phải nêu căn cứ nối tập/);
 
     const expanded = appliedDelta_ACU(completed, delta_ACU({ storyArc: [storyArcItem_ACU({
       id: 'VOL-02', title: '第二卷', direction: '追查第三方签名', escalation: '收在第三方主动灭口', withheld: '第三方身份', status: 'active',
@@ -258,7 +258,7 @@ describe('Agent 总纲写集事务', () => {
   it('已废止的条目不可 patch', () => {
     const seeded = appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ storyArc: [storyArcItem_ACU()] }), ['storyArc'], 6);
     const retired = appliedDelta_ACU(seeded, delta_ACU({ storyArc: [storyArcItem_ACU({ action: 'retire', reason: '本卷取消' })] }), ['storyArc'], 6);
-    expect(() => appliedDelta_ACU(retired, delta_ACU({ storyArcPatches: [{ id: 'VOL-01', status: 'done' }] }), ['storyArc'], 6)).toThrowError(/已废止/);
+    expect(() => appliedDelta_ACU(retired, delta_ACU({ storyArcPatches: [{ id: 'VOL-01', status: 'done' }] }), ['storyArc'], 6)).toThrowError(/đã bãi bỏ/);
   });
 
   it('upsert 不带 stageNumbers 时保留既有进度锚', () => {
@@ -271,12 +271,12 @@ describe('Agent 总纲写集事务', () => {
 describe('Agent 写集事务', () => {
   it('越权写入被拒绝', () => {
     const input = delta_ACU({ expectedRevisions: { hooks: 2 }, hooks: [hookItem_ACU()] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), input, ['infoGap'], 6)).toThrowError(/未授权模块/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), input, ['infoGap'], 6)).toThrowError(/mô-đun chưa được cấp quyền/);
   });
 
   it('子代理声明的版本号不匹配时拒绝整份写入', () => {
     const stale = delta_ACU({ expectedRevisions: { hooks: 1 }, hooks: [hookItem_ACU()] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), stale, ['hooks'], 6)).toThrowError(/revision 已变化/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), stale, ['hooks'], 6)).toThrowError(/đã thay đổi, việc ghi bị từ chối/);
   });
 
   it('未声明版本号时不拒绝，并发基准由运行时按读取时刻补齐', () => {
@@ -285,7 +285,7 @@ describe('Agent 写集事务', () => {
 
     const merged = mergeAgentDeltaRevisions_ACU(missing, { hooks: 1, infoGap: 3, constraints: 1 });
     expect(merged.expectedRevisions).toEqual({ hooks: 1 });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), merged, ['hooks'], 6)).toThrowError(/revision 已变化/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), merged, ['hooks'], 6)).toThrowError(/đã thay đổi, việc ghi bị từ chối/);
   });
 
   it('运行时读版本覆盖模型自报旧版本，且不给未触碰模块补值', () => {
@@ -306,10 +306,10 @@ describe('Agent 写集事务', () => {
 
   it('retire 必须命中既有条目并给出理由', () => {
     const unknown = delta_ACU({ expectedRevisions: { hooks: 2 }, hooks: [hookItem_ACU({ action: 'retire', id: 'H9', reason: '完成回收' })] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), unknown, ['hooks'], 6)).toThrowError(/retire 的伏笔不存在/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), unknown, ['hooks'], 6)).toThrowError(/Phục bút của retire không tồn tại/);
 
     const noReason = delta_ACU({ expectedRevisions: { hooks: 2 }, hooks: [hookItem_ACU({ action: 'retire', reason: '' })] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), noReason, ['hooks'], 6)).toThrowError(/必须给出理由/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), noReason, ['hooks'], 6)).toThrowError(/phải nêu lý do/);
 
     const applied = appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ expectedRevisions: { hooks: 2 }, hooks: [hookItem_ACU({ action: 'retire', reason: '完成回收' })] }), ['hooks'], 6);
     expect(applied.hooks[0]).toMatchObject({ retired: true, retiredReason: '完成回收' });
@@ -317,10 +317,10 @@ describe('Agent 写集事务', () => {
 
   it('信息差的揭示状态与揭示楼层必须自洽', () => {
     const fakeReveal = delta_ACU({ expectedRevisions: { infoGap: 3 }, infoGap: [infoGapItem_ACU({ revealIndex: 6 })] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), fakeReveal, ['infoGap'], 6)).toThrowError(/揭示楼层必须为空/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), fakeReveal, ['infoGap'], 6)).toThrowError(/tầng tiết lộ phải rỗng/);
 
     const missingIndex = delta_ACU({ expectedRevisions: { infoGap: 3 }, infoGap: [infoGapItem_ACU({ revealStatus: 'partial' })] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), missingIndex, ['infoGap'], 6)).toThrowError(/必须给出揭示楼层/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), missingIndex, ['infoGap'], 6)).toThrowError(/phải nêu tầng tiết lộ/);
   });
 
   it('upsert 只清理既有条目中完全相同的历史脏揭示楼层', () => {
@@ -339,17 +339,17 @@ describe('Agent 写集事务', () => {
       expectedRevisions: { infoGap: 3 },
       infoGap: [infoGapItem_ACU({ id: 'E2', revealIndex: 4 })],
     });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), newInconsistent, ['infoGap'], 6)).toThrowError(/揭示楼层必须为空/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), newInconsistent, ['infoGap'], 6)).toThrowError(/tầng tiết lộ phải rỗng/);
 
     const differentDirtyIndex = delta_ACU({
       expectedRevisions: { infoGap: 3 },
       infoGap: [infoGapItem_ACU({ revealIndex: 5 })],
     });
-    expect(() => appliedDelta_ACU(existingDirty, differentDirtyIndex, ['infoGap'], 6)).toThrowError(/揭示楼层必须为空/);
+    expect(() => appliedDelta_ACU(existingDirty, differentDirtyIndex, ['infoGap'], 6)).toThrowError(/tầng tiết lộ phải rỗng/);
 
     const differentExistingStatus = baseSnapshot_ACU();
     differentExistingStatus.infoGap = differentExistingStatus.infoGap.map(entry => ({ ...entry, revealStatus: 'partial' as const, revealIndex: 4 }));
-    expect(() => appliedDelta_ACU(differentExistingStatus, delta_ACU({ expectedRevisions: { infoGap: 3 }, infoGap: [infoGapItem_ACU({ revealIndex: 4 })] }), ['infoGap'], 6)).toThrowError(/揭示楼层必须为空/);
+    expect(() => appliedDelta_ACU(differentExistingStatus, delta_ACU({ expectedRevisions: { infoGap: 3 }, infoGap: [infoGapItem_ACU({ revealIndex: 4 })] }), ['infoGap'], 6)).toThrowError(/tầng tiết lộ phải rỗng/);
   });
 
   it('patch 只改给定字段并保留其余字段，版本号照常递增', () => {
@@ -371,12 +371,12 @@ describe('Agent 写集事务', () => {
 
   it('patch 不存在或已退役的条目整份拒绝', () => {
     expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ hookPatches: [{ id: 'H9', summary: '改' }] }), ['hooks'], 7))
-      .toThrowError(/patch 的伏笔不存在/);
+      .toThrowError(/Phục bút của patch không tồn tại/);
 
     const withRetired = baseSnapshot_ACU();
     withRetired.hooks[0] = { ...withRetired.hooks[0], retired: true, retiredReason: '已回收' };
     expect(() => appliedDelta_ACU(withRetired, delta_ACU({ hookPatches: [{ id: 'H1', summary: '改' }] }), ['hooks'], 7))
-      .toThrowError(/已退役，不可 patch/);
+      .toThrowError(/đã cho nghỉ, không thể patch/);
   });
 
   it('信息差 patch 的合并结果必须满足揭示状态一致性', () => {
@@ -389,7 +389,7 @@ describe('Agent 写集事务', () => {
     expect(fixed.infoGap[0]).toMatchObject({ revealStatus: 'unrevealed', revealIndex: null, topic: '守门人身份' });
 
     expect(() => appliedDelta_ACU(revealed, delta_ACU({ infoGapPatches: [{ id: 'E1', revealStatus: 'unrevealed', readerKnown: '另有线索' }] }), ['infoGap'], 7))
-      .toThrowError(/揭示楼层必须同时清空/);
+      .toThrowError(/tầng tiết lộ phải đồng thời được xóa/);
   });
 
   it('空 delta 原样返回同一份快照，不产生无意义的版本递增', () => {
@@ -401,12 +401,12 @@ describe('Agent 写集事务', () => {
 describe('Agent 年代学写集事务', () => {
   it('chronology 不在授权写集时整份拒绝', () => {
     const input = delta_ACU({ chronology: [chronologyItem_ACU()] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), input, ['hooks', 'infoGap'], 6)).toThrowError(/未授权模块/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), input, ['hooks', 'infoGap'], 6)).toThrowError(/mô-đun chưa được cấp quyền/);
   });
 
   it('声明的 chronology 版本号不匹配时拒绝整份写入', () => {
     const stale = delta_ACU({ expectedRevisions: { chronology: 4 }, chronology: [chronologyItem_ACU()] });
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), stale, ['chronology'], 6)).toThrowError(/revision 已变化/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), stale, ['chronology'], 6)).toThrowError(/đã thay đổi, việc ghi bị từ chối/);
   });
 
   it('合法 upsert 只给 chronology 升版本，并记录本次结算楼层', () => {
@@ -422,22 +422,22 @@ describe('Agent 年代学写集事务', () => {
     expect(normalized.chronology.find(entry => entry.id === 'T2')!.evidenceIndexes).toEqual([4, 5]);
 
     expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU()] }), ['chronology'], 6, [], undefined, new Set([1, 3, 4])))
-      .toThrowError(/不存在的正文楼层：5/);
+      .toThrowError(/trích dẫn các tầng chính văn không tồn tại: 5/);
 
     const snapshot = baseSnapshot_ACU();
     const future = delta_ACU({ chronology: [chronologyItem_ACU({ id: 'T2' }), chronologyItem_ACU({ id: 'T3', evidenceIndexes: [9] })] });
-    expect(() => appliedDelta_ACU(snapshot, future, ['chronology'], 6)).toThrowError(/未来楼层/);
+    expect(() => appliedDelta_ACU(snapshot, future, ['chronology'], 6)).toThrowError(/các tầng tương lai/);
     // 整份 delta 拒绝：前一条合法条目也不得落进快照。
     expect(snapshot.chronology).toHaveLength(1);
 
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ evidenceIndexes: [] })] }), ['chronology'], 6)).toThrowError(/非空的非负整数楼层数组/);
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ evidenceIndexes: [1.5] })] }), ['chronology'], 6)).toThrowError(/非空的非负整数楼层数组/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ evidenceIndexes: [] })] }), ['chronology'], 6)).toThrowError(/mảng số tầng nguyên không âm không rỗng/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ evidenceIndexes: [1.5] })] }), ['chronology'], 6)).toThrowError(/mảng số tầng nguyên không âm không rỗng/);
   });
 
   it('upsert 的必填文本不能为空', () => {
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ anchor: ' ' })] }), ['chronology'], 6)).toThrowError(/anchor 不能为空/);
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ elapsed: '' })] }), ['chronology'], 6)).toThrowError(/elapsed 不能为空/);
-    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ transition: '' })] }), ['chronology'], 6)).toThrowError(/transition 不能为空/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ anchor: ' ' })] }), ['chronology'], 6)).toThrowError(/anchor của mục niên đại học/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ elapsed: '' })] }), ['chronology'], 6)).toThrowError(/elapsed của mục niên đại học/);
+    expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ transition: '' })] }), ['chronology'], 6)).toThrowError(/transition của mục niên đại học/);
   });
 
   it('chronology patch 只改目标栏并校验证据，不得修改未来楼层或退休条目', () => {
@@ -451,18 +451,18 @@ describe('Agent 年代学写集事务', () => {
     });
     expect(applied.revisions.chronology).toBe(6);
     expect(snapshot.chronology[0].evidenceIndexes).toEqual([2, 3]);
-    expect(() => appliedDelta_ACU(snapshot, delta_ACU({ chronologyPatches: [{ id: 'T1', evidenceIndexes: [8] }] }), ['chronology'], 6)).toThrowError(/未来楼层/);
-    expect(() => appliedDelta_ACU(snapshot, delta_ACU({ chronologyPatches: [{ id: 'T404', anchor: '其他日期' }] }), ['chronology'], 6)).toThrowError(/不存在/);
-    expect(() => appliedDelta_ACU(snapshot, delta_ACU({ chronologyPatches: [{ id: 'T1', anchor: '其他日期' }] }), ['hooks'], 6)).toThrowError(/未授权模块/);
+    expect(() => appliedDelta_ACU(snapshot, delta_ACU({ chronologyPatches: [{ id: 'T1', evidenceIndexes: [8] }] }), ['chronology'], 6)).toThrowError(/các tầng tương lai/);
+    expect(() => appliedDelta_ACU(snapshot, delta_ACU({ chronologyPatches: [{ id: 'T404', anchor: '其他日期' }] }), ['chronology'], 6)).toThrowError(/không tồn tại/);
+    expect(() => appliedDelta_ACU(snapshot, delta_ACU({ chronologyPatches: [{ id: 'T1', anchor: '其他日期' }] }), ['hooks'], 6)).toThrowError(/mô-đun chưa được cấp quyền/);
     const retired = { ...snapshot, chronology: [{ ...snapshot.chronology[0], retired: true }] };
-    expect(() => appliedDelta_ACU(retired, delta_ACU({ chronologyPatches: [{ id: 'T1', anchor: '其他日期' }] }), ['chronology'], 6)).toThrowError(/已废止/);
+    expect(() => appliedDelta_ACU(retired, delta_ACU({ chronologyPatches: [{ id: 'T1', anchor: '其他日期' }] }), ['chronology'], 6)).toThrowError(/đã bãi bỏ/);
   });
 
   it('retire 必须命中既有条目并给出理由；合法 retire 保留条目可追溯', () => {
     expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ action: 'retire', id: 'T9', reason: '登记错误' })] }), ['chronology'], 6))
-      .toThrowError(/retire 的年代学条目不存在/);
+      .toThrowError(/Mục niên đại học của retire không tồn tại/);
     expect(() => appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ action: 'retire', id: 'T1', reason: '' })] }), ['chronology'], 6))
-      .toThrowError(/必须给出理由/);
+      .toThrowError(/phải nêu lý do/);
 
     const applied = appliedDelta_ACU(baseSnapshot_ACU(), delta_ACU({ chronology: [chronologyItem_ACU({ action: 'retire', id: 'T1', reason: '证据楼层被删除，事实不再成立' })] }), ['chronology'], 6);
     expect(applied.chronology[0]).toMatchObject({ id: 'T1', retired: true, retiredReason: '证据楼层被删除，事实不再成立', updatedIndex: 6 });
@@ -502,7 +502,7 @@ describe('Agent 长期约束登记（增量语义）', () => {
     expect(removedById.constraints).toHaveLength(0);
 
     expect(() => appliedConstraints_ACU(snapshot, [], ['不存在的约束'], 6))
-      .toThrowError(/retire 的约束不存在.*C01-1：不得提前揭穿幕后/);
+      .toThrowError(/Ràng buộc của retire không tồn tại.*C01-1: 不得提前揭穿幕后/);
   });
 
   it('容错提交时无违规模块入库，违规模块记入 pendingFixes 且再次失败累加 attempts', () => {

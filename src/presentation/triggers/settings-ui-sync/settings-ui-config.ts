@@ -34,7 +34,7 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
     }
     let newPromptSegments = getCharCardPromptFromUI_ACU();
     if (!newPromptSegments || newPromptSegments.length === 0 || (newPromptSegments.length === 1 && !newPromptSegments[0].content.trim())) {
-      showToastr_ACU('warning', '更新预设不能为空。');
+      showToastr_ACU('warning', 'Preset cập nhật không được để trống.');
       return;
     }
 
@@ -61,20 +61,20 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
     // [V1 收敛] 委托 service 事务式保存；保存失败已回滚，不再触发全量 reload。
     const result = setCurrentPromptSegments_ACU(newPromptSegments);
     if (!result.ok) {
-      showToastr_ACU('error', result.message || '更新预设保存失败，已回滚。');
+      showToastr_ACU('error', result.message || 'Lưu preset cập nhật thất bại, đã khôi phục.');
       return;
     }
-    showToastr_ACU('success', '更新预设已保存！');
+    showToastr_ACU('success', 'Đã lưu preset cập nhật!');
   }
 
   export function resetDefaultCharCardPrompt_ACU() {
     // [V1 收敛] 委托 service 事务式重置；保存失败已回滚，不再触发全量 reload。
     const result = resetCurrentPromptToDefault_ACU();
     if (!result.ok) {
-      showToastr_ACU('error', result.message || '恢复默认提示词失败，已回滚。');
+      showToastr_ACU('error', result.message || 'Khôi phục prompt mặc định thất bại, đã khôi phục trạng thái cũ.');
       return;
     }
-    showToastr_ACU('info', '更新预设已恢复为默认值！');
+    showToastr_ACU('info', 'Preset cập nhật đã khôi phục về mặc định!');
   }
   export function loadCharCardPromptFromJson_ACU() {
     const input = document.createElement('input');
@@ -93,14 +93,14 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
                 jsonData = JSON.parse(content as string);
             } catch (error) {
                 logError_ACU('导入提示词模板失败：JSON解析错误。', error);
-                showToastr_ACU('error', '文件不是有效的JSON格式。', { timeOut: 5000 });
+                showToastr_ACU('error', 'Tệp không phải định dạng JSON hợp lệ.', { timeOut: 5000 });
                 return;
             }
             
             try {
                 // Basic validation: must be an array of objects with role and content
                 if (!Array.isArray(jsonData) || jsonData.some(item => typeof item.role === 'undefined' || typeof item.content === 'undefined')) {
-                    throw new Error('JSON格式不正确。它必须是一个包含 "role" 和 "content" 键的对象的数组。');
+                    throw new Error('Định dạng JSON không đúng. Phải là một mảng các đối tượng chứa khóa "role" và "content".');
                 }
                 
                 // Add deletable: true and normalize roles for consistency
@@ -127,12 +127,12 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
 
                 // Use the existing render function
                 renderPromptSegments_ACU(segments);
-                showToastr_ACU('success', '提示词模板已成功加载！');
+                showToastr_ACU('success', 'Đã tải mẫu prompt thành công!');
                 logDebug_ACU('New prompt template loaded from JSON file.');
 
             } catch (error) {
                 logError_ACU('导入提示词模板失败：结构验证失败。', error);
-                showToastr_ACU('error', `导入失败: ${error.message}`, { timeOut: 10000 });
+                showToastr_ACU('error', `Nhập thất bại: ${error.message}`, { timeOut: 10000 });
             }
         };
         reader.readAsText(file, 'UTF-8');
@@ -145,13 +145,13 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
     try {
       const segments = getCharCardPromptFromUI_ACU();
       if (!Array.isArray(segments) || segments.length === 0) {
-        showToastr_ACU('warning', '没有可导出的提示词模板。');
+        showToastr_ACU('warning', 'Không có mẫu prompt để xuất.');
         return;
       }
       // 基础校验：必须包含 role/content
       const invalid = segments.some(s => !s || typeof s !== 'object' || typeof s.role === 'undefined' || typeof s.content === 'undefined');
       if (invalid) {
-        showToastr_ACU('error', '导出失败：提示词结构不完整（缺少 role 或 content）。');
+        showToastr_ACU('error', 'Xuất thất bại: cấu trúc prompt không đầy đủ (thiếu role hoặc content).');
         return;
       }
 
@@ -166,10 +166,10 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showToastr_ACU('success', '提示词模板已导出为JSON！', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.MANUAL_TABLE });
+      showToastr_ACU('success', 'Đã xuất mẫu prompt thành JSON!', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.MANUAL_TABLE });
     } catch (e) {
       logError_ACU('导出提示词模板失败:', e);
-      showToastr_ACU('error', '导出提示词模板失败，请检查控制台获取详情。', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
+      showToastr_ACU('error', 'Xuất mẫu prompt thất bại, hãy kiểm tra console để biết chi tiết.', { acuToastCategory: ACU_TOAST_CATEGORY_ACU.ERROR });
     }
   }
   export function saveAutoUpdateThreshold_ACU({ silent = false, skipReload = false } = {}) {
@@ -184,15 +184,15 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
       // [V1 收敛] 委托 service 事务式写入（含归一化与保存失败回滚）
       const result = setUpdateNumberFields_ACU({ autoUpdateThreshold: newT });
       if (!result.ok) {
-        if (!silent) showToastr_ACU('error', result.message || '自动更新阈值保存失败，已回滚。');
+        if (!silent) showToastr_ACU('error', result.message || 'Lưu ngưỡng tự động cập nhật thất bại, đã khôi phục.');
         return;
       }
       if (!silent) {
-        if (newT === 0) showToastr_ACU('success', '自动更新阈值已保存！标准表自动更新已禁用。');
-        else showToastr_ACU('success', '自动更新阈值已保存！');
+        if (newT === 0) showToastr_ACU('success', 'Đã lưu ngưỡng tự động cập nhật! Tự động cập nhật bảng chuẩn đã tắt.');
+        else showToastr_ACU('success', 'Đã lưu ngưỡng tự động cập nhật!');
       }
     } else {
-      if (!silent) showToastr_ACU('warning', `阈值 "${valStr}" 无效。请输入一个大于等于0的整数。恢复为: ${settings_ACU.autoUpdateThreshold}`);
+      if (!silent) showToastr_ACU('warning', `Ngưỡng "${valStr}" không hợp lệ. Hãy nhập một số nguyên lớn hơn hoặc bằng 0. Khôi phục về: ${settings_ACU.autoUpdateThreshold}`);
       $autoUpdateThresholdInput_ACU.val(settings_ACU.autoUpdateThreshold);
     }
   }
@@ -209,12 +209,12 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
       // [V1 收敛] 委托 service 事务式写入
       const result = setUpdateNumberFields_ACU({ autoUpdateTokenThreshold: newT });
       if (!result.ok) {
-        if (!silent) showToastr_ACU('error', result.message || '自动更新Token阈值保存失败，已回滚。');
+        if (!silent) showToastr_ACU('error', result.message || 'Lưu ngưỡng Token tự động cập nhật thất bại, đã khôi phục.');
         return;
       }
-      if (!silent) showToastr_ACU('success', '自动更新Token阈值已保存！');
+      if (!silent) showToastr_ACU('success', 'Đã lưu ngưỡng Token tự động cập nhật!');
     } else {
-      if (!silent) showToastr_ACU('warning', `Token阈值 "${valStr}" 无效。请输入一个大于等于0的整数。恢复为: ${settings_ACU.autoUpdateTokenThreshold}`);
+      if (!silent) showToastr_ACU('warning', `Ngưỡng Token "${valStr}" không hợp lệ. Hãy nhập một số nguyên lớn hơn hoặc bằng 0. Khôi phục về: ${settings_ACU.autoUpdateTokenThreshold}`);
       $autoUpdateTokenThresholdInput_ACU.val(settings_ACU.autoUpdateTokenThreshold);
     }
   }
@@ -231,12 +231,12 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
       // [V1 收敛] 委托 service 事务式写入
       const result = setUpdateNumberFields_ACU({ tableMaxRetries: newR });
       if (!result.ok) {
-        if (!silent) showToastr_ACU('error', result.message || '填表自动重试次数保存失败，已回滚。');
+        if (!silent) showToastr_ACU('error', result.message || 'Lưu số lần tự động thử lại điền bảng thất bại, đã khôi phục.');
         return;
       }
-      if (!silent) showToastr_ACU('success', '填表自动重试次数已保存！');
+      if (!silent) showToastr_ACU('success', 'Đã lưu số lần tự động thử lại điền bảng!');
     } else {
-      if (!silent) showToastr_ACU('warning', `重试次数 "${valStr}" 无效。请输入1-10之间的整数。恢复为: ${settings_ACU.tableMaxRetries || 3}`);
+      if (!silent) showToastr_ACU('warning', `Số lần thử lại "${valStr}" không hợp lệ. Hãy nhập số nguyên từ 1 đến 10. Khôi phục về: ${settings_ACU.tableMaxRetries || 3}`);
       $tableMaxRetriesInput_ACU.val(settings_ACU.tableMaxRetries || 3);
     }
   }
@@ -253,12 +253,12 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
       // [V1 收敛] 委托 service 事务式写入
       const result = setUpdateNumberFields_ACU({ autoUpdateFrequency: newF });
       if (!result.ok) {
-        if (!silent) showToastr_ACU('error', result.message || '自动更新频率保存失败，已回滚。');
+        if (!silent) showToastr_ACU('error', result.message || 'Lưu tần suất tự động cập nhật thất bại, đã khôi phục.');
         return;
       }
-      if (!silent) showToastr_ACU('success', '自动更新频率已保存！');
+      if (!silent) showToastr_ACU('success', 'Đã lưu tần suất tự động cập nhật!');
     } else {
-      if (!silent) showToastr_ACU('warning', `更新频率 "${valStr}" 无效。请输入一个大于0的整数。恢复为: ${settings_ACU.autoUpdateFrequency}`);
+      if (!silent) showToastr_ACU('warning', `Tần suất cập nhật "${valStr}" không hợp lệ. Hãy nhập một số nguyên lớn hơn 0. Khôi phục về: ${settings_ACU.autoUpdateFrequency}`);
       $autoUpdateFrequencyInput_ACU.val(settings_ACU.autoUpdateFrequency);
     }
   }
@@ -277,12 +277,12 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
           // [V1 收敛] 委托 service 事务式写入
           const result = setUpdateNumberFields_ACU({ updateBatchSize: newBatchSize });
           if (!result.ok) {
-              if (!silent) showToastr_ACU('error', result.message || '批处理大小保存失败，已回滚。');
+              if (!silent) showToastr_ACU('error', result.message || 'Lưu kích thước lô thất bại, đã khôi phục.');
               return;
           }
-          if (!silent) showToastr_ACU('success', '批处理大小已保存！');
+          if (!silent) showToastr_ACU('success', 'Đã lưu kích thước lô!');
       } else {
-          if (!silent) showToastr_ACU('warning', `批处理大小 "${valStr}" 无效。请输入一个大于0的整数。恢复为: ${settings_ACU.updateBatchSize}`);
+          if (!silent) showToastr_ACU('warning', `Kích thước lô "${valStr}" không hợp lệ. Hãy nhập một số nguyên lớn hơn 0. Khôi phục về: ${settings_ACU.updateBatchSize}`);
           $updateBatchSizeInput_ACU.val(settings_ACU.updateBatchSize);
       }
   }
@@ -300,12 +300,12 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
           // [V1 收敛] 委托 service 事务式写入
           const result = setUpdateNumberFields_ACU({ maxConcurrentGroups: newLimit });
           if (!result.ok) {
-              if (!silent) showToastr_ACU('error', result.message || '最大并发数保存失败，已回滚。');
+              if (!silent) showToastr_ACU('error', result.message || 'Lưu số luồng đồng thời tối đa thất bại, đã khôi phục.');
               return;
           }
-          if (!silent) showToastr_ACU('success', '最大并发数已保存！');
+          if (!silent) showToastr_ACU('success', 'Đã lưu số luồng đồng thời tối đa!');
       } else {
-          if (!silent) showToastr_ACU('warning', `最大并发数 "${valStr}" 无效。请输入一个大于0的整数。恢复为: ${settings_ACU.maxConcurrentGroups || 1}`);
+          if (!silent) showToastr_ACU('warning', `Số luồng đồng thời tối đa "${valStr}" không hợp lệ. Hãy nhập một số nguyên lớn hơn 0. Khôi phục về: ${settings_ACU.maxConcurrentGroups || 1}`);
           $maxConcurrentGroupsInput_ACU.val(settings_ACU.maxConcurrentGroups || 1);
       }
   }
@@ -323,12 +323,12 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
            // [V1 收敛] 委托 service 事务式写入
            const result = setUpdateNumberFields_ACU({ skipUpdateFloors: newSkip });
            if (!result.ok) {
-               if (!silent) showToastr_ACU('error', result.message || '跳过更新楼层保存失败，已回滚。');
+               if (!silent) showToastr_ACU('error', result.message || 'Lưu số tầng bỏ qua cập nhật thất bại, đã khôi phục.');
                return;
            }
-           if (!silent) showToastr_ACU('success', '跳过更新楼层已保存！');
+           if (!silent) showToastr_ACU('success', 'Đã lưu số tầng bỏ qua cập nhật!');
        } else {
-           if (!silent) showToastr_ACU('warning', `跳过更新楼层 "${valStr}" 无效。请输入一个大于等于0的整数。恢复为: ${settings_ACU.skipUpdateFloors || 0}`);
+           if (!silent) showToastr_ACU('warning', `Số tầng bỏ qua cập nhật "${valStr}" không hợp lệ. Hãy nhập một số nguyên lớn hơn hoặc bằng 0. Khôi phục về: ${settings_ACU.skipUpdateFloors || 0}`);
            $skipUpdateFloorsInput_ACU.val(settings_ACU.skipUpdateFloors || 0);
        }
    }
@@ -347,14 +347,14 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
        // [V1 收敛] 委托 service 事务式写入
        const result = setUpdateNumberFields_ACU({ retainRecentLayers: newRetain });
        if (!result.ok) {
-           if (!silent) showToastr_ACU('error', result.message || 'AI 回复楼层保留数保存失败，已回滚。');
+           if (!silent) showToastr_ACU('error', result.message || 'Lưu số tầng phản hồi AI giữ lại thất bại, đã khôi phục.');
            return;
        }
        if (!silent) {
            if (newRetain === 0) {
-               showToastr_ACU('success', 'AI 回复楼层保留数已清空（将保留全部历史数据）！');
+               showToastr_ACU('success', 'Đã xóa số tầng phản hồi AI giữ lại (sẽ giữ toàn bộ dữ liệu lịch sử)!');
            } else {
-               showToastr_ACU('success', `AI 回复楼层保留数已保存：最近 ${newRetain} 个 AI 回复楼层！`);
+               showToastr_ACU('success', `Đã lưu số tầng phản hồi AI giữ lại: ${newRetain} tầng phản hồi AI gần nhất!`);
            }
        }
    }
@@ -381,12 +381,12 @@ import { setCurrentPromptSegments_ACU, resetCurrentPromptToDefault_ACU, setUpdat
           // [V1 收敛] 委托 service 事务式写入
           const result = setUpdateNumberFields_ACU({ importSplitSize: newSize });
           if (!result.ok) {
-              showToastr_ACU('error', result.message || '导入分割大小保存失败，已回滚。');
+              showToastr_ACU('error', result.message || 'Lưu kích thước chia khi nhập thất bại, đã khôi phục.');
               return;
           }
-          showToastr_ACU('success', '导入分割大小已保存！');
+          showToastr_ACU('success', 'Đã lưu kích thước chia khi nhập!');
       } else {
-          showToastr_ACU('warning', `导入分割大小 "${valStr}" 无效。请输入一个大于等于100的整数。恢复为: ${settings_ACU.importSplitSize}`);
+          showToastr_ACU('warning', `Kích thước chia khi nhập "${valStr}" không hợp lệ. Hãy nhập một số nguyên lớn hơn hoặc bằng 100. Khôi phục về: ${settings_ACU.importSplitSize}`);
           $input.val(settings_ACU.importSplitSize);
       }
   }

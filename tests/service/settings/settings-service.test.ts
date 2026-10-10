@@ -510,7 +510,7 @@ describe('saveSettings_ACU', () => {
     const result = saveSettings_ACU();
     expect(result.saved).toBe(true);
     expect(result.storageType).toBe('memory');
-    expect(result.warning).toContain('刷新后会丢失');
+    expect(result.warning).toContain('sẽ mất sau khi làm mới');
   });
 
   it('getConfigStorage 抛错时返回 { saved: false, error }', () => {
@@ -702,7 +702,7 @@ describe('applyCombinedSettingsImport_ACU', () => {
     expect(() => applyCombinedSettingsImport_ACU({
       prompt: [{ role: 'USER', content: '新提示词' }],
       mergeSummaryPrompt: '新合并',
-    })).toThrow('合并配置保存失败');
+    })).toThrow('Lưu cấu hình gộp thất bại');
 
     // 回滚：恢复导入前值
     expect(mockSettings.charCardPrompt).toEqual([{ role: 'USER', content: '原有' }]);

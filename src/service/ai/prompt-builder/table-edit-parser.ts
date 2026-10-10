@@ -112,7 +112,7 @@ import { allocateStableRowId_ACU, createStableRowIdReservation_ACU } from '../..
             tableData,
         });
         if (!strictExtraction.ok) {
-            const error = strictExtraction.retryHint || strictExtraction.error || '严格 JSON 填表响应格式无效';
+            const error = strictExtraction.retryHint || strictExtraction.error || 'Định dạng phản hồi điền bảng JSON nghiêm ngặt không hợp lệ';
             logWarn_ACU(error);
             return { success: false, modifiedKeys: [] as string[], appliedEdits: 0, error };
         }

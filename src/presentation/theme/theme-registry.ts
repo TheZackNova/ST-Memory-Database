@@ -26,7 +26,7 @@ const CUSTOM_THEMES_KEY = 'customThemes';
 const EXPORT_TEMPLATE_FILENAME = 'acu-theme-editable-template.json';
 const EXPORT_TEMPLATE_SEED: Pick<ACUTheme, 'customCSS' | 'windowChromeVariables' | 'toastVariables' | 'visualizerVariables' | 'previewColors'> = {
     customCSS: [
-        '/* 在这里编写组件级覆盖。#popup 会被自动替换为弹窗根选择器。 */',
+        '/* Viết ghi đè cấp thành phần tại đây. #popup sẽ tự động được thay bằng bộ chọn gốc của cửa sổ bật lên. */',
         '/* .acu-window-header { backdrop-filter: blur(10px); } */',
     ].join('\n'),
     windowChromeVariables: {},
@@ -281,19 +281,19 @@ export function loadCustomThemes(): void {
 export function addCustomTheme(theme: ACUTheme): boolean {
     // 校验
     if (!theme.id || !theme.name || !theme.variables) {
-        showToastr_ACU('error', '主题格式不合法：缺少 id、name 或 variables');
+        showToastr_ACU('error', 'Định dạng giao diện không hợp lệ: thiếu id, name hoặc variables');
         return false;
     }
 
     // 检查 ID 冲突
     if (getThemeById(theme.id)) {
-        showToastr_ACU('error', `主题 ID "${theme.id}" 已存在，请使用不同的 ID`);
+        showToastr_ACU('error', `ID giao diện "${theme.id}" đã tồn tại, hãy dùng ID khác`);
         return false;
     }
 
     _customThemes.push(theme);
     persistCustomThemes();
-    showToastr_ACU('success', `主题 "${theme.name}" 已导入`);
+    showToastr_ACU('success', `Đã nhập giao diện "${theme.name}"`);
     return true;
 }
 
@@ -303,7 +303,7 @@ export function addCustomTheme(theme: ACUTheme): boolean {
 export function removeCustomTheme(id: string): boolean {
     const idx = _customThemes.findIndex(t => t.id === id);
     if (idx === -1) {
-        showToastr_ACU('error', `未找到主题 "${id}"`);
+        showToastr_ACU('error', `Không tìm thấy giao diện "${id}"`);
         return false;
     }
 
@@ -316,7 +316,7 @@ export function removeCustomTheme(id: string): boolean {
     const name = _customThemes[idx].name;
     _customThemes.splice(idx, 1);
     persistCustomThemes();
-    showToastr_ACU('success', `主题 "${name}" 已删除`);
+    showToastr_ACU('success', `Đã xóa giao diện "${name}"`);
     return true;
 }
 
@@ -350,12 +350,12 @@ export function importThemeFromFile(): void {
                 const raw = JSON.parse(e.target?.result as string) as ACUThemeFile;
 
                 if (raw.formatVersion !== 1) {
-                    showToastr_ACU('error', '不支持的主题文件格式版本');
+                    showToastr_ACU('error', 'Phiên bản định dạng tệp giao diện không được hỗ trợ');
                     return;
                 }
 
                 if (!raw.theme?.id || !raw.theme?.name || !raw.theme?.variables) {
-                    showToastr_ACU('error', '主题文件缺少必要字段');
+                    showToastr_ACU('error', 'Tệp giao diện thiếu trường bắt buộc');
                     return;
                 }
 
@@ -363,7 +363,7 @@ export function importThemeFromFile(): void {
                 const existing = getThemeById(raw.theme.id);
                 if (existing) {
                     raw.theme.id = `${raw.theme.id}-imported-${Date.now()}`;
-                    raw.theme.name = `${raw.theme.name} (导入)`;
+                    raw.theme.name = `${raw.theme.name} (đã nhập)`;
                 }
 
                 if (addCustomTheme(raw.theme)) {
@@ -375,7 +375,7 @@ export function importThemeFromFile(): void {
                 }
             } catch (err) {
                 logError_ACU('[ThemeRegistry] Failed to parse theme file:', err);
-                showToastr_ACU('error', '主题文件解析失败');
+                showToastr_ACU('error', 'Phân tích tệp giao diện thất bại');
             }
         };
         reader.readAsText(file);
@@ -387,9 +387,9 @@ function createThemeTemplateBase(): ACUTheme {
     return createExportableTheme({
             // ═══ 元信息（必填）═══
             id: 'my-custom-theme',          // 唯一ID，建议格式: "@author/theme-name"
-            name: '我的自定义主题',           // 显示名称
-            description: '在此描述你的主题风格', // 简短描述
-            author: '你的名字',
+            name: 'Giao diện tùy chỉnh của tôi',           // 显示名称
+            description: 'Mô tả phong cách giao diện của bạn tại đây', // 简短描述
+            author: 'Tên của bạn',
             version: '1.0.0',
             colorScheme: 'light',            // 'light' 或 'dark'，影响浏览器原生控件渲染
 
@@ -494,35 +494,35 @@ function createThemeTemplateBase(): ACUTheme {
             // ═══ 自定义CSS（可选，高级）═══
             // 可以覆盖任何组件级样式。#popup 会被自动替换为弹窗根选择器。
             customCSS: [
-                '/* ═══ 组件级样式覆盖示例 ═══ */',
+                '/* ═══ Ví dụ ghi đè kiểu cấp thành phần ═══ */',
                 '',
-                '/* 自定义窗口顶部 chrome */',
+                '/* Tùy chỉnh chrome đầu cửa sổ */',
                 '/* .acu-window-header { backdrop-filter: blur(10px); } */',
                 '/* .acu-window-title { letter-spacing: 0.08em; } */',
                 '',
-                '/* 调整导航栏宽度 */',
+                '/* Điều chỉnh độ rộng thanh điều hướng */',
                 '/* #popup .acu-tabs-nav { min-width: 160px; } */',
                 '',
-                '/* 修改卡片内边距 */',
+                '/* Sửa padding của thẻ */',
                 '/* #popup .acu-card { padding: 16px; } */',
                 '',
-                '/* 自定义按钮悬停效果 */',
+                '/* Tùy chỉnh hiệu ứng hover của nút */',
                 '/* #popup button.primary:hover { filter: brightness(1.1); } */',
                 '',
-                '/* 修改表格样式 */',
+                '/* Sửa kiểu bảng */',
                 '/* #popup table th { background: var(--acu-bg-2); } */',
                 '',
-                '/* 修改输入框聚焦效果 */',
+                '/* Sửa hiệu ứng focus của ô nhập */',
                 '/* #popup input:focus, #popup textarea:focus, #popup select:focus {',
                 '  outline: 2px solid var(--acu-accent);',
                 '  outline-offset: -1px;',
                 '} */',
                 '',
-                '/* 自定义确认框 */',
+                '/* Tùy chỉnh hộp xác nhận */',
                 '/* #your-prefix-custom-confirm { border-radius: 18px; } */',
                 '/* #your-prefix-custom-confirm-overlay { backdrop-filter: blur(8px); } */',
                 '',
-                '/* 自定义 checkbox / radio / select */',
+                '/* Tùy chỉnh checkbox / radio / select */',
                 '/* #popup input[type="checkbox"] { border-radius: 5px !important; } */',
                 '/* #popup .qrf_radio_group input[type="radio"] { transform: scale(1.05); } */',
                 '/* #popup select { background-size: 7px 7px, 7px 7px; } */',
@@ -608,36 +608,36 @@ function buildEditableModules(theme: ACUTheme): NonNullable<ACUThemeFile['editab
     return [
         {
             id: 'core-variables',
-            label: '核心颜色变量',
-            description: '页面背景、文字、边框、强调色、语义色与圆角阴影。主题的主体风格由这里决定。',
+            label: 'Biến màu cốt lõi',
+            description: 'Nền trang, chữ, viền, màu nhấn, màu ngữ nghĩa, bo góc và đổ bóng. Phong cách chính của giao diện do phần này quyết định.',
             paths: ['theme.variables'],
             status: Object.keys(theme.variables || {}).length > 0 ? 'configured' : 'fallback',
         },
         {
             id: 'window-chrome',
-            label: '窗口顶部 chrome',
-            description: '独立窗口标题栏、按钮 hover、阴影与边框的专用覆盖。',
+            label: 'Chrome đầu cửa sổ',
+            description: 'Ghi đè riêng cho thanh tiêu đề cửa sổ độc lập, hover nút, đổ bóng và viền.',
             paths: ['theme.windowChromeVariables'],
             status: Object.keys(theme.windowChromeVariables || {}).length > 0 ? 'configured' : 'empty',
         },
         {
             id: 'toast',
-            label: 'Toast 提示框',
-            description: '提示框的独立颜色入口；为空时回退到核心主题变量。',
+            label: 'Hộp thông báo Toast',
+            description: 'Lối vào màu riêng của hộp thông báo; để trống sẽ dùng biến giao diện cốt lõi.',
             paths: ['theme.toastVariables'],
             status: Object.keys(theme.toastVariables || {}).length > 0 ? 'configured' : 'empty',
         },
         {
             id: 'visualizer',
-            label: '可视化编辑器',
-            description: '表格可视化编辑器的独立颜色入口；为空时回退到核心主题变量。',
+            label: 'Trình chỉnh sửa trực quan',
+            description: 'Lối vào màu riêng của trình chỉnh sửa bảng trực quan; để trống sẽ dùng biến giao diện cốt lõi.',
             paths: ['theme.visualizerVariables'],
             status: Object.keys(theme.visualizerVariables || {}).length > 0 ? 'configured' : 'empty',
         },
         {
             id: 'controls-confirm-overlay',
-            label: '控件 / 确认框 / 遮罩层',
-            description: 'select、checkbox、radio、confirm、overlay 目前通过 theme.variables 中的 --acu-control-* / --acu-confirm-* / --acu-overlay-* 变量控制。',
+            label: 'Điều khiển / Hộp xác nhận / Lớp phủ',
+            description: 'select, checkbox, radio, confirm, overlay hiện được điều khiển qua các biến --acu-control-* / --acu-confirm-* / --acu-overlay-* trong theme.variables.',
             paths: [
                 'theme.variables.--acu-control-*',
                 'theme.variables.--acu-confirm-*',
@@ -647,15 +647,15 @@ function buildEditableModules(theme: ACUTheme): NonNullable<ACUThemeFile['editab
         },
         {
             id: 'custom-css',
-            label: '组件级细节覆盖',
-            description: '当变量不够时，在 customCSS 中覆盖具体组件样式。',
+            label: 'Ghi đè chi tiết cấp thành phần',
+            description: 'Khi biến chưa đủ, hãy ghi đè kiểu của từng thành phần trong customCSS.',
             paths: ['theme.customCSS'],
             status: theme.customCSS && theme.customCSS.trim() ? 'configured' : 'empty',
         },
         {
             id: 'preview',
-            label: '主题预览色块',
-            description: '主题选择器中显示的预览色，不影响实际运行样式。',
+            label: 'Ô màu xem trước giao diện',
+            description: 'Màu xem trước hiển thị trong bộ chọn giao diện, không ảnh hưởng kiểu khi chạy.',
             paths: ['theme.previewColors'],
             status: theme.previewColors ? 'configured' : 'empty',
         },
@@ -664,16 +664,16 @@ function buildEditableModules(theme: ACUTheme): NonNullable<ACUThemeFile['editab
 
 function buildEditableGuide(theme: ACUTheme): NonNullable<ACUThemeFile['guide']> {
     return {
-        summary: `这是一份基于当前主题「${theme.name}」生成的完整可编辑模板。你可以直接修改 theme 下的字段，然后重新导入。`,
+        summary: `Đây là mẫu hoàn chỉnh có thể chỉnh sửa, tạo từ giao diện hiện tại"${theme.name}". Bạn có thể sửa trực tiếp các trường dưới theme rồi nhập lại.`,
         recommendedOrder: [
-            '先修改 theme.variables 中的核心颜色变量，建立整体色板',
-            '再按需修改 theme.windowChromeVariables / theme.toastVariables / theme.visualizerVariables',
-            '最后在 theme.customCSS 中处理局部特效、版式和组件级细节',
+            'Trước tiên sửa các biến màu cốt lõi trong theme.variables để lập bảng màu tổng thể',
+            'Sau đó sửa theme.windowChromeVariables / theme.toastVariables / theme.visualizerVariables khi cần',
+            'Cuối cùng xử lý hiệu ứng cục bộ, bố cục và chi tiết cấp thành phần trong theme.customCSS',
         ],
         tips: [
-            'theme.variables 是运行时主题的主入口；里面的 --acu-control-* / --acu-confirm-* / --acu-overlay-* 控制表单控件、确认框和遮罩层。',
-            'windowChromeVariables / toastVariables / visualizerVariables 即使当前为空，也可以直接补充自定义值。',
-            '导入时系统只读取根级 theme 对象；templateMeta / editableModules / guide 只是给你看的编辑导航，不会影响运行。',
+            'theme.variables là lối vào chính của giao diện khi chạy; các biến --acu-control-* / --acu-confirm-* / --acu-overlay-* điều khiển ô nhập biểu mẫu, hộp xác nhận và lớp phủ.',
+            'windowChromeVariables / toastVariables / visualizerVariables dù hiện đang trống vẫn có thể bổ sung giá trị tùy chỉnh trực tiếp.',
+            'Khi nhập, hệ thống chỉ đọc đối tượng theme ở cấp gốc; templateMeta / editableModules / guide chỉ là hướng dẫn chỉnh sửa cho bạn xem, không ảnh hưởng khi chạy.',
         ],
     };
 }
@@ -685,7 +685,7 @@ function buildEditableGuide(theme: ACUTheme): NonNullable<ACUThemeFile['guide']>
 export function exportThemeToFile(themeId: string): void {
     const theme = getThemeById(themeId);
     if (!theme) {
-        showToastr_ACU('error', `未找到主题 "${themeId}"`);
+        showToastr_ACU('error', `Không tìm thấy giao diện "${themeId}"`);
         return;
     }
 
@@ -696,7 +696,7 @@ export function exportThemeToFile(themeId: string): void {
             kind: 'editable-theme-template',
             sourceThemeId: theme.id,
             sourceThemeName: theme.name,
-            description: '基于当前主题生成的完整可编辑模板，适合二次修改后重新导入。',
+            description: 'Mẫu hoàn chỉnh có thể chỉnh sửa tạo từ giao diện hiện tại, thích hợp để sửa lần nữa rồi nhập lại.',
         },
         editableModules: buildEditableModules(theme),
         guide: buildEditableGuide(theme),
@@ -710,7 +710,7 @@ export function exportThemeToFile(themeId: string): void {
     a.download = `acu-theme-template-${theme.id}-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToastr_ACU('success', `主题「${theme.name}」的完整可编辑模板已导出`);
+    showToastr_ACU('success', `Đã xuất mẫu hoàn chỉnh có thể chỉnh sửa của giao diện"${theme.name}"`);
 }
 
 function createExportableTheme(theme: ACUTheme): ACUTheme {

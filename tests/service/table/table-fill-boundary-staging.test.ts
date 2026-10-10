@@ -79,7 +79,7 @@ describe('planTableFillBoundaryStaging_ACU', () => {
       templateFingerprint: 'template-multi-root',
       messageIndices: [1, 2, 4, 5, 8, 9],
       fullCheckpointIndices: [4, 8],
-    })).toThrow(/同一 isolationKey 下存在 2 个 full checkpoint/);
+    })).toThrow(/dưới cùng isolationKey có 2 full checkpoint/);
   });
 
 });
@@ -128,7 +128,7 @@ describe('splitMessageIndicesAtBoundary_ACU', () => {
   });
 
   it('非法索引输入抛出规划错误', () => {
-    expect(() => splitMessageIndicesAtBoundary_ACU([2, 1], 30)).toThrow(/严格递增/);
+    expect(() => splitMessageIndicesAtBoundary_ACU([2, 1], 30)).toThrow(/tăng chặt/);
   });
 
   it('schema 边界切段：full 根与 schema rebase 边界同时存在时，按边界拆出第三段并携带 boundaryKind', () => {

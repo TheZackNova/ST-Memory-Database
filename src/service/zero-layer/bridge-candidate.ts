@@ -18,7 +18,7 @@ export async function buildBridgeCandidate_ACU(source: ZeroLayerEnvelope_ACU,
   assertBridgeSource_ACU(before, bridge.sourceFingerprint);
   assertBridgeSource_ACU(chat, bridge.sourceFingerprint);
   if (chat.length !== bridge.activationCut.messageCount) {
-    throw new ZeroLayerError_ACU('migration-conflict', '桥接回放超出启用切点。');
+    throw new ZeroLayerError_ACU('migration-conflict', 'Phát lại cầu nối vượt quá điểm cắt kích hoạt.');
   }
   const candidate: ZeroLayerBridgeCandidate_ACU = { schemaVersion: 1, table: table.table,
     continuation: continuation.state, simulation: simulation.state,

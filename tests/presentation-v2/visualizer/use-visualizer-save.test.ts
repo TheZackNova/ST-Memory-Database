@@ -631,7 +631,7 @@ describe('useVisualizerSave', () => {
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
     expect(serviceMock.commitCurrentFloorTemplateScopeOnly_ACU).not.toHaveBeenCalled();
     expect(toastMock.error).toHaveBeenCalledWith(
-      expect.stringContaining('模板保存被降级预检阻止'),
+      expect.stringContaining('Lưu mẫu bị chặn bởi kiểm tra trước hạ cấp'),
       expect.any(Object),
     );
   });
@@ -857,7 +857,7 @@ describe('useVisualizerSave', () => {
 
     expect(saved).toBe(false);
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
-    expect(toastMock.error).toHaveBeenCalledWith(expect.stringContaining('migration 或 rebase action'), { muteable: false });
+    expect(toastMock.error).toHaveBeenCalledWith(expect.stringContaining('migration hoặc rebase action'), { muteable: false });
   });
 
   it('schema migration preflight 阻断时不创建 checkpoint 或推进模板状态', async () => {
@@ -1077,7 +1077,7 @@ describe('useVisualizerSave', () => {
     expect(saved).toBe(false);
     expect(serviceMock.preflightSchemaMigrations_ACU).toHaveBeenCalledTimes(1);
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
-    expect(toastMock.warning).toHaveBeenCalledWith('模板结构在 schema migration 选择期间已变化；请重新保存。', { muteable: false });
+    expect(toastMock.warning).toHaveBeenCalledWith('Cấu trúc mẫu đã thay đổi trong lúc chọn schema migration; vui lòng lưu lại.', { muteable: false });
   });
 
   it('schema migration 选择器返回未知 ID 时 fail-closed 且不提交', async () => {
@@ -1104,7 +1104,7 @@ describe('useVisualizerSave', () => {
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
     expect(serviceMock.applyTemplateScopeForCurrentChat_ACU).not.toHaveBeenCalled();
     expect(runtimeMock._set_currentJsonTableData_ACU).not.toHaveBeenCalled();
-    expect(toastMock.error).toHaveBeenCalledWith('schema migration 返回了无效选择：sheet_test_vz2。', { muteable: false });
+    expect(toastMock.error).toHaveBeenCalledWith('schema migration trả về lựa chọn không hợp lệ: sheet_test_vz2.', { muteable: false });
   });
 
   it('缺少 schema migration 选择 interaction 时保留 blocker 并 fail-closed', async () => {
@@ -1130,7 +1130,7 @@ describe('useVisualizerSave', () => {
     expect(serviceMock.preflightSchemaMigrations_ACU).toHaveBeenCalledTimes(1);
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
     expect(toastMock.error).toHaveBeenCalledWith(
-      '模板结构未通过 schema migration preflight：sheet_test_vz2: 需要确认列身份。',
+      'Cấu trúc mẫu không qua được schema migration preflight: sheet_test_vz2: 需要确认列身份。',
       { muteable: false },
     );
   });
@@ -1292,7 +1292,7 @@ describe('useVisualizerSave', () => {
     expect(saved).toBe(false);
     expect(serviceMock.preflightSchemaMigrations_ACU).toHaveBeenCalledTimes(1);
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
-    expect(toastMock.warning).toHaveBeenCalledWith('模板结构在危险确认期间已变化；请重新保存。', { muteable: false });
+    expect(toastMock.warning).toHaveBeenCalledWith('Cấu trúc mẫu đã thay đổi trong lúc xác nhận nguy hiểm; vui lòng lưu lại.', { muteable: false });
   });
 
   it('schema migration preflight 期间模板变化时不提交陈旧 checkpoint', async () => {
@@ -1324,7 +1324,7 @@ describe('useVisualizerSave', () => {
     expect(store.lastSavedTarget).toBeNull();
     expect(store.dirty).toBe(true);
     expect(store.isSaving).toBe(false);
-    expect(toastMock.warning).toHaveBeenCalledWith('模板结构在 schema migration preflight 期间已变化；请重新保存。', { muteable: false });
+    expect(toastMock.warning).toHaveBeenCalledWith('Cấu trúc mẫu đã thay đổi trong lúc schema migration preflight; vui lòng lưu lại.', { muteable: false });
   });
 
   it('当前聊天模板原子提交失败时不推进运行时、基线、scope 或锁草稿', async () => {
@@ -1391,7 +1391,7 @@ describe('useVisualizerSave', () => {
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).toHaveBeenCalledTimes(1);
     expect(serviceMock.reloadStorageProvider).toHaveBeenCalledTimes(1);
     expect(toastMock.warning).toHaveBeenCalledWith(
-      '模板已保存，但 SQLite 运行时刷新失败；请重新载入当前聊天后重试。',
+      'Đã lưu mẫu nhưng làm mới runtime SQLite thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.',
       { muteable: false },
     );
     expect(serviceMock.applyTemplateScopeForCurrentChat_ACU).toHaveBeenCalledTimes(1);
@@ -1422,7 +1422,7 @@ describe('useVisualizerSave', () => {
     expect(saved).toBe(true);
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).toHaveBeenCalledTimes(1);
     expect(toastMock.warning).toHaveBeenCalledWith(
-      '模板已保存，但合并数据刷新失败；请重新载入当前聊天后重试。',
+      'Đã lưu mẫu nhưng làm mới dữ liệu gộp thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.',
       { muteable: false },
     );
     expect(store.templateBaseData.sheet_test_vz2.name).toBe('已提交但刷新失败的新表名');
@@ -1450,7 +1450,7 @@ describe('useVisualizerSave', () => {
     expect(saved).toBe(true);
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).toHaveBeenCalledTimes(1);
     expect(toastMock.warning).toHaveBeenCalledWith(
-      '模板已保存，但模板作用域运行时同步失败；请重新载入当前聊天后重试。',
+      'Đã lưu mẫu nhưng đồng bộ runtime theo phạm vi mẫu thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.',
       { muteable: false },
     );
     expect(runtimeMock._set_currentJsonTableData_ACU).toHaveBeenCalledWith(expect.objectContaining({
@@ -1525,7 +1525,7 @@ describe('useVisualizerSave', () => {
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).toHaveBeenCalledTimes(1);
     expect(serviceMock.saveTableLocksForSheet_ACU).toHaveBeenCalledTimes(1);
     expect(toastMock.warning).toHaveBeenCalledWith(
-      '模板已保存，但运行时数据同步失败；请重新载入当前聊天后重试。',
+      'Đã lưu mẫu nhưng đồng bộ dữ liệu runtime thất bại; vui lòng nạp lại cuộc trò chuyện hiện tại rồi thử lại.',
       { muteable: false },
     );
     expect(store.pendingLockChanges).toEqual([]);
@@ -1553,7 +1553,7 @@ describe('useVisualizerSave', () => {
     expect(firstSaved).toBe(true);
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).toHaveBeenCalledTimes(1);
     expect(toastMock.warning).toHaveBeenCalledWith(
-      '模板已保存，但表格锁定设置未保存；请重试保存。',
+      'Đã lưu mẫu nhưng chưa lưu cài đặt khóa bảng; vui lòng thử lưu lại.',
       { muteable: false },
     );
     expect(store.templateBaseData.sheet_test_vz2.name).toBe('锁保存失败的新表名');
@@ -1750,7 +1750,7 @@ describe('useVisualizerSave', () => {
 
     expect(saved).toBe(false);
     expect(toastMock.error).toHaveBeenCalledWith(
-      '行数据增量与整表删除无法原子提交；请分别保存行数据和删表操作。',
+      'Phần tăng thêm dữ liệu hàng và xóa cả bảng không thể cam kết nguyên tử; vui lòng lưu dữ liệu hàng và thao tác xóa bảng riêng.',
       { muteable: false },
     );
     expect(serviceMock.runTableWriteTransaction_ACU).not.toHaveBeenCalled();
@@ -1853,7 +1853,7 @@ it('运行时 merged refresh 失败后重试只刷新，不重复持久化数据
     expect(serviceMock.persistTableMutationLogBatchV2_ACU).toHaveBeenCalledTimes(1);
     expect(serviceMock.runTableWriteTransaction_ACU).toHaveBeenCalledTimes(1);
     expect(toastMock.error).toHaveBeenCalledWith(
-      '数据已持久化，但本地运行时刷新失败：merged refresh failed',
+      'Dữ liệu đã được lưu bền nhưng làm mới runtime cục bộ thất bại: merged refresh failed',
       { muteable: false },
     );
     expect(store.dirty).toBe(true);
@@ -1961,7 +1961,7 @@ it('成功保存后回填临时行 ID，refresh 失败时不提前回填', async
 
     const second = await useVisualizerSave().saveTemplateToCurrentChat();
     expect(second).toBe(false);
-    expect(toastMock.info).toHaveBeenCalledWith('模板结构没有变化。', { muteable: false });
+    expect(toastMock.info).toHaveBeenCalledWith('Cấu trúc mẫu không thay đổi.', { muteable: false });
   });
 
   it('全局注入配置 + 锁同时变更时一次提交并保存锁草稿', async () => {
@@ -1986,7 +1986,7 @@ it('成功保存后回填临时行 ID，refresh 失败时不提前回填', async
     expect(serviceMock.commitCurrentFloorTemplateScopeOnly_ACU).toHaveBeenCalledTimes(1);
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
     expect(serviceMock.saveTableLocksForSheet_ACU).toHaveBeenCalled();
-    expect(toastMock.success).toHaveBeenCalledWith('全局注入配置与表格锁定设置已保存到当前聊天。', { muteable: false });
+    expect(toastMock.success).toHaveBeenCalledWith('Cấu hình chèn toàn cục và cài đặt khóa bảng đã được lưu vào cuộc trò chuyện hiện tại.', { muteable: false });
   });
 
   it('pristine 会话下仅修改全局注入配置仍先执行降级预检（noReplayRoot 放行）', async () => {
@@ -2045,7 +2045,7 @@ it('成功保存后回填临时行 ID，refresh 失败时不提前回填', async
     expect(saved).toBe(false);
     expect(serviceMock.commitCurrentFloorTemplateScopeOnly_ACU).not.toHaveBeenCalled();
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
-    expect(toastMock.error).toHaveBeenCalledWith(expect.stringContaining('模板保存被降级预检阻止'), expect.any(Object));
+    expect(toastMock.error).toHaveBeenCalledWith(expect.stringContaining('Lưu mẫu bị chặn bởi kiểm tra trước hạ cấp'), expect.any(Object));
   });
 
   it('pristine 会话下仅修改全局注入配置但 Sheet 投影不一致时零落盘并给出先保存数据指引', async () => {
@@ -2080,7 +2080,7 @@ it('成功保存后回填临时行 ID，refresh 失败时不提前回填', async
     }));
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
     expect(toastMock.error).toHaveBeenCalledWith(
-      expect.stringContaining('存在未提交的表内容差异，请先保存数据到当前消息，再保存全局配置。'),
+      expect.stringContaining('Có khác biệt nội dung bảng chưa cam kết, vui lòng lưu dữ liệu vào tin nhắn hiện tại trước rồi mới lưu cấu hình toàn cục.'),
       { muteable: false },
     );
   });
@@ -2106,7 +2106,7 @@ it('成功保存后回填临时行 ID，refresh 失败时不提前回填', async
     expect(saved).toBe(false);
     expect(serviceMock.commitCurrentFloorTemplateScopeOnly_ACU).not.toHaveBeenCalled();
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
-    expect(toastMock.error).toHaveBeenCalledWith(expect.stringContaining('模板保存已阻止'), expect.any(Object));
+    expect(toastMock.error).toHaveBeenCalledWith(expect.stringContaining('Đã chặn lưu mẫu'), expect.any(Object));
   });
 
   it('基线缺失时拒绝保存全局配置且零提交', async () => {
@@ -2128,7 +2128,7 @@ it('成功保存后回填临时行 ID，refresh 失败时不提前回填', async
     expect(saved).toBe(false);
     expect(serviceMock.commitCurrentFloorTemplateScopeOnly_ACU).not.toHaveBeenCalled();
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
-    expect(toastMock.error).toHaveBeenCalledWith(expect.stringContaining('模板基线缺失'), expect.any(Object));
+    expect(toastMock.error).toHaveBeenCalledWith(expect.stringContaining('Thiếu mốc cơ sở của mẫu'), expect.any(Object));
   });
 
   it('scope-only 投影不一致时如实报错并给出先保存数据的指引', async () => {
@@ -2154,7 +2154,7 @@ it('成功保存后回填临时行 ID，refresh 失败时不提前回填', async
 
     expect(saved).toBe(false);
     expect(toastMock.error).toHaveBeenCalledWith(
-      expect.stringContaining('存在未提交的表内容差异，请先保存数据到当前消息，再保存全局配置。'),
+      expect.stringContaining('Có khác biệt nội dung bảng chưa cam kết, vui lòng lưu dữ liệu vào tin nhắn hiện tại trước rồi mới lưu cấu hình toàn cục.'),
       { muteable: false },
     );
   });
@@ -2177,7 +2177,7 @@ it('成功保存后回填临时行 ID，refresh 失败时不提前回填', async
     expect(saved).toBe(false);
     expect(serviceMock.commitCurrentFloorTemplateScopeOnly_ACU).not.toHaveBeenCalled();
     expect(serviceMock.commitCurrentFloorTemplateChanges_ACU).not.toHaveBeenCalled();
-    expect(toastMock.info).toHaveBeenCalledWith('模板结构没有变化。', { muteable: false });
+    expect(toastMock.info).toHaveBeenCalledWith('Cấu trúc mẫu không thay đổi.', { muteable: false });
   });
 
   it('全局注入配置变更叠加表结构变更时仍走结构提交且不重复调用 scope-only', async () => {
@@ -2230,7 +2230,7 @@ it('成功保存后回填临时行 ID，refresh 失败时不提前回填', async
     const saved = await useVisualizerSave().saveToChat();
 
     expect(saved).toBe(false);
-    expect(toastMock.info).toHaveBeenCalledWith('全局注入配置属于模板层，请使用「保存模板到当前聊天」保存。', { muteable: false });
+    expect(toastMock.info).toHaveBeenCalledWith('Cấu hình chèn toàn cục thuộc tầng mẫu, vui lòng dùng「Lưu mẫu vào cuộc trò chuyện hiện tại」để lưu.', { muteable: false });
     expect(serviceMock.persistTableMutationLogBatchV2_ACU).not.toHaveBeenCalled();
     expect(serviceMock.runTableWriteTransaction_ACU).not.toHaveBeenCalled();
   });

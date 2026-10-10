@@ -15,16 +15,16 @@ export function stageExitContinuation_ACU(source: ZeroLayerEnvelope_ACU,
   chat: Record<string, unknown>[], input: Source_ACU): void {
   const state = input.materials.continuation!;
   const envelope = state.envelope;
-  requireExit_ACU(!envelope?.activeTask?.pendingHostTurn, '续写仍有等待正文回执。');
+  requireExit_ACU(!envelope?.activeTask?.pendingHostTurn, 'Viết tiếp vẫn còn biên nhận nội dung chính đang chờ.');
   requireExit_ACU(!envelope?.activeTask || !['running', 'drafting', 'stopping_after_inflight'].includes(envelope.activeTask.status),
-    '续写任务尚未停止。');
+    'Tác vụ viết tiếp chưa dừng.');
   const projection = projectWorkingContinuation_ACU(source, input.timeline, state);
   const payload = continuationCheckpointPayload_ACU(projection.map(message => ({
     payload: message[AGENT_MODULE_FIELD_ACU], swipeId: String(message.swipe_id ?? 0),
   })));
   const snapshot = payload.checkpoint!.snapshot;
   const bridge = input.branch.bridge;
-  requireExit_ACU(bridge?.phase === 'reconciled' && bridge.candidate, '续写缺少原物理资料的来源证明。');
+  requireExit_ACU(bridge?.phase === 'reconciled' && bridge.candidate, 'Viết tiếp thiếu bằng chứng nguồn của tài liệu vật lý gốc.');
   const original = foldCheckpointContinuation_ACU(bridge.activationCut.refs.map(ref => ({
     payload: bridge.candidate!.continuation.moduleFrames[JSON.stringify(ref)], swipeId: String(ref.swipeId),
   }))).snapshot;
@@ -39,12 +39,12 @@ export function stageExitContinuation_ACU(source: ZeroLayerEnvelope_ACU,
     && sameCoordinates(snapshot.chronology, original.chronology, row => [row.evidenceIndexes, row.updatedIndex])
     && fingerprint(snapshot.materialCompletion) === fingerprint(original.materialCompletion)
     && fingerprint(snapshot.settlementBoundary ?? null) === fingerprint(original.settlementBoundary ?? null),
-  '续写资料含无法证明为原物理来源的证据索引，普通资料格式不能无损承接。');
-  requireExit_ACU(snapshot.pendingFixes.length === 0, '续写资料仍有待修复条目。');
+  'Tài liệu viết tiếp chứa chỉ mục bằng chứng không thể chứng minh là nguồn vật lý gốc, định dạng tài liệu thường không thể tiếp nhận mà không mất dữ liệu.');
+  requireExit_ACU(snapshot.pendingFixes.length === 0, 'Tài liệu viết tiếp vẫn còn mục chờ sửa.');
   // 非空资料的未结算逻辑范围不能通过重设水位隐藏。无资料来源时保留原空基底。
   const contributed = readAgentModuleFoldState_ACU(projection).contributed;
   requireExit_ACU(!contributed || snapshot.settledThroughIndex >= input.timeline.floors.length - 1,
-    '续写资料仍有未结算逻辑历史，普通水位不能表达该缺口。');
+    'Tài liệu viết tiếp vẫn còn lịch sử logic chưa quyết toán, mốc thường không thể biểu đạt khoảng trống này.');
   if (contributed) snapshot.settledThroughIndex = source.activationMessageCount - 1;
   payload.checkpoint!.swipeId = String(input.target.swipeId);
   for (const message of chat) {
@@ -58,7 +58,7 @@ export function stageExitContinuation_ACU(source: ZeroLayerEnvelope_ACU,
   const folded = readAgentModuleFoldState_ACU(chat);
   requireExit_ACU(!folded.salvaged && folded.candidates.every(item => item.valid)
     && fingerprint([folded.snapshot, folded.fields])
-      === fingerprint([snapshot, payload.checkpoint!.fieldSnapshot]), '退出续写资料回放不等价。');
+      === fingerprint([snapshot, payload.checkpoint!.fieldSnapshot]), 'Phát lại tài liệu viết tiếp khi thoát không tương đương.');
   requireExit_ACU(fingerprint(readAgentConversationRecordStrict_ACU(chat)) === fingerprint(state.conversation),
-    '退出续写会话回放不等价。');
+    'Phát lại hội thoại viết tiếp khi thoát không tương đương.');
 }

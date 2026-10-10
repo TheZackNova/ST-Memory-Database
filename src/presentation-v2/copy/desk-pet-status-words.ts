@@ -5,28 +5,28 @@
 import type { AppearanceTextMode_ACU, DeskPetStatusGroup_ACU } from "../../shared/desk-pet-appearance";
 
 export const deskPetStatusWords = {
-  table: ["翻账本", "对表格", "抄小本本", "数格子", "描边框", "誊写", "对账", "补漏项", "排行列", "盖戳"],
-  plan: ["掐指", "摆沙盘", "看星象", "推演", "琢磨", "画路线", "扔骰子", "排兵布阵"],
-  polish: ["抛光", "捋句子", "修边角", "润色", "挑错字", "磨字眼", "顺语气", "打蜡"],
-  continuation: ["构思", "打腹稿", "咬笔头", "憋大招", "起承转合", "续墨", "想下文", "铺伏笔"],
-  simulation: ["推沙盘", "算因果", "拨时钟", "看天下", "摇签筒", "牵线头", "观棋", "排因缘"],
-  import: ["嚼书页", "切块", "翻页", "啃目录", "拆包裹", "吞文字", "分装", "码书脊"],
-  index: ["翻旧账", "找线头", "对暗号", "嗅线索", "理卷宗", "串珠子", "查底档", "扫书架"],
-  skill: ["贴标签", "归档", "分门别类", "写说明书", "装盒子", "编号", "理抽屉", "做卡片"],
-  generic: ["忙活", "发功", "嘀咕", "搬砖", "埋头苦干", "转圈圈", "冒热气", "咕噜咕噜"],
+  table: ["lật sổ sách", "đối chiếu bảng", "chép sổ tay", "đếm ô", "kẻ viền", "chép lại", "đối soát", "bù chỗ sót", "xếp hàng cột", "đóng dấu"],
+  plan: ["bấm đốt ngón tay", "bày sa bàn", "ngắm sao", "suy diễn", "nghiền ngẫm", "vẽ lộ trình", "tung xúc xắc", "bài binh bố trận"],
+  polish: ["đánh bóng", "vuốt câu", "gọt góc cạnh", "trau chuốt", "bắt lỗi chính tả", "mài từ ngữ", "chỉnh giọng văn", "đánh sáp"],
+  continuation: ["nặn ý tưởng", "nháp trong bụng", "cắn đầu bút", "nín chiêu lớn", "khai thừa chuyển hợp", "tiếp mực", "nghĩ đoạn sau", "gài phục bút"],
+  simulation: ["đẩy sa bàn", "tính nhân quả", "vặn đồng hồ", "ngó thiên hạ", "lắc ống xăm", "kéo đầu chỉ", "xem cờ", "xếp duyên số"],
+  import: ["nhai trang sách", "cắt khối", "lật trang", "gặm mục lục", "bóc kiện hàng", "nuốt chữ", "chia gói", "xếp gáy sách"],
+  index: ["lục sổ cũ", "tìm đầu mối", "đối mật khẩu", "đánh hơi manh mối", "sắp hồ sơ", "xâu chuỗi hạt", "tra hồ sơ gốc", "quét giá sách"],
+  skill: ["dán nhãn", "lưu trữ", "phân loại", "viết hướng dẫn", "đóng hộp", "đánh số", "dọn ngăn kéo", "làm thẻ"],
+  generic: ["tất bật", "vận công", "lẩm bẩm", "bốc gạch", "cắm đầu làm", "quay vòng vòng", "bốc khói", "ùng ục"],
 } as const satisfies Record<DeskPetStatusGroup_ACU, readonly string[]>;
 
 export type DeskPetStatusGroup = keyof typeof deskPetStatusWords;
 export type DeskPetStatusWords = Readonly<Record<DeskPetStatusGroup, readonly string[]>>;
 
 const FEATURE_GROUP_RULES: Array<[RegExp, DeskPetStatusGroup]> = [
-  [/填表|追平|表格/, "table"],
-  [/规划/, "plan"],
-  [/优化/, "polish"],
-  [/续写/, "continuation"],
-  [/推演/, "simulation"],
-  [/导入/, "import"],
-  [/交火|索引|召回/, "index"],
+  [/填表|追平|表格|điền bảng|bắt kịp|bảng/i, "table"],
+  [/规划|kế hoạch|lập kế hoạch/i, "plan"],
+  [/优化|tối ưu/i, "polish"],
+  [/续写|viết tiếp/i, "continuation"],
+  [/推演|suy diễn|mô phỏng/i, "simulation"],
+  [/导入|nhập/i, "import"],
+  [/交火|索引|召回|giao hỏa|chỉ mục|truy hồi/i, "index"],
   [/skill/i, "skill"],
 ];
 

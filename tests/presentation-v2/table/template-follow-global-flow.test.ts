@@ -60,7 +60,7 @@ describe('runFollowGlobalTemplateFlow_ACU', () => {
     const ui = makeUi();
     mocks.follow.mockResolvedValueOnce({ saved: true, alreadyFollowing: true, mode: 'inherit_global', presetName: '' });
     expect(await runFollowGlobalTemplateFlow_ACU(ui)).toBe(true);
-    expect(ui.toast.info).toHaveBeenCalledWith('当前聊天已跟随全局模板，无需清除覆盖。');
+    expect(ui.toast.info).toHaveBeenCalledWith('Cuộc trò chuyện hiện tại đã theo mẫu toàn cục, không cần xóa ghi đè.');
   });
 
   it('postCommitWarning 透传为 warning toast', async () => {

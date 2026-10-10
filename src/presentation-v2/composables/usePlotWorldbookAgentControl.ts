@@ -243,7 +243,7 @@ export function usePlotWorldbookAgentControl() {
   async function writeControlPatch(patch: Partial<AgentWorldbookControl_ACU>): Promise<AgentWorldbookControlWriteResult_ACU | null> {
     if (!isReady.value) {
       toast.warning(
-        initializationFailed.value ? 'Agent 世界书配置读取失败，已拒绝保存以避免默认值覆盖已保存配置。' : 'Agent 世界书配置仍在加载，已拒绝保存以避免覆盖已保存提示词。',
+        initializationFailed.value ? 'Đọc cấu hình sổ thế giới Agent thất bại, đã từ chối lưu để tránh giá trị mặc định ghi đè cấu hình đã lưu.' : 'Cấu hình sổ thế giới Agent vẫn đang tải, đã từ chối lưu để tránh ghi đè prompt đã lưu.',
         { muteable: false },
       );
       return null;
@@ -255,7 +255,7 @@ export function usePlotWorldbookAgentControl() {
         try {
           await refresh();
         } catch {
-          toast.warning('Agent 世界书配置保存状态未确认，且重新读取失败；请刷新后重试。', { muteable: false });
+          toast.warning('Trạng thái lưu cấu hình sổ thế giới Agent chưa được xác nhận và đọc lại thất bại; vui lòng làm mới rồi thử lại.', { muteable: false });
         }
         return null;
       }
@@ -275,12 +275,12 @@ export function usePlotWorldbookAgentControl() {
         const takeoverResult = await takeoverWorldbookGreenlights_ACU();
         snapshot.value = await refreshPlotAgentWorldbookSnapshotFromWorldbooks_ACU();
         if (takeoverResult.failed > 0 || snapshot.value.active !== true) {
-          toast.warning(`Agent 世界书已切换为接管模式，但物理接管未完全完成：${takeoverResult.reason || 'unknown'}`, { muteable: false });
+          toast.warning(`Sổ thế giới Agent đã chuyển sang chế độ tiếp quản nhưng tiếp quản vật lý chưa hoàn tất hoàn toàn: ${takeoverResult.reason || 'unknown'}`, { muteable: false });
           return true;
         }
       } catch (error: any) {
         snapshot.value = await refreshPlotAgentWorldbookSnapshotFromWorldbooks_ACU();
-        toast.warning(`Agent 世界书已切换为接管模式，但物理接管失败：${error?.message || '未知错误'}`, { muteable: false });
+        toast.warning(`Sổ thế giới Agent đã chuyển sang chế độ tiếp quản nhưng tiếp quản vật lý thất bại: ${error?.message || 'Lỗi không xác định'}`, { muteable: false });
         return true;
       }
       toast.info(plotCopy.agentControl.modeChanged.agent, { muteable: false });
@@ -293,7 +293,7 @@ export function usePlotWorldbookAgentControl() {
         const restoreResult = await restoreWorldbookGreenlights_ACU({ cleanupMode: 'restore_only' });
         snapshot.value = await refreshPlotAgentWorldbookSnapshotFromWorldbooks_ACU();
         if (restoreResult.skipped > 0 || restoreResult.failed > 0) {
-          const message = plotCopy.agentControl.restore.reasons[restoreResult.reason || ''] || `Agent 世界书已关闭，但恢复受控条目未完全完成：${restoreResult.reason || 'unknown'}`;
+          const message = plotCopy.agentControl.restore.reasons[restoreResult.reason || ''] || `Sổ thế giới Agent đã tắt nhưng khôi phục các mục được kiểm soát chưa hoàn tất hoàn toàn: ${restoreResult.reason || 'unknown'}`;
           toast.warning(message, { muteable: false });
           return true;
         }
@@ -301,7 +301,7 @@ export function usePlotWorldbookAgentControl() {
         return true;
       } catch (error: any) {
         snapshot.value = await refreshPlotAgentWorldbookSnapshotFromWorldbooks_ACU();
-        toast.warning(`Agent 世界书已关闭，但恢复受控条目失败：${error?.message || '未知错误'}`, { muteable: false });
+        toast.warning(`Sổ thế giới Agent đã tắt nhưng khôi phục các mục được kiểm soát thất bại: ${error?.message || 'Lỗi không xác định'}`, { muteable: false });
         return true;
       }
     }
@@ -401,7 +401,7 @@ export function usePlotWorldbookAgentControl() {
     skillifySegments: PromptSegment_ACU[],
   ): Promise<boolean> {
     if (!isReady.value) {
-      toast.warning('Agent 世界书配置仍在加载，已拒绝保存以避免覆盖已保存提示词。', { muteable: false });
+      toast.warning('Cấu hình sổ thế giới Agent vẫn đang tải, đã từ chối lưu để tránh ghi đè prompt đã lưu.', { muteable: false });
       return false;
     }
     const saved = setAgentPromptTemplateDefaults_ACU({
@@ -409,7 +409,7 @@ export function usePlotWorldbookAgentControl() {
       agentSkillifyPromptSegments: skillifySegments,
     });
     if (!saved) {
-      toast.error('全局 Agent 提示词模板保存失败。', { muteable: false });
+      toast.error('Lưu mẫu prompt Agent toàn cục thất bại.', { muteable: false });
       return false;
     }
     globalPromptTemplates.value = getAgentPromptTemplateDefaults_ACU();
@@ -474,7 +474,7 @@ export function usePlotWorldbookAgentControl() {
       toast.info(message, { muteable: false });
       return true;
     } catch (e: any) {
-      toast.error(`${plotCopy.agentControl.restore.error}${e?.message ? `：${e.message}` : ''}`, { muteable: false });
+      toast.error(`${plotCopy.agentControl.restore.error}${e?.message ? `: ${e.message}` : ''}`, { muteable: false });
       return false;
     } finally {
       busy.value = null;
@@ -488,12 +488,12 @@ export function usePlotWorldbookAgentControl() {
       const takeoverResult = await takeoverWorldbookGreenlights_ACU();
       snapshot.value = await refreshPlotAgentWorldbookSnapshotFromWorldbooks_ACU();
       if (takeoverResult.failed > 0) {
-        toast.warning(`Skill 元数据已更新，但 Agent 世界书接管同步未完全完成：${takeoverResult.reason || 'unknown'}`, { muteable: false });
+        toast.warning(`Metadata Skill đã được cập nhật nhưng đồng bộ tiếp quản sổ thế giới Agent chưa hoàn tất hoàn toàn: ${takeoverResult.reason || 'unknown'}`, { muteable: false });
       }
       return true;
     } catch (error: any) {
       try { snapshot.value = await refreshPlotAgentWorldbookSnapshotFromWorldbooks_ACU(); } catch {}
-      toast.warning(`Skill 元数据已更新，但 Agent 世界书接管同步失败：${error?.message || '未知错误'}`, { muteable: false });
+      toast.warning(`Metadata Skill đã được cập nhật nhưng đồng bộ tiếp quản sổ thế giới Agent thất bại: ${error?.message || 'Lỗi không xác định'}`, { muteable: false });
       return false;
     }
   }
@@ -509,25 +509,25 @@ export function usePlotWorldbookAgentControl() {
     busy.value = 'skillify';
     let progressToastId: string | null = null;
     try {
-      const progressOptions = { durationMs: 0, muteable: false, dismissible: false, feature: 'Skill 化' };
+      const progressOptions = { durationMs: 0, muteable: false, dismissible: false, feature: 'Skill hóa' };
       const formatProgressText = (event: AgentSkillifyProgressEvent_ACU): string => {
-        if (event.phase === 'collecting') return '正在扫描当前世界书范围内可 Skill 化的条目...';
-        if (event.phase === 'processing') return `正在 Skill 化世界书条目：0/${event.total}`;
+        if (event.phase === 'collecting') return 'Đang quét các mục có thể Skill hóa trong phạm vi sổ thế giới hiện tại...';
+        if (event.phase === 'processing') return `Đang Skill hóa mục sổ thế giới: 0/${event.total}`;
         if (event.phase === 'retry') {
           const target = [event.bookName, event.uid !== undefined ? `#${event.uid}` : ''].filter(Boolean).join(' ');
-          return `Skill 化重试中：${target || '当前条目'}，第 ${event.attempt || 1}/${event.maxAttempts || 1} 次尝试失败（${event.message || 'AI 返回无效'}）。`;
+          return `Đang thử lại Skill hóa: ${target || 'Mục hiện tại'}, lần thử thứ ${event.attempt || 1}/${event.maxAttempts || 1} thất bại (${event.message || 'AI trả về không hợp lệ'}).`;
         }
         if (event.phase === 'saving') {
           const target = [event.bookName, event.uid !== undefined ? `#${event.uid}` : ''].filter(Boolean).join(' ');
-          return `正在保存 Skill 元数据：${target || '当前条目'}。`;
+          return `Đang lưu metadata Skill: ${target || 'Mục hiện tại'}.`;
         }
         if (event.phase === 'entry_done') {
-          return `正在 Skill 化世界书条目：${event.current}/${event.total}，更新 ${event.updated}，跳过 ${event.skipped}，失败 ${event.failed}。`;
+          return `Đang Skill hóa mục sổ thế giới: ${event.current}/${event.total}, cập nhật ${event.updated}, bỏ qua ${event.skipped}, thất bại ${event.failed}.`;
         }
         if (event.phase === 'complete') {
-          return `Skill 化处理完成：${event.current}/${event.total}，更新 ${event.updated}，跳过 ${event.skipped}，失败 ${event.failed}。`;
+          return `Xử lý Skill hóa hoàn tất: ${event.current}/${event.total}, cập nhật ${event.updated}, bỏ qua ${event.skipped}, thất bại ${event.failed}.`;
         }
-        return '正在 Skill 化世界书条目...';
+        return 'Đang Skill hóa mục sổ thế giới...';
       };
       const notifyProgress = (event: AgentSkillifyProgressEvent_ACU): void => {
         const text = formatProgressText(event);
@@ -559,10 +559,10 @@ export function usePlotWorldbookAgentControl() {
         }
         return false;
       }
-      const batchText = `本批 ${result.selectedForRun}/${result.totalMatched}，剩余 ${result.remaining}`;
+      const batchText = `Đợt này ${result.selectedForRun}/${result.totalMatched}, còn lại ${result.remaining}`;
       const text = result.failed > 0
-        ? `${plotCopy.agentControl.skillify.partial(result.updated, result.skipped, result.failed)}（${batchText}）`
-        : `${plotCopy.agentControl.skillify.success(result.updated, result.skipped)}（${batchText}）`;
+        ? `${plotCopy.agentControl.skillify.partial(result.updated, result.skipped, result.failed)} (${batchText})`
+        : `${plotCopy.agentControl.skillify.success(result.updated, result.skipped)} (${batchText})`;
       const toastUpdated = progressToastId && toast.update(progressToastId, result.failed > 0 ? 'warning' : 'success', text, { muteable: false });
       if (!toastUpdated) {
         if (result.failed > 0) toast.warning(text, { muteable: false });
@@ -575,7 +575,7 @@ export function usePlotWorldbookAgentControl() {
       }
       return updated;
     } catch (e: any) {
-      const errorText = `${plotCopy.agentControl.skillify.error}${e?.message ? `：${e.message}` : ''}`;
+      const errorText = `${plotCopy.agentControl.skillify.error}${e?.message ? `: ${e.message}` : ''}`;
       if (!progressToastId || !toast.update(progressToastId, 'error', errorText, { muteable: false })) {
         toast.error(errorText, { muteable: false });
       }
@@ -625,7 +625,7 @@ export function usePlotWorldbookAgentControl() {
       toast.info(plotCopy.agentControl.clearSkillMeta.noop, { muteable: false });
       return false;
     } catch (e: any) {
-      toast.error(`${plotCopy.agentControl.clearSkillMeta.error}${e?.message ? `：${e.message}` : ''}`, { muteable: false });
+      toast.error(`${plotCopy.agentControl.clearSkillMeta.error}${e?.message ? `: ${e.message}` : ''}`, { muteable: false });
       return false;
     } finally {
       busy.value = null;
@@ -643,7 +643,7 @@ export function usePlotWorldbookAgentControl() {
       })
       .catch(error => {
         initializationFailed.value = true;
-        toast.error(`Agent 世界书配置加载失败：${error?.message || '未知错误'}`, { muteable: false });
+        toast.error(`Tải cấu hình sổ thế giới Agent thất bại: ${error?.message || 'Lỗi không xác định'}`, { muteable: false });
       })
       .finally(() => {
         initialization = null;

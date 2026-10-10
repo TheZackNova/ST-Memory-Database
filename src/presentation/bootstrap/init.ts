@@ -105,7 +105,7 @@ async function runUnmaskedPlotAfterCommands_ACU(type: any, params: any, dryRun: 
         ? String(chat[chat.length - 1].mes || '') : String(getSendTextareaValue_ACU() || params?.prompt || '');
       await processSummaryVectorIndexBeforeGenerationWithUI_ACU({ userInput, source: 'generation_after_commands' });
     } catch {
-      showToastr_ACU('warning', '纪要召回异常，继续原始生成。', '剧情推进');
+      showToastr_ACU('warning', 'Truy hồi kỷ yếu gặp lỗi, tiếp tục tạo nội dung gốc.', 'Đẩy cốt truyện');
     }
   }
   if (!plan || type === 'regenerate' || isProcessing_Plot_ACU) { debug?.step('plot_skip', { reason: isProcessing_Plot_ACU ? 'busy' : 'disabled_or_ineligible' }); return; }
@@ -257,7 +257,7 @@ export   function mainInitialize_ACU() {
     console.log('ACU_INIT_DEBUG: mainInitialize_ACU called.');
     if (attemptToLoadCoreApis_ACU()) {
       logDebug_ACU('AutoCardUpdater Initialization successful! Core APIs loaded.');
-      showToastr_ACU('success', '数据库自动更新脚本已加载！', '脚本启动');
+      showToastr_ACU('success', 'Đã tải script tự động cập nhật cơ sở dữ liệu!', 'Khởi động script');
 
       loadSettings_ACU();
       // S0-4：注册插件保存后的 checkpoint 保管库同步（删楼恢复的影子基线）。
@@ -386,7 +386,7 @@ export   function mainInitialize_ACU() {
                 try {
                   readOrdinaryZeroLayerState_ACU();
                 } catch (error) {
-                  showToastr_ACU('warning', '当前聊天由零层接管，卡片的 TavernHelper.generate 正文调用未执行；请改用 AutoCardUpdaterAPI.submitZeroLayerInput。', '零层');
+                  showToastr_ACU('warning', 'Cuộc trò chuyện hiện tại do Tầng 0 tiếp quản, lệnh gọi TavernHelper.generate của thẻ chưa được thực thi; hãy dùng AutoCardUpdaterAPI.submitZeroLayerInput.', 'Tầng 0');
                   throw error;
                 }
 
@@ -449,7 +449,7 @@ export   function mainInitialize_ACU() {
                       markPlotIntercept_ACU(result.finalMessage);
                       options._qrf_processed_by_hook = true;
                     } catch {
-                      showToastr_ACU('error', '推进提示词写回未完成，正文发送已停止。', '剧情推进');
+                      showToastr_ACU('error', 'Chưa ghi lại xong prompt đẩy cốt truyện, đã dừng gửi nội dung chính.', 'Đẩy cốt truyện');
                       return;
                     }
                     break;
@@ -459,7 +459,7 @@ export   function mainInitialize_ACU() {
                   case 'failed':
                   case 'skipped':
                   case 'loop_retry':
-                    showToastr_ACU('warning', '本次推进未取得有效提示词，正文发送已停止。', '剧情推进');
+                    showToastr_ACU('warning', 'Lần đẩy này không có prompt hợp lệ, đã dừng gửi nội dung chính.', 'Đẩy cốt truyện');
                     return;
                   case 'aborted': {
                     if (result.manual === true) {
@@ -565,7 +565,7 @@ export   function mainInitialize_ACU() {
                     if (autoEnable.attempted && !autoEnable.result.ok) {
                         showUiSurfaceToast_ACU({
                             kind: 'warning',
-                            text: `新对话自动启用经典表格失败（${autoEnable.result.reason || 'unknown'}），本轮沿用旧填表方案。`,
+                            text: `Tự động bật bảng cổ điển cho hội thoại mới thất bại (${autoEnable.result.reason || 'unknown'}), lượt này dùng phương án điền bảng cũ.`,
                         });
                     }
                 } catch (autoEnableError) {
@@ -628,9 +628,9 @@ export   function mainInitialize_ACU() {
              logError_ACU('ACU: CHAT_CHANGED 延迟刷新失败（已尝试全部兼容读取层）:', chatChangedError);
              showUiSurfaceToast_ACU({
                kind: 'error',
-               text: `表格数据加载失败：${message}`,
+               text: `Tải dữ liệu bảng thất bại: ${message}`,
                action: {
-                 label: '打开数据管理',
+                 label: 'Mở quản lý dữ liệu',
                  onClick: async () => { await getUiSurface_ACU()?.openSettings?.(); },
                },
              });
@@ -928,13 +928,13 @@ export   function mainInitialize_ACU() {
                 return result;
               });
               if (!result.success && !result.skipped) {
-                throw new Error('纪要召回未完成。');
+                throw new Error('Truy hồi kỷ yếu chưa hoàn tất.');
               }
             } catch (error) {
               assertVectorSend(send);
               logWarn_ACU('[向量表格] 发送前召回失败，本次生成已停止:', error);
-              showToastr_ACU('error', '纪要召回失败，本次生成已停止。', '向量表格');
-              send.controller.abort(new DOMException('纪要召回失败，本次生成已停止。', 'AbortError'));
+              showToastr_ACU('error', 'Truy hồi kỷ yếu thất bại, đã dừng lần tạo này.', 'Bảng vector');
+              send.controller.abort(new DOMException('Truy hồi kỷ yếu thất bại, đã dừng lần tạo này.', 'AbortError'));
               send.controller.signal.throwIfAborted();
             } finally {
               releaseVectorSend(send);
@@ -978,7 +978,7 @@ export   function mainInitialize_ACU() {
               try {
                 assertVectorSend(send);
                 if (pendingVectorSend === send || activeVectorWait === send) {
-                  throw new DOMException('本轮向量召回尚未完成。', 'AbortError');
+                  throw new DOMException('Truy hồi vector lượt này chưa hoàn tất.', 'AbortError');
                 }
               } finally { finishVectorGeneration(send); }
             });
@@ -1077,7 +1077,7 @@ export   function mainInitialize_ACU() {
               hostReads = false;
               redirectPlotSendEvent_ACU(params);
             };
-            const warn = (text: string) => showToastr_ACU('warning', text, '剧情推进');
+            const warn = (text: string) => showToastr_ACU('warning', text, 'Đẩy cốt truyện');
             let preSendPhase = 'initial_seed';
             let inputWriteFailure: HostInputWriteFailure_ACU | undefined;
             try {
@@ -1096,9 +1096,9 @@ export   function mainInitialize_ACU() {
                 preSendPhase = 'summary_recall';
                 try {
                   const result = await processSummaryVectorIndexBeforeGenerationWithUI_ACU({ userInput: originalText, source: 'generation_after_commands' });
-                  if (!result.success && !result.skipped) warn('纪要召回未完成，继续剧情任务与发送。');
+                  if (!result.success && !result.skipped) warn('Truy hồi kỷ yếu chưa hoàn tất, tiếp tục tác vụ cốt truyện và gửi.');
                 } catch {
-                  warn('纪要召回异常，继续剧情任务与发送。');
+                  warn('Truy hồi kỷ yếu gặp lỗi, tiếp tục tác vụ cốt truyện và gửi.');
                 }
               }
               if (stopRequested) {
@@ -1134,7 +1134,7 @@ export   function mainInitialize_ACU() {
                     const written = disguise ? disguise.deliver(result.finalMessage, reportFailure)
                       : setSendTextareaValue_ACU(result.finalMessage, reportFailure, { restoreAfterInput: true });
                     if (!written) {
-                      throw new Error('最终指令无法写入酒馆输入框');
+                      throw new Error('Không thể ghi chỉ thị cuối vào ô nhập của SillyTavern');
                     }
                   }
                 }
@@ -1143,10 +1143,10 @@ export   function mainInitialize_ACU() {
                 preSendPhase = 'plot_save';
                 try {
                   const saved = await flushPlotPendingSave_ACU();
-                  if (saved?.status === 'failed') warn('剧情反馈保存未完成，保留结果并继续发送。');
+                  if (saved?.status === 'failed') warn('Chưa lưu xong phản hồi cốt truyện, giữ kết quả và tiếp tục gửi.');
                   if (saved?.status !== 'committed') await saveChatToHostStrict_ACU();
                 } catch {
-                  warn('聊天保存异常，保留楼层并继续发送。');
+                  warn('Lỗi lưu cuộc trò chuyện, giữ tầng và tiếp tục gửi.');
                 }
                 preSendPhase = 'message_refresh';
                 await refreshMessageBlock_ACU(userFloor.index);
@@ -1168,11 +1168,11 @@ export   function mainInitialize_ACU() {
               if (needsPlan) {
                 stopSend();
                 warn(preSendPhase === 'input_writeback'
-                  ? '剧情最终指令未能写入输入框，正文发送已停止。'
-                  : '剧情发送前处理异常，正文发送已停止。');
+                  ? 'Chỉ thị cuối của cốt truyện chưa ghi được vào ô nhập, đã dừng gửi nội dung chính.'
+                  : 'Lỗi xử lý cốt truyện trước khi gửi, đã dừng gửi nội dung chính.');
                 return;
               }
-              warn('发送前处理异常，保留当前内容并继续发送。');
+              warn('Lỗi xử lý trước khi gửi, giữ nội dung hiện tại và tiếp tục gửi.');
             } finally {
               // 没交付最终指令时伪装把原文还给发送框，与解除伪装时原文一直留在输入框相同。
               disguise?.release(hostReads);
@@ -1284,9 +1284,9 @@ export   function mainInitialize_ACU() {
               logError_ACU('ACU: 初始加载表格数据失败（已尝试全部兼容读取层）:', initError);
               showUiSurfaceToast_ACU({
                   kind: 'error',
-                  text: `表格数据加载失败：${message}`,
+                  text: `Tải dữ liệu bảng thất bại: ${message}`,
                   action: {
-                      label: '打开数据管理',
+                      label: 'Mở quản lý dữ liệu',
                       onClick: async () => { await getUiSurface_ACU()?.openSettings?.(); },
                   },
               });

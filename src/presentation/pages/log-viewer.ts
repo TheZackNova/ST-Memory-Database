@@ -48,7 +48,7 @@ let _filterLevel: LogLevel | 'all' = 'all';
 let _filterTag: string = 'all';
 let _filterKeyword: string = '';
 
-/** 是否自动滚动到顶部（最新日志在顶部） */
+/** 是否Tự cuộn到顶部（最新日志在顶部） */
 let _autoScroll = true;
 
 /** 批量渲染缓冲（防止高频 DOM 操作） */
@@ -72,15 +72,15 @@ export function generateLogViewerTabHTML(): string {
   return `
     <div id="acu-tab-log-viewer">
       <div class="acu-card">
-        <h3><i class="fa-solid fa-scroll" style="margin-right: 6px;"></i>运行日志</h3>
-        <p class="notes" style="margin-bottom: 12px;">实时显示所有功能模块的运行日志和报错日志。</p>
+        <h3><i class="fa-solid fa-scroll" style="margin-right: 6px;"></i>Nhật ký chạy</h3>
+        <p class="notes" style="margin-bottom: 12px;">Hiển thị theo thời gian thực nhật ký chạy và nhật ký lỗi của mọi module chức năng.</p>
 
         <!-- 过滤控件 -->
         <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center;">
           <!-- 级别过滤 -->
           <select id="${SCRIPT_ID_PREFIX_ACU}-log-level-filter" style="padding: 4px 8px; border: 1px solid var(--border-normal); border-radius: 4px; background: var(--input-background); color: var(--input-text-color); font-size: 0.85em;">
-            <option value="all">全部级别</option>
-            <option value="api">API 请求</option>
+            <option value="all">Tất cả cấp độ</option>
+            <option value="api">Yêu cầu API</option>
             <option value="debug">🔵 Debug</option>
             <option value="warn">🟡 Warn</option>
             <option value="error">🔴 Error</option>
@@ -88,36 +88,36 @@ export function generateLogViewerTabHTML(): string {
 
           <!-- 模块过滤 -->
           <select id="${SCRIPT_ID_PREFIX_ACU}-log-tag-filter" style="padding: 4px 8px; border: 1px solid var(--border-normal); border-radius: 4px; background: var(--input-background); color: var(--input-text-color); font-size: 0.85em; max-width: 200px;">
-            <option value="all">全部模块</option>
+            <option value="all">Tất cả module</option>
           </select>
 
           <!-- 关键词搜索 -->
-          <input id="${SCRIPT_ID_PREFIX_ACU}-log-search" type="text" placeholder="搜索日志..."
+          <input id="${SCRIPT_ID_PREFIX_ACU}-log-search" type="text" placeholder="Tìm nhật ký..."
             style="flex: 1; min-width: 150px; padding: 4px 8px; border: 1px solid var(--border-normal); border-radius: 4px; background: var(--input-background); color: var(--input-text-color); font-size: 0.85em;" />
         </div>
 
         <!-- 操作按钮 -->
         <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: center;">
           <button id="${SCRIPT_ID_PREFIX_ACU}-log-pause" class="button" style="font-size: 0.85em; padding: 4px 10px;">
-            <i class="fa-solid fa-pause"></i> 暂停
+            <i class="fa-solid fa-pause"></i> Tạm dừng
           </button>
           <button id="${SCRIPT_ID_PREFIX_ACU}-log-clear" class="button" style="font-size: 0.85em; padding: 4px 10px;">
-            <i class="fa-solid fa-trash"></i> 清空
+            <i class="fa-solid fa-trash"></i> Xóa sạch
           </button>
           <button id="${SCRIPT_ID_PREFIX_ACU}-log-export" class="button" style="font-size: 0.85em; padding: 4px 10px;">
-            <i class="fa-solid fa-download"></i> 导出
+            <i class="fa-solid fa-download"></i> Xuất
           </button>
           <label style="display: flex; align-items: center; gap: 4px; font-size: 0.85em; margin-left: auto; cursor: pointer;">
             <input id="${SCRIPT_ID_PREFIX_ACU}-log-autoscroll" type="checkbox" checked />
-            自动滚动
+            Tự cuộn
           </label>
-          <label style="display: flex; align-items: center; gap: 4px; font-size: 0.85em; cursor: pointer;" title="独立采集 API 请求与回复；分享日志前请检查隐私">
+          <label style="display: flex; align-items: center; gap: 4px; font-size: 0.85em; cursor: pointer;" title="Thu thập riêng yêu cầu và phản hồi API; hãy kiểm tra quyền riêng tư trước khi chia sẻ nhật ký">
             <input id="${SCRIPT_ID_PREFIX_ACU}-log-api-toggle" type="checkbox" />
-            API 请求
+            Yêu cầu API
           </label>
-          <label style="display: flex; align-items: center; gap: 4px; font-size: 0.85em; cursor: pointer;" title="开启后 Debug 级别日志会写入缓冲区（可能影响性能）">
+          <label style="display: flex; align-items: center; gap: 4px; font-size: 0.85em; cursor: pointer;" title="Khi bật, nhật ký cấp Debug sẽ ghi vào bộ đệm (có thể ảnh hưởng hiệu năng)">
             <input id="${SCRIPT_ID_PREFIX_ACU}-log-debug-toggle" type="checkbox" />
-            采集Debug日志
+            Thu thập nhật ký Debug
           </label>
           <span id="${SCRIPT_ID_PREFIX_ACU}-log-count" class="notes" style="font-size: 0.8em;"></span>
         </div>
@@ -256,9 +256,9 @@ export async function bindLogViewerEvents_ACU(): Promise<void> {
   $pauseBtn.on('click', function() {
     _paused = !_paused;
     if (_paused) {
-      jQuery_API_ACU(this).html('<i class="fa-solid fa-play"></i> 恢复');
+      jQuery_API_ACU(this).html('<i class="fa-solid fa-play"></i> Tiếp tục');
     } else {
-      jQuery_API_ACU(this).html('<i class="fa-solid fa-pause"></i> 暂停');
+      jQuery_API_ACU(this).html('<i class="fa-solid fa-pause"></i> Tạm dừng');
       // 恢复时渲染暂停期间积累的日志（最新的插入到顶部）
       if (_pendingEntries.length > 0) {
         for (let i = _pendingEntries.length - 1; i >= 0; i--) {
@@ -283,7 +283,7 @@ export async function bindLogViewerEvents_ACU(): Promise<void> {
     exportLogs();
   });
 
-  // 自动滚动
+  // Tự cuộn
   $autoScrollCheckbox.on('change', function() {
     _autoScroll = jQuery_API_ACU(this).prop('checked');
   });
@@ -399,8 +399,8 @@ function updateLogCount($logCount: any): void {
   const total = getLogCount();
   const pending = _pendingEntries.length;
   const text = _paused && pending > 0
-    ? `共 ${total} 条（${pending} 条待显示）`
-    : `共 ${total} 条`;
+    ? `Tổng ${total} mục (${pending} mục chờ hiển thị)`
+    : `Tổng ${total} mục`;
   $logCount.text(text);
 }
 
@@ -410,7 +410,7 @@ function updateLogCount($logCount: any): void {
 function refreshTagFilter($tagFilter: any): void {
   const tags = getKnownTags();
   const currentVal = String($tagFilter.val() || 'all');
-  let options = '<option value="all">全部模块</option>';
+  let options = '<option value="all">Tất cả module</option>';
   for (const tag of tags) {
     const selected = tag === currentVal ? ' selected' : '';
     options += `<option value="${escapeHtml_ACU(tag)}"${selected}>${escapeHtml_ACU(tag)}</option>`;

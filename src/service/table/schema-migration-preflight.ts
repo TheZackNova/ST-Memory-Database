@@ -97,7 +97,7 @@ function getDestructiveDropIssue_ACU(sheetKey: string, before: Sheet_ACU, after:
     tableName,
     droppedColumns,
     affectedRowCount: Math.max(0, (Array.isArray(before.content) ? before.content.length : 0) - 1),
-    message: `表「${tableName}」删除 ${droppedColumns.map(column => `「${column.displayHeader}」`).join('、')}需要显式确认。`,
+    message: `Bảng「${tableName}」xóa ${droppedColumns.map(column => `「${column.displayHeader}」`).join(', ')}cần xác nhận tường minh.`,
   };
 }
 
@@ -164,7 +164,7 @@ export async function preflightSchemaMigrations_ACU(input: {
             code: planned.code,
             message: planned.message,
           });
-          blockers.push(`${sheetKey}: ${planned.message || v1Error?.message || 'schema 无效。'}`);
+          blockers.push(`${sheetKey}: ${planned.message || v1Error?.message || 'schema không hợp lệ.'}`);
           continue;
         }
         const issue = input.destructiveChangeConfirmed === true ? null : getDestructiveDropIssue_ACU(sheetKey, before, after);
@@ -177,7 +177,7 @@ export async function preflightSchemaMigrations_ACU(input: {
             blockers.push(`${sheetKey}: ${issue.message}`);
             continue;
           }
-          decisions.push({ sheetKey, status: 'auto_apply', code: 'USER_REQUESTED_REBASE', message: '用户选择按候选整表 rebase。' });
+          decisions.push({ sheetKey, status: 'auto_apply', code: 'USER_REQUESTED_REBASE', message: 'Người dùng chọn rebase toàn bảng theo ứng viên.' });
           applyModes[sheetKey] = 'rebase';
           continue;
         }
@@ -212,7 +212,7 @@ export async function preflightSchemaMigrations_ACU(input: {
             code: planned?.code || 'V1_AND_V2_UNRESOLVED',
             message: inferredReason || v1Error?.message,
           });
-          blockers.push(`${sheetKey}: ${inferredReason || v1Error?.message || 'schema migration 缺少显式 V2 intent。'}`);
+          blockers.push(`${sheetKey}: ${inferredReason || v1Error?.message || 'schema migration thiếu V2 intent tường minh.'}`);
         }
         continue;
       }
@@ -239,8 +239,8 @@ export async function preflightSchemaMigrations_ACU(input: {
           decisions.push({ sheetKey, status: 'needs_confirmation', code: issue.code, message: issue.message });
           blockers.push(`${sheetKey}: ${issue.message}`);
         } else {
-          decisions.push({ sheetKey, status: 'invalid', code: 'V2_CONTRACT_INVALID', message: v2Error?.message || 'schema migration V2 preflight 失败。' });
-          blockers.push(`${sheetKey}: ${v2Error?.message || 'schema migration V2 preflight 失败。'}`);
+          decisions.push({ sheetKey, status: 'invalid', code: 'V2_CONTRACT_INVALID', message: v2Error?.message || 'schema migration V2 preflight thất bại.' });
+          blockers.push(`${sheetKey}: ${v2Error?.message || 'schema migration V2 preflight thất bại.'}`);
         }
       }
     }
@@ -257,7 +257,7 @@ export async function preflightSchemaMigrations_ACU(input: {
     if (error instanceof SqliteRuntimeUnavailableError_ACU) {
       throw error;
     }
-    return { changedSheetKeys, operations: [], issues: [], blockers: [`完整 candidate SQLite hydrate 失败: ${error?.message || String(error)}`], decisions: decisions.map(decision => ({ ...decision, status: 'invalid', code: 'CANDIDATE_SQLITE_HYDRATE_FAILED', message: error?.message || String(error) })) };
+    return { changedSheetKeys, operations: [], issues: [], blockers: [`SQLite hydrate candidate đầy đủ thất bại: ${error?.message || String(error)}`], decisions: decisions.map(decision => ({ ...decision, status: 'invalid', code: 'CANDIDATE_SQLITE_HYDRATE_FAILED', message: error?.message || String(error) })) };
   }
 
   try {
@@ -276,7 +276,7 @@ export async function preflightSchemaMigrations_ACU(input: {
         uid: candidate.uid, content: candidate.content, ddl: candidate.sourceData?.ddl || '',
       }) : '';
       if (appliedProjection !== candidateProjection) {
-        throw new Error(`${sheetKey}: migration operation 应用结果与 candidate 不一致。`);
+        throw new Error(`${sheetKey}: Kết quả áp dụng migration operation không khớp candidate.`);
       }
     }
   } catch (error: any) {

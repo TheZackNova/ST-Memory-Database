@@ -1,25 +1,25 @@
 export const tableCopy = {
   panels: {
     templatePreset: {
-      title: "表格模板预设",
+      title: "Preset mẫu bảng",
       description:
-        "下拉框切换当前使用的表格模板，星标设为全局默认。可直接导出当前生效模板；当它在可视化编辑器中修改过但尚未保存到预设库时，面板会提示与预设库内容不同，导出将以当前生效模板为准。点击按钮，可导入新预设、管理全部预设。内置默认预设无法修改，请使用「从默认新建」。",
+        "Chọn mẫu bảng đang dùng ở danh sách thả xuống; dấu sao đặt làm mặc định toàn cục. Có thể xuất trực tiếp mẫu đang có hiệu lực; nếu nó đã được sửa trong trình chỉnh sửa trực quan nhưng chưa lưu vào thư viện preset, bảng sẽ báo khác với nội dung thư viện và khi xuất sẽ lấy mẫu đang có hiệu lực làm chuẩn. Bấm nút để nhập preset mới hoặc quản lý tất cả preset. Preset mặc định tích hợp không thể sửa, hãy dùng \"Tạo mới từ mặc định\".",
     },
     injectionTarget: {
-      title: "写入目标世界书",
+      title: "Sổ thế giới đích để ghi",
       description:
-        "表格数据写入的世界书。默认使用角色卡主世界书，可指定其他。角色卡无世界书时，需要新建世界书并为角色卡绑定。",
+        "Sổ thế giới nơi dữ liệu bảng được ghi vào. Mặc định dùng sổ thế giới chính của thẻ nhân vật, có thể chỉ định sổ khác. Nếu thẻ nhân vật chưa có sổ thế giới, cần tạo mới và gắn vào thẻ.",
     },
     entries: {
-      title: "附加世界书条目",
+      title: "Mục sổ thế giới bổ sung",
       description:
-        "填表时附加给AI参考的世界书条目。默认跟随角色卡，也可手动指定并按条目开关。与写入目标世界书互不影响。",
+        "Các mục sổ thế giới được đính kèm cho AI tham khảo khi điền bảng. Mặc định theo thẻ nhân vật, cũng có thể chỉ định thủ công và bật/tắt từng mục. Không ảnh hưởng đến sổ thế giới đích để ghi.",
     },
   },
   worldbook: {
-    emptyDefault: "所选世界书中无可显示的条目。",
+    emptyDefault: "Sổ thế giới đã chọn không có mục nào để hiển thị.",
     emptyCharacter:
-      "未解析到角色卡世界书。打开聊天后会显示条目；也可手动选择一本。",
-    emptyManual: "请先选择一本世界书。",
+      "Chưa xác định được sổ thế giới của thẻ nhân vật. Các mục sẽ hiện sau khi mở cuộc trò chuyện; bạn cũng có thể chọn thủ công một sổ.",
+    emptyManual: "Hãy chọn một sổ thế giới trước.",
   },
 };

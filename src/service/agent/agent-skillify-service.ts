@@ -175,7 +175,7 @@ export function shouldSkipSkillifyEntry_ACU(
   if (!existing) return null;
   const hasExistingText = !!(existing.description || existing.triggerWhen);
   if (hasExistingText && options.overwriteManual !== true) {
-    return existing.updatedBy === 'manual' ? '已存在用户手动编辑的 Skill 元数据' : '已存在 Skill 元数据';
+    return existing.updatedBy === 'manual' ? 'Đã có siêu dữ liệu Skill do người dùng sửa thủ công' : 'Đã có siêu dữ liệu Skill';
   }
   return null;
 }
@@ -187,11 +187,11 @@ export function buildWorldbookSkillifyPrompt_ACU(
   const placeholders = {
     'agent.skillify.bookName': summary.bookName,
     'agent.skillify.uid': summary.uid,
-    'agent.skillify.comment': summary.comment || '（空）',
-    'agent.skillify.content': summary.content || '（空）',
-    'agent.skillify.keysText': summary.keys.join('、') || '（空）',
+    'agent.skillify.comment': summary.comment || '(trống)',
+    'agent.skillify.content': summary.content || '(trống)',
+    'agent.skillify.keysText': summary.keys.join(', ') || '(trống)',
     'agent.skillify.tk': summary.tk,
-    'agent.skillify.contentPreview': summary.content || '（空）',
+    'agent.skillify.contentPreview': summary.content || '(trống)',
     'agent.skillify.existingSkillMetaJson': summary.existingSkillMeta || {},
     'agent.skillify.outputSchemaJson': { description: '...', triggerWhen: '...' },
   };
@@ -250,7 +250,7 @@ async function skillifySingleEntry_ACU(
   const presetName = options.presetName ?? control.agentSkillApiPreset ?? '';
   const messages = buildWorldbookSkillifyPrompt_ACU(summary, control);
   const maxAttempts = resolveAgentAiMaxAttempts_ACU(options, control);
-  let lastReason = 'AI 未返回内容';
+  let lastReason = 'AI không trả về nội dung';
   let meta: Pick<WorldbookSkillMeta_ACU, 'description' | 'triggerWhen'> | null = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     let retryable = true;
@@ -258,14 +258,14 @@ async function skillifySingleEntry_ACU(
     try {
       const response = await callAIWithPreset_ACU(messages, presetName);
       if (!response) {
-        lastReason = 'AI 未返回内容';
+        lastReason = 'AI không trả về nội dung';
       } else {
         meta = parseAgentSkillifyResponse_ACU(response);
         if (meta) break;
-        lastReason = 'AI 返回不是有效 Skill JSON';
+        lastReason = 'Phản hồi của AI không phải Skill JSON hợp lệ';
       }
     } catch (error) {
-      lastReason = `AI 调用异常：${error instanceof Error ? error.message : String(error)}`;
+      lastReason = `Lỗi khi gọi AI: ${error instanceof Error ? error.message : String(error)}`;
       retryable = isRetryableAiRequestError_ACU(error);
     }
     if (!retryable) break;
@@ -423,7 +423,7 @@ async function collectWorldbookSkillifyBatch_ACU(
   if (options.cursor) {
     const cursorIndex = allCandidates.findIndex(candidate =>
       candidate.bookName === options.cursor!.bookName && String(candidate.uid) === String(options.cursor!.uid));
-    if (cursorIndex < 0) throw new Error('Agent Skillify 游标无效：所属世界书条目已删除或不在当前待处理范围内。');
+    if (cursorIndex < 0) throw new Error('Con trỏ Agent Skillify không hợp lệ: mục sổ thế giới tương ứng đã bị xóa hoặc không nằm trong phạm vi chờ xử lý hiện tại.');
     cursorStart = cursorIndex + 1;
   }
 
@@ -491,7 +491,7 @@ export async function skillifyWorldbookEntries_ACU(
       ...progressState,
       bookName: summary.bookName,
       uid: summary.uid,
-      message: result.reason || `条目 ${index + 1} 已处理`,
+      message: result.reason || `Mục ${index + 1} đã được xử lý`,
     });
     return result;
   });

@@ -54,8 +54,8 @@ describe('openVisualizerSurface_ACU', () => {
     expect(result).toBe(true);
     expect(document.getElementById('acu-app-v2')?.style.display).toBe('');
     expect(document.querySelector('[data-acu-visualizer-surface]')).not.toBeNull();
-    expect(document.querySelector('[data-acu-visualizer-surface]')?.textContent).toContain('数据库编辑器');
-    expect(document.querySelector('[data-acu-visualizer-surface]')?.textContent).not.toContain('无法载入数据库');
+    expect(document.querySelector('[data-acu-visualizer-surface]')?.textContent).toContain('Trình chỉnh sửa CSDL');
+    expect(document.querySelector('[data-acu-visualizer-surface]')?.textContent).not.toContain('Không thể tải CSDL');
     expect(document.querySelector('[data-acu-visualizer-surface]')?.textContent).not.toContain('VZ-4');
 
     (document.querySelector('.acu-visualizer-surface__close') as HTMLButtonElement).click();
@@ -70,18 +70,18 @@ describe('openVisualizerSurface_ACU', () => {
     const mount = await import('../../../src/presentation-v2/bootstrap/mount');
     await mount.openAcuV2App();
     await Promise.resolve();
-    expect(document.querySelector('.acu-v2-app__page-title')?.textContent).toBe('仪表盘');
+    expect(document.querySelector('.acu-v2-app__page-title')?.textContent).toBe('Bảng điều khiển');
 
     const bridge = await import('../../../src/presentation-v2/surfaces/visualizer/open-visualizer-surface');
     await bridge.openVisualizerSurface_ACU({ source: 'external-api' });
     await Promise.resolve();
-    expect(document.querySelector('[data-acu-visualizer-surface]')?.textContent).toContain('数据库编辑器');
+    expect(document.querySelector('[data-acu-visualizer-surface]')?.textContent).toContain('Trình chỉnh sửa CSDL');
 
     (document.querySelector('.acu-visualizer-surface__close') as HTMLButtonElement).click();
     await new Promise(r => setTimeout(r, 0));
 
     expect(document.getElementById('acu-app-v2')?.style.display).toBe('');
-    expect(document.querySelector('.acu-v2-app__page-title')?.textContent).toBe('仪表盘');
+    expect(document.querySelector('.acu-v2-app__page-title')?.textContent).toBe('Bảng điều khiển');
     mount.__resetAcuV2MountForTests();
   });
 
@@ -165,16 +165,16 @@ describe('openVisualizerSurface_ACU', () => {
 
     const surface = document.querySelector('[data-acu-visualizer-surface]') as HTMLElement;
     expect(surface.textContent).toContain('角色状态');
-    expect(surface.textContent).toContain('1 行 · 2 列');
+    expect(surface.textContent).toContain('1 hàng · 2 cột');
     const topbarContext = surface.querySelector('.acu-visualizer-surface__topbar-context') as HTMLElement;
-    expect(topbarContext.textContent).toContain('当前模板');
-    expect(topbarContext.textContent).toContain('当前表');
+    expect(topbarContext.textContent).toContain('Mẫu hiện tại');
+    expect(topbarContext.textContent).toContain('Bảng hiện tại');
     expect(topbarContext.textContent).toContain('角色状态');
-    expect(topbarContext.textContent).not.toContain('已同步');
+    expect(topbarContext.textContent).not.toContain('Đã đồng bộ');
     const dataToolbar = surface.querySelector('.acu-visualizer-surface__data-toolbar') as HTMLElement;
     const dataAddButton = dataToolbar.querySelector('button') as HTMLButtonElement;
     const cardGrid = surface.querySelector('.acu-visualizer-surface__card-grid') as HTMLElement;
-    expect(dataToolbar.textContent).toContain('新增行');
+    expect(dataToolbar.textContent).toContain('Thêm hàng');
     expect(dataAddButton.classList.contains('acu-btn--primary')).toBe(true);
     expect(Boolean(cardGrid.compareDocumentPosition(dataToolbar) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
     expect(dataToolbar.textContent).not.toContain('角色状态');
@@ -199,9 +199,9 @@ describe('openVisualizerSurface_ACU', () => {
     (document.querySelector('.acu-visualizer-surface__close') as HTMLButtonElement).click();
     await Promise.resolve();
 
-    expect(document.body.textContent).toContain('关闭数据库编辑器');
+    expect(document.body.textContent).toContain('Đóng trình chỉnh sửa CSDL');
     const cancelButton = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('取消关闭'));
+      .find(button => button.textContent?.includes('Hủy đóng'));
     expect(cancelButton).not.toBeUndefined();
     cancelButton!.click();
     await Promise.resolve();
@@ -240,7 +240,7 @@ describe('openVisualizerSurface_ACU', () => {
     workspace.scrollLeft = 12;
 
     const addButton = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('新增行'))!;
+      .find(button => button.textContent?.includes('Thêm hàng'))!;
     addButton.click();
     await new Promise(r => setTimeout(r, 0));
 
@@ -273,7 +273,7 @@ describe('openVisualizerSurface_ACU', () => {
     await new Promise(r => setTimeout(r, 0));
 
     const surface = document.querySelector('[data-acu-visualizer-surface]') as HTMLElement;
-    const firstDeleteButton = surface.querySelector<HTMLButtonElement>('button[title="删除这一行"]')!;
+    const firstDeleteButton = surface.querySelector<HTMLButtonElement>('button[title="Xóa hàng này"]')!;
     firstDeleteButton.click();
     await Promise.resolve();
 
@@ -281,11 +281,11 @@ describe('openVisualizerSurface_ACU', () => {
     expect(layer).not.toBeNull();
     expect(layer.parentElement?.id).toBe('acu-app-v2');
     expect(surface.contains(layer)).toBe(false);
-    expect(layer.textContent).toContain('删除数据行');
-    expect(layer.textContent).toContain('确定要删除第 1 行吗？');
+    expect(layer.textContent).toContain('Xóa hàng dữ liệu');
+    expect(layer.textContent).toContain('Chắc chắn xóa hàng 1?');
 
     const cancelButton = Array.from(layer.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('取消'))!;
+      .find(button => button.textContent?.includes('Hủy'))!;
     cancelButton.click();
     await new Promise(r => setTimeout(r, 200));
 
@@ -297,7 +297,7 @@ describe('openVisualizerSurface_ACU', () => {
     await Promise.resolve();
     layer = document.querySelector<HTMLElement>('.acu-dialog-layer')!;
     const confirmButton = Array.from(layer.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('删除这一行'))!;
+      .find(button => button.textContent?.includes('Xóa hàng này'))!;
     confirmButton.click();
     await new Promise(r => setTimeout(r, 0));
 
@@ -373,9 +373,9 @@ describe('openVisualizerSurface_ACU', () => {
     expect(cards[0].textContent).toContain('#1');
     expect(cards[pageSize - 1].textContent).toContain(`#${pageSize}`);
     expect(surface.querySelectorAll('textarea')).toHaveLength(0);
-    expect(surface.textContent).toContain(`第 1-${pageSize} 行 / 共 ${totalRows} 行`);
-    expect(surface.textContent).not.toContain('上一页');
-    expect(surface.textContent).not.toContain('下一页');
+    expect(surface.textContent).toContain(`Hàng 1-${pageSize} / tổng ${totalRows} hàng`);
+    expect(surface.textContent).not.toContain('Trang trước');
+    expect(surface.textContent).not.toContain('Trang sau');
 
     const secondPageButton = Array.from(surface.querySelectorAll<HTMLButtonElement>('.acu-visualizer-surface__page-button'))
       .find(button => button.textContent?.trim() === '2')!;
@@ -386,7 +386,7 @@ describe('openVisualizerSurface_ACU', () => {
     expect(cards).toHaveLength(pageSize);
     expect(cards[0].textContent).toContain(`#${pageSize + 1}`);
     expect(cards[pageSize - 1].textContent).toContain(`#${pageSize * 2}`);
-    expect(surface.textContent).toContain(`第 ${pageSize + 1}-${pageSize * 2} 行 / 共 ${totalRows} 行`);
+    expect(surface.textContent).toContain(`Hàng ${pageSize + 1}-${pageSize * 2} / tổng ${totalRows} hàng`);
     expect(surface.querySelectorAll('textarea')).toHaveLength(0);
 
     const jumpInput = surface.querySelector<HTMLInputElement>('.acu-visualizer-surface__page-jump input')!;
@@ -398,7 +398,7 @@ describe('openVisualizerSurface_ACU', () => {
     expect(cards).toHaveLength(pageSize);
     expect(cards[0].textContent).toContain(`#${pageSize * 2 + 1}`);
     expect(cards[pageSize - 1].textContent).toContain(`#${pageSize * 3}`);
-    expect(surface.textContent).toContain(`第 ${pageSize * 2 + 1}-${pageSize * 3} 行 / 共 ${totalRows} 行`);
+    expect(surface.textContent).toContain(`Hàng ${pageSize * 2 + 1}-${pageSize * 3} / tổng ${totalRows} hàng`);
 
     jumpInput.value = '2';
     jumpInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -629,17 +629,17 @@ describe('openVisualizerSurface_ACU', () => {
     await new Promise(r => setTimeout(r, 0));
 
     const configTab = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('结构/参数'));
+      .find(button => button.textContent?.includes('Cấu trúc/tham số'));
     expect(configTab).not.toBeUndefined();
     configTab!.click();
     await Promise.resolve();
 
     const configPanel = document.querySelector('[data-acu-visualizer-config]') as HTMLElement;
-    expect(configPanel?.textContent).toContain('自动化更新参数');
-    expect(configPanel?.textContent).toContain('世界书注入配置');
-    expect(configPanel?.textContent).toContain('启用独立导出');
-    expect(configPanel?.textContent).not.toContain('条目名称');
-    expect(configPanel?.textContent).not.toContain('主条目位置');
+    expect(configPanel?.textContent).toContain('Tham số cập nhật tự động');
+    expect(configPanel?.textContent).toContain('Cấu hình chèn vào Sổ thế giới');
+    expect(configPanel?.textContent).toContain('Bật xuất độc lập');
+    expect(configPanel?.textContent).not.toContain('Tên mục');
+    expect(configPanel?.textContent).not.toContain('Vị trí mục chính');
 
     const updateDepthInput = Array.from(configPanel.querySelectorAll<HTMLInputElement>('input[type="number"]'))[0];
     updateDepthInput.value = '9';
@@ -647,17 +647,17 @@ describe('openVisualizerSurface_ACU', () => {
     await Promise.resolve();
 
     const enableCustomExportButton = Array.from(configPanel.querySelectorAll<HTMLButtonElement>('button[role="checkbox"]'))
-      .find(button => button.textContent?.includes('启用独立导出'));
+      .find(button => button.textContent?.includes('Bật xuất độc lập'));
     expect(enableCustomExportButton).not.toBeUndefined();
     enableCustomExportButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
-    expect(configPanel?.textContent).toContain('条目名称');
-    expect(configPanel?.textContent).toContain('条目类型');
-    expect(configPanel?.textContent).toContain('主条目位置');
+    expect(configPanel?.textContent).toContain('Tên mục');
+    expect(configPanel?.textContent).toContain('Loại mục');
+    expect(configPanel?.textContent).toContain('Vị trí mục chính');
 
     const mainPlacement = Array.from(configPanel.querySelectorAll<HTMLElement>('.acu-viz-placement'))
-      .find(item => item.textContent?.includes('主条目位置'))!;
+      .find(item => item.textContent?.includes('Vị trí mục chính'))!;
     const [depthInput, orderInput] = Array.from(mainPlacement.querySelectorAll<HTMLInputElement>('input[type="number"]'));
     expect(depthInput.outerHTML).toContain('class="acu-input');
     depthInput.value = '7';
@@ -673,7 +673,7 @@ describe('openVisualizerSurface_ACU', () => {
     const placementAfterNumberInput = visualizer.currentSheet.exportConfig.entryPlacement;
 
     const addColumnButton = Array.from(configPanel.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('新增列'));
+      .find(button => button.textContent?.includes('Thêm cột'));
     expect(addColumnButton).not.toBeUndefined();
     expect(addColumnButton!.classList.contains('acu-btn--primary')).toBe(true);
 
@@ -694,18 +694,18 @@ describe('openVisualizerSurface_ACU', () => {
     expect(configPanel.querySelector<HTMLInputElement>('.acu-viz-config__column-row input')).toBe(firstHeaderInput);
 
     const databaseManagementButton = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('数据库管理'));
+      .find(button => button.textContent?.includes('Quản lý CSDL'));
     expect(databaseManagementButton).not.toBeUndefined();
     databaseManagementButton!.click();
     await Promise.resolve();
 
-    expect(document.querySelector('[data-acu-visualizer-global]')?.textContent).toContain('可读数据条目位置');
+    expect(document.querySelector('[data-acu-visualizer-global]')?.textContent).toContain('Vị trí mục dữ liệu có thể đọc');
     expect(document.querySelector('[data-acu-visualizer-global]')?.textContent)
       .not.toContain('保存到当前聊天会同步这份全局草稿');
     expect(document.querySelector('[data-acu-visualizer-table-management]')?.textContent).toContain('角色状态');
-    expect(document.querySelector('[data-acu-visualizer-table-management]')?.textContent).toContain('新增表格');
+    expect(document.querySelector('[data-acu-visualizer-table-management]')?.textContent).toContain('Thêm bảng');
     const addTableButton = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-acu-visualizer-table-management] button'))
-      .find(button => button.textContent?.includes('新增表格'));
+      .find(button => button.textContent?.includes('Thêm bảng'));
     expect(addTableButton).not.toBeUndefined();
     expect(addTableButton!.classList.contains('acu-btn--primary')).toBe(true);
     expect(document.querySelector('.acu-visualizer-surface__mode-tabs')).toBeNull();
@@ -786,13 +786,13 @@ describe('openVisualizerSurface_ACU', () => {
     await new Promise(r => setTimeout(r, 0));
 
     const assistantTab = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('AI 助手'));
+      .find(button => button.textContent?.includes('Trợ lý AI'));
     expect(assistantTab).not.toBeUndefined();
     assistantTab!.click();
     await Promise.resolve();
 
     const panel = document.querySelector('[data-acu-visualizer-assistant]');
-    expect(panel?.textContent).toContain('AI 改表助手');
+    expect(panel?.textContent).toContain('Trợ lý AI sửa bảng');
     expect(panel?.textContent).not.toContain('当前锚点表：角色状态 (sheet_a)');
     expect(panel?.textContent).not.toContain('确认前不会应用到编辑器草稿');
     mount.__resetAcuV2MountForTests();
@@ -820,7 +820,7 @@ describe('openVisualizerSurface_ACU', () => {
     await new Promise(r => setTimeout(r, 0));
 
     const surface = document.querySelector('[data-acu-visualizer-surface]') as HTMLElement;
-    expect(surface.textContent).toContain('自动编号');
+    expect(surface.textContent).toContain('Tự động đánh số');
     const indexPreview = Array.from(surface.querySelectorAll<HTMLElement>('[role="button"]'))
       .find(item => item.textContent?.trim() === 'AM0001')!;
     indexPreview.click();
@@ -831,14 +831,14 @@ describe('openVisualizerSurface_ACU', () => {
     expect(indexTextarea?.disabled).toBe(false);
 
     const configTab = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('结构/参数'));
+      .find(button => button.textContent?.includes('Cấu trúc/tham số'));
     configTab!.click();
     await Promise.resolve();
 
     const autoNumberSwitch = Array.from(document.querySelectorAll<HTMLButtonElement>('[role="checkbox"]'))
-      .find(button => button.textContent?.includes('保存和 AI 更新时自动重排编码'));
+      .find(button => button.textContent?.includes('Tự động sắp xếp lại mã khi lưu và khi AI cập nhật'));
     expect(autoNumberSwitch?.getAttribute('aria-checked')).toBe('true');
-    expect(document.querySelector('[data-acu-visualizer-config]')?.textContent).not.toContain('启用编码索引列特殊锁定');
+    expect(document.querySelector('[data-acu-visualizer-config]')?.textContent).not.toContain('Bật khóa đặc biệt cho cột chỉ mục mã hóa');
     mount.__resetAcuV2MountForTests();
   });
 
@@ -907,8 +907,8 @@ describe('openVisualizerSurface_ACU', () => {
     expect(surfaceSource).toContain('@media (max-width: 767px)');
     expect(surfaceSource).toContain('@media (max-width: 480px)');
     expect(surfaceSource).toContain('acu-visualizer-surface__topbar-context');
-    expect(surfaceSource).toContain('当前模板');
-    expect(surfaceSource).not.toContain('>已同步</AcuBadge>');
+    expect(surfaceSource).toContain('Mẫu hiện tại');
+    expect(surfaceSource).not.toContain('>Đã đồng bộ</AcuBadge>');
     expect(surfaceSource).not.toContain('acu-visualizer-surface__mobile-current-sheet');
     expect(surfaceSource).toMatch(
       /\.acu-visualizer-surface__context-items\s*\{[\s\S]*?justify-content: flex-start;[\s\S]*?gap: 16px;/,
@@ -949,12 +949,12 @@ describe('openVisualizerSurface_ACU', () => {
     );
 
     const promptPanel = configSource.slice(
-      configSource.indexOf('title="AI 触发提示词"'),
-      configSource.indexOf('title="DDL 定义"'),
+      configSource.indexOf('title="Prompt kích hoạt AI"'),
+      configSource.indexOf('title="Định nghĩa DDL"'),
     );
     const ddlPanel = configSource.slice(
-      configSource.indexOf('title="DDL 定义"'),
-      configSource.indexOf('title="世界书注入配置"'),
+      configSource.indexOf('title="Định nghĩa DDL"'),
+      configSource.indexOf('title="Cấu hình chèn vào Sổ thế giới"'),
     );
 
     expect((promptPanel.match(/auto-resize/g) || []).length).toBe(5);

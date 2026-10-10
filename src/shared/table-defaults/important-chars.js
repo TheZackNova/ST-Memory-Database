@@ -5,11 +5,11 @@ export const importantCharsSheet = {
   uid: "sheet_NcBlYRH5",
   name: "重要角色表",
   sourceData: {
-    note: "记录所有关键NPC的详细信息和动态状态。（列号为 0 基，与表格数据中的列标一致）\n- 列0: 姓名 - NPC的名字，不得与表中已有角色重名。\n- 列1: 性别/年龄 - NPC的生理性别和年龄。\n- 列2: 一句话介绍 \u2013 用不超过15字概括角色身份背景，不含主观评价。\n- 列3: 外貌特征 - 对NPC外貌和当前衣着的详细描述，对女性角色可包含身材描写；对男性角色无需描写。\n- 列4: 持有的重要物品 - NPC拥有的关键重要物品列表，用分号分隔。\n- 列5: 是否离场 - 判断该角色是否能直接与主角互动，填写\u201C是\u201D或\u201C否\u201D。\n- 列6: 过往经历 - 记录角色背景与关键事件，随剧情增量更新，不超过300字，超过时需压缩。",
-    initNode: "游戏初始化时为当前在场的重要人物分别插入一个条目。",
-    deleteNode: "禁止删除。",
-    updateNode: "已有角色的状态、关系、想法或经历变化时更新；若角色死亡需在姓名旁标注（已死亡）。\nSQL示例: UPDATE important_characters SET is_absent = '是', past_experience = '新增经历...' WHERE name = '角色名';",
-    insertNode: "剧情中有未记录的重要人物登场时添加。\nSQL示例: INSERT INTO important_characters (name, gender_age, brief_intro, appearance, key_items, is_absent, past_experience) VALUES ('角色名', '女/20', '简介', '外貌描述', '物品', '否', '经历');",
+    note: "Ghi lại thông tin chi tiết và trạng thái động của tất cả NPC quan trọng. (Số cột đánh số từ 0, khớp với chỉ số cột trong dữ liệu bảng)\n- Cột 0: 姓名 (Tên) - Tên của NPC, không được trùng với nhân vật đã có trong bảng.\n- Cột 1: 性别/年龄 (Giới tính/Tuổi) - Giới tính sinh lý và tuổi của NPC.\n- Cột 2: 一句话介绍 (Giới thiệu một câu) \u2013 Dùng không quá 15 chữ để khái quát thân phận, bối cảnh nhân vật, không kèm đánh giá chủ quan.\n- Cột 3: 外貌特征 (Đặc điểm ngoại hình) - Mô tả chi tiết ngoại hình và trang phục hiện tại của NPC; với nhân vật nữ có thể mô tả vóc dáng; với nhân vật nam không cần mô tả.\n- Cột 4: 持有的重要物品 (Vật phẩm quan trọng đang giữ) - Danh sách vật phẩm then chốt NPC sở hữu, phân tách bằng dấu chấm phẩy.\n- Cột 5: 是否离场 (Có rời cảnh không) - Xác định nhân vật này có thể tương tác trực tiếp với nhân vật chính hay không, điền \u201C是\u201D hoặc \u201C否\u201D.\n- Cột 6: 过往经历 (Trải nghiệm trước đây) - Ghi lại bối cảnh nhân vật và các sự kiện then chốt, cập nhật tăng dần theo cốt truyện, không quá 300 chữ, vượt quá thì phải nén lại.",
+    initNode: "Khi khởi tạo game, chèn một mục riêng cho mỗi nhân vật quan trọng đang có mặt.",
+    deleteNode: "Cấm xóa.",
+    updateNode: "Cập nhật khi trạng thái, quan hệ, suy nghĩ hoặc trải nghiệm của nhân vật đã có thay đổi; nếu nhân vật chết thì phải ghi chú (đã chết) bên cạnh tên.\nVí dụ SQL: UPDATE important_characters SET is_absent = '是', past_experience = 'Trải nghiệm mới thêm...' WHERE name = 'Tên nhân vật';",
+    insertNode: "Thêm khi có nhân vật quan trọng chưa được ghi lại xuất hiện trong cốt truyện.\nVí dụ SQL: INSERT INTO important_characters (name, gender_age, brief_intro, appearance, key_items, is_absent, past_experience) VALUES ('Tên nhân vật', 'Nữ/20', 'Giới thiệu', 'Mô tả ngoại hình', 'Vật phẩm', '否', 'Trải nghiệm');",
     ddl: `CREATE TABLE important_characters ( -- 重要角色表
   row_id INTEGER PRIMARY KEY, -- 行号
   name TEXT NOT NULL UNIQUE, -- 姓名
@@ -58,7 +58,7 @@ export const importantCharsSheet = {
       "姓名": "both",
       "一句话介绍": "index_only"
     },
-    extraIndexInjectionTemplate: "以下为已经登场过的角色：\n<已登场角色>\n$1\n</已登场角色>",
+    extraIndexInjectionTemplate: "Dưới đây là các nhân vật đã xuất hiện:\n<已登场角色>\n$1\n</已登场角色>",
     entryPlacement: {
       position: "at_depth_as_system",
       depth: 10000,

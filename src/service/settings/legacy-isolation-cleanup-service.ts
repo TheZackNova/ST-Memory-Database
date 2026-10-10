@@ -23,7 +23,7 @@ export interface LegacyIsolationCleanupResult_ACU {
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error || '未知错误');
+  return error instanceof Error ? error.message : String(error || 'Lỗi không xác định');
 }
 
 /**
@@ -75,11 +75,11 @@ export async function cleanupLegacyIsolationProfiles_ACU(): Promise<LegacyIsolat
   settings_ACU.dataIsolationHistory = [];
 
   if (!saveGlobalMeta_ACU()) {
-    throw new Error('旧隔离标签登记保存失败，请检查存储状态后重试。');
+    throw new Error('Lưu đăng ký nhãn cô lập cũ thất bại, hãy kiểm tra trạng thái lưu trữ rồi thử lại.');
   }
   const saveResult = saveSettings_ACU();
   if (!saveResult.saved) {
-    throw new Error(saveResult.warning || saveResult.error || '默认设置保存失败。');
+    throw new Error(saveResult.warning || saveResult.error || 'Lưu cài đặt mặc định thất bại.');
   }
 
   return { removedCodes, failedCodes, switchedToDefault };

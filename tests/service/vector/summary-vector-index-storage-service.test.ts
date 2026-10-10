@@ -1198,7 +1198,7 @@ describe('summary-vector-index-storage-service V2 单文件写入', () => {
   it('紧急关闭 V2 writer 时拒绝写入且不回退覆盖任何旧对象', async () => {
     h.config.value = { summaryIndexRollingDeltaEnabled: false, summaryIndexV2WriteEnabled: false };
 
-    await expect(persistSummaryVectorIndexSnapshot_ACU(options() as any)).rejects.toThrow('V2 写入已关闭');
+    await expect(persistSummaryVectorIndexSnapshot_ACU(options() as any)).rejects.toThrow('Ghi chỉ mục vector giao hỏa V2 đã bị tắt');
     expect(h.upload).not.toHaveBeenCalled();
     expect(h.register).not.toHaveBeenCalled();
     expect(h.logWarn).toHaveBeenCalledWith('[纪要向量索引] identity event:', expect.objectContaining({
@@ -1217,7 +1217,7 @@ describe('summary-vector-index-storage-service V2 单文件写入', () => {
       summaryIndexV2WriteScopeAllowlist: ['scope:other-chat|iso-a|summary'],
     };
 
-    await expect(persistSummaryVectorIndexSnapshot_ACU(options() as any)).rejects.toThrow('未向当前 scope 灰度开放');
+    await expect(persistSummaryVectorIndexSnapshot_ACU(options() as any)).rejects.toThrow('chưa mở thử nghiệm cho scope hiện tại');
     expect(h.upload).not.toHaveBeenCalled();
     expect(h.register).not.toHaveBeenCalled();
     expect(h.logWarn).toHaveBeenCalledWith('[纪要向量索引] identity event:', expect.objectContaining({
@@ -1232,7 +1232,7 @@ describe('summary-vector-index-storage-service V2 单文件写入', () => {
     h.read.mockResolvedValue({ ok: true, data: { schema: 'single_file_snapshot', indexId: 'wrong' } });
 
     await expect(persistSummaryVectorIndexSnapshot_ACU(options() as any))
-      .rejects.toThrow('V2 快照写后校验失败');
+      .rejects.toThrow('Kiểm tra sau khi ghi snapshot V2 thất bại');
     expect(h.remove).toHaveBeenCalledWith(expect.stringContaining('TavernDB_ACU_vector_v2_scope:chat-a|iso-a|summary_'));
     expect(h.unregister).toHaveBeenCalledTimes(1);
     expect(h.register).not.toHaveBeenCalled();
@@ -1246,7 +1246,7 @@ describe('summary-vector-index-storage-service V2 单文件写入', () => {
       return { ok: true, ref: { role: params.role, path: params.path, byteSize: 1, checksum: 'wrong-checksum', createdAt: '', updatedAt: '', status: 'ready' } };
     });
     h.read.mockImplementation(async (path: string) => ({ ok: true, data: persistedBlob.get(path) }));
-    await expect(persistSummaryVectorIndexSnapshot_ACU(options() as any)).rejects.toThrow('checksum 不匹配');
+    await expect(persistSummaryVectorIndexSnapshot_ACU(options() as any)).rejects.toThrow('checksum không khớp');
     expect(h.remove).toHaveBeenCalledTimes(1);
     expect(h.register).not.toHaveBeenCalled();
   });
@@ -1276,7 +1276,7 @@ describe('summary-vector-index-storage-service V2 单文件写入', () => {
     h.remove.mockResolvedValue({ ok: false, error: 'remote delete failed' });
 
     await expect(persistSummaryVectorIndexSnapshot_ACU(options() as any))
-      .rejects.toThrow('上传对象回滚不完整');
+      .rejects.toThrow('khôi phục đối tượng đã tải lên chưa đầy đủ');
     expect(h.unregister).not.toHaveBeenCalled();
     expect(h.register).toHaveBeenCalledWith([expect.objectContaining({ path: expect.stringContaining('TavernDB_ACU_vector_v2_scope:chat-a|iso-a|summary_') })]);
   });
@@ -1353,7 +1353,7 @@ describe('summary-vector-index-storage-service V2 单文件写入', () => {
   it('缺少 crypto.getRandomValues 时拒绝 V2 写入，且不上传对象', async () => {
     vi.stubGlobal('crypto', undefined);
     await expect(persistSummaryVectorIndexSnapshot_ACU(options() as any))
-      .rejects.toThrow('需要 crypto.getRandomValues');
+      .rejects.toThrow('cần crypto.getRandomValues');
     expect(h.upload).not.toHaveBeenCalled();
     vi.unstubAllGlobals();
   });
@@ -1368,7 +1368,7 @@ describe('summary-vector-index-storage-service V2 单文件写入', () => {
       rowKey: 'row-a', rowId: '1', rowOrder: 0, timeSpan: '', location: '', summary: 'summary', indexCode: 'A', vectorSourceText: 'summary', chunkIds: ['chunk-a', 'chunk-b'],
     }];
     await expect(persistSummaryVectorIndexSnapshot_ACU(mixed as any))
-      .rejects.toThrow('维度不一致');
+      .rejects.toThrow('lệch số chiều');
     expect(h.upload).not.toHaveBeenCalled();
   });
 });

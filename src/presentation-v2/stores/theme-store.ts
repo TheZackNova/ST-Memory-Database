@@ -97,7 +97,7 @@ function normalizePersistedActiveThemeId(
 
 function sanitizeThemeName(value: unknown): string {
   const name = String(value || '').trim().replace(/\s+/g, ' ').slice(0, MAX_THEME_NAME_LENGTH);
-  return name || '自定义主题';
+  return name || 'Chủ đề tùy chỉnh';
 }
 
 function sanitizeSlug(value: string): string {
@@ -163,14 +163,14 @@ function normalizeThemeSource(
     typeof source === 'object' &&
     (source as Partial<AcuV2CustomThemeFile>).kind === ACU_V2_CUSTOM_THEME_FILE_KIND;
   if (isWrapped && (source as Partial<AcuV2CustomThemeFile>).version !== ACU_V2_CUSTOM_THEME_FILE_VERSION) {
-    throw new Error('主题文件版本不受支持。');
+    throw new Error('Phiên bản tệp chủ đề không được hỗ trợ.');
   }
 
   const wrapped = isWrapped
     ? (source as Partial<AcuV2CustomThemeFile>).theme
     : source;
   if (!wrapped || typeof wrapped !== 'object') {
-    throw new Error('主题文件格式不正确。');
+    throw new Error('Định dạng tệp chủ đề không đúng.');
   }
 
   const theme = wrapped as Record<string, unknown>;
@@ -178,7 +178,7 @@ function normalizeThemeSource(
   const colorScheme = theme.colorScheme;
   const tokens = sanitizeThemeTokens(theme.tokens);
   if (!isColorScheme(colorScheme) || !tokens) {
-    throw new Error('主题文件缺少 v2 主题所需的颜色模式或 token。');
+    throw new Error('Tệp chủ đề thiếu chế độ màu hoặc token cần thiết cho chủ đề v2.');
   }
 
   const id = isSafeCustomThemeId(theme.id)
@@ -249,7 +249,7 @@ function parseThemeFileText(text: string): ThemeImportSource {
   try {
     return JSON.parse(text) as ThemeImportSource;
   } catch {
-    throw new Error('主题文件不是有效 JSON。');
+    throw new Error('Tệp chủ đề không phải JSON hợp lệ.');
   }
 }
 
@@ -288,7 +288,7 @@ export const useThemeStore = defineStore('acu-v2-theme', {
       if (index >= 0) this.customThemes.splice(index, 1, theme);
       else {
         if (this.customThemes.length >= MAX_CUSTOM_THEMES) {
-          throw new Error(`最多只能保存 ${MAX_CUSTOM_THEMES} 个自定义主题。`);
+          throw new Error(`Chỉ có thể lưu tối đa ${MAX_CUSTOM_THEMES} chủ đề tùy chỉnh.`);
         }
         this.customThemes.push(theme);
       }
@@ -307,7 +307,7 @@ export const useThemeStore = defineStore('acu-v2-theme', {
     },
     buildThemeFile(id: AcuV2ThemeId): AcuV2CustomThemeFile {
       const theme = findThemeById(id, this.customThemes);
-      if (!theme) throw new Error('主题不存在。');
+      if (!theme) throw new Error('Chủ đề không tồn tại.');
       const isCustom = isCustomThemeId(theme.id);
       return {
         kind: ACU_V2_CUSTOM_THEME_FILE_KIND,

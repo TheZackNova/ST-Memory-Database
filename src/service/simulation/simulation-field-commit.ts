@@ -52,37 +52,37 @@ function domainRow_ACU(ledger: WorldSimulationLedger_ACU, module: WorldSimulatio
 function validateField_ACU(module: WorldSimulationLedgerModule_ACU, field: string, value: unknown, path: string,
   registry?: WorldSimulationEvidenceRegistrySnapshot_ACU, declared: ReadonlySet<string> = new Set()): { value?: unknown; problem?: string } {
   if (field === 'evidenceRefs') {
-    if (!Array.isArray(value) || !value.every(text_ACU)) return { problem: `${path} 必须是字符串数组` };
+    if (!Array.isArray(value) || !value.every(text_ACU)) return { problem: `${path} phải là mảng chuỗi` };
     const unknown = [...findUnauthorizedWorldSimulationEvidenceRefs_ACU(value, registry), ...value.filter(ref => !declared.has(ref))];
-    return unknown.length ? { problem: `${path} 包含未声明或未授权证据: ${[...new Set(unknown)].join(', ')}` } : { value: value.map(ref => ref.trim()) };
+    return unknown.length ? { problem: `${path} chứa bằng chứng chưa khai báo hoặc chưa ủy quyền: ${[...new Set(unknown)].join(', ')}` } : { value: value.map(ref => ref.trim()) };
   }
   if (UPSERT_MODULES_ACU.has(module)) return validateWorldSimulationUpsertField_ACU(module as WorldSimulationUpsertModule_ACU, field, value, path);
   if (module === 'chronicle') {
-    if (field === 'at' || field === 'summary') return text_ACU(value) ? { value: value.trim() } : { problem: `${path} 必须是非空字符串` };
-    if (field === 'relatedIds') return Array.isArray(value) && value.every(text_ACU) ? { value: value.map(item => item.trim()) } : { problem: `${path} 必须是字符串数组` };
+    if (field === 'at' || field === 'summary') return text_ACU(value) ? { value: value.trim() } : { problem: `${path} phải là chuỗi không rỗng` };
+    if (field === 'relatedIds') return Array.isArray(value) && value.every(text_ACU) ? { value: value.map(item => item.trim()) } : { problem: `${path} phải là mảng chuỗi` };
     if (field === 'missedNote') return value === null || value === '' ? { value: null }
-      : text_ACU(value) ? { value: value.trim() } : { problem: `${path} 必须是字符串或 null` };
+      : text_ACU(value) ? { value: value.trim() } : { problem: `${path} phải là chuỗi hoặc null` };
   }
   if (module === 'clock') {
-    if (field === 'days') return Number.isInteger(value) && (value as number) >= 0 ? { value } : { problem: `${path} 必须是非负整数` };
-    if (field === 'slot' || field === 'storyTime') return typeof value === 'string' ? { value } : { problem: `${path} 必须是字符串` };
+    if (field === 'days') return Number.isInteger(value) && (value as number) >= 0 ? { value } : { problem: `${path} phải là số nguyên không âm` };
+    if (field === 'slot' || field === 'storyTime') return typeof value === 'string' ? { value } : { problem: `${path} phải là chuỗi` };
   }
   if (module === 'player') {
-    if (field === 'contact') return typeof value === 'string' && (WORLD_PLAYER_CONTACTS_ACU as readonly string[]).includes(value) ? { value } : { problem: `${path} contact 枚举非法` };
+    if (field === 'contact') return typeof value === 'string' && (WORLD_PLAYER_CONTACTS_ACU as readonly string[]).includes(value) ? { value } : { problem: `${path} contact có giá trị enum không hợp lệ` };
     if (field === 'location') {
       if (value === null) return { value: null };
       if (isRecord_ACU(value) && text_ACU(value.region) && (value.place === undefined || typeof value.place === 'string')
         && Object.keys(value).every(key => key === 'region' || key === 'place')) return { value };
-      return { problem: `${path} 需要带 region 的位置对象或 null` };
+      return { problem: `${path} cần đối tượng vị trí có region hoặc null` };
     }
   }
   if (module === 'guidance') {
-    if (field === 'excludedFacts') return Array.isArray(value) && value.every(text_ACU) ? { value: value.map(item => item.trim()) } : { problem: `${path} 必须是字符串数组` };
+    if (field === 'excludedFacts') return Array.isArray(value) && value.every(text_ACU) ? { value: value.map(item => item.trim()) } : { problem: `${path} phải là mảng chuỗi` };
     if (field === 'signals') return Array.isArray(value) && value.every(item => isRecord_ACU(item) && text_ACU(item.text)
       && text_ACU(item.sourceId) && (WORLD_GUIDANCE_SIGNAL_VOICES_ACU as readonly string[]).includes(String(item.voice)))
-      ? { value } : { problem: `${path} signals 格式非法` };
+      ? { value } : { problem: `${path} signals có định dạng không hợp lệ` };
   }
-  return { problem: `${path} 不允许写入` };
+  return { problem: `${path} không được phép ghi` };
 }
 
 function groupProblem_ACU(module: WorldSimulationLedgerModule_ACU, merged: Record<string, unknown>, changed: Record<string, unknown>): string[] {
@@ -129,17 +129,17 @@ export function planWorldSimulationFieldCommit_ACU(input: {
 
   for (const intent of input.intents) {
     if (intent.module === 'chronicle_archive' || intent.module === 'chronicle_overview') {
-      if (!writable.has('chronicle')) { reject(intent.module, '角色无权写入归档'); continue; }
+      if (!writable.has('chronicle')) { reject(intent.module, 'Vai trò không có quyền ghi vào lưu trữ'); continue; }
       const archiveRef = intent.fields.archiveRef;
       if (typeof archiveRef !== 'string' || !safeId_ACU(archiveRef) || archiveIntentRefs.has(`${intent.module}#${archiveRef}`)) {
-        reject(`${intent.module}#${String(archiveRef)}`, '归档需明确且唯一的 archiveRef'); continue;
+        reject(`${intent.module}#${String(archiveRef)}`, 'Lưu trữ cần archiveRef rõ ràng và duy nhất'); continue;
       }
       archiveIntentRefs.add(`${intent.module}#${archiveRef}`);
       (intent.module === 'chronicle_archive' ? archiveEntries : overviewRows).push({ ...intent.fields });
       continue;
     }
     const module = intent.module;
-    if (!writable.has(module)) { reject(module, '角色无权写入模块'); continue; }
+    if (!writable.has(module)) { reject(module, 'Vai trò không có quyền ghi vào module'); continue; }
     const singleton = !ARRAY_MODULES_ACU.has(module);
     const occupied = new Set([
       ...(singleton ? [] : (input.ledger[module] as Array<{ id: string }>).map(row => row.id)),
@@ -148,24 +148,24 @@ export function planWorldSimulationFieldCommit_ACU(input: {
     ]);
     const id = singleton ? WORLD_SIMULATION_SINGLETON_ID_ACU : intent.id || (intent.kind === 'insert'
       ? allocateWorldSimulationPrefixedId_ACU(module === 'chronicle' ? `chr-${input.ledger.clock.day}` : WORLD_SIMULATION_UPSERT_ID_PREFIX_ACU[module as WorldSimulationUpsertModule_ACU], occupied) : '');
-    const path = `${module}#${id || '(无 ID)'}`;
-    if (!singleton && !safeId_ACU(id)) { reject(path, '条目 ID 无效'); continue; }
+    const path = `${module}#${id || '(không có ID)'}`;
+    if (!singleton && !safeId_ACU(id)) { reject(path, 'ID mục không hợp lệ'); continue; }
     const key = `${module}#${id}`;
     const original = domainRow_ACU(input.ledger, module, id);
     const fieldRecord = input.fields.records[module]?.[id];
     const prior = pending.get(key);
     if (intent.kind === 'insert' && (original || fieldRecord || prior)) { reject(path, 'id_exists'); continue; }
     if (intent.kind !== 'insert' && !original && !fieldRecord && !prior) { reject(path, 'not_found'); continue; }
-    if (module === 'chronicle' && intent.kind === 'update' && (original || fieldRecord?.status !== 'partial')) { reject(path, '完整编年不可 UPDATE；仅已保存的 partial 草稿可补栏'); continue; }
-    if (module === 'chronicle' && intent.kind === 'update' && intent.expectedRevision !== 0) { reject(path, 'revision_conflict: 编年草稿补栏必须使用 expected_revision=0'); continue; }
-    if (prior?.remove || prior?.discard) { reject(path, '同批已删除此 ID'); continue; }
+    if (module === 'chronicle' && intent.kind === 'update' && (original || fieldRecord?.status !== 'partial')) { reject(path, 'Niên biểu hoàn chỉnh không thể UPDATE; chỉ bản nháp partial đã lưu mới được bổ sung cột'); continue; }
+    if (module === 'chronicle' && intent.kind === 'update' && intent.expectedRevision !== 0) { reject(path, 'revision_conflict: bổ sung cột cho bản nháp niên biểu phải dùng expected_revision=0'); continue; }
+    if (prior?.remove || prior?.discard) { reject(path, 'ID này đã bị xóa trong cùng lô'); continue; }
     const revision = singleton ? baseRevision : typeof original?.revision === 'number' ? original.revision : 0;
     if (module !== 'chronicle' && intent.expectedRevision !== revision) {
       reject(path, `revision_conflict: expected=${intent.expectedRevision}, actual=${revision}`); continue;
     }
     if (intent.kind === 'delete') {
-      if (singleton) { reject(path, '单例不能删除'); continue; }
-      if (!text_ACU(intent.reason)) { reject(`${path}.reason`, '删除需要非空理由'); continue; }
+      if (singleton) { reject(path, 'Singleton không thể xóa'); continue; }
+      if (!text_ACU(intent.reason)) { reject(`${path}.reason`, 'Xóa cần lý do không rỗng'); continue; }
       pending.set(key, { module, id, original, fields: {}, changes: {}, remove: !!original, discard: !original, reason: intent.reason });
       continue;
     }
@@ -193,7 +193,7 @@ export function planWorldSimulationFieldCommit_ACU(input: {
     const path = `${item.module}#${item.id}`;
     for (const field of groupProblem_ACU(item.module, item.fields, item.changes)) {
       if (!(field in item.changes)) continue;
-      reject(`${path}.${field}`, 'consistency_group: 伴随栏目不完整或不一致');
+      reject(`${path}.${field}`, 'consistency_group: các cột đi kèm không đầy đủ hoặc không nhất quán');
       delete item.changes[field];
       if (item.original && field in item.original) item.fields[field] = item.original[field];
       else if (field in (input.fields.records[item.module]?.[item.id]?.fields ?? {})) item.fields[field] = input.fields.records[item.module]![item.id].fields[field].value;
@@ -229,11 +229,11 @@ export function planWorldSimulationFieldCommit_ACU(input: {
     try {
       if (archiveEntries.length !== overviewRows.length
         || archiveEntries.some(row => !overviewRows.some(other => other.archiveRef === row.archiveRef))) {
-        throw new Error('archiveEntries 与 overviewRows 必须按 archiveRef 一对一提交');
+        throw new Error('archiveEntries và overviewRows phải được nộp một-một theo archiveRef');
       }
       const archived = applyChronicleArchive_ACU(ledger.chronicleOverview, { archiveEntries, overviewRows, collapseRefs: [] }, ledger.clock.day);
       for (const row of archived.writes) {
-        if (archive.records[row.archiveRef]) throw new Error(`archiveRef ${row.archiveRef} 已存在`);
+        if (archive.records[row.archiveRef]) throw new Error(`archiveRef ${row.archiveRef} đã tồn tại`);
         archive.records[row.archiveRef] = row;
       }
       archiveWrites = archived.writes;
@@ -280,7 +280,7 @@ export function planWorldSimulationFieldCommit_ACU(input: {
         remaining.delete(key);
         const candidate = replay(remaining, archiveWrites.length > 0);
         if (!candidate || validateCandidate(candidate).length) continue;
-        pending.get(key)!.promotionError = problems.join('；');
+        pending.get(key)!.promotionError = problems.join('; ');
         complete.delete(key);
         ledger = candidate;
         isolated = true;
@@ -290,12 +290,12 @@ export function planWorldSimulationFieldCommit_ACU(input: {
       problems = validateCandidate(ledger);
     }
     if (problems.length) {
-      for (const key of complete) pending.get(key)!.promotionError = problems.join('；');
+      for (const key of complete) pending.get(key)!.promotionError = problems.join('; ');
       ledger = input.ledger;
       complete.clear();
       archive = { ...input.archive, records: { ...input.archive.records } };
       archiveWrites = [];
-      if (archiveEntries.length || overviewRows.length) reject('chronicleArchive', `consistency_group: ${problems.join('；')}`);
+      if (archiveEntries.length || overviewRows.length) reject('chronicleArchive', `consistency_group: ${problems.join('; ')}`);
     }
   }
   ledger = { ...ledger, revision: baseRevision + Number(complete.size > 0 || archiveWrites.length > 0) };
@@ -313,7 +313,7 @@ export function planWorldSimulationFieldCommit_ACU(input: {
   for (const [key, item] of pending) {
     const path = `${item.module}#${item.id}`;
     if (item.discard || item.remove) {
-      if (item.promotionError || item.remove && !complete.has(key)) { reject(path, item.promotionError ?? '领域删除失败'); continue; }
+      if (item.promotionError || item.remove && !complete.has(key)) { reject(path, item.promotionError ?? 'Xóa miền thất bại'); continue; }
       if (item.discard) (batchFor(item.module).discardPartialIds as string[]).push(item.id);
       else (batchFor(item.module).domainRemovedIds as string[]).push(item.id);
       accepted.push({ module: item.module, id: item.id, field: item.discard ? 'discardPartial' : 'removed', revision: 0 });
@@ -321,7 +321,7 @@ export function planWorldSimulationFieldCommit_ACU(input: {
     }
     if (!Object.keys(item.changes).length) continue;
     if (item.original && !complete.has(key)) {
-      for (const field of Object.keys(item.changes)) reject(`${path}.${field}`, item.promotionError ?? '领域验证失败');
+      for (const field of Object.keys(item.changes)) reject(`${path}.${field}`, item.promotionError ?? 'Xác thực miền thất bại');
       continue;
     }
     const batch = batchFor(item.module);

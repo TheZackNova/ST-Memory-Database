@@ -244,8 +244,8 @@ describe('VectorIndexPage', () => {
     const page = document.querySelector('.acu-v2-vector-index-page');
     expect(page).not.toBeNull();
     const text = page!.textContent || '';
-    expect(text).toContain('交火模式');
-    expect(text).toContain('索引状态');
+    expect(text).toContain('giao hỏa');
+    expect(text).toContain('Trạng thái chỉ mục');
     expect(text).not.toContain('向量服务引用');
     expect(text).not.toContain('Embedding 服务');
     expect(text).not.toContain('Rerank 服务（可选）');
@@ -255,14 +255,14 @@ describe('VectorIndexPage', () => {
     expect(text).not.toContain('向量化（Embedding）');
     expect(text).not.toContain('重排（Rerank，可选）');
     expect(text).toContain('URL');
-    expect(text).toContain('模型名');
+    expect(text).toContain('Tên mô hình');
     expect(text).not.toContain(`服务${'地址'}`);
     expect(text).not.toContain(`模型${'名称'}`);
-    expect(text).toContain('召回参数');
-    expect(text).toContain('归档与分块');
-    expect(text).toContain('关键词生成');
-    expect(text).toContain('关键词生成提示词');
-    expect(text).toContain('使用默认提示词');
+    expect(text).toContain('Tham số truy hồi');
+    expect(text).toContain('Lưu trữ và chia khối');
+    expect(text).toContain('Tạo từ khóa');
+    expect(text).toContain('Prompt tạo từ khóa');
+    expect(text).toContain('Dùng prompt mặc định');
     expect(text).not.toContain('刷新状态');
     expect(text).not.toContain('段落数量');
     expect(text).not.toContain('保存状态');
@@ -273,9 +273,9 @@ describe('VectorIndexPage', () => {
     const actionButtons = Array.from(maintenancePanel.querySelectorAll<HTMLButtonElement>('.acu-v2-vector-index-page__actions button'))
       .map(button => button.textContent?.trim() || '');
     expect(actionButtons).toEqual([
-      '立即构建交火纪要索引',
-      '清空临时缓存',
-      '删除当前索引',
+      'Dựng chỉ mục kỷ yếu giao hỏa ngay',
+      'Xóa bộ nhớ đệm tạm',
+      'Xóa chỉ mục hiện tại',
     ]);
     expect(
       maintenancePanel.querySelector(
@@ -287,25 +287,25 @@ describe('VectorIndexPage', () => {
     );
     expect(actionButtons.some(label => label.includes('刷新状态'))).toBe(false);
     const clearButton = Array.from(maintenancePanel.querySelectorAll<HTMLButtonElement>('.acu-v2-vector-index-page__actions button'))
-      .find(button => button.textContent?.includes('清空临时缓存'))!;
+      .find(button => button.textContent?.includes('Xóa bộ nhớ đệm tạm'))!;
     expect(clearButton.classList.contains('acu-btn--default')).toBe(true);
 
     const panelStacks = Array.from(page!.querySelectorAll<HTMLElement>('.acu-v2-vector-index-page__panel-stack'));
     expect(panelStacks.map(stack => Array.from(stack.querySelectorAll<HTMLElement>('.acu-panel__title'))
       .map(title => title.textContent?.trim()))).toEqual([
-      ['索引状态', '关键词生成'],
-      ['Embedding / Rerank', '关键词生成提示词'],
+      ['Trạng thái chỉ mục', 'Tạo từ khóa'],
+      ['Embedding / Rerank', 'Prompt tạo từ khóa'],
     ]);
     expect(Array.from(page!.querySelectorAll<HTMLElement>('.acu-v2-vector-index-page__advanced-grid .acu-panel__title'))
-      .map(title => title.textContent?.trim())).toEqual(['召回参数', '归档与分块']);
+      .map(title => title.textContent?.trim())).toEqual(['Tham số truy hồi', 'Lưu trữ và chia khối']);
 
     const promptPanel = Array.from(page!.querySelectorAll<HTMLElement>('.acu-panel'))
-      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('关键词生成提示词'))!;
-    expect(promptPanel.querySelector('.acu-panel__actions .acu-badge')?.textContent).toContain('使用默认提示词');
+      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('Prompt tạo từ khóa'))!;
+    expect(promptPanel.querySelector('.acu-panel__actions .acu-badge')?.textContent).toContain('Dùng prompt mặc định');
     expect(promptPanel.querySelector('.acu-v2-vector-index-page__prompt-overview')).toBeNull();
     const mobileNavItems = Array.from(document.querySelectorAll('.acu-v2-fill-mode-page .acu-mobile-panel-nav__item'))
       .map(item => item.textContent?.trim());
-    expect(mobileNavItems).toEqual(['填表模式', '索引状态', '关键词', '向量服务', '提示词', '召回参数', '归档分块']);
+    expect(mobileNavItems).toEqual(['Chế độ điền bảng', 'Trạng thái chỉ mục', 'Từ khóa', 'Dịch vụ vector', 'Prompt', 'Tham số truy hồi', 'Lưu trữ và chia khối']);
 
     mount.__resetAcuV2MountForTests();
   });
@@ -313,7 +313,7 @@ describe('VectorIndexPage', () => {
   it('默认关键词提示词切换页面后仍显示默认 badge', async () => {
     const { mount, config } = await mountVectorIndexPage();
 
-    expect(document.querySelector('.acu-v2-vector-index-page')?.textContent || '').toContain('使用默认提示词');
+    expect(document.querySelector('.acu-v2-vector-index-page')?.textContent || '').toContain('Dùng prompt mặc định');
 
     const { useRouterStore } = await import('../../../src/presentation-v2/stores/router-store');
     useRouterStore().setActivePage('dashboard');
@@ -328,8 +328,8 @@ describe('VectorIndexPage', () => {
     await nextTick();
 
     const textAfterReturn = document.querySelector('.acu-v2-vector-index-page')?.textContent || '';
-    expect(textAfterReturn).toContain('使用默认提示词');
-    expect(textAfterReturn).not.toContain('已自定义提示词');
+    expect(textAfterReturn).toContain('Dùng prompt mặc định');
+    expect(textAfterReturn).not.toContain('Đã tùy chỉnh prompt');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -338,19 +338,19 @@ describe('VectorIndexPage', () => {
     const { mount } = await mountVectorIndexPage();
 
     const text = document.querySelector('.acu-v2-vector-index-page')?.textContent || '';
-    expect(text).toContain('召回参数');
-    expect(text).toContain('归档与分块');
-    expect(text).toContain('触发阈值');
-    expect(text).toContain('单请求最多行数');
-    expect(text).toContain('单请求字符预算');
-    expect(text).toContain('同时请求数');
-    expect(text).not.toContain('滚动增量写入暂不可用');
-    expect(text).not.toContain('折叠阈值 K');
-    expect(text).not.toContain('V2 写入闸门');
+    expect(text).toContain('Tham số truy hồi');
+    expect(text).toContain('Lưu trữ và chia khối');
+    expect(text).toContain('Ngưỡng kích hoạt');
+    expect(text).toContain('Số hàng tối đa mỗi yêu cầu');
+    expect(text).toContain('Ngân sách ký tự mỗi yêu cầu');
+    expect(text).toContain('Số yêu cầu đồng thời');
+    expect(text).not.toContain('Ghi gia tăng cuộn tạm thời không khả dụng');
+    expect(text).not.toContain('Ngưỡng gộp K');
+    expect(text).not.toContain('Cổng ghi V2');
     expect(document.querySelector('.acu-v2-vector-index-page__scope-allowlist')).toBeNull();
     const mobileNavItems = Array.from(document.querySelectorAll('.acu-v2-fill-mode-page .acu-mobile-panel-nav__item'))
       .map(item => item.textContent?.trim());
-    expect(mobileNavItems.slice(1)).toEqual(['索引状态', '关键词', '向量服务', '提示词', '召回参数', '归档分块']);
+    expect(mobileNavItems.slice(1)).toEqual(['Trạng thái chỉ mục', 'Từ khóa', 'Dịch vụ vector', 'Prompt', 'Tham số truy hồi', 'Lưu trữ và chia khối']);
 
     mount.__resetAcuV2MountForTests();
   });
@@ -373,7 +373,7 @@ describe('VectorIndexPage', () => {
 
     expect(document.querySelector('.acu-v2-vector-index-page .acu-page-header')).toBeNull();
     const globalTitle = document.querySelector('.acu-v2-app__page-title');
-    expect(globalTitle?.textContent?.trim()).toBe('填表模式');
+    expect(globalTitle?.textContent?.trim()).toBe('Chế độ điền bảng');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -382,17 +382,17 @@ describe('VectorIndexPage', () => {
     const { mount } = await mountVectorIndexPage();
 
     const keywordPanel = Array.from(document.querySelectorAll<HTMLElement>('.acu-v2-vector-index-page .acu-panel'))
-      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('关键词生成'))!;
+      .find(panel => panel.querySelector('.acu-panel__title')?.textContent?.includes('Tạo từ khóa'))!;
     const acuSelect = keywordPanel.querySelector('.acu-select') as HTMLElement | null;
     expect(acuSelect).not.toBeNull();
     const trigger = acuSelect!.querySelector('.acu-select__trigger') as HTMLButtonElement;
-    expect(trigger.textContent).toContain('跟随当前活动 API（kw-cheap）');
+    expect(trigger.textContent).toContain('Theo API đang hoạt động (kw-cheap)');
     trigger.click();
     await Promise.resolve();
 
     const labels = Array.from(acuSelect!.querySelectorAll<HTMLElement>('.acu-select__item'))
       .map(item => (item.textContent || '').trim());
-    expect(labels[0]).toBe('跟随当前活动 API（kw-cheap）');
+    expect(labels[0]).toBe('Theo API đang hoạt động (kw-cheap)');
     expect(labels).toContain('kw-cheap');
 
     mount.__resetAcuV2MountForTests();
@@ -402,7 +402,7 @@ describe('VectorIndexPage', () => {
     const { mount, archiveSummary, runTableUpdateCommit, updateLorebook } = await mountVectorIndexPage();
 
     const buildButton = Array.from(document.querySelectorAll('button'))
-      .find(b => /立即构建交火纪要索引/.test(b.textContent || '')) as HTMLButtonElement | undefined;
+      .find(b => /Dựng chỉ mục kỷ yếu giao hỏa ngay/.test(b.textContent || '')) as HTMLButtonElement | undefined;
     expect(buildButton).not.toBeUndefined();
 
     buildButton!.click();
@@ -415,25 +415,25 @@ describe('VectorIndexPage', () => {
     expect(updateLorebook).toHaveBeenCalledTimes(1);
 
     const text = document.body.textContent || '';
-    expect(text).toMatch(/交火索引快照重建完成/);
+    expect(text).toMatch(/Dựng lại snapshot chỉ mục giao hỏa hoàn tất/);
 
     mount.__resetAcuV2MountForTests();
   });
 
-  it('非破坏迁移旧索引入口不再渲染', async () => {
+  it('Di chuyển chỉ mục cũ (không phá hủy)入口不再渲染', async () => {
     const { mount, migrateLegacy } = await mountVectorIndexPage({
       healthReport: { legacyManifestCount: 1, issues: [] },
     });
-    expect(document.body.textContent || '').not.toContain('非破坏迁移旧索引');
+    expect(document.body.textContent || '').not.toContain('Di chuyển chỉ mục cũ (không phá hủy)');
     expect(migrateLegacy).not.toHaveBeenCalled();
     mount.__resetAcuV2MountForTests();
   });
 
-  it('清空临时缓存按钮只调用缓存清理服务，不删除当前索引', async () => {
+  it('Xóa bộ nhớ đệm tạm按钮只调用缓存清理服务，不Xóa chỉ mục hiện tại', async () => {
     const { mount, clearCache, deleteIndex } = await mountVectorIndexPage();
 
     const clearButton = Array.from(document.querySelectorAll('button'))
-      .find(b => /清空临时缓存/.test(b.textContent || '')) as HTMLButtonElement | undefined;
+      .find(b => /Xóa bộ nhớ đệm tạm/.test(b.textContent || '')) as HTMLButtonElement | undefined;
     expect(clearButton).not.toBeUndefined();
 
     clearButton!.click();
@@ -442,30 +442,30 @@ describe('VectorIndexPage', () => {
 
     expect(clearCache).toHaveBeenCalledTimes(1);
     expect(deleteIndex).not.toHaveBeenCalled();
-    expect(document.body.textContent || '').toContain('交火索引临时缓存与热缓存已清空');
+    expect(document.body.textContent || '').toContain('Đã xóa bộ nhớ đệm tạm và bộ nhớ đệm nóng của chỉ mục giao hỏa');
 
     mount.__resetAcuV2MountForTests();
   });
 
-  it('删除当前索引确认后调用当前聊天索引删除服务', async () => {
+  it('Xóa chỉ mục hiện tại确认后调用当前聊天索引删除服务', async () => {
     const { mount, deleteIndex } = await mountVectorIndexPage();
 
     const deleteButton = Array.from(document.querySelectorAll('button'))
-      .find(b => /删除当前索引/.test(b.textContent || '')) as HTMLButtonElement | undefined;
+      .find(b => /Xóa chỉ mục hiện tại/.test(b.textContent || '')) as HTMLButtonElement | undefined;
     expect(deleteButton).not.toBeUndefined();
 
     deleteButton!.click();
     const layer = await flushDialog();
-    expect(layer.textContent || '').toContain('删除当前聊天的交火索引');
+    expect(layer.textContent || '').toContain('Xóa chỉ mục giao hỏa của cuộc trò chuyện hiện tại');
     const confirmButton = Array.from(layer.querySelectorAll<HTMLButtonElement>('button'))
-      .find(button => button.textContent?.includes('删除索引'));
+      .find(button => button.textContent?.includes('Xóa chỉ mục'));
     expect(confirmButton).not.toBeUndefined();
     confirmButton!.click();
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
 
     expect(deleteIndex).toHaveBeenCalledTimes(1);
-    expect(document.body.textContent || '').toContain('当前聊天的交火索引已删除');
+    expect(document.body.textContent || '').toContain('Đã xóa chỉ mục giao hỏa của cuộc trò chuyện hiện tại');
 
     mount.__resetAcuV2MountForTests();
   });
@@ -487,7 +487,7 @@ describe('VectorIndexPage', () => {
 
     const saveButton = page.querySelector('.acu-v2-vector-api-form__actions button') as HTMLButtonElement | null;
     expect(saveButton).not.toBeNull();
-    expect(saveButton!.textContent || '').toContain('保存');
+    expect(saveButton!.textContent || '').toContain('Lưu');
     saveButton!.click();
     await new Promise(r => setTimeout(r, 0));
 
@@ -503,7 +503,7 @@ describe('VectorIndexPage', () => {
     expect(document.querySelector('.acu-v2-vector-index-page .acu-prompt-segs')).toBeNull();
 
     const editButton = Array.from(document.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('编辑提示词')) as HTMLButtonElement | undefined;
+      .find(btn => btn.textContent?.includes('Sửa prompt')) as HTMLButtonElement | undefined;
     expect(editButton).not.toBeUndefined();
     editButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -517,7 +517,7 @@ describe('VectorIndexPage', () => {
     await new Promise(r => setTimeout(r, 0));
 
     const saveButton = Array.from(drawer!.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('保存提示词')) as HTMLButtonElement | undefined;
+      .find(btn => btn.textContent?.includes('Lưu prompt')) as HTMLButtonElement | undefined;
     expect(saveButton).not.toBeUndefined();
     saveButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -532,7 +532,7 @@ describe('VectorIndexPage', () => {
     const { mount } = await mountVectorIndexPage();
 
     const editButton = Array.from(document.querySelectorAll('button'))
-      .find(btn => btn.textContent?.includes('编辑提示词')) as HTMLButtonElement | undefined;
+      .find(btn => btn.textContent?.includes('Sửa prompt')) as HTMLButtonElement | undefined;
     expect(editButton).not.toBeUndefined();
     editButton!.click();
     await new Promise(r => setTimeout(r, 0));
@@ -550,7 +550,7 @@ describe('VectorIndexPage', () => {
     appClose!.click();
     const layer = await flushDialog();
 
-    expect(layer.textContent || '').toContain('你有未保存的关键词生成提示词修改');
+    expect(layer.textContent || '').toContain('Bạn có thay đổi prompt tạo từ khóa chưa lưu');
     expect(document.getElementById('acu-app-v2')!.style.display).not.toBe('none');
     expect(document.querySelector('.acu-v2-drawer')).not.toBeNull();
 
@@ -562,7 +562,7 @@ describe('VectorIndexPage', () => {
     const alertSpy = vi.spyOn(window, 'alert');
 
     const row = Array.from(document.querySelectorAll('.acu-v2-vector-index-page .acu-form-row'))
-      .find(el => /固定写入/.test(el.textContent || ''));
+      .find(el => /Ghi cố định/.test(el.textContent || ''));
     const input = row?.querySelector('input') as HTMLInputElement | null;
     expect(input).not.toBeNull();
     expect(input!.min).toBe('1');
@@ -581,7 +581,7 @@ describe('VectorIndexPage', () => {
       .map(item => item.text)
       .join('\n');
     expect(warningText)
-      .toContain('固定写入必须是正整数，已重置为默认值 50。');
+      .toContain('Giá trị ghi cố định phải là số nguyên dương, đã đặt lại về mặc định 50.');
     expect(config.recentFixedInjectCount).toBe(50);
     expect(input!.value).toBe('50');
     expect(saveSettings).toHaveBeenCalled();
@@ -593,7 +593,7 @@ describe('VectorIndexPage', () => {
     const { mount, config, saveSettings } = await mountVectorIndexPage();
 
     const row = Array.from(document.querySelectorAll('.acu-v2-vector-index-page .acu-form-row'))
-      .find(el => /单请求最多行数/.test(el.textContent || ''));
+      .find(el => /Số hàng tối đa mỗi yêu cầu/.test(el.textContent || ''));
     const input = row?.querySelector('input') as HTMLInputElement | null;
     expect(input).not.toBeNull();
 
@@ -606,14 +606,14 @@ describe('VectorIndexPage', () => {
     expect(saveSettings).toHaveBeenCalled();
 
     const charRow = Array.from(document.querySelectorAll('.acu-v2-vector-index-page .acu-form-row'))
-      .find(el => /单请求字符预算/.test(el.textContent || ''));
+      .find(el => /Ngân sách ký tự mỗi yêu cầu/.test(el.textContent || ''));
     const charInput = charRow?.querySelector('input') as HTMLInputElement | null;
     expect(charInput).not.toBeNull();
     charInput!.value = '1234';
     charInput!.dispatchEvent(new Event('change', { bubbles: true }));
 
     const concurrencyRow = Array.from(document.querySelectorAll('.acu-v2-vector-index-page .acu-form-row'))
-      .find(el => /同时请求数/.test(el.textContent || ''));
+      .find(el => /Số yêu cầu đồng thời/.test(el.textContent || ''));
     const concurrencyInput = concurrencyRow?.querySelector('input') as HTMLInputElement | null;
     expect(concurrencyInput).not.toBeNull();
     concurrencyInput!.value = '2';
@@ -629,7 +629,7 @@ describe('VectorIndexPage', () => {
   it('高级面板不再暴露 V2 writer kill switch 与 scope allowlist', async () => {
     const { mount } = await mountVectorIndexPage();
     expect(document.querySelector('.acu-v2-vector-index-page__scope-allowlist')).toBeNull();
-    expect(document.body.textContent || '').not.toContain('V2 写入闸门');
+    expect(document.body.textContent || '').not.toContain('Cổng ghi V2');
     mount.__resetAcuV2MountForTests();
   });
 });

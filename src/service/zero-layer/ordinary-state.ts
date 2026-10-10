@@ -10,16 +10,16 @@ export function readOrdinaryZeroLayerState_ACU(allowActive = false) {
   const chat = getChatArray_ACU();
   const key = JSON.stringify([getCurrentCharacterCardKey_ACU(), getActiveChatStorageIdentity_ACU(chat)]);
   if (pendingZeroLayerPersistence_ACU.has(key)) {
-    throw new ZeroLayerError_ACU('persist-unknown', '保存结果未知，请显式从服务器回读恢复，禁止普通生成。');
+    throw new ZeroLayerError_ACU('persist-unknown', 'Kết quả lưu chưa rõ, hãy đọc lại từ máy chủ để khôi phục rõ ràng, cấm tạo thường.');
   }
   if (!chat.some(message => message && typeof message === 'object'
     && Object.prototype.hasOwnProperty.call(message, ZERO_LAYER_CARRIER_FIELD_ACU))) return null;
   const context = captureZeroLayerCarrier_ACU();
   const envelope = readZeroLayerCarrier_ACU(context);
-  if (!envelope) throw new ZeroLayerError_ACU('persist-unknown', '载体保存尚未确认，禁止普通生成。');
+  if (!envelope) throw new ZeroLayerError_ACU('persist-unknown', 'Việc lưu vật mang chưa được xác nhận, cấm tạo thường.');
   if (allowActive && envelope.enabled && !envelope.exitManifest) return null;
   if (envelope.exitManifest?.phase !== 'committed') {
-    throw new ZeroLayerError_ACU('mode-disabled', '普通生成前必须显式完成退出桥接；prepared 意图或仅关闭模式不能放行。');
+    throw new ZeroLayerError_ACU('mode-disabled', 'Trước khi tạo thường phải hoàn tất cầu nối thoát một cách rõ ràng; ý định prepared hoặc chỉ tắt chế độ thì không được cho qua.');
   }
   return { context, envelope };
 }

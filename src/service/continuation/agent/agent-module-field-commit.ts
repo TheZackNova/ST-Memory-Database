@@ -161,42 +161,42 @@ function inList_ACU(value: unknown, list: readonly string[]): boolean { return t
 
 function evidenceRepair_ACU(evidenceThrough: number, evidence?: ReadonlySet<number>): string {
   const indexes = evidence ? [...evidence].filter(index => index <= evidenceThrough).sort((a, b) => a - b) : [];
-  return `；本次引用上限 ${evidenceThrough}，可核对的 AI 正文楼层号：${indexes.join(', ') || '无'}。使用正文标注的原始楼层号，不要按第几条 AI 回复重新计数；须核对对应正文，不得仅为通过校验换号`;
+  return `; giới hạn trích dẫn lần này ${evidenceThrough}, số tầng chính văn AI có thể đối chiếu: ${indexes.join(', ') || 'không có'}. Dùng số tầng gốc được đánh dấu trong chính văn, đừng đếm lại theo thứ tự câu trả lời AI; phải đối chiếu chính văn tương ứng, không được đổi số chỉ để qua kiểm tra`;
 }
 
 /** 显式栏目逐栏校验；null、合法空值与缺栏不可混淆。楼层上限 evidenceThrough 是本次派工目标楼，不是结算水位。 */
 function fieldProblem_ACU(module: Module_ACU, field: string, value: unknown, evidenceThrough: number, evidence?: ReadonlySet<number>): string | null {
   switch (module) {
     case 'hooks':
-      if (field === 'status') return inList_ACU(value, AGENT_HOOK_STATUSES_ACU) ? null : 'status 枚举非法';
-      if (field === 'importance') return inList_ACU(value, AGENT_HOOK_IMPORTANCES_ACU) ? null : 'importance 枚举非法';
-      if (field === 'plantedIndex') return index_ACU(value) && (value as number) <= evidenceThrough && (!evidence || evidence.has(value as number)) ? null : 'plantedIndex 必须引用已出现的 AI 正文楼层' + evidenceRepair_ACU(evidenceThrough, evidence);
-      return field === 'summary' ? (nonempty_ACU(value) ? null : 'summary 必须为非空文本') : (text_ACU(value) ? null : '必须为字符串');
+      if (field === 'status') return inList_ACU(value, AGENT_HOOK_STATUSES_ACU) ? null : 'enum status không hợp lệ';
+      if (field === 'importance') return inList_ACU(value, AGENT_HOOK_IMPORTANCES_ACU) ? null : 'enum importance không hợp lệ';
+      if (field === 'plantedIndex') return index_ACU(value) && (value as number) <= evidenceThrough && (!evidence || evidence.has(value as number)) ? null : 'plantedIndex phải trích dẫn tầng chính văn AI đã xuất hiện' + evidenceRepair_ACU(evidenceThrough, evidence);
+      return field === 'summary' ? (nonempty_ACU(value) ? null : 'summary phải là văn bản không rỗng') : (text_ACU(value) ? null : 'Phải là chuỗi');
     case 'infoGap':
-      if (field === 'revealStatus') return inList_ACU(value, AGENT_REVEAL_STATUSES_ACU) ? null : 'revealStatus 枚举非法';
-      if (field === 'revealIndex') return value === null || (index_ACU(value) && (value as number) <= evidenceThrough && (!evidence || evidence.has(value as number))) ? null : 'revealIndex 必须为空或已出现的 AI 正文楼层' + evidenceRepair_ACU(evidenceThrough, evidence);
-      if (field === 'characterKnowledge') return Array.isArray(value) && value.every(item => record_ACU(item) && nonempty_ACU(item.name) && text_ACU(item.knows)) ? null : 'characterKnowledge 需要带 name / knows 的数组；SQL 列名 character_knowledge，值用单引号包裹完整 JSON 数组，如 \'[{"name":"角色","knows":"亲眼所见"}]\'；JSON 结构双引号不加反斜杠，字符串内容中的双引号按 JSON 规则转义，SQL 文本内部单引号须写成两个单引号';
-      return field === 'topic' ? (nonempty_ACU(value) ? null : 'topic 必须为非空文本') : (text_ACU(value) ? null : '必须为字符串');
+      if (field === 'revealStatus') return inList_ACU(value, AGENT_REVEAL_STATUSES_ACU) ? null : 'enum revealStatus không hợp lệ';
+      if (field === 'revealIndex') return value === null || (index_ACU(value) && (value as number) <= evidenceThrough && (!evidence || evidence.has(value as number))) ? null : 'revealIndex phải rỗng hoặc là tầng chính văn AI đã xuất hiện' + evidenceRepair_ACU(evidenceThrough, evidence);
+      if (field === 'characterKnowledge') return Array.isArray(value) && value.every(item => record_ACU(item) && nonempty_ACU(item.name) && text_ACU(item.knows)) ? null : 'characterKnowledge cần là mảng có name / knows; tên cột SQL là character_knowledge, giá trị là mảng JSON đầy đủ bao bằng dấu nháy đơn, ví dụ \'[{"name":"nhân vật","knows":"tận mắt thấy"}]\'; dấu nháy kép của cấu trúc JSON không thêm dấu gạch chéo ngược, dấu nháy kép trong nội dung chuỗi thoát theo quy tắc JSON, dấu nháy đơn bên trong văn bản SQL phải viết thành hai dấu nháy đơn';
+      return field === 'topic' ? (nonempty_ACU(value) ? null : 'topic phải là văn bản không rỗng') : (text_ACU(value) ? null : 'Phải là chuỗi');
     case 'chronology':
-      if (field === 'precision') return inList_ACU(value, AGENT_CHRONOLOGY_PRECISIONS_ACU) ? null : 'precision 枚举非法';
+      if (field === 'precision') return inList_ACU(value, AGENT_CHRONOLOGY_PRECISIONS_ACU) ? null : 'enum precision không hợp lệ';
       if (field === 'evidenceIndexes') {
         const indexes = normalizeEvidenceIndexes_ACU(value);
-        return indexes?.length && indexes.every(item => item <= evidenceThrough && (!evidence || evidence.has(item))) ? null : 'evidenceIndexes 必须是非空、已出现的 AI 正文楼层数组' + evidenceRepair_ACU(evidenceThrough, evidence);
+        return indexes?.length && indexes.every(item => item <= evidenceThrough && (!evidence || evidence.has(item))) ? null : 'evidenceIndexes phải là mảng không rỗng gồm các tầng chính văn AI đã xuất hiện' + evidenceRepair_ACU(evidenceThrough, evidence);
       }
-      return nonempty_ACU(value) ? null : '时间事实栏目必须为非空文本';
+      return nonempty_ACU(value) ? null : 'Cột sự thật thời gian phải là văn bản không rỗng';
     case 'storyArc':
-      if (copiedStoryArcExample_ACU(field, value)) return `${field} 不能照抄总纲格式范例；请填写本故事的具体内容`;
-      if (field === 'scope') return inList_ACU(value, AGENT_STORY_ARC_SCOPES_ACU) ? null : 'scope 枚举非法';
-      if (field === 'status') return inList_ACU(value, AGENT_STORY_ARC_STATUSES_ACU) ? null : 'status 枚举非法';
-      if (field === 'narrativeRole') return inList_ACU(value, AGENT_VOLUME_NARRATIVE_ROLES_ACU) ? null : 'narrativeRole 枚举非法';
-      if (field === 'stageNumbers') return Array.isArray(value) && value.every(item => Number.isInteger(item) && item >= 1) ? null : 'stageNumbers 必须是正整数数组';
-      if (field === 'completionStageNumber') return value === null || (Number.isInteger(value) && (value as number) >= 1) ? null : 'completionStageNumber 必须为正整数或 null';
-      if (field === 'targetStageRange') return record_ACU(value) && Number.isInteger(value.min) && (value.min as number) >= 1 && Number.isInteger(value.max) && (value.max as number) >= (value.min as number) ? null : 'targetStageRange 需要 min/max 正整数且 max≥min';
-      if (field === 'sustainingThreads' || field === 'payoffTargets') return stringArray_ACU(value) ? null : '必须是非空字符串数组';
-      return ['title', 'direction'].includes(field) ? (nonempty_ACU(value) ? null : '必须为非空文本') : (text_ACU(value) ? null : '必须为字符串');
+      if (copiedStoryArcExample_ACU(field, value)) return `${field} không được chép nguyên ví dụ định dạng của tổng cương; hãy điền nội dung cụ thể của câu chuyện này`;
+      if (field === 'scope') return inList_ACU(value, AGENT_STORY_ARC_SCOPES_ACU) ? null : 'enum scope không hợp lệ';
+      if (field === 'status') return inList_ACU(value, AGENT_STORY_ARC_STATUSES_ACU) ? null : 'enum status không hợp lệ';
+      if (field === 'narrativeRole') return inList_ACU(value, AGENT_VOLUME_NARRATIVE_ROLES_ACU) ? null : 'enum narrativeRole không hợp lệ';
+      if (field === 'stageNumbers') return Array.isArray(value) && value.every(item => Number.isInteger(item) && item >= 1) ? null : 'stageNumbers phải là mảng số nguyên dương';
+      if (field === 'completionStageNumber') return value === null || (Number.isInteger(value) && (value as number) >= 1) ? null : 'completionStageNumber phải là số nguyên dương hoặc null';
+      if (field === 'targetStageRange') return record_ACU(value) && Number.isInteger(value.min) && (value.min as number) >= 1 && Number.isInteger(value.max) && (value.max as number) >= (value.min as number) ? null : 'targetStageRange cần min/max là số nguyên dương và max≥min';
+      if (field === 'sustainingThreads' || field === 'payoffTargets') return stringArray_ACU(value) ? null : 'phải là mảng chuỗi không rỗng';
+      return ['title', 'direction'].includes(field) ? (nonempty_ACU(value) ? null : 'Phải là văn bản không rỗng') : (text_ACU(value) ? null : 'Phải là chuỗi');
     case 'webRefs':
-      if (field === 'tags') return Array.isArray(value) && value.every(nonempty_ACU) ? null : 'tags 必须是非空字符串数组';
-      return ['title', 'brief'].includes(field) ? (nonempty_ACU(value) ? null : '必须为非空文本') : (text_ACU(value) ? null : '必须为字符串');
+      if (field === 'tags') return Array.isArray(value) && value.every(nonempty_ACU) ? null : 'tags phải là mảng chuỗi không rỗng';
+      return ['title', 'brief'].includes(field) ? (nonempty_ACU(value) ? null : 'Phải là văn bản không rỗng') : (text_ACU(value) ? null : 'Phải là chuỗi');
   }
 }
 
@@ -331,7 +331,7 @@ export function planAgentModuleFieldCommit_ACU(
   for (const intent of intents) {
     const module = intent.module as Module_ACU;
     if (!modules.includes(intent.module) || !['hooks', 'infoGap', 'storyArc', 'chronology', 'webRefs'].includes(module)) {
-      reject(`${module}#${intent.id || '(无 ID)'}`, '角色无权写入该模块'); continue;
+      reject(`${module}#${intent.id || '(không có ID)'}`, 'Vai trò không có quyền ghi mô-đun này'); continue;
     }
     if (intent.kind === 'insert' && !intent.id) {
       const taken = moduleTakenIds_ACU(module, snapshot, fields, drafts, reserved);
@@ -352,8 +352,8 @@ export function planAgentModuleFieldCommit_ACU(
       else intent.id = nextAgentWebRefId_ACU(snapshot.webRefs, new Set([...reserved, ...Object.keys(fields.records.webRefs ?? {})]));
     }
     const id = intent.id;
-    const path = `${module}#${id || '(无 ID)'}`;
-    if (!id || id.includes('#') || ['__proto__', 'prototype', 'constructor'].includes(id) || id.length > 128) { reject(path, '条目 ID 无效'); continue; }
+    const path = `${module}#${id || '(không có ID)'}`;
+    if (!id || id.includes('#') || ['__proto__', 'prototype', 'constructor'].includes(id) || id.length > 128) { reject(path, 'ID mục không hợp lệ'); continue; }
     if (module === 'storyArc' && intent.kind === 'insert') {
       if (intent.fields.scope === undefined && /^STORY-\d+$/.test(id)) intent.fields.scope = 'story';
       if (intent.fields.scope === undefined && /^VOL-\d+$/.test(id)) intent.fields.scope = 'volume';
@@ -375,9 +375,9 @@ export function planAgentModuleFieldCommit_ACU(
     if (intent.kind === 'insert' && (existing || record || drafts.has(key) || reserved.has(id))) { reject(path, 'id_exists'); continue; }
     if (intent.kind !== 'insert' && !existing && !record && !drafts.has(key)) {
       // DELETE 的目标已不存在即已达到删除效果：单独标记，运行时不把它记为待修复，提示也禁止 INSERT 重建。
-      reject(path, intent.kind === 'delete' ? 'already_absent: 删除目标不存在，视为已删除' : 'not_found'); continue;
+      reject(path, intent.kind === 'delete' ? 'already_absent: mục tiêu xóa không tồn tại, coi như đã xóa' : 'not_found'); continue;
     }
-    if (existing?.retired && intent.kind !== 'delete') { reject(path, 'retired: 已退役条目不可修改'); continue; }
+    if (existing?.retired && intent.kind !== 'delete') { reject(path, 'retired: mục đã cho nghỉ không thể sửa'); continue; }
     if (intent.kind === 'delete') {
       if (existing) {
         try { working = applyDomain_ACU(working, module, id, {}, 'delete', intent.reason, completedStages, now, evidenceThrough); }
@@ -406,7 +406,7 @@ export function planAgentModuleFieldCommit_ACU(
         continue;
       }
       if ((field === 'plantedIndex' && existing) || (field === 'scope' && existing && existing.scope !== raw)) {
-        reject(fieldPath, '已登记的不可变栏目不能改写'); continue;
+        reject(fieldPath, 'Cột bất biến đã đăng ký không thể ghi đè'); continue;
       }
       const problem = fieldProblem_ACU(module, field, raw, evidenceThrough, evidence);
       if (problem) { reject(fieldPath, problem); continue; }
@@ -416,7 +416,7 @@ export function planAgentModuleFieldCommit_ACU(
       if (module !== 'webRefs') reject(`${path}.pageRef`, 'field_forbidden');
       else {
         const page = resolvePage?.(intent.pageRef) ?? null;
-        if (!page || page.sourceStatus !== 'ok' || !nonempty_ACU(page.url) || !nonempty_ACU(page.title)) reject(`${path}.pageRef`, '页面句柄未在本次派工成功抓取');
+        if (!page || page.sourceStatus !== 'ok' || !nonempty_ACU(page.url) || !nonempty_ACU(page.title)) reject(`${path}.pageRef`, 'Handle trang chưa được tải thành công trong lần giao việc này');
         else Object.assign(writable, { url: page.url.trim(), source: page.source, query: page.query, sourceStatus: page.sourceStatus });
       }
     }
@@ -434,7 +434,7 @@ export function planAgentModuleFieldCommit_ACU(
         writable.revealIndex = null;
       } else if ((status === 'unrevealed' && reveal !== null) || (status !== 'unrevealed' && reveal === null)) {
         for (const field of ['revealStatus', 'revealIndex']) if (Object.prototype.hasOwnProperty.call(writable, field)) {
-          reject(`${path}.${field}`, 'consistency_group: 揭示状态与楼层必须一致'); delete writable[field];
+          reject(`${path}.${field}`, 'consistency_group: trạng thái tiết lộ và tầng phải nhất quán'); delete writable[field];
         }
       }
     }
@@ -561,19 +561,19 @@ export function commitAgentModuleFieldWrites_ACU(input: {
     };
     if (!isCurrent() || !storage.isActive(input.chat) || !input.chat[input.targetIndex] || input.chat[input.targetIndex].is_user === true || input.targetIndex !== input.chat.length - 1) {
       const target = input.chat[input.targetIndex];
-      const cause = input.isCurrent?.() === false ? '派工租约已失效'
-        : !storage.isActive(input.chat) ? '活动聊天身份已变化'
-        : !target ? '目标消息不存在'
-        : target.is_user === true ? '目标已不是 AI 正文'
-        : input.targetIndex !== input.chat.length - 1 ? '末楼位置已变化'
-        : input.dispatchTarget && target !== input.dispatchTarget.message ? '目标消息对象已替换'
-        : input.dispatchTarget && readMessageSwipeId_ACU(target) !== input.dispatchTarget.swipeId ? '目标 Swipe 已变化'
-        : '派工目标已失效';
-      receipt.rejected.push({ path: 'chat', reason: `当前聊天或目标楼层已变化：${cause}。停止旧任务，重新取得当前聊天与正文快照，不重发 SQL` });
+      const cause = input.isCurrent?.() === false ? 'Hợp đồng giao việc đã hết hiệu lực'
+        : !storage.isActive(input.chat) ? 'Danh tính cuộc trò chuyện đang hoạt động đã thay đổi'
+        : !target ? 'Tin nhắn đích không tồn tại'
+        : target.is_user === true ? 'Đích đã không còn là chính văn AI'
+        : input.targetIndex !== input.chat.length - 1 ? 'Vị trí tầng cuối đã thay đổi'
+        : input.dispatchTarget && target !== input.dispatchTarget.message ? 'Đối tượng tin nhắn đích đã bị thay thế'
+        : input.dispatchTarget && readMessageSwipeId_ACU(target) !== input.dispatchTarget.swipeId ? 'Swipe đích đã thay đổi'
+        : 'Đích giao việc đã hết hiệu lực';
+      receipt.rejected.push({ path: 'chat', reason: `Cuộc trò chuyện hiện tại hoặc tầng đích đã thay đổi: ${cause}. Hãy dừng tác vụ cũ, lấy lại snapshot cuộc trò chuyện và chính văn hiện tại, không gửi lại SQL` });
       receipt.partials = null; receipt.revisions = null; return receipt;
     }
     if (folded.salvaged || folded.candidates.some(item => !item.valid)) {
-      receipt.rejected.push({ path: 'frame', reason: '资料帧损坏，拒绝在宽容抢救结果上写入' });
+      receipt.rejected.push({ path: 'frame', reason: 'Khung tư liệu bị hỏng, từ chối ghi lên kết quả cứu hộ khoan dung' });
       receipt.partials = null; receipt.revisions = null; return receipt;
     }
     parsed.intents = parsed.intents.filter(intent => {
@@ -584,8 +584,8 @@ export function commitAgentModuleFieldWrites_ACU(input: {
       // 自身已确认保存可沿用派工读集；外部提交不能被新行 revision=0 绕过。
       if (expected === current || (window?.head === current
         && expected >= window.base && expected <= window.head)) return true;
-      receipt.rejected.push({ path: `${intent.module}#${intent.id || '(无 ID)'}`,
-        reason: `revision_conflict: ${intent.module} 的 revision 已变化，expected=${expected}, actual=${current}` });
+      receipt.rejected.push({ path: `${intent.module}#${intent.id || '(không có ID)'}`,
+        reason: `revision_conflict: revision của ${intent.module} đã thay đổi, expected=${expected}, actual=${current}` });
       return false;
     });
     // 窗口 head 与当前权威修订号不符，说明有本派工之外的写入：基线重置到最新版，之后只认模型重新读到的号。
@@ -638,15 +638,15 @@ export function commitAgentModuleFieldWrites_ACU(input: {
         for (const id of ids) expected.set(`${batch.module}#${id}`, view.readFieldRecord(batch.module, id));
       }
       const target = { ...plan.snapshot, settledThroughIndex: base.settledThroughIndex, revisions: { ...plan.snapshot.revisions, ...delta.revisions }, updatedAt: now };
-      if (canonical_ACU({ ...view.readSnapshot(), updatedAt: now }) !== canonical_ACU(target)) throw new Error('SQL 复算领域快照与领域校验结果不一致');
+      if (canonical_ACU({ ...view.readSnapshot(), updatedAt: now }) !== canonical_ACU(target)) throw new Error('Snapshot miền tính lại bằng SQL không nhất quán với kết quả kiểm tra miền');
       const scratch = input.chat.map(message => message && typeof message === 'object' ? { ...message } : message);
       const preview = planAgentModuleCommitDelta_ACU(scratch, input.targetIndex, delta, agentModuleFrameDeps_ACU(), null, now);
-      if (!preview.changed) throw new Error('资料帧未能规划出可回读的写入');
+      if (!preview.changed) throw new Error('Khung tư liệu không lập được bản ghi có thể đọc lại');
       for (const assignment of preview.assignments) (scratch[assignment.index] as Record<string, unknown>)[AGENT_MODULE_FIELD_ACU] = assignment.value;
       const projected = foldAgentModuleSnapshot_ACU(scratch, agentModuleFrameDeps_ACU());
       if (projected.salvaged || projected.candidates.some(item => !item.valid)
         || canonical_ACU({ ...projected.snapshot, updatedAt: now }) !== canonical_ACU({ ...view.readSnapshot(), updatedAt: now })
-        || !verifyRecords_ACU(projected.fields, expected)) throw new Error('楼层帧与 SQL 逐栏复算不一致');
+        || !verifyRecords_ACU(projected.fields, expected)) throw new Error('Khung tầng không nhất quán với việc tính lại từng cột bằng SQL');
     } catch (error) {
       receipt.rejected.push({ path: 'sql', reason: errorText_ACU(error) });
       receipt.sqlDiagnostics = errorText_ACU(error);

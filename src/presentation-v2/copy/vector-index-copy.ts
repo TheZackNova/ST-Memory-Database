@@ -1,39 +1,39 @@
 export const vectorIndexCopy = {
   nav: {
-    status: "索引状态",
-    keyword: "关键词",
-    api: "向量服务",
-    prompt: "提示词",
-    recall: "召回参数",
-    archive: "归档分块",
+    status: "Trạng thái chỉ mục",
+    keyword: "Từ khóa",
+    api: "Dịch vụ vector",
+    prompt: "Prompt",
+    recall: "Tham số truy hồi",
+    archive: "Lưu trữ và chia khối",
   },
   panels: {
     status: {
-      title: "索引状态",
-      description: "显示当前索引信息。清缓存仅清临时数据；删除索引需重新构建。",
+      title: "Trạng thái chỉ mục",
+      description: "Hiển thị thông tin chỉ mục hiện tại. Xóa bộ nhớ đệm chỉ xóa dữ liệu tạm; xóa chỉ mục thì phải dựng lại.",
     },
     keyword: {
-      title: "关键词生成",
-      description: "发送前用轻量AI生成关键词辅助召回。失败时回退，不影响发送。",
+      title: "Tạo từ khóa",
+      description: "Trước khi gửi, dùng AI nhẹ để tạo từ khóa hỗ trợ truy hồi. Nếu thất bại sẽ lùi về cách cũ, không ảnh hưởng việc gửi.",
     },
     api: {
       title: "Embedding / Rerank",
       description:
-        "向量表格与交火模式共用的向量配置。Embedding 负责向量召回；Rerank 在交火模式中为可选增强，在向量表格中必填。",
+        "Cấu hình vector dùng chung cho bảng vector và chế độ giao hỏa. Embedding phụ trách truy hồi vector; Rerank là tùy chọn tăng cường trong chế độ giao hỏa, và bắt buộc trong bảng vector.",
     },
     prompt: {
-      title: "关键词生成提示词",
-      description: "控制AI如何理关键词。建议保持默认。",
+      title: "Prompt tạo từ khóa",
+      description: "Điều khiển cách AI hiểu từ khóa. Nên giữ mặc định.",
     },
     recall: {
-      title: "召回参数",
+      title: "Tham số truy hồi",
       description:
-        "控制纪要启用召回的条件、每次注入条数及固定注入条数。配置错误（如候选上限 < TopK）会自动纠正；建议保持「触发阈值 ≥ 最近固定 + TopK」，避免无效工作。",
+        "Điều khiển điều kiện bật truy hồi kỷ yếu, số mục chèn mỗi lần và số mục chèn cố định. Cấu hình sai (như giới hạn ứng viên < TopK) sẽ được tự sửa; nên giữ \"ngưỡng kích hoạt ≥ số mục cố định gần nhất + TopK\" để tránh làm việc vô ích.",
     },
     archive: {
-      title: "归档与分块",
+      title: "Lưu trữ và chia khối",
       description:
-        "纪要保存后自动切句并分批上传。值越小召回越精细，分片越多。并发上限低会让归档变慢。",
+        "Sau khi lưu kỷ yếu sẽ tự tách câu và tải lên theo lô. Giá trị càng nhỏ thì truy hồi càng tinh, số mảnh càng nhiều. Giới hạn đồng thời thấp sẽ làm việc lưu trữ chậm hơn.",
     },
   },
 };

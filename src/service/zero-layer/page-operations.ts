@@ -20,6 +20,6 @@ export function registerZeroLayerPageOperations_ACU(operations: ZeroLayerPageOpe
 }
 
 export function getZeroLayerPageOperations_ACU(): ZeroLayerPageOperations_ACU {
-  if (!operations_ACU) throw new ZeroLayerError_ACU('mode-disabled', '零层页面操作尚未装配。');
+  if (!operations_ACU) throw new ZeroLayerError_ACU('mode-disabled', 'Thao tác trang Tầng 0 chưa được lắp ráp.');
   return operations_ACU;
 }

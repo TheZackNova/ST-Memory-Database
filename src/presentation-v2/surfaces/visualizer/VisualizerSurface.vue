@@ -4,7 +4,7 @@
     data-acu-visualizer-surface
     @pointerdown.capture="handleSurfacePointerDown"
   >
-    <aside class="acu-visualizer-surface__sidebar" aria-label="数据库导航">
+    <aside class="acu-visualizer-surface__sidebar" aria-label="Điều hướng CSDL">
       <VisualizerNavigation
         :sheet-items="visualizer.sheetItems"
         :current-sheet-key="visualizer.currentSheetKey"
@@ -18,34 +18,34 @@
 
     <section
       class="acu-visualizer-surface__main"
-      aria-label="数据库编辑器主区域"
+      aria-label="Khu vực chính của trình chỉnh sửa CSDL"
     >
       <header class="acu-visualizer-surface__topbar">
         <div
           class="acu-visualizer-surface__topbar-context"
-          aria-label="数据库编辑器状态"
+          aria-label="Trạng thái trình chỉnh sửa CSDL"
         >
           <AcuIconButton
             class="acu-visualizer-surface__mobile-menu"
             icon="fa-solid fa-bars"
-            title="打开数据库导航"
-            aria-label="打开数据库导航"
+            title="Mở điều hướng CSDL"
+            aria-label="Mở điều hướng CSDL"
             :aria-expanded="isMobileNavOpen"
             @click="openMobileNav"
           />
           <div
             class="acu-visualizer-surface__context-items"
-            aria-label="当前编辑上下文"
+            aria-label="Ngữ cảnh đang chỉnh sửa"
           >
             <div class="acu-visualizer-surface__context-item">
-              <span>当前模板</span>
+              <span>Mẫu hiện tại</span>
               <strong>{{ templatePresetLabel }}</strong>
             </div>
             <div
               v-if="visualizer.currentSheetKey && visualizer.currentSheet"
               class="acu-visualizer-surface__context-item"
             >
-              <span>当前表</span>
+              <span>Bảng hiện tại</span>
               <strong>{{ currentSheetName }}</strong>
             </div>
           </div>
@@ -54,13 +54,13 @@
             class="acu-visualizer-surface__context-badge"
             variant="warning"
           >
-            外部数据已变化
+            Dữ liệu bên ngoài đã thay đổi
           </AcuBadge>
           <AcuBadge
             v-else-if="visualizer.dirty"
             class="acu-visualizer-surface__context-badge"
             variant="warning"
-            >未保存</AcuBadge
+            >Chưa lưu</AcuBadge
           >
         </div>
 
@@ -69,15 +69,15 @@
           class="acu-visualizer-surface__mode-tabs"
           :options="modes"
           :model-value="visualizer.mode"
-          aria-label="编辑模式"
+          aria-label="Chế độ chỉnh sửa"
           @update:model-value="setWorkspaceMode"
         />
 
         <AcuIconButton
           class="acu-visualizer-surface__close"
           icon="fa-solid fa-xmark"
-          title="关闭数据库编辑器"
-          aria-label="关闭数据库编辑器"
+          title="Đóng trình chỉnh sửa CSDL"
+          aria-label="Đóng trình chỉnh sửa CSDL"
           @click="emit('close')"
         />
       </header>
@@ -87,13 +87,13 @@
         tone="warning"
         class="acu-visualizer-surface__conflict"
       >
-        当前聊天的数据在编辑器打开后发生变化。重新载入会丢弃当前草稿；保留草稿则继续编辑，下一次保存会以这里的内容为准。
+        Dữ liệu của cuộc trò chuyện hiện tại đã thay đổi sau khi mở trình chỉnh sửa. Tải lại sẽ bỏ bản nháp hiện tại; giữ bản nháp thì tiếp tục sửa, lần lưu tiếp theo sẽ lấy nội dung ở đây làm chuẩn.
         <span class="acu-visualizer-surface__conflict-actions">
           <AcuButton size="sm" @click="data.forceReloadFromCurrentContext"
-            >重新载入外部数据</AcuButton
+            >Tải lại dữ liệu bên ngoài</AcuButton
           >
           <AcuButton size="sm" @click="visualizer.clearExternalRefreshConflict"
-            >保留当前草稿</AcuButton
+            >Giữ bản nháp hiện tại</AcuButton
           >
         </span>
       </AcuInfoBanner>
@@ -102,26 +102,26 @@
         ref="workspaceRef"
         class="acu-visualizer-surface__workspace"
         :class="{ 'acu-visualizer-surface__workspace--assistant': visualizer.mode === 'assistant' }"
-        aria-label="数据库编辑工作区"
+        aria-label="Vùng làm việc chỉnh sửa CSDL"
       >
         <div
           v-if="visualizer.isLoading"
           class="acu-visualizer-surface__loading"
         >
           <i class="fa-solid fa-spinner fa-spin"></i>
-          <span>正在载入当前聊天的表格数据...</span>
+          <span>Đang tải dữ liệu bảng của cuộc trò chuyện hiện tại...</span>
         </div>
 
         <AcuPanel
           v-else-if="visualizer.loadError"
-          title="无法载入数据库"
-          description="数据库编辑器需要先读取当前聊天或隔离标签下的表格数据。请先完成初始化或一次填表；如果刚切换了聊天，可以重新打开新 UI 再试。"
+          title="Không thể tải CSDL"
+          description="Trình chỉnh sửa CSDL cần đọc dữ liệu bảng của cuộc trò chuyện hiện tại hoặc dưới nhãn cô lập trước. Hãy hoàn tất khởi tạo hoặc điền bảng một lần; nếu vừa chuyển cuộc trò chuyện, có thể mở lại UI mới rồi thử lại."
         >
           <p class="acu-visualizer-surface__empty">
             {{ visualizer.loadError }}
           </p>
           <AcuButton @click="data.forceReloadFromCurrentContext"
-            >重新尝试载入</AcuButton
+            >Thử tải lại</AcuButton
           >
         </AcuPanel>
 
@@ -133,7 +133,7 @@
         >
           <div class="acu-visualizer-surface__database-toolbar">
             <div>
-              <h2>数据库管理</h2>
+              <h2>Quản lý CSDL</h2>
             </div>
             <AcuButton
               v-if="visualizer.currentSheetKey"
@@ -141,7 +141,7 @@
               @click="returnToCurrentSheet"
             >
               <i class="fa-solid fa-arrow-left"></i>
-              返回当前表编辑
+              Quay lại sửa bảng hiện tại
             </AcuButton>
           </div>
           <VisualizerTableManagementPanel
@@ -156,18 +156,18 @@
         <template v-else>
           <template v-if="visualizer.mode === 'data'">
             <p v-if="rowCount === 0" class="acu-visualizer-surface__empty">
-              当前表还没有数据行。可以先新增行，再逐个字段填写内容。
+              Bảng hiện tại chưa có hàng dữ liệu. Có thể thêm hàng trước, rồi lần lượt điền nội dung từng trường.
             </p>
 
             <div
               v-if="isDataPaginated"
               ref="paginationRef"
               class="acu-visualizer-surface__pagination"
-              aria-label="数据分页"
+              aria-label="Phân trang dữ liệu"
             >
               <div
                 class="acu-visualizer-surface__pagination-pages"
-                aria-label="页码"
+                aria-label="Số trang"
               >
                 <AcuButton
                   v-for="item in dataPaginationItems"
@@ -180,10 +180,10 @@
                   size="md"
                   :aria-label="
                     item.targetPage
-                      ? `跳转到第 ${item.targetPage} 页`
+                      ? `Chuyển tới trang ${item.targetPage}`
                       : item.page
-                        ? `第 ${item.page} 页`
-                        : '省略的页码'
+                        ? `Trang ${item.page}`
+                        : 'Các trang bị lược'
                   "
                   @click="item.targetPage && setDataPage(item.targetPage)"
                 >
@@ -199,7 +199,7 @@
                 :max="dataPageCount"
                 :step="1"
                 autocomplete="off"
-                aria-label="跳转到页码"
+                aria-label="Chuyển tới số trang"
                 @update:model-value="updateDataPageJumpValue"
                 @change="commitDataPageJumpValue"
               />
@@ -213,7 +213,7 @@
               >
                 <header class="acu-visualizer-surface__card-header">
                   <strong>#{{ row.index + 1 }}</strong>
-                  <span>{{ row.fields.length }} 个字段</span>
+                  <span>{{ row.fields.length }} trường</span>
                   <AcuIconButton
                     class="acu-visualizer-surface__row-lock"
                     icon="fa-solid fa-lock"
@@ -221,10 +221,10 @@
                     :variant="row.locked ? 'accent' : 'default'"
                     :title="
                       row.locked
-                        ? '取消这一行的自动更新保护'
-                        : '锁定这一行，阻止自动更新改动整行'
+                        ? 'Bỏ bảo vệ chống tự động cập nhật của hàng này'
+                        : 'Khóa hàng này, ngăn tự động cập nhật thay đổi cả hàng'
                     "
-                    :aria-label="row.locked ? '取消锁定这一行' : '锁定这一行'"
+                    :aria-label="row.locked ? 'Bỏ khóa hàng này' : 'Khóa hàng này'"
                     @click="
                       visualizer.toggleRowLock(
                         visualizer.currentSheetKey,
@@ -236,7 +236,7 @@
                     icon="fa-solid fa-trash"
                     size="sm"
                     variant="danger"
-                    title="删除这一行"
+                    title="Xóa hàng này"
                     @click="deleteRow(row.index)"
                   />
                 </header>
@@ -276,9 +276,9 @@
                           <AcuBadge
                             v-if="field.specialIndexLocked"
                             variant="warning"
-                            title="编码索引由系统维护；保存、AI 更新或行数变化时会按 AM 序列重排"
+                            title="Chỉ mục mã do hệ thống duy trì; khi lưu, AI cập nhật hoặc số hàng thay đổi sẽ được sắp xếp lại theo chuỗi AM"
                           >
-                            自动编号
+                            Tự động đánh số
                           </AcuBadge>
                           <AcuIconButton
                             v-else-if="
@@ -291,13 +291,13 @@
                             :variant="field.columnLocked ? 'accent' : 'default'"
                             :title="
                               field.columnLocked
-                                ? '取消当前列的自动更新保护'
-                                : '锁定当前列，阻止自动更新改动这一列'
+                                ? 'Bỏ bảo vệ chống tự động cập nhật của cột hiện tại'
+                                : 'Khóa cột hiện tại, ngăn tự động cập nhật thay đổi cột này'
                             "
                             :aria-label="
                               field.columnLocked
-                                ? '取消锁定当前列'
-                                : '锁定当前列'
+                                ? 'Bỏ khóa cột hiện tại'
+                                : 'Khóa cột hiện tại'
                             "
                             @click.stop.prevent="
                               handleFieldColumnLockClick(
@@ -327,13 +327,13 @@
                             :variant="field.cellLocked ? 'accent' : 'default'"
                             :title="
                               field.cellLocked
-                                ? '取消当前单元格的自动更新保护'
-                                : '锁定当前单元格，阻止自动更新改动这个值'
+                                ? 'Bỏ bảo vệ chống tự động cập nhật của ô hiện tại'
+                                : 'Khóa ô hiện tại, ngăn tự động cập nhật thay đổi giá trị này'
                             "
                             :aria-label="
                               field.cellLocked
-                                ? '取消锁定当前单元格'
-                                : '锁定当前单元格'
+                                ? 'Bỏ khóa ô hiện tại'
+                                : 'Khóa ô hiện tại'
                             "
                             @click.stop.prevent="
                               handleFieldCellLockClick(
@@ -355,7 +355,7 @@
                         :ref="setActiveDataTextareaRef"
                         :model-value="field.value"
                         :rows="1"
-                        :aria-label="`编辑${field.header}`"
+                        :aria-label="`Sửa ${field.header}`"
                         auto-resize
                         @focus="
                           startDataCellEditing(row.index, field.columnIndex)
@@ -378,7 +378,7 @@
                         :class="{ 'is-empty': !field.value }"
                         role="button"
                         tabindex="0"
-                        title="点击编辑该字段"
+                        title="Bấm để sửa trường này"
                         @pointerdown.stop="
                           setActiveFieldActions(row.index, field.columnIndex)
                         "
@@ -393,7 +393,7 @@
                           startDataCellEditing(row.index, field.columnIndex)
                         "
                       >
-                        {{ field.value || "未填写" }}
+                        {{ field.value || "Chưa điền" }}
                       </div>
                     </div>
                   </div>
@@ -408,7 +408,7 @@
               <div class="acu-visualizer-surface__data-toolbar-actions">
                 <AcuButton size="sm" variant="primary" @click="addRow">
                   <i class="fa-solid fa-plus"></i>
-                  新增行
+                  Thêm hàng
                 </AcuButton>
               </div>
             </div>
@@ -424,7 +424,7 @@
         </template>
       </section>
 
-      <footer class="acu-visualizer-surface__footer" aria-label="保存操作">
+      <footer class="acu-visualizer-surface__footer" aria-label="Thao tác lưu">
         <span>{{ footerStatus }}</span>
         <div class="acu-visualizer-surface__footer-actions">
           <AcuButton
@@ -433,21 +433,21 @@
             variant="primary"
             @click="save.saveDataToCurrentMessage"
           >
-            保存数据到当前消息
+            Lưu dữ liệu vào tin nhắn hiện tại
           </AcuButton>
           <AcuButton
             :disabled="saveDisabled"
             :loading="visualizer.isSaving"
             @click="save.saveTemplateToCurrentChat"
           >
-            保存模板到当前聊天
+            Lưu mẫu vào cuộc trò chuyện hiện tại
           </AcuButton>
           <AcuButton
             :disabled="saveDisabled"
             :loading="visualizer.isSaving"
             @click="save.saveTemplateToGlobal"
           >
-            保存模板到全局
+            Lưu mẫu vào toàn cục
           </AcuButton>
         </div>
       </footer>
@@ -464,7 +464,7 @@
         :style="mobileNavDrawerStyle"
         role="dialog"
         aria-modal="true"
-        aria-label="数据库导航"
+        aria-label="Điều hướng CSDL"
         data-acu-mobile-nav-width="360px"
         @click.stop
       >
@@ -531,27 +531,27 @@ let paginationResizeObserver: ResizeObserver | undefined;
 const save = useVisualizerSave({
   requestGlobalPresetName(defaultName) {
     return openInputDialog({
-      title: "保存模板到全局",
+      title: "Lưu mẫu vào toàn cục",
       message:
-        "当前生效的是默认模板，保存模板到全局前需要给这份模板起一个名字。取消后不会写入聊天或清掉未保存状态。",
-      label: "模板预设名称",
+        "Đang có hiệu lực là mẫu mặc định, trước khi lưu mẫu vào toàn cục cần đặt tên cho mẫu này. Sau khi hủy sẽ không ghi vào cuộc trò chuyện hay xóa trạng thái chưa lưu.",
+      label: "Tên preset mẫu",
       defaultValue: defaultName,
-      placeholder: "例如：当前角色专用模板",
-      confirmLabel: "保存模板到全局",
+      placeholder: "Ví dụ: mẫu dành riêng cho nhân vật hiện tại",
+      confirmLabel: "Lưu mẫu vào toàn cục",
     });
   },
   confirmOverwriteGlobalPreset(presetName) {
     return openConfirmDialog({
-      title: "覆盖全局模板",
-      message: `这会用当前编辑结果覆盖全局预设"${presetName}"。如果不确定，可以先取消，当前草稿会继续保留在编辑器里。`,
-      confirmLabel: "覆盖并保存",
+      title: "Ghi đè mẫu toàn cục",
+      message: `Việc này sẽ dùng kết quả chỉnh sửa hiện tại để ghi đè preset toàn cục "${presetName}". Nếu không chắc, có thể hủy trước, bản nháp hiện tại vẫn được giữ trong trình chỉnh sửa.`,
+      confirmLabel: "Ghi đè và lưu",
       confirmVariant: "primary",
     });
   },
   requestSchemaMigrationChoice(summary) {
     return dialogStore.choose({
-      title: "确认历史列对应关系",
-      message: `${summary.message}。可保留历史列值进行映射，或以当前编辑器候选整表作为新边界。草稿变化后必须重新选择。`,
+      title: "Xác nhận quan hệ tương ứng của cột lịch sử",
+      message: `${summary.message}. Có thể giữ giá trị cột lịch sử để ánh xạ, hoặc lấy toàn bộ bảng ứng viên của trình chỉnh sửa hiện tại làm ranh giới mới. Sau khi bản nháp thay đổi phải chọn lại.`,
       actions: [
         ...summary.choices.map(choice => ({
           value: choice.id,
@@ -560,24 +560,24 @@ const save = useVisualizerSave({
         })),
         {
           value: summary.rebaseChoiceId,
-          label: "按当前表结构重建",
+          label: "Dựng lại theo cấu trúc bảng hiện tại",
           variant: "danger" as const,
         },
       ],
-      cancelLabel: "取消保存",
+      cancelLabel: "Hủy lưu",
     });
   },
   confirmDestructiveSchemaChange(summary) {
     const details = summary.sheets.map(sheet => {
       const columns = sheet.droppedColumns
         .map(column => `「${column.displayHeader}」`)
-        .join("、");
-      return `表「${sheet.tableName}」将删除 ${columns}（影响 ${sheet.affectedRowCount} 行历史数据）`;
-    }).join("；");
+        .join(", ");
+      return `Bảng 「${sheet.tableName}」 sẽ xóa ${columns} (ảnh hưởng ${sheet.affectedRowCount} hàng dữ liệu lịch sử)`;
+    }).join("; ");
     return openConfirmDialog({
-      title: "确认保存并永久删除列数据",
-      message: `${details}。这会把当前聊天中这些列的历史值从本次模板提交后的结构中移除，不能直接恢复；如需恢复只能依赖提交前备份或 checkpoint。确认仅适用于当前草稿快照，草稿变化后必须重新确认。`,
-      confirmLabel: "确认删除并保存",
+      title: "Xác nhận lưu và xóa vĩnh viễn dữ liệu cột",
+      message: `${details}. Việc này sẽ gỡ giá trị lịch sử của các cột này trong cuộc trò chuyện hiện tại khỏi cấu trúc sau khi nộp mẫu lần này, không thể khôi phục trực tiếp; muốn khôi phục chỉ có thể dựa vào bản sao lưu trước khi nộp hoặc checkpoint. Xác nhận chỉ áp dụng cho snapshot bản nháp hiện tại, sau khi bản nháp thay đổi phải xác nhận lại.`,
+      confirmLabel: "Xác nhận xóa và lưu",
       confirmVariant: "danger",
     });
   },
@@ -585,9 +585,9 @@ const save = useVisualizerSave({
 
 const modes: Array<{ value: "data" | "config" | "assistant"; label: string }> =
   [
-  { value: "data", label: "数据" },
-  { value: "config", label: "结构/参数" },
-  { value: "assistant", label: "AI 助手" },
+  { value: "data", label: "Dữ liệu" },
+  { value: "config", label: "Cấu trúc/tham số" },
+  { value: "assistant", label: "Trợ lý AI" },
 ];
 
 function setWorkspaceMode(value: string): void {
@@ -605,12 +605,12 @@ const isSheetEditingMode = computed(
 
 const currentSheetName = computed(() =>
   String(
-    visualizer.currentSheet?.name || visualizer.currentSheetKey || "未选择表格",
+    visualizer.currentSheet?.name || visualizer.currentSheetKey || "Chưa chọn bảng",
   ),
 );
 
 const templatePresetLabel = computed(
-  () => data.templatePresetLabel.value || "载入中",
+  () => data.templatePresetLabel.value || "Đang tải",
 );
 
 const isMobileNavOpen = computed(
@@ -661,7 +661,7 @@ function moveSheet(key: string, direction: "up" | "down"): void {
 const headers = computed<string[]>(() => {
   const content = visualizer.currentSheet?.content;
   if (!Array.isArray(content) || !Array.isArray(content[0])) return [];
-  return content[0].slice(1).map((item: any, index: number) => String(item || `字段 ${index + 1}`));
+  return content[0].slice(1).map((item: any, index: number) => String(item || `Trường ${index + 1}`));
 });
 
 const visibleColumns = computed(() => {
@@ -797,8 +797,8 @@ const dataPageEndIndex = computed(() =>
 );
 
 const dataRangeText = computed(() => {
-  if (rowCount.value === 0) return "共 0 行";
-  return `第 ${dataPageStartIndex.value + 1}-${dataPageEndIndex.value} 行 / 共 ${rowCount.value} 行`;
+  if (rowCount.value === 0) return "Tổng 0 hàng";
+  return `Hàng ${dataPageStartIndex.value + 1}-${dataPageEndIndex.value} / tổng ${rowCount.value} hàng`;
 });
 
 const visibleDataRows = computed<any[][]>(() => {
@@ -1124,12 +1124,12 @@ const rows = computed(() => {
 });
 
 const footerStatus = computed(() => {
-  if (visualizer.isLoading) return "正在读取当前聊天的表格数据。";
-  if (visualizer.loadError) return "当前没有可保存的表格草稿。";
-  if (visualizer.isSaving) return "正在保存表格数据...";
-  if (visualizer.dirty) return "有未保存修改，保存前只存在于编辑器草稿中。";
-  if (visualizer.lastSavedAt) return "最近一次保存已完成。";
-  return "载入后可以分别保存数据、当前聊天模板或全局模板。";
+  if (visualizer.isLoading) return "Đang đọc dữ liệu bảng của cuộc trò chuyện hiện tại.";
+  if (visualizer.loadError) return "Hiện không có bản nháp bảng để lưu.";
+  if (visualizer.isSaving) return "Đang lưu dữ liệu bảng...";
+  if (visualizer.dirty) return "Có thay đổi chưa lưu, trước khi lưu chỉ tồn tại trong bản nháp của trình chỉnh sửa.";
+  if (visualizer.lastSavedAt) return "Lần lưu gần nhất đã hoàn tất.";
+  return "Sau khi tải có thể lưu riêng dữ liệu, mẫu của cuộc trò chuyện hiện tại hoặc mẫu toàn cục.";
 });
 
 const saveDisabled = computed(
@@ -1138,13 +1138,13 @@ const saveDisabled = computed(
 
 async function requestAddSheet(): Promise<void> {
   const name = await openInputDialog({
-    title: "新增表格",
+    title: "Thêm bảng",
     message:
-      "新表格会先放进当前编辑草稿，只有点击保存后才会写回聊天或全局模板。",
-    label: "表格名称",
-    defaultValue: "新建表格",
-    placeholder: "例如：角色状态",
-    confirmLabel: "新增表格",
+      "Bảng mới sẽ được đặt vào bản nháp đang chỉnh sửa trước, chỉ khi bấm lưu mới ghi lại vào cuộc trò chuyện hoặc mẫu toàn cục.",
+    label: "Tên bảng",
+    defaultValue: "Bảng mới",
+    placeholder: "Ví dụ: Trạng thái nhân vật",
+    confirmLabel: "Thêm bảng",
   });
   if (name) {
     data.addSheet(name);
@@ -1156,9 +1156,9 @@ async function requestDeleteSheet(key: string): Promise<void> {
   const sheet = visualizer.tempData?.[key];
   const name = String(sheet?.name || key);
   const confirmed = await openConfirmDialog({
-    title: "删除表格",
-    message: `确定要删除表格"${name}"吗？保存后，这张表的数据和模板配置都会被移除。取消后草稿不会变化。`,
-    confirmLabel: "删除表格",
+    title: "Xóa bảng",
+    message: `Chắc chắn xóa bảng "${name}"? Sau khi lưu, dữ liệu và cấu hình mẫu của bảng này đều bị gỡ bỏ. Sau khi hủy, bản nháp sẽ không thay đổi.`,
+    confirmLabel: "Xóa bảng",
     confirmVariant: "danger",
   });
   if (confirmed) data.deleteSheet(key);
@@ -1166,9 +1166,9 @@ async function requestDeleteSheet(key: string): Promise<void> {
 
 async function deleteRow(rowIndex: number): Promise<void> {
   const confirmed = await openConfirmDialog({
-    title: "删除数据行",
-    message: `确定要删除第 ${rowIndex + 1} 行吗？这只会修改当前草稿，保存前仍可通过关闭时取消来保留编辑器。`,
-    confirmLabel: "删除这一行",
+    title: "Xóa hàng dữ liệu",
+    message: `Chắc chắn xóa hàng ${rowIndex + 1}? Việc này chỉ sửa bản nháp hiện tại, trước khi lưu vẫn có thể hủy khi đóng để giữ lại trình chỉnh sửa.`,
+    confirmLabel: "Xóa hàng này",
     confirmVariant: "danger",
   });
   if (!confirmed) return;
@@ -1209,23 +1209,23 @@ function refreshSpecialIndexColumnDraft(): void {
 
 async function requestAddColumn(): Promise<void> {
   const name = await openInputDialog({
-    title: "新增列",
+    title: "Thêm cột",
     message:
-      "新列会加入当前表头，并给已有数据行补一个空值。保存前，这个结构变化只存在于编辑器草稿中。",
-    label: "列名",
-    defaultValue: "新列",
-    placeholder: "例如：状态",
-    confirmLabel: "新增列",
+      "Cột mới sẽ được thêm vào tiêu đề hiện tại và bổ sung một giá trị rỗng cho các hàng dữ liệu có sẵn. Trước khi lưu, thay đổi cấu trúc này chỉ tồn tại trong bản nháp của trình chỉnh sửa.",
+    label: "Tên cột",
+    defaultValue: "Cột mới",
+    placeholder: "Ví dụ: Trạng thái",
+    confirmLabel: "Thêm cột",
   });
   if (name) config.addColumn(name);
 }
 
 async function requestDeleteColumn(index: number): Promise<void> {
-  const header = headers.value[index] || `第 ${index + 1} 列`;
+  const header = headers.value[index] || `Cột ${index + 1}`;
   const confirmed = await openConfirmDialog({
-    title: "删除列",
-    message: `确定要删除"${header}"吗？这会同时删除该列在所有数据行里的值。取消后草稿不会变化。`,
-    confirmLabel: "删除列",
+    title: "Xóa cột",
+    message: `Chắc chắn xóa "${header}"? Việc này sẽ xóa luôn giá trị của cột đó trong tất cả các hàng dữ liệu. Sau khi hủy, bản nháp sẽ không thay đổi.`,
+    confirmLabel: "Xóa cột",
     confirmVariant: "danger",
   });
   if (!confirmed) return;
@@ -1302,14 +1302,14 @@ function observePaginationWidth(el: HTMLElement | null): void {
 
 function openCloseDirtyDialog(): Promise<"save" | "discard" | "cancel"> {
   return dialogStore.choose({
-    title: "关闭数据库编辑器",
+    title: "Đóng trình chỉnh sửa CSDL",
     message:
-      "当前草稿还没有保存。保存会先写入当前聊天再关闭；丢弃会关闭编辑器并清空这次草稿；取消关闭会回到编辑器继续处理。",
-    badge: { label: "未保存", variant: "warning" },
-    cancelLabel: "取消关闭",
+      "Bản nháp hiện tại chưa được lưu. Lưu sẽ ghi vào cuộc trò chuyện hiện tại rồi đóng; loại bỏ sẽ đóng trình chỉnh sửa và xóa bản nháp lần này; hủy đóng sẽ quay lại trình chỉnh sửa để tiếp tục xử lý.",
+    badge: { label: "Chưa lưu", variant: "warning" },
+    cancelLabel: "Hủy đóng",
     actions: [
-      { value: "save", label: "保存数据到当前消息", variant: "primary" },
-      { value: "discard", label: "丢弃草稿", variant: "danger" },
+      { value: "save", label: "Lưu dữ liệu vào tin nhắn hiện tại", variant: "primary" },
+      { value: "discard", label: "Loại bỏ bản nháp", variant: "danger" },
     ],
   }).then((value) => value || "cancel");
 }

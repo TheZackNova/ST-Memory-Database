@@ -35,5 +35,5 @@ export async function gateWorldSimulationReadBatch_ACU(items: readonly WorldSimu
   if (!reason) return { allowed: true, batchTokens, itemTokens, report: '' };
   const limit = reason === 'read-batch-too-large' ? budget.effectiveMaxReadTokens : budget.effectiveFallbackTokens;
   const sizes = items.map((item, index) => `- ${item.label}: ${itemTokens[index]} tokens`).join('\n');
-  return { allowed: false, reason, batchTokens, itemTokens, report: `WORLD_SIMULATION_READ_REJECTED\nreason=${reason}\ngranted=${state.grantedTokens}\nbatch=${batchTokens}\nlimit=${limit}\n${sizes}\n请缩小读取范围后重试；本批正文未注入。` };
+  return { allowed: false, reason, batchTokens, itemTokens, report: `WORLD_SIMULATION_READ_REJECTED\nreason=${reason}\ngranted=${state.grantedTokens}\nbatch=${batchTokens}\nlimit=${limit}\n${sizes}\nHãy thu hẹp phạm vi đọc rồi thử lại; nội dung của lô này chưa được chèn vào.` };
 }

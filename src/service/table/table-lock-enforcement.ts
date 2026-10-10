@@ -217,9 +217,9 @@ export function buildLockRevertPlanForSheet_ACU(options: BuildLockRevertPlanOpti
 export function formatLockRevertSummary_ACU(reverted: readonly LockRevertItem_ACU[]): string {
     if (!reverted.length) return '';
     const parts = reverted.map(item => {
-        if (item.kind === 'row_restored') return `${item.tableName} 行 ${item.rowId} 已恢复（行被删除）`;
-        if (item.kind === 'column_restored') return `${item.tableName} 列「${item.colName}」已恢复（列被删除）`;
-        return `${item.tableName} 行 ${item.rowId} 列「${item.colName}」已恢复（值被修改）`;
+        if (item.kind === 'row_restored') return `${item.tableName} hàng ${item.rowId} đã được khôi phục (hàng bị xóa)`;
+        if (item.kind === 'column_restored') return `${item.tableName} cột「${item.colName}」đã được khôi phục (cột bị xóa)`;
+        return `${item.tableName} hàng ${item.rowId} cột「${item.colName}」đã được khôi phục (giá trị bị sửa)`;
     });
-    return `锁定保护已回滚 ${reverted.length} 处修改：${parts.join('；')}`;
+    return `Bảo vệ khóa đã hoàn tác ${reverted.length} thay đổi: ${parts.join('; ')}`;
 }

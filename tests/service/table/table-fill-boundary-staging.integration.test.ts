@@ -246,7 +246,7 @@ describe('commitStagedSheetsAtFullBoundaryAtomic_ACU 边界汇合（计划 5.4�
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.diagnosticCode).toBe('multiple_full_checkpoints');
-    expect(result.error).toContain('2 个 full checkpoint');
+    expect(result.error).toContain('2 full checkpoint');
     // 原 full frame 未被写入任何 rebase。
     const originalTag = mocks.chat[6]?.TavernDB_ACU_IsolatedData?.[isolationKey];
     expect(originalTag?.storageFrame?.perSheetCheckpoints?.sheet_a).toBeUndefined();
@@ -267,7 +267,7 @@ describe('commitStagedSheetsAtFullBoundaryAtomic_ACU 边界汇合（计划 5.4�
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.diagnosticCode).toBe('full_checkpoint_root_mismatch');
-    expect(result.error).toContain('原 full 根不匹配');
+    expect(result.error).toContain('Gốc full ban đầu của boundary commit không khớp');
   });
 
   it('strict save 失败时原位回滚 chat，不留下已修改的原根', async () => {
@@ -287,7 +287,7 @@ describe('commitStagedSheetsAtFullBoundaryAtomic_ACU 边界汇合（计划 5.4�
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.diagnosticCode).toBe('boundary_strict_save_failed');
-    expect(result.error).toContain('严格保存失败');
+    expect(result.error).toContain('Lưu nghiêm ngặt boundary commit thất bại');
     // chat 原位回滚：原 full frame 未被修改。
     expect(JSON.stringify(mocks.chat)).toEqual(JSON.stringify(before));
     const originalTag = mocks.chat[6]?.TavernDB_ACU_IsolatedData?.[isolationKey];

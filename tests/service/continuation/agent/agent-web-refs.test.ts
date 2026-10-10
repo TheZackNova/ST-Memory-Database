@@ -66,39 +66,39 @@ describe('百科资料库快照', () => {
   it('目录与全量读只给「名称 + 一句话简介」预览，详情只在按 ID 精读时出现', () => {
     const snapshot = snapshotWith_ACU(entry_ACU(), entry_ACU({ id: 'WR-002', title: '泥沼', tags: ['法术'], brief: '土系魔术，在敌人脚下制造泥潭。', summary: '效果：限制行动。', retired: true, retiredReason: '并入人物条目' }));
     const catalog = renderAgentWebRefsCatalog_ACU(snapshot, true);
-    expect(catalog).toContain('[WR-001]「鲁迪乌斯·格雷拉特」《无职转生》主角，转生的前尼特魔术师。（人物）');
+    expect(catalog).toContain('[WR-001] "鲁迪乌斯·格雷拉特" 《无职转生》主角，转生的前尼特魔术师。 (人物)');
     expect(catalog).not.toContain('泥沼');
     expect(catalog).not.toContain('布耶纳村');
     expect(catalog).not.toContain('成名技泥沼');
 
     const preview = resolveAgentReadToken_ACU('$WEB_REFS', resolveContext_ACU(snapshot));
-    expect(preview.text).toContain('当前修订号=2');
-    expect(preview.text).toContain('[WR-001]「鲁迪乌斯·格雷拉特」《无职转生》主角');
+    expect(preview.text).toContain('Số hiệu chỉnh hiện tại=2');
+    expect(preview.text).toContain('[WR-001] "鲁迪乌斯·格雷拉特" 《无职转生》主角');
     expect(preview.text).not.toContain('布耶纳村');
-    expect(preview.text).toContain('另有 1 条已退休条目');
+    expect(preview.text).toContain('Còn 1 mục đã cho nghỉ');
 
     const detail = resolveAgentReadToken_ACU('$WEB_REFS:WR-001,WR-002', resolveContext_ACU(snapshot));
-    expect(detail.text).toContain('简介：《无职转生》主角');
-    expect(detail.text).toContain('详情：\n身份：布耶纳村下级贵族长男。');
+    expect(detail.text).toContain('Giới thiệu: 《无职转生》主角');
+    expect(detail.text).toContain('Chi tiết:\n身份：布耶纳村下级贵族长男。');
     expect(detail.text).not.toContain('原文：');
-    expect(detail.text).toContain('链接：https://zh.moegirl.org.cn/');
-    expect(detail.text).toContain('[WR-002]「泥沼」');
-    expect(detail.text).toContain('退休原因：并入人物条目');
+    expect(detail.text).toContain('Liên kết: https://zh.moegirl.org.cn/');
+    expect(detail.text).toContain('[WR-002] "泥沼"');
+    expect(detail.text).toContain('Lý do cho nghỉ: 并入人物条目');
   });
 
   it('关闭功能且库空时目录给一句说明；开启时提示可派工', () => {
-    expect(renderAgentWebRefsCatalog_ACU(buildEmptyAgentModuleSnapshot_ACU(), false)).toContain('未启用');
+    expect(renderAgentWebRefsCatalog_ACU(buildEmptyAgentModuleSnapshot_ACU(), false)).toContain('chưa bật');
     expect(renderAgentWebRefsCatalog_ACU(buildEmptyAgentModuleSnapshot_ACU(), true)).toContain('web-researcher');
-    expect(renderAgentWebRefsByIds_ACU(buildEmptyAgentModuleSnapshot_ACU(), ['WR-009'])).toContain('不存在于百科资料库');
+    expect(renderAgentWebRefsByIds_ACU(buildEmptyAgentModuleSnapshot_ACU(), ['WR-009'])).toContain('không tồn tại trong Kho tư liệu bách khoa');
   });
 
   it('本地 search 的 modules 域能按资料详情命中百科条目并给出精读地址', () => {
     const snapshot = snapshotWith_ACU(entry_ACU());
     const result = runAgentSearch_ACU({ kind: 'search', query: '岩炮弹', scope: ['modules'], isRegex: false, maxResults: 10 }, resolveContext_ACU(snapshot) as any);
-    expect(result).toContain('百科资料库 [WR-001]');
-    expect(result).toContain('读取地址 $WEB_REFS:WR-001');
+    expect(result).toContain('Kho tư liệu bách khoa [WR-001]');
+    expect(result).toContain('địa chỉ đọc $WEB_REFS:WR-001');
     const byDetail = runAgentSearch_ACU({ kind: 'search', query: '帝级土系魔术', scope: ['modules'], isRegex: false, maxResults: 10 }, resolveContext_ACU(snapshot) as any);
-    expect(byDetail).toContain('读取地址 $WEB_REFS:WR-001');
+    expect(byDetail).toContain('địa chỉ đọc $WEB_REFS:WR-001');
   });
 });
 
@@ -123,10 +123,10 @@ describe('百科资料库写集事务', () => {
       try { applyAgentWebRefsDelta_ACU(snapshot, output, expected); } catch (error) { return (error as ContinuationValidationError_ACU).error.message; }
       return '';
     };
-    expect(rejects({ summary: '', expectedRevision: 2, items: [upsert({ brief: '' })] }, 2)).toContain('一句话简介');
-    expect(rejects({ summary: '', expectedRevision: 2, items: [{ ...upsert(), action: 'retire', id: 'WR-404', reason: 'x' }] }, 2)).toContain('不存在');
-    expect(rejects({ summary: '', expectedRevision: 2, items: [{ ...upsert(), action: 'retire', id: 'WR-001', reason: '' }] }, 2)).toContain('理由');
-    expect(rejects({ summary: '', expectedRevision: 1, items: [upsert()] }, 1)).toContain('revision 已变化');
+    expect(rejects({ summary: '', expectedRevision: 2, items: [upsert({ brief: '' })] }, 2)).toContain('giới thiệu một câu');
+    expect(rejects({ summary: '', expectedRevision: 2, items: [{ ...upsert(), action: 'retire', id: 'WR-404', reason: 'x' }] }, 2)).toContain('không tồn tại');
+    expect(rejects({ summary: '', expectedRevision: 2, items: [{ ...upsert(), action: 'retire', id: 'WR-001', reason: '' }] }, 2)).toContain('nêu lý do');
+    expect(rejects({ summary: '', expectedRevision: 1, items: [upsert()] }, 1)).toContain('đã thay đổi');
     const tolerant = applyAgentWebRefsDelta_ACU(snapshot, { summary: '', expectedRevision: 2, items: [upsert({ brief: '' })] }, 2, 99, { onViolation: () => undefined, agentName: 'web-researcher' });
     expect(tolerant.appliedModules).toEqual([]);
     expect(tolerant.snapshot.webRefs).toEqual(snapshot.webRefs);
@@ -148,10 +148,10 @@ describe('百科资料库写集事务', () => {
     expect(refreshed.webRefs[0]).toMatchObject({ url: 'https://example.org/new', fetchedAt: 99, brief: snapshot.webRefs[0].brief });
     expect(() => applyAgentWebRefsDelta_ACU(snapshot, {
       summary: '', expectedRevision: 2, items: [], patches: [{ id: 'WR-404', brief: '无效' }],
-    }, 2, 99)).toThrowError(/不存在/);
+    }, 2, 99)).toThrowError(/không tồn tại/);
     expect(() => applyAgentWebRefsDelta_ACU(snapshotWith_ACU(entry_ACU({ retired: true })), {
       summary: '', expectedRevision: 2, items: [], patches: [{ id: 'WR-001', brief: '无效' }],
-    }, 2, 99)).toThrowError(/已废止/);
+    }, 2, 99)).toThrowError(/đã bãi bỏ/);
   });
 
   it('对既有 id 重复 upsert 覆盖内容但保留首次入库时间', () => {

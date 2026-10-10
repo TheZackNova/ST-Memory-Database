@@ -92,7 +92,7 @@ import { migrateLegacyTemplateScopeForCurrentChat_ACU, getChatSheetGuideDataForI
       if (!guideData) return { mate: { type: 'chatSheets', version: 1 } };
       const identityNormalized = normalizeSheetGuideRowIds_ACU(guideData);
       if (identityNormalized.blockers.length > 0) {
-          throw new Error(`Sheet Guide row_id 结构无效：${identityNormalized.blockers.join('；')}`);
+          throw new Error(`Cấu trúc row_id của Sheet Guide không hợp lệ: ${identityNormalized.blockers.join('; ')}`);
       }
       const normalized = normalizeGuideData_ACU(identityNormalized.guideData);
       if (!normalized) return { mate: { type: 'chatSheets', version: 1 } };

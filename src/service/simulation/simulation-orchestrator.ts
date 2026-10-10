@@ -66,8 +66,8 @@ export const WORLD_SIMULATION_STOP_REASON_SUPERSEDED_ACU = 'superseded';
 
 const placeholderPlan_ACU: WorldSimulationStagePlan_ACU = {
   schemaVersion: 1,
-  title: '准备格林推演',
-  objective: '生成阶段计划',
+  title: 'Chuẩn bị mô phỏng thế giới',
+  objective: 'Tạo kế hoạch giai đoạn',
   impactScope: [],
   factsToVerify: [],
   plannedTools: [],
@@ -76,7 +76,7 @@ const placeholderPlan_ACU: WorldSimulationStagePlan_ACU = {
   convergenceConditions: [],
   blockingConditions: [],
   completedSteps: [],
-  nextStep: '规划',
+  nextStep: 'Lập kế hoạch',
 };
 const abortByChat_ACU = new Map<string, AbortController>();
 /** 在途运行的结算 Promise：interrupt 需要等它落盘后才能安全地 resume / 取代。 */
@@ -337,14 +337,14 @@ export class WorldSimulationOrchestrator_ACU {
     summary: string,
   ): Promise<void> {
     logWorldSimulationSession_ACU(identity.chatIdentity, {
-      kind: 'run_completed', title: outcome === 'commit' ? '格林推演已提交' : '格林推演无变化', detail: summary, agentName: 'world-director',
+      kind: 'run_completed', title: outcome === 'commit' ? 'Mô phỏng thế giới đã nộp' : 'Mô phỏng thế giới không thay đổi', detail: summary, agentName: 'world-director',
     });
     try {
       await this.dependencies.persistCompletion?.({ identity, anchor, outcome, summary });
     } catch (error) {
       // The authoritative commit is already saved. A separate receipt save cannot undo it.
       logWorldSimulationSession_ACU(identity.chatIdentity, {
-        kind: 'thought', title: '完成通告保存失败', detail: error instanceof Error ? error.message : String(error), agentName: 'world-director', ok: false,
+        kind: 'thought', title: 'Lưu thông báo hoàn tất thất bại', detail: error instanceof Error ? error.message : String(error), agentName: 'world-director', ok: false,
       });
     }
   }

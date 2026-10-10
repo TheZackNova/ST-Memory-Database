@@ -276,7 +276,7 @@ export async function commitMixedStorageDecision_ACU(options: MixedStorageCommit
     if (expectedStorageMode === 'sqlite') {
       await reloadStorageProvider();
       if (didSqliteFallbackAfterReload_ACU(expectedStorageMode)) {
-        throw new Error('SQLite 运行时重载后已静默回退到 native provider。');
+        throw new Error('Sau khi tải lại runtime SQLite, hệ thống đã âm thầm lùi về native provider.');
       }
     }
     const postReloadScopeError = scopeError_ACU(decision);

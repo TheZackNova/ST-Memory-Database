@@ -420,10 +420,10 @@ export function buildDefaultContinuationSettings_ACU(): ContinuationSettings_ACU
 function normalizeOptionalInteger_ACU(value: unknown, fallback: number, minimum: number, field: string): number {
   if (value === undefined) return fallback;
   if (typeof value !== 'number' || !Number.isInteger(value)) {
-    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_CONFIG_NOT_INTEGER', 'load', `${field} 必须是整数`, false, { field, valueType: typeof value }));
+    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_CONFIG_NOT_INTEGER', 'load', `${field} phải là số nguyên`, false, { field, valueType: typeof value }));
   }
   if (value < minimum) {
-    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_CONFIG_OUT_OF_RANGE', 'load', `${field} 超出允许范围`, false, { field, minimum, actual: value }));
+    throw new ContinuationValidationError_ACU(createContinuationError_ACU('CONTINUATION_CONFIG_OUT_OF_RANGE', 'load', `${field} vượt phạm vi cho phép`, false, { field, minimum, actual: value }));
   }
   return value;
 }

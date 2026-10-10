@@ -11,7 +11,7 @@
       @toggle-book="(name: string, checked: boolean) => $emit('toggle-book', name, checked)"
     />
     <p class="acu-v2-wb-entry-picker__hint">
-      目前已选: <strong>{{ currentLabel }}</strong>
+      Hiện đã chọn: <strong>{{ currentLabel }}</strong>
     </p>
 
     <WorldbookEntryToolbar
@@ -65,7 +65,7 @@ withDefaults(defineProps<{
   filterable?: boolean;
 }>(), {
   filterable: true,
-  emptyText: '所选世界书中无可显示的条目。',
+  emptyText: 'Sổ thế giới đã chọn không có mục nào để hiển thị.',
   entryStatus: 'success',
   entryError: '',
 });

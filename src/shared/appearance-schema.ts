@@ -77,7 +77,7 @@ export function isAllowedImageUrl_ACU(value: string): boolean {
 }
 
 function numberRangeText_ACU(field: Extract<AppearanceField_ACU, { kind: 'number' }>): string {
-  return `${field.zeroAllowed ? '0 或 ' : ''}${field.min}~${field.max}${field.integer ? ' 的整数' : ''}`;
+  return `${field.zeroAllowed ? '0 hoặc ' : ''}${field.integer ? 'số nguyên ' : ''}${field.min}~${field.max}`;
 }
 
 /** 校验单个叶子值，返回可保存的规整值；不合法时抛出带字段路径的错误。 */
@@ -87,15 +87,15 @@ export function validateAppearanceValue_ACU(field: AppearanceField_ACU, value: u
       const valid = typeof value === 'number' && Number.isFinite(value)
         && ((field.zeroAllowed && value === 0)
           || (value >= field.min && value <= field.max && (!field.integer || Number.isInteger(value))));
-      if (!valid) throw new RangeError(`${path}：应为 ${numberRangeText_ACU(field)}`);
+      if (!valid) throw new RangeError(`${path}: phải là ${numberRangeText_ACU(field)}`);
       return value;
     }
     case 'boolean':
-      if (typeof value !== 'boolean') throw new TypeError(`${path}：应为 true 或 false`);
+      if (typeof value !== 'boolean') throw new TypeError(`${path}: phải là true hoặc false`);
       return value;
     case 'enum':
       if (typeof value !== 'string' || !field.values.includes(value)) {
-        throw new RangeError(`${path}：可选 ${field.values.join(' / ')}`);
+        throw new RangeError(`${path}: có thể chọn ${field.values.join(' / ')}`);
       }
       return value;
     case 'enumList': {
@@ -105,59 +105,59 @@ export function validateAppearanceValue_ACU(field: AppearanceField_ACU, value: u
         && value.every(item => typeof item === 'string' && field.values.includes(item))
         && new Set(value).size === value.length;
       if (!valid) {
-        throw new RangeError(`${path}：应为 ${field.values.join(' / ')} 中不重复的 ${field.minItems}~${field.values.length} 项`);
+        throw new RangeError(`${path}: phải chọn ${field.minItems}~${field.values.length} mục không trùng lặp trong ${field.values.join(' / ')}`);
       }
       return [...(value as string[])];
     }
     case 'color': {
       const color = typeof value === 'string' ? value.trim() : '';
       if (!color || !isCssColor_ACU(color)) {
-        throw new TypeError(`${path}：颜色格式不对，支持 #rgb / #rrggbb / #rrggbbaa、rgb()/rgba()、hsl()/hsla() 和颜色名`);
+        throw new TypeError(`${path}: định dạng màu không đúng, hỗ trợ #rgb / #rrggbb / #rrggbbaa, rgb()/rgba(), hsl()/hsla() và tên màu`);
       }
       return color;
     }
     case 'text': {
-      if (typeof value !== 'string') throw new TypeError(`${path}：应为字符串`);
+      if (typeof value !== 'string') throw new TypeError(`${path}: phải là chuỗi`);
       const text = value.trim();
-      if (!text && !field.allowEmpty) throw new RangeError(`${path}：不能为空`);
-      if (text.length > field.maxLength) throw new RangeError(`${path}：不能超过 ${field.maxLength} 字`);
+      if (!text && !field.allowEmpty) throw new RangeError(`${path}: không được để trống`);
+      if (text.length > field.maxLength) throw new RangeError(`${path}: không được vượt quá ${field.maxLength} ký tự`);
       if (text && field.pattern && !field.pattern.test(text)) {
-        throw new TypeError(`${path}：${field.patternHint || '含有不支持的字符'}`);
+        throw new TypeError(`${path}: ${field.patternHint || 'chứa ký tự không được hỗ trợ'}`);
       }
       return text;
     }
     case 'image': {
       const url = typeof value === 'string' ? value.trim() : '';
-      if (!url) throw new TypeError(`${path}：应为图片地址；要恢复内置图请传 null`);
+      if (!url) throw new TypeError(`${path}: phải là địa chỉ ảnh; muốn khôi phục ảnh có sẵn hãy truyền null`);
       if (url.length > field.maxLength) {
-        throw new RangeError(`${path}：图片数据 ${url.length} 字符，超过上限 ${field.maxLength}；大图请改用图片链接`);
+        throw new RangeError(`${path}: dữ liệu ảnh ${url.length} ký tự, vượt quá giới hạn ${field.maxLength}; ảnh lớn hãy dùng liên kết ảnh`);
       }
-      if (!isAllowedImageUrl_ACU(url)) throw new TypeError(`${path}：只支持 http(s) 链接、站内相对路径或 data:image/… 图片`);
+      if (!isAllowedImageUrl_ACU(url)) throw new TypeError(`${path}: chỉ hỗ trợ liên kết http(s), đường dẫn tương đối nội bộ hoặc ảnh data:image/…`);
       return url;
     }
     case 'textList': {
-      if (!Array.isArray(value)) throw new TypeError(`${path}：应为字符串数组`);
-      if (value.length > field.maxItems) throw new RangeError(`${path}：最多 ${field.maxItems} 条`);
+      if (!Array.isArray(value)) throw new TypeError(`${path}: phải là mảng chuỗi`);
+      if (value.length > field.maxItems) throw new RangeError(`${path}: tối đa ${field.maxItems} mục`);
       return value.map((item, index) => {
         const text = typeof item === 'string' ? item.trim() : '';
-        if (!text) throw new TypeError(`${path}[${index}]：应为非空字符串`);
-        if (text.length > field.maxLength) throw new RangeError(`${path}[${index}]：不能超过 ${field.maxLength} 字`);
+        if (!text) throw new TypeError(`${path}[${index}]: phải là chuỗi không rỗng`);
+        if (text.length > field.maxLength) throw new RangeError(`${path}[${index}]: không được vượt quá ${field.maxLength} ký tự`);
         return text;
       });
     }
     case 'group':
-      throw new TypeError(`${path}：是分组，应传对象补丁`);
+      throw new TypeError(`${path}: là một nhóm, phải truyền đối tượng bản vá`);
   }
 }
 
 /** 校验补丁：未知键、类型或范围不对都抛错；null 表示该项恢复缺省，undefined 忽略。返回规整后的补丁。 */
 export function validateAppearancePatch_ACU(schema: AppearanceSchema_ACU, patch: unknown, path: string): AppearanceOverrides_ACU {
-  if (!isPlainObject_ACU(patch)) throw new TypeError(`${path}：补丁必须是对象`);
+  if (!isPlainObject_ACU(patch)) throw new TypeError(`${path}: bản vá phải là đối tượng`);
   const clean: AppearanceOverrides_ACU = {};
   for (const [key, value] of Object.entries(patch)) {
     const field = fieldOf_ACU(schema, key);
     const fieldPath = `${path}.${key}`;
-    if (!field) throw new RangeError(`${fieldPath}：不支持的设置项；可用：${Object.keys(schema).join('、')}`);
+    if (!field) throw new RangeError(`${fieldPath}: mục cài đặt không được hỗ trợ; có thể dùng: ${Object.keys(schema).join(', ')}`);
     if (value === undefined) continue;
     if (value === null) clean[key] = null;
     else if (field.kind === 'group') clean[key] = validateAppearancePatch_ACU(field.fields, value, fieldPath);
@@ -195,7 +195,7 @@ export function readAppearanceOverrides_ACU(schema: AppearanceSchema_ACU, stored
   const issues: string[] = [];
   const walk = (fields: AppearanceSchema_ACU, value: unknown, at: string): AppearanceOverrides_ACU => {
     if (!isPlainObject_ACU(value)) {
-      issues.push(`${at}：已存数据不是对象，按缺省处理`);
+      issues.push(`${at}: dữ liệu đã lưu không phải đối tượng, xử lý theo mặc định`);
       return {};
     }
     const out: AppearanceOverrides_ACU = {};
@@ -203,7 +203,7 @@ export function readAppearanceOverrides_ACU(schema: AppearanceSchema_ACU, stored
       const field = fieldOf_ACU(fields, key);
       const fieldPath = `${at}.${key}`;
       if (!field) {
-        issues.push(`${fieldPath}：无法识别的设置项，已忽略`);
+        issues.push(`${fieldPath}: mục cài đặt không nhận ra, đã bỏ qua`);
       } else if (field.kind === 'group') {
         const nested = walk(field.fields, raw, fieldPath);
         if (Object.keys(nested).length) out[key] = nested;
@@ -211,7 +211,7 @@ export function readAppearanceOverrides_ACU(schema: AppearanceSchema_ACU, stored
         try {
           out[key] = validateAppearanceValue_ACU(field, raw, fieldPath);
         } catch (error) {
-          issues.push(`${error instanceof Error ? error.message : String(error)}（按缺省处理）`);
+          issues.push(`${error instanceof Error ? error.message : String(error)} (xử lý theo mặc định)`);
         }
       }
     }
@@ -256,19 +256,19 @@ export function resetAppearanceOverrides_ACU(
   if (keys === undefined || keys === null) return {};
   const list = typeof keys === 'string' ? [keys] : keys;
   if (!Array.isArray(list) || list.some(key => typeof key !== 'string' || !key)) {
-    throw new TypeError(`${path}：要恢复的项应为字符串或字符串数组，如 'images' 或 'images.idle'`);
+    throw new TypeError(`${path}: mục cần khôi phục phải là chuỗi hoặc mảng chuỗi, ví dụ 'images' hoặc 'images.idle'`);
   }
   const remove = (fields: AppearanceSchema_ACU, current: AppearanceOverrides_ACU, segments: string[], at: string): AppearanceOverrides_ACU => {
     const [head, ...rest] = segments;
     const field = fieldOf_ACU(fields, head);
     const fieldPath = `${at}.${head}`;
-    if (!field) throw new RangeError(`${fieldPath}：不支持的设置项；可用：${Object.keys(fields).join('、')}`);
+    if (!field) throw new RangeError(`${fieldPath}: mục cài đặt không được hỗ trợ; có thể dùng: ${Object.keys(fields).join(', ')}`);
     const next = { ...current };
     if (!rest.length) {
       delete next[head];
       return next;
     }
-    if (field.kind !== 'group') throw new RangeError(`${fieldPath}：不是分组，不能再往下指定`);
+    if (field.kind !== 'group') throw new RangeError(`${fieldPath}: không phải nhóm, không thể chỉ định sâu hơn`);
     const nested = remove(field.fields, isPlainObject_ACU(current[head]) ? current[head] as AppearanceOverrides_ACU : {}, rest, fieldPath);
     if (Object.keys(nested).length) next[head] = nested;
     else delete next[head];
