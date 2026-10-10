@@ -15,6 +15,7 @@ Tiện ích **trí nhớ dạng bảng** cho [SillyTavern](https://github.com/Si
 - [Tính năng](#tính-năng)
 - [Cài đặt](#cài-đặt)
 - [Bắt đầu nhanh](#bắt-đầu-nhanh)
+- [Khuyên dùng: Frontend Database](#khuyên-dùng-frontend-database)
 - [Hướng dẫn sử dụng](#hướng-dẫn-sử-dụng)
 - [Chuyển từ bản tiếng Trung](#chuyển-từ-bản-tiếng-trung)
 - [Xử lý sự cố](#xử-lý-sự-cố)
@@ -90,6 +91,28 @@ Dùng cách này nếu bạn đã cài [Tavern Helper](https://github.com/N0VI02
 5. **Xem kết quả**: trang **Bảng điều khiển** hiển thị trạng thái bảng; bấm mở **trình chỉnh sửa trực quan** để xem/sửa từng hàng.
 
 Chỉ cần vậy là đã có trí nhớ dạng bảng. Các tính năng khác là tuỳ chọn.
+
+---
+
+## Khuyên dùng: Frontend Database
+
+Để **xem thông tin bảng dễ dàng hơn** ngay trong khung chat, nên cài thêm script giao diện **Frontend Database** cho Tavern Helper. Script hiển thị dữ liệu bảng thành thẻ và dashboard gọn gàng, cho phép sửa/xoá hàng trực tiếp, và biến bảng lựa chọn thành các nút bấm nhanh.
+
+Bản trong repo ([`extras/Frontend_Database-V13.47-vn.json`](./extras/Frontend_Database-V13.47-vn.json)) đã được vá cho tương thích với template tiếng Việt mới:
+
+- Nhận đúng **Bảng lựa chọn** để hiện nút lựa chọn nhanh.
+- Dashboard tự xếp thẻ cho bảng thông tin nhân vật chính, dữ liệu toàn cục, nhân vật quan trọng, vật phẩm hành trang, kỹ năng, nhiệm vụ.
+- Thẻ bảng kỷ yếu lấy **Mã chỉ mục** làm tiêu đề.
+- Escape HTML cho toàn bộ dữ liệu bảng, tránh vỡ giao diện khi nội dung có ký tự `<`, `>`, `&`.
+
+**Cài đặt:**
+
+1. Cần có [Tavern Helper (酒馆助手)](https://github.com/N0VI028/JS-Slash-Runner) và đã cài tiện ích này.
+2. Tải [`extras/Frontend_Database-V13.47-vn.json`](./extras/Frontend_Database-V13.47-vn.json) (mở tệp → **Download raw file**).
+3. Trong Tavern Helper, nhập tệp JSON vào danh sách script, bật script và tải lại trang.
+4. Nếu đã có bản Frontend Database cũ, tắt hoặc xoá bản cũ để không chạy hai bản cùng lúc. Dashboard từng cấu hình với tên bảng cũ có thể cần chọn lại bảng trong chế độ sửa dashboard.
+
+> Script này là dự án riêng (tác giả gốc: 夏休期; biên tập: a1185673398, Spark; cảm hứng: 九颜、Zaria; dịch: Decal), chỉ được vá nhỏ để tương thích. Nó dùng API công khai `window.AutoCardUpdaterAPI` của tiện ích, không thay đổi cách tiện ích lưu dữ liệu.
 
 ---
 
@@ -256,3 +279,4 @@ Quy ước dự án xem trong [`AGENTS.md`](./AGENTS.md).
 
 - Tác giả bản gốc tiếng Trung: dự án **龙血玄黄·数据库** (AutoCardUpdater).
 - Việt hoá: [TheZackNova](https://github.com/TheZackNova).
+- Script Frontend Database: tác giả gốc 夏休期; biên tập a1185673398, Spark; cảm hứng 九颜、Zaria; dịch Decal.
