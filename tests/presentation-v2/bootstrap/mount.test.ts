@@ -77,7 +77,7 @@ describe('mount — 当前文档场景', () => {
     expect(styles.length).toBeGreaterThan(0);
 
     const text = root!.textContent || '';
-    expect(text).toContain('奶·数据库 I');
+    expect(text).toContain('Nailong · CSDL I');
     // 高手模式默认页是 dashboard，sidebar 有"概览/配置/功能/工具"四组标题
     expect(text).toContain('Bảng điều khiển');
     expect(text).toContain('Tổng quan');
@@ -232,7 +232,7 @@ describe('mount — 当前文档场景', () => {
     expect(drawer).not.toBeNull();
     expect(menuButton!.getAttribute('aria-expanded')).toBe('true');
     expect(drawer!.querySelector('.acu-v2-app__mobile-nav-header')).toBeNull();
-    expect(drawer!.textContent).toContain('奶·数据库 I');
+    expect(drawer!.textContent).toContain('Nailong · CSDL I');
     expect(drawer!.getAttribute('data-acu-mobile-nav-width')).toBe('var(--acu-mobile-nav-width)');
     expect(drawer!.style.width).toBe('var(--acu-mobile-nav-width)');
     expect(drawer!.style.maxWidth).toBe('calc(100% - var(--acu-mobile-nav-edge-gap))');
