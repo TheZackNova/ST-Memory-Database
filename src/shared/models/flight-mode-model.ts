@@ -2,7 +2,14 @@ import type { SheetExportConfig_ACU } from './table-data';
 
 /** 模板构造期的占位 key。协调层会按显示名重新派生真实 key，运行时一律读 FlightModeState.bigSummarySheetKey。 */
 export const FLIGHT_MODE_BIG_SUMMARY_SHEET_KEY_ACU = 'sheet_acu_flight_big_summary';
-export const FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU = '大总结';
+export const FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU = 'Bảng tóm tắt lớn';
+/** Tên đã từng dùng cho bảng tóm tắt lớn; chat cũ vẫn mang tên tiếng Trung. Phần tử đầu là tên khi tạo mới. */
+export const FLIGHT_MODE_BIG_SUMMARY_SHEET_NAMES_ACU: readonly string[] = Object.freeze([FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU, '大总结']);
+
+export function isFlightModeBigSummarySheetName_ACU(name: unknown): boolean {
+  const normalized = String(name ?? '').trim();
+  return !!normalized && FLIGHT_MODE_BIG_SUMMARY_SHEET_NAMES_ACU.includes(normalized);
+}
 export const FLIGHT_MODE_MAX_VISIBLE_CHRONICLE_ROWS_ACU = 15;
 
 export interface FlightModeArchive_ACU {

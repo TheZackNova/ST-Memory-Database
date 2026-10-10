@@ -8,7 +8,7 @@ import {
 } from '../../data/storage/chat-history';
 import {
   FLIGHT_MODE_BIG_SUMMARY_SHEET_KEY_ACU,
-  FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU,
+  isFlightModeBigSummarySheetName_ACU,
   type FlightModeArchive_ACU,
   type FlightModeState_ACU,
 } from '../../shared/models/flight-mode-model';
@@ -60,8 +60,8 @@ function findSheet_ACU(data: Record<string, any> | null | undefined, matchesName
   return null;
 }
 
-function findSheetByName_ACU(data: Record<string, any> | null | undefined, name: string): { key: string; sheet: Sheet_ACU } | null {
-  return findSheet_ACU(data, candidate => candidate === name);
+function findBigSummarySheet_ACU(data: Record<string, any> | null | undefined): { key: string; sheet: Sheet_ACU } | null {
+  return findSheet_ACU(data, isFlightModeBigSummarySheetName_ACU);
 }
 
 function findChronicleSheet_ACU(data: Record<string, any> | null | undefined): { key: string; sheet: Sheet_ACU } | null {
@@ -93,7 +93,7 @@ function recoverRestoreTemplateFromEnabledScope_ACU(
   if (!template) return null;
 
   const summaryKeys = Object.entries(template)
-    .filter(([key, sheet]) => key === currentState.bigSummarySheetKey || (key.startsWith('sheet_') && (sheet as any)?.name === FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU))
+    .filter(([key, sheet]) => key === currentState.bigSummarySheetKey || (key.startsWith('sheet_') && isFlightModeBigSummarySheetName_ACU((sheet as any)?.name)))
     .map(([key]) => key);
   if (summaryKeys.length === 0) return null;
   summaryKeys.forEach(key => delete template[key]);
@@ -209,9 +209,9 @@ export async function enableFlightMode_ACU(): Promise<FlightModeTransitionResult
   const template = parseEffectiveTemplate_ACU();
 
   // 上次启用已提交模板、但开关状态没能落盘：按待完成归档补完，不重复提交模板。
-  if (template && findSheetByName_ACU(template, FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU)) {
+  if (template && findBigSummarySheet_ACU(template)) {
     const pending = readPendingEnable_ACU();
-    const existing = findSheetByName_ACU(currentJsonTableData_ACU, FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU);
+    const existing = findBigSummarySheet_ACU(currentJsonTableData_ACU);
     if (pending && existing) {
       try {
         await persistFlightModeState_ACU({
@@ -234,7 +234,7 @@ export async function enableFlightMode_ACU(): Promise<FlightModeTransitionResult
 
   const chronicleEntry = findChronicleSheet_ACU(template);
   if (!chronicleEntry) return { ok: false, reason: 'chronicle_not_found', visibleChronicleRowCount: check.visibleChronicleRowCount };
-  if (findSheetByName_ACU(template, FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU)) {
+  if (findBigSummarySheet_ACU(template)) {
     return { ok: false, reason: 'big_summary_sheet_key_conflict', visibleChronicleRowCount: check.visibleChronicleRowCount };
   }
 
@@ -280,7 +280,7 @@ export async function enableFlightMode_ACU(): Promise<FlightModeTransitionResult
   }
 
   // 协调层按显示名派生真实 key（大总结 → sheet_da_zong_jie），提交后必须重新解析。
-  const resolved = findSheetByName_ACU(currentJsonTableData_ACU, FLIGHT_MODE_BIG_SUMMARY_SHEET_NAME_ACU);
+  const resolved = findBigSummarySheet_ACU(currentJsonTableData_ACU);
   // 模板已提交但解析不到大总结表：保留待完成归档，下次启用可补完。
   if (!resolved) return { ok: false, reason: 'big_summary_sheet_key_unresolved', visibleChronicleRowCount: check.visibleChronicleRowCount };
 
