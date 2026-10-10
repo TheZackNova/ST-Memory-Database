@@ -88,8 +88,8 @@ const TIER_ORDER: readonly AcuUiTier[] = ['low', 'medium', 'high'];
 
 const tierDescriptions: Record<AcuUiTier, string> = {
   low: 'Hiển thị bàn làm việc điền bảng, chế độ điền bảng, đẩy cốt truyện, API, quản lý dữ liệu và nhật ký chạy trong công cụ nâng cao. Trang đẩy cốt truyện hiển thị cấu hình hoặc giải thích theo chế độ điền bảng hiện tại.',
-  medium: 'Ngoài chế độ gọn nhẹ, hiển thị thêm Agent, viết tiếp thông minh và nhập từ bên ngoài.',
-  high: 'Ngoài chế độ tiến cấp, hiển thị thêm Mô phỏng thế giới, thay thế nội dung, bảng điều khiển SQL và tùy chọn nhà phát triển.',
+  medium: 'Ngoài chế độ nhẹ, hiển thị thêm Agent, viết tiếp thông minh và nhập từ bên ngoài.',
+  high: 'Ngoài chế độ nâng cao, hiển thị thêm Mô phỏng thế giới, thay thế nội dung, bảng điều khiển SQL và tùy chọn nhà phát triển.',
 };
 
 function resetBrandClickSequence(): void {
@@ -117,7 +117,7 @@ async function openTierDialog(): Promise<void> {
     message: [
       ...TIER_ORDER.map((tier) => `${ACU_UI_TIER_LABELS[tier]}：${tierDescriptions[tier]}`),
       '',
-      'Nếu bạn chỉ cần chức năng ghi nhớ thì chế độ gọn nhẹ là đủ, hoàn toàn không cần bật các tính năng của chế độ tiến cấp hay nâng cao, cũng không cần cấu hình chúng.',
+      'Nếu bạn chỉ cần chức năng ghi nhớ thì chế độ nhẹ là đủ, hoàn toàn không cần bật các tính năng của chế độ nâng cao hay cao cấp, cũng không cần cấu hình chúng.',
       'Cấp tính năng chỉ ảnh hưởng hiển thị giao diện, không thay đổi chế độ điền bảng hay các tham số đã lưu.',
     ].join('\n'),
     actions: TIER_ORDER.map((tier) => ({
@@ -132,7 +132,7 @@ async function openTierDialog(): Promise<void> {
   if (selected === 'high') {
     const confirmed = await dialogStore.confirm({
       title: 'Chuẩn bị bật chế độ nâng cao',
-      message: 'Chế độ nâng cao sẽ hiển thị các lối vào như bảng điều khiển SQL và tùy chọn nhà phát triển. Việc hiển thị này không tự động thực hiện thao tác nguy hiểm.',
+      message: 'Chế độ cao cấp sẽ hiển thị các lối vào như bảng điều khiển SQL và tùy chọn nhà phát triển. Việc hiển thị này không tự động thực hiện thao tác nguy hiểm.',
       confirmLabel: 'Tiếp tục',
       confirmVariant: 'danger',
       confirmCountdownSeconds: 2,
